@@ -85,8 +85,14 @@ public class OfferSyncService implements AutoCloseable {
     @VisibleForTesting
     OfferSyncService(
         RestoreOfferBackupService restoreOfferBackupService,
-        StorageDistribution distribution, int bulkSize, int offerSyncThreadPoolSize, int offerSyncNumberOfRetries,
-        int offerSyncFirstAttemptWaitingTime, int offerSyncWaitingTime, int offerSyncAccessRequestCheckWaitingTime) {
+        StorageDistribution distribution,
+        int bulkSize,
+        int offerSyncThreadPoolSize,
+        int offerSyncNumberOfRetries,
+        int offerSyncFirstAttemptWaitingTime,
+        int offerSyncWaitingTime,
+        int offerSyncAccessRequestCheckWaitingTime
+    ) {
         this.restoreOfferBackupService = restoreOfferBackupService;
         this.distribution = distribution;
         this.bulkSize = bulkSize;
@@ -97,11 +103,15 @@ public class OfferSyncService implements AutoCloseable {
         this.executor = ExecutorUtils.createScalableBatchExecutorService(offerSyncThreadPoolSize);
     }
 
-    public boolean startSynchronization(String sourceOffer, String targetOffer, String strategyId,
-        List<OfferPartialSyncItem> items) {
+    public boolean startSynchronization(
+        String sourceOffer,
+        String targetOffer,
+        String strategyId,
+        List<OfferPartialSyncItem> items
+    ) {
         OfferSyncProcess offerSyncProcess = createOfferSyncProcess();
 
-        OfferSyncProcess currentOfferSyncProcess = lastOfferSyncService.updateAndGet((previousOfferSyncService) -> {
+        OfferSyncProcess currentOfferSyncProcess = lastOfferSyncService.updateAndGet(previousOfferSyncService -> {
             if (previousOfferSyncService != null && previousOfferSyncService.isRunning()) {
                 return previousOfferSyncService;
             }
@@ -119,14 +129,18 @@ public class OfferSyncService implements AutoCloseable {
         return true;
     }
 
-    void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId,
-        List<OfferPartialSyncItem> items, OfferSyncProcess offerSyncProcess) {
-
+    void runSynchronizationAsync(
+        String sourceOffer,
+        String targetOffer,
+        String strategyId,
+        List<OfferPartialSyncItem> items,
+        OfferSyncProcess offerSyncProcess
+    ) {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(
-            () -> {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
                 try {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     VitamThreadUtils.getVitamSession().setRequestId(requestId);
@@ -135,8 +149,7 @@ public class OfferSyncService implements AutoCloseable {
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during partial synchronization process execution", e);
                 }
-            }
-        );
+            });
     }
 
     /**
@@ -147,12 +160,16 @@ public class OfferSyncService implements AutoCloseable {
      * @param strategyId the identifier of the strategy containing the two offers
      * @param offset the offset of the process of the synchronisation
      */
-    public boolean startSynchronization(String sourceOffer, String targetOffer, String strategyId,
-        DataCategory dataCategory, Long offset) {
-
+    public boolean startSynchronization(
+        String sourceOffer,
+        String targetOffer,
+        String strategyId,
+        DataCategory dataCategory,
+        Long offset
+    ) {
         OfferSyncProcess offerSyncProcess = createOfferSyncProcess();
 
-        OfferSyncProcess currentOfferSyncProcess = lastOfferSyncService.updateAndGet((previousOfferSyncService) -> {
+        OfferSyncProcess currentOfferSyncProcess = lastOfferSyncService.updateAndGet(previousOfferSyncService -> {
             if (previousOfferSyncService != null && previousOfferSyncService.isRunning()) {
                 return previousOfferSyncService;
             }
@@ -165,9 +182,14 @@ public class OfferSyncService implements AutoCloseable {
             return false;
         }
 
-        LOGGER.info(String.format(
-            "Start the synchronization process of the new offer {%s} from the source offer {%s} fro category {%s}.",
-            targetOffer, sourceOffer, dataCategory));
+        LOGGER.info(
+            String.format(
+                "Start the synchronization process of the new offer {%s} from the source offer {%s} fro category {%s}.",
+                targetOffer,
+                sourceOffer,
+                dataCategory
+            )
+        );
 
         runSynchronizationAsync(sourceOffer, targetOffer, strategyId, dataCategory, offset, offerSyncProcess);
 
@@ -175,19 +197,30 @@ public class OfferSyncService implements AutoCloseable {
     }
 
     OfferSyncProcess createOfferSyncProcess() {
-        return new OfferSyncProcess(restoreOfferBackupService, distribution, bulkSize, offerSyncNumberOfRetries,
-            offerSyncFirstAttemptWaitingTime, offerSyncWaitingTime, offerSyncAccessRequestCheckWaitingTime);
+        return new OfferSyncProcess(
+            restoreOfferBackupService,
+            distribution,
+            bulkSize,
+            offerSyncNumberOfRetries,
+            offerSyncFirstAttemptWaitingTime,
+            offerSyncWaitingTime,
+            offerSyncAccessRequestCheckWaitingTime
+        );
     }
 
-    void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory,
+    void runSynchronizationAsync(
+        String sourceOffer,
+        String targetOffer,
+        String strategyId,
+        DataCategory dataCategory,
         Long offset,
-        OfferSyncProcess offerSyncProcess) {
-
+        OfferSyncProcess offerSyncProcess
+    ) {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(
-            () -> {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
                 try {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     VitamThreadUtils.getVitamSession().setRequestId(requestId);
@@ -196,8 +229,7 @@ public class OfferSyncService implements AutoCloseable {
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during synchronization process execution", e);
                 }
-            }
-        );
+            });
     }
 
     public boolean isRunning() {

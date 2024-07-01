@@ -61,5 +61,4 @@ public class CommonBusinessApplication {
     public Set<Object> getResources() {
         return resources;
     }
-
 }

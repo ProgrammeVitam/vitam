@@ -31,9 +31,7 @@ package fr.gouv.vitam.access.external.common.exception;
  */
 public class AccessExternalClientServerException extends AccessExternalClientException {
 
-
     private static final long serialVersionUID = -7061177161063839422L;
-
 
     /**
      * constructor with message

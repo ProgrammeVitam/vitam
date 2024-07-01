@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.storage.constants;
  * Enumeration of ExtendedAttributes managed by the ContentAddressableStorage
  */
 public enum ExtendedAttributes {
-
     /**
      * This metadata contains the digest of the file in the following format : DigestType:Digest_value
      */

@@ -68,19 +68,21 @@ public class GraphLoaderTest {
         unit2.put("_id", "12");
         unit2.put("_up", newHashSet("1"));
 
-
         Unit unit21 = new Unit();
         unit21.put("_id", "21");
         unit21.put("_up", newHashSet("11", "12"));
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("11", "12"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit1, unit2));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("11", "12"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit1, unit2)
+        );
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("1"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("1"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit)
+        );
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("21"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit21));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("21"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit21)
+        );
 
         // When
         graphLoader.loadGraphInfo(newArrayList("21"));
@@ -105,14 +107,17 @@ public class GraphLoaderTest {
         unit21.put("_id", "21");
         unit21.put("_up", newHashSet("11", "1"));
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("11", "1"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit1, unit));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("11", "1"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit1, unit)
+        );
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("1"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("1"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit)
+        );
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("21"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit21));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("21"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit21)
+        );
 
         // When
         graphLoader.loadGraphInfo(newHashSet("21"));
@@ -141,11 +146,13 @@ public class GraphLoaderTest {
         unit3.put("_id", "13");
         unit3.put("_up", newHashSet("1"));
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("11", "12", "13"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit1, unit2, unit3));
+        given(
+            mongoDbMetadataRepository.selectByIds(newHashSet("11", "12", "13"), UNIT_VITAM_GRAPH_PROJECTION)
+        ).willReturn(newArrayList(unit1, unit2, unit3));
 
-        given(mongoDbMetadataRepository.selectByIds(newHashSet("1"), UNIT_VITAM_GRAPH_PROJECTION))
-            .willReturn(newArrayList(unit));
+        given(mongoDbMetadataRepository.selectByIds(newHashSet("1"), UNIT_VITAM_GRAPH_PROJECTION)).willReturn(
+            newArrayList(unit)
+        );
 
         // When
         graphLoader.loadGraphInfo(newArrayList("11", "12", "13"));
@@ -162,5 +169,4 @@ public class GraphLoaderTest {
             .isInstanceOf(MetaDataException.class)
             .hasMessage("Cannot find parents: [1]");
     }
-
 }

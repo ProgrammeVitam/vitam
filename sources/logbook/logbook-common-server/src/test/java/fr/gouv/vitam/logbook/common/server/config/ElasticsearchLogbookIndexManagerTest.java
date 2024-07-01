@@ -43,7 +43,6 @@ public class ElasticsearchLogbookIndexManagerTest {
 
     @Test
     public void testIndexAliasResolverWithDefaultOnlyConfig() throws Exception {
-
         // Given
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config_defaults_only.yml")) {
@@ -51,12 +50,12 @@ public class ElasticsearchLogbookIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
 
-        ElasticsearchLogbookIndexManager indexManager =
-            new ElasticsearchLogbookIndexManager(config, tenants);
+        ElasticsearchLogbookIndexManager indexManager = new ElasticsearchLogbookIndexManager(config, tenants);
 
         // When
-        ElasticsearchIndexAliasResolver operationIndexAliasResolver =
-            indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION);
+        ElasticsearchIndexAliasResolver operationIndexAliasResolver = indexManager.getElasticsearchIndexAliasResolver(
+            LogbookCollections.OPERATION
+        );
 
         // Then
         assertThat(operationIndexAliasResolver.resolveIndexName(0).getName()).isEqualTo("logbookoperation_0");
@@ -66,7 +65,6 @@ public class ElasticsearchLogbookIndexManagerTest {
 
     @Test
     public void testIndexAliasResolverWithCustomConfig() throws Exception {
-
         // Given
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config.yml")) {
@@ -74,12 +72,12 @@ public class ElasticsearchLogbookIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
 
-        ElasticsearchLogbookIndexManager indexManager =
-            new ElasticsearchLogbookIndexManager(config, tenants);
+        ElasticsearchLogbookIndexManager indexManager = new ElasticsearchLogbookIndexManager(config, tenants);
 
         // When
-        ElasticsearchIndexAliasResolver operationIndexAliasResolver =
-            indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION);
+        ElasticsearchIndexAliasResolver operationIndexAliasResolver = indexManager.getElasticsearchIndexAliasResolver(
+            LogbookCollections.OPERATION
+        );
 
         // Then
         assertThat(operationIndexAliasResolver.resolveIndexName(0).getName()).isEqualTo("logbookoperation_0");
@@ -89,7 +87,6 @@ public class ElasticsearchLogbookIndexManagerTest {
 
     @Test
     public void testIndexSettingsWithDefaultOnlyConfig() throws Exception {
-
         // Given
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config_defaults_only.yml")) {
@@ -97,16 +94,21 @@ public class ElasticsearchLogbookIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
 
-        ElasticsearchLogbookIndexManager indexManager =
-            new ElasticsearchLogbookIndexManager(config, tenants);
+        ElasticsearchLogbookIndexManager indexManager = new ElasticsearchLogbookIndexManager(config, tenants);
 
         // When
-        ElasticsearchIndexSettings logbookOperation0IndexSettings =
-            indexManager.getElasticsearchIndexSettings(LogbookCollections.OPERATION, 0);
-        ElasticsearchIndexSettings logbookOperation10IndexSettings =
-            indexManager.getElasticsearchIndexSettings(LogbookCollections.OPERATION, 10);
-        ElasticsearchIndexSettings logbookOperation22IndexSettings =
-            indexManager.getElasticsearchIndexSettings(LogbookCollections.OPERATION, 22);
+        ElasticsearchIndexSettings logbookOperation0IndexSettings = indexManager.getElasticsearchIndexSettings(
+            LogbookCollections.OPERATION,
+            0
+        );
+        ElasticsearchIndexSettings logbookOperation10IndexSettings = indexManager.getElasticsearchIndexSettings(
+            LogbookCollections.OPERATION,
+            10
+        );
+        ElasticsearchIndexSettings logbookOperation22IndexSettings = indexManager.getElasticsearchIndexSettings(
+            LogbookCollections.OPERATION,
+            22
+        );
 
         // Then
         assertThat(logbookOperation0IndexSettings.getShards()).isEqualTo(2);
@@ -119,7 +121,6 @@ public class ElasticsearchLogbookIndexManagerTest {
 
     @Test
     public void testIndexSettingsWithCustomConfig() throws Exception {
-
         // Given
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config.yml")) {
@@ -127,16 +128,21 @@ public class ElasticsearchLogbookIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
 
-        ElasticsearchLogbookIndexManager indexManager =
-            new ElasticsearchLogbookIndexManager(config, tenants);
+        ElasticsearchLogbookIndexManager indexManager = new ElasticsearchLogbookIndexManager(config, tenants);
 
         // When
-        ElasticsearchIndexSettings logbookOperation0IndexSettings =
-            indexManager.getElasticsearchIndexSettings(LogbookCollections.OPERATION, 0);
-        ElasticsearchIndexSettings logbookOperation10IndexSettings =
-            indexManager.getElasticsearchIndexSettings(LogbookCollections.OPERATION, 10);
-        ElasticsearchIndexSettings logbookOperation22IndexSettings =
-            indexManager.getElasticsearchIndexSettings(LogbookCollections.OPERATION, 22);
+        ElasticsearchIndexSettings logbookOperation0IndexSettings = indexManager.getElasticsearchIndexSettings(
+            LogbookCollections.OPERATION,
+            0
+        );
+        ElasticsearchIndexSettings logbookOperation10IndexSettings = indexManager.getElasticsearchIndexSettings(
+            LogbookCollections.OPERATION,
+            10
+        );
+        ElasticsearchIndexSettings logbookOperation22IndexSettings = indexManager.getElasticsearchIndexSettings(
+            LogbookCollections.OPERATION,
+            22
+        );
 
         // Then
         assertThat(logbookOperation0IndexSettings.getShards()).isEqualTo(2);

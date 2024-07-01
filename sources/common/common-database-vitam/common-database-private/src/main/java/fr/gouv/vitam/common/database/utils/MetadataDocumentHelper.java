@@ -47,7 +47,6 @@ public class MetadataDocumentHelper {
     public static final String STORAGE_KEY = "_storage";
     public static final String STRATEGY_KEY = "strategyId";
 
-
     private enum ComputedGraphUnitFields {
         US("_us"),
         SPS("_sps"),
@@ -58,7 +57,6 @@ public class MetadataDocumentHelper {
         UDS("_uds"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
         VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules");
-
 
         private final String fieldName;
 
@@ -71,9 +69,7 @@ public class MetadataDocumentHelper {
         }
     }
 
-
     private enum TemporaryUnitFields {
-
         ELIMINATION("_elimination"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
         VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
@@ -92,9 +88,7 @@ public class MetadataDocumentHelper {
         }
     }
 
-
     private enum ComputedGraphObjectGroupFields {
-
         SPS("_sps"),
         US("_us"),
         GRAPH_LAST_PERSISTED_DATE("_glpd");
@@ -110,9 +104,7 @@ public class MetadataDocumentHelper {
         }
     }
 
-
     private enum TemporaryObjectGroupFields {
-
         ATOMIC_VERSION("_av"),
         APPROXIMATE_CREATION_DATE("_acd"),
         APPROXIMATE_UPDATE_DATE("_aud");
@@ -128,7 +120,6 @@ public class MetadataDocumentHelper {
         }
     }
 
-
     private static final List<String> computedGraphUnitFields;
     private static final List<String> computedGraphObjectGroupFields;
     private static final Set<String> temporaryUnitFields;
@@ -138,26 +129,36 @@ public class MetadataDocumentHelper {
 
     static {
         computedGraphUnitFields = ListUtils.unmodifiableList(
-            Arrays.stream(ComputedGraphUnitFields.values()).map(ComputedGraphUnitFields::getFieldName)
-                .collect(Collectors.toList()));
+            Arrays.stream(ComputedGraphUnitFields.values())
+                .map(ComputedGraphUnitFields::getFieldName)
+                .collect(Collectors.toList())
+        );
 
         computedGraphObjectGroupFields = ListUtils.unmodifiableList(
-            Arrays.stream(ComputedGraphObjectGroupFields.values()).map(ComputedGraphObjectGroupFields::getFieldName)
-                .collect(Collectors.toList()));
+            Arrays.stream(ComputedGraphObjectGroupFields.values())
+                .map(ComputedGraphObjectGroupFields::getFieldName)
+                .collect(Collectors.toList())
+        );
 
         temporaryUnitFields = SetUtils.unmodifiableSet(
-            Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
-                Collectors.toSet()));
+            Arrays.stream(TemporaryUnitFields.values())
+                .map(TemporaryUnitFields::getFieldName)
+                .collect(Collectors.toSet())
+        );
 
         temporaryObjectGroupFields = SetUtils.unmodifiableSet(
-            Arrays.stream(TemporaryObjectGroupFields.values()).map(TemporaryObjectGroupFields::getFieldName).collect(
-                Collectors.toSet()));
+            Arrays.stream(TemporaryObjectGroupFields.values())
+                .map(TemporaryObjectGroupFields::getFieldName)
+                .collect(Collectors.toSet())
+        );
 
-        computedUnitFields = SetUtils.unmodifiableSet(new HashSet<>(
-            CollectionUtils.union(computedGraphUnitFields, temporaryUnitFields)));
+        computedUnitFields = SetUtils.unmodifiableSet(
+            new HashSet<>(CollectionUtils.union(computedGraphUnitFields, temporaryUnitFields))
+        );
 
-        computedObjectGroupFields = SetUtils.unmodifiableSet(new HashSet<>(
-            CollectionUtils.union(computedGraphObjectGroupFields, temporaryObjectGroupFields)));
+        computedObjectGroupFields = SetUtils.unmodifiableSet(
+            new HashSet<>(CollectionUtils.union(computedGraphObjectGroupFields, temporaryObjectGroupFields))
+        );
     }
 
     /**
@@ -234,8 +235,11 @@ public class MetadataDocumentHelper {
             throw new IllegalArgumentException("Expected object json");
         }
         ObjectNode document = (ObjectNode) documentJson;
-        if (!document.has(STORAGE_KEY) || !document.get(STORAGE_KEY).has(STRATEGY_KEY)
-            || !document.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()) {
+        if (
+            !document.has(STORAGE_KEY) ||
+            !document.get(STORAGE_KEY).has(STRATEGY_KEY) ||
+            !document.get(STORAGE_KEY).get(STRATEGY_KEY).isTextual()
+        ) {
             throw new IllegalArgumentException("Expected storage/strategy information in MD document");
         }
         return document.get(STORAGE_KEY).get(STRATEGY_KEY).asText();
@@ -252,11 +256,13 @@ public class MetadataDocumentHelper {
             throw new IllegalArgumentException("Expected unit object json");
         }
         ObjectNode unit = (ObjectNode) unitJson;
-        if (!unit.has(VitamFieldsHelper.storage()) || !unit.get(VitamFieldsHelper.storage()).has(STRATEGY_KEY)
-            || !unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).isTextual()) {
+        if (
+            !unit.has(VitamFieldsHelper.storage()) ||
+            !unit.get(VitamFieldsHelper.storage()).has(STRATEGY_KEY) ||
+            !unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).isTextual()
+        ) {
             throw new IllegalArgumentException("Expected storage/strategy information in unit");
         }
         return unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).asText();
     }
-
 }

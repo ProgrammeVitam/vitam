@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.server.application.configuration;
  * Common interface for all application configuration.
  */
 public interface VitamApplicationConfigurationInterface {
-
     /**
      * getter jettyConfig
      *
@@ -83,5 +82,4 @@ public interface VitamApplicationConfigurationInterface {
     default VitamApplicationConfigurationInterface setBaseUri(String baseUri) {
         return this;
     }
-
 }

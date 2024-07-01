@@ -90,15 +90,26 @@ public class LRUCache<T> {
      * @param alertService alert service that is used for reporting cache capacity alerts.
      * @throws IllegalArgumentException when provided parameters have illegal values.
      */
-    public LRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,
-        Supplier<LRUCacheEvictionJudge<T>> evictionJudgeFactory, Consumer<T> evictionListener,
-        Stream<LRUCacheEntry<T>> initialEntries, Executor evictionExecutor, AlertService alertService)
-        throws IllegalArgumentException {
-
-        ParametersChecker.checkValue("maxCapacity mush be greater than evictionCapacity",
-            maxCapacity, evictionCapacity + 1);
-        ParametersChecker.checkValue("evictionCapacity must be greater than safeCapacity",
-            evictionCapacity, safeCapacity + 1);
+    public LRUCache(
+        long maxCapacity,
+        long evictionCapacity,
+        long safeCapacity,
+        Supplier<LRUCacheEvictionJudge<T>> evictionJudgeFactory,
+        Consumer<T> evictionListener,
+        Stream<LRUCacheEntry<T>> initialEntries,
+        Executor evictionExecutor,
+        AlertService alertService
+    ) throws IllegalArgumentException {
+        ParametersChecker.checkValue(
+            "maxCapacity mush be greater than evictionCapacity",
+            maxCapacity,
+            evictionCapacity + 1
+        );
+        ParametersChecker.checkValue(
+            "evictionCapacity must be greater than safeCapacity",
+            evictionCapacity,
+            safeCapacity + 1
+        );
         ParametersChecker.checkValue("safeCapacity must be positive", safeCapacity, 1);
         ParametersChecker.checkParameter("Missing evictionJudgeFactory", evictionJudgeFactory);
         ParametersChecker.checkParameter("Missing evictionListener", evictionListener);
@@ -122,9 +133,7 @@ public class LRUCache<T> {
         initializeCache(initialEntries);
     }
 
-    private void initializeCache(Stream<LRUCacheEntry<T>> initialEntries)
-        throws IllegalArgumentException {
-
+    private void initializeCache(Stream<LRUCacheEntry<T>> initialEntries) throws IllegalArgumentException {
         initialEntries.forEach(entry -> {
             // Check entry
             ParametersChecker.checkParameter("Null entry", entry);
@@ -140,8 +149,12 @@ public class LRUCache<T> {
             this.cacheEntryWeightMap.put(entry.getKey(), entry.getWeight());
             this.currentCapacity += entry.getWeight();
 
-            LOGGER.debug("Added an entry '{}' with weight {} and last access time: {} during initialization",
-                entry.getKey(), entry.getWeight(), entry.getLastAccessInstant());
+            LOGGER.debug(
+                "Added an entry '{}' with weight {} and last access time: {} during initialization",
+                entry.getKey(),
+                entry.getWeight(),
+                entry.getLastAccessInstant()
+            );
         });
 
         startAsyncEvictionProcessIfNeeded();
@@ -160,7 +173,6 @@ public class LRUCache<T> {
      */
     public synchronized void reserveEntry(LRUCacheEntry<T> entry)
         throws IllegalArgumentException, IllegalStateException {
-
         // Check entry
         ParametersChecker.checkParameter("Null entry", entry);
         ParametersChecker.checkParameter("Null entry key", entry.getKey());
@@ -168,9 +180,11 @@ public class LRUCache<T> {
         ParametersChecker.checkParameter("Entry weight must be positive", entry.getWeight());
 
         // Check duplicates
-        if (this.lruQueue.contains(entry.getKey()) ||
+        if (
+            this.lruQueue.contains(entry.getKey()) ||
             this.pendingEntryQueue.containsKey(entry.getKey()) ||
-            this.reservedEntryMap.containsKey(entry.getKey())) {
+            this.reservedEntryMap.containsKey(entry.getKey())
+        ) {
             throw new IllegalArgumentException("Entry '" + entry.getKey() + "' already exists in the cache.");
         }
 
@@ -178,9 +192,14 @@ public class LRUCache<T> {
         if (this.currentCapacity + entry.getWeight() >= this.maxCapacity) {
             String alertMessage = String.format(
                 "Cannot add entry '%s'. Cache capacity exceeded. Max capacity: %d. Eviction capacity: %d." +
-                    " Safe capacity: %d. Current capacity: %d. Entry capacity to reserve : %d",
-                entry.getKey(), this.maxCapacity, this.evictionCapacity, this.safeCapacity,
-                this.currentCapacity, entry.getWeight());
+                " Safe capacity: %d. Current capacity: %d. Entry capacity to reserve : %d",
+                entry.getKey(),
+                this.maxCapacity,
+                this.evictionCapacity,
+                this.safeCapacity,
+                this.currentCapacity,
+                entry.getWeight()
+            );
             alertService.createAlert(VitamLogLevel.ERROR, alertMessage);
             throw new IllegalStateException(alertMessage);
         }
@@ -203,7 +222,8 @@ public class LRUCache<T> {
         LRUCacheEntry<T> entry = reservedEntryMap.remove(entryKey);
         if (entry == null) {
             throw new IllegalArgumentException(
-                "Mo active reservation for entry " + entryKey + ". Reservation already confirmed or canceled?");
+                "Mo active reservation for entry " + entryKey + ". Reservation already confirmed or canceled?"
+            );
         }
 
         if (isAsyncEvictionRunning.get()) {
@@ -226,7 +246,8 @@ public class LRUCache<T> {
         LRUCacheEntry<T> entry = reservedEntryMap.remove(entryKey);
         if (entry == null) {
             throw new IllegalArgumentException(
-                "Mo active reservation for entry " + entryKey + ". Reservation already confirmed or canceled?");
+                "Mo active reservation for entry " + entryKey + ". Reservation already confirmed or canceled?"
+            );
         }
         currentCapacity -= entry.getWeight();
     }
@@ -241,15 +262,16 @@ public class LRUCache<T> {
      */
     public synchronized boolean updateEntryAccessTimestamp(T entryKey, Instant updatedLastAccessInstant)
         throws IllegalArgumentException {
-
         ParametersChecker.checkParameter("Missing entry key", entryKey);
         ParametersChecker.checkParameter("Null last access instant", updatedLastAccessInstant);
 
         // Reserved entry
         LRUCacheEntry<T> existingReservedEntry = this.reservedEntryMap.get(entryKey);
         if (existingReservedEntry != null) {
-            this.reservedEntryMap.put(entryKey,
-                new LRUCacheEntry<>(entryKey, existingReservedEntry.getWeight(), updatedLastAccessInstant));
+            this.reservedEntryMap.put(
+                    entryKey,
+                    new LRUCacheEntry<>(entryKey, existingReservedEntry.getWeight(), updatedLastAccessInstant)
+                );
             LOGGER.debug("Updated reserved entry '{}' timestamp", entryKey);
             return true;
         }
@@ -258,8 +280,10 @@ public class LRUCache<T> {
         LRUCacheEntry<T> existingPendingEntry = this.pendingEntryQueue.get(entryKey);
         if (existingPendingEntry != null) {
             // LinkedHashMap.put() preserves initial ordering when updating an entry.
-            this.pendingEntryQueue.put(entryKey, new LRUCacheEntry<>(
-                entryKey, existingPendingEntry.getWeight(), updatedLastAccessInstant));
+            this.pendingEntryQueue.put(
+                    entryKey,
+                    new LRUCacheEntry<>(entryKey, existingPendingEntry.getWeight(), updatedLastAccessInstant)
+                );
             LOGGER.debug("Updated pending cache entry '{}' access time to {}", entryKey, updatedLastAccessInstant);
             return true;
         }
@@ -284,7 +308,6 @@ public class LRUCache<T> {
      * @throws IllegalArgumentException when provided parameters have illegal values.
      */
     public synchronized boolean containsEntry(T entryKey) throws IllegalArgumentException {
-
         ParametersChecker.checkParameter("Missing entry key", entryKey);
 
         return this.lruQueue.contains(entryKey) || this.pendingEntryQueue.containsKey(entryKey);
@@ -298,7 +321,6 @@ public class LRUCache<T> {
      * @throws IllegalArgumentException when provided parameters have illegal values.
      */
     public synchronized boolean isReservedEntry(T entryKey) throws IllegalArgumentException {
-
         ParametersChecker.checkParameter("Missing entry key", entryKey);
 
         return this.reservedEntryMap.containsKey(entryKey);
@@ -312,7 +334,6 @@ public class LRUCache<T> {
      * @throws IllegalArgumentException when provided parameters have illegal values.
      */
     public synchronized LRUCacheEntry<T> getReservedEntry(T entryKey) throws IllegalArgumentException {
-
         ParametersChecker.checkParameter("Missing entry key", entryKey);
 
         return this.reservedEntryMap.get(entryKey);
@@ -350,14 +371,18 @@ public class LRUCache<T> {
         if (this.currentCapacity >= this.evictionCapacity && !isAsyncEvictionRunning.get()) {
             isAsyncEvictionRunning.set(true);
             evictionExecutor.execute(this::asyncEvictionProcess);
-            LOGGER.info("Cache capacity exceeded. Background eviction process started. Max capacity: {}. " +
-                    "Eviction capacity: {}. Safe capacity: {}. Current capacity: {}",
-                this.maxCapacity, this.evictionCapacity, this.safeCapacity, this.currentCapacity);
+            LOGGER.info(
+                "Cache capacity exceeded. Background eviction process started. Max capacity: {}. " +
+                "Eviction capacity: {}. Safe capacity: {}. Current capacity: {}",
+                this.maxCapacity,
+                this.evictionCapacity,
+                this.safeCapacity,
+                this.currentCapacity
+            );
         }
     }
 
     private void asyncEvictionProcess() throws IllegalStateException {
-
         String initialThreadName = Thread.currentThread().getName();
         try {
             Thread.currentThread().setName("CacheEvictionProcess-" + initialThreadName);
@@ -367,12 +392,10 @@ public class LRUCache<T> {
 
             // Evict old entries (synchronized)
             evictOldEntries(lruCacheEvictionJudge);
-
         } catch (RuntimeException e) {
             LOGGER.error(e);
             alertService.createAlert(VitamLogLevel.ERROR, "Cache eviction process failed", e);
         } finally {
-
             finalizeEvictionProcess();
 
             Thread.currentThread().setName(initialThreadName);
@@ -390,10 +413,14 @@ public class LRUCache<T> {
     }
 
     private synchronized void evictOldEntries(LRUCacheEvictionJudge<T> lruCacheEvictionJudge) {
-
-        LOGGER.info("Cache capacity exceeded. Trying to free some disk space. Max capacity: {}. " +
-                "Eviction capacity: {}. Safe capacity: {}. Current capacity: {}",
-            this.maxCapacity, this.evictionCapacity, this.safeCapacity, this.currentCapacity);
+        LOGGER.info(
+            "Cache capacity exceeded. Trying to free some disk space. Max capacity: {}. " +
+            "Eviction capacity: {}. Safe capacity: {}. Current capacity: {}",
+            this.maxCapacity,
+            this.evictionCapacity,
+            this.safeCapacity,
+            this.currentCapacity
+        );
 
         // Evict oldest non-deletable entries until evictionTargetCapacity is reached
         Iterator<T> lruEntryIterator = this.lruQueue.iterator();
@@ -401,8 +428,10 @@ public class LRUCache<T> {
             T entryKeyToEvict = lruEntryIterator.next();
 
             if (!lruCacheEvictionJudge.canEvictEntry(entryKeyToEvict)) {
-                LOGGER.info("Entry {} has not been accessed recently, but is non deletable from cache",
-                    entryKeyToEvict);
+                LOGGER.info(
+                    "Entry {} has not been accessed recently, but is non deletable from cache",
+                    entryKeyToEvict
+                );
                 continue;
             }
 
@@ -418,21 +447,31 @@ public class LRUCache<T> {
 
         // If target memory capacity reached : OK
         if (this.currentCapacity < this.safeCapacity) {
-            LOGGER.info("Enough space freed. Max capacity: {}. Eviction capacity: {}. Safe capacity: {}. Current " +
-                "capacity: {}", this.maxCapacity, this.evictionCapacity, this.safeCapacity, this.currentCapacity);
+            LOGGER.info(
+                "Enough space freed. Max capacity: {}. Eviction capacity: {}. Safe capacity: {}. Current " +
+                "capacity: {}",
+                this.maxCapacity,
+                this.evictionCapacity,
+                this.safeCapacity,
+                this.currentCapacity
+            );
             return;
         }
 
         // Target memory capacity cannot be reached, a warning should be emitted.
         String alertMessage = String.format(
             "Critical cache level. Max capacity: %d. Eviction capacity: %d. Safe capacity: %d. Current " +
-                "capacity: %d", this.maxCapacity, this.evictionCapacity, this.safeCapacity, this.currentCapacity);
+            "capacity: %d",
+            this.maxCapacity,
+            this.evictionCapacity,
+            this.safeCapacity,
+            this.currentCapacity
+        );
         LOGGER.warn(alertMessage);
         alertService.createAlert(VitamLogLevel.WARN, alertMessage);
     }
 
     private synchronized void finalizeEvictionProcess() {
-
         // Move pending entries to cache
         for (LRUCacheEntry<T> lruCacheEntry : this.pendingEntryQueue.values()) {
             this.lruQueue.add(lruCacheEntry.getKey(), lruCacheEntry.getLastAccessInstant().toEpochMilli());

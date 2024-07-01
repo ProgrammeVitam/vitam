@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.workspace.api.exception;
 
-
 /**
  * Thrown when the workspace client server is unavailable
  */

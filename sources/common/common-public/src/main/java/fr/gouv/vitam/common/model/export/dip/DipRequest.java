@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 
 public class DipRequest {
+
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions dataObjectVersionToExport;
 
@@ -39,7 +40,6 @@ public class DipRequest {
 
     @JsonProperty("dipRequestParameters")
     private DipRequestParameters dipRequestParameters;
-
 
     @JsonProperty("exportWithLogBookLFC")
     private boolean exportWithLogBookLFC;
@@ -53,16 +53,19 @@ public class DipRequest {
     @JsonProperty("sedaVersion")
     private String sedaVersion;
 
-    public DipRequest() {
-    }
-
+    public DipRequest() {}
 
     public DipRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
     }
 
-    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC,
-        Long maxSizeThreshold, String sedaVersion) {
+    public DipRequest(
+        DataObjectVersions dataObjectVersionToExport,
+        JsonNode dslRequest,
+        boolean withLogBookLFC,
+        Long maxSizeThreshold,
+        String sedaVersion
+    ) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
@@ -70,7 +73,12 @@ public class DipRequest {
         this.sedaVersion = sedaVersion;
     }
 
-    public DipRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC, String sedaVersion) {
+    public DipRequest(
+        DataObjectVersions dataObjectVersionToExport,
+        JsonNode dslRequest,
+        boolean withLogBookLFC,
+        String sedaVersion
+    ) {
         this(dataObjectVersionToExport, dslRequest, withLogBookLFC, null, sedaVersion);
     }
 

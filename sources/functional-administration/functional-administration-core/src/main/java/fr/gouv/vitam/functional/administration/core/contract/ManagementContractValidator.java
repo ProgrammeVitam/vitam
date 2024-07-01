@@ -57,9 +57,6 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface ManagementContractValidator extends GenericContractValidator<ManagementContractModel> {
-
-
-
     /**
      * Validate a contract object
      *

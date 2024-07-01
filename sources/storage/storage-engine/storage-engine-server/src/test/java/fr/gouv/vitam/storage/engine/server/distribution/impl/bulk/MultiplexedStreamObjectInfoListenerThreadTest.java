@@ -51,22 +51,18 @@ import static org.mockito.Mockito.verify;
 public class MultiplexedStreamObjectInfoListenerThreadTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     @RunWithCustomExecutor
     public void testExtractObjectInfo() throws Exception {
-
         // Given
         String requestId = GUIDFactory.newGUID().getId();
         List<String> objectIds = Arrays.asList("ob1", "ob2", "ob3");
 
-        byte[][] entries = new byte[][] {
-            "some data".getBytes(),
-            "".getBytes(),
-            "another data".getBytes()
-        };
+        byte[][] entries = new byte[][] { "some data".getBytes(), "".getBytes(), "another data".getBytes() };
 
         ByteArrayOutputStream headerOutputStream = new ByteArrayOutputStream();
         JsonHandler.writeAsOutputStream(objectIds, headerOutputStream);
@@ -83,8 +79,13 @@ public class MultiplexedStreamObjectInfoListenerThreadTest {
 
         // When
         MultiplexedStreamObjectInfoListenerThread multiplexedStreamObjectInfoListenerThread =
-            new MultiplexedStreamObjectInfoListenerThread(2, requestId, multiplexedInputStream, DigestType.SHA512,
-                objectIds);
+            new MultiplexedStreamObjectInfoListenerThread(
+                2,
+                requestId,
+                multiplexedInputStream,
+                DigestType.SHA512,
+                objectIds
+            );
         List<ObjectInfo> result = multiplexedStreamObjectInfoListenerThread.call();
 
         // Then

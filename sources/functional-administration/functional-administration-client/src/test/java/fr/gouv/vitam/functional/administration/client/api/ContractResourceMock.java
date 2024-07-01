@@ -85,7 +85,6 @@ public class ContractResourceMock {
         return mock.post();
     }
 
-
     @Path(UPDATE_ACCESS_CONTRACT_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -110,13 +109,14 @@ public class ContractResourceMock {
         return mock.get();
     }
 
-
     @Path(MANAGEMENT_CONTRACTS_URI)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importManagementContracts(List<ManagementContractModel> managementContractModelList,
-        @Context UriInfo uri) {
+    public Response importManagementContracts(
+        List<ManagementContractModel> managementContractModelList,
+        @Context UriInfo uri
+    ) {
         return mock.post();
     }
 

@@ -74,16 +74,18 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    AuditCheckObjectPlugin(AuditExistenceService auditExistenceService, AuditIntegrityService auditIntegrityService,
-        AuditReportService auditReportService) {
+    AuditCheckObjectPlugin(
+        AuditExistenceService auditExistenceService,
+        AuditIntegrityService auditIntegrityService,
+        AuditReportService auditReportService
+    ) {
         this.auditExistenceService = auditExistenceService;
         this.auditIntegrityService = auditIntegrityService;
         this.auditReportService = auditReportService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         LOGGER.debug("Starting audit");
 
         try {
@@ -92,11 +94,9 @@ public class AuditCheckObjectPlugin extends ActionHandler {
             LOGGER.error(String.format("Audit action failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(AUDIT_CHECK_OBJECT, e.getStatusCode(), null);
         }
-
     }
 
-    private ItemStatus executeAudit(WorkerParameters param, HandlerIO handler)
-        throws ProcessingStatusException {
+    private ItemStatus executeAudit(WorkerParameters param, HandlerIO handler) throws ProcessingStatusException {
         final ItemStatus itemStatus = new ItemStatus(AUDIT_CHECK_OBJECT);
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         String action = mapParameters.get(WorkerParameterName.auditActions);
@@ -125,7 +125,6 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         AuditObjectGroup auditDistributionLine;
         try {
             auditDistributionLine = JsonHandler.getFromJsonNode(param.getObjectMetadata(), AuditObjectGroup.class);
-
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load audit object group data", e);
         }
@@ -134,46 +133,61 @@ public class AuditCheckObjectPlugin extends ActionHandler {
 
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws ProcessingStatusException {
         try {
-            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK),
-                new TypeReference<>() {
-                });
+            return JsonHandler.getFromFileAsTypeReference(
+                (File) handler.getInput(STRATEGIES_IN_RANK),
+                new TypeReference<>() {}
+            );
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }
     }
 
-    private AuditObjectGroupReportEntry createAuditObjectGroupReportEntry(AuditObjectGroup gotDetail,
-        AuditCheckObjectGroupResult result, String outcome) {
-
-        AuditObjectGroupReportEntry auditObjectGroupReportEntry = new AuditObjectGroupReportEntry(gotDetail.getId(),
-            gotDetail.getUnitUps(), gotDetail.getSp(), gotDetail.getOpi(), new ArrayList<AuditObjectVersion>(),
-            ReportStatus.parseFromStatusCode(result.getStatus()), outcome);
+    private AuditObjectGroupReportEntry createAuditObjectGroupReportEntry(
+        AuditObjectGroup gotDetail,
+        AuditCheckObjectGroupResult result,
+        String outcome
+    ) {
+        AuditObjectGroupReportEntry auditObjectGroupReportEntry = new AuditObjectGroupReportEntry(
+            gotDetail.getId(),
+            gotDetail.getUnitUps(),
+            gotDetail.getSp(),
+            gotDetail.getOpi(),
+            new ArrayList<AuditObjectVersion>(),
+            ReportStatus.parseFromStatusCode(result.getStatus()),
+            outcome
+        );
 
         for (AuditCheckObjectResult objectResult : result.getObjectStatuses()) {
-
-            AuditObject auditObject = IterableUtils.find(gotDetail.getObjects(),
-                object -> object.getId().equals(objectResult.getIdObject()));
+            AuditObject auditObject = IterableUtils.find(
+                gotDetail.getObjects(),
+                object -> object.getId().equals(objectResult.getIdObject())
+            );
 
             String strategyId = null;
             if (auditObject.getStorage() != null) {
                 strategyId = auditObject.getStorage().getStrategyId();
             }
-            AuditObjectVersion objectVersion = new AuditObjectVersion(auditObject.getId(), auditObject.getOpi(),
-                auditObject.getQualifier(), auditObject.getVersion(), strategyId,
-                (List<ReportItemStatus>) objectResult.getOfferStatuses().entrySet().stream()
+            AuditObjectVersion objectVersion = new AuditObjectVersion(
+                auditObject.getId(),
+                auditObject.getOpi(),
+                auditObject.getQualifier(),
+                auditObject.getVersion(),
+                strategyId,
+                (List<ReportItemStatus>) objectResult
+                    .getOfferStatuses()
+                    .entrySet()
+                    .stream()
                     .map(e -> new ReportItemStatus(e.getKey(), ReportStatus.parseFromStatusCode(e.getValue())))
                     .collect(Collectors.toList()),
-                ReportStatus.parseFromStatusCode(objectResult.getGlobalStatus()));
+                ReportStatus.parseFromStatusCode(objectResult.getGlobalStatus())
+            );
 
             auditObjectGroupReportEntry.getObjectVersions().add(objectVersion);
-
         }
         return auditObjectGroupReportEntry;
-
     }
 
     private void addReportEntry(String processId, AuditObjectGroupReportEntry entry) throws ProcessingStatusException {
         auditReportService.appendEntries(processId, Arrays.asList(entry));
     }
-
 }

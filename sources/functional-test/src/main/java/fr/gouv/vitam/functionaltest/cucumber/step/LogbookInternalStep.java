@@ -66,17 +66,18 @@ public class LogbookInternalStep extends CommonStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                RequestResponseOK<TenantLogbookOperationTraceabilityResult> response =
-                    world.getLogbookOperationsClient().traceability(Collections.singletonList(world.getTenantId()));
+                RequestResponseOK<TenantLogbookOperationTraceabilityResult> response = world
+                    .getLogbookOperationsClient()
+                    .traceability(Collections.singletonList(world.getTenantId()));
 
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
                 String operationId;
                 if (response.getResults().isEmpty() || response.getResults().get(0).getOperationId() == null) {
                     LOGGER.info("no need to run traceability");
-                    RequestResponse<JsonNode> logbookResponse =
-                        world.getLogbookOperationsClient()
-                            .getLastOperationByType("STP_OP_SECURISATION");
+                    RequestResponse<JsonNode> logbookResponse = world
+                        .getLogbookOperationsClient()
+                        .getLastOperationByType("STP_OP_SECURISATION");
                     if (!logbookResponse.isOk()) {
                         fail("no traceability operation found");
                         return;
@@ -113,9 +114,9 @@ public class LogbookInternalStep extends CommonStep {
 
             if (response.getResults().isEmpty()) {
                 LOGGER.info("no need to run traceability");
-                RequestResponse<JsonNode> logbookResponse =
-                    world.getLogbookOperationsClient()
-                        .getLastOperationByType(Contexts.UNIT_LFC_TRACEABILITY.getEventType());
+                RequestResponse<JsonNode> logbookResponse = world
+                    .getLogbookOperationsClient()
+                    .getLastOperationByType(Contexts.UNIT_LFC_TRACEABILITY.getEventType());
                 if (!logbookResponse.isOk()) {
                     fail("no traceability operation found");
                     return;
@@ -150,9 +151,9 @@ public class LogbookInternalStep extends CommonStep {
 
             if (response.getResults().isEmpty()) {
                 LOGGER.info("no need to run traceability");
-                RequestResponse<JsonNode> logbookResponse =
-                    world.getLogbookOperationsClient()
-                        .getLastOperationByType(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
+                RequestResponse<JsonNode> logbookResponse = world
+                    .getLogbookOperationsClient()
+                    .getLastOperationByType(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
                 if (!logbookResponse.isOk()) {
                     fail("no traceability operation found");
                     return;
@@ -174,8 +175,8 @@ public class LogbookInternalStep extends CommonStep {
         });
     }
 
-    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK<String> requestResponseOK) throws
-        VitamException {
+    private void checkTraceabilityLfcResponseOKOrWarn(RequestResponseOK<String> requestResponseOK)
+        throws VitamException {
         assertThat(requestResponseOK.isOk()).isTrue();
 
         final String traceabilityOperationId = requestResponseOK.getHeaderString(GlobalDataRest.X_REQUEST_ID);

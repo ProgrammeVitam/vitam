@@ -33,14 +33,14 @@ public class CollectExternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        CollectExternalClientFactory
-            .changeMode(CollectExternalClientFactory.changeConfigurationFile("collect-external-client.conf"));
+        CollectExternalClientFactory.changeMode(
+            CollectExternalClientFactory.changeConfigurationFile("collect-external-client.conf")
+        );
     }
-
 
     @Test
     public void collect_client_factory_should_return_collect_client_instance_on_getClient_method_call() {
-/*        CollectClientFactory.changeConfigurationFile();
+        /*        CollectClientFactory.changeConfigurationFile();
         CollectClient client = CollectClientFactory.getInstance().getClient();
         assertNotNull(client);*/
     }

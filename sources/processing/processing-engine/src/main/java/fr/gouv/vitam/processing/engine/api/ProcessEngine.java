@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.engine.api;
 
-
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
@@ -40,8 +39,6 @@ import java.util.concurrent.CompletableFuture;
  */
 
 public interface ProcessEngine {
-
-
     /**
      * Set the state machine where the ProcessEngine return response on complete or on error
      *

@@ -58,12 +58,14 @@ public class OfferLogIteratorTest {
 
     @Test
     public void testEmpty() throws Exception {
-
         // Given
-        OfferLogIterator
-            offerLogIterator =
-            new OfferLogIterator(VitamConfiguration.getDefaultStrategy(), Order.DESC, DataCategory.UNIT,
-                storageDistribution, 1000);
+        OfferLogIterator offerLogIterator = new OfferLogIterator(
+            VitamConfiguration.getDefaultStrategy(),
+            Order.DESC,
+            DataCategory.UNIT,
+            storageDistribution,
+            1000
+        );
         doReturn(new RequestResponseOK<OfferLog>())
             .when(storageDistribution)
             .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 1000, Order.DESC);
@@ -72,24 +74,36 @@ public class OfferLogIteratorTest {
         assertThat(offerLogIterator.hasNext()).isFalse();
         assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
 
-        verify(storageDistribution).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 1000,
-            Order.DESC);
+        verify(storageDistribution).getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT,
+            null,
+            1000,
+            Order.DESC
+        );
         verifyNoMoreInteractions(storageDistribution);
     }
 
     @Test
     public void testOnePage() throws Exception {
-
         // Given
-        OfferLogIterator
-            offerLogIterator =
-            new OfferLogIterator(VitamConfiguration.getDefaultStrategy(), Order.DESC, DataCategory.UNIT,
-                storageDistribution, 1000);
+        OfferLogIterator offerLogIterator = new OfferLogIterator(
+            VitamConfiguration.getDefaultStrategy(),
+            Order.DESC,
+            DataCategory.UNIT,
+            storageDistribution,
+            1000
+        );
 
-        doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
-            new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
-            new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE),
-            new OfferLog(300L, null, "0_unit", "file3", OfferLogAction.WRITE))))
+        doReturn(
+            new RequestResponseOK<OfferLog>().addAllResults(
+                Arrays.asList(
+                    new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
+                    new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE),
+                    new OfferLog(300L, null, "0_unit", "file3", OfferLogAction.WRITE)
+                )
+            )
+        )
             .when(storageDistribution)
             .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 1000, Order.DESC);
 
@@ -103,23 +117,35 @@ public class OfferLogIteratorTest {
         assertThat(offerLogIterator.hasNext()).isFalse();
         assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
 
-        verify(storageDistribution).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 1000,
-            Order.DESC);
+        verify(storageDistribution).getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT,
+            null,
+            1000,
+            Order.DESC
+        );
         verifyNoMoreInteractions(storageDistribution);
     }
 
     @Test
     public void testExactlyOnePage() throws Exception {
-
         // Given
-        OfferLogIterator
-            offerLogIterator =
-            new OfferLogIterator(VitamConfiguration.getDefaultStrategy(), Order.DESC, DataCategory.UNIT,
-                storageDistribution, 2);
+        OfferLogIterator offerLogIterator = new OfferLogIterator(
+            VitamConfiguration.getDefaultStrategy(),
+            Order.DESC,
+            DataCategory.UNIT,
+            storageDistribution,
+            2
+        );
 
-        doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
-            new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
-            new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE))))
+        doReturn(
+            new RequestResponseOK<OfferLog>().addAllResults(
+                Arrays.asList(
+                    new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
+                    new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE)
+                )
+            )
+        )
             .when(storageDistribution)
             .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 2, Order.DESC);
 
@@ -135,30 +161,50 @@ public class OfferLogIteratorTest {
         assertThat(offerLogIterator.hasNext()).isFalse();
         assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
 
-        verify(storageDistribution).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 2,
-            Order.DESC);
-        verify(storageDistribution).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 399L, 2,
-            Order.DESC);
+        verify(storageDistribution).getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT,
+            null,
+            2,
+            Order.DESC
+        );
+        verify(storageDistribution).getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT,
+            399L,
+            2,
+            Order.DESC
+        );
         verifyNoMoreInteractions(storageDistribution);
     }
 
     @Test
     public void testMultiPages() throws Exception {
-
         // Given
-        OfferLogIterator
-            offerLogIterator =
-            new OfferLogIterator(VitamConfiguration.getDefaultStrategy(), Order.DESC, DataCategory.UNIT,
-                storageDistribution, 2);
+        OfferLogIterator offerLogIterator = new OfferLogIterator(
+            VitamConfiguration.getDefaultStrategy(),
+            Order.DESC,
+            DataCategory.UNIT,
+            storageDistribution,
+            2
+        );
 
-        doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
-            new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
-            new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE))))
+        doReturn(
+            new RequestResponseOK<OfferLog>().addAllResults(
+                Arrays.asList(
+                    new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
+                    new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE)
+                )
+            )
+        )
             .when(storageDistribution)
             .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 2, Order.DESC);
 
-        doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
-            new OfferLog(300L, null, "0_unit", "file3", OfferLogAction.WRITE))))
+        doReturn(
+            new RequestResponseOK<OfferLog>().addAllResults(
+                Arrays.asList(new OfferLog(300L, null, "0_unit", "file3", OfferLogAction.WRITE))
+            )
+        )
             .when(storageDistribution)
             .getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 399L, 2, Order.DESC);
 
@@ -172,10 +218,20 @@ public class OfferLogIteratorTest {
         assertThat(offerLogIterator.hasNext()).isFalse();
         assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
 
-        verify(storageDistribution).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null, 2,
-            Order.DESC);
-        verify(storageDistribution).getOfferLogs(VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, 399L, 2,
-            Order.DESC);
+        verify(storageDistribution).getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT,
+            null,
+            2,
+            Order.DESC
+        );
+        verify(storageDistribution).getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            DataCategory.UNIT,
+            399L,
+            2,
+            Order.DESC
+        );
         verifyNoMoreInteractions(storageDistribution);
     }
 }

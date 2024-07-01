@@ -50,8 +50,8 @@ import java.nio.file.StandardOpenOption;
  * File Utility class
  */
 public final class FileUtil {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(FileUtil.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileUtil.class);
 
     private static final String FILE_CANT_BE_DELETED = "File could not be deleted: ";
 
@@ -95,8 +95,7 @@ public final class FileUtil {
      * @return the content of the file
      * @throws IOException
      */
-    public static final String readPartialFile(final File file, int limit)
-        throws IOException {
+    public static final String readPartialFile(final File file, int limit) throws IOException {
         String result = "";
 
         if (file != null && file.canRead() && limit > 0) {
@@ -202,7 +201,6 @@ public final class FileUtil {
      */
     public static File createFileInTempDirectoryWithPathCheck(String filename, String fileExtension)
         throws IOException, IllegalPathException {
-
         String subPaths = Strings.isNullOrEmpty(fileExtension) ? filename : filename + fileExtension;
 
         SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), subPaths);
@@ -223,12 +221,10 @@ public final class FileUtil {
     }
 
     public static void fsyncFile(Path path) throws IOException {
-        try (FileChannel fileChannel =
-            FileChannel.open(path, StandardOpenOption.WRITE)) {
+        try (FileChannel fileChannel = FileChannel.open(path, StandardOpenOption.WRITE)) {
             fileChannel.force(true);
         }
     }
-
 
     public static File convertInputStreamToFile(InputStream stream, String filename, String extension)
         throws IOException, IllegalPathException {

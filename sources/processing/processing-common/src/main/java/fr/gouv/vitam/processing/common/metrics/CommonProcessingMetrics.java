@@ -54,7 +54,8 @@ public class CommonProcessingMetrics {
         .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_CURRENT_TASK_TOTAL)
         .labelNames("worker_family", "workflow", "step_name")
         .help(
-            "Current number of worker tasks instantiated by the distributor. In queue or waiting to be added to the queue")
+            "Current number of worker tasks instantiated by the distributor. In queue or waiting to be added to the queue"
+        )
         .register();
 
     /**
@@ -76,7 +77,8 @@ public class CommonProcessingMetrics {
     public static final Histogram WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM = Histogram.build()
         .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_TASK_EXECUTION_DURATION_SECONDS)
         .help(
-            "Worker tasks execution duration. From call of worker until receiving the response. Task contains one or collection of elements to send to workers")
+            "Worker tasks execution duration. From call of worker until receiving the response. Task contains one or collection of elements to send to workers"
+        )
         .labelNames("worker_family", "worker_name", "workflow", "step_name")
         .buckets(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 300, 600, 1800, 3600)
         .register();
@@ -88,10 +90,33 @@ public class CommonProcessingMetrics {
     public static final Histogram WORKER_TASKS_IDLE_DURATION_IN_QUEUE = Histogram.build()
         .name(VitamMetricsNames.VITAM_PROCESSING_WORKER_TASK_IDLE_DURATION_IN_QUEUE_SECONDS)
         .help(
-            "Worker tasks waiting time since task creation until task dequeue from the queue. Task contains one or collection of elements to send to workers")
+            "Worker tasks waiting time since task creation until task dequeue from the queue. Task contains one or collection of elements to send to workers"
+        )
         .labelNames("worker_family", "workflow", "step_name")
-        .buckets(.005, .01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 300, 600, 1800,
-            3600)
+        .buckets(
+            .005,
+            .01,
+            .025,
+            .05,
+            .075,
+            .1,
+            .25,
+            .5,
+            .75,
+            1,
+            2.5,
+            5,
+            7.5,
+            10,
+            30,
+            60,
+            120,
+            180,
+            300,
+            600,
+            1800,
+            3600
+        )
         .register();
 
     /**

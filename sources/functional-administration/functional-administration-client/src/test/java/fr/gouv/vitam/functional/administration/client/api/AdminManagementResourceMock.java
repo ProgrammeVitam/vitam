@@ -54,10 +54,10 @@ import java.util.List;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 
-
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class AdminManagementResourceMock extends ApplicationStatusResource {
+
     private static final String AUDIT_URI = "/audit";
     private static final String AUDIT_RULE_URI = "/auditRule";
 
@@ -79,8 +79,7 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
     protected void consumeAndCloseStream(InputStream xmlPronom) {
         try {
             if (null != xmlPronom) {
-                while (xmlPronom.read() > 0) {
-                }
+                while (xmlPronom.read() > 0) {}
                 xmlPronom.close();
             }
         } catch (IOException e) {
@@ -176,7 +175,6 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response launchRuleAudit() {
         return mock.post();
-
     }
 
     @Path(AUDIT_URI)
@@ -226,5 +224,4 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
     public Response createExternalOperation(LogbookOperationParameters logbook) {
         return mock.post();
     }
-
 }

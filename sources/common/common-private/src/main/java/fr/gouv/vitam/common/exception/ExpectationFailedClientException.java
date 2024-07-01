@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.exception;
 import fr.gouv.vitam.common.error.VitamError;
 
 public class ExpectationFailedClientException extends VitamException {
+
     public ExpectationFailedClientException(VitamError vitamError) {
         super(vitamError);
     }

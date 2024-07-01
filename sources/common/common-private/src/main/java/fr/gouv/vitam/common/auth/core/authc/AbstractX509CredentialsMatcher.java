@@ -38,8 +38,8 @@ import javax.security.auth.x500.X500Principal;
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
-public abstract class AbstractX509CredentialsMatcher
-    implements CredentialsMatcher {
+public abstract class AbstractX509CredentialsMatcher implements CredentialsMatcher {
+
     @Override
     public final boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
         return doX509CredentialsMatch((X509AuthenticationToken) token, (X509AuthenticationInfo) info);

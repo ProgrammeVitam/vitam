@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.workspace.rest;
 
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -109,7 +108,6 @@ public class WorkspaceResourceTest {
         OBJECT_MAPPER.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -153,26 +151,30 @@ public class WorkspaceResourceTest {
     // Container
     @Test
     public void givenContainerAlreadyExistsWhenCreateContainerThenReturnCreated() {
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
-        given().expect()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        given().expect().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
     }
 
     @Test
     public void givenContainerNotFoundWhenDeleteContainerThenReturnNotFound() {
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_RECURSIVE, true)
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
+            .delete("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).header(GlobalDataRest.X_RECURSIVE, true).then()
-            .statusCode(Status.NO_CONTENT.getStatusCode()).when().delete("/containers/" + CONTAINER_NAME);
-
-        given().contentType(ContentType.JSON).header(GlobalDataRest.X_RECURSIVE, true).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when().delete("/containers/" + CONTAINER_NAME);
-
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_RECURSIVE, true)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
+            .delete("/containers/" + CONTAINER_NAME);
     }
 
     @Test
@@ -182,97 +184,112 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenContainerAlreadyExistsWhenCheckContainerThenReturnOk() {
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         given().then().statusCode(Status.OK.getStatusCode()).when().head("/containers/" + CONTAINER_NAME);
     }
 
     @Test
     public void givenContainerNotFoundWhenCreateContainerThenReturnCreated() {
-
-        given().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
+        given().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
     }
 
     // Folder (Directory)
     @Test
     public void givenContainerNotFoundWhenCreateFolderThenReturnNotFound() {
-
-        given().contentType(ContentType.JSON).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
-
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenCreateFolderThenReturnCreated() {
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
-        with().contentType(ContentType.JSON).then()
-            .statusCode(Status.CREATED.getStatusCode()).when()
+        with()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode())
+            .when()
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
-        given().contentType(ContentType.JSON).then()
-            .statusCode(Status.CREATED.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode())
+            .when()
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
-
     }
 
     @Test
     public void givenFolderNotFoundWhenDeleteFolderThenReturnNotFound() {
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
-        given().contentType(ContentType.JSON).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .delete("/containers" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
-
     }
 
     @Test
     public void givenContainerNotFoundWhenDeleteFolderThenReturnNotFound() {
-        given().contentType(ContentType.JSON).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .delete("/containers" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenDeleteFolderThenReturnNotContent() {
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).then()
-            .statusCode(Status.CREATED.getStatusCode()).when()
+        with()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode())
+            .when()
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
-        given().contentType(ContentType.JSON).then()
-            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
             .delete("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
     }
 
     @Test
     public void givenFolderNotFoundWhenGetFolderThenReturnNotFound() {
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .head("/containers" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
     }
 
     @Test
     public void givenFolderAlreadyExistsWhenCheckFolderThenReturnOk() {
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().contentType(ContentType.JSON).then()
-            .statusCode(Status.CREATED.getStatusCode()).when()
+        with()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode())
+            .when()
             .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
 
-        given().then().statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .head("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
-
     }
 
     // Object
@@ -280,77 +297,96 @@ public class WorkspaceResourceTest {
     public void givenContainerNotFoundWhenPutObjectThenReturnNotFound() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             given()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.NOT_FOUND.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.NOT_FOUND.getStatusCode());
         }
-
     }
 
     @Test
     public void givenContainerAlreadyExistsWhenPutObjectThenReturnCreated() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
-            given().contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+            given()
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
         }
-
     }
 
     @Test
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-            given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
+            given()
+                .then()
+                .statusCode(Status.NO_CONTENT.getStatusCode())
+                .when()
                 .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
     }
 
     @Test
     public void givenObjectNotFoundWhenGetStatusThenReturnNotFound() {
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
 
     @Test
     public void givenObjectNotFoundWhenComputeDigestThenReturnNotFound() {
-        given().header(X_DIGEST_ALGORITHM, ALGO)
+        given()
+            .header(X_DIGEST_ALGORITHM, ALGO)
             .when()
             .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void givenObjectNotFoundWhenDeleteObjectThenReturnNotFound() {
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
 
     @Test
     public void givenObjectAlreadyExistsWhenCheckObjectThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-            given().then().statusCode(Status.OK.getStatusCode()).when()
+            given()
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
     }
@@ -358,57 +394,66 @@ public class WorkspaceResourceTest {
     @Test
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
-
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
         }
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
             final Digest digest = new Digest(DigestType.fromValue(ALGO));
             digest.update(stream);
 
-            given().header(X_DIGEST_ALGORITHM, ALGO)
+            given()
+                .header(X_DIGEST_ALGORITHM, ALGO)
                 .when()
                 .head("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.OK.getStatusCode()).header(X_DIGEST, digest.toString());
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .header(X_DIGEST, digest.toString());
         }
     }
-
 
     // get object
     @Test
     public void givenObjectNotFoundWhenGetObjectThenReturnNotFound() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectThenReturnOk() throws IOException {
-
         // Given
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
         }
 
         // When
-        InputStream inputStream =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .asInputStream();
+        InputStream inputStream = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+            .asInputStream();
 
         // Then
         try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
@@ -418,28 +463,30 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectWithZeroOffsetAndChunkSizeThenReturnOk() throws IOException {
-
         // Given
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
         }
 
         // When
-        InputStream inputStream =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-                .header(GlobalDataRest.X_CHUNK_OFFSET, 0L)
-                .header(GlobalDataRest.X_CHUNK_MAX_SIZE, 1_000_000_000L)
-                .then()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .asInputStream();
+        InputStream inputStream = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_CHUNK_OFFSET, 0L)
+            .header(GlobalDataRest.X_CHUNK_MAX_SIZE, 1_000_000_000L)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+            .asInputStream();
 
         // Then
         try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
@@ -449,32 +496,33 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectWithOffsetAndChunkSizeThenReturnOk() throws IOException {
-
         // Given
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
         }
 
         // When
-        InputStream inputStream =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-                .header(GlobalDataRest.X_CHUNK_OFFSET, 100L)
-                .header(GlobalDataRest.X_CHUNK_MAX_SIZE, 200L)
-                .then()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .asInputStream();
+        InputStream inputStream = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_CHUNK_OFFSET, 100L)
+            .header(GlobalDataRest.X_CHUNK_MAX_SIZE, 200L)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+            .asInputStream();
 
         // Then
         try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
             IOUtils.readFully(expectedInputStream, 100);
             InputStream expectedInputStream2 = new BoundedInputStream(expectedInputStream, 200L);
 
@@ -484,31 +532,32 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectWithOffsetAndNoSizeThenReturnOk() throws IOException {
-
         // Given
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
         }
 
         // When
-        InputStream inputStream =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-                .header(GlobalDataRest.X_CHUNK_OFFSET, 100L)
-                .then()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .asInputStream();
+        InputStream inputStream = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_CHUNK_OFFSET, 100L)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+            .asInputStream();
 
         // Then
         try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
             IOUtils.readFully(expectedInputStream, 100);
 
             assertThat(inputStream).hasSameContentAs(expectedInputStream);
@@ -518,24 +567,32 @@ public class WorkspaceResourceTest {
     // get object information
     @Test
     public void givenObjectNotFoundWhenGetObjectInformationThenReturnNotFound() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
-
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-            given().then().statusCode(Status.OK.getStatusCode()).when()
+            given()
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
     }
@@ -544,10 +601,13 @@ public class WorkspaceResourceTest {
     @Test
     public void givenZipImputWhenUnzipThenReturnOK() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-            given().contentType(CommonMediaType.ZIP).body(stream)
-                .then().statusCode(Status.CREATED.getStatusCode()).when()
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            given()
+                .contentType(CommonMediaType.ZIP)
+                .body(stream)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode())
+                .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
         }
     }
@@ -555,12 +615,16 @@ public class WorkspaceResourceTest {
     @Test
     public void givenContainerNotFoundWhenUnzippingObjectThenReturnNotFound() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
-
             given()
                 .contentType(CommonMediaType.ZIP)
-                .config(RestAssured.config().encoderConfig(
-                    EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-                .body(stream).when()
+                .config(
+                    RestAssured.config()
+                        .encoderConfig(
+                            EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)
+                        )
+                )
+                .body(stream)
+                .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
                 .then()
                 .statusCode(Status.NOT_FOUND.getStatusCode());
@@ -570,18 +634,25 @@ public class WorkspaceResourceTest {
     @Test
     public void givenFolderAlreadyExistsWhenUnzippingObjectThenReturnConflict() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("sip.zip")) {
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-            with().contentType(ContentType.JSON).then()
-                .statusCode(Status.CREATED.getStatusCode()).when()
+            with()
+                .contentType(ContentType.JSON)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode())
+                .when()
                 .post("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP);
 
             given()
                 .contentType(CommonMediaType.ZIP)
-                .config(RestAssured.config().encoderConfig(
-                    EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-                .body(stream).when()
+                .config(
+                    RestAssured.config()
+                        .encoderConfig(
+                            EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)
+                        )
+                )
+                .body(stream)
+                .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
                 .then()
                 .statusCode(Status.CONFLICT.getStatusCode());
@@ -590,124 +661,156 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenNonZipWhenUnzipThenReturnKO() throws IOException {
-        try (InputStream stream =
-            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
-            given().contentType(CommonMediaType.ZIP).body(stream)
+            given()
+                .contentType(CommonMediaType.ZIP)
+                .body(stream)
                 .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
                 .then()
                 .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
         }
     }
 
     // uriList
     @Test
     public void givenEmptyFolderWhenfindingThenReturnNoContent() throws IOException {
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(new Entry(FOLDER_NAME))
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
     }
 
     @Test
     public void givenNotEmptyFolderWhenfindingThenReturnOk() throws IOException {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + FOLDER_NAME + "/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + FOLDER_NAME + "/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
 
-            given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-                .statusCode(Status.OK.getStatusCode()).when()
+            given()
+                .contentType(ContentType.JSON)
+                .body(new Entry(FOLDER_NAME))
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .get("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_NAME);
         }
     }
 
-
     @Test
     public void givenContainerNameFolderNameNotExistWhenfindingThenReturn_NoContent() {
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
-
-        given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
-            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(new Entry(FOLDER_NAME))
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/folders/" + FAKE_FOLDER_NAME);
     }
 
     @Test
     public void should_compress_workspace() throws Exception {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
-
             String outputFile = "file.zip";
 
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
             with()
-                .contentType(ContentType.BINARY).body(stream)
-                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + FOLDER_NAME + "/" + OBJECT_NAME)
-                .then().statusCode(Status.CREATED.getStatusCode());
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post("/containers/" + CONTAINER_NAME + "/objects/" + FOLDER_NAME + "/" + OBJECT_NAME)
+                .then()
+                .statusCode(Status.CREATED.getStatusCode());
 
             String outputContainer = "outputContainer";
 
-            with().then()
-                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + outputContainer);
+            with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + outputContainer);
 
-            given().contentType(ContentType.JSON)
-                .body(new CompressInformation(Collections.singletonList(FOLDER_NAME + "/" + OBJECT_NAME),
-                    outputFile, outputContainer)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when()
+            given()
+                .contentType(ContentType.JSON)
+                .body(
+                    new CompressInformation(
+                        Collections.singletonList(FOLDER_NAME + "/" + OBJECT_NAME),
+                        outputFile,
+                        outputContainer
+                    )
+                )
+                .then()
+                .statusCode(Status.CREATED.getStatusCode())
+                .when()
                 .post("/containers/" + CONTAINER_NAME);
 
-            given().contentType(ContentType.JSON)
-                .body(new CompressInformation(Collections.singletonList(FOLDER_NAME + "/" + OBJECT_NAME),
-                    outputFile, outputContainer)).then()
-                .statusCode(Status.CREATED.getStatusCode()).when()
+            given()
+                .contentType(ContentType.JSON)
+                .body(
+                    new CompressInformation(
+                        Collections.singletonList(FOLDER_NAME + "/" + OBJECT_NAME),
+                        outputFile,
+                        outputContainer
+                    )
+                )
+                .then()
+                .statusCode(Status.CREATED.getStatusCode())
+                .when()
                 .post("/containers/" + CONTAINER_NAME);
 
-            given().then()
-                .statusCode(Status.OK.getStatusCode()).when()
+            given()
+                .then()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .get("/containers/" + outputContainer + "/objects/" + outputFile);
         }
     }
 
     @Test
     public void should_get_bulk_objects() throws Exception {
-
         byte[] file1 = "some-file".getBytes();
         byte[] file2 = "another-file".getBytes();
 
         String fileName1 = "file1.txt";
         String fileName2 = "toto/file2.txt";
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         with()
-            .contentType(ContentType.BINARY).body(new ByteArrayInputStream(file1))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + fileName1)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(new ByteArrayInputStream(file1))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + fileName1)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.BINARY).body(new ByteArrayInputStream(file2))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + fileName2)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(new ByteArrayInputStream(file2))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + fileName2)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-        Response response = given().contentType(ContentType.JSON)
-            .body(Arrays.asList(fileName1, fileName2)).then()
-            .statusCode(Status.OK.getStatusCode()).when()
+        Response response = given()
+            .contentType(ContentType.JSON)
+            .body(Arrays.asList(fileName1, fileName2))
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects")
             .andReturn();
 
@@ -720,97 +823,126 @@ public class WorkspaceResourceTest {
 
     @Test
     public void should_return_404_when_get_bulk_objects_with_unknown_file() throws Exception {
-
         byte[] file1 = "some-file".getBytes();
 
         String fileName1 = "file1.txt";
         String fileName2 = "toto/file2.txt";
 
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         with()
-            .contentType(ContentType.BINARY).body(new ByteArrayInputStream(file1))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + fileName1)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(new ByteArrayInputStream(file1))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + fileName1)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-        given().contentType(ContentType.JSON)
-            .body(Arrays.asList(fileName1, fileName2)).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(Arrays.asList(fileName1, fileName2))
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects");
     }
 
     @Test
     public void should_purge_old_files() throws Exception {
-
         // Given 2 old files
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         String file1 = "file1.zip";
         String file2 = "sub-folder/file2.zip";
 
         with()
-            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 1", StandardCharsets.UTF_8))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file1)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("test 1", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + file1)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 2", StandardCharsets.UTF_8))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file2)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("test 2", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + file2)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // When
-        given().contentType(ContentType.JSON)
-            .body(new TimeToLive(1, ChronoUnit.MINUTES)).then()
-            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(new TimeToLive(1, ChronoUnit.MINUTES))
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
             .delete("/containers/" + CONTAINER_NAME + "/old_files");
 
         // Then
-        given().then().statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
-        given().then().statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
     }
 
     @Test
     public void should_not_purge_new_files() throws Exception {
-
         // Given 2 new files
-        with().then()
-            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
         String file1 = "file1.zip";
         String file2 = "sub-folder/file2.zip";
 
         with()
-            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 1", StandardCharsets.UTF_8))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file1)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("test 1", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + file1)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         with()
-            .contentType(ContentType.BINARY).body(IOUtils.toInputStream("test 2", StandardCharsets.UTF_8))
-            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + file2)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("test 2", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + file2)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         TimeUnit.SECONDS.sleep(2);
 
         // When
-        given().contentType(ContentType.JSON)
-            .body(new TimeToLive(1, ChronoUnit.SECONDS)).then()
-            .statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(new TimeToLive(1, ChronoUnit.SECONDS))
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
             .delete("/containers/" + CONTAINER_NAME + "/old_files");
 
         // Then
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + file1);
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/" + file2);
     }
 
     @Test
     public void givenPutAtomicObjectThenGetObjectOK() throws Exception {
-
         // Given
         createContainerOK();
 
@@ -823,7 +955,6 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenExistingFileWhenPutAtomicObjectThenException() throws Exception {
-
         // Given
         createContainerOK();
 
@@ -839,7 +970,6 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenPutAtomicObjectThenFileExists() throws Exception {
-
         // Given
         createContainerOK();
 
@@ -851,7 +981,6 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenDeletedAtomicObjectThenGetObjectNotExists() throws Exception {
-
         // Given
         createContainerOK();
 
@@ -866,7 +995,6 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenDeletedAtomicObjectThenGetObjectThrowsException() throws Exception {
-
         // Given
         createContainerOK();
 
@@ -880,67 +1008,81 @@ public class WorkspaceResourceTest {
     }
 
     private void createContainerOK() {
-        with().then().statusCode(Status.CREATED.getStatusCode()).when()
-            .post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
     }
 
     private void putAtomicObjectOK(String content) {
-
         byte[] data = content.getBytes(StandardCharsets.UTF_8);
 
         with()
             .contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_CONTENT_LENGTH, data.length)
             .body(data)
-            .when().post("/atomic_containers/" + CONTAINER_NAME + "/objects/myObject")
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post("/atomic_containers/" + CONTAINER_NAME + "/objects/myObject")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     private void putAtomicObjectError(String content) {
-
         byte[] data = content.getBytes(StandardCharsets.UTF_8);
 
         with()
             .contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_CONTENT_LENGTH, data.length)
             .body(data)
-            .when().post("/atomic_containers/" + CONTAINER_NAME + "/objects/myObject")
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .when()
+            .post("/atomic_containers/" + CONTAINER_NAME + "/objects/myObject")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     private void deleteObjectOK() {
-        given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
             .delete("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
     }
 
     private void getObjectNotFound() {
-        given().contentType(ContentType.JSON).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/myObject");
     }
 
     private void isExistingObjectYes() {
-        given().then().statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .head("/containers/" + CONTAINER_NAME + "/objects/myObject");
     }
 
     private void isExistingObjectNo() {
-        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .head("/containers/" + CONTAINER_NAME + "/objects/myObject");
     }
 
     private void getObjectOk(String content) {
-
         byte[] data = content.getBytes(StandardCharsets.UTF_8);
 
-        Response response = given().accept(ContentType.BINARY).then()
-            .statusCode(Status.OK.getStatusCode()).when()
+        Response response = given()
+            .accept(ContentType.BINARY)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .get("/containers/" + CONTAINER_NAME + "/objects/myObject")
             .andReturn();
         assertThat(response.getHeader(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
         assertThat(response.getHeader(VitamHttpHeader.X_CONTENT_LENGTH.getName())).isEqualTo(data.length + "");
         assertThat(response.getHeader(VitamHttpHeader.X_CHUNK_LENGTH.getName())).isEqualTo(data.length + "");
-        assertThat(response.getBody().asInputStream()).hasSameContentAs(
-            new ByteArrayInputStream(data));
+        assertThat(response.getBody().asInputStream()).hasSameContentAs(new ByteArrayInputStream(data));
     }
 }

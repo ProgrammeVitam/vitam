@@ -68,12 +68,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsStoragePluginTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @InjectMocks
     private DeleteGotVersionsStoragePlugin deleteGotVersionsStoragePlugin;
@@ -98,19 +100,16 @@ public class DeleteGotVersionsStoragePluginTest {
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-        deleteGotVersionsStoragePlugin =
-            new DeleteGotVersionsStoragePlugin(storageClientFactory);
+        deleteGotVersionsStoragePlugin = new DeleteGotVersionsStoragePlugin(storageClientFactory);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenOkResultsThenDeleteGotVersionsStorageOk() throws Exception {
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
         List<ItemStatus> itemStatusList = deleteGotVersionsStoragePlugin.executeList(params, handlerIO);
@@ -122,12 +121,10 @@ public class DeleteGotVersionsStoragePluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenOkAndWarningResultsThenDeleteGotVersionsStorageWarning() throws Exception {
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_AND_WARNING_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
         List<ItemStatus> itemStatusList = deleteGotVersionsStoragePlugin.executeList(params, handlerIO);
@@ -139,7 +136,9 @@ public class DeleteGotVersionsStoragePluginTest {
     private RequestResponseOK<StorageStrategy> loadStorageStrategies()
         throws FileNotFoundException, InvalidParseOperationException {
         StorageStrategy[] storageStrategiesArray = JsonHandler.getFromFileLowerCamelCase(
-            PropertiesUtils.getResourceFile(STRATEGIES_FILE), StorageStrategy[].class);
+            PropertiesUtils.getResourceFile(STRATEGIES_FILE),
+            StorageStrategy[].class
+        );
         return new RequestResponseOK<StorageStrategy>().addAllResults(Arrays.asList(storageStrategiesArray));
     }
 }

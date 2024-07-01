@@ -185,7 +185,6 @@ public class DescriptiveMetadataModel {
     @JsonProperty("TextContent")
     private List<String> textContent;
 
-
     @JsonProperty("OriginatingSystemIdReplyTo")
     private String originatingSystemIdReplyTo;
 
@@ -194,7 +193,6 @@ public class DescriptiveMetadataModel {
 
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
-
 
     @JsonProperty("PersistentIdentifier")
     private List<PersistentIdentifierModel> persistentIdentifier;
@@ -537,8 +535,7 @@ public class DescriptiveMetadataModel {
     /**
      * @deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
      */
-    public DescriptiveMetadataModel setSignature(
-        List<SignatureTypeModel> signature) {
+    public DescriptiveMetadataModel setSignature(List<SignatureTypeModel> signature) {
         this.signature = signature;
         return this;
     }
@@ -587,8 +584,7 @@ public class DescriptiveMetadataModel {
         return persistentIdentifier;
     }
 
-    public void setPersistentIdentifier(
-        List<PersistentIdentifierModel> persistentIdentifier) {
+    public void setPersistentIdentifier(List<PersistentIdentifierModel> persistentIdentifier) {
         this.persistentIdentifier = persistentIdentifier;
     }
 

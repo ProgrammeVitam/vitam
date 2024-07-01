@@ -37,8 +37,7 @@ public class EliminationExtendedInfoHoldRule extends EliminationExtendedInfo {
         // Empty constructor for deserialization
     }
 
-    public EliminationExtendedInfoHoldRule(
-        EliminationExtendedInfoHoldRuleDetails details) {
+    public EliminationExtendedInfoHoldRule(EliminationExtendedInfoHoldRuleDetails details) {
         this.details = details;
     }
 
@@ -46,8 +45,7 @@ public class EliminationExtendedInfoHoldRule extends EliminationExtendedInfo {
         return details;
     }
 
-    public EliminationExtendedInfoHoldRule setDetails(
-        EliminationExtendedInfoHoldRuleDetails details) {
+    public EliminationExtendedInfoHoldRule setDetails(EliminationExtendedInfoHoldRuleDetails details) {
         this.details = details;
         return this;
     }

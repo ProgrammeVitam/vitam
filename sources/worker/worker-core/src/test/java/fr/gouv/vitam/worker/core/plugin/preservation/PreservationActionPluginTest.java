@@ -90,7 +90,8 @@ public class PreservationActionPluginTest {
     private final String griffinId = "griffinId-my-test";
     private final String griffinInfinteLoopId = "griffinInfinteLoopId-my-test";
 
-    private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+    private final TestWorkerParameter parameter = workerParameterBuilder()
+        .withContainerName("CONTAINER_NAME_TEST")
         .withRequestId("REQUEST_ID_TEST")
         .build();
 
@@ -100,8 +101,9 @@ public class PreservationActionPluginTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
@@ -133,21 +135,36 @@ public class PreservationActionPluginTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
-        PreservationDistributionLine preservationDistributionLine =
-            new PreservationDistributionLine("fmt/43", "photo.jpg",
-                Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId,
-                objectId, true, 45, "gotId",
-                "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier",
-                new HashSet<>(Arrays.asList("unitId", "otherUnitIdBatman")));
+        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine(
+            "fmt/43",
+            "photo.jpg",
+            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)),
+            "unitId",
+            griffinId,
+            objectId,
+            true,
+            45,
+            "gotId",
+            "BinaryMaster",
+            "BinaryMaster",
+            "other_binary_strategy",
+            "ScenarioId",
+            "griffinIdentifier",
+            new HashSet<>(Arrays.asList("unitId", "otherUnitIdBatman"))
+        );
         parameter.setObjectNameList(Collections.singletonList("gotId"));
         parameter.setObjectMetadataList(
-            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
+            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine))
+        );
 
         File inputFolder = tmpGriffinFolder.newFolder("input-folder");
         File execFolder = tmpGriffinFolder.newFolder("exec-folder");
-        plugin =
-            new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(),
-                execFolder.toPath().toString());
+        plugin = new PreservationActionPlugin(
+            storageClientFactory,
+            reportService,
+            inputFolder.toPath().toString(),
+            execFolder.toPath().toString()
+        );
 
         Path target = Files.createDirectory(execFolder.toPath().resolve(griffinId));
         String src = getClass().getResource("/preservation/griffin").toURI().getPath();
@@ -166,8 +183,9 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_copy_input_files() throws Exception {
         // Given
-        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
 
         // When
         plugin.executeList(parameter, handler);
@@ -180,8 +198,9 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_create_report() throws Exception {
         // Given
-        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
 
         plugin.executeList(parameter, handler);
 
@@ -196,12 +215,17 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_delete_batch_files_in_case_of_error() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT,
-            getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
-        doThrow(new ProcessingStatusException(StatusCode.FATAL, "error")).when(reportService)
+        given(
+            storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                objectId,
+                OBJECT,
+                getNoLogAccessLog()
+            )
+        ).willReturn(createOkResponse("image-files-with-data"));
+        doThrow(new ProcessingStatusException(StatusCode.FATAL, "error"))
+            .when(reportService)
             .appendEntries(any(), any());
-
 
         // When
         ThrowingCallable throwingCallable = () -> plugin.executeList(parameter, handler);
@@ -220,8 +244,9 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_exec_workflow_and_return_build_status_OK() throws Exception {
         // Given
-        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
 
         // When
         List<ItemStatus> status = plugin.executeList(parameter, handler);
@@ -234,9 +259,14 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_stop_process_when_any_exception() throws Exception {
         // Given
-        given(storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), objectId, OBJECT,
-            getNoLogAccessLog()))
-            .willThrow(new IllegalStateException("test"));
+        given(
+            storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                objectId,
+                OBJECT,
+                getNoLogAccessLog()
+            )
+        ).willThrow(new IllegalStateException("test"));
 
         // When
         ThrowingCallable throwingCallable = () -> plugin.executeList(parameter, handler);
@@ -249,8 +279,9 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_create_preservation_report_with_binary_guid() throws Exception {
         // Given
-        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
         doNothing().when(reportService).appendEntries(ArgumentMatchers.anyString(), captor.capture());
         // When
         List<ItemStatus> status = plugin.executeList(parameter, handler);
@@ -260,29 +291,44 @@ public class PreservationActionPluginTest {
         assertThat(binaryId).isNotNull();
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
         assertThat(binaryId).isEqualTo(
-            results.getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID());
+            results.getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_kill_griffin_process_when_timeout_expired() throws Exception {
         // Given
-        PreservationDistributionLine preservationDistributionLineShortTimeout =
-            new PreservationDistributionLine("fmt/43", "photo.jpg",
-                Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId",
-                griffinInfinteLoopId, objectId, true,
-                2, "gotId", "BinaryMaster", "BinaryMaster", "other_binary_strategy", "ScenarioId", "griffinIdentifier",
-                Collections.singleton("unitId"));
+        PreservationDistributionLine preservationDistributionLineShortTimeout = new PreservationDistributionLine(
+            "fmt/43",
+            "photo.jpg",
+            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)),
+            "unitId",
+            griffinInfinteLoopId,
+            objectId,
+            true,
+            2,
+            "gotId",
+            "BinaryMaster",
+            "BinaryMaster",
+            "other_binary_strategy",
+            "ScenarioId",
+            "griffinIdentifier",
+            Collections.singleton("unitId")
+        );
         parameter.setObjectMetadataList(
-            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLineShortTimeout)));
-        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
+            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLineShortTimeout))
+        );
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
 
         // When
         ThrowingCallable throwingCallable = () -> plugin.executeList(parameter, handler);
 
         // Then
-        assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class)
+        assertThatThrownBy(throwingCallable)
+            .isInstanceOf(ProcessingException.class)
             .hasMessageContaining("process hasn't exited");
     }
 
@@ -290,21 +336,26 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_add_related_units_in_workflow_batch_result() throws Exception {
         // Given
-        given(storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog()))
-            .willReturn(createOkResponse("image-files-with-data"));
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
 
         // When
         plugin.executeList(parameter, handler);
 
         // Then
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
-        assertThat(results.getWorkflowBatchResults().get(0).getUnitsForExtractionAU()).containsOnly("unitId",
-            "otherUnitIdBatman");
+        assertThat(results.getWorkflowBatchResults().get(0).getUnitsForExtractionAU()).containsOnly(
+            "unitId",
+            "otherUnitIdBatman"
+        );
     }
 
     private Response createOkResponse(String entity) {
-        return new VitamAsyncInputStreamResponse(new ByteArrayInputStream(entity.getBytes()), Response.Status.OK,
-            Collections.emptyMap());
+        return new VitamAsyncInputStreamResponse(
+            new ByteArrayInputStream(entity.getBytes()),
+            Response.Status.OK,
+            Collections.emptyMap()
+        );
     }
-
 }

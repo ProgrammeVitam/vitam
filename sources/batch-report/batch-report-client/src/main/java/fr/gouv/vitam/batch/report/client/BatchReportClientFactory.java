@@ -39,6 +39,7 @@ import java.io.IOException;
  * BatchReportClientFactory
  */
 public class BatchReportClientFactory extends VitamClientFactory<BatchReportClient> {
+
     // Using same client config with access external client
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "batch-report-client.conf";
@@ -67,16 +68,15 @@ public class BatchReportClientFactory extends VitamClientFactory<BatchReportClie
     public static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                SecureClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                SecureClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationPath,
-                fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationPath);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", configurationPath);
         }
         return configuration;
     }
@@ -92,7 +92,6 @@ public class BatchReportClientFactory extends VitamClientFactory<BatchReportClie
     public BatchReportClient getClient() {
         BatchReportClient client;
         switch (getVitamClientType()) {
-
             case PRODUCTION:
                 client = new BatchReportClientRest(this);
                 break;

@@ -59,5 +59,5 @@ public enum PauseRecover {
      * The only difference is that when the server restarts,
      * only processWorkflow marked RECOVER_FROM_SERVER_PAUSE will be started automatically
      */
-    RECOVER_FROM_SERVER_PAUSE
+    RECOVER_FROM_SERVER_PAUSE,
 }

@@ -40,8 +40,7 @@ public class EliminationRequestBody {
     @JsonProperty("dslRequest")
     private JsonNode dslRequest;
 
-    public EliminationRequestBody() {
-    }
+    public EliminationRequestBody() {}
 
     public EliminationRequestBody(String date, JsonNode dslRequest) {
         this.date = date;

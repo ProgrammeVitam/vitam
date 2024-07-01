@@ -44,7 +44,6 @@ import java.util.Optional;
  * Service used to recover a Backup copy of the given Vitam collection.<br/>
  */
 public interface RestoreBackupService {
-
     /**
      * get the latest file name according to the name suffix.<br/>
      *
@@ -54,8 +53,12 @@ public interface RestoreBackupService {
      * @param type the storage collection type.
      * @return the last version.
      */
-    Optional<String> getLatestSavedFileName(final String strategy, final String offerId, final DataCategory type,
-        final FunctionalAdminCollections collection);
+    Optional<String> getLatestSavedFileName(
+        final String strategy,
+        final String offerId,
+        final DataCategory type,
+        final FunctionalAdminCollections collection
+    );
 
     /**
      * Read the latest file using the name requested by getLatestSavedFileName.<br/>
@@ -65,8 +68,11 @@ public interface RestoreBackupService {
      * @param collection the collection to be restored
      * @return the backup copy.
      */
-    Optional<CollectionBackupModel> readLatestSavedFile(final String strategy, final String offerId,
-        final FunctionalAdminCollections collection);
+    Optional<CollectionBackupModel> readLatestSavedFile(
+        final String strategy,
+        final String offerId,
+        final FunctionalAdminCollections collection
+    );
 
     /**
      * Retrieve list of offer log defining objects to reconstruct from offer log
@@ -93,7 +99,10 @@ public interface RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    AccessionRegisterBackupModel loadData(String strategy, FunctionalAdminCollections collection, String filename,
-        long offset);
-
+    AccessionRegisterBackupModel loadData(
+        String strategy,
+        FunctionalAdminCollections collection,
+        String filename,
+        long offset
+    );
 }

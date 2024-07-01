@@ -66,7 +66,6 @@ import org.openstack4j.model.storage.object.options.ObjectPutOptions;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -120,15 +119,18 @@ public class Swift extends ContentAddressableStorageAbstract {
      */
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
 
         ActionResponse response = osClient.get().objectStorage().containers().create(containerName);
         if (!response.isSuccess()) {
             LOGGER.error("Error when try to create container with name: {}", containerName);
             LOGGER.error("Reason: {}", response.getFault());
-            throw new ContentAddressableStorageServerException("Error when try to create container: " + response
-                .getFault());
+            throw new ContentAddressableStorageServerException(
+                "Error when try to create container: " + response.getFault()
+            );
         }
         if (response.isSuccess() && response.getCode() == 202) {
             LOGGER.warn("Container " + containerName + " already exists");
@@ -137,7 +139,6 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     @Override
     public boolean isExistingContainer(String containerName) {
-
         if (super.isExistingContainerInCache(containerName)) {
             return true;
         }
@@ -150,11 +151,18 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
-        long size) throws
-        ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+    public void writeObject(
+        String containerName,
+        String objectName,
+        InputStream inputStream,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         // Swift has a limit on the size of a single uploaded object; by default this is 5GB.
         // However, the download size of a single object is virtually unlimited with the concept of segmentation.
         // Segments of the larger object are uploaded and a special manifest file is created that,
@@ -167,7 +175,6 @@ public class Swift extends ContentAddressableStorageAbstract {
             } else {
                 smallFile(containerName, objectName, inputStream);
             }
-
         } catch (IOException | ConnectionException e) {
             throw new ContentAddressableStorageException("Could not put object " + containerName + "/" + objectName, e);
         }
@@ -182,38 +189,38 @@ public class Swift extends ContentAddressableStorageAbstract {
             long remainingSize = size;
             int segmentIndex = 1;
             while (remainingSize > 0) {
-
                 long segmentSize = Math.min(swiftLimit, remainingSize);
                 final String segmentName = objectName + "/" + String.format("%08d", segmentIndex);
 
                 // Get current segment stream
-                BoundedInputStream segmentInputStream =
-                    new BoundedInputStream(stream, segmentSize);
+                BoundedInputStream segmentInputStream = new BoundedInputStream(stream, segmentSize);
                 // Prevent closing inner stream by swift client
                 segmentInputStream.setPropagateClose(false);
 
                 // Double check segment size
                 try (InputStream exactSizeInputStream = new ExactSizeInputStream(segmentInputStream, segmentSize)) {
-
                     // Prevent retry uploading stream twice on token expiration
-                    VitamAutoCloseInputStream autoCloseInputStream =
-                        new VitamAutoCloseInputStream(exactSizeInputStream);
+                    VitamAutoCloseInputStream autoCloseInputStream = new VitamAutoCloseInputStream(
+                        exactSizeInputStream
+                    );
 
                     segmentTime.start();
                     ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
                     objectPutOptions.getOptions().putAll(enrichHeadersRequestWithVitamCookie(new HashMap<>()));
 
                     LOGGER.info("Uploading segment: " + segmentName);
-                    getObjectStorageService().
-                        put(containerName, segmentName, Payloads.create(autoCloseInputStream), objectPutOptions);
+                    getObjectStorageService()
+                        .put(containerName, segmentName, Payloads.create(autoCloseInputStream), objectPutOptions);
 
-                    PerformanceLogger.getInstance().
-                        log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                            "REAL_SWIFT_PUT_OBJECT_SEGMENT", segmentTime.elapsed(
-                                TimeUnit.MILLISECONDS));
+                    PerformanceLogger.getInstance()
+                        .log(
+                            "STP_Offer_" + getConfiguration().getProvider(),
+                            containerName,
+                            "REAL_SWIFT_PUT_OBJECT_SEGMENT",
+                            segmentTime.elapsed(TimeUnit.MILLISECONDS)
+                        );
                     segmentTime.reset();
                 }
-
 
                 segmentIndex++;
                 remainingSize -= segmentSize;
@@ -223,18 +230,18 @@ public class Swift extends ContentAddressableStorageAbstract {
             String largeObjectPrefix = getLargeObjectPrefix(containerName, objectName);
             objectPutOptions.getOptions().put(X_OBJECT_MANIFEST, largeObjectPrefix);
             enrichHeadersRequestWithVitamCookie(objectPutOptions.getOptions());
-            getObjectStorageService().put(
-                containerName,
-                objectName,
-                Payloads.create(new NullInputStream(0L)),
-                objectPutOptions);
-
+            getObjectStorageService()
+                .put(containerName, objectName, Payloads.create(new NullInputStream(0L)), objectPutOptions);
         } finally {
             StreamUtils.closeSilently(stream);
-            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log(
+                    "STP_Offer_" + getConfiguration().getProvider(),
+                    containerName,
+                    "REAL_SWIFT_PUT_OBJECT",
+                    times.elapsed(TimeUnit.MILLISECONDS)
+                );
         }
-
     }
 
     private String getLargeObjectPrefix(String containerName, String objectName) {
@@ -252,25 +259,39 @@ public class Swift extends ContentAddressableStorageAbstract {
             getObjectStorageService()
                 .put(containerName, objectName, Payloads.create(autoCloseInputStream), objectPutOptions);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
-                containerName, "REAL_SWIFT_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log(
+                    "STP_Offer_" + getConfiguration().getProvider(),
+                    containerName,
+                    "REAL_SWIFT_PUT_OBJECT",
+                    times.elapsed(TimeUnit.MILLISECONDS)
+                );
         }
     }
 
     @Override
-    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
-        DigestType digestType, long size)
-        throws ContentAddressableStorageException {
-
-        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException
-            = new RetryableOnException<>(getRetryableParameters());
+    public void checkObjectDigestAndStoreDigest(
+        String containerName,
+        String objectName,
+        String objectDigest,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException {
+        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
+            new RetryableOnException<>(getRetryableParameters());
         retryableOnException.exec(() -> {
             String computedDigest = computeObjectDigest(containerName, objectName, digestType);
             if (!objectDigest.equals(computedDigest)) {
                 throw new ContentAddressableStorageException(
-                    "Illegal state for container " + containerName + " and object " + objectName +
-                        ". Stream digest " + objectDigest + " is not equal to computed digest " +
-                        computedDigest);
+                    "Illegal state for container " +
+                    containerName +
+                    " and object " +
+                    objectName +
+                    ". Stream digest " +
+                    objectDigest +
+                    " is not equal to computed digest " +
+                    computedDigest
+                );
             }
             return null;
         });
@@ -278,9 +299,13 @@ public class Swift extends ContentAddressableStorageAbstract {
         updateMetadataObject(containerName, objectName, digestType, objectDigest, size);
     }
 
-    private void updateMetadataObject(String containerName, String objectName, DigestType digestType, String digest,
-        long size)
-        throws ContentAddressableStorageException {
+    private void updateMetadataObject(
+        String containerName,
+        String objectName,
+        DigestType digestType,
+        String digest,
+        long size
+    ) throws ContentAddressableStorageException {
         Map<String, String> headers = new HashMap<>();
         if (size > swiftLimit) {
             headers.put(X_OBJECT_MANIFEST, getLargeObjectPrefix(containerName, objectName));
@@ -288,8 +313,13 @@ public class Swift extends ContentAddressableStorageAbstract {
         storeDigest(headers, containerName, objectName, digest, digestType);
     }
 
-    private void storeDigest(Map<String, String> headers, String containerName, String objectName, String digest,
-        DigestType digestType) throws ContentAddressableStorageException {
+    private void storeDigest(
+        Map<String, String> headers,
+        String containerName,
+        String objectName,
+        String digest,
+        DigestType digestType
+    ) throws ContentAddressableStorageException {
         Stopwatch stopwatch = Stopwatch.createStarted();
         // Not necessary to put the "X-Object-Meta-"
         headers.put(X_OBJECT_META_DIGEST, digest);
@@ -304,39 +334,61 @@ public class Swift extends ContentAddressableStorageAbstract {
             return null;
         });
 
-        PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
-            containerName, "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance()
+            .log(
+                "STP_Offer_" + getConfiguration().getProvider(),
+                containerName,
+                "STORE_DIGEST_IN_METADATA",
+                stopwatch.elapsed(TimeUnit.MILLISECONDS)
+            );
     }
 
     @Override
     public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
         throws ContentAddressableStorageException {
-
         if (!noCache) {
-
             Stopwatch stopwatch = Stopwatch.createStarted();
 
             RetryableOnException<Map<String, String>, ContentAddressableStorageException> retryableOnException =
                 new RetryableOnException<>(getRetryableParameters());
-            Map<String, String> metadata = retryableOnException.exec(() ->
-                getObjectStorageService().getMetadata(containerName, objectName,
-                    enrichHeadersRequestWithVitamCookie(new HashMap<>())));
+            Map<String, String> metadata = retryableOnException.exec(
+                () ->
+                    getObjectStorageService()
+                        .getMetadata(containerName, objectName, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+            );
 
-            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(),
-                containerName, "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log(
+                    "STP_Offer_" + getConfiguration().getProvider(),
+                    containerName,
+                    "READ_DIGEST_FROM_METADATA",
+                    stopwatch.elapsed(TimeUnit.MILLISECONDS)
+                );
 
-            if (null != metadata && checkDigestProperty(metadata)
-                && checkDigestTypeProperty(metadata, digestType)) {
-                return metadata.entrySet().stream()
-                    .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST)).map(Map.Entry::getValue).findFirst()
+            if (null != metadata && checkDigestProperty(metadata) && checkDigestTypeProperty(metadata, digestType)) {
+                return metadata
+                    .entrySet()
+                    .stream()
+                    .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST))
+                    .map(Map.Entry::getValue)
+                    .findFirst()
                     .get();
             } else {
-                LOGGER.warn(String.format(
-                    "Could not retrieve cached digest for object '%s' in container '%s'", objectName, containerName));
-                Pair<String, Long> objectDigestAndSize =
-                    getObjectDigestAndSize(containerName, objectName, digestType);
-                updateMetadataObject(containerName, objectName, digestType, objectDigestAndSize.getLeft(),
-                    objectDigestAndSize.getRight());
+                LOGGER.warn(
+                    String.format(
+                        "Could not retrieve cached digest for object '%s' in container '%s'",
+                        objectName,
+                        containerName
+                    )
+                );
+                Pair<String, Long> objectDigestAndSize = getObjectDigestAndSize(containerName, objectName, digestType);
+                updateMetadataObject(
+                    containerName,
+                    objectName,
+                    digestType,
+                    objectDigestAndSize.getLeft(),
+                    objectDigestAndSize.getRight()
+                );
                 return objectDigestAndSize.getLeft();
             }
         }
@@ -345,39 +397,56 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     private boolean checkDigestTypeProperty(Map<String, String> metadata, DigestType digestType) {
-        return metadata.entrySet().stream().anyMatch(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST_TYPE) &&
-            e.getValue().equals(digestType.getName()));
+        return metadata
+            .entrySet()
+            .stream()
+            .anyMatch(
+                e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST_TYPE) && e.getValue().equals(digestType.getName())
+            );
     }
 
     private boolean checkDigestProperty(Map<String, String> metadata) {
-        return metadata.entrySet().stream().anyMatch(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST) &&
-            e.getValue() != null);
+        return metadata
+            .entrySet()
+            .stream()
+            .anyMatch(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST) && e.getValue() != null);
     }
 
     @Override
     public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         RetryableOnException<ObjectContent, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
-        return retryableOnException.exec(() ->
-            getObjectStorageService().download(containerName, objectName,
-                enrichHeadersRequestWithVitamCookie(new HashMap<>())));
+        return retryableOnException.exec(
+            () ->
+                getObjectStorageService()
+                    .download(containerName, objectName, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+        );
     }
 
     @Override
-    public void deleteObject(String containerName, String objectName) throws
-        ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+    public void deleteObject(String containerName, String objectName) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
         retryableOnException.exec(() -> {
             List<ObjectEntry> swiftObjects = new ArrayList<>();
             listObjectSegments(containerName, objectName, swiftObjects::add);
-            getObjectStorageService().deleteFullObject(containerName, objectName, swiftObjects.stream().map(
-                    ObjectEntry::getObjectId).collect(Collectors.toList()),
-                enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            getObjectStorageService()
+                .deleteFullObject(
+                    containerName,
+                    objectName,
+                    swiftObjects.stream().map(ObjectEntry::getObjectId).collect(Collectors.toList()),
+                    enrichHeadersRequestWithVitamCookie(new HashMap<>())
+                );
             return null;
         });
     }
@@ -386,9 +455,15 @@ public class Swift extends ContentAddressableStorageAbstract {
     public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageException {
         RetryableOnException<Optional<SwiftObject>, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
-        Optional<SwiftObject> object = retryableOnException.exec(() ->
-            getObjectStorageService().getObjectInformation(containerName, objectName,
-                enrichHeadersRequestWithVitamCookie(new HashMap<>())));
+        Optional<SwiftObject> object = retryableOnException.exec(
+            () ->
+                getObjectStorageService()
+                    .getObjectInformation(
+                        containerName,
+                        objectName,
+                        enrichHeadersRequestWithVitamCookie(new HashMap<>())
+                    )
+        );
         return object.isPresent();
     }
 
@@ -409,18 +484,24 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectId);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectId
+        );
         MetadatasStorageObject result = new MetadatasStorageObject();
         RetryableOnException<Optional<SwiftObject>, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
-        Optional<SwiftObject> object = retryableOnException.exec(() ->
-            getObjectStorageService().getObjectInformation(containerName, objectId,
-                enrichHeadersRequestWithVitamCookie(new HashMap<>())));
+        Optional<SwiftObject> object = retryableOnException.exec(
+            () ->
+                getObjectStorageService()
+                    .getObjectInformation(containerName, objectId, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+        );
 
         if (object.isEmpty()) {
-            throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
-                " can not be found for container " + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                "The Object" + objectId + " can not be found for container " + containerName
+            );
         }
 
         result.setType(containerName.split("_")[1]);
@@ -435,8 +516,10 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public void listContainer(String containerName, ObjectListingListener objectListingListener)
         throws ContentAddressableStorageException, IOException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
 
         /*
          * List container objets.
@@ -466,32 +549,40 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String nextMarker = null;
         do {
-            ObjectListOptions objectListOptions = ObjectListOptions.create()
-                .limit(LISTING_MAX_RESULTS);
+            ObjectListOptions objectListOptions = ObjectListOptions.create().limit(LISTING_MAX_RESULTS);
 
             if (nextMarker != null) {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects =
-                getObjectStorageService().list(containerName, objectListOptions,
-                    enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            List<? extends SwiftObject> swiftObjects = getObjectStorageService()
+                .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()));
 
             if (swiftObjects.isEmpty()) {
                 break;
             }
 
             for (SwiftObject swiftObject : swiftObjects) {
-
                 // process large object segment
                 if (swiftObject.getName().contains("/")) {
                     if (lastEntryName != null && swiftObject.getName().startsWith(lastEntryName + "/")) {
                         lastEntryTotalSize += swiftObject.getSizeInBytes();
-                        LOGGER.debug("Found large object segment " + containerName + "/" + swiftObject.getName() +
-                            ". Segment size: " + swiftObject.getSizeInBytes() + " bytes");
+                        LOGGER.debug(
+                            "Found large object segment " +
+                            containerName +
+                            "/" +
+                            swiftObject.getName() +
+                            ". Segment size: " +
+                            swiftObject.getSizeInBytes() +
+                            " bytes"
+                        );
                     } else {
-                        LOGGER.warn("Found orphan large object segment without matching object manifest " +
-                            containerName + "/" + swiftObject.getName());
+                        LOGGER.warn(
+                            "Found orphan large object segment without matching object manifest " +
+                            containerName +
+                            "/" +
+                            swiftObject.getName()
+                        );
                     }
                     continue;
                 }
@@ -509,7 +600,6 @@ public class Swift extends ContentAddressableStorageAbstract {
             }
 
             nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
-
         } while (nextMarker != null);
 
         // Report very last object, if any
@@ -518,12 +608,15 @@ public class Swift extends ContentAddressableStorageAbstract {
         }
     }
 
-    private void listObjectSegments(String containerName, String objectName,
-        ObjectListingListener objectListingListener)
-        throws ContentAddressableStorageException {
-
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+    private void listObjectSegments(
+        String containerName,
+        String objectName,
+        ObjectListingListener objectListingListener
+    ) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
 
         String nextMarker = null;
         do {
@@ -535,9 +628,8 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects =
-                getObjectStorageService().list(containerName, objectListOptions,
-                    enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            List<? extends SwiftObject> swiftObjects = getObjectStorageService()
+                .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()));
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -545,14 +637,15 @@ public class Swift extends ContentAddressableStorageAbstract {
             for (SwiftObject swiftObject : swiftObjects) {
                 try {
                     objectListingListener.handleObjectEntry(
-                        new ObjectEntry(swiftObject.getName(), swiftObject.getSizeInBytes()));
+                        new ObjectEntry(swiftObject.getName(), swiftObject.getSizeInBytes())
+                    );
                 } catch (IOException e) {
                     throw new ContentAddressableStorageException(
-                        "A problem occured while reading segments in the container : " + containerName);
+                        "A problem occured while reading segments in the container : " + containerName
+                    );
                 }
             }
             nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
-
         } while (nextMarker != null);
     }
 
@@ -566,9 +659,14 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     private RetryableParameters getRetryableParameters() {
-        return new RetryableParameters(this.swiftNbRetries, this.swiftWaitingTimeInMilliseconds,
-            this.swiftWaitingTimeInMilliseconds, this.swiftRandomRangeSleepInMilliseconds,
-            TimeUnit.MILLISECONDS, VitamLogLevel.ERROR);
+        return new RetryableParameters(
+            this.swiftNbRetries,
+            this.swiftWaitingTimeInMilliseconds,
+            this.swiftWaitingTimeInMilliseconds,
+            this.swiftRandomRangeSleepInMilliseconds,
+            TimeUnit.MILLISECONDS,
+            VitamLogLevel.ERROR
+        );
     }
 
     public Supplier<OSClient> getOsClient() {
@@ -583,7 +681,8 @@ public class Swift extends ContentAddressableStorageAbstract {
             if (getConfiguration().getCustomHeaders() == null || getConfiguration().getCustomHeaders().isEmpty()) {
                 LOGGER.warn("No vitam custom headers have been filled!");
             } else {
-                getConfiguration().getCustomHeaders()
+                getConfiguration()
+                    .getCustomHeaders()
                     .forEach(cookie -> headers.put(cookie.getKey(), cookie.getValue()));
             }
         } else {
@@ -594,9 +693,7 @@ public class Swift extends ContentAddressableStorageAbstract {
 
     private Pair<String, Long> getObjectDigestAndSize(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
-
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-            algo);
+        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
 
         Stopwatch sw = Stopwatch.createStarted();
         ObjectContent object = getObject(containerName, objectName);
@@ -607,8 +704,13 @@ public class Swift extends ContentAddressableStorageAbstract {
         } catch (final IOException e) {
             throw new ContentAddressableStorageException(e);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log(
+                    "STP_Offer_" + getConfiguration().getProvider(),
+                    containerName,
+                    "COMPUTE_DIGEST_FROM_STREAM",
+                    sw.elapsed(TimeUnit.MILLISECONDS)
+                );
         }
     }
 }

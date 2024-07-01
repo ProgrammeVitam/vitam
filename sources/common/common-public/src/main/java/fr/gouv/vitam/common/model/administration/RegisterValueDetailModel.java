@@ -37,8 +37,10 @@ public class RegisterValueDetailModel {
 
     @JsonProperty("ingested")
     private long ingested = 0;
+
     @JsonProperty("deleted")
     private long deleted = 0;
+
     @JsonProperty("remained")
     private long remained = 0;
 
@@ -47,8 +49,7 @@ public class RegisterValueDetailModel {
      *
      * use for jackson
      */
-    public RegisterValueDetailModel() {
-    }
+    public RegisterValueDetailModel() {}
 
     /**
      * @return ingested

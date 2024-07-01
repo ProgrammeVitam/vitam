@@ -39,7 +39,6 @@ public class ProcessPopulatorTest {
     public void testPopulator() {
         Optional<WorkFlow> res = ProcessPopulator.populate("workflowJSONv1.json");
         Assertions.assertThat(res).isNotNull();
-
     }
 
     @Test

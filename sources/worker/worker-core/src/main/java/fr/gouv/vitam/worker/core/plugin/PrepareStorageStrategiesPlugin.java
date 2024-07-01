@@ -72,7 +72,6 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         try {
-
             storeStrategies(handlerIO);
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK, createObjectNode());
         } catch (ProcessingException e) {
@@ -82,14 +81,15 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
         }
     }
 
-    private void storeStrategies(HandlerIO handlerIO)
-        throws ProcessingException {
+    private void storeStrategies(HandlerIO handlerIO) throws ProcessingException {
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             RequestResponse<StorageStrategy> storageStrategies = storageClient.getStorageStrategies();
             if (storageStrategies.isOk()) {
                 File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(STRATEGIES_OUT_RANK).getPath());
                 JsonHandler.writeAsFile(
-                    ((RequestResponseOK<StorageStrategy>) storageStrategies).getResultsAsJsonNodes(), tempFile);
+                    ((RequestResponseOK<StorageStrategy>) storageStrategies).getResultsAsJsonNodes(),
+                    tempFile
+                );
                 handlerIO.addOutputResult(STRATEGIES_OUT_RANK, tempFile, true, false);
             } else {
                 throw new StorageServerClientException("Exception while retrieving storage strategies");
@@ -99,5 +99,4 @@ public class PrepareStorageStrategiesPlugin extends ActionHandler {
             throw new ProcessingException(String.format("Storage server errors : %s", e));
         }
     }
-
 }

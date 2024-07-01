@@ -40,7 +40,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.api.WorkerAction;
 
-
 /**
  * ActionHandler abstract class of interface Action<br/>
  * <br/>
@@ -54,7 +53,6 @@ import fr.gouv.vitam.worker.core.api.WorkerAction;
  * </code></code>
  */
 public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable {
-
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
@@ -80,20 +78,26 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
      * @param value
      * @param globalOutcomeDetailSubCode
      */
-    public void updateDetailItemStatus(final ItemStatus globalCompositeItemStatus, final String value,
-        final String globalOutcomeDetailSubCode) {
+    public void updateDetailItemStatus(
+        final ItemStatus globalCompositeItemStatus,
+        final String value,
+        final String globalOutcomeDetailSubCode
+    ) {
         try {
             if (value != null) {
-                ObjectNode evDetData =
-                    (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
+                ObjectNode evDetData = (ObjectNode) JsonHandler.getFromString(
+                    globalCompositeItemStatus.getEvDetailData()
+                );
                 String oldValue = "";
                 if (evDetData.has(SedaConstants.EV_DET_TECH_DATA)) {
                     oldValue = evDetData.get(SedaConstants.EV_DET_TECH_DATA).textValue() + " \n";
                 }
                 evDetData.put(SedaConstants.EV_DET_TECH_DATA, oldValue + value);
                 globalCompositeItemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
-                globalCompositeItemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-                    JsonHandler.unprettyPrint(evDetData));
+                globalCompositeItemStatus.setMasterData(
+                    LogbookParameterName.eventDetailData.name(),
+                    JsonHandler.unprettyPrint(evDetData)
+                );
             }
             if (null != globalOutcomeDetailSubCode) {
                 globalCompositeItemStatus.setGlobalOutcomeDetailSubcode(globalOutcomeDetailSubCode);
@@ -103,5 +107,4 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
             globalCompositeItemStatus.increment(StatusCode.FATAL);
         }
     }
-
 }

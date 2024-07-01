@@ -60,7 +60,6 @@ public class MetadataRuleServiceTest {
 
     @Test
     public void selectUnitsWithInheritedRules_invalidProjectionV1() throws Exception {
-
         ComputeInheritedRuleService computeInheritedRuleService = mock(ComputeInheritedRuleService.class);
         MetaDataImpl metadata = mock(MetaDataImpl.class);
 
@@ -77,7 +76,6 @@ public class MetadataRuleServiceTest {
 
     @Test
     public void selectUnitsWithInheritedRules_loadUnitsAndComputeRules() throws Exception {
-
         // Given
         ComputeInheritedRuleService computeInheritedRuleService = mock(ComputeInheritedRuleService.class);
         MetaDataImpl metadata = mock(MetaDataImpl.class);
@@ -88,8 +86,7 @@ public class MetadataRuleServiceTest {
             responseFromResource("MetadataRuleService/responseSelectUnits_1_3.json")
         );
 
-        doReturn(computedRulesFromResource(
-            "MetadataRuleService/computedUnitRules.json"))
+        doReturn(computedRulesFromResource("MetadataRuleService/computedUnitRules.json"))
             .when(computeInheritedRuleService)
             .computeInheritedRules(anyMap());
 
@@ -105,23 +102,37 @@ public class MetadataRuleServiceTest {
         // Then
         JsonAssert.assertJsonEquals(
             JsonHandler.unprettyPrint(metadataResult.getResults()),
-            IOUtils.toString(PropertiesUtils.getResourceAsStream("MetadataRuleService/expectedResponse.json"),
-                StandardCharsets.UTF_8)
-            , JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+            IOUtils.toString(
+                PropertiesUtils.getResourceAsStream("MetadataRuleService/expectedResponse.json"),
+                StandardCharsets.UTF_8
+            ),
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
+        );
     }
 
-    private MetadataResult responseFromResource(String filename)
-        throws IOException, InvalidParseOperationException {
-        final List<JsonNode> list =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(filename), List.class, JsonNode.class);
-        return new MetadataResult(JsonHandler.createObjectNode(), list, Collections.emptyList(), list.size(), null,
-            new DatabaseCursor(list.size(), 0, 0));
+    private MetadataResult responseFromResource(String filename) throws IOException, InvalidParseOperationException {
+        final List<JsonNode> list = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(filename),
+            List.class,
+            JsonNode.class
+        );
+        return new MetadataResult(
+            JsonHandler.createObjectNode(),
+            list,
+            Collections.emptyList(),
+            list.size(),
+            null,
+            new DatabaseCursor(list.size(), 0, 0)
+        );
     }
 
     private Map<String, UnitInheritedRulesResponseModel> computedRulesFromResource(String resourcesFile)
         throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler
-            .getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile),
-                Map.class, String.class, UnitInheritedRulesResponseModel.class);
+        return JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(resourcesFile),
+            Map.class,
+            String.class,
+            UnitInheritedRulesResponseModel.class
+        );
     }
 }

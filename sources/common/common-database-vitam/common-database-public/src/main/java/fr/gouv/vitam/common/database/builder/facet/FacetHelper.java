@@ -37,6 +37,7 @@ import java.util.Map;
  * Facet helper
  */
 public class FacetHelper {
+
     /**
      * Constructor
      */
@@ -75,7 +76,6 @@ public class FacetHelper {
         return new TermsFacet(name, field, size, order);
     }
 
-
     /**
      * Create a date range facet
      *
@@ -87,9 +87,13 @@ public class FacetHelper {
      * @return
      * @throws InvalidCreateOperationException
      */
-    public static final Facet dateRange(String name, String field, String nestedPath, String dateFormat,
-        List<RangeFacetValue> ranges)
-        throws InvalidCreateOperationException {
+    public static final Facet dateRange(
+        String name,
+        String field,
+        String nestedPath,
+        String dateFormat,
+        List<RangeFacetValue> ranges
+    ) throws InvalidCreateOperationException {
         return new DateRangeFacet(name, field, nestedPath, dateFormat, ranges);
     }
 
@@ -108,7 +112,6 @@ public class FacetHelper {
         return new DateRangeFacet(name, field, dateFormat, ranges);
     }
 
-
     /**
      * Create a filters facet
      *
@@ -117,8 +120,7 @@ public class FacetHelper {
      * @return a Facet
      * @throws InvalidCreateOperationException when creating facet errors
      */
-    public static final Facet filters(String name, Map<String, Query> filters)
-        throws InvalidCreateOperationException {
+    public static final Facet filters(String name, Map<String, Query> filters) throws InvalidCreateOperationException {
         return new FiltersFacet(name, filters);
     }
 }

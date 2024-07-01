@@ -38,6 +38,7 @@ import static com.mongodb.client.model.Indexes.hashed;
  * Vitam Collection for mongodb
  */
 public class VitamCollection<T> {
+
     private final Class<T> clasz;
     private final VitamDescriptionResolver vitamDescriptionResolver;
     private String name;
@@ -46,8 +47,13 @@ public class VitamCollection<T> {
     private final boolean isMultiTenant;
     private final boolean useScore;
 
-    protected VitamCollection(final Class<T> clasz, final boolean isMultiTenant, final boolean useScore, String prefix,
-        VitamDescriptionResolver vitamDescriptionResolver) {
+    protected VitamCollection(
+        final Class<T> clasz,
+        final boolean isMultiTenant,
+        final boolean useScore,
+        String prefix,
+        VitamDescriptionResolver vitamDescriptionResolver
+    ) {
         this.clasz = clasz;
         this.vitamDescriptionResolver = vitamDescriptionResolver;
         name = prefix + clasz.getSimpleName();

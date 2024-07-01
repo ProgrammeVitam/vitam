@@ -47,8 +47,11 @@ public class BatchRulesUpdateInfo {
         // Empty constructor for Jackson
     }
 
-    public BatchRulesUpdateInfo(List<String> unitIds, RuleActions ruleActions,
-        Map<String, DurationData> rulesToDurationData) {
+    public BatchRulesUpdateInfo(
+        List<String> unitIds,
+        RuleActions ruleActions,
+        Map<String, DurationData> rulesToDurationData
+    ) {
         this.unitIds = unitIds;
         this.ruleActions = ruleActions;
         this.rulesToDurationData = rulesToDurationData;
@@ -76,8 +79,7 @@ public class BatchRulesUpdateInfo {
         return rulesToDurationData;
     }
 
-    public BatchRulesUpdateInfo setRulesToDurationData(
-        Map<String, DurationData> rulesToDurationData) {
+    public BatchRulesUpdateInfo setRulesToDurationData(Map<String, DurationData> rulesToDurationData) {
         this.rulesToDurationData = rulesToDurationData;
         return this;
     }

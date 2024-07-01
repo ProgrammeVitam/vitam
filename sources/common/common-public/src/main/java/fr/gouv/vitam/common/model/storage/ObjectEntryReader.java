@@ -46,9 +46,7 @@ public class ObjectEntryReader implements CloseableIterator<ObjectEntry> {
     public ObjectEntryReader(InputStream inputStream) {
         this.inputStream = inputStream;
         this.iterator = new PeekingIterator<>(
-            new BufferedReader(new InputStreamReader(inputStream))
-                .lines()
-                .iterator()
+            new BufferedReader(new InputStreamReader(inputStream)).lines().iterator()
         );
     }
 

@@ -41,8 +41,12 @@ public class BulkObjectStoreRequest {
         // Empty constructor for deserialization
     }
 
-    public BulkObjectStoreRequest(String workspaceContainerGUID,
-        List<String> workspaceObjectURIs, DataCategory type, List<String> objectNames) {
+    public BulkObjectStoreRequest(
+        String workspaceContainerGUID,
+        List<String> workspaceObjectURIs,
+        DataCategory type,
+        List<String> objectNames
+    ) {
         this.workspaceContainerGUID = workspaceContainerGUID;
         this.workspaceObjectURIs = workspaceObjectURIs;
         this.type = type;

@@ -25,9 +25,7 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
-
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -35,7 +33,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -46,16 +43,12 @@ import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 @DisallowConcurrentExecution
 public class ReferentialCreateSymblolicAccessionRegisterJob implements Job {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReferentialCreateSymblolicAccessionRegisterJob.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ReferentialCreateSymblolicAccessionRegisterJob.class
+    );
     private final AdminManagementClientFactory adminManagementClientFactory;
 
     public ReferentialCreateSymblolicAccessionRegisterJob(AdminManagementClientFactory adminManagementClientFactory) {
@@ -66,7 +59,6 @@ public class ReferentialCreateSymblolicAccessionRegisterJob implements Job {
         this(AdminManagementClientFactory.getInstance());
     }
 
-
     public void execute(JobExecutionContext context) throws JobExecutionException {
         final Integer adminTenant = VitamConfiguration.getAdminTenant();
         VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
@@ -74,12 +66,12 @@ public class ReferentialCreateSymblolicAccessionRegisterJob implements Job {
 
         try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
             LOGGER.info("Start accession register symbolic update");
-            RequestResponse<AccessionRegisterSymbolic> response =
-                client.createAccessionRegisterSymbolic(VitamConfiguration.getTenants());
+            RequestResponse<AccessionRegisterSymbolic> response = client.createAccessionRegisterSymbolic(
+                VitamConfiguration.getTenants()
+            );
             LOGGER.info("Response receive from create accession register symbolic {}", response);
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             throw new JobExecutionException(" Error during storage log backup", e);
         }
     }
-
 }

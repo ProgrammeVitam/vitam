@@ -44,7 +44,6 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
         processDataAccess = ProcessDataAccessImpl.getInstance();
     }
 
-
     /**
      * Get the Process Monitoring instance
      *
@@ -53,7 +52,6 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     public static ProcessMonitoringImpl getInstance() {
         return INSTANCE;
     }
-
 
     @Override
     public ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId)

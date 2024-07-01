@@ -67,120 +67,103 @@ public class UpdateBulkSchemaValidatorTest {
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
         JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_with_root.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorWithNoQueries()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_queries.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_queries.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorWithEmptyQueries()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_queries.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_queries.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorNoActionException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_action.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_action.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorEmptyActionException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_action.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_action.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorNoQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_query.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_no_query.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorEmptyQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_query.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_empty_query.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorWithInvalidThresholdException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_with_invalid_threshold.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("bulk/update_bulk_with_invalid_threshold.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorWithFilterException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_with_filter.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_with_filter.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorWithProjectionException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("bulk/update_bulk_with_projection.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("bulk/update_bulk_with_projection.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorRegexPatternWithoutUpdatePatternException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(
-                "bulk/update_bulk_regex_pattern_without_controlPattern.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("bulk/update_bulk_regex_pattern_without_controlPattern.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateBulkSchemaValidatorRegexPatternWithoutControlPatternException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(
-                PropertiesUtils.findFile("bulk/update_bulk_regex_pattern_without_updatePattern.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("bulk/update_bulk_regex_pattern_without_updatePattern.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
@@ -188,7 +171,6 @@ public class UpdateBulkSchemaValidatorTest {
         // All test case for the class fr.gouv.vitam.common.InternalActionKeysRetriever must be valid,
         // so if changes are made in the DSL of update-bulk-query-dsl-schema.json it must be change also
         // in the InternalActionKeysRetriever class.
-
 
         // Given
         DslValidator dslValidator = new UpdateBulkSchemaValidator();
@@ -204,8 +186,8 @@ public class UpdateBulkSchemaValidatorTest {
         );
 
         // When
-        ThrowingCallable testInternalKeysRetrieverTestFiles = () -> testFiles.forEach(
-            node -> {
+        ThrowingCallable testInternalKeysRetrieverTestFiles = () ->
+            testFiles.forEach(node -> {
                 try {
                     dslValidator.validate(node);
                 } catch (ValidationException e) {
@@ -216,5 +198,4 @@ public class UpdateBulkSchemaValidatorTest {
         // Then
         assertThatCode(testInternalKeysRetrieverTestFiles).doesNotThrowAnyException();
     }
-
 }

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
@@ -35,8 +34,6 @@ import java.util.Map;
  * VitamStorageMetadata interface describing storage metadata
  */
 public interface VitamStorageMetadata extends VitamResourceMetadata<StorageType> {
-
-
     /**
      * Whether this resource is a container, file, etc.
      */

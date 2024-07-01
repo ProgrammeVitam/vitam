@@ -42,10 +42,9 @@ import static org.mockito.Mockito.when;
 public class DslScannerFilterTest {
 
     @Test
-    public void should_retrieve_exception_when_bad_dsl_request_for_select_single()
-        throws Exception {
-
-        JsonNode fromString = JsonHandler.getFromString("{\n" +
+    public void should_retrieve_exception_when_bad_dsl_request_for_select_single() throws Exception {
+        JsonNode fromString = JsonHandler.getFromString(
+            "{\n" +
             "  \"$roots\": [],\n" +
             "  \"$query\": [\n" +
             "    {\n" +
@@ -65,7 +64,8 @@ public class DslScannerFilterTest {
             "      \"TransactedDate\": 1\n" +
             "    }\n" +
             "  }\n" +
-            "}");
+            "}"
+        );
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
         when(containerRequestContext.getEntityStream()).thenReturn(JsonHandler.writeToInpustream(fromString));

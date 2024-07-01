@@ -89,19 +89,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class StorageLogBackupIT extends VitamRuleRunner {
 
-    public static final TypeReference<JsonNode> TYPE_REFERENCE = new TypeReference<>() {
-    };
+    public static final TypeReference<JsonNode> TYPE_REFERENCE = new TypeReference<>() {};
     public static final String STRATEGY_ID = "default";
+
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(StorageLogBackupIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                LogbookMain.class,
-                WorkspaceMain.class,
-                DefaultOfferMain.class,
-                StorageMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        StorageLogBackupIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(LogbookMain.class, WorkspaceMain.class, DefaultOfferMain.class, StorageMain.class)
+    );
 
     private static final int TENANT_0 = 0;
 
@@ -130,11 +127,7 @@ public class StorageLogBackupIT extends VitamRuleRunner {
 
     @After
     public void tearDown() {
-
-        runAfterMongo(Sets.newHashSet(
-            LogbookCollections.OPERATION.getName(),
-            OfferCollections.OFFER_LOG.getName()
-        ));
+        runAfterMongo(Sets.newHashSet(LogbookCollections.OPERATION.getName(), OfferCollections.OFFER_LOG.getName()));
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
@@ -149,14 +142,14 @@ public class StorageLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageLogBackupNonAdminTenantThenKO() {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(0);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
 
             // When / Then
-            assertThatThrownBy(() -> storageClient.storageLogBackup(Arrays.asList(0, 1)))
-                .isInstanceOf(StorageServerClientException.class);
+            assertThatThrownBy(() -> storageClient.storageLogBackup(Arrays.asList(0, 1))).isInstanceOf(
+                StorageServerClientException.class
+            );
         }
     }
 
@@ -164,7 +157,6 @@ public class StorageLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageLogBackupOK() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(0);
 
@@ -189,8 +181,9 @@ public class StorageLogBackupIT extends VitamRuleRunner {
             // When
             VitamThreadUtils.getVitamSession().setTenantId(1);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(1));
-            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults =
-                storageClient.storageLogBackup(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults = storageClient.storageLogBackup(
+                Arrays.asList(0, 1)
+            );
 
             // Then
 
@@ -202,39 +195,54 @@ public class StorageLogBackupIT extends VitamRuleRunner {
             assertThat(storageLogBackupResults.getResults().get(1).getTenantId()).isEqualTo(1);
 
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(storageLogBackupResults.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                storageLogBackupResults.getResults().get(0).getOperationId()
+            );
 
             assertThat(logbookOperation.getEvTypeProc()).isEqualTo(STORAGE_BACKUP.name());
             assertThat(logbookOperation.getEvType()).isEqualTo(STORAGE_WRITE_BACKUP);
-            assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail())
-                .isEqualTo(STORAGE_WRITE_BACKUP + "." + StatusCode.OK.name());
+            assertThat(
+                logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail()
+            ).isEqualTo(STORAGE_WRITE_BACKUP + "." + StatusCode.OK.name());
 
             // Check storage log
-            CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGELOG);
+            CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                STRATEGY_ID,
+                null,
+                DataCategory.STORAGELOG
+            );
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
 
-            Response storageLogResponse = storageClient.getContainerAsync(STRATEGY_ID, objectEntries
-                .get(0).getObjectId(), DataCategory.STORAGELOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectEntries.get(0).getObjectId(),
+                DataCategory.STORAGELOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
             List<JsonNode> logs = IteratorUtils.toList(new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE));
 
             // Check storage log content
-            JsonNode object1WriteLog = logs.stream()
+            JsonNode object1WriteLog = logs
+                .stream()
                 .filter(log -> log.get(StorageLogbookParameterName.objectIdentifier.name()).asText().equals(objectId1))
                 .filter(log -> log.get(StorageLogbookParameterName.eventType.name()).asText().equals("CREATE"))
-                .findFirst().orElseThrow(AssertionError::new);
-            JsonNode object2WriteLog = logs.stream()
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+            JsonNode object2WriteLog = logs
+                .stream()
                 .filter(log -> log.get(StorageLogbookParameterName.objectIdentifier.name()).asText().equals(objectId2))
                 .filter(log -> log.get(StorageLogbookParameterName.eventType.name()).asText().equals("CREATE"))
-                .findFirst().orElseThrow(AssertionError::new);
-            JsonNode object1DeleteLog = logs.stream()
+                .findFirst()
+                .orElseThrow(AssertionError::new);
+            JsonNode object1DeleteLog = logs
+                .stream()
                 .filter(log -> log.get(StorageLogbookParameterName.objectIdentifier.name()).asText().equals(objectId1))
                 .filter(log -> log.get(StorageLogbookParameterName.eventType.name()).asText().equals("DELETE"))
-                .findFirst().orElseThrow(AssertionError::new);
+                .findFirst()
+                .orElseThrow(AssertionError::new);
 
             checkStorageLogWriteEntry(object1WriteLog, objectId1, size1, digest1, beforeWrite1, afterWrite1);
             checkStorageLogWriteEntry(object2WriteLog, objectId2, size2, digest2, beforeWrite2, afterWrite2);
@@ -242,37 +250,43 @@ public class StorageLogBackupIT extends VitamRuleRunner {
         }
     }
 
-    private void checkStorageLogWriteEntry(JsonNode storageLog, String objectId, int size, Digest digest,
-        LocalDateTime beforeWrite, LocalDateTime afterWrite) {
-        assertThat(storageLog.get(StorageLogbookParameterName.objectIdentifier.name()).asText())
-            .isEqualTo(objectId);
-        assertThat(storageLog.get(StorageLogbookParameterName.outcome.name()).asText())
-            .isEqualTo(StorageLogbookOutcome.OK.name());
-        assertThat(storageLog.get(StorageLogbookParameterName.digest.name()).asText())
-            .isEqualTo(digest.digestHex());
-        assertThat(storageLog.get(StorageLogbookParameterName.size.name()).asLong())
-            .isEqualTo(size);
-        assertThat(storageLog.get(StorageLogbookParameterName.eventType.name()).asText())
-            .isEqualTo("CREATE");
-        assertThat(storageLog.get(StorageLogbookParameterName.tenantId.name()).asInt())
-            .isEqualTo(TENANT_0);
-        assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText())
-            .isBetween(LocalDateUtil.getFormattedDateForMongo(beforeWrite),
-                LocalDateUtil.getFormattedDateForMongo(afterWrite));
+    private void checkStorageLogWriteEntry(
+        JsonNode storageLog,
+        String objectId,
+        int size,
+        Digest digest,
+        LocalDateTime beforeWrite,
+        LocalDateTime afterWrite
+    ) {
+        assertThat(storageLog.get(StorageLogbookParameterName.objectIdentifier.name()).asText()).isEqualTo(objectId);
+        assertThat(storageLog.get(StorageLogbookParameterName.outcome.name()).asText()).isEqualTo(
+            StorageLogbookOutcome.OK.name()
+        );
+        assertThat(storageLog.get(StorageLogbookParameterName.digest.name()).asText()).isEqualTo(digest.digestHex());
+        assertThat(storageLog.get(StorageLogbookParameterName.size.name()).asLong()).isEqualTo(size);
+        assertThat(storageLog.get(StorageLogbookParameterName.eventType.name()).asText()).isEqualTo("CREATE");
+        assertThat(storageLog.get(StorageLogbookParameterName.tenantId.name()).asInt()).isEqualTo(TENANT_0);
+        assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText()).isBetween(
+            LocalDateUtil.getFormattedDateForMongo(beforeWrite),
+            LocalDateUtil.getFormattedDateForMongo(afterWrite)
+        );
     }
 
-    private void checkStorageLogDeleteEntry(JsonNode storageLog, String objectId,
-        LocalDateTime beforeWrite, LocalDateTime afterWrite) {
-        assertThat(storageLog.get(StorageLogbookParameterName.objectIdentifier.name()).asText())
-            .isEqualTo(objectId);
-        assertThat(storageLog.get(StorageLogbookParameterName.outcome.name()).asText())
-            .isEqualTo(StorageLogbookOutcome.OK.name());
-        assertThat(storageLog.get(StorageLogbookParameterName.eventType.name()).asText())
-            .isEqualTo("DELETE");
-        assertThat(storageLog.get(StorageLogbookParameterName.tenantId.name()).asInt())
-            .isEqualTo(TENANT_0);
-        assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText())
-            .isBetween(LocalDateUtil.getFormattedDateForMongo(beforeWrite),
-                LocalDateUtil.getFormattedDateForMongo(afterWrite));
+    private void checkStorageLogDeleteEntry(
+        JsonNode storageLog,
+        String objectId,
+        LocalDateTime beforeWrite,
+        LocalDateTime afterWrite
+    ) {
+        assertThat(storageLog.get(StorageLogbookParameterName.objectIdentifier.name()).asText()).isEqualTo(objectId);
+        assertThat(storageLog.get(StorageLogbookParameterName.outcome.name()).asText()).isEqualTo(
+            StorageLogbookOutcome.OK.name()
+        );
+        assertThat(storageLog.get(StorageLogbookParameterName.eventType.name()).asText()).isEqualTo("DELETE");
+        assertThat(storageLog.get(StorageLogbookParameterName.tenantId.name()).asInt()).isEqualTo(TENANT_0);
+        assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText()).isBetween(
+            LocalDateUtil.getFormattedDateForMongo(beforeWrite),
+            LocalDateUtil.getFormattedDateForMongo(afterWrite)
+        );
     }
 }

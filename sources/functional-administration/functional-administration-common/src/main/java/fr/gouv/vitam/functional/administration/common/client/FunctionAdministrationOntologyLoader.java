@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FunctionAdministrationOntologyLoader implements OntologyLoader {
+
     @Override
     public List<OntologyModel> loadOntologies() {
         try {

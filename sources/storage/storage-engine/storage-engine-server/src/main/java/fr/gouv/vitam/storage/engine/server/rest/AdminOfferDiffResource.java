@@ -79,8 +79,7 @@ public class AdminOfferDiffResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     @WriteProtection(true)
-    public Response startOfferDiff(
-        OfferDiffRequest offerDiffRequest) {
+    public Response startOfferDiff(OfferDiffRequest offerDiffRequest) {
         ParametersChecker.checkParameter("Offer 1 is mandatory.", offerDiffRequest.getOffer1());
         ParametersChecker.checkParameter("Offer 2 is mandatory.", offerDiffRequest.getOffer2());
         ParametersChecker.checkParameter("Container is mandatory.", offerDiffRequest.getContainer());
@@ -114,9 +113,7 @@ public class AdminOfferDiffResource {
             LOGGER.warn("Another offer diff process is already running");
             status = Response.Status.CONFLICT;
         }
-        return Response.status(status)
-            .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .build();
+        return Response.status(status).header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId()).build();
     }
 
     /**

@@ -35,14 +35,19 @@ public abstract class MetadatasObject {
 
     @JsonProperty("objectName")
     private String objectName;
+
     @JsonProperty("type")
     private String type;
+
     @JsonProperty("digest")
     private String digest;
+
     @JsonProperty("fileSize")
     private long fileSize;
+
     @JsonProperty("lastAccessDate")
     private String lastAccessDate;
+
     @JsonProperty("lastModifiedDate")
     private String lastModifiedDate;
 
@@ -68,8 +73,14 @@ public abstract class MetadatasObject {
      * @param lastAccessDate of metadata object
      * @param lastModifiedDate of metadata object
      */
-    public MetadatasObject(String objectName, String type, String digest, long fileSize,
-        String lastAccessDate, String lastModifiedDate) {
+    public MetadatasObject(
+        String objectName,
+        String type,
+        String digest,
+        long fileSize,
+        String lastAccessDate,
+        String lastModifiedDate
+    ) {
         this.objectName = objectName;
         this.type = type;
         this.digest = digest;
@@ -77,7 +88,6 @@ public abstract class MetadatasObject {
         this.lastAccessDate = lastAccessDate;
         this.lastModifiedDate = lastModifiedDate;
     }
-
 
     /**
      * @return object name
@@ -174,5 +184,4 @@ public abstract class MetadatasObject {
         this.lastModifiedDate = lastModifiedDate;
         return this;
     }
-
 }

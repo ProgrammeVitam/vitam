@@ -31,11 +31,20 @@ import java.util.Set;
 
 public class EliminationReportConfiguration {
 
-    public static final Set<String> WHITELISTED_FIELDS =
-        Set.of("#id", "#version", "#unitups", "#originating_agency", "#approximate_creation_date",
-            "#approximate_update_date", "FilePlanPosition", "SystemId", "OriginatingSystemId",
-            "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier",
-            "TransferringAgencyArchiveUnitIdentifier");
+    public static final Set<String> WHITELISTED_FIELDS = Set.of(
+        "#id",
+        "#version",
+        "#unitups",
+        "#originating_agency",
+        "#approximate_creation_date",
+        "#approximate_update_date",
+        "FilePlanPosition",
+        "SystemId",
+        "OriginatingSystemId",
+        "ArchivalAgencyArchiveUnitIdentifier",
+        "OriginatingAgencyArchiveUnitIdentifier",
+        "TransferringAgencyArchiveUnitIdentifier"
+    );
 
     private int tenant;
 

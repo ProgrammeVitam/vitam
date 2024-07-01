@@ -45,6 +45,7 @@ import java.util.List;
  * Select: { $roots: roots, $query : query, $filter : filter, $projection : projection, $facets : facet }
  */
 public class SelectMultiQuery extends RequestMultiple {
+
     /**
      * Facets
      */
@@ -148,8 +149,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final SelectMultiQuery parseLimitFilter(final String filter)
-        throws InvalidParseOperationException {
+    public final SelectMultiQuery parseLimitFilter(final String filter) throws InvalidParseOperationException {
         selectParseLimitFilter(filter);
         return this;
     }
@@ -181,8 +181,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final SelectMultiQuery addOrderByFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final SelectMultiQuery addOrderByFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         selectAddOrderByFilter(filterContent);
         return this;
     }
@@ -192,8 +191,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final SelectMultiQuery parseOrderByFilter(final String filter)
-        throws InvalidParseOperationException {
+    public final SelectMultiQuery parseOrderByFilter(final String filter) throws InvalidParseOperationException {
         selectParseOrderByFilter(filter);
         return this;
     }
@@ -204,8 +202,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @throws InvalidParseOperationException when query is invalid
      */
     @Override
-    public final SelectMultiQuery setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final SelectMultiQuery setFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         super.setFilter(filterContent);
         selectSetFilter(filterContent);
         return this;
@@ -247,8 +244,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final SelectMultiQuery parseProjection(final String projection)
-        throws InvalidParseOperationException {
+    public final SelectMultiQuery parseProjection(final String projection) throws InvalidParseOperationException {
         selectParseProjection(projection);
         return this;
     }
@@ -258,8 +254,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final SelectMultiQuery setUsageProjection(final String usage)
-        throws InvalidParseOperationException {
+    public final SelectMultiQuery setUsageProjection(final String usage) throws InvalidParseOperationException {
         GlobalDatas.sanityParameterCheck(usage);
         if (projection == null) {
             projection = JsonHandler.createObjectNode();
@@ -304,7 +299,6 @@ public class SelectMultiQuery extends RequestMultiple {
         return this;
     }
 
-
     /**
      * @return the Final Select containing all 5 parts: roots array, queries array, facets array, filter and projection
      */
@@ -326,7 +320,6 @@ public class SelectMultiQuery extends RequestMultiple {
         objectNode.remove(BuilderToken.GLOBAL.FACETS.exactToken());
         return objectNode;
     }
-
 
     /**
      * Add facets to given node
@@ -398,7 +391,6 @@ public class SelectMultiQuery extends RequestMultiple {
         facets.add(facet);
         return this;
     }
-
 
     /**
      * @param scrollId ignored if empty or null

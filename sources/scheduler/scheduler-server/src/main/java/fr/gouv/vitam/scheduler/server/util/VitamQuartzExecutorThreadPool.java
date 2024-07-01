@@ -32,6 +32,7 @@ import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.ThreadPool;
 
 public class VitamQuartzExecutorThreadPool extends SimpleThreadPool implements ThreadPool {
+
     @Override
     public boolean runInThread(Runnable runnable) {
         if (runnable == null) {
@@ -40,6 +41,4 @@ public class VitamQuartzExecutorThreadPool extends SimpleThreadPool implements T
         Runnable myRunnable = () -> VitamThreadPoolExecutor.getDefaultExecutor().execute(runnable);
         return super.runInThread(myRunnable);
     }
-
 }
-

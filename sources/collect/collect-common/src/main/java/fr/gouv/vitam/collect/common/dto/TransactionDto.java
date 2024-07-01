@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.collect.common.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,42 +35,59 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TransactionDto implements Serializable {
 
-    @JsonProperty(value = "#id") private String id;
+    @JsonProperty(value = "#id")
+    private String id;
 
-    @JsonProperty(value = "Name", required = true) private String name;
+    @JsonProperty(value = "Name", required = true)
+    private String name;
 
-    @JsonProperty(value = "ArchivalAgreement", required = true) private String archivalAgreement;
+    @JsonProperty(value = "ArchivalAgreement", required = true)
+    private String archivalAgreement;
 
-    @JsonProperty(value = "MessageIdentifier", required = true) private String messageIdentifier;
+    @JsonProperty(value = "MessageIdentifier", required = true)
+    private String messageIdentifier;
 
-    @JsonProperty(value = "ArchivalAgencyIdentifier", required = true) private String archivalAgencyIdentifier;
+    @JsonProperty(value = "ArchivalAgencyIdentifier", required = true)
+    private String archivalAgencyIdentifier;
 
-    @JsonProperty(value = "TransferringAgencyIdentifier", required = true) private String transferringAgencyIdentifier;
+    @JsonProperty(value = "TransferringAgencyIdentifier", required = true)
+    private String transferringAgencyIdentifier;
 
-    @JsonProperty(value = "OriginatingAgencyIdentifier", required = true) private String originatingAgencyIdentifier;
+    @JsonProperty(value = "OriginatingAgencyIdentifier", required = true)
+    private String originatingAgencyIdentifier;
 
-    @JsonProperty(value = "SubmissionAgencyIdentifier") private String submissionAgencyIdentifier;
+    @JsonProperty(value = "SubmissionAgencyIdentifier")
+    private String submissionAgencyIdentifier;
 
-    @JsonProperty(value = "ArchiveProfile") private String archivalProfile;
+    @JsonProperty(value = "ArchiveProfile")
+    private String archivalProfile;
 
-    @JsonProperty(value = "AcquisitionInformation") private String acquisitionInformation;
+    @JsonProperty(value = "AcquisitionInformation")
+    private String acquisitionInformation;
 
-    @JsonProperty(value = "LegalStatus") private String legalStatus;
+    @JsonProperty(value = "LegalStatus")
+    private String legalStatus;
 
-    @JsonProperty(value = "Comment") private String comment;
+    @JsonProperty(value = "Comment")
+    private String comment;
 
-    @JsonProperty("#tenant") private Integer tenant;
+    @JsonProperty("#tenant")
+    private Integer tenant;
 
-    @JsonProperty(value = "CreationDate") private String creationDate;
+    @JsonProperty(value = "CreationDate")
+    private String creationDate;
 
-    @JsonProperty(value = "LastUpdate") private String lastUpdate;
+    @JsonProperty(value = "LastUpdate")
+    private String lastUpdate;
 
-    @JsonProperty(value = "Status") private String status;
+    @JsonProperty(value = "Status")
+    private String status;
 
-    @JsonProperty(value = "ProjectId") private String projectId;
+    @JsonProperty(value = "ProjectId")
+    private String projectId;
 
-    @JsonProperty(value = "VitamOperationId") private String vitamOperationId;
-
+    @JsonProperty(value = "VitamOperationId")
+    private String vitamOperationId;
 
     public TransactionDto() {
         //Empty constructor for serialization
@@ -81,10 +97,23 @@ public class TransactionDto implements Serializable {
         this.id = id;
     }
 
-    public TransactionDto(String id, String archivalAgreement, String messageIdentifier,
-        String archivalAgencyIdentifier, String transferringAgencyIdentifier, String originatingAgencyIdentifier,
-        String submissionAgencyIdentifier, String archivalProfile, String comment, Integer tenant,
-        String acquisitionInformation, String legalStatus, String creationDate, String lastUpdate, String status) {
+    public TransactionDto(
+        String id,
+        String archivalAgreement,
+        String messageIdentifier,
+        String archivalAgencyIdentifier,
+        String transferringAgencyIdentifier,
+        String originatingAgencyIdentifier,
+        String submissionAgencyIdentifier,
+        String archivalProfile,
+        String comment,
+        Integer tenant,
+        String acquisitionInformation,
+        String legalStatus,
+        String creationDate,
+        String lastUpdate,
+        String status
+    ) {
         this.id = id;
         this.archivalAgreement = archivalAgreement;
         this.messageIdentifier = messageIdentifier;
@@ -248,10 +277,8 @@ public class TransactionDto implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TransactionDto that = (TransactionDto) o;
         return Objects.equals(id, that.id);
     }

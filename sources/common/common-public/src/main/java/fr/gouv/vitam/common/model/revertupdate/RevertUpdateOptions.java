@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 
 public class RevertUpdateOptions {
+
     @JsonProperty("force")
     private boolean force;
 
@@ -45,11 +46,9 @@ public class RevertUpdateOptions {
     @JsonProperty("$fields")
     private List<String> fields;
 
-    public RevertUpdateOptions() {
-    }
+    public RevertUpdateOptions() {}
 
-    public RevertUpdateOptions(boolean force, JsonNode dslRequest, String operationId,
-        List<String> fields) {
+    public RevertUpdateOptions(boolean force, JsonNode dslRequest, String operationId, List<String> fields) {
         this.force = force;
         this.dslRequest = dslRequest;
         this.operationId = operationId;

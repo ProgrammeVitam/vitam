@@ -40,6 +40,7 @@ import java.io.UnsupportedEncodingException;
  * logger factory using SLF4J from Logback
  */
 public final class LogbackLoggerFactory extends VitamLoggerFactory {
+
     // Since Logger, most of the exception are catch silently
     static final String ROOT = Logger.ROOT_LOGGER_NAME;
 
@@ -62,12 +63,18 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
         final StringBuilder buf = new StringBuilder();
         final PrintStream err = System.err; // NOSONAR
         try {
-            System.setErr(new PrintStream(new OutputStream() {
-                @Override
-                public void write(final int b) {
-                    buf.append((char) b);
-                }
-            }, true, "US-ASCII"));
+            System.setErr(
+                new PrintStream(
+                    new OutputStream() {
+                        @Override
+                        public void write(final int b) {
+                            buf.append((char) b);
+                        }
+                    },
+                    true,
+                    "US-ASCII"
+                )
+            );
         } catch (final UnsupportedEncodingException e) {
             throw new RuntimeErrorException(new Error(e));
         }

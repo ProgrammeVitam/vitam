@@ -32,5 +32,5 @@ public enum PojoModelType {
     LONG,
     DOUBLE,
     BOOLEAN,
-    OBJECT
+    OBJECT,
 }

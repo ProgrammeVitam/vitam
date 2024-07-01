@@ -44,8 +44,10 @@ public final class StorageLogFactory {
         }
 
         if (instance == null) {
-            instance = new StorageLogService(VitamConfiguration.getTenants(),
-                Paths.get(storageConfiguration.getLoggingDirectory()));
+            instance = new StorageLogService(
+                VitamConfiguration.getTenants(),
+                Paths.get(storageConfiguration.getLoggingDirectory())
+            );
         }
         return instance;
     }

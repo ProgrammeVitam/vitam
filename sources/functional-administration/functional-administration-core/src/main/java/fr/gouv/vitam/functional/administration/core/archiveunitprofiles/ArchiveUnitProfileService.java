@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.archiveunitprofiles;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -42,8 +41,6 @@ import java.util.List;
  * This service manages CRUD on Archive unit profiles
  */
 public interface ArchiveUnitProfileService extends VitamAutoCloseable {
-
-
     /**
      * Create a collections of profile After passing the validation steps. If all the profiles are valid, they are
      * stored in the collection and indexed. </BR>
@@ -58,8 +55,7 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    RequestResponse<ArchiveUnitProfileModel> createArchiveUnitProfiles(
-        List<ArchiveUnitProfileModel> profileModelList)
+    RequestResponse<ArchiveUnitProfileModel> createArchiveUnitProfiles(List<ArchiveUnitProfileModel> profileModelList)
         throws VitamException;
 
     /**
@@ -90,5 +86,4 @@ public interface ArchiveUnitProfileService extends VitamAutoCloseable {
      */
     RequestResponse<ArchiveUnitProfileModel> updateArchiveUnitProfile(String id, JsonNode queryDsl)
         throws VitamException;
-
 }

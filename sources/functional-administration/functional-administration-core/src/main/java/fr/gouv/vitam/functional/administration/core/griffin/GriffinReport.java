@@ -84,8 +84,7 @@ public class GriffinReport {
         return operation;
     }
 
-    public GriffinReport setOperation(
-        FunctionalOperationModel operation) {
+    public GriffinReport setOperation(FunctionalOperationModel operation) {
         this.operation = operation;
         return this;
     }

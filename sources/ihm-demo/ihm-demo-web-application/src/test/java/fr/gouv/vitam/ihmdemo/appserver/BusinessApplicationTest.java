@@ -53,8 +53,9 @@ import static org.mockito.Mockito.mock;
  */
 public class BusinessApplicationTest extends Application {
 
-    private static UserInterfaceTransactionManager userInterfaceTransactionManager =
-        mock(UserInterfaceTransactionManager.class);
+    private static UserInterfaceTransactionManager userInterfaceTransactionManager = mock(
+        UserInterfaceTransactionManager.class
+    );
     private static AdminExternalClientFactory adminExternalClientFactory = mock(AdminExternalClientFactory.class);
     private static AccessExternalClientFactory accessExternalClientFactory = mock(AccessExternalClientFactory.class);
     private static DslQueryHelper dslQueryHelper = mock(DslQueryHelper.class);
@@ -74,28 +75,41 @@ public class BusinessApplicationTest extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final WebApplicationConfig configuration =
-                PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
+            final WebApplicationConfig configuration = PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
 
             Set<String> permissions = getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
 
-            Set<String> methodsAnnotatedWith =
-                getMethodsAnnotatedWith(WebPreservationResource.class, RequiresPermissions.class);
+            Set<String> methodsAnnotatedWith = getMethodsAnnotatedWith(
+                WebPreservationResource.class,
+                RequiresPermissions.class
+            );
             permissions.addAll(methodsAnnotatedWith);
 
-            singletons.add(new WebApplicationResource(permissions, configuration, ingestExternalClientFactory,
-                adminExternalClientFactory, userInterfaceTransactionManager, dslQueryHelper, paginationHelper));
             singletons.add(
-                new WebPreservationResource(adminExternalClientFactory, accessExternalClientFactory,
-                    userInterfaceTransactionManager, dslQueryHelper));
-
+                new WebApplicationResource(
+                    permissions,
+                    configuration,
+                    ingestExternalClientFactory,
+                    adminExternalClientFactory,
+                    userInterfaceTransactionManager,
+                    dslQueryHelper,
+                    paginationHelper
+                )
+            );
+            singletons.add(
+                new WebPreservationResource(
+                    adminExternalClientFactory,
+                    accessExternalClientFactory,
+                    userInterfaceTransactionManager,
+                    dslQueryHelper
+                )
+            );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override
@@ -127,4 +141,3 @@ public class BusinessApplicationTest extends Application {
         return dslQueryHelper;
     }
 }
-

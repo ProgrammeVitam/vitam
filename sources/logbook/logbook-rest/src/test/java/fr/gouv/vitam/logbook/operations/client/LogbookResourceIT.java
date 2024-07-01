@@ -124,8 +124,7 @@ public class LogbookResourceIT {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -133,8 +132,9 @@ public class LogbookResourceIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceIT.class);
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String ALERT_EVENT_TYPE = "STP_IMPORT_ACCESS_CONTRACT";
@@ -152,8 +152,8 @@ public class LogbookResourceIT {
     private static final Integer adminTenant = 1;
     private static final Integer secondTenant = 0;
     private static final List<Integer> tenantList = newArrayList(tenantId, secondTenant);
-    private static final ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
-        .createTestIndexManager(tenantList, Collections.emptyMap());
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -165,19 +165,24 @@ public class LogbookResourceIT {
     private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongAppend;
 
     private static final int WORKSPACE_PORT = JUNIT_HELPER.findAvailablePort();
+
     @ClassRule
     public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(WORKSPACE_PORT);
+
     @Rule
     public WireMockClassRule workspaceInstanceRule = workspaceWireMockRule;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         serverPort = JUNIT_HELPER.findAvailablePort();
 
@@ -212,13 +217,15 @@ public class LogbookResourceIT {
             logbookConf.setLifecycleTraceabilityMaxRenewalDelay(12);
             logbookConf.setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
             logbookConf.setOperationTraceabilityThreadPoolSize(4);
-            logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
-                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                    new CollectionConfiguration(1, 0))));
+            logbookConf.setLogbookTenantIndexation(
+                new LogbookIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new DefaultCollectionConfiguration().setLogbookoperation(new CollectionConfiguration(1, 0))
+                    )
+            );
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
             PropertiesUtils.writeYaml(file, logbookConf);
-
 
             application = new LogbookMain(configurationFile);
             application.start();
@@ -228,8 +235,7 @@ public class LogbookResourceIT {
             RestAssured.basePath = REST_URI;
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", serverPort));
@@ -239,13 +245,21 @@ public class LogbookResourceIT {
 
     @Before
     public void setUp() {
-        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))));
-        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)"))
-            .willReturn(WireMock.aResponse().withStatus(201)
-                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))));
-        workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))));
+        workspaceInstanceRule.stubFor(
+            WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))
+            )
+        );
+        workspaceInstanceRule.stubFor(
+            WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))
+            )
+        );
+        workspaceInstanceRule.stubFor(
+            WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))
+            )
+        );
     }
 
     @AfterClass
@@ -279,56 +293,101 @@ public class LogbookResourceIT {
         final GUID eip2 = GUIDFactory.newEventGUID(tenantId);
         String evDetData =
             "{\"LogType\":\"OPERATION\",\"StartDate\":\"2017-02-16T23:01:03.49\",\"EndDate\":\"2017-02-20T09:46:25.816\"," +
-                "\"Hash\":\"6o0DS5ukbVsPHtynv2dW48tT/D65xUMs3orIkwsYU/Ron3RjEo3nzdiO4LliyNRNT3Eg/vhbitXsT+L2MWi4BA==\"," +
-                "\"TimeStampToken\":\"MIIEezAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEYAYJKoZIhvcNAQcCoIIEUTCCBE0CAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRv" +
-                "MG0CAQEGASkwUTANBglghkgBZQMEAgMFAARA8RT79mPtXGJf5kadV2fyLnlAgZBVr7s7ZxMFRp4qr1GGPhU7Cu6+XXVBowT1moq8BRLm6U0VphGb51g8Idlh/wIBARgPMjAxNzAyMjAwO" +
-                "TQ2MjZaMYIDsjCCA64CAQEwYzBdMQswCQYDVQQGEwJGUjEMMAoGA1UECBMDaWRmMQ4wDAYDVQQHEwVwYXJpczEPMA0GA1UEChMGVml0YW0uMR8wHQYDVQQDFBZDQV9zZXJ2ZXJfaW50ZX" +
-                "JtZWRpYXRlAgIAsDANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzAyMjAwOTQ2MjZaMC0GCSqGSIb3DQEJNDEgMB4" +
-                "wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQKxHofJ/92kGaE6GNB1cJSshBcAOimapOlA3Vdphd7E9eahvILjI26Y/gHrCuLuzwkRQVsrRoKELp57y" +
-                "OKpDRSowZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQDiZ3/2zK5pV1xaSWoSwn4yrbEItdSp6xal0vz8sz1DODD0cb8B+ZOeFx0kaN/a5YwBjMe7TJx0eVZYpebtTp" +
-                "DYwDQYJKoZIhvcNAQENBQAEggIATm+Gj6piHPhj3w211QRuvfhYVBynQ7Wb4UR/sUE8hYV8H/lFr9UDj9tu4Js9PxH4UyOsYZcIwx1aSWG4xKlVovsS/jMk/HXLdMUvXHKIc4Givopw2j" +
-                "q4WM4PbXI1jCep2qNLEFj/RgHX23SuXnqsCQvZwh9ROx42hwwuzFmkV8PjdJtVn2NdSLO20tkPTZdb86ztt2qpU1A7lkEfCPryNluYfPhPaBfyxUbmeiMM0sPsDM/dQouu3BJnqSrenxC" +
-                "VfkFxAbREWJFlKrC94caG3dWuIvVlabcP2uSnd23uAZmTSabJyHUMn2w0KD+chGseMnwF6xq8/6/RlKG6kPc5n1unl/R4q8DdeLLmSb0MBU+03buk4tmRaIdtAgXzG3InCopiJLT9fvL3" +
-                "6o8M2da67rvizzBMoV/Zjtm4u1S3SVCKrf10go7vGOvF0IIAzFE+Un255jsGVrvWdYQcueS7s9GJIPEMN/9huIMM6WUyPkPcj4I6Way+iOoNBZT7aGx9tQEXsZYXiQ6/VDLmiBiWJKwCs" +
-                "HNuIckMGV5KQcKAbJYPgqjBNHFgVD9hf9AX0R763soZy8BMW6UOZGNlY08QXsm2eNc70D0+6kRMCAu/iARyq04Cz+L5tKwtIBzbOOqD+6h9ok8ahXQCQZKBc3SRHbc3rm9SnnUdQUsb53OOkRE=\"," +
-                "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
-                "\"NumberOfElements\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
+            "\"Hash\":\"6o0DS5ukbVsPHtynv2dW48tT/D65xUMs3orIkwsYU/Ron3RjEo3nzdiO4LliyNRNT3Eg/vhbitXsT+L2MWi4BA==\"," +
+            "\"TimeStampToken\":\"MIIEezAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEYAYJKoZIhvcNAQcCoIIEUTCCBE0CAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRv" +
+            "MG0CAQEGASkwUTANBglghkgBZQMEAgMFAARA8RT79mPtXGJf5kadV2fyLnlAgZBVr7s7ZxMFRp4qr1GGPhU7Cu6+XXVBowT1moq8BRLm6U0VphGb51g8Idlh/wIBARgPMjAxNzAyMjAwO" +
+            "TQ2MjZaMYIDsjCCA64CAQEwYzBdMQswCQYDVQQGEwJGUjEMMAoGA1UECBMDaWRmMQ4wDAYDVQQHEwVwYXJpczEPMA0GA1UEChMGVml0YW0uMR8wHQYDVQQDFBZDQV9zZXJ2ZXJfaW50ZX" +
+            "JtZWRpYXRlAgIAsDANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzAyMjAwOTQ2MjZaMC0GCSqGSIb3DQEJNDEgMB4" +
+            "wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQKxHofJ/92kGaE6GNB1cJSshBcAOimapOlA3Vdphd7E9eahvILjI26Y/gHrCuLuzwkRQVsrRoKELp57y" +
+            "OKpDRSowZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQDiZ3/2zK5pV1xaSWoSwn4yrbEItdSp6xal0vz8sz1DODD0cb8B+ZOeFx0kaN/a5YwBjMe7TJx0eVZYpebtTp" +
+            "DYwDQYJKoZIhvcNAQENBQAEggIATm+Gj6piHPhj3w211QRuvfhYVBynQ7Wb4UR/sUE8hYV8H/lFr9UDj9tu4Js9PxH4UyOsYZcIwx1aSWG4xKlVovsS/jMk/HXLdMUvXHKIc4Givopw2j" +
+            "q4WM4PbXI1jCep2qNLEFj/RgHX23SuXnqsCQvZwh9ROx42hwwuzFmkV8PjdJtVn2NdSLO20tkPTZdb86ztt2qpU1A7lkEfCPryNluYfPhPaBfyxUbmeiMM0sPsDM/dQouu3BJnqSrenxC" +
+            "VfkFxAbREWJFlKrC94caG3dWuIvVlabcP2uSnd23uAZmTSabJyHUMn2w0KD+chGseMnwF6xq8/6/RlKG6kPc5n1unl/R4q8DdeLLmSb0MBU+03buk4tmRaIdtAgXzG3InCopiJLT9fvL3" +
+            "6o8M2da67rvizzBMoV/Zjtm4u1S3SVCKrf10go7vGOvF0IIAzFE+Un255jsGVrvWdYQcueS7s9GJIPEMN/9huIMM6WUyPkPcj4I6Way+iOoNBZT7aGx9tQEXsZYXiQ6/VDLmiBiWJKwCs" +
+            "HNuIckMGV5KQcKAbJYPgqjBNHFgVD9hf9AX0R763soZy8BMW6UOZGNlY08QXsm2eNc70D0+6kRMCAu/iARyq04Cz+L5tKwtIBzbOOqD+6h9ok8ahXQCQZKBc3SRHbc3rm9SnnUdQUsb53OOkRE=\"," +
+            "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
+            "\"NumberOfElements\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
         LogbookOperationParameters traceabilityParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip1, LOGBOOK_TRACEABILITY.getEventType(), eip1, LogbookTypeProcess.TRACEABILITY,
-            StatusCode.STARTED, "Début de la sécurisation des journaux", eip1);
+            eip1,
+            LOGBOOK_TRACEABILITY.getEventType(),
+            eip1,
+            LogbookTypeProcess.TRACEABILITY,
+            StatusCode.STARTED,
+            "Début de la sécurisation des journaux",
+            eip1
+        );
         LogbookOperationParameters traceabilityParametersStpStart =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip1, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip1);
+                GUIDFactory.newEventGUID(0),
+                LOGBOOK_TRACEABILITY.getEventType(),
+                eip1,
+                LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED,
+                "Début du processus de sécurisation des journaux",
+                eip1
+            );
         LogbookOperationParameters traceabilityParametersStpAct1End =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.OK, "Succès de création du tampon d'horodatage de l'ensemble des journaux", eip1);
+                GUIDFactory.newEventGUID(0),
+                "OP_SECURISATION_TIMESTAMP",
+                eip1,
+                LogbookTypeProcess.TRACEABILITY,
+                StatusCode.OK,
+                "Succès de création du tampon d'horodatage de l'ensemble des journaux",
+                eip1
+            );
         LogbookOperationParameters traceabilityParametersStpAct2End =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.OK, "Succès du stockage des journaux", eip1);
-        LogbookOperationParameters traceabilityParametersStpEnd =
-            LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip1, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.OK, "Succès du processus de sécurisation des journaux", eip1);
+                GUIDFactory.newEventGUID(0),
+                "OP_SECURISATION_STORAGE",
+                eip1,
+                LogbookTypeProcess.TRACEABILITY,
+                StatusCode.OK,
+                "Succès du stockage des journaux",
+                eip1
+            );
+        LogbookOperationParameters traceabilityParametersStpEnd = LogbookParameterHelper.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            LOGBOOK_TRACEABILITY.getEventType(),
+            eip1,
+            LogbookTypeProcess.TRACEABILITY,
+            StatusCode.OK,
+            "Succès du processus de sécurisation des journaux",
+            eip1
+        );
         traceabilityParametersStpEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
 
-        LogbookOperationParameters traceabilityParameters2Start =
-            LogbookParameterHelper.newLogbookOperationParameters(
-                eip2, LOGBOOK_TRACEABILITY.getEventType(), eip2, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.STARTED, "Début de la sécurisation des journaux", eip2);
+        LogbookOperationParameters traceabilityParameters2Start = LogbookParameterHelper.newLogbookOperationParameters(
+            eip2,
+            LOGBOOK_TRACEABILITY.getEventType(),
+            eip2,
+            LogbookTypeProcess.TRACEABILITY,
+            StatusCode.STARTED,
+            "Début de la sécurisation des journaux",
+            eip2
+        );
         LogbookOperationParameters traceabilityParameters2StpStart =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip2, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip2);
+                GUIDFactory.newEventGUID(0),
+                LOGBOOK_TRACEABILITY.getEventType(),
+                eip2,
+                LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED,
+                "Début du processus de sécurisation des journaux",
+                eip2
+            );
         LogbookOperationParameters traceabilityParameters2StpEndFatal =
             LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), LOGBOOK_TRACEABILITY.getEventType(), eip2, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.FATAL, "Succès du processus de sécurisation des journaux", eip2);
+                GUIDFactory.newEventGUID(0),
+                LOGBOOK_TRACEABILITY.getEventType(),
+                eip2,
+                LogbookTypeProcess.TRACEABILITY,
+                StatusCode.FATAL,
+                "Succès du processus de sécurisation des journaux",
+                eip2
+            );
 
-        try (final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             client.checkStatus();
             client.create(traceabilityParametersStart);
             client.update(traceabilityParametersStpStart);
@@ -343,23 +402,28 @@ public class LogbookResourceIT {
             try {
                 final Select select = new Select();
                 final Query eventProcType = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
-                final Query logType = QueryHelper
-                    .eq(String.format("%s.%s.%s", LogbookDocument.EVENTS,
-                            LogbookMongoDbName.eventDetailData.getDbname(), "LogType"),
-                        "OPERATION");
+                final Query logType = QueryHelper.eq(
+                    String.format(
+                        "%s.%s.%s",
+                        LogbookDocument.EVENTS,
+                        LogbookMongoDbName.eventDetailData.getDbname(),
+                        "LogType"
+                    ),
+                    "OPERATION"
+                );
                 final Query eventType = QueryHelper.eq(
                     String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
-                    LOGBOOK_TRACEABILITY.getEventType());
-                final Query outcome = QueryHelper
-                    .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.getDbname()),
-                        "OK");
+                    LOGBOOK_TRACEABILITY.getEventType()
+                );
+                final Query outcome = QueryHelper.eq(
+                    String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.getDbname()),
+                    "OK"
+                );
                 select.setLimitFilter(0, 1);
                 select.setQuery(QueryHelper.and().add(eventProcType, logType, eventType, outcome));
                 JsonNode json = client.selectOperation(select.getFinalSelect());
-                RequestResponseOK<JsonNode> response = JsonHandler.getFromJsonNode(json, new TypeReference<>() {
-                });
+                RequestResponseOK<JsonNode> response = JsonHandler.getFromJsonNode(json, new TypeReference<>() {});
                 assertEquals(1, response.getHits().getTotal());
-
             } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
                 fail("Should not have raized an exception");
             }
@@ -371,9 +435,10 @@ public class LogbookResourceIT {
                 select.setQuery(QueryHelper.and().add(eventProcType));
                 select.addOrderByDescFilter("evDateTime");
                 JsonNode json = client.selectOperation(select.getFinalSelect());
-                RequestResponseOK<Map<String, Object>> response =
-                    JsonHandler.getFromJsonNode(json, new TypeReference<>() {
-                    });
+                RequestResponseOK<Map<String, Object>> response = JsonHandler.getFromJsonNode(
+                    json,
+                    new TypeReference<>() {}
+                );
                 Iterator<Map<String, Object>> responseResults = response.getResults().iterator();
                 Map<String, Object> firstResult = responseResults.next();
                 String eventIdProc1 = (String) firstResult.get(LogbookMongoDbName.eventIdentifierProcess.getDbname());
@@ -394,39 +459,56 @@ public class LogbookResourceIT {
             VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
             final GUID eip1 = GUIDFactory.newOperationLogbookGUID(adminTenant);
             LogbookOperationParameters importOntologyStart = LogbookParameterHelper.newLogbookOperationParameters(
-                eip1, IMPORT_ONTOLOGY.getEventType(), eip1, IMPORT_ONTOLOGY.getLogbookTypeProcess(),
-                StatusCode.STARTED, "Début du processus d'import de l'ontologie", eip1);
+                eip1,
+                IMPORT_ONTOLOGY.getEventType(),
+                eip1,
+                IMPORT_ONTOLOGY.getLogbookTypeProcess(),
+                StatusCode.STARTED,
+                "Début du processus d'import de l'ontologie",
+                eip1
+            );
             client.checkStatus();
             client.create(importOntologyStart);
 
             final GUID eip2 = GUIDFactory.newOperationLogbookGUID(adminTenant);
             LogbookOperationParameters ingestTenantAdmin = LogbookParameterHelper.newLogbookOperationParameters(
-                eip2, INGEST_CLEANUP.getEventType(), eip2, INGEST_CLEANUP.getLogbookTypeProcess(),
-                StatusCode.STARTED, "Début de l'ingest", eip2);
+                eip2,
+                INGEST_CLEANUP.getEventType(),
+                eip2,
+                INGEST_CLEANUP.getLogbookTypeProcess(),
+                StatusCode.STARTED,
+                "Début de l'ingest",
+                eip2
+            );
             client.create(ingestTenantAdmin);
 
             VitamThreadUtils.getVitamSession().setTenantId(secondTenant);
             final GUID eip3 = GUIDFactory.newOperationLogbookGUID(secondTenant);
             LogbookOperationParameters ingestStart = LogbookParameterHelper.newLogbookOperationParameters(
-                eip3, INGEST_CLEANUP.getEventType(), eip3, INGEST_CLEANUP.getLogbookTypeProcess(),
-                StatusCode.STARTED, "Début de l'ingest", eip3);
+                eip3,
+                INGEST_CLEANUP.getEventType(),
+                eip3,
+                INGEST_CLEANUP.getLogbookTypeProcess(),
+                StatusCode.STARTED,
+                "Début de l'ingest",
+                eip3
+            );
             client.create(ingestStart);
 
             final Select select = new Select();
             JsonNode json = client.selectOperation(select.getFinalSelect(), false, true);
-            RequestResponseOK<LinkedHashMap<String, JsonNode>> response =
-                JsonHandler.getFromJsonNode(json, new TypeReference<>() {
-                });
+            RequestResponseOK<LinkedHashMap<String, JsonNode>> response = JsonHandler.getFromJsonNode(
+                json,
+                new TypeReference<>() {}
+            );
 
             assertEquals(2, response.getHits().getTotal());
-            assertThat(response.getResults()).extracting(e -> e.get(EV_ID).asText())
+            assertThat(response.getResults())
+                .extracting(e -> e.get(EV_ID).asText())
                 .containsOnly(eip1.getId(), eip3.getId());
 
-
             json = client.selectOperationById(eip1.getId(), new Select().getFinalSelect(), false, true);
-            response =
-                JsonHandler.getFromJsonNode(json, new TypeReference<>() {
-                });
+            response = JsonHandler.getFromJsonNode(json, new TypeReference<>() {});
             assertEquals(1, response.getHits().getTotal());
         }
     }
@@ -438,23 +520,43 @@ public class LogbookResourceIT {
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip,
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            "eventTypeValue2",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue2",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
 
-        try (final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             client.checkStatus();
 
             client.create(logbookParametersStart);
@@ -479,9 +581,10 @@ public class LogbookResourceIT {
             }
             // Create KO since Bad Request
             final LogbookOperationParameters empty = LogbookParameterHelper.newLogbookOperationParameters();
-            empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                logbookParametersWrongAppend.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess));
+            empty.putParameterValue(
+                LogbookParameterName.eventIdentifierProcess,
+                logbookParametersWrongAppend.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            );
             try {
                 client.create(empty);
                 fail("Should raized an exception");
@@ -497,7 +600,6 @@ public class LogbookResourceIT {
         }
     }
 
-
     @RunWithCustomExecutor
     @Test
     public final void testOperationMultiple() throws LogbookClientException, VitamApplicationServerException {
@@ -505,23 +607,43 @@ public class LogbookResourceIT {
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip,
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            "eventTypeValue2",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue2",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
 
-        try (final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             client.checkStatus();
 
             client.create(logbookParametersStart);
@@ -551,8 +673,11 @@ public class LogbookResourceIT {
                 fail(e.getMessage());
             }
             final long stop2 = System.nanoTime();
-            LOGGER.warn("Multiple updates vs bulk updates: {} ms vs {} ms", (stop - start) / 1000000,
-                (stop2 - start2) / 1000000);
+            LOGGER.warn(
+                "Multiple updates vs bulk updates: {} ms vs {} ms",
+                (stop - start) / 1000000,
+                (stop2 - start2) / 1000000
+            );
             client.checkStatus();
         }
     }
@@ -564,23 +689,47 @@ public class LogbookResourceIT {
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookLcParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "detail", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "detail", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersWrongStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip,
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "detail", eip);
+            "eventTypeValue2",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersWrongAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "detail", GUIDFactory.newEventGUID(0));
+            "eventTypeValue2",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            "detail",
+            GUIDFactory.newEventGUID(0)
+        );
 
-        try (final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try (final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             client.checkStatus();
 
             client.create(logbookLcParametersStart);
@@ -606,9 +755,10 @@ public class LogbookResourceIT {
             // Create KO since Bad Request
             final LogbookLifeCycleObjectGroupParameters empty =
                 LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
-            empty.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                logbookLcParametersWrongAppend.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess));
+            empty.putParameterValue(
+                LogbookParameterName.eventIdentifierProcess,
+                logbookLcParametersWrongAppend.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            );
             try {
                 client.create(empty);
                 fail("Should raized an exception");
@@ -631,23 +781,47 @@ public class LogbookResourceIT {
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookLcParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "detail", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "detail", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersWrongStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip,
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "detail", eip);
+            "eventTypeValue2",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersWrongAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "detail", eip);
+            "eventTypeValue2",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            "detail",
+            eip
+        );
 
-        try (final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try (final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             client.checkStatus();
 
             client.create(logbookLcParametersStart);
@@ -665,7 +839,6 @@ public class LogbookResourceIT {
         }
     }
 
-
     @RunWithCustomExecutor
     @Test
     public final void testLifeCycleBulk() throws LogbookClientException, VitamApplicationServerException {
@@ -674,44 +847,76 @@ public class LogbookResourceIT {
         final GUID eip = GUIDFactory.newEventGUID(0);
         final GUID eip2 = GUIDFactory.newEventGUID(0);
         logbookLcParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "detail", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "detail", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            "detail",
+            eip
+        );
         logbookLcParametersWrongStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             eip2,
-            "eventTypeValue2", eip2, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", "detail", eip2);
+            "eventTypeValue2",
+            eip2,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            "detail",
+            eip2
+        );
         logbookLcParametersWrongAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", "detail", eip2);
+            "eventTypeValue2",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            "detail",
+            eip2
+        );
 
-        List<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleObjectGroupParameters = Lists
-            .newArrayList(logbookLcParametersStart, logbookLcParametersAppend);
+        List<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleObjectGroupParameters = Lists.newArrayList(
+            logbookLcParametersStart,
+            logbookLcParametersAppend
+        );
 
-        ArrayList<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleObjectGroupParameters1 =
-            Lists.newArrayList(logbookLcParametersWrongStart,
-                logbookLcParametersWrongAppend);
+        ArrayList<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleObjectGroupParameters1 = Lists.newArrayList(
+            logbookLcParametersWrongStart,
+            logbookLcParametersWrongAppend
+        );
 
-        LogbookLifeCycleObjectGroupModel logbookLifeCycleModel = new LogbookLifeCycleObjectGroupModel("10",
-            logbookLifeCycleObjectGroupParameters);
-        LogbookLifeCycleObjectGroupModel logbookLifeCycleModel2 = new LogbookLifeCycleObjectGroupModel("10",
-            logbookLifeCycleObjectGroupParameters1);
+        LogbookLifeCycleObjectGroupModel logbookLifeCycleModel = new LogbookLifeCycleObjectGroupModel(
+            "10",
+            logbookLifeCycleObjectGroupParameters
+        );
+        LogbookLifeCycleObjectGroupModel logbookLifeCycleModel2 = new LogbookLifeCycleObjectGroupModel(
+            "10",
+            logbookLifeCycleObjectGroupParameters1
+        );
 
-        try (final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-
+        try (final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             client.checkStatus();
             client.bulkObjectGroup(eip.toString(), Lists.newArrayList(logbookLifeCycleModel, logbookLifeCycleModel2));
 
             // Update multiple OK
 
-            FindIterable<LogbookLifeCycleObjectGroup> objects =
-                LIFECYCLE_OBJECTGROUP_IN_PROCESS.<LogbookLifeCycleObjectGroup>getVitamCollection()
-                    .getCollection().find();
+            FindIterable<LogbookLifeCycleObjectGroup> objects = LIFECYCLE_OBJECTGROUP_IN_PROCESS.<
+                LogbookLifeCycleObjectGroup
+            >getVitamCollection()
+                .getCollection()
+                .find();
             ArrayList<LogbookLifeCycleObjectGroup> objects1 = Lists.newArrayList(objects);
             assertThat(objects1).hasSize(2).extracting("_id").containsExactly(eip.toString(), eip2.toString());
         }
@@ -731,48 +936,53 @@ public class LogbookResourceIT {
         String GUID2 = "aeaqaaaaaahoii7cab2ggalizruhbziaaaaq";
         String GUID3 = "aeaqaaaaaahoii7cab2ggalizruhbzqaaaba";
 
-        LogbookCollections.LIFECYCLE_UNIT.getCollection().insertMany(
-            Arrays.asList(
-                new LogbookLifeCycleUnit(doc1),
-                new LogbookLifeCycleUnit(doc2),
-                new LogbookLifeCycleUnit(doc3)
-            )
-        );
-
+        LogbookCollections.LIFECYCLE_UNIT.getCollection()
+            .insertMany(
+                Arrays.asList(
+                    new LogbookLifeCycleUnit(doc1),
+                    new LogbookLifeCycleUnit(doc2),
+                    new LogbookLifeCycleUnit(doc3)
+                )
+            );
 
         // Test unknown id
         given()
             .header(GlobalDataRest.X_TENANT_ID, 2)
             .contentType(ContentType.JSON)
             .body(JsonHandler.toJsonNode(Arrays.asList(GUID1, "Unkown id")))
-            .when().get("/raw/unitlifecycles/byids")
-            .then().statusCode(Response.Status.NOT_FOUND.getStatusCode());
+            .when()
+            .get("/raw/unitlifecycles/byids")
+            .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
 
         // Test wrong tenant id
         given()
             .header(GlobalDataRest.X_TENANT_ID, 2)
             .contentType(ContentType.JSON)
             .body(JsonHandler.toJsonNode(Arrays.asList(GUID1, GUID2)))
-            .when().get("/raw/unitlifecycles/byids")
-            .then().statusCode(Response.Status.NOT_FOUND.getStatusCode());
+            .when()
+            .get("/raw/unitlifecycles/byids")
+            .then()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
 
         // Test OK
         JsonNode responseJson = given()
             .header(GlobalDataRest.X_TENANT_ID, 2)
             .contentType(ContentType.JSON)
             .body(JsonHandler.toJsonNode(Arrays.asList(GUID1, GUID3)))
-            .when().get("/raw/unitlifecycles/byids")
-            .then().statusCode(Response.Status.OK.getStatusCode())
-            .extract().body().as(JsonNode.class);
+            .when()
+            .get("/raw/unitlifecycles/byids")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .as(JsonNode.class);
         RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(responseJson);
 
         List<JsonNode> results = requestResponseOK.getResults();
         assertThat(results).hasSize(2);
-        results.sort(
-            Comparator.comparing(o -> o.get("_id").asText())
-        );
+        results.sort(Comparator.comparing(o -> o.get("_id").asText()));
         JsonAssert.assertJsonEquals(results.get(0), doc1);
         JsonAssert.assertJsonEquals(results.get(1), doc3);
     }
-
 }

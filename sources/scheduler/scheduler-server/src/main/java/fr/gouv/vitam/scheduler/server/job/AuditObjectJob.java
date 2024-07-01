@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,21 +104,26 @@ public class AuditObjectJob implements Job {
     private final AdminManagementClientFactory adminManagementClientFactory;
 
     public AuditObjectJob() {
-        this(MetaDataClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(),
-            ProcessingManagementClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
+        this(
+            MetaDataClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance(),
+            ProcessingManagementClientFactory.getInstance(),
+            AdminManagementClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    public AuditObjectJob(MetaDataClientFactory metaDataClientFactory,
+    public AuditObjectJob(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
-
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Integrity audit job in progress...");
@@ -146,10 +150,17 @@ public class AuditObjectJob implements Job {
         LOGGER.info("Integrity audit job is finished");
     }
 
-    private boolean runAudit(String operationId, Integer tenantId, String auditAction, String lastUpdateDate,
-        String lastAuditDate) {
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
-            ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()) {
+    private boolean runAudit(
+        String operationId,
+        Integer tenantId,
+        String auditAction,
+        String lastUpdateDate,
+        String lastAuditDate
+    ) {
+        try (
+            AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
+            ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()
+        ) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
 
             BooleanQuery query = QueryHelper.and();
@@ -172,7 +183,6 @@ public class AuditObjectJob implements Job {
             ProcessState state;
             StatusCode globalStatus;
             do {
-
                 TimeUnit.MILLISECONDS.sleep(timeSleep);
                 timeSleep = Math.min(timeSleep * 2, 60000);
 
@@ -188,12 +198,18 @@ public class AuditObjectJob implements Job {
                 } else if (globalStatus.equals(StatusCode.OK) && state.equals(COMPLETED)) {
                     LOGGER.info("Integrity audit successfully finished on tenant {}", tenantId);
                 }
-
-            } while ((state.equals(PAUSE) && globalStatus.equals(StatusCode.UNKNOWN) || state.equals(RUNNING)) &&
-                stopwatch.elapsed(TimeUnit.MINUTES) < 30);
+            } while (
+                ((state.equals(PAUSE) && globalStatus.equals(StatusCode.UNKNOWN)) || state.equals(RUNNING)) &&
+                stopwatch.elapsed(TimeUnit.MINUTES) < 30
+            );
             return false;
-        } catch (VitamClientException | InternalServerException | BadRequestException | InterruptedException |
-                 AdminManagementClientServerException e) {
+        } catch (
+            VitamClientException
+            | InternalServerException
+            | BadRequestException
+            | InterruptedException
+            | AdminManagementClientServerException e
+        ) {
             throw new VitamRuntimeException(e);
         } catch (InvalidCreateOperationException e) {
             throw new RuntimeException(e);
@@ -203,12 +219,19 @@ public class AuditObjectJob implements Job {
     private String findLastSuccessfulAuditData(String auditAction) {
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             Select select = new Select();
-            select.setQuery(QueryHelper.and()
-                .add(QueryHelper.eq("events." + LogbookEvent.EV_TYPE, "AUDIT_CHECK_OBJECT." + auditAction),
-                    QueryHelper.isNull(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER),
-                    QueryHelper.in("events." + LogbookEvent.OUT_DETAIL, Stream.of(StatusCode.OK, StatusCode.WARNING)
-                        .map(e -> String.format("%s.%s", Contexts.AUDIT_WORKFLOW.getEventType(), e))
-                        .toArray(String[]::new))));
+            select.setQuery(
+                QueryHelper.and()
+                    .add(
+                        QueryHelper.eq("events." + LogbookEvent.EV_TYPE, "AUDIT_CHECK_OBJECT." + auditAction),
+                        QueryHelper.isNull(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER),
+                        QueryHelper.in(
+                            "events." + LogbookEvent.OUT_DETAIL,
+                            Stream.of(StatusCode.OK, StatusCode.WARNING)
+                                .map(e -> String.format("%s.%s", Contexts.AUDIT_WORKFLOW.getEventType(), e))
+                                .toArray(String[]::new)
+                        )
+                    )
+            );
             select.addOrderByDescFilter(LogbookEvent.EV_DATE_TIME);
             select.setLimitFilter(0, 1);
             JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
@@ -218,15 +241,22 @@ public class AuditObjectJob implements Job {
                 return null;
             } else {
                 LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(firstResult, LogbookOperation.class);
-                Optional<String> lastUpdateDate =
-                    logbookOperation.getEvents().stream().filter(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
-                        .map(LogbookEvent::getEvDetData).map(e -> {
-                            try {
-                                return JsonHandler.getFromString(e);
-                            } catch (InvalidParseOperationException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        }).map(e -> e.get("Last_Update_Date")).filter(Objects::nonNull).map(JsonNode::asText).findFirst();
+                Optional<String> lastUpdateDate = logbookOperation
+                    .getEvents()
+                    .stream()
+                    .filter(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
+                    .map(LogbookEvent::getEvDetData)
+                    .map(e -> {
+                        try {
+                            return JsonHandler.getFromString(e);
+                        } catch (InvalidParseOperationException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    })
+                    .map(e -> e.get("Last_Update_Date"))
+                    .filter(Objects::nonNull)
+                    .map(JsonNode::asText)
+                    .findFirst();
                 return lastUpdateDate.orElseThrow();
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -244,17 +274,25 @@ public class AuditObjectJob implements Job {
                 selectMultiQuery.addQueries(QueryHelper.gte(VitamFieldsHelper.approximateUpdateDate(), lastAuditData));
             }
 
-            selectMultiQuery.addQueries(QueryHelper.lt(VitamFieldsHelper.approximateUpdateDate(),
-                LocalDateUtil.getFormattedDateForMongo(
-                    LocalDateUtil.now().minus(operationsDelayInMinutes, ChronoUnit.MINUTES))));
+            selectMultiQuery.addQueries(
+                QueryHelper.lt(
+                    VitamFieldsHelper.approximateUpdateDate(),
+                    LocalDateUtil.getFormattedDateForMongo(
+                        LocalDateUtil.now().minus(operationsDelayInMinutes, ChronoUnit.MINUTES)
+                    )
+                )
+            );
 
             selectMultiQuery.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.approximateUpdateDate());
             selectMultiQuery.addOrderByAscFilter(VitamFieldsHelper.approximateUpdateDate());
             DatabaseCursor hits;
             JsonNode result;
             String scrollId = "START";
-            selectMultiQuery.setScrollFilter(scrollId, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
-                VitamConfiguration.getElasticSearchScrollLimit());
+            selectMultiQuery.setScrollFilter(
+                scrollId,
+                GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
+                VitamConfiguration.getElasticSearchScrollLimit()
+            );
             String lastUpdateDate = null;
             int size = 0;
             do {
@@ -262,15 +300,21 @@ public class AuditObjectJob implements Job {
                 RequestResponseOK<JsonNode> requestResponse = RequestResponseOK.getFromJsonNode(result, JsonNode.class);
                 hits = requestResponse.getHits();
                 scrollId = hits.getScrollId();
-                selectMultiQuery.setScrollFilter(scrollId, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
-                    VitamConfiguration.getElasticSearchScrollLimit());
+                selectMultiQuery.setScrollFilter(
+                    scrollId,
+                    GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
+                    VitamConfiguration.getElasticSearchScrollLimit()
+                );
                 size += hits.getSize();
                 JsonNode last = Iterables.getLast(requestResponse.getResults(), null);
                 if (last != null) {
                     lastUpdateDate = last.get(VitamFieldsHelper.approximateUpdateDate()).asText();
                 }
-            } while (hits.getSize() > 0 && hits.getSize() >= VitamConfiguration.getElasticSearchScrollLimit() &&
-                size < THRESHOLD);
+            } while (
+                hits.getSize() > 0 &&
+                hits.getSize() >= VitamConfiguration.getElasticSearchScrollLimit() &&
+                size < THRESHOLD
+            );
 
             return lastUpdateDate;
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {

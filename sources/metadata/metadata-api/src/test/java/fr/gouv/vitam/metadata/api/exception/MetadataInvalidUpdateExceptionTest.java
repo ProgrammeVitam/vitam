@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNotNull;
 
 public class MetadataInvalidUpdateExceptionTest {
 
-
     @Test
     public void MetadataInvalidUpdateExceptionThrowable() throws Exception {
         assertEquals(null, new MetadataInvalidUpdateException((String) null).getMessage());
@@ -41,5 +40,4 @@ public class MetadataInvalidUpdateExceptionTest {
         assertNotNull(new MetadataInvalidUpdateException(new Exception()).getCause());
         assertNotNull(new MetadataInvalidUpdateException("test", new Exception()).getCause());
     }
-
 }

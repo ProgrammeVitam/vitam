@@ -44,8 +44,9 @@ public class StorageDriverParameterNamesTest {
 
     @Test
     public void testIt() {
-        final List<String> collect =
-            Stream.of(StorageDriverParameterNames.values()).map(Enum::name).collect(Collectors.toList());
+        final List<String> collect = Stream.of(StorageDriverParameterNames.values())
+            .map(Enum::name)
+            .collect(Collectors.toList());
         if (!VALUES.containsAll(collect)) {
             fail("Enum has changed ?");
         }

@@ -60,4 +60,3 @@ public class FormatIdentifierBadRequestException extends VitamException {
         super(messsage, cause);
     }
 }
-

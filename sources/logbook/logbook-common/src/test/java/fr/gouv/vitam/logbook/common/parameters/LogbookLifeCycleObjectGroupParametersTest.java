@@ -57,8 +57,10 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         }
         assertEquals(params.getMapParameters().size(), LogbookParameterName.values().length);
 
-        assertEquals(params.getMapParameters().get(LogbookParameterName.eventType),
-            LogbookParameterName.eventType.name());
+        assertEquals(
+            params.getMapParameters().get(LogbookParameterName.eventType),
+            LogbookParameterName.eventType.name()
+        );
         final LogbookLifeCycleObjectGroupParameters params2 =
             LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         params2.setFromParameters(params);
@@ -124,37 +126,76 @@ public class LogbookLifeCycleObjectGroupParametersTest {
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
         final GUID aa = GUIDFactory.newEventGUID(0);
         final GUID cc = GUIDFactory.newEventGUID(0);
-        LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+        LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
+            aa,
+            "aa",
+            aa,
+            LogbookTypeProcess.AUDIT,
+            StatusCode.OK,
+            "CheckDigest",
+            "Informative Message",
+            cc
+        );
         try {
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
+                aa,
+                "",
+                aa,
+                LogbookTypeProcess.AUDIT,
+                StatusCode.OK,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
+                aa,
+                "aa",
+                null,
+                LogbookTypeProcess.AUDIT,
+                StatusCode.OK,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
-                LogbookTypeProcess.AUDIT, null, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
+                aa,
+                "aa",
+                aa,
+                LogbookTypeProcess.AUDIT,
+                null,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(aa, "aa", aa,
-                null, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters(
+                aa,
+                "aa",
+                aa,
+                null,
+                StatusCode.OK,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-
     }
 
     @Test

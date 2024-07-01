@@ -94,7 +94,6 @@ public class VitamServerFactoryTest {
         junitHelper.releasePort(port);
     }
 
-
     @Test
     public final void testNewVitamServerFromJettyConfig() {
         try {
@@ -108,7 +107,6 @@ public class VitamServerFactoryTest {
                 jettyServer.stop();
             }
             Assert.assertTrue(jettyServer.isStopped());
-
         } catch (final Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -122,10 +120,8 @@ public class VitamServerFactoryTest {
         } catch (final Exception e) {
             LOGGER.error(e.getMessage(), e);
             Assert.assertTrue(server == null);
-
         }
     }
-
 
     @Test
     public final void testSetterGetter() {
@@ -145,5 +141,4 @@ public class VitamServerFactoryTest {
         VitamServerFactory.setDefaultPort(oldPort);
         junitHelper.releasePort(port);
     }
-
 }

@@ -84,6 +84,7 @@ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.G
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 
 public class PreservationReportRepository {
+
     private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationReportRepository.class);
 
     public static final String PRESERVATION_REPORT = "PreservationReport";
@@ -99,7 +100,8 @@ public class PreservationReportRepository {
     }
 
     public void bulkAppendReport(List<PreservationReportEntry> reports) {
-        List<WriteModel<Document>> preservationDocument = reports.stream()
+        List<WriteModel<Document>> preservationDocument = reports
+            .stream()
             .distinct()
             .map(PreservationReportRepository::modelToWriteDocument)
             .collect(Collectors.toList());
@@ -110,31 +112,38 @@ public class PreservationReportRepository {
     private static WriteModel<Document> modelToWriteDocument(PreservationReportEntry model) {
         return new UpdateOneModel<>(
             and(eq(PROCESS_ID, model.getProcessId()), eq(DETAIL_ID, model.getDetailId())),
-            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model)))
-                .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
+            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model))).append(
+                "$setOnInsert",
+                new Document("_id", GUIDFactory.newGUID().toString())
+            ),
             new UpdateOptions().upsert(true)
         );
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-        return collection.aggregate(
-            Arrays.asList(
-                match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
-                Aggregates.project(Projections.fields(
-                        new Document(PROCESS_ID, "$processId"),
-                        new Document(CREATION_DATE_TIME, "$creationDateTime"),
-                        new Document(UNIT_ID, "$unitId"),
-                        new Document(OBJECT_GROUP_ID, "$objectGroupId"),
-                        new Document(STATUS, "$status"),
-                        new Document(ACTION, "$actions"),
-                        new Document(ANALYSE_RESULT, "$analyseResult"),
-                        new Document(INPUT_OBJECT_ID, "$inputObjectId"),
-                        new Document(OUTPUT_OBJECT_ID, "$outputObjectId"),
-                        new Document(GRIFFIN_ID, "$griffinId"),
-                        new Document(SCENARIO_ID, "$preservationScenarioId")
+        return collection
+            .aggregate(
+                Arrays.asList(
+                    match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
+                    Aggregates.project(
+                        Projections.fields(
+                            new Document(PROCESS_ID, "$processId"),
+                            new Document(CREATION_DATE_TIME, "$creationDateTime"),
+                            new Document(UNIT_ID, "$unitId"),
+                            new Document(OBJECT_GROUP_ID, "$objectGroupId"),
+                            new Document(STATUS, "$status"),
+                            new Document(ACTION, "$actions"),
+                            new Document(ANALYSE_RESULT, "$analyseResult"),
+                            new Document(INPUT_OBJECT_ID, "$inputObjectId"),
+                            new Document(OUTPUT_OBJECT_ID, "$outputObjectId"),
+                            new Document(GRIFFIN_ID, "$griffinId"),
+                            new Document(SCENARIO_ID, "$preservationScenarioId")
+                        )
                     )
-                ))
-        ).allowDiskUse(true).iterator();
+                )
+            )
+            .allowDiskUse(true)
+            .iterator();
     }
 
     public PreservationStatsModel stats(String processId, int tenantId) {
@@ -152,19 +161,23 @@ public class PreservationReportRepository {
         int nbActionsExtract = getStats(and(eqTenant, eqProcessId, eq(ACTION, EXTRACT.name())), ACTION);
 
         Spliterator<SimpleEntry<String, Integer>> mapAnalyseResult = nbActionsAnaylse > 0
-            ? collection.aggregate(
-                Arrays.asList(
-                    match(and(eqTenant, eqProcessId)),
-                    project(include("analyseResult")),
-                    group("$" + ANALYSE_RESULT, sum("count", 1)))
-            ).allowDiskUse(true)
-            .batchSize(VitamConfiguration.getBatchSize())
-            .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
-            .spliterator()
+            ? collection
+                .aggregate(
+                    Arrays.asList(
+                        match(and(eqTenant, eqProcessId)),
+                        project(include("analyseResult")),
+                        group("$" + ANALYSE_RESULT, sum("count", 1))
+                    )
+                )
+                .allowDiskUse(true)
+                .batchSize(VitamConfiguration.getBatchSize())
+                .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
+                .spliterator()
             : Spliterators.emptySpliterator();
 
-        Map<String, Integer> analyseResults = StreamSupport.stream(mapAnalyseResult, false)
-            .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+        Map<String, Integer> analyseResults = StreamSupport.stream(mapAnalyseResult, false).collect(
+            Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue)
+        );
 
         return new PreservationStatsModel(
             nbUnits,
@@ -175,28 +188,24 @@ public class PreservationReportRepository {
             nbActionsIdentify,
             nbActionsExtract,
             analyseResults,
-            nbStatusWarning);
+            nbStatusWarning
+        );
     }
 
     private Integer getStats(Bson matchee, String name) {
-        Document result =
-            collection.aggregate(Arrays.asList(match(matchee), group(String.format("$%s", name), sum("result", 1))))
-                .first();
-        return result != null
-            ? result.getInteger("result")
-            : 0;
+        Document result = collection
+            .aggregate(Arrays.asList(match(matchee), group(String.format("$%s", name), sum("result", 1))))
+            .first();
+        return result != null ? result.getInteger("result") : 0;
     }
 
     private Integer getUnitAndObjectGroupStats(Bson matchee, String name) {
         Map<String, Object> group = new HashMap<>();
         group.put("_id", null);
         group.put("count", new Document("$sum", 1));
-        Document first = collection.aggregate(
-            Arrays.asList(
-                match(matchee),
-                group(String.format("$%s", name)),
-                new Document("$group", group)
-            )).first();
+        Document first = collection
+            .aggregate(Arrays.asList(match(matchee), group(String.format("$%s", name)), new Document("$group", group)))
+            .first();
         if (first != null) {
             return first.getInteger("count");
         }

@@ -49,10 +49,8 @@ class FormatIdentifierMock implements FormatIdentifier {
 
     @Override
     public List<FormatIdentifierResponse> analysePath(Path pathToFile) {
-
         try {
             if (isProbableZip(pathToFile) && isProbableSipFile(pathToFile)) {
-
                 // SIP File
                 String formatLitteral = "Zip File";
                 String mimeType = "application/zip";
@@ -71,7 +69,6 @@ class FormatIdentifierMock implements FormatIdentifier {
         String ns = "pronom";
 
         return Collections.singletonList(new FormatIdentifierResponse(formatLitteral, mimeType, formatId, ns));
-
     }
 
     private boolean isProbableZip(Path pathToFile) throws IOException {

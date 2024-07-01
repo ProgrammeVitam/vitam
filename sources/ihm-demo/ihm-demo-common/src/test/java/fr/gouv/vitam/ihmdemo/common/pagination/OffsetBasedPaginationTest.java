@@ -65,9 +65,11 @@ public class OffsetBasedPaginationTest {
         assertEquals(1000, paginationOffsetLimit.getTotal());
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            new Vector(Collections.singletonList("1")).elements());
+            new Vector(Collections.singletonList("1")).elements()
+        );
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
-            new Vector(Collections.singletonList("2")).elements());
+            new Vector(Collections.singletonList("2")).elements()
+        );
 
         try {
             final OffsetBasedPagination paginationHeaders = new OffsetBasedPagination(httpHeadersMock);
@@ -78,45 +80,43 @@ public class OffsetBasedPaginationTest {
             fail();
         }
 
-
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            new Vector(Collections.singletonList("1A")).elements());
+            new Vector(Collections.singletonList("1A")).elements()
+        );
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {
-        }
+        } catch (final VitamException e) {}
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            new Vector(Collections.singletonList("-1")).elements());
+            new Vector(Collections.singletonList("-1")).elements()
+        );
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {
-        }
-
+        } catch (final VitamException e) {}
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            new Vector(Collections.singletonList("1")).elements());
+            new Vector(Collections.singletonList("1")).elements()
+        );
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
-            new Vector(Collections.singletonList("2A")).elements());
+            new Vector(Collections.singletonList("2A")).elements()
+        );
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {
-        }
+        } catch (final VitamException e) {}
 
         Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
-            new Vector(Collections.singletonList("0")).elements());
+            new Vector(Collections.singletonList("0")).elements()
+        );
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
-        } catch (final VitamException e) {
-        }
-
+        } catch (final VitamException e) {}
     }
 }

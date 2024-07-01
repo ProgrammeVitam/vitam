@@ -59,16 +59,24 @@ public class WriteProtectionScanner implements DynamicFeature {
 
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
-
         // Scanning method
-        LOGGER.debug("Scanning resource method " + resourceInfo.getResourceClass().getName() + " . " +
-            resourceInfo.getResourceMethod().getName());
+        LOGGER.debug(
+            "Scanning resource method " +
+            resourceInfo.getResourceClass().getName() +
+            " . " +
+            resourceInfo.getResourceMethod().getName()
+        );
 
-
-        if(resourceInfo.getResourceMethod().getDeclaringClass() == ApplicationStatusResource.class ||
-            resourceInfo.getResourceMethod().getDeclaringClass() == AdminStatusResource.class) {
-            LOGGER.debug("Ignore write protection for " + resourceInfo.getResourceClass().getName() +
-                "." + resourceInfo.getResourceMethod().getName());
+        if (
+            resourceInfo.getResourceMethod().getDeclaringClass() == ApplicationStatusResource.class ||
+            resourceInfo.getResourceMethod().getDeclaringClass() == AdminStatusResource.class
+        ) {
+            LOGGER.debug(
+                "Ignore write protection for " +
+                resourceInfo.getResourceClass().getName() +
+                "." +
+                resourceInfo.getResourceMethod().getName()
+            );
             return;
         }
 
@@ -76,27 +84,43 @@ public class WriteProtectionScanner implements DynamicFeature {
 
         // Ensure all resources have WriteProtection annotation
         if (writeProtection == null) {
-
-
-            throw new IllegalStateException("Missing @" + WriteProtection.class.getName() + " annotation for method " +
-                resourceInfo.getResourceClass().getName() + " . " + resourceInfo.getResourceMethod().getName());
+            throw new IllegalStateException(
+                "Missing @" +
+                WriteProtection.class.getName() +
+                " annotation for method " +
+                resourceInfo.getResourceClass().getName() +
+                " . " +
+                resourceInfo.getResourceMethod().getName()
+            );
         }
 
         if (!writeProtection.value()) {
-            LOGGER.debug("Operation does not require write protection  " + resourceInfo.getResourceClass().getName() +
-                "." + resourceInfo.getResourceMethod().getName());
+            LOGGER.debug(
+                "Operation does not require write protection  " +
+                resourceInfo.getResourceClass().getName() +
+                "." +
+                resourceInfo.getResourceMethod().getName()
+            );
             return;
         }
 
         if (!isReadOnly) {
-            LOGGER.debug("No write protection required since Write operations are allowed for method " +
-                resourceInfo.getResourceClass().getName() + " . " +
-                resourceInfo.getResourceMethod().getName());
+            LOGGER.debug(
+                "No write protection required since Write operations are allowed for method " +
+                resourceInfo.getResourceClass().getName() +
+                " . " +
+                resourceInfo.getResourceMethod().getName()
+            );
             return;
         }
 
-        LOGGER.debug(String.format("Filter API calls to method %s.%s",
-            resourceInfo.getResourceClass().getName(), resourceInfo.getResourceMethod().getName()));
+        LOGGER.debug(
+            String.format(
+                "Filter API calls to method %s.%s",
+                resourceInfo.getResourceClass().getName(),
+                resourceInfo.getResourceMethod().getName()
+            )
+        );
         context.register(new WriteProtectionForbiddenFilter(alertService), Priorities.AUTHORIZATION);
     }
 }

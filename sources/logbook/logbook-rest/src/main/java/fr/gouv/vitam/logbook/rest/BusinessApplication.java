@@ -80,8 +80,10 @@ public class BusinessApplication extends Application {
             LogbookConfigurationValidator.validateConfiguration(configuration);
 
             // Elasticsearch configuration
-            ElasticsearchLogbookIndexManager indexManager =
-                new ElasticsearchLogbookIndexManager(configuration, VitamConfiguration.getTenants());
+            ElasticsearchLogbookIndexManager indexManager = new ElasticsearchLogbookIndexManager(
+                configuration,
+                VitamConfiguration.getTenants()
+            );
 
             commonBusinessApplication = new CommonBusinessApplication();
             CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(
@@ -90,8 +92,11 @@ public class BusinessApplication extends Application {
                 new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.empty())
             );
             // hack to init collections and clients
-            LogbookMongoDbAccessImpl logbookMongoDbAccess =
-                LogbookMongoDbAccessFactory.create(configuration, ontologyLoader, indexManager);
+            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(
+                configuration,
+                ontologyLoader,
+                indexManager
+            );
 
             OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
@@ -104,12 +109,17 @@ public class BusinessApplication extends Application {
             singletons.add(new LogbookAdminResource(vitamRepositoryProvider, configuration));
 
             LogbookReconstructionMetricsCache reconstructionMetricsCache = new LogbookReconstructionMetricsCache(
-                configuration.getReconstructionMetricsCacheDurationInMinutes(), TimeUnit.MINUTES);
+                configuration.getReconstructionMetricsCacheDurationInMinutes(),
+                TimeUnit.MINUTES
+            );
             LogbookReconstructionMetrics.initialize(reconstructionMetricsCache);
 
-            ReconstructionService reconstructionService =
-                new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager,
-                    reconstructionMetricsCache);
+            ReconstructionService reconstructionService = new ReconstructionService(
+                vitamRepositoryProvider,
+                offsetRepository,
+                indexManager,
+                reconstructionMetricsCache
+            );
             singletons.add(new LogbookReconstructionResource(reconstructionService));
         } catch (IOException e) {
             throw new RuntimeException(e);

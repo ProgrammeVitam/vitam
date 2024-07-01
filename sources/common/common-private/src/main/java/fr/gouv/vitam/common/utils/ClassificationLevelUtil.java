@@ -36,14 +36,16 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class ClassificationLevelUtil {
 
-    private static final String PATH_CLASSIFICATION_LEVEL
-        = SedaConstants.TAG_ARCHIVE_UNIT + "."
-        + SedaConstants.PREFIX_MGT + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION + "."
-        + SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
+    private static final String PATH_CLASSIFICATION_LEVEL =
+        SedaConstants.TAG_ARCHIVE_UNIT +
+        "." +
+        SedaConstants.PREFIX_MGT +
+        "." +
+        SedaConstants.TAG_RULE_CLASSIFICATION +
+        "." +
+        SedaConstants.TAG_RULE_CLASSIFICATION_LEVEL;
 
-    private ClassificationLevelUtil() {
-    }
+    private ClassificationLevelUtil() {}
 
     public static boolean checkClassificationLevel(JsonNode archiveUnit) {
         String classificationLevelValue = null;
@@ -63,5 +65,4 @@ public class ClassificationLevelUtil {
             return VitamConfiguration.getClassificationLevel().authorizeNotDefined();
         }
     }
-
 }

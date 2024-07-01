@@ -44,18 +44,23 @@ public class RuleCategoryAction {
     // Classification properties
     @JsonProperty("ClassificationLevel")
     private String classificationLevel;
+
     @JsonProperty("ClassificationOwner")
     private String classificationOwner;
+
     @JsonProperty("ClassificationAudience")
     private String classificationAudience;
+
     @JsonProperty("ClassificationReassessingDate")
     private String classificationReassessingDate;
+
     @JsonProperty("NeedReassessingAuthorization")
     private Boolean needReassessingAuthorization;
 
     // Inheritance properties
     @JsonProperty("PreventInheritance")
     private Boolean preventInheritance;
+
     @JsonProperty("PreventRulesId")
     private Set<String> preventRulesId;
 

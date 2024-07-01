@@ -44,7 +44,6 @@ import java.util.Collections;
 
 public class OperationContextMonitor {
 
-
     public static final String ALL_PARAMS_ARE_REQUIRED = "All params are required";
     public static final String OperationContextFileName = "operation_context.json";
 
@@ -58,11 +57,13 @@ public class OperationContextMonitor {
         this(StorageClientFactory.getInstance());
     }
 
-    public static void compressInWorkspace(WorkspaceClientFactory workspaceClientFactory, String operationContainer,
-        LogbookTypeProcess logbookTypeProcess, String... files)
-        throws OperationContextException {
-        ParametersChecker
-            .checkParameter(ALL_PARAMS_ARE_REQUIRED, operationContainer, logbookTypeProcess, files);
+    public static void compressInWorkspace(
+        WorkspaceClientFactory workspaceClientFactory,
+        String operationContainer,
+        LogbookTypeProcess logbookTypeProcess,
+        String... files
+    ) throws OperationContextException {
+        ParametersChecker.checkParameter(ALL_PARAMS_ARE_REQUIRED, operationContainer, logbookTypeProcess, files);
 
         if (files.length == 0) {
             throw new OperationContextException("files parameter is empty");
@@ -84,7 +85,6 @@ public class OperationContextMonitor {
         }
     }
 
-
     /**
      * @param strategy
      * @param operationContainer
@@ -93,15 +93,11 @@ public class OperationContextMonitor {
      */
     public void backup(String strategy, String operationContainer, LogbookTypeProcess logbookTypeProcess)
         throws OperationContextException {
-        ParametersChecker
-            .checkParameter("All params are required", strategy, operationContainer, logbookTypeProcess);
+        ParametersChecker.checkParameter("All params are required", strategy, operationContainer, logbookTypeProcess);
 
-        ParametersChecker
-            .checkParameter("StorageClientFactory is required", storageClientFactory);
-
+        ParametersChecker.checkParameter("StorageClientFactory is required", storageClientFactory);
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
             // Query DSL + other files
             String outputFile = logbookTypeProcess.name() + "_" + operationContainer + ".zip";
 
@@ -111,7 +107,6 @@ public class OperationContextMonitor {
             description.setWorkspaceObjectURI(outputFile);
 
             storageClient.storeFileFromWorkspace(strategy, DataCategory.TMP, outputFile, description);
-
             // Should remove the zip file from the workspace
             // The final step of the workflow will remove it
             // Save one call to the workspace ?! or the best is to save space ?!
@@ -127,8 +122,13 @@ public class OperationContextMonitor {
         ParametersChecker.checkParameter("All params are required", strategy, operationContainer, logbookTypeProcess);
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             String objectName = logbookTypeProcess.name() + "_" + operationContainer + ".zip";
-            return storageClient.getInformation(strategy,
-                DataCategory.TMP, objectName, Lists.newArrayList("default"), false);
+            return storageClient.getInformation(
+                strategy,
+                DataCategory.TMP,
+                objectName,
+                Lists.newArrayList("default"),
+                false
+            );
         } catch (Exception e) {
             throw new OperationContextException(e);
         }

@@ -40,47 +40,59 @@ public class FileFormatModel {
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
+
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer documentVersion;
+
     @JsonProperty("CreatedDate")
     private String createdDate;
+
     @JsonProperty("VersionPronom")
     private String versionPronom;
+
     @JsonProperty("UpdateDate")
     private String updateDate;
+
     @JsonProperty("Version")
     private String version;
+
     @JsonProperty("HasPriorityOverFileFormatID")
     private List<String> hasPriorityOverFileFormatIDs;
+
     @JsonProperty("MimeType")
     private String mimeType;
+
     @JsonProperty("Name")
     private String name;
+
     /**
      * @deprecated Unused / yagni / reserved for future use
      */
     @JsonProperty("Group")
     private String group;
+
     /**
      * @deprecated Unused / yagni / reserved for future use
      */
     @JsonProperty("Alert")
     private Boolean alert;
+
     /**
      * @deprecated Unused / yagni / reserved for future use
      */
     @JsonProperty("Comment")
     private String comment;
+
     @JsonProperty("Extension")
     private List<String> extensions;
+
     @JsonProperty("PUID")
     private String puid;
 
     /**
      * Constructor without fields
      */
-    public FileFormatModel() {
-    }
+    public FileFormatModel() {}
 
     /**
      * @return id
@@ -95,7 +107,6 @@ public class FileFormatModel {
     public void setId(String id) {
         this.id = id;
     }
-
 
     /**
      * @return document version (_v)

@@ -63,22 +63,25 @@ public class EliminationActionUnitRepository extends ReportCommonRepository {
 
     public void bulkAppendReport(List<EliminationActionUnitModel> reports) {
         Set<EliminationActionUnitModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> eliminationUnitDocument =
-            reportsWithoutDuplicate.stream()
-                .map(ReportCommonRepository::pojoToDocument)
-                .collect(Collectors.toList());
+        List<Document> eliminationUnitDocument = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(eliminationUnitDocument, unitReportCollection);
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-
-        return unitReportCollection.aggregate(
+        return unitReportCollection
+            .aggregate(
                 Arrays.asList(
-                    Aggregates.match(and(
-                        eq(EliminationActionUnitModel.PROCESS_ID, processId),
-                        eq(EliminationActionUnitModel.TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
+                    Aggregates.match(
+                        and(
+                            eq(EliminationActionUnitModel.PROCESS_ID, processId),
+                            eq(EliminationActionUnitModel.TENANT, tenantId)
+                        )
+                    ),
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document("id", "$_metadata.id"),
                             new Document("distribGroup", null),
@@ -89,7 +92,8 @@ public class EliminationActionUnitRepository extends ReportCommonRepository {
                             new Document("params.originatingAgency", "$_metadata.originatingAgency"),
                             new Document("params.objectGroupId", "$_metadata.objectGroupId")
                         )
-                    ))
+                    )
+                )
             )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)

@@ -44,9 +44,11 @@ public class EvidenceAuditReportService extends CommonReportService<EvidenceAudi
     }
 
     @VisibleForTesting
-    public EvidenceAuditReportService(BatchReportClientFactory reportFactory,
+    public EvidenceAuditReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.EVIDENCE_AUDIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

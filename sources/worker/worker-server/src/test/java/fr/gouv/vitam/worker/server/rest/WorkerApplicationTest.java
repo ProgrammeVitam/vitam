@@ -41,11 +41,11 @@ import java.io.File;
 
 import static org.junit.Assert.fail;
 
-
 /**
  *
  */
 public class WorkerApplicationTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerApplicationTest.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
 
@@ -63,9 +63,14 @@ public class WorkerApplicationTest {
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
 
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
-        realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterDelay(1).setRegisterRetry(1).setProcessingUrl("http://localhost:8888")
-            .setUrlMetadata("http://localhost:8888").setUrlWorkspace("http://localhost:8888");
+        realWorker
+            .setRegisterServerPort(serverPort)
+            .setRegisterServerHost("localhost")
+            .setRegisterDelay(1)
+            .setRegisterRetry(1)
+            .setProcessingUrl("http://localhost:8888")
+            .setUrlMetadata("http://localhost:8888")
+            .setUrlWorkspace("http://localhost:8888");
 
         final File newWorkerConf = File.createTempFile("test", WORKER_CONF, worker.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
@@ -84,8 +89,7 @@ public class WorkerApplicationTest {
     }
 
     @Test
-    public final void testFictiveLaunch()
-        throws Exception {
+    public final void testFictiveLaunch() throws Exception {
         try {
             WorkerMain application = new WorkerMain(worker.getAbsolutePath());
             Assert.assertFalse(application.getVitamStarter().isStarted());

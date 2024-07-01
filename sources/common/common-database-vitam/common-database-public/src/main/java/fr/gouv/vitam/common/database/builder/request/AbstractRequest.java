@@ -48,6 +48,7 @@ import java.util.Set;
  * Common Abstract Request
  */
 public abstract class AbstractRequest {
+
     protected ObjectNode filter;
     protected ObjectNode projection;
 
@@ -71,8 +72,6 @@ public abstract class AbstractRequest {
         return this;
     }
 
-
-
     /**
      * @return this Request
      */
@@ -86,8 +85,7 @@ public abstract class AbstractRequest {
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final AbstractRequest addHintFilter(final String... hints)
-        throws InvalidParseOperationException {
+    public final AbstractRequest addHintFilter(final String... hints) throws InvalidParseOperationException {
         ParametersChecker.checkParameter("Hint filter is a mandatory parameter", hints);
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
@@ -131,8 +129,7 @@ public abstract class AbstractRequest {
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
      */
-    public AbstractRequest setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public AbstractRequest setFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         resetFilter();
         return addHintFilter(filterContent);
     }
@@ -142,13 +139,11 @@ public abstract class AbstractRequest {
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final AbstractRequest parseFilter(final String filter)
-        throws InvalidParseOperationException {
+    public final AbstractRequest parseFilter(final String filter) throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode filterContent = JsonHandler.getFromString(filter);
         return setFilter(filterContent);
     }
-
 
     /**
      * @return the filter
@@ -257,8 +252,11 @@ public abstract class AbstractRequest {
      * @param limit ignored if 0
      * @return this Query
      */
-    protected final AbstractRequest selectSetScrollFilter(final String scrollId, final int scrollTimeout,
-        final int limit) {
+    protected final AbstractRequest selectSetScrollFilter(
+        final String scrollId,
+        final int scrollTimeout,
+        final int limit
+    ) {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -308,8 +306,7 @@ public abstract class AbstractRequest {
              * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
              * "size" : n
              */
-            limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
-                .asInt(GlobalDatas.LIMIT_LOAD);
+            limit = filterContent.get(SELECTFILTER.LIMIT.exactToken()).asInt(GlobalDatas.LIMIT_LOAD);
         }
         if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
             /*
@@ -339,8 +336,7 @@ public abstract class AbstractRequest {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    protected final AbstractRequest selectParseLimitFilter(final String filter)
-        throws InvalidParseOperationException {
+    protected final AbstractRequest selectParseLimitFilter(final String filter) throws InvalidParseOperationException {
         GlobalDatas.sanityParametersCheck(filter, GlobalDatas.NB_FILTERS);
         final JsonNode rootNode = JsonHandler.getFromString(filter);
         return selectSetLimitFilter(rootNode);
@@ -486,10 +482,8 @@ public abstract class AbstractRequest {
             projection = JsonHandler.createObjectNode();
         }
         if (projectionContent.has(PROJECTION.FIELDS.exactToken())) {
-            final ObjectNode node =
-                projection.putObject(PROJECTION.FIELDS.exactToken());
-            node.setAll(
-                (ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
+            final ObjectNode node = projection.putObject(PROJECTION.FIELDS.exactToken());
+            node.setAll((ObjectNode) projectionContent.get(PROJECTION.FIELDS.exactToken()));
         }
         return this;
     }
@@ -567,5 +561,4 @@ public abstract class AbstractRequest {
         }
         return projection;
     }
-
 }

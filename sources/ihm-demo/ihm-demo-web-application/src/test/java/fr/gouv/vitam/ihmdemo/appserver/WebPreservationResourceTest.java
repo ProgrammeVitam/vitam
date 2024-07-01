@@ -43,17 +43,22 @@ public class WebPreservationResourceTest {
 
     public @Rule MockitoRule rule = MockitoJUnit.rule();
 
-    @Mock AdminExternalClientFactory adminExternalClientFactory;
-    @Mock AccessExternalClientFactory accessExternalClientFactory;
+    @Mock
+    AdminExternalClientFactory adminExternalClientFactory;
+
+    @Mock
+    AccessExternalClientFactory accessExternalClientFactory;
 
     @Before
     public void setUp() {
-        webPreservationResource = new WebPreservationResource(adminExternalClientFactory, accessExternalClientFactory,
-            UserInterfaceTransactionManager
-                .getInstance(), DslQueryHelper.getInstance());
+        webPreservationResource = new WebPreservationResource(
+            adminExternalClientFactory,
+            accessExternalClientFactory,
+            UserInterfaceTransactionManager.getInstance(),
+            DslQueryHelper.getInstance()
+        );
     }
 
     @Test
-    public void shouldExportScenario() {
-    }
+    public void shouldExportScenario() {}
 }

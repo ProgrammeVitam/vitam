@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Search Query
  */
 public class SearchQuery extends fr.gouv.vitam.common.database.builder.query.SearchQuery {
+
     /**
      * For Parsing
      *

@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class TraceabilityReportEntry {
+
     public static final String OPERATION_ID = "id";
     public static final String OPERATION_TYPE = "operationType";
     public static final String STATUS = "status";
@@ -81,7 +82,8 @@ public class TraceabilityReportEntry {
         @JsonProperty(SECURED_HASH) String securedHash,
         @JsonProperty(OFFERS_HASHES) Map<String, String> offersHashes,
         @JsonProperty(FILE_ID) String fileId,
-        @JsonProperty(EXTRA_DATA) Map<String, Object> extraData) {
+        @JsonProperty(EXTRA_DATA) Map<String, Object> extraData
+    ) {
         this.operationId = operationId;
         this.operationType = operationType;
         this.status = status;

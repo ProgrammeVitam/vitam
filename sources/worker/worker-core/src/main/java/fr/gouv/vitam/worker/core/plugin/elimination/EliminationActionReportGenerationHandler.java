@@ -44,14 +44,14 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 
-
 /**
  * Elimination action finalization handler.
  */
 public class EliminationActionReportGenerationHandler extends GenericReportGenerationHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionReportGenerationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EliminationActionReportGenerationHandler.class
+    );
 
     private static final String ELIMINATION_ACTION_REPORT_GENERATION = "ELIMINATION_ACTION_REPORT_GENERATION";
     private static final String LOGBOOK_ACTION_KEY = "ELIMINATION_ACTION_DELETE_UNIT";
@@ -69,12 +69,13 @@ public class EliminationActionReportGenerationHandler extends GenericReportGener
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationActionReportGenerationHandler(EliminationActionReportService eliminationActionReportService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    EliminationActionReportGenerationHandler(
+        EliminationActionReportService eliminationActionReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         super(eliminationActionReportService);
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
-
 
     @Override
     protected LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException {

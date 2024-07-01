@@ -56,7 +56,8 @@ import static org.junit.Assert.fail;
 
 public class SanityCheckerTest {
 
-    private static final String HTTPD_CERTIFICATE_FORMAT = "" +
+    private static final String HTTPD_CERTIFICATE_FORMAT =
+        "" +
         "-----BEGIN CERTIFICATE----- " +
         "MIIDeTCCAmGgAwIBAgIUSCGUFJwxYU4vMvX1nbRiqHIDUOUwDQYJKoZIhvcNAQEL " +
         "BQAwGjEYMBYGA1UEAwwPaW50ZXJtZWRpYXRlLWNhMB4XDTIzMDMxNTA3NDcyMloX " +
@@ -79,7 +80,8 @@ public class SanityCheckerTest {
         "WK31zmcgpI+s9vol2bn/VQL6szy47RXmctnkZVk= " +
         "-----END CERTIFICATE----- ";
 
-    private static final String NGINX_CERTIFICATE_FORMAT = "" +
+    private static final String NGINX_CERTIFICATE_FORMAT =
+        "" +
         "-----BEGIN%20CERTIFICATE-----%0A" +
         "MIIDeTCCAmGgAwIBAgIUSCGUFJwxYU4vMvX1nbRiqHIDUOUwDQYJKoZIhvcNAQEL%0A" +
         "BQAwGjEYMBYGA1UEAwwPaW50ZXJtZWRpYXRlLWNhMB4XDTIzMDMxNTA3NDcyMloX%0A" +
@@ -104,8 +106,11 @@ public class SanityCheckerTest {
 
     private final String pathXMLOK = "testOK.xml";
     private final String pathXMLKO = "testKO.xml";
-    private final String[] pathsXMLowaspKO =
-        {"testOwaspException1.xml", "testOwaspException2.xml", "testOwaspException3.xml"};
+    private final String[] pathsXMLowaspKO = {
+        "testOwaspException1.xml",
+        "testOwaspException2.xml",
+        "testOwaspException3.xml",
+    };
     private File fileOK = null;
     private File fileKO = null;
     private final List<File> filesOwaspKO = new ArrayList<>();
@@ -113,7 +118,6 @@ public class SanityCheckerTest {
     private final String JSON_TEST_FILE = "json";
     private final String JSON_TEST_FILE2 = "json_good_sanity";
     private final double limitFileSize = SanityChecker.getLimitFileSize();
-
 
     @Before
     public void setUp() throws FileNotFoundException {
@@ -172,8 +176,7 @@ public class SanityCheckerTest {
     }
 
     @Test(expected = InvalidParseOperationException.class)
-    public void givenJsonWhenValueIsTooBigORContainXMLTag()
-        throws InvalidParseOperationException, IOException {
+    public void givenJsonWhenValueIsTooBigORContainXMLTag() throws InvalidParseOperationException, IOException {
         final File file = PropertiesUtils.findFile(JSON_TEST_FILE);
         final JsonNode json = JsonHandler.getFromFile(file);
         assertNotNull(json);
@@ -181,8 +184,7 @@ public class SanityCheckerTest {
     }
 
     @Test(expected = InvalidParseOperationException.class)
-    public void givenJsonWhenValueIsTooBigORContainXMLTagUsingAll()
-        throws InvalidParseOperationException, IOException {
+    public void givenJsonWhenValueIsTooBigORContainXMLTagUsingAll() throws InvalidParseOperationException, IOException {
         final File file = PropertiesUtils.findFile(JSON_TEST_FILE);
         final JsonNode json = JsonHandler.getFromFile(file);
         assertNotNull(json);
@@ -199,8 +201,7 @@ public class SanityCheckerTest {
     }
 
     @Test
-    public void givenJsonWhenGoodSanityThenReturnTrue()
-        throws FileNotFoundException, InvalidParseOperationException {
+    public void givenJsonWhenGoodSanityThenReturnTrue() throws FileNotFoundException, InvalidParseOperationException {
         final long limit = SanityChecker.getLimitJsonSize();
         try {
             SanityChecker.setLimitJsonSize(100);
@@ -209,8 +210,7 @@ public class SanityCheckerTest {
             try {
                 SanityChecker.checkJsonAll(json);
                 fail("Should failed with an exception");
-            } catch (final InvalidParseOperationException e) {
-            }
+            } catch (final InvalidParseOperationException e) {}
             SanityChecker.setLimitJsonSize(10000);
             SanityChecker.checkJsonAll(json);
             SanityChecker.checkJsonAll(json.toString());
@@ -272,7 +272,6 @@ public class SanityCheckerTest {
         final MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
 
         final HttpHeaders headers = new HttpHeaders() {
-
             @Override
             public MultivaluedMap<String, String> getRequestHeaders() {
                 return map;
@@ -336,17 +335,19 @@ public class SanityCheckerTest {
 
     @Test
     public void test_should_failed_when_input_is_too_large() throws Exception {
-        final String textContent = new String(Files.readAllBytes(
-            PropertiesUtils.getResourceFile("text-content.txt").toPath()));
-        assertThatCode(() ->
-            SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(20)))
+        final String textContent = new String(
+            Files.readAllBytes(PropertiesUtils.getResourceFile("text-content.txt").toPath())
+        );
+        assertThatCode(
+            () -> SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(20)))
         ).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
     public void test_should_success_when_input_is_not_too_large() throws Exception {
-        final String textContent = new String(Files.readAllBytes(
-            PropertiesUtils.getResourceFile("text-content.txt").toPath()));
+        final String textContent = new String(
+            Files.readAllBytes(PropertiesUtils.getResourceFile("text-content.txt").toPath())
+        );
         SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(19)));
     }
 
@@ -369,8 +370,7 @@ public class SanityCheckerTest {
         requestHeaders.putSingle("Content-Length", "186");
         requestHeaders.putSingle("Connection", "keep-alive");
 
-        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders)).doesNotThrowAnyException();
     }
 
     @Test
@@ -378,8 +378,7 @@ public class SanityCheckerTest {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
         requestHeaders.putSingle("X-SSL-CLIENT-CERT", NGINX_CERTIFICATE_FORMAT);
 
-        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders)).doesNotThrowAnyException();
     }
 
     @Test
@@ -387,8 +386,7 @@ public class SanityCheckerTest {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
         requestHeaders.putSingle("X-SSL-CLIENT-CERT", HTTPD_CERTIFICATE_FORMAT);
 
-        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders)).doesNotThrowAnyException();
     }
 
     @Test
@@ -403,11 +401,7 @@ public class SanityCheckerTest {
     @Test
     public void test_certificate_header_multivalued_ko() {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
-        requestHeaders.put("X-SSL-CLIENT-CERT",
-            List.of(
-                HTTPD_CERTIFICATE_FORMAT,
-                NGINX_CERTIFICATE_FORMAT
-            ));
+        requestHeaders.put("X-SSL-CLIENT-CERT", List.of(HTTPD_CERTIFICATE_FORMAT, NGINX_CERTIFICATE_FORMAT));
 
         assertThatThrownBy(() -> SanityChecker.checkHeadersMap(requestHeaders))
             .isInstanceOf(InvalidParseOperationException.class)

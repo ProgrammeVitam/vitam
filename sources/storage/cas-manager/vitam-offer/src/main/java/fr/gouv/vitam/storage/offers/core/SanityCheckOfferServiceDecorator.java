@@ -60,25 +60,23 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     private final String rootPath;
 
     public SanityCheckOfferServiceDecorator(DefaultOfferService innerService, StorageConfiguration configuration) {
-
         this.innerService = innerService;
 
         StorageProvider provider = StorageProvider.getStorageProvider(configuration.getProvider());
-        this.rootPath = provider.hasStoragePath() ?
-            configuration.getStoragePath() : VitamConfiguration.getVitamTmpFolder();
+        this.rootPath = provider.hasStoragePath()
+            ? configuration.getStoragePath()
+            : VitamConfiguration.getVitamTmpFolder();
     }
 
     @Override
     public String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
-
         checkSafeObjectPath(containerName, objectId);
         return innerService.getObjectDigest(containerName, objectId, digestAlgorithm);
     }
 
     @Override
-    public ObjectContent getObject(String containerName, String objectId)
-        throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectId) throws ContentAddressableStorageException {
         checkSafeObjectPath(containerName, objectId);
         return innerService.getObject(containerName, objectId);
     }
@@ -86,7 +84,6 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     @Override
     public String createAccessRequest(String containerName, List<String> objectIds)
         throws ContentAddressableStorageException {
-
         for (String objectId : objectIds) {
             checkSafeObjectPath(containerName, objectId);
         }
@@ -94,9 +91,10 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws ContentAddressableStorageException {
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws ContentAddressableStorageException {
         return innerService.checkAccessRequestStatuses(accessRequestIds, adminCrossTenantAccessRequestAllowed);
     }
 
@@ -109,7 +107,6 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     @Override
     public boolean checkObjectAvailability(String containerName, List<String> objectIds)
         throws ContentAddressableStorageException {
-
         for (String objectId : objectIds) {
             checkSafeObjectPath(containerName, objectId);
         }
@@ -117,18 +114,26 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     }
 
     @Override
-    public String createObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
-        long size, DigestType digestType) throws ContentAddressableStorageException {
-
+    public String createObject(
+        String containerName,
+        String objectId,
+        InputStream objectPart,
+        DataCategory type,
+        long size,
+        DigestType digestType
+    ) throws ContentAddressableStorageException {
         checkSafeObjectPath(containerName, objectId);
         return innerService.createObject(containerName, objectId, objectPart, type, size, digestType);
     }
 
     @Override
-    public StorageBulkPutResult bulkPutObjects(String containerName, List<String> objectIds,
-        MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)
-        throws ContentAddressableStorageException, IOException {
-
+    public StorageBulkPutResult bulkPutObjects(
+        String containerName,
+        List<String> objectIds,
+        MultiplexedStreamReader multiplexedStreamReader,
+        DataCategory type,
+        DigestType digestType
+    ) throws ContentAddressableStorageException, IOException {
         for (String objectId : objectIds) {
             checkSafeObjectPath(containerName, objectId);
         }
@@ -137,14 +142,12 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
 
     @Override
     public boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageException {
-
         checkSafeObjectPath(containerName, objectId);
         return innerService.isObjectExist(containerName, objectId);
     }
 
     @Override
     public ContainerInformation getCapacity(String containerName) throws ContentAddressableStorageException {
-
         checkSafeContainerPath(containerName);
         return innerService.getCapacity(containerName);
     }
@@ -152,7 +155,6 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     @Override
     public void deleteObject(String containerName, String objectId, DataCategory type)
         throws ContentAddressableStorageException {
-
         checkSafeObjectPath(containerName, objectId);
         innerService.deleteObject(containerName, objectId, type);
     }
@@ -160,7 +162,6 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     @Override
     public StorageMetadataResult getMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
-
         checkSafeObjectPath(containerName, objectId);
         return innerService.getMetadata(containerName, objectId, noCache);
     }
@@ -168,7 +169,6 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     @Override
     public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
         throws ContentAddressableStorageException {
-
         checkSafeContainerPath(containerName);
         return innerService.getOfferLogs(containerName, offset, limit, order);
     }
@@ -176,21 +176,18 @@ public class SanityCheckOfferServiceDecorator implements DefaultOfferService {
     @Override
     public void listObjects(String containerName, ObjectListingListener objectListingListener)
         throws IOException, ContentAddressableStorageException {
-
         checkSafeContainerPath(containerName);
         innerService.listObjects(containerName, objectListingListener);
     }
 
     @Override
     public void compactOfferLogs() throws Exception {
-
         innerService.compactOfferLogs();
     }
 
     @Override
     public StorageBulkMetadataResult getBulkMetadata(String containerName, List<String> objectIds, Boolean noCache)
         throws ContentAddressableStorageException {
-
         for (String objectId : objectIds) {
             checkSafeObjectPath(containerName, objectId);
         }

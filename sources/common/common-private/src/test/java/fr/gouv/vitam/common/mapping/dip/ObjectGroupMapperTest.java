@@ -72,12 +72,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-
-
 public class ObjectGroupMapperTest {
 
-    private static final String SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA =
-        "objectGroup.json";
+    private static final String SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA = "objectGroup.json";
     private static JAXBContext jaxbContext;
 
     static {
@@ -88,16 +85,17 @@ public class ObjectGroupMapperTest {
         }
     }
 
-
     @Test
-    public void should_map_object_group_with_physical_and_binary() throws JsonProcessingException,
-        FileNotFoundException, InvalidParseOperationException, InternalServerException, DatatypeConfigurationException,
-        JAXBException {
+    public void should_map_object_group_with_physical_and_binary()
+        throws JsonProcessingException, FileNotFoundException, InvalidParseOperationException, InternalServerException, DatatypeConfigurationException, JAXBException {
         final JsonNode GOTMetadataResponse = JsonHandler.getFromFile(
-            PropertiesUtils.getResourceFile(SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA));
+            PropertiesUtils.getResourceFile(SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA)
+        );
         ObjectMapper objectMapper = VitamObjectMapper.getDeserializationObjectMapper();
-        ObjectGroupResponse objectGroupSource =
-            objectMapper.treeToValue(GOTMetadataResponse, ObjectGroupResponse.class);
+        ObjectGroupResponse objectGroupSource = objectMapper.treeToValue(
+            GOTMetadataResponse,
+            ObjectGroupResponse.class
+        );
         ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();
         final DataObjectPackageType dataObjectPackageType = objectGroupMapper.map(objectGroupSource);
         Marshaller marshaller = jaxbContext.createMarshaller();
@@ -125,15 +123,14 @@ public class ObjectGroupMapperTest {
         assertFalse(binaryDataObjectOrPhysicalDataObject.isEmpty());
 
         if (binaryDataObjectOrPhysicalDataObject.get(1) instanceof BinaryDataObjectType) {
-            BinaryDataObjectType binaryDataObjectType =
-                (BinaryDataObjectType) binaryDataObjectOrPhysicalDataObject.get(1);
+            BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) binaryDataObjectOrPhysicalDataObject.get(
+                1
+            );
             final QualifiersModel qualifiersModel = objectGroupSource.getQualifiers().get(1);
             final VersionsModel versionsModel = qualifiersModel.getVersions().get(0);
-            final FileInfoModel fileInfoModel =
-                versionsModel.getFileInfoModel();
+            final FileInfoModel fileInfoModel = versionsModel.getFileInfoModel();
             final FileInfoType fileInfo = binaryDataObjectType.getFileInfo();
-            assertEquals(fileInfoModel.getFilename(),
-                fileInfo.getFilename());
+            assertEquals(fileInfoModel.getFilename(), fileInfo.getFilename());
             assertEquals(fileInfoModel.getCreatingApplicationName(), fileInfo.getCreatingApplicationName());
             assertEquals(fileInfoModel.getCreatingOs(), fileInfo.getCreatingOs());
             assertEquals(fileInfoModel.getCreatingOsVersion(), fileInfo.getCreatingOsVersion());
@@ -145,20 +142,16 @@ public class ObjectGroupMapperTest {
                 assertEquals(xmlGregorianCalendar, fileInfo.getLastModified());
             }
 
-            final FormatIdentificationType formatIdentificationType =
-                binaryDataObjectType.getFormatIdentification();
+            final FormatIdentificationType formatIdentificationType = binaryDataObjectType.getFormatIdentification();
             final FormatIdentificationModel formatIdentificationModel = versionsModel.getFormatIdentification();
             assertEquals(formatIdentificationModel.getFormatId(), formatIdentificationType.getFormatId());
-            assertEquals(formatIdentificationModel.getFormatLitteral(),
-                formatIdentificationType.getFormatLitteral());
+            assertEquals(formatIdentificationModel.getFormatLitteral(), formatIdentificationType.getFormatLitteral());
             assertEquals(formatIdentificationModel.getMimeType(), formatIdentificationType.getMimeType());
             assertEquals(formatIdentificationModel.getEncoding(), formatIdentificationType.getEncoding());
             assertEquals(new BigInteger(String.valueOf(versionsModel.getSize())), binaryDataObjectType.getSize());
             assertEquals(versionsModel.getUri(), binaryDataObjectType.getUri());
-            assertEquals(versionsModel.getMessageDigest(),
-                binaryDataObjectType.getMessageDigest().getValue());
-            assertEquals(versionsModel.getAlgorithm(),
-                binaryDataObjectType.getMessageDigest().getAlgorithm());
+            assertEquals(versionsModel.getMessageDigest(), binaryDataObjectType.getMessageDigest().getValue());
+            assertEquals(versionsModel.getAlgorithm(), binaryDataObjectType.getMessageDigest().getAlgorithm());
             final MinimalDataObjectType minimalDataObjectType = binaryDataObjectOrPhysicalDataObject.get(1);
             assertEquals(versionsModel.getId(), minimalDataObjectType.getId());
             assertEquals(versionsModel.getDataObjectVersion(), minimalDataObjectType.getDataObjectVersion());
@@ -184,22 +177,36 @@ public class ObjectGroupMapperTest {
                 (PhysicalDataObjectType) binaryDataObjectOrPhysicalDataObject.get(0);
             final DimensionsType dimensionsType = physicalDataObjectType.getPhysicalDimensions();
 
-            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getDepth(),
-                dimensionsType.getDepth());
-            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getDiameter(),
-                dimensionsType.getDiameter());
-            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getHeight(),
-                dimensionsType.getHeight());
-            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getLength(),
-                dimensionsType.getLength());
+            check_equality_between_measurementModel_and_dimensionType(
+                physicalDimensionsModel.getDepth(),
+                dimensionsType.getDepth()
+            );
+            check_equality_between_measurementModel_and_dimensionType(
+                physicalDimensionsModel.getDiameter(),
+                dimensionsType.getDiameter()
+            );
+            check_equality_between_measurementModel_and_dimensionType(
+                physicalDimensionsModel.getHeight(),
+                dimensionsType.getHeight()
+            );
+            check_equality_between_measurementModel_and_dimensionType(
+                physicalDimensionsModel.getLength(),
+                dimensionsType.getLength()
+            );
             assertEquals(physicalDimensionsModel.getNumberOfPage(), dimensionsType.getNumberOfPage());
             assertEquals(physicalDimensionsModel.getShape(), dimensionsType.getShape());
-            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getThickness(),
-                dimensionsType.getThickness());
-            check_Equality_Beatween_MeasurementWeightType_And_DimensionType(physicalDimensionsModel.getWeight(),
-                dimensionsType.getWeight());
-            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getWidth(),
-                dimensionsType.getWidth());
+            check_equality_between_measurementModel_and_dimensionType(
+                physicalDimensionsModel.getThickness(),
+                dimensionsType.getThickness()
+            );
+            check_Equality_Beatween_MeasurementWeightType_And_DimensionType(
+                physicalDimensionsModel.getWeight(),
+                dimensionsType.getWeight()
+            );
+            check_equality_between_measurementModel_and_dimensionType(
+                physicalDimensionsModel.getWidth(),
+                dimensionsType.getWidth()
+            );
         }
     }
 
@@ -209,21 +216,23 @@ public class ObjectGroupMapperTest {
      * @param measurementModel measurementModel
      * @param measurementType measurementType
      */
-    private void check_equality_between_measurementModel_and_dimensionType(MeasurementModel measurementModel,
-        MeasurementType measurementType) {
+    private void check_equality_between_measurementModel_and_dimensionType(
+        MeasurementModel measurementModel,
+        MeasurementType measurementType
+    ) {
         if (measurementModel != null) {
             assertEquals(measurementModel.getUnit(), measurementType.getUnit());
             assertEquals(measurementModel.getDValue(), measurementType.getValue());
         }
-
     }
 
-    private void check_Equality_Beatween_MeasurementWeightType_And_DimensionType(MeasurementModel measurementModel,
-        MeasurementWeightType measurementWeightType) {
+    private void check_Equality_Beatween_MeasurementWeightType_And_DimensionType(
+        MeasurementModel measurementModel,
+        MeasurementWeightType measurementWeightType
+    ) {
         if (measurementModel != null) {
             assertEquals(measurementModel.getUnit(), measurementWeightType.getUnit().value());
             assertEquals(measurementModel.getDValue(), measurementWeightType.getValue());
         }
     }
-
 }

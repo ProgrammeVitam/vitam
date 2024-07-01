@@ -71,17 +71,19 @@ public class CommitRollBackLifeCycleActionHandlerTest {
         GUID containerName = GUIDFactory.newGUID();
         String unit = "unit_1.xml";
         String object = "object_group_1.json";
-        commitAction =
-            new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        commitAction = new HandlerIOImpl(
+            containerName.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
 
-        WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters()
-                .setUrlWorkspace(WORKSPACE_URL)
-                .setUrlMetadata(METADATA_URL)
-                .setObjectNameList(Lists.newArrayList(unit))
-                .setObjectName(unit)
-                .setCurrentStep(COMMIT_STEP)
-                .setContainerName(containerName.getId());
+        WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(WORKSPACE_URL)
+            .setUrlMetadata(METADATA_URL)
+            .setObjectNameList(Lists.newArrayList(unit))
+            .setObjectName(unit)
+            .setCurrentStep(COMMIT_STEP)
+            .setContainerName(containerName.getId());
 
         // Commit a Unit lifeCycle
         ItemStatus response = commitUnitHandler.execute(params, commitAction);
@@ -97,17 +99,19 @@ public class CommitRollBackLifeCycleActionHandlerTest {
     public void givenOperationIdObjectIdThenReturnRollBackOk() {
         GUID containerName = GUIDFactory.newGUID();
         String unit = "unit_1.xml";
-        commitAction =
-            new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        commitAction = new HandlerIOImpl(
+            containerName.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
 
-        WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters()
-                .setUrlWorkspace(WORKSPACE_URL)
-                .setUrlMetadata(METADATA_URL)
-                .setObjectNameList(Lists.newArrayList(unit))
-                .setObjectName(unit)
-                .setCurrentStep(COMMIT_STEP)
-                .setContainerName(containerName.getId());
+        WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(WORKSPACE_URL)
+            .setUrlMetadata(METADATA_URL)
+            .setObjectNameList(Lists.newArrayList(unit))
+            .setObjectName(unit)
+            .setCurrentStep(COMMIT_STEP)
+            .setContainerName(containerName.getId());
 
         // Commit a Unit lifeCycle
         List<IOParameter> in = new ArrayList<>();
@@ -119,19 +123,24 @@ public class CommitRollBackLifeCycleActionHandlerTest {
 
         // RollBack with a successful workFlow
         params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.toString());
-        rollBackAction =
-            new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        rollBackAction = new HandlerIOImpl(
+            containerName.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
 
         response = rollBackHandler.execute(params, rollBackAction);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // RollBack with a failed workFlow
         params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.FATAL.toString());
-        rollBackAction =
-            new HandlerIOImpl(containerName.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        rollBackAction = new HandlerIOImpl(
+            containerName.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
 
         response = rollBackHandler.execute(params, rollBackAction);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
-
 }

@@ -34,7 +34,6 @@ import javax.ws.rs.core.Response.Status;
  * different constants status code for workflow , action handler and process
  */
 public enum StatusCode {
-
     /**
      * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
      */

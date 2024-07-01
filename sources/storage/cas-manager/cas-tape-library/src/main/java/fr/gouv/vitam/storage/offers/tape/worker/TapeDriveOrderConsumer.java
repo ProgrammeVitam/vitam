@@ -33,7 +33,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import java.util.Optional;
 
 public interface TapeDriveOrderConsumer {
-
     Optional<? extends ReadWriteOrder> consume(TapeDriveWorker driveWorker) throws QueueException;
 
     QueueRepository getQueue();

@@ -44,9 +44,11 @@ public class PreservationReportService extends CommonReportService<PreservationR
     }
 
     @VisibleForTesting
-    public PreservationReportService(BatchReportClientFactory reportFactory,
+    public PreservationReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.PRESERVATION, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

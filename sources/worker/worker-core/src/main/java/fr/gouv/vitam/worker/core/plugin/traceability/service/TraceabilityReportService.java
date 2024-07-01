@@ -41,10 +41,11 @@ public class TraceabilityReportService extends CommonReportService<TraceabilityR
     }
 
     @VisibleForTesting
-    public TraceabilityReportService(BatchReportClientFactory reportFactory,
+    public TraceabilityReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.TRACEABILITY, reportFactory, workspaceClientFactory, storageClientFactory);
     }
-
 }

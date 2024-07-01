@@ -34,8 +34,7 @@ class BulkPutResult {
     private final List<ObjectInfo> objectInfos;
     private final Map<String, OfferBulkPutStatus> statusByOfferIds;
 
-    public BulkPutResult(List<ObjectInfo> objectInfos,
-        Map<String, OfferBulkPutStatus> statusByOfferIds) {
+    public BulkPutResult(List<ObjectInfo> objectInfos, Map<String, OfferBulkPutStatus> statusByOfferIds) {
         this.objectInfos = objectInfos;
         this.statusByOfferIds = statusByOfferIds;
     }

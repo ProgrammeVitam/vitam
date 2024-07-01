@@ -78,5 +78,4 @@ public class LogbookTraceabilityIterator implements TraceabilityIterator<Logbook
     public long getNumberOfLines() {
         return numberOfLines;
     }
-
 }

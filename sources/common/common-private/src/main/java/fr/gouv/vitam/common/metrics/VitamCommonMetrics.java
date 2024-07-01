@@ -41,7 +41,6 @@ public class VitamCommonMetrics {
         .help("Vitam alert service counter per log_level")
         .register();
 
-
     /**
      * Count the number of consistency errors by tenant and service
      */
@@ -50,7 +49,6 @@ public class VitamCommonMetrics {
         .labelNames("tenant", "service")
         .help("Vitam consistency errors counter")
         .register();
-
 
     /**
      * Compute reconstruction duration by tenant and container.
@@ -61,6 +59,7 @@ public class VitamCommonMetrics {
         .name(VitamMetricsNames.VITAM_RECONSTRUCTION_DURATION)
         .labelNames("tenant", "container")
         .help(
-            "Vitam reconstruction histogram duration metric. Useful for metadata, logbook and function administration")
+            "Vitam reconstruction histogram duration metric. Useful for metadata, logbook and function administration"
+        )
         .register();
 }

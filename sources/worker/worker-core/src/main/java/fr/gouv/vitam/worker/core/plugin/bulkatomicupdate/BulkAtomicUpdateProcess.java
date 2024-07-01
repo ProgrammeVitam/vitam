@@ -77,9 +77,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -104,8 +104,8 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
 import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.metadata.common.bulkatomicupdate.BulkUpdateUnitReportKey.ERROR_METADATA_UPDATE;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**
@@ -117,6 +117,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  * batch report<br>
  */
 public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
+
     public static final String BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME = "BULK_ATOMIC_UPDATE_UNITS";
     public static final String ORIGINAL_QUERY_ROOT_KEY = "originQuery";
     public static final String QUERY_INDEX_KEY = "queryIndex";
@@ -145,9 +146,12 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         );
     }
 
-    public BulkAtomicUpdateProcess(MetaDataClientFactory metaDataClientFactory,
+    public BulkAtomicUpdateProcess(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory lfcClientFactory,
-        StorageClientFactory storageClientFactory, BatchReportClientFactory batchReportClientFactory) {
+        StorageClientFactory storageClientFactory,
+        BatchReportClientFactory batchReportClientFactory
+    ) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
@@ -156,8 +160,7 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new IllegalStateException("UnsupportedOperation");
     }
 
@@ -165,9 +168,10 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
         try {
-
-            Iterator<List<String>> unitsIterator =
-                Iterators.partition(workerParameters.getObjectNameList().iterator(), METADATA_UPDATE_BATCH_SIZE);
+            Iterator<List<String>> unitsIterator = Iterators.partition(
+                workerParameters.getObjectNameList().iterator(),
+                METADATA_UPDATE_BATCH_SIZE
+            );
             List<ItemStatus> itemsStatus = new ArrayList<>();
 
             int batchOffset = 0;
@@ -184,14 +188,18 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private List<ItemStatus> executeBulk(WorkerParameters workerParameters, HandlerIO handler, List<String> bulkUnits,
-        int batchOffset)
-        throws BadRequestException, ProcessingException {
-
-        try (MetaDataClient mdClient = metaDataClientFactory.getClient();
+    private List<ItemStatus> executeBulk(
+        WorkerParameters workerParameters,
+        HandlerIO handler,
+        List<String> bulkUnits,
+        int batchOffset
+    ) throws BadRequestException, ProcessingException {
+        try (
+            MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            BatchReportClient batchReportClient = batchReportClientFactory.getClient()
+        ) {
             // Retrieve each unitId, and each query, from params
             BulkAtomicUpdateQueryProcessBulk processBulk = new BulkAtomicUpdateQueryProcessBulk();
             List<JsonNode> queries = workerParameters.getObjectMetadataList();
@@ -200,8 +208,11 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             for (int unitIndex = 0; unitIndex < bulkUnits.size(); unitIndex++) {
                 JsonNode query = queries.get(batchOffset + unitIndex).get(ORIGINAL_QUERY_ROOT_KEY);
                 int queryIndex = queries.get(batchOffset + unitIndex).get(QUERY_INDEX_KEY).asInt();
-                BulkAtomicUpdateQueryProcessItem item = new BulkAtomicUpdateQueryProcessItem(bulkUnits.get(unitIndex),
-                    query, queryIndex);
+                BulkAtomicUpdateQueryProcessItem item = new BulkAtomicUpdateQueryProcessItem(
+                    bulkUnits.get(unitIndex),
+                    query,
+                    queryIndex
+                );
                 // We replace the query node from the request by a roots node
                 generateUpdateQuery(item);
                 processBulk.getItems().add(item);
@@ -214,8 +225,15 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             if (requestResponse.isOk()) {
                 List<JsonNode> itemResults = ((RequestResponseOK<JsonNode>) requestResponse).getResults();
                 for (int resultIndex = 0; resultIndex < itemResults.size(); resultIndex++) {
-                    checkUnitUpdateResponse(workerParameters, handler, mdClient, lfcClient,
-                        storageClient, processBulk.getItems().get(resultIndex), itemResults.get(resultIndex));
+                    checkUnitUpdateResponse(
+                        workerParameters,
+                        handler,
+                        mdClient,
+                        lfcClient,
+                        storageClient,
+                        processBulk.getItems().get(resultIndex),
+                        itemResults.get(resultIndex)
+                    );
                 }
             } else {
                 throw new ProcessingException("Error when trying to update units.");
@@ -232,24 +250,35 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
             }
 
             return processBulk.getItemsStatus();
-        } catch (InvalidParseOperationException | IllegalArgumentException | MetaDataDocumentSizeException | InvalidCreateOperationException e) {
+        } catch (
+            InvalidParseOperationException
+            | IllegalArgumentException
+            | MetaDataDocumentSizeException
+            | InvalidCreateOperationException e
+        ) {
             throw new BadRequestException("Client error while executing select requests ", e);
-        } catch (MetaDataExecutionException | MetaDataNotFoundException | MetaDataClientServerException | VitamClientInternalException e) {
+        } catch (
+            MetaDataExecutionException
+            | MetaDataNotFoundException
+            | MetaDataClientServerException
+            | VitamClientInternalException e
+        ) {
             throw new ProcessingException("Server error while executing select requests ", e);
         }
     }
 
-    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId,
-        String currentOperationId) throws VitamException {
+    private boolean lfcAlreadyWrittenInMongo(
+        LogbookLifeCyclesClient lfcClient,
+        String unitId,
+        String currentOperationId
+    ) throws VitamException {
         JsonNode lfc = lfcClient.getRawUnitLifeCycleById(unitId);
         LogbookLifecycle unitLFC = JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
         return unitLFC.getEvents().stream().anyMatch(e -> e.getEvIdProc().equals(currentOperationId));
     }
 
     private void writeLfcToMongo(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        InvalidParseOperationException, InvalidGuidOperationException {
-
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidParseOperationException, InvalidGuidOperationException {
         LogbookLifeCycleParameters logbookLfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
             VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
@@ -276,9 +305,15 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         return JsonHandler.writeAsString(diffObject);
     }
 
-    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient, HandlerIO handler, WorkerParameters params,
-        String guid, String fileName) throws VitamException {
+    private void storeUnitAndLfcToOffer(
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        HandlerIO handler,
+        WorkerParameters params,
+        String guid,
+        String fileName
+    ) throws VitamException {
         // get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
@@ -305,20 +340,25 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         ObjectDescription description = new ObjectDescription(UNIT, params.getContainerName(), fileName, uri);
 
         // store metadata object from workspace and set itemStatus
-        storageClient
-            .storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(), description);
+        storageClient.storeFileFromWorkspace(
+            strategyId,
+            description.getType(),
+            description.getObjectName(),
+            description
+        );
     }
 
-    private void generateUpdateQuery(BulkAtomicUpdateQueryProcessItem item) throws InvalidParseOperationException,
-        InvalidCreateOperationException {
+    private void generateUpdateQuery(BulkAtomicUpdateQueryProcessItem item)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         // parse multi query
         UpdateParserMultiple parser = new UpdateParserMultiple();
         parser.parse(item.getOriginalQuery());
 
         UpdateMultiQuery multiQuery = parser.getRequest();
         // Add operationID to #operations
-        multiQuery.addActions(UpdateActionHelper.push(
-            VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
+        multiQuery.addActions(
+            UpdateActionHelper.push(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId())
+        );
         // remove search part (useless)
         multiQuery.resetQueries();
         // set the unit to update
@@ -327,8 +367,13 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         item.setFinalQuery(multiQuery.getFinalUpdate());
     }
 
-    private void buildReport(WorkerParameters workerParameters, String key, StatusCode status, String message,
-        BulkAtomicUpdateQueryProcessItem item) {
+    private void buildReport(
+        WorkerParameters workerParameters,
+        String key,
+        StatusCode status,
+        String message,
+        BulkAtomicUpdateQueryProcessItem item
+    ) {
         // Each result is sent to the batch report
         VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         StatusCode reportStatus = status;
@@ -349,33 +394,51 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         item.setReportEntry(entry);
     }
 
-    private void checkUnitUpdateResponse(WorkerParameters workerParameters, HandlerIO handler,
-        MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient, BulkAtomicUpdateQueryProcessItem item,
-        JsonNode updateResult) throws InvalidParseOperationException {
+    private void checkUnitUpdateResponse(
+        WorkerParameters workerParameters,
+        HandlerIO handler,
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        BulkAtomicUpdateQueryProcessItem item,
+        JsonNode updateResult
+    ) throws InvalidParseOperationException {
         // Analyze of each atomic update operation response
         if (RequestResponse.isRequestResponseOk(updateResult)) {
-            RequestResponseOK<UpdateUnit> responseOK =
-                RequestResponseOK.getFromJsonNode(updateResult, UpdateUnit.class);
+            RequestResponseOK<UpdateUnit> responseOK = RequestResponseOK.getFromJsonNode(
+                updateResult,
+                UpdateUnit.class
+            );
             UpdateUnit updateUnit = responseOK.getFirstResult();
             if (updateUnit != null) {
                 // There is only one change per request
-                ItemStatus itemStatus = postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient, item,
-                    updateUnit);
+                ItemStatus itemStatus = postUpdate(
+                    workerParameters,
+                    handler,
+                    mdClient,
+                    lfcClient,
+                    storageClient,
+                    item,
+                    updateUnit
+                );
                 item.setStatus(itemStatus);
                 return;
             }
         }
         VitamError<JsonNode> error = VitamError.getFromJsonNode(updateResult);
         buildReport(workerParameters, ERROR_METADATA_UPDATE.name(), KO, error.getDescription(), item);
-        item.setStatus(
-            buildItemStatus(getPluginId(), KO, EventDetails.of(error.getDescription())));
-
+        item.setStatus(buildItemStatus(getPluginId(), KO, EventDetails.of(error.getDescription())));
     }
 
-    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
-        LogbookLifeCyclesClient lfcClient, StorageClient storageClient, BulkAtomicUpdateQueryProcessItem item,
-        UpdateUnit unitNode) {
+    private ItemStatus postUpdate(
+        WorkerParameters workerParameters,
+        HandlerIO handler,
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        BulkAtomicUpdateQueryProcessItem item,
+        UpdateUnit unitNode
+    ) {
         String unitId = unitNode.getUnitId();
         String key = unitNode.getKey().name();
         String statusAsString = unitNode.getStatus().name();
@@ -397,45 +460,77 @@ public class BulkAtomicUpdateProcess extends StoreMetadataObjectActionHandler {
         if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
             try {
                 if (lfcAlreadyWrittenInMongo(lfcClient, unitId, workerParameters.getContainerName())) {
-                    LOGGER.warn(String.format(
-                        "There is no changes on the unit '%s', and LFC already written in mongo, this unit will be save in offer.",
-                        unitId));
-                    storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
-                        unitId + ".json");
-                    return buildItemStatus(getPluginId(), OK,
-                        EventDetails.of("Bulk atomic update OK"));
+                    LOGGER.warn(
+                        String.format(
+                            "There is no changes on the unit '%s', and LFC already written in mongo, this unit will be save in offer.",
+                            unitId
+                        )
+                    );
+                    storeUnitAndLfcToOffer(
+                        mdClient,
+                        lfcClient,
+                        storageClient,
+                        handler,
+                        workerParameters,
+                        unitId,
+                        unitId + ".json"
+                    );
+                    return buildItemStatus(getPluginId(), OK, EventDetails.of("Bulk atomic update OK"));
                 }
             } catch (VitamException e) {
                 LOGGER.error(e);
-                return buildItemStatus(getPluginId(), FATAL,
-                    EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+                return buildItemStatus(
+                    getPluginId(),
+                    FATAL,
+                    EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage()))
+                );
             }
         }
 
         if (UNIT_METADATA_NO_NEW_DATA.name().equals(key)) {
-            return buildItemStatus(getPluginId(), WARNING,
-                EventDetails.of("Bulk atomic update WARNING"));
+            return buildItemStatus(getPluginId(), WARNING, EventDetails.of("Bulk atomic update WARNING"));
         }
 
         try {
             writeLfcToMongo(lfcClient, workerParameters, unitId, diff);
-        } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
+        } catch (
+            LogbookClientServerException
+            | LogbookClientNotFoundException
+            | InvalidParseOperationException
+            | InvalidGuidOperationException e
+        ) {
             LOGGER.error(e);
-            return buildItemStatus(getPluginId(), FATAL,
-                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(
+                getPluginId(),
+                FATAL,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+            );
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(e);
-            return buildItemStatus(getPluginId(), KO,
-                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(
+                getPluginId(),
+                KO,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+            );
         }
 
         try {
-            storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
-                unitId + ".json");
+            storeUnitAndLfcToOffer(
+                mdClient,
+                lfcClient,
+                storageClient,
+                handler,
+                workerParameters,
+                unitId,
+                unitId + ".json"
+            );
         } catch (VitamException e) {
             LOGGER.error(e);
-            return buildItemStatus(getPluginId(), FATAL,
-                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+            return buildItemStatus(
+                getPluginId(),
+                FATAL,
+                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage()))
+            );
         }
         return buildItemStatus(getPluginId(), OK, EventDetails.of("Bulk atomic update OK"));
     }

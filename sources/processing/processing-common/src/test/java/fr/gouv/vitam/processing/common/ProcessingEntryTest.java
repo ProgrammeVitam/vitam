@@ -49,5 +49,4 @@ public class ProcessingEntryTest {
     public void testConstructorNullWorkflow() {
         new ProcessingEntry(Test, null);
     }
-
 }

@@ -60,15 +60,23 @@ public abstract class SecurityService {
             final LocalDateTime expirationDate;
             expirationDate = LocalDateUtil.fromDate(LocalDateUtil.getDate(certificate.getExpirationDate()));
             if (expirationDate.isBefore(LocalDateUtil.now().toLocalDate().atStartOfDay())) {
-                alertService.createAlert(VitamLogLevel.WARN,
-                    "A certificate with SubjectDN = " + certificate.getSubjectDN() + " is expired on " + expirationDate
-                        .format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT)));
-            } else if (expirationDate
-                .isBefore(LocalDateUtil.now().plus(Period.ofMonths(6)).toLocalDate().atStartOfDay())) {
-                alertService.createAlert(VitamLogLevel.WARN,
-                    "A certificate with SubjectDN = " + certificate.getSubjectDN() + " will be expired on " +
-                        expirationDate.format(
-                            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT)));
+                alertService.createAlert(
+                    VitamLogLevel.WARN,
+                    "A certificate with SubjectDN = " +
+                    certificate.getSubjectDN() +
+                    " is expired on " +
+                    expirationDate.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT))
+                );
+            } else if (
+                expirationDate.isBefore(LocalDateUtil.now().plus(Period.ofMonths(6)).toLocalDate().atStartOfDay())
+            ) {
+                alertService.createAlert(
+                    VitamLogLevel.WARN,
+                    "A certificate with SubjectDN = " +
+                    certificate.getSubjectDN() +
+                    " will be expired on " +
+                    expirationDate.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL, FormatStyle.SHORT))
+                );
             }
         }
     }

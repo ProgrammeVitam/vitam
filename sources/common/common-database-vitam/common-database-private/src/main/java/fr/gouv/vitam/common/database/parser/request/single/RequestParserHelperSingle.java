@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * - PUT: delete and insert
  */
 public class RequestParserHelperSingle {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestParserHelperSingle.class);
 
     private RequestParserHelperSingle() {

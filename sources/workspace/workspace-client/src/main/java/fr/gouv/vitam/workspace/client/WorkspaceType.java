@@ -31,5 +31,5 @@ package fr.gouv.vitam.workspace.client;
  */
 public enum WorkspaceType {
     VITAM,
-    COLLECT;
+    COLLECT,
 }

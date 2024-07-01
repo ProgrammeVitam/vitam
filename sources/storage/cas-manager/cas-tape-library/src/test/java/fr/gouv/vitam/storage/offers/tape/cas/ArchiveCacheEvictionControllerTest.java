@@ -59,15 +59,18 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ArchiveCacheEvictionControllerTest {
+
     private static final String ACCESS_REQUEST_REFERENTIAL_COLLECTION =
         OfferCollections.ACCESS_REQUEST_REFERENTIAL.getName() + GUIDFactory.newGUID().getId();
     private static final String TAPE_OBJECT_REFERENTIAL_COLLECTION =
         OfferCollections.TAPE_OBJECT_REFERENTIAL.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(),
-            ACCESS_REQUEST_REFERENTIAL_COLLECTION, TAPE_OBJECT_REFERENTIAL_COLLECTION);
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        ACCESS_REQUEST_REFERENTIAL_COLLECTION,
+        TAPE_OBJECT_REFERENTIAL_COLLECTION
+    );
 
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();
@@ -86,20 +89,30 @@ public class ArchiveCacheEvictionControllerTest {
     public void before() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         objectReferentialRepository = new ObjectReferentialRepository(
-            mongoDbAccess.getMongoDatabase().getCollection(TAPE_OBJECT_REFERENTIAL_COLLECTION));
+            mongoDbAccess.getMongoDatabase().getCollection(TAPE_OBJECT_REFERENTIAL_COLLECTION)
+        );
         accessRequestReferentialRepository = new AccessRequestReferentialRepository(
-            mongoDbAccess.getMongoDatabase().getCollection(ACCESS_REQUEST_REFERENTIAL_COLLECTION));
+            mongoDbAccess.getMongoDatabase().getCollection(ACCESS_REQUEST_REFERENTIAL_COLLECTION)
+        );
 
         // Default configuration prevents "metadata" & "default" file buckets to be evicted from cache
         TapeLibraryTopologyConfiguration tapeLibraryTopologyConfiguration = new TapeLibraryTopologyConfiguration()
-            .setBuckets(Map.of(
-                "test", new TapeLibraryBucketConfiguration(List.of(0), 60),
-                "admin", new TapeLibraryBucketConfiguration(List.of(1), 60),
-                "prod", new TapeLibraryBucketConfiguration(List.of(2, 3), 60)
-            ));
+            .setBuckets(
+                Map.of(
+                    "test",
+                    new TapeLibraryBucketConfiguration(List.of(0), 60),
+                    "admin",
+                    new TapeLibraryBucketConfiguration(List.of(1), 60),
+                    "prod",
+                    new TapeLibraryBucketConfiguration(List.of(2, 3), 60)
+                )
+            );
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(tapeLibraryTopologyConfiguration);
         archiveCacheEvictionController = new ArchiveCacheEvictionController(
-            accessRequestReferentialRepository, objectReferentialRepository, bucketTopologyHelper);
+            accessRequestReferentialRepository,
+            objectReferentialRepository,
+            bucketTopologyHelper
+        );
     }
 
     @After
@@ -115,93 +128,204 @@ public class ArchiveCacheEvictionControllerTest {
     @Test
     public void givenMultipleAccessRequestsAndLocksWhenComputeEvictionJudgeThenOnlyNonLockedUnusedArchiveIdsFromExpirableFileBucketsCanBeEvicted()
         throws Exception {
-
         // Given
         logicalClock.freezeTime();
 
         // Non-ready access request
-        accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest1", "O_object",
-            List.of("obj1", "obj2", "obj3"), getNowMinusMinutes(20), null, null, null, List.of("tarId2"), 0, 0));
+        accessRequestReferentialRepository.insert(
+            new TapeAccessRequestReferentialEntity(
+                "accessRequest1",
+                "O_object",
+                List.of("obj1", "obj2", "obj3"),
+                getNowMinusMinutes(20),
+                null,
+                null,
+                null,
+                List.of("tarId2"),
+                0,
+                0
+            )
+        );
 
         // Ready access request
-        accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest2", "O_object",
-            List.of("obj1", "obj4"), getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(20),
-            getNowPlusMinutes(50), List.of(), 0, 0));
+        accessRequestReferentialRepository.insert(
+            new TapeAccessRequestReferentialEntity(
+                "accessRequest2",
+                "O_object",
+                List.of("obj1", "obj4"),
+                getNowMinusMinutes(20),
+                getNowMinusMinutes(10),
+                getNowPlusMinutes(20),
+                getNowPlusMinutes(50),
+                List.of(),
+                0,
+                0
+            )
+        );
 
         // Ready access request for same object name of another container
-        accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest3", "1_object",
-            List.of("obj1", "obj3"), "creationDate", null, null, null, List.of("tarId3"), 1, 0));
+        accessRequestReferentialRepository.insert(
+            new TapeAccessRequestReferentialEntity(
+                "accessRequest3",
+                "1_object",
+                List.of("obj1", "obj3"),
+                "creationDate",
+                null,
+                null,
+                null,
+                List.of("tarId3"),
+                1,
+                0
+            )
+        );
 
         // Expired access request
-        accessRequestReferentialRepository.insert(new TapeAccessRequestReferentialEntity("accessRequest4", "O_object",
-            List.of("obj5"), getNowMinusMinutes(50), getNowMinusMinutes(40), getNowMinusMinutes(10),
-            getNowPlusMinutes(20), List.of(), 0, 0));
+        accessRequestReferentialRepository.insert(
+            new TapeAccessRequestReferentialEntity(
+                "accessRequest4",
+                "O_object",
+                List.of("obj5"),
+                getNowMinusMinutes(50),
+                getNowMinusMinutes(40),
+                getNowMinusMinutes(10),
+                getNowPlusMinutes(20),
+                List.of(),
+                0,
+                0
+            )
+        );
 
         // container1/obj1 : stored on 2 entries of tarId1
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("O_object", "obj1"),
-                1234L, "SHA-512", "digest1", "obj1-guid1", new TapeLibraryTarObjectStorageLocation(List.of(
-                new TarEntryDescription("tarId1", "obj1-guid1-0", 4321L, 1000L, "digest-obj1-guid1-0"),
-                new TarEntryDescription("tarId1", "obj1-guid1-1", 4321L, 321L, "digest-obj1-guid1-1"))),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("O_object", "obj1"),
+                1234L,
+                "SHA-512",
+                "digest1",
+                "obj1-guid1",
+                new TapeLibraryTarObjectStorageLocation(
+                    List.of(
+                        new TarEntryDescription("tarId1", "obj1-guid1-0", 4321L, 1000L, "digest-obj1-guid1-0"),
+                        new TarEntryDescription("tarId1", "obj1-guid1-1", 4321L, 321L, "digest-obj1-guid1-1")
+                    )
+                ),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container1/obj2 : stored on 1 entries of tarId1 & 1 entry of tarId2
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("O_object", "obj2"),
-                1234L, "SHA-512", "digest2", "obj2-guid2", new TapeLibraryTarObjectStorageLocation(List.of(
-                new TarEntryDescription("tarId1", "obj2-guid2-0", 5000L, 1000L, "digest-obj2-guid2-0"),
-                new TarEntryDescription("tarId2", "obj2-guid2-1", 0L, 321L, "digest-obj2-guid2-1"))),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("O_object", "obj2"),
+                1234L,
+                "SHA-512",
+                "digest2",
+                "obj2-guid2",
+                new TapeLibraryTarObjectStorageLocation(
+                    List.of(
+                        new TarEntryDescription("tarId1", "obj2-guid2-0", 5000L, 1000L, "digest-obj2-guid2-0"),
+                        new TarEntryDescription("tarId2", "obj2-guid2-1", 0L, 321L, "digest-obj2-guid2-1")
+                    )
+                ),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container1/obj3 : not yet persisted on tar
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("O_object", "obj3"),
-                1234L, "SHA-512", "digest3", "obj3-guid3", new TapeLibraryInputFileObjectStorageLocation(),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("O_object", "obj3"),
+                1234L,
+                "SHA-512",
+                "digest3",
+                "obj3-guid3",
+                new TapeLibraryInputFileObjectStorageLocation(),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container2/obj1 : stored on 2 entries of tarId3
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("1_object", "obj1"),
-                1234L, "SHA-512", "digest3", "obj1-guid1", new TapeLibraryTarObjectStorageLocation(List.of(
-                new TarEntryDescription("tarId3", "obj1-guid1-0", 4321L, 1000L, "digest-obj1-guid1-0"),
-                new TarEntryDescription("tarId3", "obj1-guid1-1", 4321L, 321L, "digest-obj1-guid1-1"))),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("1_object", "obj1"),
+                1234L,
+                "SHA-512",
+                "digest3",
+                "obj1-guid1",
+                new TapeLibraryTarObjectStorageLocation(
+                    List.of(
+                        new TarEntryDescription("tarId3", "obj1-guid1-0", 4321L, 1000L, "digest-obj1-guid1-0"),
+                        new TarEntryDescription("tarId3", "obj1-guid1-1", 4321L, 321L, "digest-obj1-guid1-1")
+                    )
+                ),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container1/obj4 : stored on 1 entry of tarId4
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("O_object", "obj4"),
-                200L, "SHA-512", "digest4", "obj4-guid4", new TapeLibraryTarObjectStorageLocation(List.of(
-                new TarEntryDescription("tarId4", "obj4-guid4-0", 4642L, 200L, "digest4"))),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("O_object", "obj4"),
+                200L,
+                "SHA-512",
+                "digest4",
+                "obj4-guid4",
+                new TapeLibraryTarObjectStorageLocation(
+                    List.of(new TarEntryDescription("tarId4", "obj4-guid4-0", 4642L, 200L, "digest4"))
+                ),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container1/obj5 : stored on 1 entry of tarId5 (only required by an expired access request)
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("O_object", "obj5"),
-                555L, "SHA-512", "digest5", "obj5-guid5", new TapeLibraryTarObjectStorageLocation(List.of(
-                new TarEntryDescription("tarId5", "obj5-guid5-0", 0L, 555L, "digest5"))),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("O_object", "obj5"),
+                555L,
+                "SHA-512",
+                "digest5",
+                "obj5-guid5",
+                new TapeLibraryTarObjectStorageLocation(
+                    List.of(new TarEntryDescription("tarId5", "obj5-guid5-0", 0L, 555L, "digest5"))
+                ),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container2/obj2 : stored on 1 entry of tarId6 (not required by any access request)
         objectReferentialRepository.insertOrUpdate(
-            new TapeObjectReferentialEntity(new TapeLibraryObjectReferentialId("1_object", "obj2"),
-                666L, "SHA-512", "digest2", "obj2-guid2", new TapeLibraryTarObjectStorageLocation(List.of(
-                new TarEntryDescription("tarId6", "obj2-guid2-0", 0L, 666L, "digest2"))),
-                "creationDate", "updateDate"));
+            new TapeObjectReferentialEntity(
+                new TapeLibraryObjectReferentialId("1_object", "obj2"),
+                666L,
+                "SHA-512",
+                "digest2",
+                "obj2-guid2",
+                new TapeLibraryTarObjectStorageLocation(
+                    List.of(new TarEntryDescription("tarId6", "obj2-guid2-0", 0L, 666L, "digest2"))
+                ),
+                "creationDate",
+                "updateDate"
+            )
+        );
 
         // container2/obj3 : does not exist (deleted or never inserted)
 
         // tarId4 & tarId8 are locked then unlocked by lock1
-        LockHandle lock1 = archiveCacheEvictionController.createLock(Set.of(
-            new ArchiveCacheEntry("test-objects", "tarId4"),
-            new ArchiveCacheEntry("test-objects", "tarId8")
-        ));
+        LockHandle lock1 = archiveCacheEvictionController.createLock(
+            Set.of(new ArchiveCacheEntry("test-objects", "tarId4"), new ArchiveCacheEntry("test-objects", "tarId8"))
+        );
         lock1.release();
 
         // tarId7 & tarId8 are locked by lock2
-        LockHandle lock2 = archiveCacheEvictionController.createLock(Set.of(
-            new ArchiveCacheEntry("test-objects", "tarId7"),
-            new ArchiveCacheEntry("test-objects", "tarId8")
-        ));
+        LockHandle lock2 = archiveCacheEvictionController.createLock(
+            Set.of(new ArchiveCacheEntry("test-objects", "tarId7"), new ArchiveCacheEntry("test-objects", "tarId8"))
+        );
 
         // When
         LRUCacheEvictionJudge<ArchiveCacheEntry> evictionJudge = archiveCacheEvictionController.computeEvictionJudge();
@@ -211,7 +335,6 @@ public class ArchiveCacheEvictionControllerTest {
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-metadata", "any"))).isFalse();
         // "default" file-bucket is always in cache
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-default", "any"))).isFalse();
-
 
         // "default" file-bucket is always in cache
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-default", "any"))).isFalse();
@@ -235,7 +358,6 @@ public class ArchiveCacheEvictionControllerTest {
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId7"))).isFalse();
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId8"))).isFalse();
         assertThat(evictionJudge.canEvictEntry(new ArchiveCacheEntry("test-objects", "tarId9"))).isTrue();
-
     }
 
     private String getNowPlusMinutes(int plusMinutes) {

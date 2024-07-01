@@ -39,7 +39,8 @@ public class LogbookModelValidationTest {
     public void testLogbookOperationElasticsearchMapping() throws Exception {
         ModelValidatorUtils.validateDataModel(
             LogbookOperation.class.getResourceAsStream(LogbookElasticsearchAccess.MAPPING_LOGBOOK_OPERATION_FILE),
-            LogbookCollections.OPERATION.getVitamCollection());
+            LogbookCollections.OPERATION.getVitamCollection()
+        );
     }
 
     @Test

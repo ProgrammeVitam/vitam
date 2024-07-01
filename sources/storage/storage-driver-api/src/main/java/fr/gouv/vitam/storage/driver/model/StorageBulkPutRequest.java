@@ -41,8 +41,14 @@ public class StorageBulkPutRequest extends StorageRequest {
     private final InputStream dataStream;
     private final long size;
 
-    public StorageBulkPutRequest(Integer tenantId, String type, List<String> objectIds, DigestType digestType,
-        InputStream dataStream, long size) {
+    public StorageBulkPutRequest(
+        Integer tenantId,
+        String type,
+        List<String> objectIds,
+        DigestType digestType,
+        InputStream dataStream,
+        long size
+    ) {
         super(tenantId, type);
         this.objectIds = objectIds;
         this.digestType = digestType;
@@ -68,11 +74,18 @@ public class StorageBulkPutRequest extends StorageRequest {
 
     @Override
     public String toString() {
-        return "StorageBulkPutRequest{" +
-            "objectIds=" + objectIds +
-            ", digestType='" + digestType + '\'' +
-            ", dataStream=" + dataStream +
-            ", size=" + size +
-            '}';
+        return (
+            "StorageBulkPutRequest{" +
+            "objectIds=" +
+            objectIds +
+            ", digestType='" +
+            digestType +
+            '\'' +
+            ", dataStream=" +
+            dataStream +
+            ", size=" +
+            size +
+            '}'
+        );
     }
 }

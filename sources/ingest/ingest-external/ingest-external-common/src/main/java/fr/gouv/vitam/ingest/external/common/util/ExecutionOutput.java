@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ExecutionOutput {
+
     private final List<String> command;
     private final Exception exception;
     private final String stdout;
@@ -48,7 +49,6 @@ public class ExecutionOutput {
     private final int exitCode;
 
     public ExecutionOutput(Exception exception, Process process, ProcessBuilder processBuilder) {
-
         this.exception = exception;
         this.command = processBuilder.command();
         this.exitCode = -1;
@@ -83,11 +83,13 @@ public class ExecutionOutput {
             }
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return Stream.concat(firstLines.stream(), lastLines.stream())
-                .collect(Collectors.joining(" | ")) + "|" + e.getMessage();
+            return (
+                Stream.concat(firstLines.stream(), lastLines.stream()).collect(Collectors.joining(" | ")) +
+                "|" +
+                e.getMessage()
+            );
         }
-        return Stream.concat(firstLines.stream(), lastLines.stream())
-            .collect(Collectors.joining(" | "));
+        return Stream.concat(firstLines.stream(), lastLines.stream()).collect(Collectors.joining(" | "));
     }
 
     public Exception getException() {

@@ -81,7 +81,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String NOT_ACCEPTABLE_EXCEPTION = "File or folder name is not allowed";
     private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
-
     private static final String LOGBOOK_URL = "/logbooks";
     private static final String INGEST_URL = "/ingests";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
@@ -101,12 +100,12 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
-        throws VitamException {
-        try (Response response = make(post()
-            .withPath(LOGBOOK_URL)
-            .withBody(logbookParametersList, "check Upload Parameter")
-            .withJson())) {
+    public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList) throws VitamException {
+        try (
+            Response response = make(
+                post().withPath(LOGBOOK_URL).withBody(logbookParametersList, "check Upload Parameter").withJson()
+            )
+        ) {
             check(response);
         }
     }
@@ -114,8 +113,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     @Override
     public void upload(InputStream inputStream, MediaType archiveMimeType, WorkFlow workflow, String actionAfterInit)
         throws VitamException {
-        ParametersChecker.checkParameter("context Id Request must not be null",
-            workflow);
+        ParametersChecker.checkParameter("context Id Request must not be null", workflow);
         VitamRequestBuilder request = post()
             .withPath(INGEST_URL)
             .withHeader(GlobalDataRest.X_CONTEXT_ID, workflow.getIdentifier())
@@ -138,8 +136,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
     @Override
     public void initWorkflow(WorkFlow workFlow) throws VitamException {
-        ParametersChecker.checkParameter("Params cannot be null",
-            workFlow);
+        ParametersChecker.checkParameter("Params cannot be null", workFlow);
         VitamRequestBuilder request = post()
             .withPath(INGEST_URL)
             .withHeader(GlobalDataRest.X_CONTEXT_ID, workFlow.getId())
@@ -156,20 +153,20 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
     @Override
     public Response downloadObjectAsync(String objectId, IngestCollection type)
-        throws InvalidParseOperationException, IngestInternalClientServerException,
-        IngestInternalClientNotFoundException {
-
+        throws InvalidParseOperationException, IngestInternalClientServerException, IngestInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
         Response response = null;
         try {
-            response = make(get()
-                .withPath(INGEST_URL + "/" + objectId + "/" + type.getCollectionName())
-                .withOctetAccept());
+            response = make(
+                get().withPath(INGEST_URL + "/" + objectId + "/" + type.getCollectionName()).withOctetAccept()
+            );
             check(response);
             return response;
-        } catch (VitamClientException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            VitamClientException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e
+        ) {
             throw new IngestInternalClientServerException(e);
         } catch (IngestInternalClientNotFoundException e) {
             throw new IngestInternalClientNotFoundException(e);
@@ -178,8 +175,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 response.close();
             }
         }
-
-
     }
 
     @Override
@@ -187,14 +182,23 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
 
-        try (Response response = make(put()
-            .withPath(OPERATION_URI + "/" + operationId)
-            .withHeader(GlobalDataRest.X_ACTION, actionId)
-            .withJsonAccept()
-        )) {
+        try (
+            Response response = make(
+                put()
+                    .withPath(OPERATION_URI + "/" + operationId)
+                    .withHeader(GlobalDataRest.X_ACTION, actionId)
+                    .withJsonAccept()
+            )
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | IngestInternalServerUnavailableClientException | IngestInternalClientNotFoundException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalClientServerException
+            | IngestInternalServerUnavailableClientException
+            | IngestInternalClientNotFoundException e
+        ) {
             throw new VitamClientException(e);
         }
     }
@@ -203,19 +207,24 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     public ItemStatus getOperationProcessStatus(String id) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
 
-        try (Response response = make(head()
-            .withPath(OPERATION_URI + "/" + id)
-            .withJsonAccept()
-        )) {
+        try (Response response = make(head().withPath(OPERATION_URI + "/" + id).withJsonAccept())) {
             check(response);
             return new ItemStatus()
                 .setGlobalState(ProcessState.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATE)))
                 .setLogbookTypeProcess(response.getHeaderString(GlobalDataRest.X_CONTEXT_ID))
                 .increment(StatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS)));
-
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalServerUnavailableClientException e
+        ) {
             throw new VitamClientException(e);
-        } catch (VitamClientInternalException | IngestInternalClientNotFoundException | WorkflowNotFoundException | IngestInternalClientServerException e) {
+        } catch (
+            VitamClientInternalException
+            | IngestInternalClientNotFoundException
+            | WorkflowNotFoundException
+            | IngestInternalClientServerException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -223,76 +232,99 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     @Override
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        try (Response response = make(get()
-            .withPath(OPERATION_URI + "/" + id)
-            .withJsonAccept()
-        )) {
+        try (Response response = make(get().withPath(OPERATION_URI + "/" + id).withJsonAccept())) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalServerUnavailableClientException e
+        ) {
             throw new VitamClientException(e);
-        } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException e) {
+        } catch (
+            VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
 
     @Override
-    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
-        throws VitamClientException {
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        try (Response response = make(delete()
-            .withPath(OPERATION_URI + "/" + id)
-            .withJsonAccept()
-        )) {
+        try (Response response = make(delete().withPath(OPERATION_URI + "/" + id).withJsonAccept())) {
             check(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalServerUnavailableClientException e
+        ) {
             throw new VitamClientException(e);
-        } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
+        } catch (
+            VitamClientInternalException
+            | IngestInternalClientServerException
+            | IngestInternalClientNotFoundException
+            | IngestInternalClientConflictException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
 
     @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
-        try (Response response = make(get()
-            .withPath(OPERATION_URI)
-            .withBody(JsonHandler.toJsonNode(query))
-            .withJson()
-        )) {
+        try (
+            Response response = make(get().withPath(OPERATION_URI).withBody(JsonHandler.toJsonNode(query)).withJson())
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalServerUnavailableClientException e
+        ) {
             throw new VitamClientException(e);
-        } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
+        } catch (
+            VitamClientInternalException
+            | IngestInternalClientServerException
+            | IngestInternalClientNotFoundException
+            | IngestInternalClientConflictException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
-        try (Response response = make(get()
-            .withPath(WORKFLOWS_URI)
-            .withJsonAccept()
-        )) {
+        try (Response response = make(get().withPath(WORKFLOWS_URI).withJsonAccept())) {
             check(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalServerUnavailableClientException e
+        ) {
             throw new VitamClientException(e);
-        } catch (VitamClientInternalException | IngestInternalClientServerException | IngestInternalClientNotFoundException | IngestInternalClientConflictException e) {
+        } catch (
+            VitamClientInternalException
+            | IngestInternalClientServerException
+            | IngestInternalClientNotFoundException
+            | IngestInternalClientConflictException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
 
     @Override
     public Optional<WorkFlow> getWorkflowDetails(String workflowIdentifier) throws VitamClientException {
-        try (Response response = make(get()
-            .withPath(WORKFLOWS_URI + "/" + workflowIdentifier)
-            .withJsonAccept()
-        )) {
+        try (Response response = make(get().withPath(WORKFLOWS_URI + "/" + workflowIdentifier).withJsonAccept())) {
             check(response);
             return Optional.of(response.readEntity(WorkFlow.class));
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | IngestInternalServerUnavailableClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalClientServerException
+            | IngestInternalServerUnavailableClientException e
+        ) {
             throw new VitamClientException("Internal Error Server", e);
         } catch (IngestInternalClientNotFoundException e) {
             return Optional.empty();
@@ -302,21 +334,25 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     @Override
     public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream)
         throws VitamClientException {
-        try (Response response = make(put()
-            .withPath("workspace" + "/" + id + "/" + objectName)
-            .withBody(inputStream)
-            .withJson()
-        )) {
+        try (
+            Response response = make(
+                put().withPath("workspace" + "/" + id + "/" + objectName).withBody(inputStream).withJson()
+            )
+        ) {
             check(response);
-        } catch (InvalidParseOperationException | NotAcceptableClientException | IngestInternalClientServerException | IngestInternalServerUnavailableClientException | IngestInternalClientNotFoundException e) {
+        } catch (
+            InvalidParseOperationException
+            | NotAcceptableClientException
+            | IngestInternalClientServerException
+            | IngestInternalServerUnavailableClientException
+            | IngestInternalClientNotFoundException e
+        ) {
             throw new VitamClientException("Internal Error Server", e);
         }
     }
 
     private void check(Response response)
-        throws VitamClientException, IngestInternalClientServerException,
-        IngestInternalServerUnavailableClientException, InvalidParseOperationException, IngestInternalClientNotFoundException,
-        NotAcceptableClientException {
+        throws VitamClientException, IngestInternalClientServerException, IngestInternalServerUnavailableClientException, InvalidParseOperationException, IngestInternalClientNotFoundException, NotAcceptableClientException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;

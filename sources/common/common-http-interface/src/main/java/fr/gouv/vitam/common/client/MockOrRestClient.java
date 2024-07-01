@@ -36,7 +36,6 @@ import javax.ws.rs.core.Response;
  * Basic client api for vitam client either in Mock or Rest mode
  */
 public interface MockOrRestClient extends VitamAutoCloseable {
-
     /**
      * Get the resource path of the server.
      *
@@ -57,7 +56,6 @@ public interface MockOrRestClient extends VitamAutoCloseable {
      * @throws VitamApplicationServerException if the Server is unavailable
      */
     void checkStatus() throws VitamApplicationServerException;
-
 
     /**
      * Check the status from the service

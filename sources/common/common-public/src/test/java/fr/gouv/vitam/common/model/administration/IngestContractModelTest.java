@@ -39,12 +39,10 @@ import static org.junit.Assert.assertEquals;
 
 public class IngestContractModelTest {
 
-
     private static final Integer TENANT_ID = 0;
 
     @Test
     public void testConstructor() throws Exception {
-
         IngestContractModel contract = new IngestContractModel();
         final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
         String name = "aName";
@@ -56,11 +54,12 @@ public class IngestContractModelTest {
             .setId(id)
             .setTenant(TENANT_ID)
             .setName(name)
-            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setDescription(description)
+            .setStatus(ActivationStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).
-            setDeactivationdate(lastupdate);
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate);
         contract.setArchiveProfiles(archiveProfiles);
 
         assertEquals(id, contract.getId());
@@ -71,5 +70,4 @@ public class IngestContractModelTest {
         assertEquals(lastupdate, contract.getDeactivationdate());
         assertEquals(archiveProfiles, contract.getArchiveProfiles());
     }
-
 }

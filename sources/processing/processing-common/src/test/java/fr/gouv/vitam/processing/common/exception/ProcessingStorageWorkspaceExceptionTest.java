@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 
 public class ProcessingStorageWorkspaceExceptionTest {
 
-
     private static final String ERROR = "ERROR";
     private static final String EXCEPTION =
         "fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException";
@@ -40,10 +39,11 @@ public class ProcessingStorageWorkspaceExceptionTest {
 
     @Test
     public void testConstructor() {
-        assertEquals(EXCEPTION + ": " + ERROR,
-            new ProcessingStorageWorkspaceException(ERROR, new Exception()).toString());
+        assertEquals(
+            EXCEPTION + ": " + ERROR,
+            new ProcessingStorageWorkspaceException(ERROR, new Exception()).toString()
+        );
         assertEquals(ERROR, new ProcessingStorageWorkspaceException(ERROR).getMessage());
         assertEquals(JAVA_ERROR, (new ProcessingStorageWorkspaceException(new Exception())).getMessage());
     }
-
 }

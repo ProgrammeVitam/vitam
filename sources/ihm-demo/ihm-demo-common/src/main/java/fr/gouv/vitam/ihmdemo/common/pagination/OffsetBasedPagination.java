@@ -53,7 +53,6 @@ public class OffsetBasedPagination {
     private int limit = PaginationParameters.DEFAULT_LIMIT;
     private int total = 0;
 
-
     /**
      * Empty Pagination Constructor
      */
@@ -86,8 +85,6 @@ public class OffsetBasedPagination {
         ParametersChecker.checkParameter(PARAMETERS, offset, limit, total);
         setLimit(limit).setOffset(offset).setTotal(total);
     }
-
-
 
     /**
      * @return the offset
@@ -157,11 +154,9 @@ public class OffsetBasedPagination {
                         LOGGER.debug("Offset exceeded acceptable range" + offsetValues.get(0));
                         throw new VitamException("Offset exceeded acceptable range " + offsetValues.get(0));
                     }
-
                 } catch (NumberFormatException | NullPointerException e) {
                     LOGGER.debug("Error parsing offset from {}", offsetValues.get(0), e);
-                    throw new VitamException(
-                        "Error parsing Offset from supplied value: " + offsetValues.get(0));
+                    throw new VitamException("Error parsing Offset from supplied value: " + offsetValues.get(0));
                 }
             }
         }
@@ -174,7 +169,6 @@ public class OffsetBasedPagination {
                         LOGGER.debug("Limit exceeded acceptable range " + limitValues.get(0));
                         throw new VitamException("Limit exceeded acceptable range " + limitValues.get(0));
                     }
-
                 } catch (NumberFormatException | NullPointerException e) {
                     LOGGER.debug("Error parsing limit from {}", limitValues, e);
                     throw new VitamException("Error parsing Limit from supplied value: " + limitValues.get(0));
@@ -184,5 +178,4 @@ public class OffsetBasedPagination {
 
         return this;
     }
-
 }

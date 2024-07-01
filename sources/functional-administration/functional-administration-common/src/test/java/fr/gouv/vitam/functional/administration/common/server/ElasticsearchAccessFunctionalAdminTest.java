@@ -67,11 +67,17 @@ public class ElasticsearchAccessFunctionalAdminTest {
         nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         ElasticsearchFunctionalAdminIndexManager indexManager =
             FunctionalAdminCollectionsTestUtils.createTestIndexManager();
-        elasticsearchAccessFunctionalAdmin =
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes, indexManager);
+        elasticsearchAccessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(
+            ElasticsearchRule.VITAM_CLUSTER,
+            nodes,
+            indexManager
+        );
 
-        FunctionalAdminCollectionsTestUtils
-            .beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessFunctionalAdmin);
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            elasticsearchAccessFunctionalAdmin
+        );
     }
 
     @AfterClass
@@ -98,7 +104,6 @@ public class ElasticsearchAccessFunctionalAdminTest {
         createAllFunctionalAdminIndexAndCheckAlias();
     }
 
-
     private void createAllFunctionalAdminIndexAndCheckAlias() throws Exception {
         for (FunctionalAdminCollections functionalAdminCollections : FunctionalAdminCollections.values()) {
             // Given
@@ -108,8 +113,9 @@ public class ElasticsearchAccessFunctionalAdminTest {
             if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {
                 elasticsearchAccessFunctionalAdmin.addIndex(functionalAdminCollections);
 
-                GetAliasesResponse aliasesResponse =
-                    elasticsearchAccessFunctionalAdmin.getAlias(ElasticsearchIndexAlias.ofCrossTenantCollection(alias));
+                GetAliasesResponse aliasesResponse = elasticsearchAccessFunctionalAdmin.getAlias(
+                    ElasticsearchIndexAlias.ofCrossTenantCollection(alias)
+                );
                 // Then
                 assertThat(aliasesResponse.getAliases()).hasSize(1);
             }
@@ -117,8 +123,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
     }
 
     @Test
-    public void should_delete_index_and_alias_of_collection()
-        throws Exception {
+    public void should_delete_index_and_alias_of_collection() throws Exception {
         // Given
         createAllFunctionalAdminIndexAndCheckAlias();
         for (FunctionalAdminCollections functionalAdminCollections : FunctionalAdminCollections.values()) {
@@ -127,14 +132,12 @@ public class ElasticsearchAccessFunctionalAdminTest {
             // Careful Not mapping for VITAM_SEQUENCE
             if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {
                 ElasticsearchIndexAlias indexAlias = ElasticsearchIndexAlias.ofCrossTenantCollection(alias);
-                GetAliasesResponse aliasesResponse =
-                    elasticsearchAccessFunctionalAdmin.getAlias(indexAlias);
+                GetAliasesResponse aliasesResponse = elasticsearchAccessFunctionalAdmin.getAlias(indexAlias);
                 assertThat(aliasesResponse.getAliases()).hasSize(1);
                 elasticsearchAccessFunctionalAdmin.deleteIndexByAliasForTesting(indexAlias);
 
                 // Then
-                aliasesResponse =
-                    elasticsearchAccessFunctionalAdmin.getAlias(indexAlias);
+                aliasesResponse = elasticsearchAccessFunctionalAdmin.getAlias(indexAlias);
                 assertThat(aliasesResponse.getAliases()).hasSize(0);
             }
         }

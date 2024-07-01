@@ -68,7 +68,6 @@ public class ArchiveUnitProfileStep extends CommonStep {
      */
     private String fileName;
 
-
     /**
      * generic model result
      */
@@ -90,19 +89,16 @@ public class ArchiveUnitProfileStep extends CommonStep {
      * @throws AccessExternalClientException
      */
     @When("je fais un import du document type")
-    public void create_profile()
-        throws InvalidParseOperationException, IOException, AccessExternalClientException {
+    public void create_profile() throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
-        final RequestResponse response =
-            world.getAdminClient()
-                .createArchiveUnitProfile(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    Files.newInputStream(profil, StandardOpenOption.READ));
+        final RequestResponse response = world
+            .getAdminClient()
+            .createArchiveUnitProfile(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                Files.newInputStream(profil, StandardOpenOption.READ)
+            );
         if (response.isOk()) {
-            ((RequestResponseOK<JsonNode>) response).getResults()
-                .stream()
-                .findFirst()
-                .ifPresent(o -> this.model = o);
+            ((RequestResponseOK<JsonNode>) response).getResults().stream().findFirst().ifPresent(o -> this.model = o);
         }
         String httpCode = String.valueOf(response.getHttpCode());
         ObjectNode responseCode = JsonHandler.createObjectNode();
@@ -116,22 +112,23 @@ public class ArchiveUnitProfileStep extends CommonStep {
 
     @When("^je cherche un document type nommé (.*)")
     public void search_profiles(String name)
-        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
-        VitamClientException {
+        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException, VitamClientException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         select.setQuery(match("Name", name));
         final JsonNode query = select.getFinalSelect();
-        RequestResponse<ArchiveUnitProfileModel> requestResponse =
-            world.getAdminClient().findArchiveUnitProfiles(
-                new VitamContext(world.getTenantId()).setAccessContract(null)
+        RequestResponse<ArchiveUnitProfileModel> requestResponse = world
+            .getAdminClient()
+            .findArchiveUnitProfiles(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(null)
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                query);
+                query
+            );
         if (requestResponse.isOk()) {
             this.model = ((RequestResponseOK<ArchiveUnitProfileModel>) requestResponse).getResultsAsJsonNodes().get(0);
         }
     }
-
 
     @Then("^le document type existe$")
     public void contract_found_are() {
@@ -147,5 +144,4 @@ public class ArchiveUnitProfileStep extends CommonStep {
             assertThat(this.model.get(index).asText()).contains(value);
         }
     }
-
 }

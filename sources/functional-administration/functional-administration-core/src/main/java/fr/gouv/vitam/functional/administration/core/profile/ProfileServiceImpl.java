@@ -130,7 +130,8 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String PROFILES_FILE_IMPORT_EVENT = "STP_IMPORT_PROFILE_FILE";
     private static final String PROFILE_NOT_FOUND = "Update a not found profile";
     private static final String PROFILE_NOT_FOUND_WITH_IDENTIFIER = "No profile metadata found with identifier : ";
-    private static final String MANDATORY_PROFILE_METADATA = ", to import the file, the metadata profile must be created first";
+    private static final String MANDATORY_PROFILE_METADATA =
+        ", to import the file, the metadata profile must be created first";
     private static final String UPDATED_DIFFS = "updatedDiffs";
     private static final String THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The profile status must be ACTIVE or INACTIVE but not ";
@@ -148,18 +149,19 @@ public class ProfileServiceImpl implements ProfileService {
      * @param vitamCounterService the vitam counter service
      * @param functionalBackupService the functional backup service
      */
-    public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+    public ProfileServiceImpl(
+        MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService,
+        FunctionalBackupService functionalBackupService
+    ) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         this.functionalBackupService = functionalBackupService;
     }
 
-
     @Override
-    public RequestResponse<ProfileModel> createProfiles(List<ProfileModel> profileModelList)
-        throws VitamException {
+    public RequestResponse<ProfileModel> createProfiles(List<ProfileModel> profileModelList) throws VitamException {
         ParametersChecker.checkParameter(PROFILE_IS_MANDATORY_PARAMETER, profileModelList);
 
         if (profileModelList.isEmpty()) {
@@ -169,9 +171,10 @@ public class ProfileServiceImpl implements ProfileService {
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
 
-        boolean slaveMode = vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(SequenceType.PROFILE_SEQUENCE.getCollection(),
-                ParameterHelper.getTenantParameter());
+        boolean slaveMode = vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
+            SequenceType.PROFILE_SEQUENCE.getCollection(),
+            ParameterHelper.getTenantParameter()
+        );
 
         ProfileManager manager = new ProfileManager(logbookClient, eip);
         manager.logStarted(PROFILES_IMPORT_EVENT, null);
@@ -180,19 +183,21 @@ public class ProfileServiceImpl implements ProfileService {
         final Set<String> profileNames = new HashSet<>();
         ArrayNode profilesToPersist;
 
-        final VitamError<ProfileModel> error =
-            getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global create profile error")
-                .setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError<ProfileModel> error = getVitamError(
+            VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
+            "Global create profile error"
+        ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
-
             for (final ProfileModel pm : profileModelList) {
-
                 // if a profile have and id
                 if (null != pm.getId()) {
-                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                        RejectionCause.rejectIdNotAllowedInCreate(pm.getName()).getReason()));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                            RejectionCause.rejectIdNotAllowedInCreate(pm.getName()).getReason()
+                        )
+                    );
                     continue;
                 }
 
@@ -200,10 +205,11 @@ public class ProfileServiceImpl implements ProfileService {
                 if (ParametersChecker.isNotEmpty(pm.getIdentifier())) {
                     if (profileIdentifiers.contains(pm.getIdentifier())) {
                         error.addToErrors(
-                            getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), "Duplicate profiles"
-                            )
-                                .setMessage(
-                                    "Profile identifier " + pm.getIdentifier() + " already exists in the json"));
+                            getVitamError(
+                                VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                                "Duplicate profiles"
+                            ).setMessage("Profile identifier " + pm.getIdentifier() + " already exists in the json")
+                        );
                         continue;
                     } else {
                         profileIdentifiers.add(pm.getIdentifier());
@@ -222,31 +228,43 @@ public class ProfileServiceImpl implements ProfileService {
                 }
 
                 if (slaveMode) {
-                    final Optional<ProfileValidator.RejectionCause> result =
-                        manager.checkEmptyIdentifierSlaveModeValidator().validate(pm);
-                    result.ifPresent(t -> error
-                        .addToErrors(
-                            new VitamError<ProfileModel>(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setDescription(
-                                result
-                                    .get().getReason()).setMessage(ProfileManager.DUPLICATE_IN_DATABASE)));
+                    final Optional<ProfileValidator.RejectionCause> result = manager
+                        .checkEmptyIdentifierSlaveModeValidator()
+                        .validate(pm);
+                    result.ifPresent(
+                        t ->
+                            error.addToErrors(
+                                new VitamError<ProfileModel>(VitamCode.PROFILE_VALIDATION_ERROR.getItem())
+                                    .setDescription(result.get().getReason())
+                                    .setMessage(ProfileManager.DUPLICATE_IN_DATABASE)
+                            )
+                    );
                 }
 
                 // Check Path
                 if (pm.getPath() != null) {
-                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                        PATH_UNUPDATABLE).setMessage(PATH_SHOULD_NOT_BE_FILLED));
+                    error.addToErrors(
+                        getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), PATH_UNUPDATABLE).setMessage(
+                            PATH_SHOULD_NOT_BE_FILLED
+                        )
+                    );
                 }
-
             }
 
             if (null != error.getErrors() && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
-                final String errorsDetails =
-                    error.getErrors().stream().map(VitamError::getDescription)
-                        .collect(Collectors.joining(","));
-                manager.logValidationError(PROFILES_IMPORT_EVENT, null, errorsDetails,
-                    error.getErrors().get(0).getMessage());
+                final String errorsDetails = error
+                    .getErrors()
+                    .stream()
+                    .map(VitamError::getDescription)
+                    .collect(Collectors.joining(","));
+                manager.logValidationError(
+                    PROFILES_IMPORT_EVENT,
+                    null,
+                    errorsDetails,
+                    error.getErrors().get(0).getMessage()
+                );
                 return error;
             }
 
@@ -285,48 +303,53 @@ public class ProfileServiceImpl implements ProfileService {
             final String err = "Import profiles error : " + exp.getMessage();
             manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err).setHttpCode(
-                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()
+            );
         }
 
         manager.logSuccess(PROFILES_IMPORT_EVENT, null, null);
 
-        return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList)
+        return new RequestResponseOK<ProfileModel>()
+            .addAllResults(profileModelList)
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
-    private void setIdentifier(boolean slaveMode, ProfileModel pm)
-        throws ReferentialException {
+    private void setIdentifier(boolean slaveMode, ProfileModel pm) throws ReferentialException {
         if (!slaveMode) {
-            String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                SequenceType.PROFILE_SEQUENCE);
+            String code = vitamCounterService.getNextSequenceAsString(
+                ParameterHelper.getTenantParameter(),
+                SequenceType.PROFILE_SEQUENCE
+            );
             pm.setIdentifier(code);
         }
     }
 
-
     @Override
-    public RequestResponse<ProfileModel> importProfileFile(String profileIdentifier,
-        InputStream profileFile)
+    public RequestResponse<ProfileModel> importProfileFile(String profileIdentifier, InputStream profileFile)
         throws VitamException {
-
         final ProfileModel profileMetadata = findByIdentifier(profileIdentifier);
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final ProfileManager manager = new ProfileManager(logbookClient, eip);
 
-        final VitamError<ProfileModel> vitamError =
-            getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global import profile error")
-                .setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError<ProfileModel> vitamError = getVitamError(
+            VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
+            "Global import profile error"
+        ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         if (null == profileMetadata) {
-            LOGGER.error(PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier +
-                MANDATORY_PROFILE_METADATA);
+            LOGGER.error(PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier + MANDATORY_PROFILE_METADATA);
 
-            manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileIdentifier,
-                PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier +
-                    MANDATORY_PROFILE_METADATA, ProfileManager.IMPORT_KO);
-            return vitamError.addToErrors(getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
-                PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier +
-                    MANDATORY_PROFILE_METADATA));
+            manager.logValidationError(
+                PROFILES_FILE_IMPORT_EVENT,
+                profileIdentifier,
+                PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier + MANDATORY_PROFILE_METADATA,
+                ProfileManager.IMPORT_KO
+            );
+            return vitamError.addToErrors(
+                getVitamError(
+                    VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(),
+                    PROFILE_NOT_FOUND_WITH_IDENTIFIER + profileIdentifier + MANDATORY_PROFILE_METADATA
+                )
+            );
         }
 
         manager.logStarted(PROFILES_FILE_IMPORT_EVENT, null);
@@ -343,10 +366,17 @@ public class ProfileServiceImpl implements ProfileService {
             boolean isValid = manager.validateProfileFile(profileMetadata, file, vitamError);
 
             if (!isValid) {
-                final String errorsDetails =
-                    vitamError.getErrors().stream().map(VitamError::getMessage).collect(Collectors.joining(","));
-                manager.logValidationError(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId(),
-                    "Profile file validate error : " + errorsDetails, ProfileManager.IMPORT_KO);
+                final String errorsDetails = vitamError
+                    .getErrors()
+                    .stream()
+                    .map(VitamError::getMessage)
+                    .collect(Collectors.joining(","));
+                manager.logValidationError(
+                    PROFILES_FILE_IMPORT_EVENT,
+                    profileMetadata.getId(),
+                    "Profile file validate error : " + errorsDetails,
+                    ProfileManager.IMPORT_KO
+                );
                 return vitamError;
             }
 
@@ -356,23 +386,27 @@ public class ProfileServiceImpl implements ProfileService {
             }
 
             Integer tenantId = ParameterHelper.getTenantParameter();
-            final String fileName =
-                String.format("%d_profile_%s_%s.%s", tenantId, profileMetadata.getIdentifier(), now().format(
-                    DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")), extension);
+            final String fileName = String.format(
+                "%d_profile_%s_%s.%s",
+                tenantId,
+                profileMetadata.getIdentifier(),
+                now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")),
+                extension
+            );
 
             final String oldPath = profileMetadata.getPath();
 
             InputStream profileIS = new FileInputStream(file);
 
-            functionalBackupService.saveFile(profileIS, eip, OP_PROFILE_STORAGE,
-                DataCategory.PROFILE, fileName);
+            functionalBackupService.saveFile(profileIS, eip, OP_PROFILE_STORAGE, DataCategory.PROFILE, fileName);
 
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
             Update update = new Update();
             update.setQuery(eq(ProfileModel.TAG_IDENTIFIER, profileMetadata.getIdentifier()));
             update.addActions(
                 UpdateActionHelper.set(ProfileModel.TAG_PATH, fileName),
-                UpdateActionHelper.set(ProfileModel.LAST_UPDATE, LocalDateUtil.now().toString()));
+                UpdateActionHelper.set(ProfileModel.LAST_UPDATE, LocalDateUtil.now().toString())
+            );
             updateParserActive.parse(update.getFinalUpdate());
             final JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
 
@@ -401,14 +435,14 @@ public class ProfileServiceImpl implements ProfileService {
             }
 
             manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, null, wellFormedJson);
-
         } catch (Exception e) {
             LOGGER.error(e);
             String err = "Import profiles storage workspace error : " + e.getMessage();
             LOGGER.error(err, e);
             manager.logFatalError(OP_PROFILE_STORAGE, profileMetadata.getId(), err);
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
-                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()
+            );
         } finally {
             try {
                 Files.deleteIfExists(file.toPath());
@@ -431,32 +465,37 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public Response downloadProfileFile(String profileIdentifier)
         throws ProfileNotFoundException, InvalidParseOperationException, ReferentialException {
-
         final ProfileModel profileMetadata = findByIdentifier(profileIdentifier);
         if (null == profileMetadata) {
-            LOGGER.error("No profile metadata found with id : " + profileIdentifier +
-                MANDATORY_PROFILE_METADATA);
-            throw new ProfileNotFoundException("No profile metadata found with id : " + profileIdentifier +
-                MANDATORY_PROFILE_METADATA);
+            LOGGER.error("No profile metadata found with id : " + profileIdentifier + MANDATORY_PROFILE_METADATA);
+            throw new ProfileNotFoundException(
+                "No profile metadata found with id : " + profileIdentifier + MANDATORY_PROFILE_METADATA
+            );
         }
 
         if (Strings.isNullOrEmpty(profileMetadata.getPath()) || profileMetadata.getPath().isEmpty()) {
-            LOGGER.error("The profile metadata found with an id : " + profileIdentifier +
-                ", does not have an xsd or an rng file yet");
+            LOGGER.error(
+                "The profile metadata found with an id : " +
+                profileIdentifier +
+                ", does not have an xsd or an rng file yet"
+            );
             throw new ProfileNotFoundException(
-                "The profile metadata found with id : " + profileIdentifier + ", does not have a xsd or rng file yet");
+                "The profile metadata found with id : " + profileIdentifier + ", does not have a xsd or rng file yet"
+            );
         }
 
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                profileMetadata.getPath(), DataCategory.PROFILE, AccessLogUtils.getNoLogAccessLog());
+            final Response response = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                profileMetadata.getPath(),
+                DataCategory.PROFILE,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, "filename=" + profileMetadata.getPath());
-            return new VitamAsyncInputStreamResponse(response,
-                Status.OK, headers);
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (final StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new ReferentialException(e);
         } catch (final StorageNotFoundException e) {
@@ -466,22 +505,17 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public RequestResponse<ProfileModel> updateProfile(String identifier, JsonNode jsonDsl) throws VitamException {
-
         final ProfileModel profileModel = findByIdentifier(identifier);
         return updateProfile(profileModel, jsonDsl);
     }
 
-
     @Override
     public RequestResponse<ProfileModel> updateProfile(ProfileModel profileModel, JsonNode jsonDsl)
         throws VitamException {
-
         if (profileModel == null) {
-            return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                PROFILE_NOT_FOUND)
+            return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), PROFILE_NOT_FOUND)
                 .setHttpCode(Response.Status.NOT_FOUND.getStatusCode())
                 .setMessage(ProfileManager.UPDATE_PROFILE_NOT_FOUND);
-
         }
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -493,19 +527,24 @@ public class ProfileServiceImpl implements ProfileService {
         manager.logStarted(PROFILES_UPDATE_EVENT, profileModel.getId());
 
         if (jsonDsl == null || !jsonDsl.isObject()) {
-            manager.logValidationError(PROFILES_UPDATE_EVENT, profileModel.getId(),
-                "Update query dsl must be an object and not null", ProfileManager.UPDATE_KO);
-            return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                "Update query dsl must be an object and not null : " + profileModel.getIdentifier())
+            manager.logValidationError(
+                PROFILES_UPDATE_EVENT,
+                profileModel.getId(),
+                "Update query dsl must be an object and not null",
+                ProfileManager.UPDATE_KO
+            );
+            return getVitamError(
+                VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                "Update query dsl must be an object and not null : " + profileModel.getIdentifier()
+            )
                 .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                 .setMessage(ProfileManager.UPDATE_KO);
-
         }
 
-        final VitamError<ProfileModel> error = getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-            "Update profile error : " + profileModel.getIdentifier())
-            .setHttpCode(
-                Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError<ProfileModel> error = getVitamError(
+            VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+            "Update profile error : " + profileModel.getIdentifier()
+        ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final JsonNode actionNode = jsonDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
 
@@ -519,16 +558,25 @@ public class ProfileServiceImpl implements ProfileService {
                     validateUpdateAction(profileModel, error, field, value, manager);
                 }
                 ((ObjectNode) fieldName).remove(ProfileModel.CREATION_DATE);
-                ((ObjectNode) fieldName)
-                    .put(ProfileModel.LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                ((ObjectNode) fieldName).put(
+                        ProfileModel.LAST_UPDATE,
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                    );
             }
         }
 
         if (error.getErrors() != null && CollectionUtils.isNotEmpty(error.getErrors())) {
-            final String errorsDetails =
-                error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
-            manager.logValidationError(PROFILES_UPDATE_EVENT, profileModel.getId(), errorsDetails,
-                error.getErrors().get(0).getMessage());
+            final String errorsDetails = error
+                .getErrors()
+                .stream()
+                .map(VitamError::getDescription)
+                .collect(Collectors.joining(","));
+            manager.logValidationError(
+                PROFILES_UPDATE_EVENT,
+                profileModel.getId(),
+                errorsDetails,
+                error.getErrors().get(0).getMessage()
+            );
 
             return error;
         }
@@ -537,7 +585,8 @@ public class ProfileServiceImpl implements ProfileService {
         try {
             try (DbRequestResult result = mongoAccess.updateData(jsonDsl, FunctionalAdminCollections.PROFILE)) {
                 updateDiffs = result.getDiffs();
-                response.addAllResults(result.getDocuments(Profile.class, ProfileModel.class))
+                response
+                    .addAllResults(result.getDocuments(Profile.class, ProfileModel.class))
                     .setTotal(result.getTotal())
                     .setQuery(jsonDsl)
                     .setHttpCode(Response.Status.OK.getStatusCode());
@@ -558,12 +607,12 @@ public class ProfileServiceImpl implements ProfileService {
                 FunctionalAdminCollections.PROFILE,
                 profileModel.getId()
             );
-
         } catch (final Exception e) {
             LOGGER.error(e);
             final String err = "Update profile error : " + e.getMessage();
             manager.logFatalError(PROFILES_UPDATE_EVENT, profileModel.getId(), err);
-            error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+            error
+                .setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
                 .setDescription(err)
                 .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -582,53 +631,74 @@ public class ProfileServiceImpl implements ProfileService {
      * @param field
      * @param value
      */
-    private void validateUpdateAction(ProfileModel profileModel, final VitamError<ProfileModel> error,
+    private void validateUpdateAction(
+        ProfileModel profileModel,
+        final VitamError<ProfileModel> error,
         final String field,
-        final JsonNode value, ProfileManager manager) {
-            if (Profile.STATUS.equals(field) && !(ProfileStatus.ACTIVE.name().equals(value.asText()) || ProfileStatus.INACTIVE
-                .name().equals(value.asText()))) {
-                error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                    THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
+        final JsonNode value,
+        ProfileManager manager
+    ) {
+        if (
+            Profile.STATUS.equals(field) &&
+            !(ProfileStatus.ACTIVE.name().equals(value.asText()) ||
+                ProfileStatus.INACTIVE.name().equals(value.asText()))
+        ) {
+            error.addToErrors(
+                getVitamError(
+                    VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                    THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
+                )
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                     .setMessage(ProfileManager.UPDATE_VALUE_NOT_IN_ENUM)
-                );
-            }
+            );
+        }
 
-            if (Profile.FORMAT.equals(field) && !(ProfileFormat.XSD.name().equals(value.asText()) || ProfileFormat.RNG
-                .name().equals(value.asText()))) {
-                error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                    PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG + value.asText())
+        if (
+            Profile.FORMAT.equals(field) &&
+            !(ProfileFormat.XSD.name().equals(value.asText()) || ProfileFormat.RNG.name().equals(value.asText()))
+        ) {
+            error.addToErrors(
+                getVitamError(
+                    VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                    PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG + value.asText()
+                )
                     .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
                     .setMessage(ProfileManager.UPDATE_KO)
-                );
-            }
+            );
+        }
 
         if (ProfileModel.TAG_IDENTIFIER.equals(field)) {
             if (!value.isTextual()) {
-                error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                    PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText())
-                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                    .setMessage(ProfileManager.UPDATE_KO)
+                error.addToErrors(
+                    getVitamError(
+                        VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                        PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText()
+                    )
+                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                        .setMessage(ProfileManager.UPDATE_KO)
                 );
-
             } else if (!profileModel.getIdentifier().equals(value.asText())) {
-                Optional<RejectionCause> validateIdentifier = manager.createCheckDuplicateInDatabaseValidator()
+                Optional<RejectionCause> validateIdentifier = manager
+                    .createCheckDuplicateInDatabaseValidator()
                     .validate(new ProfileModel().setIdentifier(value.asText()));
                 if (validateIdentifier.isPresent()) {
-                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                        PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText())
-                        .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                        .setMessage(ProfileManager.UPDATE_DUPLICATE_IN_DATABASE)
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                            PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText()
+                        )
+                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                            .setMessage(ProfileManager.UPDATE_DUPLICATE_IN_DATABASE)
                     );
                 }
             }
         }
 
         if (ProfileModel.TAG_PATH.equals(field)) {
-            error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                PATH_UNUPDATABLE + " : " + value.asText())
-                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
-                .setMessage(PATH_SHOULD_NOT_BE_FILLED)
+            error.addToErrors(
+                getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(), PATH_UNUPDATABLE + " : " + value.asText())
+                    .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    .setMessage(PATH_SHOULD_NOT_BE_FILLED)
             );
         }
     }
@@ -645,8 +715,12 @@ public class ProfileServiceImpl implements ProfileService {
             throw new ReferentialException(e);
         }
 
-        try (DbRequestResult result =
-            mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), FunctionalAdminCollections.PROFILE)) {
+        try (
+            DbRequestResult result = mongoAccess.findDocuments(
+                parser.getRequest().getFinalSelect(),
+                FunctionalAdminCollections.PROFILE
+            )
+        ) {
             final List<ProfileModel> list = result.getDocuments(Profile.class, ProfileModel.class);
             if (list.isEmpty()) {
                 return null;
@@ -658,12 +732,10 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public RequestResponseOK<ProfileModel> findProfiles(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException {
-        try (DbRequestResult result =
-            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.PROFILE)) {
+        try (DbRequestResult result = mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.PROFILE)) {
             return result.getRequestResponseOK(queryDsl, Profile.class, ProfileModel.class);
         }
     }
-
 
     private VitamError<ProfileModel> getVitamError(String vitamCode, String error) {
         return VitamErrorUtils.getVitamError(vitamCode, error, "Profile", StatusCode.KO, ProfileModel.class);

@@ -52,14 +52,17 @@ public class SchemaValidationUtilsTest {
     @Test
     public void testExtractFieldsFromSchema() throws Exception {
         // Given
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                ARCHIVE_UNIT_PROFILE_OK_JSON_FILE));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        JsonNode jsonArcUnit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_OK_JSON_FILE)
+        );
+        ArchiveUnitProfileModel archiveUnitProfile = JsonHandler.getFromJsonNode(
+            jsonArcUnit,
+            ArchiveUnitProfileModel.class
+        );
         // When
-        Collection<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        Collection<String> extractFields = SchemaValidationUtils.extractFieldsFromSchema(
+            archiveUnitProfile.getControlSchema()
+        );
 
         // Then
         assertThat(extractFields).hasSize(14);
@@ -76,19 +79,23 @@ public class SchemaValidationUtilsTest {
     public void testExtractFieldsFromSchema_with_field_Description_and_Title_with_pattern_properties()
         throws FileNotFoundException, InvalidParseOperationException {
         // GIVEN
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(PropertiesUtils
-                .getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_PATTERN_PROPERTIES));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        JsonNode jsonArcUnit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_PATTERN_PROPERTIES)
+        );
+        ArchiveUnitProfileModel archiveUnitProfile = JsonHandler.getFromJsonNode(
+            jsonArcUnit,
+            ArchiveUnitProfileModel.class
+        );
 
         // WHEN
-        Collection<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        Collection<String> extractFields = SchemaValidationUtils.extractFieldsFromSchema(
+            archiveUnitProfile.getControlSchema()
+        );
 
         // THEN
         assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
-        assertThat(extractFields).containsExactlyInAnyOrder("ArchiveUnitProfile",
+        assertThat(extractFields).containsExactlyInAnyOrder(
+            "ArchiveUnitProfile",
             "Rule",
             "StartDate",
             "EndDate",
@@ -105,23 +112,26 @@ public class SchemaValidationUtilsTest {
             "BirthName",
             "Identifier",
             "SentDate",
-            "ReceivedDate");
+            "ReceivedDate"
+        );
     }
 
     @Test
     public void testExtractFieldsFromSchema_with_field_Description_and_Title_without_pattern_properties()
         throws FileNotFoundException, InvalidParseOperationException {
-
         // GIVEN
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(PropertiesUtils
-                .getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITHOUT_PATTERN_PROPERTIES));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        JsonNode jsonArcUnit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITHOUT_PATTERN_PROPERTIES)
+        );
+        ArchiveUnitProfileModel archiveUnitProfile = JsonHandler.getFromJsonNode(
+            jsonArcUnit,
+            ArchiveUnitProfileModel.class
+        );
 
         // WHEN
-        Collection<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        Collection<String> extractFields = SchemaValidationUtils.extractFieldsFromSchema(
+            archiveUnitProfile.getControlSchema()
+        );
 
         // THEN
         assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
@@ -132,61 +142,87 @@ public class SchemaValidationUtilsTest {
     public void testExtractFieldsFromSchema_with_field_Description_and_Title_wit_properties_field()
         throws FileNotFoundException, InvalidParseOperationException {
         // GIVEN
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_PROPERTIES_FIELD));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        JsonNode jsonArcUnit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_PROPERTIES_FIELD)
+        );
+        ArchiveUnitProfileModel archiveUnitProfile = JsonHandler.getFromJsonNode(
+            jsonArcUnit,
+            ArchiveUnitProfileModel.class
+        );
 
         // WHEN
-        Collection<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        Collection<String> extractFields = SchemaValidationUtils.extractFieldsFromSchema(
+            archiveUnitProfile.getControlSchema()
+        );
 
         // THEN
         assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
-        assertThat(extractFields)
-            .containsExactlyInAnyOrder("ArchiveUnitProfile", "properties", "Title", "Description", "en", "fr");
+        assertThat(extractFields).containsExactlyInAnyOrder(
+            "ArchiveUnitProfile",
+            "properties",
+            "Title",
+            "Description",
+            "en",
+            "fr"
+        );
     }
 
     @Test
     public void testExtractFieldsFromSchema_with_field_items()
         throws FileNotFoundException, InvalidParseOperationException {
         // GIVEN
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_PROPERTIES_FIELD));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        JsonNode jsonArcUnit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_PROPERTIES_FIELD)
+        );
+        ArchiveUnitProfileModel archiveUnitProfile = JsonHandler.getFromJsonNode(
+            jsonArcUnit,
+            ArchiveUnitProfileModel.class
+        );
 
         // WHEN
-        Collection<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        Collection<String> extractFields = SchemaValidationUtils.extractFieldsFromSchema(
+            archiveUnitProfile.getControlSchema()
+        );
 
         // THEN
         assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
-        assertThat(extractFields)
-            .containsExactlyInAnyOrder("ArchiveUnitProfile", "properties", "Title", "Description", "en", "fr");
+        assertThat(extractFields).containsExactlyInAnyOrder(
+            "ArchiveUnitProfile",
+            "properties",
+            "Title",
+            "Description",
+            "en",
+            "fr"
+        );
     }
 
     @Test
     public void testExtractFieldsFromSchema_with_type_items_nested_type_pattern_properties()
         throws FileNotFoundException, InvalidParseOperationException {
         // GIVEN
-        JsonNode jsonArcUnit =
-            JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream(
-                    ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PATTERN_PROPERTIES));
-        ArchiveUnitProfileModel archiveUnitProfile =
-            JsonHandler.getFromJsonNode(jsonArcUnit, ArchiveUnitProfileModel.class);
+        JsonNode jsonArcUnit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_PROFILE_WITH_TYPE_ITEMS_NESTED_TYPE_PATTERN_PROPERTIES)
+        );
+        ArchiveUnitProfileModel archiveUnitProfile = JsonHandler.getFromJsonNode(
+            jsonArcUnit,
+            ArchiveUnitProfileModel.class
+        );
 
         // WHEN
-        Collection<String> extractFields =
-            SchemaValidationUtils.extractFieldsFromSchema(archiveUnitProfile.getControlSchema());
+        Collection<String> extractFields = SchemaValidationUtils.extractFieldsFromSchema(
+            archiveUnitProfile.getControlSchema()
+        );
 
         // THEN
         assertThat(extractFields).doesNotContain("patternProperties", "Description_", "Title_");
-        assertThat(extractFields)
-            .containsExactlyInAnyOrder("ArchiveUnitProfile", "properties", "Title", "Description", "en", "fr",
-                "Toto");
+        assertThat(extractFields).containsExactlyInAnyOrder(
+            "ArchiveUnitProfile",
+            "properties",
+            "Title",
+            "Description",
+            "en",
+            "fr",
+            "Toto"
+        );
     }
 }

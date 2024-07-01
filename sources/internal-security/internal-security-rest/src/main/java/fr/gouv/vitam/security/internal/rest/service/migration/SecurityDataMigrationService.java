@@ -52,8 +52,7 @@ public class SecurityDataMigrationService {
      * Constructor
      */
     @VisibleForTesting
-    public SecurityDataMigrationService(
-        SecurityDataMigrationRepository securityDataMigrationRepository) {
+    public SecurityDataMigrationService(SecurityDataMigrationRepository securityDataMigrationRepository) {
         this.securityDataMigrationRepository = securityDataMigrationRepository;
     }
 
@@ -62,24 +61,24 @@ public class SecurityDataMigrationService {
     }
 
     public boolean tryStartMongoDataUpdate() {
-
         boolean lockAcquired = isRunning.compareAndSet(false, true);
         if (!lockAcquired) {
             // A security migration is already running
             return false;
         }
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            try {
-                LOGGER.info("Starting security data migration");
-                updateCertificatesStructure();
-            } catch (Exception e) {
-                LOGGER.error("A fatal error occurred during security data migration", e);
-            } finally {
-                isRunning.set(false);
-                LOGGER.info("Security Data migration finished");
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
+                try {
+                    LOGGER.info("Starting security data migration");
+                    updateCertificatesStructure();
+                } catch (Exception e) {
+                    LOGGER.error("A fatal error occurred during security data migration", e);
+                } finally {
+                    isRunning.set(false);
+                    LOGGER.info("Security Data migration finished");
+                }
+            });
 
         return true;
     }
@@ -87,5 +86,4 @@ public class SecurityDataMigrationService {
     private void updateCertificatesStructure() throws InterruptedException {
         securityDataMigrationRepository.migrateCertificatesData(CertificateStatus.VALID);
     }
-
 }

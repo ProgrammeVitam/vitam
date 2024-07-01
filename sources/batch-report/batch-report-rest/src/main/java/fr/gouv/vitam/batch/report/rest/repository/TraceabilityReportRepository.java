@@ -83,7 +83,8 @@ public class TraceabilityReportRepository extends ReportCommonRepository {
         return traceabilityReportCollection
             .aggregate(Collections.singletonList(aggregation))
             // aggregation query requires more than 100MB to proceed.
-            .allowDiskUse(true).iterator();
+            .allowDiskUse(true)
+            .iterator();
     }
 
     public TraceabilityStatsModel stats(String processId, Integer tenantId) {
@@ -98,15 +99,14 @@ public class TraceabilityReportRepository extends ReportCommonRepository {
 
         Iterator<Document> iterator = traceabilityReportCollection
             .aggregate(Arrays.asList(aggregation, projections, groupBy))
-            .allowDiskUse(true).iterator();
+            .allowDiskUse(true)
+            .iterator();
 
-        iterator.forEachRemaining(
-            result -> {
-                String operationType = result.getString(VitamDocument.ID);
-                Integer count = result.getInteger(RESULT);
-                traceabilityStatsModel.addOneModel(operationType, count);
-            }
-        );
+        iterator.forEachRemaining(result -> {
+            String operationType = result.getString(VitamDocument.ID);
+            Integer count = result.getInteger(RESULT);
+            traceabilityStatsModel.addOneModel(operationType, count);
+        });
         return traceabilityStatsModel;
     }
 
@@ -121,23 +121,24 @@ public class TraceabilityReportRepository extends ReportCommonRepository {
 
         Iterator<Document> iterator = traceabilityReportCollection
             .aggregate(Arrays.asList(aggregation, projections, groupBy))
-            .allowDiskUse(true).iterator();
+            .allowDiskUse(true)
+            .iterator();
 
-        iterator.forEachRemaining(
-            result -> {
-                String status = result.getString(VitamDocument.ID);
-                Integer count = result.getInteger(RESULT);
-                reportResult.addOneStatus(status, count);
-            }
-        );
+        iterator.forEachRemaining(result -> {
+            String status = result.getString(VitamDocument.ID);
+            Integer count = result.getInteger(RESULT);
+            reportResult.addOneStatus(status, count);
+        });
 
         return reportResult;
     }
 
     public void bulkAppendReport(List<TraceabilityObjectModel> reports) {
         Set<TraceabilityObjectModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> traceabilityObjectDocument = reportsWithoutDuplicate.stream()
-            .map(ReportCommonRepository::pojoToDocument).collect(Collectors.toList());
+        List<Document> traceabilityObjectDocument = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(traceabilityObjectDocument, traceabilityReportCollection);
     }
 

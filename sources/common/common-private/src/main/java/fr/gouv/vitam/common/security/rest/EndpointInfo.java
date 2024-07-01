@@ -104,14 +104,26 @@ public class EndpointInfo {
 
     @Override
     public String toString() {
-        return "EndpointInfo{" +
-            "permission='" + permission + '\'' +
-            ", verb='" + verb + '\'' +
-            ", endpoint='" + endpoint + '\'' +
-            ", consumedMediaTypes=" + Arrays.toString(consumedMediaTypes) +
-            ", producedMediaTypes=" + Arrays.toString(producedMediaTypes) +
-            ", description='" + description + '\'' +
-            '}';
+        return (
+            "EndpointInfo{" +
+            "permission='" +
+            permission +
+            '\'' +
+            ", verb='" +
+            verb +
+            '\'' +
+            ", endpoint='" +
+            endpoint +
+            '\'' +
+            ", consumedMediaTypes=" +
+            Arrays.toString(consumedMediaTypes) +
+            ", producedMediaTypes=" +
+            Arrays.toString(producedMediaTypes) +
+            ", description='" +
+            description +
+            '\'' +
+            '}'
+        );
     }
 
     @Override
@@ -119,7 +131,14 @@ public class EndpointInfo {
         if (this == o) return true;
         if (!(o instanceof EndpointInfo)) return false;
         EndpointInfo that = (EndpointInfo) o;
-        return Objects.equals(permission, that.permission) && Objects.equals(verb, that.verb) && Objects.equals(endpoint, that.endpoint) && Arrays.equals(consumedMediaTypes, that.consumedMediaTypes) && Arrays.equals(producedMediaTypes, that.producedMediaTypes) && Objects.equals(description, that.description);
+        return (
+            Objects.equals(permission, that.permission) &&
+            Objects.equals(verb, that.verb) &&
+            Objects.equals(endpoint, that.endpoint) &&
+            Arrays.equals(consumedMediaTypes, that.consumedMediaTypes) &&
+            Arrays.equals(producedMediaTypes, that.producedMediaTypes) &&
+            Objects.equals(description, that.description)
+        );
     }
 
     @Override
@@ -129,5 +148,4 @@ public class EndpointInfo {
         result = 31 * result + Arrays.hashCode(producedMediaTypes);
         return result;
     }
-
 }

@@ -57,8 +57,7 @@ public class ActionDefinition {
     @JsonProperty("out")
     private List<IOParameter> out;
 
-    public ActionDefinition() {
-    }
+    public ActionDefinition() {}
 
     @JsonCreator
     public ActionDefinition(
@@ -66,7 +65,8 @@ public class ActionDefinition {
         @JsonProperty("behavior") ProcessBehavior behavior,
         @JsonProperty("lifecycleLog") LifecycleState lifecycleState,
         @JsonProperty("in") List<IOParameter> in,
-        @JsonProperty("out") List<IOParameter> out) {
+        @JsonProperty("out") List<IOParameter> out
+    ) {
         this.actionKey = actionKey;
         this.behavior = behavior;
         this.lifecycleState = lifecycleState;
@@ -77,7 +77,6 @@ public class ActionDefinition {
     /**
      * @return actionKey the action key
      */
-
 
     public String getActionKey() {
         if (actionKey == null) {
@@ -114,7 +113,6 @@ public class ActionDefinition {
         this.behavior = behavior;
         return this;
     }
-
 
     /**
      * @return the in
@@ -175,5 +173,4 @@ public class ActionDefinition {
     public void defaultLifecycleLog(LifecycleState defaultLifecycleLog) {
         lifecycleState = MoreObjects.firstNonNull(lifecycleState, defaultLifecycleLog);
     }
-
 }

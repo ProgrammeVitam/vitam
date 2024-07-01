@@ -48,10 +48,8 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class PurgeDetachObjectGroupPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PurgeDetachObjectGroupPlugin.class);
-    private static final TypeReference<Set<String>> STRING_SET_TYPE_REFERENCE = new TypeReference<Set<String>>() {
-    };
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeDetachObjectGroupPlugin.class);
+    private static final TypeReference<Set<String>> STRING_SET_TYPE_REFERENCE = new TypeReference<Set<String>>() {};
 
     private final String actionId;
     private final PurgeDeleteService purgeDeleteService;
@@ -67,23 +65,25 @@ public class PurgeDetachObjectGroupPlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    protected PurgeDetachObjectGroupPlugin(
-        String actionId, PurgeDeleteService purgeDeleteService) {
+    protected PurgeDetachObjectGroupPlugin(String actionId, PurgeDeleteService purgeDeleteService) {
         this.actionId = actionId;
         this.purgeDeleteService = purgeDeleteService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         String objectGroupId = param.getObjectName();
         try {
             Set<String> parentUnitsToRemove = getParentUnitsToRemove(param);
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Detaching deleted parents [" + String.join(", ", parentUnitsToRemove) + "]" +
-                    " from object group " + objectGroupId);
+                LOGGER.debug(
+                    "Detaching deleted parents [" +
+                    String.join(", ", parentUnitsToRemove) +
+                    "]" +
+                    " from object group " +
+                    objectGroupId
+                );
             }
 
             purgeDeleteService.detachObjectGroupFromDeleteParentUnits(objectGroupId, parentUnitsToRemove);
@@ -91,16 +91,21 @@ public class PurgeDetachObjectGroupPlugin extends ActionHandler {
             LOGGER.info("Object group " + objectGroupId + " detachment from parents succeeded");
 
             return buildItemStatus(actionId, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
-            LOGGER.error("Object group " + objectGroupId + " detachment from parents failed with status" +
-                " [" + e.getStatusCode() + "]", e);
+            LOGGER.error(
+                "Object group " +
+                objectGroupId +
+                " detachment from parents failed with status" +
+                " [" +
+                e.getStatusCode() +
+                "]",
+                e
+            );
             return buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails());
         }
     }
 
-    private Set<String> getParentUnitsToRemove(WorkerParameters params)
-        throws ProcessingStatusException {
+    private Set<String> getParentUnitsToRemove(WorkerParameters params) throws ProcessingStatusException {
         try {
             return JsonHandler.getFromJsonNode(params.getObjectMetadata(), STRING_SET_TYPE_REFERENCE);
         } catch (Exception e) {

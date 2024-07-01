@@ -65,6 +65,7 @@ import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.TEN
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 
 public class DeleteGotVersionsReportRepository {
+
     private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DeleteGotVersionsReportRepository.class);
 
     public static final String DELETE_GOT_VERSIONS_REPORT = "DeleteGotVersionsReport";
@@ -81,7 +82,8 @@ public class DeleteGotVersionsReportRepository {
     }
 
     public void bulkAppendReport(List<DeleteGotVersionsReportEntry> reports) {
-        List<WriteModel<Document>> deleteGotVersionsModel = reports.stream()
+        List<WriteModel<Document>> deleteGotVersionsModel = reports
+            .stream()
             .distinct()
             .map(DeleteGotVersionsReportRepository::modelToWriteDocument)
             .collect(Collectors.toList());
@@ -92,49 +94,52 @@ public class DeleteGotVersionsReportRepository {
     private static WriteModel<Document> modelToWriteDocument(DeleteGotVersionsReportEntry model) {
         return new UpdateOneModel<>(
             and(eq(PROCESS_ID, model.getProcessId()), eq(DETAIL_ID, model.getDetailId())),
-            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model)))
-                .append("$setOnInsert", new Document(ID, GUIDFactory.newGUID().toString())),
+            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model))).append(
+                "$setOnInsert",
+                new Document(ID, GUIDFactory.newGUID().toString())
+            ),
             new UpdateOptions().upsert(true)
         );
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-        return collection.aggregate(
-            Arrays.asList(
-                match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))))
-        ).allowDiskUse(true).iterator();
+        return collection
+            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId)))))
+            .allowDiskUse(true)
+            .iterator();
     }
 
     public MongoCursor<Document> computeDeleteGotVersionsEntriesByProcessIdTenant(String processId, int tenantId) {
-        return collection.aggregate(
+        return collection
+            .aggregate(
                 Arrays.asList(
-                    match(and(
-                        eq(PROCESS_ID, processId),
-                        eq(TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
-                        new Document(ID, 0),
-                        new Document(OBJECT_GROUP_GLOBAL, 1))),
+                    match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
+                    Aggregates.project(Projections.fields(new Document(ID, 0), new Document(OBJECT_GROUP_GLOBAL, 1))),
                     Aggregates.unwind("$" + OBJECT_GROUP_GLOBAL),
-                    match(and(
-                        eq(OBJECT_GROUP_GLOBAL + "." + STATUS, OK.name())
-                    )),
-                    Aggregates.project(Projections.fields(
-                        new Document(ID, 0),
-                        new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions"))),
+                    match(and(eq(OBJECT_GROUP_GLOBAL + "." + STATUS, OK.name()))),
+                    Aggregates.project(
+                        Projections.fields(
+                            new Document(ID, 0),
+                            new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions")
+                        )
+                    ),
                     Aggregates.unwind("$" + DELETED_VERSIONS),
-                    Aggregates.project(Projections.fields(
+                    Aggregates.project(
+                        Projections.fields(
                             new Document(ID, 0),
                             new Document(OPC, "$deletedVersions.opc"),
                             new Document("Size", "$deletedVersions.Size")
                         )
                     ),
-                    Aggregates.group("$" + OPC,
+                    Aggregates.group(
+                        "$" + OPC,
                         Accumulators.sum(TOTAL_SIZE, "$Size"),
                         Accumulators.sum(TOTAL_OBJECTS, 1)
                     )
-                ))
-            .allowDiskUse(true).iterator();
+                )
+            )
+            .allowDiskUse(true)
+            .iterator();
     }
 
     public void deleteReportByIdAndTenant(String processId, int tenantId) {
@@ -145,34 +150,33 @@ public class DeleteGotVersionsReportRepository {
     public ReportResults computeVitamResults(String processId, Integer tenantId) {
         ReportResults reportResult = new ReportResults();
 
-        Iterator<Document> iterator = collection.aggregate(
+        Iterator<Document> iterator = collection
+            .aggregate(
                 Arrays.asList(
-                    match(and(
-                        eq(PROCESS_ID, processId),
-                        eq(TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
-                        new Document(ID, 0),
-                        new Document(OBJECT_GROUP_GLOBAL, 1))),
+                    match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
+                    Aggregates.project(Projections.fields(new Document(ID, 0), new Document(OBJECT_GROUP_GLOBAL, 1))),
                     Aggregates.unwind("$" + OBJECT_GROUP_GLOBAL),
-                    Aggregates.project(Projections.fields(
-                        new Document(ID, 0),
-                        new Document(STATUS, "$objectGroupGlobal.status"),
-                        new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions")))
-                ))
-            .allowDiskUse(true).iterator();
+                    Aggregates.project(
+                        Projections.fields(
+                            new Document(ID, 0),
+                            new Document(STATUS, "$objectGroupGlobal.status"),
+                            new Document(DELETED_VERSIONS, "$objectGroupGlobal.deletedVersions")
+                        )
+                    )
+                )
+            )
+            .allowDiskUse(true)
+            .iterator();
 
-        iterator.forEachRemaining(
-            result -> {
-                String status = result.getString(STATUS);
-                // Nbr of Ok results refers to the number of elements in "deletedVersions" when status is OK
-                if (status.equals(OK.name())) {
-                    reportResult.incrementStatus(status, result.get(DELETED_VERSIONS, List.class).size());
-                } else {
-                    reportResult.incrementStatus(status, 1);
-                }
+        iterator.forEachRemaining(result -> {
+            String status = result.getString(STATUS);
+            // Nbr of Ok results refers to the number of elements in "deletedVersions" when status is OK
+            if (status.equals(OK.name())) {
+                reportResult.incrementStatus(status, result.get(DELETED_VERSIONS, List.class).size());
+            } else {
+                reportResult.incrementStatus(status, 1);
             }
-        );
+        });
         return reportResult;
     }
 }

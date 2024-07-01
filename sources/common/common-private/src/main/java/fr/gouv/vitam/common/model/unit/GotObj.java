@@ -32,6 +32,7 @@ package fr.gouv.vitam.common.model.unit;
  * an GO, the boolean of this object change to true
  */
 public class GotObj {
+
     private String gotId;
     private boolean isVisited;
 

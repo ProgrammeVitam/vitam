@@ -53,4 +53,3 @@ public class AgencyImportDeletionException extends ReferentialException {
         super(message, cause);
     }
 }
-

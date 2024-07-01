@@ -32,5 +32,5 @@ package fr.gouv.vitam.common.model.administration;
  */
 public enum ArchiveUnitProfileStatus {
     ACTIVE,
-    INACTIVE
+    INACTIVE,
 }

@@ -40,7 +40,6 @@ import java.util.Optional;
  * (persist and restore workflow)
  */
 public interface ProcessDataManagement {
-
     /**
      * Container name
      */
@@ -99,8 +98,8 @@ public interface ProcessDataManagement {
      * @throws ProcessingStorageWorkspaceException when storage error occurs
      * @throws InvalidParseOperationException when serializing object to json fail
      */
-    void persistProcessWorkflow(String folderName, ProcessWorkflow processWorkflow) throws
-        ProcessingStorageWorkspaceException, InvalidParseOperationException;
+    void persistProcessWorkflow(String folderName, ProcessWorkflow processWorkflow)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
 
     void persistDistributorIndex(String fileName, DistributorIndex distributorIndex)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException;
@@ -137,8 +136,8 @@ public interface ProcessDataManagement {
      * @return map of tenantID process for a server id
      * @throws ProcessingStorageWorkspaceException thrown if an error ocurred when loading process file
      */
-    Map<String, ProcessWorkflow> getProcessWorkflowFor(Integer tenantId, String folderName) throws
-        ProcessingStorageWorkspaceException;
+    Map<String, ProcessWorkflow> getProcessWorkflowFor(Integer tenantId, String folderName)
+        throws ProcessingStorageWorkspaceException;
 
     boolean removeOperationContainer(ProcessWorkflow processWorkflow, WorkspaceClientFactory workspaceClientFactory);
 }

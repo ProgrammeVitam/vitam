@@ -57,17 +57,22 @@ public class SchedulerClientFactory extends VitamClientFactory<SchedulerClient> 
     static ClientConfiguration changeConfigurationFile() {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(
-                SchedulerClientFactory.CONFIGURATION_FILENAME),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(SchedulerClientFactory.CONFIGURATION_FILENAME),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+            LOGGER.debug(
+                "Error when retrieving configuration file {}, using mock",
                 SchedulerClientFactory.CONFIGURATION_FILENAME,
-                fnf);
+                fnf
+            );
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                SchedulerClientFactory.CONFIGURATION_FILENAME);
+            LOGGER.error(
+                "Error when retrieving configuration file {}, using mock",
+                SchedulerClientFactory.CONFIGURATION_FILENAME
+            );
         }
         return configuration;
     }

@@ -58,9 +58,6 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface ArchiveUnitProfileValidator {
-
-
-
     /**
      * Validate an archive unit profile object
      *
@@ -68,7 +65,6 @@ public interface ArchiveUnitProfileValidator {
      * @return empty optional if OK, Else return the rejection cause
      */
     Optional<RejectionCause> validate(ArchiveUnitProfileModel profile);
-
 
     /**
      * Rejection Cause
@@ -151,8 +147,6 @@ public interface ArchiveUnitProfileValidator {
         public static RejectionCause rejectJsonShema(String fieldName) {
             return new RejectionCause(String.format(ERR_JSON_SHEMA, fieldName));
         }
-
-
 
         /**
          * Reject if one of multiple mandatory parameter are null

@@ -58,11 +58,15 @@ public class AuthorizationFilterHelper {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url);
         if (!Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
             final long currentTime = LocalDateUtil.currentTimeMillis() / 1000;
-            return getAuthorizationHeaders(httpMethod, url, Long.toString(currentTime), VitamConfiguration.getSecret(),
-                VitamConfiguration.getSecurityDigestType());
+            return getAuthorizationHeaders(
+                httpMethod,
+                url,
+                Long.toString(currentTime),
+                VitamConfiguration.getSecret(),
+                VitamConfiguration.getSecurityDigestType()
+            );
         }
         return Collections.emptyMap();
-
     }
 
     /**
@@ -73,9 +77,13 @@ public class AuthorizationFilterHelper {
      * @param digestType
      * @return X-Platform-Id and X-Timestamp Headers
      */
-    public static Map<String, String> getAuthorizationHeaders(String httpMethod, String url, String timestamp,
+    public static Map<String, String> getAuthorizationHeaders(
+        String httpMethod,
+        String url,
+        String timestamp,
         String secret,
-        DigestType digestType) {
+        DigestType digestType
+    ) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url, timestamp, secret, digestType);
 
         final Map<String, String> headers = new HashMap<>();
@@ -83,7 +91,5 @@ public class AuthorizationFilterHelper {
         headers.put(GlobalDataRest.X_PLATFORM_ID, URLCodec.encodeURL(httpMethod, url, timestamp, secret, digestType));
 
         return headers;
-
     }
-
 }

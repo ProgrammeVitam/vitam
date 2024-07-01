@@ -61,8 +61,6 @@ public class StatusProcessingManagementClientTest {
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
 
-
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         url = "http://localhost:" + port;
@@ -71,14 +69,11 @@ public class StatusProcessingManagementClientTest {
         mock = mock(Supplier.class);
     }
 
-
     @Before
     public void setUp() throws Exception {
-
-        instanceRule.stubFor(WireMock.get(urlMatching("/processing/v1/status"))
-            .willReturn(
-                aResponse()
-                    .withStatus(200)));
+        instanceRule.stubFor(
+            WireMock.get(urlMatching("/processing/v1/status")).willReturn(aResponse().withStatus(200))
+        );
     }
 
     @AfterClass
@@ -91,5 +86,4 @@ public class StatusProcessingManagementClientTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         client.checkStatus();
     }
-
 }

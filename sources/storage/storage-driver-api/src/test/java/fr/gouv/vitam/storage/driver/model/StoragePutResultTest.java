@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
  *
  */
 public class StoragePutResultTest {
+
     private static StoragePutResult storagePutResult;
     private static final Integer TENANT_ID = 0;
 

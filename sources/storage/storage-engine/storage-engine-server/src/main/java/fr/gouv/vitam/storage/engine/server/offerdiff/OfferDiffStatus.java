@@ -33,24 +33,34 @@ public class OfferDiffStatus {
 
     @JsonProperty("requestId")
     private String requestId;
+
     @JsonProperty("tenantId")
     private int tenantId;
+
     @JsonProperty("offer1")
     private String offer1;
+
     @JsonProperty("offer2")
     private String offer2;
+
     @JsonProperty("container")
     private String container;
+
     @JsonProperty("statusCode")
     private StatusCode statusCode;
+
     @JsonProperty("startDate")
     private String startDate;
+
     @JsonProperty("endDate")
     private String endDate;
+
     @JsonProperty("reportFileName")
     private String reportFileName;
+
     @JsonProperty("totalObjectCount")
     private long totalObjectCount;
+
     @JsonProperty("errorCount")
     private long errorCount;
 

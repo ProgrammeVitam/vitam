@@ -59,16 +59,16 @@ public class UnitValidator {
     private final CachedSchemaValidatorLoader schemaValidatorLoader;
     private final JsonSchemaValidator builtInSchemaValidator;
 
-    public UnitValidator(CachedArchiveUnitProfileLoader archiveUnitProfileLoader,
-        CachedSchemaValidatorLoader schemaValidatorLoader) {
+    public UnitValidator(
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader,
+        CachedSchemaValidatorLoader schemaValidatorLoader
+    ) {
         this.archiveUnitProfileLoader = archiveUnitProfileLoader;
         this.schemaValidatorLoader = schemaValidatorLoader;
         this.builtInSchemaValidator = JsonSchemaValidator.forBuiltInSchema(JSON_SCHEMA_ARCHIVE_UNIT_SCHEMA_JSON);
     }
 
-    public void validateUnit(ObjectNode unitJson)
-        throws MetadataValidationException {
-
+    public void validateUnit(ObjectNode unitJson) throws MetadataValidationException {
         validateStartAndEndDates(unitJson);
 
         validateInternalSchema(unitJson);
@@ -76,55 +76,56 @@ public class UnitValidator {
         validateArchiveUnitProfile(unitJson);
     }
 
-    public void validateInternalSchema(ObjectNode archiveUnit)
-        throws MetadataValidationException {
-
+    public void validateInternalSchema(ObjectNode archiveUnit) throws MetadataValidationException {
         try {
-
             // Validate internal / built-in unit schema
             this.builtInSchemaValidator.validateJson(archiveUnit);
-
         } catch (JsonSchemaValidationException e) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Unit validation failed: " + e.getMessage()
-                    + "\n" + JsonHandler.unprettyPrint(archiveUnit));
+                LOGGER.debug(
+                    "Unit validation failed: " + e.getMessage() + "\n" + JsonHandler.unprettyPrint(archiveUnit)
+                );
             }
-            throw new MetadataValidationException(MetadataValidationErrorCode.SCHEMA_VALIDATION_FAILURE,
-                "Invalid unit format : " + e.getMessage(), e);
+            throw new MetadataValidationException(
+                MetadataValidationErrorCode.SCHEMA_VALIDATION_FAILURE,
+                "Invalid unit format : " + e.getMessage(),
+                e
+            );
         }
-
     }
 
-    public void validateArchiveUnitProfile(ObjectNode archiveUnit)
-        throws MetadataValidationException {
-
+    public void validateArchiveUnitProfile(ObjectNode archiveUnit) throws MetadataValidationException {
         // Validate external schema (archive unit profile), if any
         JsonNode archiveUnitProfileNode = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
         if (archiveUnitProfileNode != null) {
             String aupId = archiveUnitProfileNode.textValue();
-            Optional<ArchiveUnitProfileModel> archiveUnitProfile =
-                archiveUnitProfileLoader.loadArchiveUnitProfile(aupId);
+            Optional<ArchiveUnitProfileModel> archiveUnitProfile = archiveUnitProfileLoader.loadArchiveUnitProfile(
+                aupId
+            );
 
             if (!archiveUnitProfile.isPresent()) {
                 throw new MetadataValidationException(
                     MetadataValidationErrorCode.UNKNOWN_ARCHIVE_UNIT_PROFILE,
-                    "Archive Unit Profile not found");
+                    "Archive Unit Profile not found"
+                );
             }
 
             validateArchiveUnitProfile(archiveUnitProfile.get());
 
             try {
-                JsonSchemaValidator externalSchemaValidator =
-                    schemaValidatorLoader.loadSchemaValidator(archiveUnitProfile.get().getControlSchema());
+                JsonSchemaValidator externalSchemaValidator = schemaValidatorLoader.loadSchemaValidator(
+                    archiveUnitProfile.get().getControlSchema()
+                );
 
                 ObjectNode normalizedArchiveUnit = normalizeArchiveUnitForArchiveUnitProfileValidation(archiveUnit);
 
                 externalSchemaValidator.validateJson(normalizedArchiveUnit);
-
             } catch (JsonSchemaValidationException e) {
                 throw new MetadataValidationException(
                     MetadataValidationErrorCode.ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE,
-                    "Archive unit profile validation failed: " + e.getMessage(), e);
+                    "Archive unit profile validation failed: " + e.getMessage(),
+                    e
+                );
             } catch (InvalidJsonSchemaException e) {
                 throw new VitamRuntimeException("Invalid ArchiveUnitProfile", e);
             }
@@ -132,7 +133,6 @@ public class UnitValidator {
     }
 
     private ObjectNode normalizeArchiveUnitForArchiveUnitProfileValidation(ObjectNode archiveUnit) {
-
         /*
          * > Keep external fields (Title, Description...)
          * > Rename field _mgt into #management
@@ -157,42 +157,51 @@ public class UnitValidator {
         if (archiveUnitProfile.getStatus() != ArchiveUnitProfileStatus.ACTIVE) {
             throw new MetadataValidationException(
                 MetadataValidationErrorCode.ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE,
-                "Unit ArchiveUnitProfile is inactive");
+                "Unit ArchiveUnitProfile is inactive"
+            );
         }
 
         if (isControlSchemaEmpty(archiveUnitProfile)) {
             throw new MetadataValidationException(
                 MetadataValidationErrorCode.EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA,
-                "Archive unit profile does not have a controlSchema");
+                "Archive unit profile does not have a controlSchema"
+            );
         }
     }
 
     private static boolean isControlSchemaEmpty(ArchiveUnitProfileModel archiveUnitProfile) {
-
         try {
-            return archiveUnitProfile.getControlSchema() == null ||
-                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
+            return (
+                archiveUnitProfile.getControlSchema() == null ||
+                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema())
+            );
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException("Invalid archive unit profile", e);
         }
     }
 
     public void validateStartAndEndDates(JsonNode archiveUnit) throws MetadataValidationException {
-
-        if (archiveUnit.get(SedaConstants.TAG_RULE_START_DATE) != null &&
-            archiveUnit.get(SedaConstants.TAG_RULE_END_DATE) != null) {
+        if (
+            archiveUnit.get(SedaConstants.TAG_RULE_START_DATE) != null &&
+            archiveUnit.get(SedaConstants.TAG_RULE_END_DATE) != null
+        ) {
             final Date startDate;
             final Date endDate;
             try {
                 startDate = LocalDateUtil.getDate(archiveUnit.get(SedaConstants.TAG_RULE_START_DATE).asText());
                 endDate = LocalDateUtil.getDate(archiveUnit.get(SedaConstants.TAG_RULE_END_DATE).asText());
             } catch (ParseException e) {
-                throw new MetadataValidationException(MetadataValidationErrorCode.INVALID_UNIT_DATE_FORMAT,
-                    "Invalid unit start/end dates", e);
+                throw new MetadataValidationException(
+                    MetadataValidationErrorCode.INVALID_UNIT_DATE_FORMAT,
+                    "Invalid unit start/end dates",
+                    e
+                );
             }
             if (endDate.before(startDate)) {
-                throw new MetadataValidationException(MetadataValidationErrorCode.INVALID_START_END_DATE,
-                    "EndDate is before StartDate");
+                throw new MetadataValidationException(
+                    MetadataValidationErrorCode.INVALID_START_END_DATE,
+                    "EndDate is before StartDate"
+                );
             }
         }
     }

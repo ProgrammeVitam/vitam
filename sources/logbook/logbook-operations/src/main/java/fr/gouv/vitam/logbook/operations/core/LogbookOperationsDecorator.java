@@ -63,14 +63,12 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     public void create(String operationId, LogbookOperationParameters... parameters)
         throws LogbookAlreadyExistsException, LogbookDatabaseException {
         logbookOperations.create(operationId, parameters);
-
     }
 
     @Override
     public void update(String operationId, LogbookOperationParameters... parameters)
         throws LogbookNotFoundException, LogbookDatabaseException {
         logbookOperations.update(operationId, parameters);
-
     }
 
     @Override
@@ -79,10 +77,11 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(LocalDateTime startDate,
-        LocalDateTime endDate)
-        throws LogbookDatabaseException,
-        LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
+        LocalDateTime startDate,
+        LocalDateTime endDate
+    )
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         return logbookOperations.selectOperationsByLastPersistenceDateInterval(startDate, endDate);
     }
 
@@ -93,8 +92,8 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public LogbookOperation findLastTraceabilityOperationOK() throws InvalidCreateOperationException,
-        LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
+    public LogbookOperation findLastTraceabilityOperationOK()
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
         return logbookOperations.findLastTraceabilityOperationOK();
     }
 
@@ -115,9 +114,13 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(LocalDateTime traceabilityStartDate,
-        LocalDateTime traceabilityEndDate) throws LogbookDatabaseException {
+    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+        LocalDateTime traceabilityStartDate,
+        LocalDateTime traceabilityEndDate
+    ) throws LogbookDatabaseException {
         return logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
-            traceabilityStartDate, traceabilityEndDate);
+            traceabilityStartDate,
+            traceabilityEndDate
+        );
     }
 }

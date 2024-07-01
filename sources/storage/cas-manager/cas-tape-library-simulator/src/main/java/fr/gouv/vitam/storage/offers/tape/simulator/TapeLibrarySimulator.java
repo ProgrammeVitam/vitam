@@ -67,6 +67,7 @@ import java.util.stream.IntStream;
  * Any unexpected error (i.e. reading past last file of a tape, loading from an empty slot...) is reported through {@code getFailures()} for post test checks
  */
 public class TapeLibrarySimulator {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibrarySimulator.class);
 
     private final Object syncRoot = new Object();
@@ -83,8 +84,16 @@ public class TapeLibrarySimulator {
 
     private volatile int sleepDelayMillis;
 
-    public TapeLibrarySimulator(Path inputDirectory, Path tempOutputStorageDirectory, int nbDrives, int nbSlots,
-        int nbTapes, int maxTapeCapacityInBytes, String cartridgeType, int sleepDelayMillis) {
+    public TapeLibrarySimulator(
+        Path inputDirectory,
+        Path tempOutputStorageDirectory,
+        int nbDrives,
+        int nbSlots,
+        int nbTapes,
+        int maxTapeCapacityInBytes,
+        String cartridgeType,
+        int sleepDelayMillis
+    ) {
         ParametersChecker.checkParameter("Missing inputDirectory", inputDirectory);
         ParametersChecker.checkParameter("Missing tempOutputStorageDirectory", tempOutputStorageDirectory);
         ParametersChecker.checkValue("Invalid nbDrives", nbDrives, 1);
@@ -109,8 +118,7 @@ public class TapeLibrarySimulator {
         // Pre-fill tapes to available slots
         for (int i = 0; i < nbTapes; i++) {
             VirtualSlot virtualSlot = this.slots.get(i);
-            virtualSlot.setCurrentTape(
-                new VirtualTape("TAPE-" + i, "ALT-TAPE-TAG-" + i, maxTapeCapacityInBytes));
+            virtualSlot.setCurrentTape(new VirtualTape("TAPE-" + i, "ALT-TAPE-TAG-" + i, maxTapeCapacityInBytes));
             virtualSlot.setState(VirtualSlotState.LOADED);
         }
 
@@ -118,8 +126,9 @@ public class TapeLibrarySimulator {
         this.tapeReadWriteServices = new ArrayList<>();
         this.tapeDriveCommandServices = new ArrayList<>();
         for (int driveIndex = 0; driveIndex < nbDrives; driveIndex++) {
-            tapeReadWriteServices.add(new TestTapeReadWriteService(
-                driveIndex, inputDirectory, tempOutputStorageDirectory));
+            tapeReadWriteServices.add(
+                new TestTapeReadWriteService(driveIndex, inputDirectory, tempOutputStorageDirectory)
+            );
             tapeDriveCommandServices.add(new TestTapeDriveCommandService(driveIndex));
         }
         this.maxTapeCapacityInBytes = maxTapeCapacityInBytes;
@@ -148,12 +157,20 @@ public class TapeLibrarySimulator {
             case EMPTY:
                 throw createAndReportSevereTapeCommandException("No loaded tape in drive " + drive.getDriveIndex());
             case LOADED:
-                LOGGER.info("OK, tape " + drive.getCurrentTape().getVolumeTag() + " is loaded into drive " +
-                    drive.getDriveIndex());
+                LOGGER.info(
+                    "OK, tape " +
+                    drive.getCurrentTape().getVolumeTag() +
+                    " is loaded into drive " +
+                    drive.getDriveIndex()
+                );
                 break;
             case EJECTED:
-                throw createAndReportSevereTapeCommandException("Tape " + drive.getCurrentTape().getVolumeTag() +
-                    " has already been ejected from drive " + drive.getDriveIndex());
+                throw createAndReportSevereTapeCommandException(
+                    "Tape " +
+                    drive.getCurrentTape().getVolumeTag() +
+                    " has already been ejected from drive " +
+                    drive.getDriveIndex()
+                );
             case BUSY:
                 throw createAndReportSevereTapeCommandException("Drive " + drive.getDriveIndex() + " is busy !");
             default:
@@ -206,6 +223,7 @@ public class TapeLibrarySimulator {
     }
 
     private class TestTapeReadWriteService implements TapeReadWriteService {
+
         private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestTapeReadWriteService.class);
 
         private final int driveIndex;
@@ -229,7 +247,6 @@ public class TapeLibrarySimulator {
             VirtualTape currentTape;
             Integer filePosition;
             synchronized (syncRoot) {
-
                 ensureTapeLoaded(drive);
 
                 currentTape = drive.getCurrentTape();
@@ -238,19 +255,24 @@ public class TapeLibrarySimulator {
                 // Override existing files
                 if (filePosition < currentTape.getPersistedFiles().size()) {
                     LOGGER.warn("WARNING : TAPE " + currentTape.getVolumeTag() + " is being overridden");
-                    ListIterator<Path> filesToOverrideIterator =
-                        currentTape.getPersistedFiles().listIterator(filePosition);
+                    ListIterator<Path> filesToOverrideIterator = currentTape
+                        .getPersistedFiles()
+                        .listIterator(filePosition);
                     while (filesToOverrideIterator.hasNext()) {
                         Path fileToOverride = filesToOverrideIterator.next();
                         try {
                             Files.delete(fileToOverride);
                         } catch (IOException e) {
-                            throw createAndReportSevereTapeCommandException("IOError while overriding file " +
-                                fileToOverride + " of tape " + currentTape.getVolumeTag(), e);
+                            throw createAndReportSevereTapeCommandException(
+                                "IOError while overriding file " +
+                                fileToOverride +
+                                " of tape " +
+                                currentTape.getVolumeTag(),
+                                e
+                            );
                         }
                         filesToOverrideIterator.remove();
                     }
-
                 }
                 drive.setState(VirtualDriveState.BUSY);
             }
@@ -260,10 +282,10 @@ public class TapeLibrarySimulator {
             Path destinationPath = null;
             int sizeToWrite = 0;
             try {
-
                 destinationPath = tmpOutputStorageFolder
                     .resolve(currentTape.getVolumeTag())
-                    .resolve("file" + currentTape.getPersistedFiles().size()).toAbsolutePath();
+                    .resolve("file" + currentTape.getPersistedFiles().size())
+                    .toAbsolutePath();
 
                 Files.createDirectories(destinationPath.getParent());
 
@@ -271,15 +293,21 @@ public class TapeLibrarySimulator {
 
                 int fileSize = (int) Files.size(sourceFile);
                 if (fileSize == 0) {
-                    throw createAndReportIllegalStateException(
-                        "Empty source file " + sourceFile);
+                    throw createAndReportIllegalStateException("Empty source file " + sourceFile);
                 }
 
                 sizeToWrite = Math.min(maxTapeCapacityInBytes - currentTape.getUsedCapacity(), fileSize);
 
-                LOGGER.info("Writing file " + sourceFile + " (" + FileUtils.byteCountToDisplaySize(fileSize) +
-                    ") to tape " + currentTape.getVolumeTag() + " at position " +
-                    currentTape.getPersistedFiles().size());
+                LOGGER.info(
+                    "Writing file " +
+                    sourceFile +
+                    " (" +
+                    FileUtils.byteCountToDisplaySize(fileSize) +
+                    ") to tape " +
+                    currentTape.getVolumeTag() +
+                    " at position " +
+                    currentTape.getPersistedFiles().size()
+                );
 
                 try (InputStream sourceFileInputStream = Files.newInputStream(sourceFile)) {
                     Files.copy(new BoundedInputStream(sourceFileInputStream, sizeToWrite), destinationPath);
@@ -288,17 +316,19 @@ public class TapeLibrarySimulator {
                 if (sizeToWrite < fileSize) {
                     // Ordinal exception. Do not report it as a failure
                     throw new TapeCommandException(
-                        "IOError : No space left on device while writing " + inputPath + " to tape " +
-                            currentTape.getVolumeTag());
+                        "IOError : No space left on device while writing " +
+                        inputPath +
+                        " to tape " +
+                        currentTape.getVolumeTag()
+                    );
                 }
-
             } catch (IOException e) {
                 throw createAndReportSevereTapeCommandException(
-                    "IOError while writing " + inputPath + " to tape " + currentTape.getVolumeTag(), e);
+                    "IOError while writing " + inputPath + " to tape " + currentTape.getVolumeTag(),
+                    e
+                );
             } finally {
-
                 synchronized (syncRoot) {
-
                     drive.setState(VirtualDriveState.LOADED);
 
                     drive.setFilePosition(filePosition + 1);
@@ -313,7 +343,6 @@ public class TapeLibrarySimulator {
                     currentTape.setUsedCapacity(currentTape.getUsedCapacity() + sizeToWrite);
                 }
             }
-
         }
 
         @Override
@@ -326,7 +355,6 @@ public class TapeLibrarySimulator {
             Integer filePosition;
             Path srcFilePath;
             synchronized (syncRoot) {
-
                 ensureTapeLoaded(drive);
 
                 currentTape = drive.getCurrentTape();
@@ -337,8 +365,12 @@ public class TapeLibrarySimulator {
                     drive.setBeginningOfTape(false);
                     drive.setEndOfFile(false);
                     drive.setEndOfData(true);
-                    throw createAndReportSevereTapeCommandException("IOError. No more file to read from tape " +
-                        currentTape.getVolumeTag() + " in drive " + driveIndex);
+                    throw createAndReportSevereTapeCommandException(
+                        "IOError. No more file to read from tape " +
+                        currentTape.getVolumeTag() +
+                        " in drive " +
+                        driveIndex
+                    );
                 }
 
                 srcFilePath = currentTape.getPersistedFiles().get(filePosition);
@@ -351,20 +383,32 @@ public class TapeLibrarySimulator {
                 Path destinationPath = this.tmpOutputStorageFolder.resolve(outputPath);
                 if (Files.exists(destinationPath)) {
                     throw createAndReportSevereTapeCommandException(
-                        "IOError while reading file from tape " + currentTape.getVolumeTag()
-                            + ". OutputPath '" + outputPath + "'already exists");
+                        "IOError while reading file from tape " +
+                        currentTape.getVolumeTag() +
+                        ". OutputPath '" +
+                        outputPath +
+                        "'already exists"
+                    );
                 }
 
-                LOGGER.info("Reading file at position " + filePosition + " of tape " +
-                    currentTape.getVolumeTag() + " into file " + destinationPath + " (" +
-                    FileUtils.byteCountToDisplaySize(Files.size(srcFilePath)) + ")");
+                LOGGER.info(
+                    "Reading file at position " +
+                    filePosition +
+                    " of tape " +
+                    currentTape.getVolumeTag() +
+                    " into file " +
+                    destinationPath +
+                    " (" +
+                    FileUtils.byteCountToDisplaySize(Files.size(srcFilePath)) +
+                    ")"
+                );
 
                 Files.copy(srcFilePath, destinationPath);
-
             } catch (IOException e) {
                 throw createAndReportSevereTapeCommandException(
-                    "IOError while copying tape " + currentTape.getVolumeTag() +
-                        " content into " + outputPath + "file", e);
+                    "IOError while copying tape " + currentTape.getVolumeTag() + " content into " + outputPath + "file",
+                    e
+                );
             } finally {
                 synchronized (syncRoot) {
                     drive.setState(VirtualDriveState.LOADED);
@@ -384,7 +428,6 @@ public class TapeLibrarySimulator {
         }
     }
 
-
     private class TestTapeDriveCommandService implements TapeDriveCommandService {
 
         private final int driveIndex;
@@ -397,7 +440,6 @@ public class TapeLibrarySimulator {
 
         @Override
         public TapeDriveSpec status() throws TapeCommandException {
-
             VirtualDriveState driveState;
             synchronized (syncRoot) {
                 driveState = drive.getState();
@@ -419,14 +461,12 @@ public class TapeLibrarySimulator {
             Uninterruptibles.sleepUninterruptibly(sleepDelayMillis, TimeUnit.MILLISECONDS);
 
             synchronized (syncRoot) {
-
                 drive.setState(driveState);
                 TapeDriveState result = new TapeDriveState();
 
                 switch (driveState) {
                     case EMPTY:
                     case EJECTED:
-
                         result.setCartridge(null);
                         result.setDriveStatuses(List.of(TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN));
                         result.setTapeBlockSize(null);
@@ -434,7 +474,6 @@ public class TapeLibrarySimulator {
 
                         break;
                     case LOADED:
-
                         result.setCartridge(cartridgeType);
                         List<TapeDriveStatus> driveStatuses = new ArrayList<>();
                         driveStatuses.add(TapeDriveStatus.ONLINE);
@@ -469,13 +508,11 @@ public class TapeLibrarySimulator {
 
         @Override
         public void move(int position, boolean isBackward) throws TapeCommandException {
-
             if (position < 1) {
                 throw createAndReportSevereTapeCommandException("Position " + position + " cannot be negative or zero");
             }
 
             synchronized (syncRoot) {
-
                 ensureTapeLoaded(drive);
 
                 drive.setState(VirtualDriveState.BUSY);
@@ -484,7 +521,6 @@ public class TapeLibrarySimulator {
             Uninterruptibles.sleepUninterruptibly(sleepDelayMillis, TimeUnit.MILLISECONDS);
 
             synchronized (syncRoot) {
-
                 drive.setState(VirtualDriveState.LOADED);
 
                 int currentPosition = drive.getFilePosition();
@@ -502,12 +538,17 @@ public class TapeLibrarySimulator {
                     } else {
                         drive.setFilePosition(0);
                         drive.setBeginningOfTape(true);
-                        throw createAndReportSevereTapeCommandException("Cannot move drive " + position +
-                            " files backward. Previous tape " + drive.getCurrentTape().getVolumeTag() +
-                            " position: " + currentPosition + ". Beginning Of Tape reached.");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot move drive " +
+                            position +
+                            " files backward. Previous tape " +
+                            drive.getCurrentTape().getVolumeTag() +
+                            " position: " +
+                            currentPosition +
+                            ". Beginning Of Tape reached."
+                        );
                     }
                 } else {
-
                     int fileCount = drive.getCurrentTape().getPersistedFiles().size();
                     drive.setEndOfFile(false);
                     drive.setBeginningOfTape(false);
@@ -516,29 +557,41 @@ public class TapeLibrarySimulator {
                         drive.setFilePosition(fileCount);
                         drive.setEndOfData(true);
 
-                        if (currentPosition == 0 && drive.getCurrentTape().getPersistedFiles().isEmpty() &&
-                            position == 1) {
+                        if (
+                            currentPosition == 0 &&
+                            drive.getCurrentTape().getPersistedFiles().isEmpty() &&
+                            position == 1
+                        ) {
                             // Ordinal exception that occurs when checking drive emptiness.
                             // Do not report it as a failure
-                            throw new TapeCommandException("Cannot move drive " + position +
-                                " files backward. Tape " + drive.getCurrentTape().getVolumeTag() + " is empty");
+                            throw new TapeCommandException(
+                                "Cannot move drive " +
+                                position +
+                                " files backward. Tape " +
+                                drive.getCurrentTape().getVolumeTag() +
+                                " is empty"
+                            );
                         }
 
-                        throw createAndReportSevereTapeCommandException("Cannot move drive " + position +
-                            " files forward. Current tape " + drive.getCurrentTape().getVolumeTag() +
-                            " position: " + currentPosition + ". End Of Data reached.");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot move drive " +
+                            position +
+                            " files forward. Current tape " +
+                            drive.getCurrentTape().getVolumeTag() +
+                            " position: " +
+                            currentPosition +
+                            ". End Of Data reached."
+                        );
                     } else {
                         drive.setFilePosition(currentPosition + position);
                         drive.setEndOfData(false);
                     }
                 }
             }
-
         }
 
         @Override
         public void rewind() throws TapeCommandException {
-
             synchronized (syncRoot) {
                 ensureTapeLoaded(drive);
 
@@ -558,7 +611,6 @@ public class TapeLibrarySimulator {
 
         @Override
         public void goToEnd() throws TapeCommandException {
-
             synchronized (syncRoot) {
                 ensureTapeLoaded(drive);
 
@@ -578,7 +630,6 @@ public class TapeLibrarySimulator {
 
         @Override
         public void eject() throws TapeCommandException {
-
             synchronized (syncRoot) {
                 ensureTapeLoaded(drive);
 
@@ -597,15 +648,12 @@ public class TapeLibrarySimulator {
         }
     }
 
-
     private class TestTapeLoadUnloadService implements TapeLoadUnloadService {
 
-        private TestTapeLoadUnloadService() {
-        }
+        private TestTapeLoadUnloadService() {}
 
         @Override
         public TapeLibrarySpec status() throws TapeCommandException {
-
             synchronized (syncRoot) {
                 ensureChargerIsReady(changer);
                 changer.setChangerStatus(VirtualChangerState.BUSY);
@@ -614,7 +662,6 @@ public class TapeLibrarySimulator {
             Uninterruptibles.sleepUninterruptibly(sleepDelayMillis, TimeUnit.MILLISECONDS);
 
             synchronized (syncRoot) {
-
                 TapeLibraryState result = new TapeLibraryState();
                 result.setDevice("Changer");
 
@@ -662,9 +709,7 @@ public class TapeLibrarySimulator {
 
         @Override
         public void loadTape(int slotNumber, int driveIndex) throws TapeCommandException {
-
             synchronized (syncRoot) {
-
                 checkSlotNumber(slotNumber);
                 checkDriveIndex(driveIndex);
                 ensureChargerIsReady(changer);
@@ -672,11 +717,13 @@ public class TapeLibrarySimulator {
                 VirtualSlot virtualSlot = slots.get(slotNumber - 1);
                 switch (virtualSlot.getState()) {
                     case EMPTY:
-                        throw createAndReportSevereTapeCommandException("Cannot load tape from slot " + slotNumber +
-                            " into drive " + driveIndex + ". Slot is empty");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot load tape from slot " + slotNumber + " into drive " + driveIndex + ". Slot is empty"
+                        );
                     case LOADED:
-                        LOGGER.info("OK. Slot " + slotNumber + " contains tape "
-                            + virtualSlot.getCurrentTape().getVolumeTag());
+                        LOGGER.info(
+                            "OK. Slot " + slotNumber + " contains tape " + virtualSlot.getCurrentTape().getVolumeTag()
+                        );
                         break;
                     case BUSY:
                         throw createAndReportSevereTapeCommandException("Slot " + slotNumber + " is busy !");
@@ -690,13 +737,17 @@ public class TapeLibrarySimulator {
                         LOGGER.info("OK. Drive " + driveIndex + " is empty");
                         break;
                     case LOADED:
-                        throw createAndReportSevereTapeCommandException("Cannot load tape from slot " + slotNumber +
-                            " into drive " + driveIndex + ". Drive is full");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot load tape from slot " + slotNumber + " into drive " + driveIndex + ". Drive is full"
+                        );
                     case EJECTED:
                         throw createAndReportSevereTapeCommandException(
-                            "Drive " + driveIndex + " has ejected the tape " +
-                                virtualDrive.getCurrentTape().getVolumeTag() +
-                                " but has not yet unloaded it into a slot!");
+                            "Drive " +
+                            driveIndex +
+                            " has ejected the tape " +
+                            virtualDrive.getCurrentTape().getVolumeTag() +
+                            " but has not yet unloaded it into a slot!"
+                        );
                     case BUSY:
                         throw createAndReportSevereTapeCommandException("Drive " + driveIndex + " is busy !");
                     default:
@@ -711,7 +762,6 @@ public class TapeLibrarySimulator {
             Uninterruptibles.sleepUninterruptibly(sleepDelayMillis, TimeUnit.MILLISECONDS);
 
             synchronized (syncRoot) {
-
                 VirtualDrive virtualDrive = drives.get(driveIndex);
                 VirtualSlot virtualSlot = slots.get(slotNumber - 1);
                 VirtualTape virtualTape = virtualSlot.getCurrentTape();
@@ -733,9 +783,7 @@ public class TapeLibrarySimulator {
 
         @Override
         public void unloadTape(int slotNumber, int driveIndex) throws TapeCommandException {
-
             synchronized (syncRoot) {
-
                 // Warning : slotNumber is base-1, while driveIndex is base-0
                 checkSlotNumber(slotNumber);
                 checkDriveIndex(driveIndex);
@@ -748,27 +796,42 @@ public class TapeLibrarySimulator {
                         LOGGER.info("OK. Slot " + slotNumber + " is empty");
                         break;
                     case LOADED:
-                        throw createAndReportSevereTapeCommandException("Cannot load tape from drive " + driveIndex +
-                            " into slot " + slotNumber + ". Slot is full");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot load tape from drive " + driveIndex + " into slot " + slotNumber + ". Slot is full"
+                        );
                     case BUSY:
                         throw createAndReportSevereTapeCommandException("Slot " + slotNumber + " is busy !");
                     default:
                         throw createAndReportIllegalStateException("Unexpected value: " + virtualSlot.getState());
                 }
 
-
                 VirtualDrive virtualDrive = drives.get(driveIndex);
                 switch (virtualDrive.getState()) {
                     case EMPTY:
-                        throw createAndReportSevereTapeCommandException("Cannot unload tape from drive " + driveIndex +
-                            " into slot " + slotNumber + ". Drive is empty");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot unload tape from drive " +
+                            driveIndex +
+                            " into slot " +
+                            slotNumber +
+                            ". Drive is empty"
+                        );
                     case LOADED:
-                        throw createAndReportSevereTapeCommandException("Cannot unload tape from drive " + driveIndex +
-                            " into slot " + slotNumber + ". Tape " + virtualDrive.getCurrentTape().getVolumeTag()
-                            + " has not yet been ejected");
+                        throw createAndReportSevereTapeCommandException(
+                            "Cannot unload tape from drive " +
+                            driveIndex +
+                            " into slot " +
+                            slotNumber +
+                            ". Tape " +
+                            virtualDrive.getCurrentTape().getVolumeTag() +
+                            " has not yet been ejected"
+                        );
                     case EJECTED:
-                        LOGGER.info("OK. Drive " + driveIndex + " has an ejected tape "
-                            + virtualDrive.getCurrentTape().getVolumeTag());
+                        LOGGER.info(
+                            "OK. Drive " +
+                            driveIndex +
+                            " has an ejected tape " +
+                            virtualDrive.getCurrentTape().getVolumeTag()
+                        );
                         break;
                     case BUSY:
                         throw createAndReportSevereTapeCommandException("Drive " + driveIndex + " is busy !");
@@ -784,7 +847,6 @@ public class TapeLibrarySimulator {
             Uninterruptibles.sleepUninterruptibly(sleepDelayMillis, TimeUnit.MILLISECONDS);
 
             synchronized (syncRoot) {
-
                 VirtualDrive virtualDrive = drives.get(driveIndex);
                 VirtualSlot virtualSlot = slots.get(slotNumber - 1);
                 VirtualTape virtualTape = virtualDrive.getCurrentTape();

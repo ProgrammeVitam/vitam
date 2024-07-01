@@ -42,8 +42,7 @@ public class TraceabilityStatsModel {
     @JsonProperty("nbGotLFC")
     private int nbGotLFC;
 
-    public TraceabilityStatsModel() {
-    }
+    public TraceabilityStatsModel() {}
 
     public TraceabilityStatsModel(int nbOperations, int nbStorageLog, int nbUnitLFC, int nbGotLFC) {
         this.nbOperations = nbOperations;

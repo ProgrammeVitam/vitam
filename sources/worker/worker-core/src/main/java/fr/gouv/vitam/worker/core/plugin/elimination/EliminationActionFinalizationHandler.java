@@ -41,14 +41,14 @@ import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 /**
  * Elimination action finalization handler.
  */
 public class EliminationActionFinalizationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionFinalizationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EliminationActionFinalizationHandler.class
+    );
 
     private static final String ELIMINATION_ACTION_FINALIZATION = "ELIMINATION_ACTION_FINALIZATION";
 
@@ -68,26 +68,25 @@ public class EliminationActionFinalizationHandler extends ActionHandler {
     @VisibleForTesting
     EliminationActionFinalizationHandler(
         EliminationActionReportService eliminationActionReportService,
-        PurgeReportService purgeReportService) {
+        PurgeReportService purgeReportService
+    ) {
         this.eliminationActionReportService = eliminationActionReportService;
         this.purgeReportService = purgeReportService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             eliminationActionReportService.cleanupReport(param.getContainerName());
             purgeReportService.cleanupReport(param.getContainerName());
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error(
-                String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
+                String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()),
+                e
+            );
             return buildItemStatus(ELIMINATION_ACTION_FINALIZATION, e.getStatusCode(), e.getEventDetails());
         }
     }

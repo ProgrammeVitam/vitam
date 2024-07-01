@@ -36,10 +36,12 @@ import java.util.List;
 import java.util.Objects;
 
 public class Difference<T> {
-    private final static String empty = "EMPTY";
+
+    private static final String empty = "EMPTY";
 
     @JsonProperty("Name")
     public final String name;
+
     @JsonProperty("Changes")
     public final List<DiffNode<T>> changes;
 
@@ -62,8 +64,7 @@ public class Difference<T> {
     }
 
     public boolean hasNoDifference() {
-        return changes.stream()
-            .allMatch(DiffNode::isEmpty);
+        return changes.stream().allMatch(DiffNode::isEmpty);
     }
 
     public boolean hasDifference() {
@@ -87,8 +88,7 @@ public class Difference<T> {
             return false;
         }
         Difference<?> that = (Difference<?>) o;
-        return Objects.equals(name, that.name)
-            && Objects.equals(changes, that.changes);
+        return Objects.equals(name, that.name) && Objects.equals(changes, that.changes);
     }
 
     @Override
@@ -97,6 +97,7 @@ public class Difference<T> {
     }
 
     public static class DiffNode<T> {
+
         public final String metadataName;
         public final T oldMetadataValue;
         public final T newMetadataValue;
@@ -142,9 +143,11 @@ public class Difference<T> {
                 return false;
             }
             DiffNode<?> diffNode = (DiffNode<?>) o;
-            return Objects.equals(metadataName, diffNode.metadataName)
-                && Objects.equals(oldMetadataValue, diffNode.oldMetadataValue)
-                && Objects.equals(newMetadataValue, diffNode.newMetadataValue);
+            return (
+                Objects.equals(metadataName, diffNode.metadataName) &&
+                Objects.equals(oldMetadataValue, diffNode.oldMetadataValue) &&
+                Objects.equals(newMetadataValue, diffNode.newMetadataValue)
+            );
         }
 
         @Override

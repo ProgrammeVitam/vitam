@@ -40,7 +40,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-
 /**
  * Json serializer with canonicalization. Ensures deterministic encoding for consistent hashing purposes.
  *
@@ -141,7 +140,8 @@ public final class CanonicalJsonFormatter {
             formatBinary(node.binaryValue());
         } else {
             throw new UnsupportedOperationException(
-                "Unsupported json node type " + node.getNodeType() + " '" + node.toString() + "'");
+                "Unsupported json node type " + node.getNodeType() + " '" + node.toString() + "'"
+            );
         }
     }
 
@@ -170,13 +170,11 @@ public final class CanonicalJsonFormatter {
     }
 
     private void formatObject(ObjectNode node) throws IOException {
-
         List<String> sortedKeys = IteratorUtils.toList(node.fieldNames());
         sortedKeys.sort(Comparator.naturalOrder());
 
         writer.append('{');
         for (int i = 0; i < sortedKeys.size(); i++) {
-
             if (i > 0) {
                 writer.append(',');
             }
@@ -195,7 +193,6 @@ public final class CanonicalJsonFormatter {
         Iterator<JsonNode> iterator = node.iterator();
 
         if (iterator.hasNext()) {
-
             format(iterator.next());
 
             while (iterator.hasNext()) {
@@ -217,7 +214,6 @@ public final class CanonicalJsonFormatter {
             char c = string.charAt(curPos);
 
             if (c < 32 || c > 127 || c == '"' || c == '\\') {
-
                 writer.append(string, lastPos, curPos);
                 lastPos = curPos + 1;
 
@@ -245,9 +241,9 @@ public final class CanonicalJsonFormatter {
                         break;
                     default:
                         writer.append("\\u");
-                        writer.append(hexChars[((int) c) >> 12 & 0xf]);
-                        writer.append(hexChars[((int) c) >> 8 & 0xf]);
-                        writer.append(hexChars[((int) c) >> 4 & 0xf]);
+                        writer.append(hexChars[(((int) c) >> 12) & 0xf]);
+                        writer.append(hexChars[(((int) c) >> 8) & 0xf]);
+                        writer.append(hexChars[(((int) c) >> 4) & 0xf]);
                         writer.append(hexChars[((int) c) & 0xf]);
                         break;
                 }
@@ -286,9 +282,7 @@ public final class CanonicalJsonFormatter {
             }
         }
 
-        public void append(String s, int start, int end)
-            throws java.io.IOException {
-
+        public void append(String s, int start, int end) throws java.io.IOException {
             for (int i = start; i < end; i++) {
                 outputStream.write(s.charAt(i));
             }

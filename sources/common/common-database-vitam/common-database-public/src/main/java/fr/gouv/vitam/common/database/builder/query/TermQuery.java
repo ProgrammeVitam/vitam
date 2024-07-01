@@ -40,6 +40,7 @@ import java.util.Map.Entry;
  * Term Query
  */
 public class TermQuery extends Query {
+
     private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =
         " cannot be updated with empty variable name";
     private static final String QUERY2 = "Query ";
@@ -57,8 +58,7 @@ public class TermQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public TermQuery(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public TermQuery(final String variableName, final String value) throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
         currentTokenQUERY = QUERY.TERM;
@@ -72,8 +72,7 @@ public class TermQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public TermQuery(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public TermQuery(final String variableName, final long value) throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
         currentTokenQUERY = QUERY.TERM;
@@ -87,8 +86,7 @@ public class TermQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public TermQuery(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public TermQuery(final String variableName, final double value) throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
         currentTokenQUERY = QUERY.TERM;
@@ -102,8 +100,7 @@ public class TermQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public TermQuery(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public TermQuery(final String variableName, final boolean value) throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
         currentTokenQUERY = QUERY.TERM;
@@ -117,8 +114,7 @@ public class TermQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public TermQuery(final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    public TermQuery(final String variableName, final Date value) throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.TERM, variableName, value);
         currentTokenQUERY = QUERY.TERM;
@@ -131,8 +127,7 @@ public class TermQuery extends Query {
      * @param variableNameValue map of name and value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public TermQuery(final Map<String, Object> variableNameValue)
-        throws InvalidCreateOperationException {
+    public TermQuery(final Map<String, Object> variableNameValue) throws InvalidCreateOperationException {
         super();
         currentObject = ((ObjectNode) currentObject).putObject(QUERY.TERM.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
@@ -161,15 +156,16 @@ public class TermQuery extends Query {
      * @return the TermQuery
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final TermQuery add(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public final TermQuery add(final String variableName, final String value) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -189,15 +185,16 @@ public class TermQuery extends Query {
      * @return the TermQuery
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final TermQuery add(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public final TermQuery add(final String variableName, final long value) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -216,15 +213,16 @@ public class TermQuery extends Query {
      * @return the TermQuery
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final TermQuery add(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public final TermQuery add(final String variableName, final double value) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -243,15 +241,16 @@ public class TermQuery extends Query {
      * @return the TermQuery
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final TermQuery add(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public final TermQuery add(final String variableName, final boolean value) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -270,15 +269,16 @@ public class TermQuery extends Query {
      * @return the TermQuery
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final TermQuery add(final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    public final TermQuery add(final String variableName, final Date value) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.TERM) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY);
+                CANNOT_ADD_A_TERM_ELEMENT_SINCE_THIS_IS_NOT_A_TERM_QUERY + currentTokenQUERY
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -288,5 +288,4 @@ public class TermQuery extends Query {
         ((ObjectNode) currentObject).set(variableName.trim(), GlobalDatas.getDate(value));
         return this;
     }
-
 }

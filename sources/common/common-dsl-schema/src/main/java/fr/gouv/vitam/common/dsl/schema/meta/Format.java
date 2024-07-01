@@ -40,18 +40,21 @@ import java.util.function.Consumer;
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.PROPERTY,
     defaultImpl = ShortReferenceFormat.class,
-    property = "format")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = AnyKeyFormat.class, name = "anykey"),
-    @JsonSubTypes.Type(value = ArrayFormat.class, name = "array"),
-    @JsonSubTypes.Type(value = EnumFormat.class, name = "enum"),
-    @JsonSubTypes.Type(value = KeyChoiceFormat.class, name = "keychoice"),
-    @JsonSubTypes.Type(value = ObjectFormat.class, name = "object"),
-    @JsonSubTypes.Type(value = TypeChoiceFormat.class, name = "typechoice"),
-    @JsonSubTypes.Type(value = TypeChoiceArrayFormat.class, name = "typechoicearray"),
-    @JsonSubTypes.Type(value = UnionFormat.class, name = "union"),
-    @JsonSubTypes.Type(value = ReferenceFormat.class, name = "ref")
-})
+    property = "format"
+)
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = AnyKeyFormat.class, name = "anykey"),
+        @JsonSubTypes.Type(value = ArrayFormat.class, name = "array"),
+        @JsonSubTypes.Type(value = EnumFormat.class, name = "enum"),
+        @JsonSubTypes.Type(value = KeyChoiceFormat.class, name = "keychoice"),
+        @JsonSubTypes.Type(value = ObjectFormat.class, name = "object"),
+        @JsonSubTypes.Type(value = TypeChoiceFormat.class, name = "typechoice"),
+        @JsonSubTypes.Type(value = TypeChoiceArrayFormat.class, name = "typechoicearray"),
+        @JsonSubTypes.Type(value = UnionFormat.class, name = "union"),
+        @JsonSubTypes.Type(value = ReferenceFormat.class, name = "ref"),
+    }
+)
 public abstract class Format {
 
     /**
@@ -63,15 +66,14 @@ public abstract class Format {
 
     protected void consumeAllFields(JsonNode node, Consumer<String> fieldReport) {
         if (fieldReport != null) {
-            for (Iterator<String> it = node.fieldNames(); it.hasNext(); ) {
+            for (Iterator<String> it = node.fieldNames(); it.hasNext();) {
                 final String fieldname = it.next();
                 fieldReport.accept(fieldname);
             }
         }
     }
 
-    public abstract void validate(JsonNode node, Consumer<String> fieldReport,
-        ValidatorEngine validator);
+    public abstract void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator);
 
     /**
      * Execute an action on each node of the TypeDef tree. E.g. to resolve type name of KindReference
@@ -145,10 +147,8 @@ public abstract class Format {
     private Format reportingType;
 
     protected void setReportingType(Format format) {
-        if (name == null)
-            name = format.name;
-        if (hint == null)
-            hint = format.hint;
+        if (name == null) name = format.name;
+        if (hint == null) hint = format.hint;
         reportingType = format;
     }
 

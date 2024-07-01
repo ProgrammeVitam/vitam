@@ -52,21 +52,25 @@ public class TarFileDigestVerifier {
     private final int bulkSize;
     private MultiValuedMap<String, EntryToCheck> entriesToCheckByContainerName = new ArrayListValuedHashMap<>();
 
-    public TarFileDigestVerifier(
-        ObjectReferentialRepository objectReferentialRepository, int bulkSize) {
+    public TarFileDigestVerifier(ObjectReferentialRepository objectReferentialRepository, int bulkSize) {
         this.objectReferentialRepository = objectReferentialRepository;
         this.bulkSize = bulkSize;
     }
 
     public void addDigestToCheck(String tarEntryName, String digestValue) throws ObjectReferentialException {
-
         String containerName = LocalFileUtils.getContainerNameFromTarEntryName(tarEntryName);
         String storageId = LocalFileUtils.getStorageIdFromTarEntryName(tarEntryName);
         int entryIndex = LocalFileUtils.getEntryIndexFromTarEntryName(tarEntryName);
         String objectName = LocalFileUtils.storageIdToObjectName(storageId);
 
-        EntryToCheck entryToCheck =
-            new EntryToCheck(tarEntryName, containerName, objectName, storageId, entryIndex, digestValue);
+        EntryToCheck entryToCheck = new EntryToCheck(
+            tarEntryName,
+            containerName,
+            objectName,
+            storageId,
+            entryIndex,
+            digestValue
+        );
         Collection<EntryToCheck> entriesToCheck = entriesToCheckByContainerName.get(containerName);
         entriesToCheck.add(entryToCheck);
 
@@ -88,46 +92,59 @@ public class TarFileDigestVerifier {
 
     private void processBulk(String containerName, Collection<EntryToCheck> entriesToCheck)
         throws ObjectReferentialException {
-
-        Set<String> objectNames = entriesToCheck.stream()
+        Set<String> objectNames = entriesToCheck
+            .stream()
             .map(entryToCheck -> entryToCheck.objectName)
             .collect(Collectors.toSet());
 
-        List<TapeObjectReferentialEntity> objectReferentialEntities =
-            objectReferentialRepository.bulkFind(containerName, objectNames);
+        List<TapeObjectReferentialEntity> objectReferentialEntities = objectReferentialRepository.bulkFind(
+            containerName,
+            objectNames
+        );
 
-
-        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectNameMap =
-            objectReferentialEntities.stream()
-                .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
+        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectNameMap = objectReferentialEntities
+            .stream()
+            .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
         for (EntryToCheck entryToCheck : entriesToCheck) {
-            TapeObjectReferentialEntity objectReferentialEntity =
-                objectReferentialEntityByObjectNameMap.get(entryToCheck.objectName);
+            TapeObjectReferentialEntity objectReferentialEntity = objectReferentialEntityByObjectNameMap.get(
+                entryToCheck.objectName
+            );
 
-            if (objectReferentialEntity == null ||
-                !entryToCheck.storageId.equals(objectReferentialEntity.getStorageId())) {
+            if (
+                objectReferentialEntity == null ||
+                !entryToCheck.storageId.equals(objectReferentialEntity.getStorageId())
+            ) {
                 // LOG & ignore
                 LOGGER.debug("Ignoring deleted or updated object entry " + entryToCheck.tarEntryName);
             } else if (objectReferentialEntity.getLocation() instanceof TapeLibraryTarObjectStorageLocation) {
                 TapeLibraryTarObjectStorageLocation inTarLocation =
                     (TapeLibraryTarObjectStorageLocation) objectReferentialEntity.getLocation();
                 if (inTarLocation.getTarEntries().size() <= entryToCheck.entryIndex) {
-                    throw new IllegalStateException(
-                        "Invalid entry index for entry" + entryToCheck.tarEntryName);
+                    throw new IllegalStateException("Invalid entry index for entry" + entryToCheck.tarEntryName);
                 }
-                String expectedEntryDigest =
-                    inTarLocation.getTarEntries().get(entryToCheck.entryIndex).getDigestValue();
+                String expectedEntryDigest = inTarLocation
+                    .getTarEntries()
+                    .get(entryToCheck.entryIndex)
+                    .getDigestValue();
                 if (entryToCheck.digestValue.equals(expectedEntryDigest)) {
                     // LOG & ignore
-                    LOGGER.debug("Object with entry name {} digest checked successfully {}",
-                        entryToCheck.tarEntryName, expectedEntryDigest);
+                    LOGGER.debug(
+                        "Object with entry name {} digest checked successfully {}",
+                        entryToCheck.tarEntryName,
+                        expectedEntryDigest
+                    );
                 } else {
                     // VERY BAD !
                     throw new IllegalStateException(
-                        String.format("Object with entry name %s/%s digest mismatch. Found=%s, expected=%s",
-                            entryToCheck.containerName, entryToCheck.storageId, entryToCheck.digestValue,
-                            expectedEntryDigest));
+                        String.format(
+                            "Object with entry name %s/%s digest mismatch. Found=%s, expected=%s",
+                            entryToCheck.containerName,
+                            entryToCheck.storageId,
+                            entryToCheck.digestValue,
+                            expectedEntryDigest
+                        )
+                    );
                 }
             } else if (objectReferentialEntity.getLocation() instanceof TapeLibraryInputFileObjectStorageLocation) {
                 // LOG & ignore
@@ -136,7 +153,6 @@ public class TarFileDigestVerifier {
                 throw new IllegalStateException("Invalid location type " + objectReferentialEntity.getLocation());
             }
         }
-
     }
 
     private static class EntryToCheck {
@@ -148,9 +164,14 @@ public class TarFileDigestVerifier {
         private final int entryIndex;
         private final String digestValue;
 
-        private EntryToCheck(String tarEntryName, String containerName, String objectName, String storageId,
+        private EntryToCheck(
+            String tarEntryName,
+            String containerName,
+            String objectName,
+            String storageId,
             int entryIndex,
-            String digestValue) {
+            String digestValue
+        ) {
             this.tarEntryName = tarEntryName;
             this.containerName = containerName;
             this.objectName = objectName;

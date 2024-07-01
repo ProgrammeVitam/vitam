@@ -35,16 +35,68 @@ public class ReadWriteOrderMetrics {
         .name(VitamMetricsNames.VITAM_TAPE_OFFER_READ_ORDER_WAIT_TIME_BEFORE_EXECUTION)
         .help("Wait time (in queue) before execution of a read order of a Vitam tape storage offer")
         .labelNames("bucket")
-        .buckets(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 300, 600, 1800, 3600,
-            7200, 18000, 36000, 86400, 604800)
+        .buckets(
+            .01,
+            .025,
+            .05,
+            .075,
+            .1,
+            .25,
+            .5,
+            .75,
+            1,
+            2.5,
+            5,
+            7.5,
+            10,
+            30,
+            60,
+            120,
+            180,
+            300,
+            600,
+            1800,
+            3600,
+            7200,
+            18000,
+            36000,
+            86400,
+            604800
+        )
         .register();
 
     public static final Histogram WRITE_ORDER_WAIT_TIME_BEFORE_EXECUTION = Histogram.build()
         .name(VitamMetricsNames.VITAM_TAPE_OFFER_WRITE_ORDER_WAIT_TIME_BEFORE_EXECUTION)
         .help("Wait time (in queue) before execution of a write order of a Vitam tape storage offer")
         .labelNames("bucket")
-        .buckets(.01, .025, .05, .075, .1, .25, .5, .75, 1, 2.5, 5, 7.5, 10, 30, 60, 120, 180, 300, 600, 1800, 3600,
-            7200, 18000, 36000, 86400, 604800)
+        .buckets(
+            .01,
+            .025,
+            .05,
+            .075,
+            .1,
+            .25,
+            .5,
+            .75,
+            1,
+            2.5,
+            5,
+            7.5,
+            10,
+            30,
+            60,
+            120,
+            180,
+            300,
+            600,
+            1800,
+            3600,
+            7200,
+            18000,
+            36000,
+            86400,
+            604800
+        )
         .register();
 
     public static final Histogram READ_ORDER_EXECUTION_DURATION = Histogram.build()

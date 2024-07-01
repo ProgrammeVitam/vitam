@@ -30,10 +30,10 @@ import java.util.Collections;
 import java.util.Set;
 
 public class DataObjectVersions {
+
     private Set<String> dataObjectVersions;
 
-    public DataObjectVersions() {
-    }
+    public DataObjectVersions() {}
 
     public DataObjectVersions(Set<String> dataObjectVersionToExport) {
         this.dataObjectVersions = dataObjectVersionToExport;

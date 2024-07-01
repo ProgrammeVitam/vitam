@@ -50,8 +50,12 @@ public class IllegalUnitTypeAttachment {
         // Empty constructor for deserialization
     }
 
-    public IllegalUnitTypeAttachment(String childUnidId, UnitType childUnidType, String parentUnidId,
-        UnitType parentUnidType) {
+    public IllegalUnitTypeAttachment(
+        String childUnidId,
+        UnitType childUnidType,
+        String parentUnidId,
+        UnitType parentUnidType
+    ) {
         this.childUnidId = childUnidId;
         this.childUnidType = childUnidType;
         this.parentUnidId = parentUnidId;

@@ -64,18 +64,21 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class SedaUtilsLifeCycleExceptionsTest {
+
     static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
     public static final String JSON_EXTENSION = ".json";
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+
     private static final String OBJ = "obj";
     private final HandlerIO handlerIO = mock(HandlerIO.class);
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setWorkerGUID(GUIDFactory.newGUID().getId())
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
         .setObjectName(OBJ)
         .setContainerName(OBJ)
         .setCurrentStep("TEST");
@@ -94,8 +97,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
     @Before
     public void setUp()
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        LogbookClientNotFoundException, IOException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientNotFoundException, IOException {
         doNothing().when(logbookLifeCycleClient).create(any());
         doNothing().when(logbookLifeCycleClient).update(any());
         when(handlerIO.getLifecyclesClient()).thenReturn(logbookLifeCycleClient);
@@ -109,17 +111,17 @@ public class SedaUtilsLifeCycleExceptionsTest {
         binaryDataObjectIdToObjectGroupId.put("ID011", "ID006");
         objectGroupIdToGuid.put("ID006", OBJ);
 
-        final File firstMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(
-                IngestWorkflowConstants.DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + OBJ + JSON_EXTENSION);
+        final File firstMapTmpFile = PropertiesUtils.fileFromTmpFolder(
+            IngestWorkflowConstants.DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + OBJ + JSON_EXTENSION
+        );
         final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
         firstMapTmpFileWriter.write(binaryDataObjectIdToObjectGroupId.toString());
         firstMapTmpFileWriter.flush();
         firstMapTmpFileWriter.close();
 
-        final File secondMapTmpFile = PropertiesUtils
-            .fileFromTmpFolder(
-                IngestWorkflowConstants.OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX + OBJ + JSON_EXTENSION);
+        final File secondMapTmpFile = PropertiesUtils.fileFromTmpFolder(
+            IngestWorkflowConstants.OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX + OBJ + JSON_EXTENSION
+        );
         final FileWriter secondMapTmpFileWriter = new FileWriter(secondMapTmpFile);
         secondMapTmpFileWriter.write(objectGroupIdToGuid.toString());
         secondMapTmpFileWriter.flush();
@@ -127,37 +129,43 @@ public class SedaUtilsLifeCycleExceptionsTest {
         itemStatus.increment(StatusCode.OK);
     }
 
-
     @Test(expected = ProcessingException.class)
     public void givenUpdateLogbookClientServerExceptionWhenUpdateLifeCycleByStepThenThrowError()
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
-        ProcessingException {
-
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException, ProcessingException {
         final LogbookLifeCycleParameters logbookLifecycleUnitParameters = createLogbookParametersInstance();
 
         doThrow(new LogbookClientNotFoundException("LogbookClientServerException"))
-            .when(helper).updateDelegate(logbookLifecycleUnitParameters);
+            .when(helper)
+            .updateDelegate(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(), logbookLifecycleUnitParameters,
-            params, null, LogbookTypeProcess.INGEST, StatusCode.OK);
+        LogbookLifecycleWorkerHelper.updateLifeCycleStep(
+            handlerIO.getHelper(),
+            logbookLifecycleUnitParameters,
+            params,
+            null,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK
+        );
         handlerIO.getLifecyclesClient().bulkUpdateUnit(OBJ, handlerIO.getHelper().removeUpdateDelegate(OBJ));
     }
 
-
     @Test(expected = ProcessingException.class)
     public void givenUpdateLogbookClientServerExceptionWhenUpdateLifeCycleForBeginingThenThrowError()
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
-        ProcessingException {
-
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException, ProcessingException {
         final LogbookLifeCycleParameters logbookLifecycleUnitParameters = createLogbookParametersInstance();
 
         doThrow(new LogbookClientNotFoundException("LogbookClientServerException"))
-            .when(helper).updateDelegate(logbookLifecycleUnitParameters);
+            .when(helper)
+            .updateDelegate(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(handlerIO.getHelper(), logbookLifecycleUnitParameters,
-            params, LogbookTypeProcess.INGEST);
+        LogbookLifecycleWorkerHelper.updateLifeCycleForBegining(
+            handlerIO.getHelper(),
+            logbookLifecycleUnitParameters,
+            params,
+            LogbookTypeProcess.INGEST
+        );
         handlerIO.getLifecyclesClient().bulkUpdateUnit(OBJ, handlerIO.getHelper().removeUpdateDelegate(OBJ));
     }
 
@@ -166,18 +174,24 @@ public class SedaUtilsLifeCycleExceptionsTest {
             LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.objectIdentifier, OBJ);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, OBJ);
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-            LogbookTypeProcess.INGEST.name());
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType,
-            UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE);
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcome,
-            StatusCode.OK.toString());
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            StatusCode.OK.toString());
-        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            StatusCode.OK.toString());
+        logbookLifecycleUnitParameters.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            GUIDFactory.newEventGUID(0).getId()
+        );
+        logbookLifecycleUnitParameters.putParameterValue(
+            LogbookParameterName.eventTypeProcess,
+            LogbookTypeProcess.INGEST.name()
+        );
+        logbookLifecycleUnitParameters.putParameterValue(
+            LogbookParameterName.eventType,
+            UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE
+        );
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcome, StatusCode.OK.toString());
+        logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetail, StatusCode.OK.toString());
+        logbookLifecycleUnitParameters.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            StatusCode.OK.toString()
+        );
 
         return logbookLifecycleUnitParameters;
     }

@@ -31,6 +31,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class ActionTest {
+
     private static final String TEST = "test";
 
     @Test
@@ -44,5 +45,4 @@ public class ActionTest {
         assertEquals(TEST, action.getActionDefinition().getActionKey());
         assertEquals(ProcessBehavior.BLOCKING, action.getActionDefinition().getBehavior());
     }
-
 }

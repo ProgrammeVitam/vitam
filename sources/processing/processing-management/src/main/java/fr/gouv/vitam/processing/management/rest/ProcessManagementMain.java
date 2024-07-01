@@ -44,11 +44,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Application;
 
-
 /**
  * The process management application is to launch process engine vitamServer
  */
 public class ProcessManagementMain {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementMain.class);
     private static final String CONF_FILE_NAME = "processing.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
@@ -57,21 +57,33 @@ public class ProcessManagementMain {
     private final VitamStarter vitamStarter;
 
     public ProcessManagementMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(ServerConfiguration.class, configurationFile, BusinessApplication.class,
-            AdminApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            ServerConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class
+        );
         VitamApplicationInitializr.get().initialize(configurationFile);
-        vitamStarter.getVitamServer().getServer()
+        vitamStarter
+            .getVitamServer()
+            .getServer()
             .addEventListener(VitamApplicationInitializr.get().getVitamServerLifeCycle());
     }
 
     @VisibleForTesting
-    public ProcessManagementMain(String configurationFile,
+    public ProcessManagementMain(
+        String configurationFile,
         Class<? extends Application> businessApplication,
-        Class<? extends Application> adminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+        Class<? extends Application> adminApplication
+    ) {
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
         if (null == businessApplication) {
             businessApplication = BusinessApplication.class;
         }
@@ -79,16 +91,21 @@ public class ProcessManagementMain {
         if (null == adminApplication) {
             adminApplication = AdminApplication.class;
         }
-        vitamStarter =
-            new VitamStarter(ServerConfiguration.class, configurationFile, businessApplication, adminApplication);
+        vitamStarter = new VitamStarter(
+            ServerConfiguration.class,
+            configurationFile,
+            businessApplication,
+            adminApplication
+        );
     }
 
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
             ProcessManagementMain main = new ProcessManagementMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
@@ -105,8 +122,11 @@ public class ProcessManagementMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }

@@ -83,19 +83,20 @@ public class UnitGraphInfoLoaderTest {
 
     @Test
     public void testSelectUnitsByQueryDslAndAccessContract() throws Exception {
-
         // Given
         AccessContractModel accessContractModel = createAccessContractWithRestrictions();
 
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
         selectMultiQuery.addQueries(QueryHelper.in(VitamFieldsHelper.id(), "MyId1", "MyId2", "MyId3"));
 
-        doReturn(buildResponseJsonNode("MyId1", "MyId3"))
-            .when(metaDataClient).selectUnits((any()));
+        doReturn(buildResponseJsonNode("MyId1", "MyId3")).when(metaDataClient).selectUnits((any()));
 
         // When
-        Set<String> ids = unitGraphInfoLoader
-            .selectUnitsByQueryDslAndAccessContract(metaDataClient, selectMultiQuery, accessContractModel);
+        Set<String> ids = unitGraphInfoLoader.selectUnitsByQueryDslAndAccessContract(
+            metaDataClient,
+            selectMultiQuery,
+            accessContractModel
+        );
 
         // Then
         assertThat(ids).containsExactlyInAnyOrder("MyId1", "MyId3");
@@ -112,19 +113,20 @@ public class UnitGraphInfoLoaderTest {
 
     @Test
     public void testSelectUnitsByIdsAndAccessContract_emptySet() throws Exception {
-
         // Given
         AccessContractModel accessContractModel = createAccessContractWithRestrictions();
 
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
         selectMultiQuery.addQueries(QueryHelper.in(VitamFieldsHelper.id(), "MyId1", "MyId2", "MyId3"));
 
-        doReturn(buildResponseJsonNode())
-            .when(metaDataClient).selectUnits((any()));
+        doReturn(buildResponseJsonNode()).when(metaDataClient).selectUnits((any()));
 
         // When
-        Set<String> foundIds = unitGraphInfoLoader
-            .selectUnitsByIdsAndAccessContract(metaDataClient, SetUtils.emptySet(), accessContractModel);
+        Set<String> foundIds = unitGraphInfoLoader.selectUnitsByIdsAndAccessContract(
+            metaDataClient,
+            SetUtils.emptySet(),
+            accessContractModel
+        );
 
         // Then
         assertThat(foundIds).isEmpty();
@@ -133,7 +135,6 @@ public class UnitGraphInfoLoaderTest {
 
     @Test
     public void testSelectUnitsByIdsAndAccessContract_LotsOfUnitIds() throws Exception {
-
         // Given
         AccessContractModel accessContractModel = createAccessContractWithRestrictions();
 
@@ -146,11 +147,15 @@ public class UnitGraphInfoLoaderTest {
 
         when(metaDataClient.selectUnits(any())).thenReturn(
             buildResponseJsonNode("MyId1", "MyId2"),
-            buildResponseJsonNode("MyId1001"));
+            buildResponseJsonNode("MyId1001")
+        );
 
         // When
-        Set<String> foundIds = unitGraphInfoLoader
-            .selectUnitsByIdsAndAccessContract(metaDataClient, ids, accessContractModel);
+        Set<String> foundIds = unitGraphInfoLoader.selectUnitsByIdsAndAccessContract(
+            metaDataClient,
+            ids,
+            accessContractModel
+        );
 
         // Then
         assertThat(foundIds).containsExactlyInAnyOrder("MyId1", "MyId2", "MyId1001");
@@ -174,19 +179,15 @@ public class UnitGraphInfoLoaderTest {
     }
 
     private JsonNode buildResponseJsonNode(String... ids) {
-
         ArrayNode results = JsonHandler.createArrayNode();
         for (String id : ids) {
             results.add(JsonHandler.createObjectNode().put("#id", id));
         }
-        return JsonHandler.createObjectNode()
-            .set("$results", results);
+        return JsonHandler.createObjectNode().set("$results", results);
     }
 
     @Test
-    public void selectAllUnitGraphByIds()
-        throws Exception {
-
+    public void selectAllUnitGraphByIds() throws Exception {
         // Given : basic graph
         /*
          *    1   4   5
@@ -212,31 +213,37 @@ public class UnitGraphInfoLoaderTest {
         unitsWithParents.put("11", Arrays.asList("10"));
 
         when(metaDataClient.selectUnits(any())).then(args -> {
-
             // Parse { $in: "#id": [] } query
             JsonNode dsl = args.getArgument(0);
             SelectParserMultiple parserMultiple = new SelectParserMultiple();
             parserMultiple.parse(dsl);
-            ArrayNode jsonIds =
-                (ArrayNode) parserMultiple.getRequest().getQueries().get(0).getNode("$in").get(VitamFieldsHelper.id());
+            ArrayNode jsonIds = (ArrayNode) parserMultiple
+                .getRequest()
+                .getQueries()
+                .get(0)
+                .getNode("$in")
+                .get(VitamFieldsHelper.id());
             Set<String> ids = new HashSet<>();
             jsonIds.elements().forEachRemaining(e -> ids.add(e.asText()));
 
             // Return expected units by ids
             ArrayNode results = JsonHandler.createArrayNode();
             for (String id : ids) {
-                results.add(JsonHandler.createObjectNode()
-                    .put(VitamFieldsHelper.id(), id)
-                    .put(VitamFieldsHelper.unitType(), UnitType.INGEST.name())
-                    .set(VitamFieldsHelper.unitups(), JsonHandler.toJsonNode(unitsWithParents.get(id))));
+                results.add(
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), id)
+                        .put(VitamFieldsHelper.unitType(), UnitType.INGEST.name())
+                        .set(VitamFieldsHelper.unitups(), JsonHandler.toJsonNode(unitsWithParents.get(id)))
+                );
             }
             return JsonHandler.createObjectNode().set("$results", results);
-
         });
 
         // When
-        Map<String, UnitGraphInfo> unitGraphInfoMap =
-            unitGraphInfoLoader.selectAllUnitGraphByIds(metaDataClient, new HashSet<>(Arrays.asList("8", "10")));
+        Map<String, UnitGraphInfo> unitGraphInfoMap = unitGraphInfoLoader.selectAllUnitGraphByIds(
+            metaDataClient,
+            new HashSet<>(Arrays.asList("8", "10"))
+        );
 
         // Then
         assertThat(unitGraphInfoMap).hasSize(9);
@@ -250,16 +257,17 @@ public class UnitGraphInfoLoaderTest {
     }
 
     @Test
-    public void testLoadInheritedHoldRules()
-        throws Exception {
-
+    public void testLoadInheritedHoldRules() throws Exception {
         // Given
         doReturn(buildUnitWithInheritedRuleResponseJsonNode("Unit1", "Unit2"))
-            .when(metaDataClient).selectUnitsWithInheritedRules((any()));
+            .when(metaDataClient)
+            .selectUnitsWithInheritedRules((any()));
 
         // When
-        Map<String, InheritedRuleCategoryResponseModel> inheritedHoldRules =
-            unitGraphInfoLoader.loadInheritedHoldRules(metaDataClient, Set.of("Unit1", "Unit2"));
+        Map<String, InheritedRuleCategoryResponseModel> inheritedHoldRules = unitGraphInfoLoader.loadInheritedHoldRules(
+            metaDataClient,
+            Set.of("Unit1", "Unit2")
+        );
 
         // Then
         verify(metaDataClient, times(1)).selectUnitsWithInheritedRules((any()));
@@ -269,26 +277,26 @@ public class UnitGraphInfoLoaderTest {
     }
 
     @Test
-    public void testLoadInheritedHoldRulesBatchProcessing()
-        throws Exception {
-
+    public void testLoadInheritedHoldRulesBatchProcessing() throws Exception {
         // Given
         int batchSize = UnitGraphInfoLoader.MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE;
 
-        Set<String> ids = IntStream.rangeClosed(1, batchSize + 1)
-            .mapToObj(i -> "Unit" + i)
-            .collect(Collectors.toSet());
+        Set<String> ids = IntStream.rangeClosed(1, batchSize + 1).mapToObj(i -> "Unit" + i).collect(Collectors.toSet());
 
         doReturn(
             buildUnitWithInheritedRuleResponseJsonNode(
-                IntStream.rangeClosed(1, batchSize + 1).mapToObj(i -> "Unit" + i).toArray(String[]::new)),
+                IntStream.rangeClosed(1, batchSize + 1).mapToObj(i -> "Unit" + i).toArray(String[]::new)
+            ),
             buildUnitWithInheritedRuleResponseJsonNode("Unit" + (batchSize + 1))
         )
-            .when(metaDataClient).selectUnitsWithInheritedRules((any()));
+            .when(metaDataClient)
+            .selectUnitsWithInheritedRules((any()));
 
         // When
-        Map<String, InheritedRuleCategoryResponseModel> inheritedHoldRules =
-            unitGraphInfoLoader.loadInheritedHoldRules(metaDataClient, ids);
+        Map<String, InheritedRuleCategoryResponseModel> inheritedHoldRules = unitGraphInfoLoader.loadInheritedHoldRules(
+            metaDataClient,
+            ids
+        );
 
         // Then
         verify(metaDataClient, times(2)).selectUnitsWithInheritedRules((any()));
@@ -299,14 +307,13 @@ public class UnitGraphInfoLoaderTest {
 
     private JsonNode buildUnitWithInheritedRuleResponseJsonNode(String... ids)
         throws FileNotFoundException, InvalidParseOperationException {
-
         JsonNode testInheritedRules = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("InheritedRules/InheritedHoldRules.json"));
+            PropertiesUtils.getResourceAsStream("InheritedRules/InheritedHoldRules.json")
+        );
         RequestResponseOK<JsonNode> requestResponseOK = new RequestResponseOK<>();
         for (String id : ids) {
-            requestResponseOK.addResult(JsonHandler.createObjectNode()
-                .put("#id", id)
-                .set("InheritedRules", testInheritedRules)
+            requestResponseOK.addResult(
+                JsonHandler.createObjectNode().put("#id", id).set("InheritedRules", testInheritedRules)
             );
         }
         return requestResponseOK.toJsonNode();

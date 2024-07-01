@@ -35,8 +35,10 @@ public class AuditStatusCount {
 
     @JsonProperty("OK")
     private int nbOK;
+
     @JsonProperty("WARNING")
     private int nbWARNING;
+
     @JsonProperty("KO")
     private int nbKO;
 
@@ -79,5 +81,4 @@ public class AuditStatusCount {
                 throw new IllegalArgumentException("Status invalid " + status);
         }
     }
-
 }

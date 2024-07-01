@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.database.server.query;
  * repository for Tapes Catalog management in mongo.
  */
 public class QueryCriteria {
+
     private String field;
     private Object value;
     private QueryCriteriaOperator operator;

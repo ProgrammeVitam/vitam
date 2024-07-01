@@ -73,50 +73,61 @@ public class BusinessApplication extends ConfigurationApplication {
         singletons = new HashSet<>();
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final BatchReportConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, BatchReportConfiguration.class);
+            final BatchReportConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                BatchReportConfiguration.class
+            );
 
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
 
-            EliminationActionUnitRepository eliminationActionUnitRepository =
-                new EliminationActionUnitRepository(mongoDbAccess);
-            PurgeUnitRepository purgeUnitRepository =
-                new PurgeUnitRepository(mongoDbAccess);
-            PurgeObjectGroupRepository purgeObjectGroupRepository =
-                new PurgeObjectGroupRepository(mongoDbAccess);
+            EliminationActionUnitRepository eliminationActionUnitRepository = new EliminationActionUnitRepository(
+                mongoDbAccess
+            );
+            PurgeUnitRepository purgeUnitRepository = new PurgeUnitRepository(mongoDbAccess);
+            PurgeObjectGroupRepository purgeObjectGroupRepository = new PurgeObjectGroupRepository(mongoDbAccess);
             TransferReplyUnitRepository transferReplyUnitRepository = new TransferReplyUnitRepository(mongoDbAccess);
-            PreservationReportRepository preservationReportRepository =
-                new PreservationReportRepository(mongoDbAccess);
+            PreservationReportRepository preservationReportRepository = new PreservationReportRepository(mongoDbAccess);
             AuditReportRepository auditReportRepository = new AuditReportRepository(mongoDbAccess);
-            UnitComputedInheritedRulesInvalidationRepository
-                unitComputedInheritedRulesInvalidationRepository =
+            UnitComputedInheritedRulesInvalidationRepository unitComputedInheritedRulesInvalidationRepository =
                 new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess);
             WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             UpdateUnitReportRepository updateUnitReportRepository = new UpdateUnitReportRepository(mongoDbAccess);
             BulkUpdateUnitMetadataReportRepository bulkUpdateUnitMetadataReportRepository =
                 new BulkUpdateUnitMetadataReportRepository(mongoDbAccess);
-            EvidenceAuditReportRepository evidenceAuditReportRepository =
-                new EvidenceAuditReportRepository(mongoDbAccess);
+            EvidenceAuditReportRepository evidenceAuditReportRepository = new EvidenceAuditReportRepository(
+                mongoDbAccess
+            );
             TraceabilityReportRepository traceabilityReportRepository = new TraceabilityReportRepository(mongoDbAccess);
-            ExtractedMetadataRepository extractedMetadataRepository =
-                new ExtractedMetadataRepository(mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME));
-            DeleteGotVersionsReportRepository deleteGotVersionsReportRepository =
-                new DeleteGotVersionsReportRepository(mongoDbAccess);
-            BatchReportServiceImpl batchReportServiceImpl =
-                new BatchReportServiceImpl(workspaceClientFactory, eliminationActionUnitRepository, purgeUnitRepository,
-                    purgeObjectGroupRepository, transferReplyUnitRepository, updateUnitReportRepository,
-                    bulkUpdateUnitMetadataReportRepository, preservationReportRepository, auditReportRepository,
-                    unitComputedInheritedRulesInvalidationRepository, evidenceAuditReportRepository,
-                    traceabilityReportRepository, extractedMetadataRepository, deleteGotVersionsReportRepository);
+            ExtractedMetadataRepository extractedMetadataRepository = new ExtractedMetadataRepository(
+                mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME)
+            );
+            DeleteGotVersionsReportRepository deleteGotVersionsReportRepository = new DeleteGotVersionsReportRepository(
+                mongoDbAccess
+            );
+            BatchReportServiceImpl batchReportServiceImpl = new BatchReportServiceImpl(
+                workspaceClientFactory,
+                eliminationActionUnitRepository,
+                purgeUnitRepository,
+                purgeObjectGroupRepository,
+                transferReplyUnitRepository,
+                updateUnitReportRepository,
+                bulkUpdateUnitMetadataReportRepository,
+                preservationReportRepository,
+                auditReportRepository,
+                unitComputedInheritedRulesInvalidationRepository,
+                evidenceAuditReportRepository,
+                traceabilityReportRepository,
+                extractedMetadataRepository,
+                deleteGotVersionsReportRepository
+            );
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new BatchReportResource(batchReportServiceImpl));
             singletons.add(new HeaderIdContainerFilter());
             singletons.add(new JsonParseExceptionMapper());
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

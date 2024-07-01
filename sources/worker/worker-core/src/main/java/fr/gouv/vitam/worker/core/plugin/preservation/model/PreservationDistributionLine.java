@@ -33,44 +33,71 @@ import java.util.List;
 import java.util.Set;
 
 public class PreservationDistributionLine {
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("formatId")
     private String formatId;
+
     @JsonProperty("filename")
     private String filename;
+
     @JsonProperty("actions")
     private List<ActionPreservation> actionPreservationList;
+
     @JsonProperty("unitId")
     private String unitId;
+
     @JsonProperty("objectId")
     private String objectId;
+
     @JsonProperty("debug")
     private boolean debug;
+
     @JsonProperty("timeout")
     private int timeout;
+
     @JsonProperty("targetUse")
     private String targetUse;
+
     @JsonProperty("sourceUse")
     private String sourceUse;
+
     @JsonProperty("sourceStrategy")
     private String sourceStrategy;
+
     @JsonProperty("griffinId")
     private String griffinId;
+
     @JsonProperty("preservationScenarioId")
     private String scenarioId;
+
     @JsonProperty("griffinIdentifier")
     private String griffinIdentifier;
+
     @JsonProperty("unitsForExtractionAU")
     private Set<String> unitsForExtractionAU;
 
-    public PreservationDistributionLine() {
-    }
+    public PreservationDistributionLine() {}
 
-    public PreservationDistributionLine(String formatId, String filename,
-        List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
-        boolean debug, int timeout, String id, String targetUse, String sourceUse, String sourceStrategy,
-        String scenarioId, String griffinIdentifier, Set<String> unitsForExtractionAU) {
+    public PreservationDistributionLine(
+        String formatId,
+        String filename,
+        List<ActionPreservation> actionPreservationList,
+        String unitId,
+        String griffinId,
+        String objectId,
+        boolean debug,
+        int timeout,
+        String id,
+        String targetUse,
+        String sourceUse,
+        String sourceStrategy,
+        String scenarioId,
+        String griffinIdentifier,
+        Set<String> unitsForExtractionAU
+    ) {
         this.id = id;
         this.formatId = formatId;
         this.filename = filename;
@@ -116,8 +143,7 @@ public class PreservationDistributionLine {
         return actionPreservationList;
     }
 
-    public void setActionPreservationList(
-        List<ActionPreservation> actionPreservationList) {
+    public void setActionPreservationList(List<ActionPreservation> actionPreservationList) {
         this.actionPreservationList = actionPreservationList;
     }
 

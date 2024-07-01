@@ -61,6 +61,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
+
     private static final String WORKSPACE_SERVER_ERROR = "Workspace Server Error";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectGroupSchemaActionPlugin.class);
@@ -88,7 +89,6 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
 
     private final MetadataValidationProvider metadataValidationProvider;
 
-
     public CheckObjectGroupSchemaActionPlugin() {
         this(MetadataValidationProvider.getInstance());
     }
@@ -106,11 +106,8 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
             checkObjectGroupJsonAgainstSchema(handler, params, itemStatus);
 
             itemStatus.increment(StatusCode.OK);
-            return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID,
-                itemStatus);
-
+            return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID, itemStatus);
         } catch (MetadataValidationException e) {
-
             LOGGER.warn("Object group schema validation failed " + params.getObjectName(), e);
 
             if (e.getErrorCode().equals(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE)) {
@@ -119,12 +116,10 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
                 final ObjectNode object = JsonHandler.createObjectNode();
                 object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-                return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID,
-                    itemStatus);
+                return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID, itemStatus);
             } else {
                 throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
             }
-
         } catch (final MetaDataContainSpecialCharactersException e) {
             LOGGER.error(e);
             itemStatus.setItemId(OBJECT_GROUP_SANITIZE);
@@ -132,8 +127,7 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
             final ObjectNode object = JsonHandler.createObjectNode();
             object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
             itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-            return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID,
-                itemStatus);
+            return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID, itemStatus);
         } catch (final Exception e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -141,21 +135,24 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
         }
     }
 
-    private void checkObjectGroupJsonAgainstSchema(HandlerIO handlerIO, WorkerParameters params,
-        ItemStatus itemStatus)
+    private void checkObjectGroupJsonAgainstSchema(HandlerIO handlerIO, WorkerParameters params, ItemStatus itemStatus)
         throws ProcessingException, MetadataValidationException {
         final String objectName = params.getObjectName();
 
         // Load data
         JsonNode objectGroupJson;
-        try (InputStream archiveOgToJson =
-            handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER +
-                File.separator + objectName)) {
+        try (
+            InputStream archiveOgToJson = handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + objectName
+            )
+        ) {
             objectGroupJson = JsonHandler.getFromInputStream(archiveOgToJson);
-
-        } catch (InvalidParseOperationException |
-            ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
+        } catch (
+            InvalidParseOperationException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageServerException
+            | IOException e
+        ) {
             throw new ProcessingException(WORKSPACE_SERVER_ERROR, e);
         }
         // sanityChecker
@@ -170,17 +167,26 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
         // Ontology verification and format conversion in needed
         Stopwatch ontologyTime = Stopwatch.createStarted();
 
-        ObjectNode updatedOgJson =
-            metadataValidationProvider.getObjectGroupOntologyValidator().verifyAndReplaceFields(objectGroupJson);
+        ObjectNode updatedOgJson = metadataValidationProvider
+            .getObjectGroupOntologyValidator()
+            .verifyAndReplaceFields(objectGroupJson);
         boolean isUpdateJsonMandatory = !objectGroupJson.equals(updatedOgJson);
 
         PerformanceLogger.getInstance()
-            .log("STP_OBJECT_GROUP_CHECK_AND_PROCESS", CHECK_OG_SCHEMA_TASK_ID, "validationOntology",
-                ontologyTime.elapsed(TimeUnit.MILLISECONDS));
+            .log(
+                "STP_OBJECT_GROUP_CHECK_AND_PROCESS",
+                CHECK_OG_SCHEMA_TASK_ID,
+                "validationOntology",
+                ontologyTime.elapsed(TimeUnit.MILLISECONDS)
+            );
         if (isUpdateJsonMandatory) {
-            handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, objectName, updatedOgJson,
-                false, false);
+            handlerIO.transferJsonToWorkspace(
+                IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
+                objectName,
+                updatedOgJson,
+                false,
+                false
+            );
         }
-
     }
 }

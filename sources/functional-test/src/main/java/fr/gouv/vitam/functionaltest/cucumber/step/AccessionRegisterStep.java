@@ -64,11 +64,14 @@ public class AccessionRegisterStep extends CommonStep {
     @When("^je recherche les registres de fond$")
     public void search_accession_register() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<AccessionRegisterSummaryModel> requestResponse =
-            world.getAdminClient().findAccessionRegister(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        RequestResponse<AccessionRegisterSummaryModel> requestResponse = world
+            .getAdminClient()
+            .findAccessionRegister(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryJSON);
+                queryJSON
+            );
         this.requestResponse = requestResponse;
     }
 
@@ -80,11 +83,14 @@ public class AccessionRegisterStep extends CommonStep {
     @When("^je recherche les détails des registres de fonds$")
     public void search_accession_register_details() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<AccessionRegisterDetailModel> requestResponse =
-            world.getAdminClient().findAccessionRegisterDetails(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        RequestResponse<AccessionRegisterDetailModel> requestResponse = world
+            .getAdminClient()
+            .findAccessionRegisterDetails(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryJSON);
+                queryJSON
+            );
         this.requestResponse = requestResponse;
     }
 
@@ -97,11 +103,15 @@ public class AccessionRegisterStep extends CommonStep {
     @When("^je recherche les détails des registres de fond pour le service producteur (.*)$")
     public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse requestResponse =
-            world.getAdminClient().getAccessionRegisterDetail(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        RequestResponse requestResponse = world
+            .getAdminClient()
+            .getAccessionRegisterDetail(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                originatingAgency, queryJSON);
+                originatingAgency,
+                queryJSON
+            );
         this.requestResponse = requestResponse;
     }
 
@@ -170,8 +180,13 @@ public class AccessionRegisterStep extends CommonStep {
     public void metadata_accession_register_summary_are_for_particular_result(int resultNumber, DataTable dataTable)
         throws Throwable {
         if (requestResponse.isOk()) {
-            world.getAccessService().checkResultsForParticularData(
-                ((RequestResponseOK) requestResponse).getResultsAsJsonNodes(), resultNumber, dataTable);
+            world
+                .getAccessService()
+                .checkResultsForParticularData(
+                    ((RequestResponseOK) requestResponse).getResultsAsJsonNodes(),
+                    resultNumber,
+                    dataTable
+                );
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail(ACCESSION_REGISTER_SUMMARY_ERROR_MESSAGE + JsonHandler.prettyPrint(vitamError));
@@ -189,12 +204,16 @@ public class AccessionRegisterStep extends CommonStep {
     public void metadata_accession_register_detail_are_for_particular_result(int resultNumber, DataTable dataTable)
         throws Throwable {
         if (requestResponse.isOk()) {
-            world.getAccessService().checkResultsForParticularData(
-                ((RequestResponseOK) requestResponse).getResultsAsJsonNodes(), resultNumber, dataTable);
+            world
+                .getAccessService()
+                .checkResultsForParticularData(
+                    ((RequestResponseOK) requestResponse).getResultsAsJsonNodes(),
+                    resultNumber,
+                    dataTable
+                );
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail(ACCESSION_REGISTER_DETAIL_ERROR_MESSAGE + JsonHandler.prettyPrint(vitamError));
         }
     }
-
 }

@@ -33,12 +33,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 public class FastValueAccessMapTest {
 
     @Test
     public void testContainsValue() {
-
         Map<String, Integer> instance = new FastValueAccessMap<>();
 
         instance.put("v0", 0);
@@ -58,7 +56,6 @@ public class FastValueAccessMapTest {
         instance.remove("v4");
         instance.remove("v4_bis");
 
-
         instance.remove("v5");
 
         assertThat(instance.containsValue(null)).isFalse();
@@ -72,7 +69,6 @@ public class FastValueAccessMapTest {
 
     @Test
     public void testContainsNullValue() {
-
         Map<String, Integer> instance = new FastValueAccessMap<>();
         assertThat(instance.containsValue(null)).isFalse();
 

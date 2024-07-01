@@ -44,8 +44,7 @@ public class ElasticsearchHelperTest {
 
     @Test
     public void testElasticsearchHelper()
-        throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException,
-        IllegalArgumentException, InvocationTargetException {
+        throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         final Constructor<ElasticsearchHelper> constructor = ElasticsearchHelper.class.getDeclaredConstructor();
         assertTrue(Modifier.isPrivate(constructor.getModifiers()));
 
@@ -55,5 +54,4 @@ public class ElasticsearchHelperTest {
 
         assertEquals(QUERY.toString(), ElasticsearchHelper.queryBuilderToString(QUERY));
     }
-
 }

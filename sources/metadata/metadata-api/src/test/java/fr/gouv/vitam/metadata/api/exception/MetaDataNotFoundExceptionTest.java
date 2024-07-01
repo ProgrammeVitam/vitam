@@ -40,5 +40,4 @@ public class MetaDataNotFoundExceptionTest {
         assertNotNull(new MetaDataNotFoundException(new Exception()).getCause());
         assertNotNull(new MetaDataNotFoundException("test", new Exception()).getCause());
     }
-
 }

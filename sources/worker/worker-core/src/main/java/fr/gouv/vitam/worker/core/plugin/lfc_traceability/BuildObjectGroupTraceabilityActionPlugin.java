@@ -40,8 +40,9 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityActionPlugin {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PrepareUnitLfcTraceabilityActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        PrepareUnitLfcTraceabilityActionPlugin.class
+    );
 
     private static final String STP_OG_LFC_TRACEABILITY = "STP_OG_LFC_TRACEABILITY";
     private static final String ACTION_HANDLER_ID = "BUILD_OG_LFC_TRACEABILITY";
@@ -53,14 +54,14 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
     @VisibleForTesting
     BuildObjectGroupTraceabilityActionPlugin(
         StorageClientFactory storageClientFactory,
-        int batchSize, AlertService alertService) {
+        int batchSize,
+        AlertService alertService
+    ) {
         super(storageClientFactory, batchSize, alertService);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         LOGGER.info("Building object group traceability data");
         ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
         buildTraceabilityData(handler, LogbookLifeCycleObjectGroup.class.getName(), itemStatus);
@@ -72,7 +73,8 @@ public class BuildObjectGroupTraceabilityActionPlugin extends BuildTraceabilityA
     protected TraceabilityStatistics getTraceabilityStatistics(DigestValidator digestValidator) {
         return TraceabilityStatistics.ofObjectGroupsTraceabilityStatistics(
             digestValidator.getMetadataValidationStatistics(),
-            digestValidator.getObjectValidationStatistics());
+            digestValidator.getObjectValidationStatistics()
+        );
     }
 
     @Override

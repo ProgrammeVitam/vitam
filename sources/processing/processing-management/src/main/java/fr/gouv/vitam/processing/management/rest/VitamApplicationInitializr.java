@@ -73,12 +73,9 @@ public class VitamApplicationInitializr {
      * @param configurationFile
      */
     public void initialize(String configurationFile) {
-
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final ServerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, ServerConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
-
-
 
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
 
@@ -88,14 +85,19 @@ public class VitamApplicationInitializr {
             AsyncResourcesMonitor asyncResourcesMonitor = new AsyncResourcesMonitor(configuration);
             AsyncResourceCleaner asyncResourceCleaner = new AsyncResourceCleaner(configuration);
 
-            ProcessDistributor processDistributor =
-                new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, configuration);
+            ProcessDistributor processDistributor = new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                configuration
+            );
 
-            ProcessManagementResource processManagementResource =
-                new ProcessManagementResource(configuration, processDistributor);
+            ProcessManagementResource processManagementResource = new ProcessManagementResource(
+                configuration,
+                processDistributor
+            );
             ProcessDistributorResource processDistributorResource = new ProcessDistributorResource(workerManager);
-            vitamServerLifeCycle =
-                new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
+            vitamServerLifeCycle = new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(processManagementResource);
@@ -105,19 +107,21 @@ public class VitamApplicationInitializr {
         }
     }
 
-
     @VisibleForTesting
-    public void initialize(ServerConfiguration serverConfiguration, WorkerClientFactory workerClientFactory,
-        ProcessManagement processManagement) throws IOException {
-
+    public void initialize(
+        ServerConfiguration serverConfiguration,
+        WorkerClientFactory workerClientFactory,
+        ProcessManagement processManagement
+    ) throws IOException {
         commonBusinessApplication = new CommonBusinessApplication();
 
         IWorkerManager workerManager = new WorkerManager(workerClientFactory);
         workerManager.initialize();
 
-
-        ProcessManagementResource processManagementResource =
-            new ProcessManagementResource(processManagement, serverConfiguration);
+        ProcessManagementResource processManagementResource = new ProcessManagementResource(
+            processManagement,
+            serverConfiguration
+        );
         ProcessDistributorResource processDistributorResource = new ProcessDistributorResource(workerManager);
         vitamServerLifeCycle = new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
 
@@ -126,7 +130,6 @@ public class VitamApplicationInitializr {
         singletons.add(processManagementResource);
         singletons.add(processDistributorResource);
     }
-
 
     /**
      * Return the set of registered resources

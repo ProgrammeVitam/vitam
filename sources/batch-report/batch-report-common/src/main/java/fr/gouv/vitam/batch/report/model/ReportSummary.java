@@ -50,8 +50,13 @@ public class ReportSummary {
         // Empty constructor for deserialization
     }
 
-    public ReportSummary(String startDate, String endDate, ReportType reportType, ReportResults vitamResults,
-        JsonNode extendedInfo) {
+    public ReportSummary(
+        String startDate,
+        String endDate,
+        ReportType reportType,
+        ReportResults vitamResults,
+        JsonNode extendedInfo
+    ) {
         this.evStartDateTime = startDate;
         this.evEndDateTime = endDate;
         this.reportType = reportType;

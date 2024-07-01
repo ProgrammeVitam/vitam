@@ -103,22 +103,39 @@ public class SchedulerIT extends VitamRuleRunner {
     private static final String CONTEXT_ID = "Context_IT";
     private static final int DELAY = 5;
 
-    @Rule public LogicalClockRule logicalClock = new LogicalClockRule();
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
-    @ClassRule public static VitamServerRunner runner =
-        new VitamServerRunner(SchedulerIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(MetadataMain.class, WorkerMain.class, AdminManagementMain.class, LogbookMain.class,
-                WorkspaceMain.class, BatchReportMain.class, StorageMain.class, DefaultOfferMain.class,
-                ProcessManagementMain.class, AccessInternalMain.class, IngestInternalMain.class, SchedulerMain.class));
+    @ClassRule
+    public static VitamServerRunner runner = new VitamServerRunner(
+        SchedulerIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            BatchReportMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            ProcessManagementMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class,
+            SchedulerMain.class
+        )
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         mongoRule.handleAfter(
-            Set.of("vitam_schedulers", "vitam_jobs", "vitam_locks", "vitam_triggers", "vitam_calendars"));
-        String configurationPath =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+            Set.of("vitam_schedulers", "vitam_jobs", "vitam_locks", "vitam_triggers", "vitam_calendars")
+        );
+        String configurationPath = PropertiesUtils.getResourcePath(
+            "integration-ingest-internal/format-identifiers.conf"
+        ).toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
         new DataLoader("integration-ingest-internal").prepareData();
     }
@@ -128,7 +145,8 @@ public class SchedulerIT extends VitamRuleRunner {
         handleAfterClass();
         runAfter();
         mongoRule.handleAfter(
-            Set.of("vitam_schedulers", "vitam_jobs", "vitam_locks", "vitam_triggers", "vitam_calendars"));
+            Set.of("vitam_schedulers", "vitam_jobs", "vitam_locks", "vitam_triggers", "vitam_calendars")
+        );
         VitamClientFactory.resetConnections();
     }
 
@@ -137,17 +155,23 @@ public class SchedulerIT extends VitamRuleRunner {
         VitamConfiguration.setTenants(List.of(0, 1));
 
         // Ingest data to audit
-        CompletableFuture.runAsync(() -> {
-            try {
-                VitamTestHelper.prepareVitamSession(TENANT_ID_0, CONTRACT_ID, CONTEXT_ID);
-                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-                final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID_0, "elimination/TEST_ELIMINATION_V2.zip");
-                verifyOperation(ingestOpId, OK);
-                logicalClock.logicalSleep(DELAY, ChronoUnit.MINUTES);
-            } catch (VitamException e) {
-                throw new VitamRuntimeException(e);
-            }
-        }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
+        CompletableFuture.runAsync(
+            () -> {
+                try {
+                    VitamTestHelper.prepareVitamSession(TENANT_ID_0, CONTRACT_ID, CONTEXT_ID);
+                    VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+                    final String ingestOpId = VitamTestHelper.doIngest(
+                        TENANT_ID_0,
+                        "elimination/TEST_ELIMINATION_V2.zip"
+                    );
+                    verifyOperation(ingestOpId, OK);
+                    logicalClock.logicalSleep(DELAY, ChronoUnit.MINUTES);
+                } catch (VitamException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            },
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        ).join();
 
         JobDetail job = JobBuilder.newJob(AuditObjectJob.class)
             .usingJobData("operationsDelayInMinutes", DELAY)
@@ -164,39 +188,53 @@ public class SchedulerIT extends VitamRuleRunner {
         waitJob("group1.myJob");
 
         // Check
-        CompletableFuture.runAsync(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-                LogbookOperationsClient clients = LogbookOperationsClientFactory.getInstance().getClient();
-                RequestResponseOK<JsonNode> processAudit =
-                    (RequestResponseOK<JsonNode>) clients.getLastOperationByType("PROCESS_AUDIT");
-                LogbookOperation logbookOperation =
-                    JsonHandler.getFromJsonNode(processAudit.getFirstResult(), LogbookOperation.class);
-                assertThat(logbookOperation.getEvents()).filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
-                    .extracting(LogbookEvent::getEvDetData).element(0).matches(e -> e.contains("Last_Update_Date"));
-            } catch (InvalidParseOperationException | LogbookClientServerException e) {
-                throw new RuntimeException(e);
-            }
-        }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
+        CompletableFuture.runAsync(
+            () -> {
+                try {
+                    VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+                    LogbookOperationsClient clients = LogbookOperationsClientFactory.getInstance().getClient();
+                    RequestResponseOK<JsonNode> processAudit = (RequestResponseOK<
+                            JsonNode
+                        >) clients.getLastOperationByType("PROCESS_AUDIT");
+                    LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(
+                        processAudit.getFirstResult(),
+                        LogbookOperation.class
+                    );
+                    assertThat(logbookOperation.getEvents())
+                        .filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
+                        .extracting(LogbookEvent::getEvDetData)
+                        .element(0)
+                        .matches(e -> e.contains("Last_Update_Date"));
+                } catch (InvalidParseOperationException | LogbookClientServerException e) {
+                    throw new RuntimeException(e);
+                }
+            },
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        ).join();
     }
-
 
     @Test
     public void test_existance_audit_job() throws Exception {
         VitamConfiguration.setTenants(List.of(0, 1));
 
         // Ingest data to audit
-        CompletableFuture.runAsync(() -> {
-            try {
-                VitamTestHelper.prepareVitamSession(TENANT_ID_0, CONTRACT_ID, CONTEXT_ID);
-                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-                final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID_0, "elimination/TEST_ELIMINATION_V2.zip");
-                verifyOperation(ingestOpId, OK);
-                logicalClock.logicalSleep(DELAY, ChronoUnit.MINUTES);
-            } catch (VitamException e) {
-                throw new VitamRuntimeException(e);
-            }
-        }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
+        CompletableFuture.runAsync(
+            () -> {
+                try {
+                    VitamTestHelper.prepareVitamSession(TENANT_ID_0, CONTRACT_ID, CONTEXT_ID);
+                    VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+                    final String ingestOpId = VitamTestHelper.doIngest(
+                        TENANT_ID_0,
+                        "elimination/TEST_ELIMINATION_V2.zip"
+                    );
+                    verifyOperation(ingestOpId, OK);
+                    logicalClock.logicalSleep(DELAY, ChronoUnit.MINUTES);
+                } catch (VitamException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            },
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        ).join();
 
         JobDetail job = JobBuilder.newJob(AuditObjectJob.class)
             .usingJobData("operationsDelayInMinutes", DELAY)
@@ -213,20 +251,29 @@ public class SchedulerIT extends VitamRuleRunner {
         waitJob("group1.myJob");
 
         // Check
-        CompletableFuture.runAsync(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-                LogbookOperationsClient clients = LogbookOperationsClientFactory.getInstance().getClient();
-                RequestResponseOK<JsonNode> processAudit =
-                    (RequestResponseOK<JsonNode>) clients.getLastOperationByType("PROCESS_AUDIT");
-                LogbookOperation logbookOperation =
-                    JsonHandler.getFromJsonNode(processAudit.getFirstResult(), LogbookOperation.class);
-                assertThat(logbookOperation.getEvents()).filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
-                    .extracting(LogbookEvent::getEvDetData).element(0).matches(e -> e.contains("Last_Update_Date"));
-            } catch (InvalidParseOperationException | LogbookClientServerException e) {
-                throw new RuntimeException(e);
-            }
-        }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
+        CompletableFuture.runAsync(
+            () -> {
+                try {
+                    VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+                    LogbookOperationsClient clients = LogbookOperationsClientFactory.getInstance().getClient();
+                    RequestResponseOK<JsonNode> processAudit = (RequestResponseOK<
+                            JsonNode
+                        >) clients.getLastOperationByType("PROCESS_AUDIT");
+                    LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(
+                        processAudit.getFirstResult(),
+                        LogbookOperation.class
+                    );
+                    assertThat(logbookOperation.getEvents())
+                        .filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
+                        .extracting(LogbookEvent::getEvDetData)
+                        .element(0)
+                        .matches(e -> e.contains("Last_Update_Date"));
+                } catch (InvalidParseOperationException | LogbookClientServerException e) {
+                    throw new RuntimeException(e);
+                }
+            },
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        ).join();
     }
 
     public static void waitJob(String jobKey) {

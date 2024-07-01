@@ -44,7 +44,6 @@ import static org.junit.Assert.assertTrue;
 
 public class ArchiveUnitUpdateUtilsTest {
 
-
     private static final String RULE_ID = "RULE-ID";
     private static final String UPDATING_RULE =
         "{\"Rule\":\"RULE-ID\",\"StartDate\":\"2000-01-01\",\"PreventRearrangement\":true}";
@@ -70,7 +69,6 @@ public class ArchiveUnitUpdateUtilsTest {
         assertThat(updatedRule.get(END_DATE).asText()).isEqualTo("2001-01-01");
     }
 
-
     @Test
     public void should_compute_endDate_when_rule_duration_is_unlimited() throws Exception {
         JsonNode ruleModel = JsonHandler.getFromString(RULE_MODEL_UNLIMITED);
@@ -85,14 +83,16 @@ public class ArchiveUnitUpdateUtilsTest {
         assertThat(updatedRule.get(END_DATE)).isNull();
     }
 
-
     @Test
     public void should_update_category_rules_when_rule_is_present() throws Exception {
         JsonNode ruleModel = JsonHandler.getFromString(RULE_MODEL_1_YEAR);
 
-        boolean result = ArchiveUnitUpdateUtils
-            .updateCategoryRules(JsonHandler.createArrayNode().add(updatingRule), List.of(ruleModel),
-                new UpdateMultiQuery(), RULE_ID);
+        boolean result = ArchiveUnitUpdateUtils.updateCategoryRules(
+            JsonHandler.createArrayNode().add(updatingRule),
+            List.of(ruleModel),
+            new UpdateMultiQuery(),
+            RULE_ID
+        );
 
         assertTrue(result);
     }
@@ -102,9 +102,12 @@ public class ArchiveUnitUpdateUtilsTest {
         JsonNode ruleModel = JsonHandler.getFromString(RULE_MODEL_1_YEAR);
         updatingRule.remove(START_DATE);
 
-        boolean result = ArchiveUnitUpdateUtils
-            .updateCategoryRules(JsonHandler.createArrayNode().add(updatingRule), List.of(ruleModel),
-                new UpdateMultiQuery(), RULE_ID);
+        boolean result = ArchiveUnitUpdateUtils.updateCategoryRules(
+            JsonHandler.createArrayNode().add(updatingRule),
+            List.of(ruleModel),
+            new UpdateMultiQuery(),
+            RULE_ID
+        );
 
         assertFalse(result);
     }

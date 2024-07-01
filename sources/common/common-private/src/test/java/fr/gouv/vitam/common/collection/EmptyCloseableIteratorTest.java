@@ -44,5 +44,4 @@ public class EmptyCloseableIteratorTest {
         emptyCloseableIterator0 = new EmptyCloseableIterator<>();
         assertFalse(emptyCloseableIterator0.hasNext());
     }
-
 }

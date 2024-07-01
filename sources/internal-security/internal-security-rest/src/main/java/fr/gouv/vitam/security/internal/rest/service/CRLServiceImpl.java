@@ -63,8 +63,11 @@ public class CRLServiceImpl implements CRLService {
         this(identityRepository, personalRepository, new AlertServiceImpl());
     }
 
-    public CRLServiceImpl(IdentityRepository identityRepository, PersonalRepository personalRepository,
-        AlertService alertService) {
+    public CRLServiceImpl(
+        IdentityRepository identityRepository,
+        PersonalRepository personalRepository,
+        AlertService alertService
+    ) {
         this.identityRepository = identityRepository;
         this.personalRepository = personalRepository;
         this.alertService = alertService;
@@ -76,53 +79,59 @@ public class CRLServiceImpl implements CRLService {
     @Override
     public void checkIdentityWithCRL(byte[] crlCert)
         throws CertificateException, InvalidParseOperationException, CRLException {
-
         X509CRL crl = X509PKIUtil.parseX509CRLCertificate(crlCert);
 
         if (!X509PKIUtil.validateX509CRL(crl)) {
-            String alertMessage = "CRL issued by " + crl.getIssuerDN().getName() +
-                " has invalid dates (issued after now or expired before now) : thisUpdate=" + crl.getThisUpdate() +
-                " ,nextUpdate=" + crl.getNextUpdate();
+            String alertMessage =
+                "CRL issued by " +
+                crl.getIssuerDN().getName() +
+                " has invalid dates (issued after now or expired before now) : thisUpdate=" +
+                crl.getThisUpdate() +
+                " ,nextUpdate=" +
+                crl.getNextUpdate();
             alertService.createAlert(alertMessage);
-            throw new CRLException(
-                alertMessage);
+            throw new CRLException(alertMessage);
         }
 
         checkAndUpdateCertificatesByType(crl, identityRepository);
         checkAndUpdateCertificatesByType(crl, personalRepository);
-
     }
 
-    private void checkAndUpdateCertificatesByType(X509CRL crl,
-        CertificateCRLCheckStateUpdater<?> crlCheckerRepositoryImplementer)
-        throws InvalidParseOperationException, CertificateException {
-
-        FindIterable<Document> crlCAIdentitiesDocs =
-            crlCheckerRepositoryImplementer.findCertificate(crl.getIssuerDN().getName(), CertificateStatus.VALID);
+    private void checkAndUpdateCertificatesByType(
+        X509CRL crl,
+        CertificateCRLCheckStateUpdater<?> crlCheckerRepositoryImplementer
+    ) throws InvalidParseOperationException, CertificateException {
+        FindIterable<Document> crlCAIdentitiesDocs = crlCheckerRepositoryImplementer.findCertificate(
+            crl.getIssuerDN().getName(),
+            CertificateStatus.VALID
+        );
         MongoCursor<Document> crlCAIdentities = crlCAIdentitiesDocs.iterator();
 
         List<String> crtRevocatedList = new ArrayList<>();
         List<String> crtExpiredList = new ArrayList<>();
 
         while (crlCAIdentities.hasNext()) {
-
-            CertificateBaseModel certificateModel = BsonHelper.fromDocumentToObject(crlCAIdentities.next(),
-                crlCheckerRepositoryImplementer.getEntityModelType());
-
+            CertificateBaseModel certificateModel = BsonHelper.fromDocumentToObject(
+                crlCAIdentities.next(),
+                crlCheckerRepositoryImplementer.getEntityModelType()
+            );
 
             try {
                 X509Certificate cert = X509PKIUtil.parseX509Certificate(certificateModel.getCertificate());
                 if (crl.isRevoked(cert)) {
                     crtRevocatedList.add(certificateModel.getId());
-                    alertService.createAlert(VitamLogLevel.WARN,
-                        "Certificate " + certificateModel.getSubjectDN() + " was revoked by CRL");
+                    alertService.createAlert(
+                        VitamLogLevel.WARN,
+                        "Certificate " + certificateModel.getSubjectDN() + " was revoked by CRL"
+                    );
                 }
             } catch (CertificateExpiredException e) {
                 crtExpiredList.add(certificateModel.getId());
-                alertService.createAlert(VitamLogLevel.WARN,
-                    "Certificate " + certificateModel.getSubjectDN() + " is expired");
+                alertService.createAlert(
+                    VitamLogLevel.WARN,
+                    "Certificate " + certificateModel.getSubjectDN() + " is expired"
+                );
             }
-
         }
 
         if (!crtExpiredList.isEmpty()) {
@@ -132,7 +141,5 @@ public class CRLServiceImpl implements CRLService {
         if (!crtRevocatedList.isEmpty()) {
             crlCheckerRepositoryImplementer.updateCertificateState(crtRevocatedList, CertificateStatus.REVOKED);
         }
-
     }
-
 }

@@ -41,6 +41,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class MappingLoader {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MappingLoader.class);
 
     private List<ElasticsearchExternalMetadataMapping> mappingData;
@@ -48,16 +49,15 @@ public class MappingLoader {
     private static final String OBJECTGROUP = "OBJECTGROUP";
 
     public MappingLoader(List<ElasticsearchExternalMetadataMapping> mappingData) {
-        ParametersChecker
-            .checkParameter(
-                "elasticsearch mapping configuration files not found : these are mandatory files for starting the metadata server",
-                mappingData);
+        ParametersChecker.checkParameter(
+            "elasticsearch mapping configuration files not found : these are mandatory files for starting the metadata server",
+            mappingData
+        );
         checkMappingConfiguration(mappingData);
         this.mappingData = mappingData;
     }
 
     public InputStream loadMapping(String collections) throws IOException {
-
         switch (collections) {
             case UNIT:
                 return getMappingAsInputStream(mappingData.get(0).getMappingFile());
@@ -78,8 +78,8 @@ public class MappingLoader {
     }
 
     private void checkMappingConfiguration(List<ElasticsearchExternalMetadataMapping> mappingConfig) {
-
-        long missingCount = mappingConfig.stream()
+        long missingCount = mappingConfig
+            .stream()
             .filter(mapping -> {
                 try {
                     return !PropertiesUtils.findFile(mapping.getMappingFile()).exists();
@@ -87,11 +87,13 @@ public class MappingLoader {
                     LOGGER.error("The mapping file path not found" + e);
                     throw new RuntimeException(e);
                 }
-            }).count();
+            })
+            .count();
 
         if (missingCount > 0L) {
             LOGGER.error(
-                "One or many mapping files are missing ... the mapping file of Unit or ObjectGroup ? or may be both !");
+                "One or many mapping files are missing ... the mapping file of Unit or ObjectGroup ? or may be both !"
+            );
             throw new VitamRuntimeException("Error : elasticsearch mapping file not found");
         }
     }

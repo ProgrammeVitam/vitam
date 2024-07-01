@@ -74,13 +74,11 @@ public class FacetItem {
     @JsonProperty("size")
     private Integer size;
 
-
     /**
      * FacetOrder.
      */
     @JsonProperty("order")
     private FacetOrder order;
-
 
     /**
      * Date format.
@@ -100,12 +98,17 @@ public class FacetItem {
     @JsonProperty("filters")
     private List<FacetFiltersItem> filters;
 
-    private static final Map<String, String> nestedFields = Stream.of(new String[][] {
-        {"#qualifiers.versions.FormatIdentification.FormatLitteral", "#qualifiers.versions"},
-        {"#qualifiers.versions.DataObjectVersion", "#qualifiers.versions"},
-    }).collect(Collectors.collectingAndThen(
-        Collectors.toMap(data -> data[0], data -> data[1]),
-        Collections::<String, String>unmodifiableMap));
+    private static final Map<String, String> nestedFields = Stream.of(
+        new String[][] {
+            { "#qualifiers.versions.FormatIdentification.FormatLitteral", "#qualifiers.versions" },
+            { "#qualifiers.versions.DataObjectVersion", "#qualifiers.versions" },
+        }
+    ).collect(
+        Collectors.collectingAndThen(
+            Collectors.toMap(data -> data[0], data -> data[1]),
+            Collections::<String, String>unmodifiableMap
+        )
+    );
 
     /**
      * Constructor.
@@ -114,9 +117,17 @@ public class FacetItem {
         super();
     }
 
-    public FacetItem(String name, FacetType facetType, String field, Integer size,
-        FacetOrder order, String format, List<FacetDateRangeItem> ranges, List<FacetFiltersItem> filters,
-        Optional<String> subobject) {
+    public FacetItem(
+        String name,
+        FacetType facetType,
+        String field,
+        Integer size,
+        FacetOrder order,
+        String format,
+        List<FacetDateRangeItem> ranges,
+        List<FacetFiltersItem> filters,
+        Optional<String> subobject
+    ) {
         this.name = name;
         this.facetType = facetType;
         this.field = field;

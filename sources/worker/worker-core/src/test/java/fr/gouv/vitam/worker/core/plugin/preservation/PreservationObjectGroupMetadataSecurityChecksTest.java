@@ -62,6 +62,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PreservationObjectGroupMetadataSecurityChecksTest {
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -89,8 +90,16 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         output.setExtractedMetadata(extractedMetadata);
 
         List<OutputExtra> outputExtras = Collections.singletonList(OutputExtra.of(output));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
@@ -116,11 +125,20 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
     public void should_check_extracted_metadata_and_fill_output_extra_KO() throws Exception {
         // Given
         OutputPreservation output = getOutputPreservationExtracted(
-            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>");
+            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>"
+        );
 
         List<OutputExtra> outputExtras = Collections.singletonList(OutputExtra.of(output));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
@@ -139,12 +157,21 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
     public void should_check_extracted_metadata_and_fill_output_extra_WARNING() throws Exception {
         // Given
         OutputPreservation output = getOutputPreservationExtracted(
-            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>");
+            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>"
+        );
         OutputPreservation output2 = getOutputPreservationExtracted("yeah");
 
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output), OutputExtra.of(output2));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
@@ -165,15 +192,24 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         OutputPreservation output = getOutputPreservationExtracted("yeah");
 
         List<OutputExtra> outputExtras = Collections.singletonList(OutputExtra.of(output));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         when(handler.getInput(eq(0))).thenReturn(batchResults);
 
         given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(
-            Arrays.asList("_forbidden_item", "$another$forbidden$item"));
+            Arrays.asList("_forbidden_item", "$another$forbidden$item")
+        );
 
         // When
         List<ItemStatus> itemStatuses = securityChecksPlugin.executeList(null, handler);
@@ -189,14 +225,23 @@ public class PreservationObjectGroupMetadataSecurityChecksTest {
         OutputPreservation output2 = getOutputPreservationExtracted("yeah_too");
 
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output), OutputExtra.of(output2));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         when(handler.getInput(eq(0))).thenReturn(batchResults);
 
-        given(internalActionKeysRetriever.getInternalKeyFields(any())).willReturn(Collections.emptyList())
+        given(internalActionKeysRetriever.getInternalKeyFields(any()))
+            .willReturn(Collections.emptyList())
             .willReturn(Arrays.asList("_forbidden_item", "$another$forbidden$item"));
 
         // When

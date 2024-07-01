@@ -34,6 +34,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
  * Plugin compute graph of object group
  */
 public class ObjectGroupGraphComputePlugin extends AbstractGraphComputePlugin {
+
     private static final String OBJECT_GROUP_GRAPH_COMPUTE = "OBJECT_GROUP_GRAPH_COMPUTE";
 
     public ObjectGroupGraphComputePlugin() {
@@ -53,6 +54,4 @@ public class ObjectGroupGraphComputePlugin extends AbstractGraphComputePlugin {
     String getPluginKeyName() {
         return OBJECT_GROUP_GRAPH_COMPUTE;
     }
-
-
 }

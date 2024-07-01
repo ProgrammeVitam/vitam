@@ -67,33 +67,31 @@ public class BucketTopologyHelper {
     private final Set<String> fileBucketIdsToKeepForeverInCache;
 
     public BucketTopologyHelper(TapeLibraryTopologyConfiguration configuration) {
-
         Map<String, FileBucketConfiguration> fileBuckets = getFileBucketsConfigurationOrDefault(configuration);
         validateFileBuckets(fileBuckets);
 
         validateBucketConfiguration(configuration);
 
-        Map<String, List<Integer>> buckets = configuration.getBuckets()
+        Map<String, List<Integer>> buckets = configuration
+            .getBuckets()
             .entrySet()
             .stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().getTenants()
-            ));
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getTenants()));
 
         // Load map
-        Map<DataCategory, String> dataCategoryToFileBucketMap =
-            Arrays.stream(DataCategory.values())
-                .collect(
-                    Collectors.toMap(
-                        dataCategory -> dataCategory,
-                        dataCategory -> fileBuckets.entrySet().stream()
-                            .filter(entry -> entry.getValue().getDataCategories().contains(dataCategory.getFolder()))
-                            .map(Map.Entry::getKey)
-                            .findFirst()
-                            .orElse(DEFAULT)
-                    )
-                );
+        Map<DataCategory, String> dataCategoryToFileBucketMap = Arrays.stream(DataCategory.values()).collect(
+            Collectors.toMap(
+                dataCategory -> dataCategory,
+                dataCategory ->
+                    fileBuckets
+                        .entrySet()
+                        .stream()
+                        .filter(entry -> entry.getValue().getDataCategories().contains(dataCategory.getFolder()))
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                        .orElse(DEFAULT)
+            )
+        );
 
         Map<Pair<Integer, DataCategory>, String> containerToFileBucketMap = new HashMap<>();
         Map<String, String> fileBucketIdToBucketMap = new HashMap<>();
@@ -101,8 +99,6 @@ public class BucketTopologyHelper {
         for (Map.Entry<String, List<Integer>> bucketEntry : buckets.entrySet()) {
             String bucketId = bucketEntry.getKey();
             for (Integer tenant : bucketEntry.getValue()) {
-
-
                 for (DataCategory dataCategory : DataCategory.values()) {
                     String fileBucketId = getFileBucketId(bucketId, dataCategoryToFileBucketMap.get(dataCategory));
 
@@ -114,11 +110,11 @@ public class BucketTopologyHelper {
         this.containerToFileBucketMap = MapUtils.unmodifiableMap(containerToFileBucketMap);
         this.fileBucketToBucketMap = MapUtils.unmodifiableMap(fileBucketIdToBucketMap);
 
-        this.tarBufferingTimeoutInMinutesByBucketId = configuration.getBuckets().entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> entry.getValue().getTarBufferingTimeoutInMinutes()
-            ));
+        this.tarBufferingTimeoutInMinutesByBucketId = configuration
+            .getBuckets()
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getTarBufferingTimeoutInMinutes()));
 
         // fileBucketIds to keep forever in cache
         Set<String> fileBucketIdToKeepForeverInCache = new HashSet<>();
@@ -142,8 +138,8 @@ public class BucketTopologyHelper {
     }
 
     private Map<String, FileBucketConfiguration> getFileBucketsConfigurationOrDefault(
-        TapeLibraryTopologyConfiguration configuration) {
-
+        TapeLibraryTopologyConfiguration configuration
+    ) {
         if (configuration == null) {
             throw new VitamRuntimeException("Invalid conf. Missing file-bucket topology configuration");
         }
@@ -153,24 +149,24 @@ public class BucketTopologyHelper {
         // Default file bucket configuration
         if (fileBuckets == null) {
             fileBuckets = ImmutableMap.of(
-                "metadata", new FileBucketConfiguration()
+                "metadata",
+                new FileBucketConfiguration()
                     .setDataCategories(
-                        Arrays.asList(DataCategory.UNIT.getFolder(), DataCategory.OBJECTGROUP.getFolder()))
+                        Arrays.asList(DataCategory.UNIT.getFolder(), DataCategory.OBJECTGROUP.getFolder())
+                    )
                     .setKeepForeverInCache(true),
-                "objects", new FileBucketConfiguration()
+                "objects",
+                new FileBucketConfiguration()
                     .setDataCategories(Collections.singletonList(DataCategory.OBJECT.getFolder()))
                     .setKeepForeverInCache(false),
-                DEFAULT, new FileBucketConfiguration()
-                    .setDataCategories(Collections.emptyList())
-                    .setKeepForeverInCache(true)
+                DEFAULT,
+                new FileBucketConfiguration().setDataCategories(Collections.emptyList()).setKeepForeverInCache(true)
             );
         }
         return fileBuckets;
     }
 
-    private void validateFileBuckets(Map<String, FileBucketConfiguration> fileBuckets)
-        throws VitamRuntimeException {
-
+    private void validateFileBuckets(Map<String, FileBucketConfiguration> fileBuckets) throws VitamRuntimeException {
         /*
          * Validate file buckets :
          *   - Named file buckets with distinct & non-empty data categories
@@ -191,25 +187,29 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Null file bucket configuration");
         }
 
-        if (fileBuckets.values().stream()
-            .map(FileBucketConfiguration::getDataCategories)
-            .anyMatch(Objects::isNull)) {
+        if (fileBuckets.values().stream().map(FileBucketConfiguration::getDataCategories).anyMatch(Objects::isNull)) {
             throw new VitamRuntimeException("Null file bucket data categories");
         }
 
-        if (fileBuckets.values().stream()
-            .map(FileBucketConfiguration::getKeepForeverInCache)
-            .anyMatch(Objects::isNull)) {
+        if (
+            fileBuckets.values().stream().map(FileBucketConfiguration::getKeepForeverInCache).anyMatch(Objects::isNull)
+        ) {
             throw new VitamRuntimeException("Missing file bucket cache configuration");
         }
 
-        if (fileBuckets.values().stream()
-            .map(FileBucketConfiguration::getDataCategories)
-            .anyMatch(dataCategories -> dataCategories.contains(null))) {
+        if (
+            fileBuckets
+                .values()
+                .stream()
+                .map(FileBucketConfiguration::getDataCategories)
+                .anyMatch(dataCategories -> dataCategories.contains(null))
+        ) {
             throw new VitamRuntimeException("Null file bucket data categories");
         }
 
-        Stream<String> fileBucketDataCategories = fileBuckets.values().stream()
+        Stream<String> fileBucketDataCategories = fileBuckets
+            .values()
+            .stream()
             .map(FileBucketConfiguration::getDataCategories)
             .flatMap(Collection::stream);
         if (hasDuplicates(fileBucketDataCategories)) {
@@ -220,11 +220,11 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Expecting default file bucket with empty set");
         }
 
-        Set<String> folderNames =
-            Arrays.stream(DataCategory.values()).map(DataCategory::getFolder).collect(Collectors.toSet());
+        Set<String> folderNames = Arrays.stream(DataCategory.values())
+            .map(DataCategory::getFolder)
+            .collect(Collectors.toSet());
 
         for (Map.Entry<String, FileBucketConfiguration> entry : fileBuckets.entrySet()) {
-
             boolean isDefault = DEFAULT.equals(entry.getKey());
             if (!isDefault && entry.getValue().getDataCategories().isEmpty()) {
                 throw new VitamRuntimeException("Expected non empty file bucket configuration " + entry.getKey());
@@ -240,7 +240,6 @@ public class BucketTopologyHelper {
 
     private void validateBucketConfiguration(TapeLibraryTopologyConfiguration configuration)
         throws VitamRuntimeException {
-
         /*
          * Validate bucket :
          *   - buckets must be distinct sets & non-empty
@@ -265,9 +264,11 @@ public class BucketTopologyHelper {
             }
         }
 
-        if (hasDuplicates(buckets.values().stream()
-            .map(TapeLibraryBucketConfiguration::getTenants)
-            .flatMap(Collection::stream))) {
+        if (
+            hasDuplicates(
+                buckets.values().stream().map(TapeLibraryBucketConfiguration::getTenants).flatMap(Collection::stream)
+            )
+        ) {
             throw new VitamRuntimeException("Duplicates found in file bucket configuration");
         }
 
@@ -275,7 +276,9 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Reserved " + BACKUP_BUCKET + " bucket");
         }
 
-        Set<Integer> fileBucketTenants = buckets.values().stream()
+        Set<Integer> fileBucketTenants = buckets
+            .values()
+            .stream()
             .map(TapeLibraryBucketConfiguration::getTenants)
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
@@ -315,10 +318,13 @@ public class BucketTopologyHelper {
     }
 
     public Set<String> listContainerNames(String fileBucketId) {
-        return this.containerToFileBucketMap.entrySet().stream()
+        return this.containerToFileBucketMap.entrySet()
+            .stream()
             .filter(entry -> entry.getValue().equals(fileBucketId))
-            .map(entry -> ContainerUtils
-                .buildContainerName(entry.getKey().getRight(), entry.getKey().getLeft().toString()))
+            .map(
+                entry ->
+                    ContainerUtils.buildContainerName(entry.getKey().getRight(), entry.getKey().getLeft().toString())
+            )
             .collect(Collectors.toSet());
     }
 

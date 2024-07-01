@@ -53,7 +53,6 @@ public final class VitamMetricsNames {
      */
     public static final String VITAM_RESPONSES_SIZE_BYTES = "vitam_responses_size_bytes";
 
-
     /**
      * Vitam storage upload objects to offers size in bytes per tenant, strategy, offer_id, data_category, origin (normal, bulk, offer_sync), and per attempt
      * Type: Summary
@@ -68,14 +67,12 @@ public final class VitamMetricsNames {
      */
     public static final String VITAM_STORAGE_DOWNLOAD_SIZE_BYTES = "vitam_storage_download_size_bytes";
 
-
     /**
      * Vitam alert service counter per log_level
      * Type: Counter
      * Labels: "log_level"
      */
     public static final String VITAM_ALERT_COUNTER = "vitam_alert_count";
-
 
     /**
      * Vitam consistency errors counter
@@ -104,7 +101,6 @@ public final class VitamMetricsNames {
      */
     public static final String VITAM_PROCESSING_WORKER_TASK_IN_QUEUE_TOTAL =
         "vitam_processing_worker_task_in_queue_total";
-
 
     /**
      * Current number of worker tasks instantiated by the distributor. In queue or waiting to be added to the queue
@@ -137,7 +133,6 @@ public final class VitamMetricsNames {
     public static final String VITAM_PROCESSING_WORKER_TASK_IDLE_DURATION_IN_QUEUE_SECONDS =
         "vitam_processing_worker_task_idle_duration_in_queue_seconds";
 
-
     /**
      * ProcessWorkflow step execution duration. From call of distributor until receiving the response
      * Type: Histogram
@@ -145,7 +140,6 @@ public final class VitamMetricsNames {
      */
     public static final String VITAM_PROCESSING_WORKFLOW_STEP_EXECUTION_DURATION_SECONDS =
         "vitam_processing_workflow_step_execution_duration_seconds";
-
 
     /*
      * =================================
@@ -195,14 +189,16 @@ public final class VitamMetricsNames {
      * Type: Gauge
      * Labels: "tenant", "collection" ("unit" or "objectgroup"), strategy
      */
-    public static final String VITAM_METADATA_RECONSTRUCTION_LATENCY_SECONDS = "vitam_metadata_reconstruction_metadata_latency_seconds";
+    public static final String VITAM_METADATA_RECONSTRUCTION_LATENCY_SECONDS =
+        "vitam_metadata_reconstruction_metadata_latency_seconds";
 
     /**
      * Vitam metadata graph reconstruction latency (is seconds)
      * Type: Gauge
      * Labels: "collection" ("unit" or "objectgroup")
      */
-    public static final String VITAM_METADATA_GRAPH_RECONSTRUCTION_LATENCY_SECONDS = "vitam_metadata_reconstruction_graph_latency_seconds";
+    public static final String VITAM_METADATA_GRAPH_RECONSTRUCTION_LATENCY_SECONDS =
+        "vitam_metadata_reconstruction_graph_latency_seconds";
 
     /**
      * Vitam metadata reconstruction histogram metric
@@ -222,7 +218,8 @@ public final class VitamMetricsNames {
      * Type: Gauge
      * Labels: "tenant", "collection" (supported collections: "accessionregisterdetail" & "accessionregistersymbolic")
      */
-    public static final String VITAM_FUNCTIONAL_ADMINISTRATION_RECONSTRUCTION_LATENCY_SECONDS = "vitam_functional_administration_reconstruction_latency_seconds";
+    public static final String VITAM_FUNCTIONAL_ADMINISTRATION_RECONSTRUCTION_LATENCY_SECONDS =
+        "vitam_functional_administration_reconstruction_latency_seconds";
 
     /*
      * =================================
@@ -235,7 +232,8 @@ public final class VitamMetricsNames {
      * Type: Gauge
      * Labels: "tenant"
      */
-    public static final String VITAM_LOGBOOK_OPERATION_RECONSTRUCTION_LATENCY_SECONDS = "vitam_logbook_reconstruction_operation_latency_seconds";
+    public static final String VITAM_LOGBOOK_OPERATION_RECONSTRUCTION_LATENCY_SECONDS =
+        "vitam_logbook_reconstruction_operation_latency_seconds";
 
     /*
      * =================================
@@ -337,7 +335,6 @@ public final class VitamMetricsNames {
     public static final String VITAM_TAPE_OFFER_COUNT_RUNNING_READ_ORDERS =
         "vitam_offer_tape_read_orders_running_count";
 
-
     /**
      * Number of read orders with ERROR state
      * Type: Gauge
@@ -404,14 +401,12 @@ public final class VitamMetricsNames {
      * Type: Gauge
      * Labels: "bucket"
      */
-    public static final String VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_SIZE =
-        "vitam_offer_tape_input_files_size";
+    public static final String VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_SIZE = "vitam_offer_tape_input_files_size";
 
     /**
      * Number of input files queued for archival
      * Type: Gauge
      * Labels: "bucket"
      */
-    public static final String VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_COUNT =
-        "vitam_offer_tape_input_files_count";
+    public static final String VITAM_TAPE_OFFER_QUEUED_INPUT_FILES_COUNT = "vitam_offer_tape_input_files_count";
 }

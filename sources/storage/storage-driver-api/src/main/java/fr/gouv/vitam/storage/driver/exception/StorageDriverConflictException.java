@@ -63,5 +63,4 @@ public class StorageDriverConflictException extends StorageDriverException {
     public StorageDriverConflictException(String driverInfos, Throwable cause) {
         super(driverInfos, false, cause);
     }
-
 }

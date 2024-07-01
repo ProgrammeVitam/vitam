@@ -36,7 +36,6 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestExcep
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.InternalActionKeysRetriever;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -46,7 +45,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
-import fr.gouv.vitam.metadata.api.utils.BulkAtomicUpdateModelUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.common.bulkatomicupdate.BulkSelectQueryParallelProcessor;
@@ -73,8 +71,11 @@ public class BulkAtomicUpdateMetadataService {
     private final int threadPoolQueueSize;
     private final int batchSize;
 
-    public BulkAtomicUpdateMetadataService(MetadataRepository metadataRepository,
-        MetaDataClientFactory metadataClientFactory, CollectInternalConfiguration configuration) {
+    public BulkAtomicUpdateMetadataService(
+        MetadataRepository metadataRepository,
+        MetaDataClientFactory metadataClientFactory,
+        CollectInternalConfiguration configuration
+    ) {
         this.metadataRepository = metadataRepository;
         this.metadataClientFactory = metadataClientFactory;
         threadPoolSize = configuration.getBulkAtomicUpdateThreadPoolSize();
@@ -82,21 +83,24 @@ public class BulkAtomicUpdateMetadataService {
         batchSize = configuration.getBulkAtomicUpdateBatchSize();
     }
 
-    public List<BulkAtomicUpdateResult> bulkAtomicUpdateUnits(String transactionId, ArrayNode queries,
-        boolean allowInternalFieldsUpdate)
-        throws CollectInternalException {
-
+    public List<BulkAtomicUpdateResult> bulkAtomicUpdateUnits(
+        String transactionId,
+        ArrayNode queries,
+        boolean allowInternalFieldsUpdate
+    ) throws CollectInternalException {
         try {
-
             BulkAtomicUpdateReportAppender reportAppender = new BulkAtomicUpdateReportAppender();
 
-            List<BulkSelectQueryResultOK> selectQueryResults
-                = selectUnitIdsPerUpdateQueries(transactionId, reportAppender, queries, allowInternalFieldsUpdate);
+            List<BulkSelectQueryResultOK> selectQueryResults = selectUnitIdsPerUpdateQueries(
+                transactionId,
+                reportAppender,
+                queries,
+                allowInternalFieldsUpdate
+            );
 
             processUpdate(selectQueryResults, reportAppender);
 
             return reportAppender.exportResults();
-
         } catch (InvalidParseOperationException e) {
             throw new CollectInternalInvalidRequestException(e);
         }
@@ -106,34 +110,38 @@ public class BulkAtomicUpdateMetadataService {
         String transactionId,
         BulkAtomicUpdateReportAppender reportAppender,
         ArrayNode queries,
-        boolean allowInternalFieldsUpdate) throws CollectInternalInvalidRequestException {
-
+        boolean allowInternalFieldsUpdate
+    ) throws CollectInternalInvalidRequestException {
         List<BulkSelectQueryResultOK> selectUnitIdsResults = new ArrayList<>();
 
         try (MetaDataClient metadataClient = metadataClientFactory.getClient()) {
-            BulkSelectQueryParallelProcessor bulkSelectQueryParallelProcessor =
-                new BulkSelectQueryParallelProcessor(
-                    metadataClient, new InternalActionKeysRetriever(),
-                    threadPoolSize, threadPoolQueueSize, batchSize,
-                    selectUnitIdsResults::add,
-                    createFailureResultReportAppender(reportAppender),
-                    createTransactionIdRestrictionConverter(transactionId),
-                    allowInternalFieldsUpdate);
+            BulkSelectQueryParallelProcessor bulkSelectQueryParallelProcessor = new BulkSelectQueryParallelProcessor(
+                metadataClient,
+                new InternalActionKeysRetriever(),
+                threadPoolSize,
+                threadPoolQueueSize,
+                batchSize,
+                selectUnitIdsResults::add,
+                createFailureResultReportAppender(reportAppender),
+                createTransactionIdRestrictionConverter(transactionId),
+                allowInternalFieldsUpdate
+            );
             bulkSelectQueryParallelProcessor.processQueries(queries.iterator());
 
             return selectUnitIdsResults;
-
         } catch (InvalidParseOperationException e) {
             throw new CollectInternalInvalidRequestException("Cannot process bulk atomic update. Invalid request", e);
         }
     }
 
     private static Consumer<BulkSelectQueryResultFailure> createFailureResultReportAppender(
-        BulkAtomicUpdateReportAppender reportAppender) {
-        return (result) -> reportAppender.append(
-            result.getQueryIndex(),
-            new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.KO, null, result.getMessage())
-        );
+        BulkAtomicUpdateReportAppender reportAppender
+    ) {
+        return result ->
+            reportAppender.append(
+                result.getQueryIndex(),
+                new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.KO, null, result.getMessage())
+            );
     }
 
     private static QueryRestrictionConverter createTransactionIdRestrictionConverter(String transactionId) {
@@ -145,22 +153,21 @@ public class BulkAtomicUpdateMetadataService {
         };
     }
 
-
-    private void processUpdate(List<BulkSelectQueryResultOK> selectQueryResults,
-        BulkAtomicUpdateReportAppender reportAppender) throws CollectInternalException, InvalidParseOperationException {
-
-        List<List<BulkSelectQueryResultOK>> selectQueryResultBulks =
-            ListUtils.partition(selectQueryResults, batchSize);
+    private void processUpdate(
+        List<BulkSelectQueryResultOK> selectQueryResults,
+        BulkAtomicUpdateReportAppender reportAppender
+    ) throws CollectInternalException, InvalidParseOperationException {
+        List<List<BulkSelectQueryResultOK>> selectQueryResultBulks = ListUtils.partition(selectQueryResults, batchSize);
 
         for (List<BulkSelectQueryResultOK> selectQueryResultBulk : selectQueryResultBulks) {
             processUpdateBatch(selectQueryResultBulk, reportAppender);
         }
     }
 
-    private void processUpdateBatch(List<BulkSelectQueryResultOK> selectQueryResults,
-        BulkAtomicUpdateReportAppender reportAppender)
-        throws InvalidParseOperationException, CollectInternalException {
-
+    private void processUpdateBatch(
+        List<BulkSelectQueryResultOK> selectQueryResults,
+        BulkAtomicUpdateReportAppender reportAppender
+    ) throws InvalidParseOperationException, CollectInternalException {
         List<JsonNode> updateQueries = new ArrayList<>();
         for (BulkSelectQueryResultOK selectQueryResult : selectQueryResults) {
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
@@ -172,22 +179,27 @@ public class BulkAtomicUpdateMetadataService {
             updateQueries.add(updateQuery);
         }
 
-        RequestResponseOK<JsonNode> atomicBulkResults =
-            (RequestResponseOK<JsonNode>) metadataRepository.atomicBulkUpdate(updateQueries);
+        RequestResponseOK<JsonNode> atomicBulkResults = (RequestResponseOK<
+                JsonNode
+            >) metadataRepository.atomicBulkUpdate(updateQueries);
 
         if (atomicBulkResults.getResults().size() != updateQueries.size()) {
-            LOGGER.error("Invalid response size for " + JsonHandler.unprettyPrint(updateQueries) + ", got : " +
-                JsonHandler.unprettyPrint(atomicBulkResults));
-            throw new IllegalStateException("Expected " + updateQueries.size() + " update results, got " +
-                atomicBulkResults.getResults().size());
+            LOGGER.error(
+                "Invalid response size for " +
+                JsonHandler.unprettyPrint(updateQueries) +
+                ", got : " +
+                JsonHandler.unprettyPrint(atomicBulkResults)
+            );
+            throw new IllegalStateException(
+                "Expected " + updateQueries.size() + " update results, got " + atomicBulkResults.getResults().size()
+            );
         }
 
         List<JsonNode> results = atomicBulkResults.getResults();
         for (int i = 0; i < results.size(); i++) {
             JsonNode result = results.get(i);
             BulkSelectQueryResultOK queryToProcess = selectQueryResults.get(i);
-            RequestResponseOK<UpdateUnit> responseOK =
-                RequestResponseOK.getFromJsonNode(result, UpdateUnit.class);
+            RequestResponseOK<UpdateUnit> responseOK = RequestResponseOK.getFromJsonNode(result, UpdateUnit.class);
 
             UpdateUnit unitUpdateStatus = responseOK.getResults().get(0);
             if (unitUpdateStatus == null) {
@@ -196,15 +208,30 @@ public class BulkAtomicUpdateMetadataService {
 
             StatusCode status = unitUpdateStatus.getStatus();
             if (StatusCode.OK == status) {
-                LOGGER.debug("Unit " + unitUpdateStatus.getUnitId() + " updated successfully !\n" +
-                    unitUpdateStatus.getDiff());
-                reportAppender.append(queryToProcess.getQueryIndex(), new BulkAtomicUpdateResult(
-                    BulkAtomicUpdateStatus.OK, unitUpdateStatus.getUnitId(), null));
+                LOGGER.debug(
+                    "Unit " + unitUpdateStatus.getUnitId() + " updated successfully !\n" + unitUpdateStatus.getDiff()
+                );
+                reportAppender.append(
+                    queryToProcess.getQueryIndex(),
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, unitUpdateStatus.getUnitId(), null)
+                );
             } else {
-                LOGGER.debug("Unit " + unitUpdateStatus.getUnitId() + " update failed with message: " +
-                    unitUpdateStatus.getKey() + " - " + unitUpdateStatus.getMessage());
-                reportAppender.append(queryToProcess.getQueryIndex(), new BulkAtomicUpdateResult(
-                    BulkAtomicUpdateStatus.KO, unitUpdateStatus.getUnitId(), unitUpdateStatus.getMessage()));
+                LOGGER.debug(
+                    "Unit " +
+                    unitUpdateStatus.getUnitId() +
+                    " update failed with message: " +
+                    unitUpdateStatus.getKey() +
+                    " - " +
+                    unitUpdateStatus.getMessage()
+                );
+                reportAppender.append(
+                    queryToProcess.getQueryIndex(),
+                    new BulkAtomicUpdateResult(
+                        BulkAtomicUpdateStatus.KO,
+                        unitUpdateStatus.getUnitId(),
+                        unitUpdateStatus.getMessage()
+                    )
+                );
             }
         }
     }

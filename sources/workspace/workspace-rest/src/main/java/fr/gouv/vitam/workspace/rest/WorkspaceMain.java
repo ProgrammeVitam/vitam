@@ -50,18 +50,25 @@ public class WorkspaceMain {
     private VitamStarter vitamStarter;
 
     public WorkspaceMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(StorageConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            StorageConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class
+        );
     }
 
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
             WorkspaceMain workspaceMain = new WorkspaceMain(args[0]);
             workspaceMain.startAndJoin();

@@ -66,15 +66,16 @@ public class IngestATRStep extends CommonStep {
      * @throws IOException
      */
     @When("je télécharge son fichier ATR")
-    public void download_atr()
-        throws VitamClientException, IOException {
-
+    public void download_atr() throws VitamClientException, IOException {
         removeTemporaryAtrFile();
 
-        Response response = world.getIngestClient()
+        Response response = world
+            .getIngestClient()
             .downloadObjectAsync(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), IngestCollection.ARCHIVETRANSFERREPLY);
+                world.getOperationId(),
+                IngestCollection.ARCHIVETRANSFERREPLY
+            );
         if (response.getStatus() == Status.OK.getStatusCode()) {
             File tempFile = Files.createTempFile("ATR-" + world.getOperationId(), ".xml").toFile();
             try (InputStream inputStream = response.readEntity(InputStream.class)) {
@@ -161,13 +162,12 @@ public class IngestATRStep extends CommonStep {
         String atr = FileUtils.readFileToString(world.getAtrFile().toFile(), StandardCharsets.UTF_8);
 
         // count ending tag and empty tag to ensure there is no attribute in the checked tag
-        int realCount = StringUtils.countMatches(atr, "</" + tag + ">")
-            + StringUtils.countMatches(atr, "<" + tag + "/>");
+        int realCount =
+            StringUtils.countMatches(atr, "</" + tag + ">") + StringUtils.countMatches(atr, "<" + tag + "/>");
 
         if (realCount != count) {
             LOGGER.error(String.format("expected %d tags %s but was %d", count, tag, realCount));
             fail(String.format("expected %d tags %s but was %d", count, tag, realCount));
-
         }
     }
 
@@ -200,7 +200,6 @@ public class IngestATRStep extends CommonStep {
     public void atr_contains_physical_objects(int nbPhysicalObjects) throws IOException {
         atr_contains_n_times_the_tag(nbPhysicalObjects, "PhysicalDataObject");
     }
-
 
     private void removeTemporaryAtrFile() {
         if (world.getAtrFile() != null) {

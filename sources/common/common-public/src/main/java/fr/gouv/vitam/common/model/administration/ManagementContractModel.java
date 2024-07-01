@@ -43,7 +43,6 @@ public class ManagementContractModel extends AbstractContractModel {
     @JsonProperty("Storage")
     private StorageDetailModel storage;
 
-
     @JsonProperty("VersionRetentionPolicy")
     private VersionRetentionPolicyModel versionRetentionPolicy;
 
@@ -76,8 +75,7 @@ public class ManagementContractModel extends AbstractContractModel {
         return persistentIdentifierPolicyList;
     }
 
-    public void setPersistentIdentifierPolicyList(
-        List<PersistentIdentifierPolicy> persistentIdentifierPolicyList) {
+    public void setPersistentIdentifierPolicyList(List<PersistentIdentifierPolicy> persistentIdentifierPolicyList) {
         this.persistentIdentifierPolicyList = persistentIdentifierPolicyList;
     }
 }

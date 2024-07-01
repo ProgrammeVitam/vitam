@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 public class PreservationStatsModel {
+
     @JsonProperty("nbUnits")
     private int nbUnits;
 
@@ -58,9 +59,17 @@ public class PreservationStatsModel {
     @JsonProperty("analyseResults")
     private Map<String, Integer> analyseResults;
 
-    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnalyse,
+    public PreservationStatsModel(
+        int nbUnits,
+        int nbObjectGroups,
+        int nbStatusKos,
+        int nbActionsAnalyse,
         int nbActionsGenerate,
-        int nbActionsIdentify, int nbActionsExtract, Map<String, Integer> analyseResults, int nbStatusWarning) {
+        int nbActionsIdentify,
+        int nbActionsExtract,
+        Map<String, Integer> analyseResults,
+        int nbStatusWarning
+    ) {
         this.nbUnits = nbUnits;
         this.nbObjectGroups = nbObjectGroups;
         this.nbStatusKos = nbStatusKos;

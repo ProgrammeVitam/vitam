@@ -57,6 +57,7 @@ import java.util.stream.Stream;
  * find and populates workflow java object
  */
 public class ProcessPopulator {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessPopulator.class);
 
     private static final String WORKFLOWS_FOLDER = "workflows/";
@@ -107,7 +108,6 @@ public class ProcessPopulator {
         }
 
         LOGGER.debug("Found " + workflowFiles.size() + " workflow resource files: " + workflowFiles);
-
 
         for (String workflowFile : workflowFiles) {
             try {
@@ -188,7 +188,6 @@ public class ProcessPopulator {
 
         // add the parsed workflow object
         if (workflow.isPresent()) {
-
             String wfId = workflow.get().getId();
 
             LOGGER.debug("Parsed workflow with id " + wfId);
@@ -225,6 +224,5 @@ public class ProcessPopulator {
             LOGGER.error(workflowFile, e);
             return Optional.empty();
         }
-
     }
 }

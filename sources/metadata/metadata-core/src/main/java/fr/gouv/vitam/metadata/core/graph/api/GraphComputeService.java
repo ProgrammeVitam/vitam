@@ -38,8 +38,6 @@ import java.util.Collection;
  * Zip generated files and store the zipped file in the offer.
  */
 public interface GraphComputeService {
-
-
     /**
      * If workflow of compute graph in progress, do not execute this method
      * Should be exposed in the API
@@ -47,7 +45,6 @@ public interface GraphComputeService {
      * @return the map of collection:number of treated documents
      */
     GraphComputeResponse computeGraph(JsonNode queryDSL) throws MetaDataException;
-
 
     /**
      * Compute graph for unit/got from all parents
@@ -60,8 +57,12 @@ public interface GraphComputeService {
      * This collection contains got's id of concerning units.
      * Empty collection is returned if computeGraph of object group.
      */
-    GraphComputeResponse computeGraph(MetadataCollections metadataCollections, Collection<String> unitsId,
-        boolean computeObjectGroupGraph, boolean invalidateComputedInheritedRules);
+    GraphComputeResponse computeGraph(
+        MetadataCollections metadataCollections,
+        Collection<String> unitsId,
+        boolean computeObjectGroupGraph,
+        boolean invalidateComputedInheritedRules
+    );
 
     boolean isInProgress();
 }

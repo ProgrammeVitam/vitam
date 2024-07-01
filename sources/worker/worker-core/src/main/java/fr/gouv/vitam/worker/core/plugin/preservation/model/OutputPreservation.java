@@ -36,29 +36,39 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonInclude(NON_NULL)
 public class OutputPreservation {
+
     @JsonProperty("Result")
     private String result;
+
     @JsonProperty("Error")
     private String error;
+
     @JsonProperty("Executed")
     private String executed;
+
     @JsonProperty("Input")
     private InputPreservation input;
+
     @JsonProperty("OutputName")
     private String outputName;
+
     @JsonProperty("Status")
     private PreservationStatus status;
+
     @JsonProperty("AnalyseResult")
     private String analyseResult;
+
     @JsonProperty("Action")
     private ActionTypePreservation action;
+
     @JsonProperty("FormatIdentification")
     private DbFormatIdentificationModel formatIdentification;
+
     @JsonProperty("ExtractedMetadata")
     private ExtractedMetadata extractedMetadata;
+
     @JsonProperty("ExtractedMetadataAU")
     private ExtractedMetadataForAu extractedMetadataAU;
-
 
     public OutputPreservation() {
         // Empty constructor for deserialization
@@ -154,17 +164,34 @@ public class OutputPreservation {
 
     @Override
     public String toString() {
-        return "OutputPreservation{" +
-            "result='" + result + '\'' +
-            ", error='" + error + '\'' +
-            ", executed='" + executed + '\'' +
-            ", input=" + input +
-            ", outputName='" + outputName + '\'' +
-            ", status=" + status +
-            ", analyseResult='" + analyseResult + '\'' +
-            ", action=" + action +
-            ", formatIdentification=" + formatIdentification +
-            ", extractedMetadata=" + extractedMetadata +
-            '}';
+        return (
+            "OutputPreservation{" +
+            "result='" +
+            result +
+            '\'' +
+            ", error='" +
+            error +
+            '\'' +
+            ", executed='" +
+            executed +
+            '\'' +
+            ", input=" +
+            input +
+            ", outputName='" +
+            outputName +
+            '\'' +
+            ", status=" +
+            status +
+            ", analyseResult='" +
+            analyseResult +
+            '\'' +
+            ", action=" +
+            action +
+            ", formatIdentification=" +
+            formatIdentification +
+            ", extractedMetadata=" +
+            extractedMetadata +
+            '}'
+        );
     }
 }

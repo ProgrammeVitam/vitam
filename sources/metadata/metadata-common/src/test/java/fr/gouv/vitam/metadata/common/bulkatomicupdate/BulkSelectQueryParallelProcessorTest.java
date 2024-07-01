@@ -61,7 +61,6 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
@@ -75,8 +74,10 @@ import static org.mockito.Mockito.verify;
 public class BulkSelectQueryParallelProcessorTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -84,17 +85,14 @@ public class BulkSelectQueryParallelProcessorTest {
     private MetaDataClient metadataClient;
 
     @Before
-    public void setUp() throws Exception {
-    }
+    public void setUp() throws Exception {}
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     @RunWithCustomExecutor
     @Test
     public void testProcessSingleQuery() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -110,13 +108,19 @@ public class BulkSelectQueryParallelProcessorTest {
         QueryRestrictionConverter queryRestrictionConverter = mock(QueryRestrictionConverter.class);
         doAnswer(args -> args.getArgument(0)).when(queryRestrictionConverter).convert(any());
 
-        doReturn(List.of(new RequestResponseOK<JsonNode>().addResult(
-            JsonHandler.createObjectNode().put("#id", "unitId1")
-        ))).when(metadataClient).selectUnitsBulk(anyList());
+        doReturn(
+            List.of(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode().put("#id", "unitId1")))
+        )
+            .when(metadataClient)
+            .selectUnitsBulk(anyList());
 
         // When
         BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
-            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
+            metadataClient,
+            new InternalActionKeysRetriever(),
+            2,
+            4,
+            10,
             successResults::add,
             failureResults::add,
             queryRestrictionConverter,
@@ -137,7 +141,6 @@ public class BulkSelectQueryParallelProcessorTest {
     @RunWithCustomExecutor
     @Test
     public void testProcessSingleQueryForbidInternalFields() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -155,7 +158,11 @@ public class BulkSelectQueryParallelProcessorTest {
 
         // When
         BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
-            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
+            metadataClient,
+            new InternalActionKeysRetriever(),
+            2,
+            4,
+            10,
             successResults::add,
             failureResults::add,
             queryRestrictionConverter,
@@ -168,8 +175,9 @@ public class BulkSelectQueryParallelProcessorTest {
 
         assertThat(failureResults).hasSize(1);
         assertThat(failureResults.get(0)).extracting(BulkSelectQueryResultFailure::getQueryIndex).isEqualTo(0);
-        assertThat(failureResults.get(0)).extracting(BulkSelectQueryResultFailure::getMessage).isEqualTo(
-            "Invalid DSL query: cannot contains internal field(s) : '#originating_agency'");
+        assertThat(failureResults.get(0))
+            .extracting(BulkSelectQueryResultFailure::getMessage)
+            .isEqualTo("Invalid DSL query: cannot contains internal field(s) : '#originating_agency'");
 
         verify(queryRestrictionConverter, never()).convert(any());
 
@@ -179,7 +187,6 @@ public class BulkSelectQueryParallelProcessorTest {
     @RunWithCustomExecutor
     @Test
     public void testProcessSingleQueryAllowInternalFields() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -195,13 +202,19 @@ public class BulkSelectQueryParallelProcessorTest {
         QueryRestrictionConverter queryRestrictionConverter = mock(QueryRestrictionConverter.class);
         doAnswer(args -> args.getArgument(0)).when(queryRestrictionConverter).convert(any());
 
-        doReturn(List.of(new RequestResponseOK<JsonNode>().addResult(
-            JsonHandler.createObjectNode().put("#id", "unitId1")
-        ))).when(metadataClient).selectUnitsBulk(anyList());
+        doReturn(
+            List.of(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode().put("#id", "unitId1")))
+        )
+            .when(metadataClient)
+            .selectUnitsBulk(anyList());
 
         // When
         BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
-            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
+            metadataClient,
+            new InternalActionKeysRetriever(),
+            2,
+            4,
+            10,
             successResults::add,
             failureResults::add,
             queryRestrictionConverter,
@@ -222,13 +235,12 @@ public class BulkSelectQueryParallelProcessorTest {
     @RunWithCustomExecutor
     @Test
     public void testProcessMultipleQueriesComplex() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
 
         // Complex query set:
-        //  For query with queryIndex = 13 ==> Invalid request (#internal_field) 
+        //  For query with queryIndex = 13 ==> Invalid request (#internal_field)
         //  For queries with even queryIndex (0, 2, 4, ...24) ==> OK
         //  For queries with odd queryIndex (1, 3, ... 23)    ==> not found
         List<JsonNode> queries = new ArrayList<>();
@@ -251,11 +263,12 @@ public class BulkSelectQueryParallelProcessorTest {
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(args.getArgument(0));
             Query query = parser.getRequest().getQueries().get(0);
-            Query newQuery = QueryHelper.and()
-                .add(query, QueryHelper.eq("#opi", "opi"));
+            Query newQuery = QueryHelper.and().add(query, QueryHelper.eq("#opi", "opi"));
             parser.getRequest().getQueries().set(0, newQuery);
             return parser.getRequest().getFinalSelect();
-        }).when(queryRestrictionConverter).convert(any());
+        })
+            .when(queryRestrictionConverter)
+            .convert(any());
 
         doAnswer(args -> {
             List<RequestResponseOK<JsonNode>> responses = new ArrayList<>();
@@ -264,18 +277,27 @@ public class BulkSelectQueryParallelProcessorTest {
                 String unitId = query.get("$query").get(0).get("$and").get(0).get("$eq").get("#id").asText();
                 int queryIndex = Integer.parseInt(StringUtils.substringAfter(unitId, "unitId"));
                 if (queryIndex % 2 == 0) {
-                    responses.add(new RequestResponseOK<JsonNode>().addResult(
-                        JsonHandler.createObjectNode().put("#id", "unitId" + queryIndex)));
+                    responses.add(
+                        new RequestResponseOK<JsonNode>().addResult(
+                            JsonHandler.createObjectNode().put("#id", "unitId" + queryIndex)
+                        )
+                    );
                 } else {
                     responses.add(new RequestResponseOK<>());
                 }
             }
             return responses;
-        }).when(metadataClient).selectUnitsBulk(anyList());
+        })
+            .when(metadataClient)
+            .selectUnitsBulk(anyList());
 
         // When
         BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
-            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
+            metadataClient,
+            new InternalActionKeysRetriever(),
+            2,
+            4,
+            10,
             successResults::add,
             failureResults::add,
             queryRestrictionConverter,
@@ -285,21 +307,28 @@ public class BulkSelectQueryParallelProcessorTest {
 
         // Then
         assertThat(successResults).hasSize(13);
-        assertThat(successResults).extracting(BulkSelectQueryResultOK::getQueryIndex).containsExactlyInAnyOrder(
-            IntStream.iterate(0, i -> i < 25, i -> i + 2).boxed().toArray(Integer[]::new));
-        assertThat(successResults).extracting(BulkSelectQueryResultOK::getUnitId).containsExactlyInAnyOrder(
-            IntStream.iterate(0, i -> i < 25, i -> i + 2).mapToObj(i -> "unitId" + i).toArray(String[]::new));
+        assertThat(successResults)
+            .extracting(BulkSelectQueryResultOK::getQueryIndex)
+            .containsExactlyInAnyOrder(IntStream.iterate(0, i -> i < 25, i -> i + 2).boxed().toArray(Integer[]::new));
+        assertThat(successResults)
+            .extracting(BulkSelectQueryResultOK::getUnitId)
+            .containsExactlyInAnyOrder(
+                IntStream.iterate(0, i -> i < 25, i -> i + 2).mapToObj(i -> "unitId" + i).toArray(String[]::new)
+            );
 
         assertThat(failureResults).hasSize(12);
-        assertThat(failureResults).extracting(BulkSelectQueryResultFailure::getQueryIndex).containsExactlyInAnyOrder(
-            IntStream.iterate(1, i -> i < 25, i -> i + 2).boxed().toArray(Integer[]::new));
+        assertThat(failureResults)
+            .extracting(BulkSelectQueryResultFailure::getQueryIndex)
+            .containsExactlyInAnyOrder(IntStream.iterate(1, i -> i < 25, i -> i + 2).boxed().toArray(Integer[]::new));
         for (BulkSelectQueryResultFailure failureResult : failureResults) {
             if (failureResult.getQueryIndex() == 13) {
                 assertThat(failureResult.getBulkUpdateUnitReportKey()).isEqualTo(
-                    BulkUpdateUnitReportKey.INVALID_DSL_QUERY);
+                    BulkUpdateUnitReportKey.INVALID_DSL_QUERY
+                );
             } else {
                 assertThat(failureResult.getBulkUpdateUnitReportKey()).isEqualTo(
-                    BulkUpdateUnitReportKey.UNIT_NOT_FOUND);
+                    BulkUpdateUnitReportKey.UNIT_NOT_FOUND
+                );
             }
         }
 
@@ -310,7 +339,8 @@ public class BulkSelectQueryParallelProcessorTest {
         ArgumentCaptor<List<JsonNode>> queryArgumentCaptor = ArgumentCaptor.forClass(List.class);
         verify(metadataClient, times(3)).selectUnitsBulk(queryArgumentCaptor.capture());
 
-        queryArgumentCaptor.getAllValues()
+        queryArgumentCaptor
+            .getAllValues()
             .stream()
             .flatMap(Collection::stream)
             .forEach(q -> assertThat(q.get("$query").get(0).get("$and").get(1).get("$eq").get("#opi")).isNotNull());
@@ -319,7 +349,6 @@ public class BulkSelectQueryParallelProcessorTest {
     @RunWithCustomExecutor
     @Test
     public void testProcessSingleQueryWithInternalServerError() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -333,13 +362,16 @@ public class BulkSelectQueryParallelProcessorTest {
         doThrow(new MetaDataClientServerException("prb")).when(metadataClient).selectUnitsBulk(anyList());
 
         BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
-            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
-            result -> {
-            },
-            result -> {
-            },
+            metadataClient,
+            new InternalActionKeysRetriever(),
+            2,
+            4,
+            10,
+            result -> {},
+            result -> {},
             dslQuery -> dslQuery,
-            false);
+            false
+        );
 
         // When
 

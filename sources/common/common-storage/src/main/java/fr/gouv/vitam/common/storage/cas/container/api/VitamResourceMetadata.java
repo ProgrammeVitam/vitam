@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-
-
 import java.net.URI;
 import java.util.Map;
 
@@ -37,7 +35,6 @@ import java.util.Map;
  * @param <T> the VitamResourceMetadata
  */
 public interface VitamResourceMetadata<T extends Enum<T>> extends Comparable<VitamResourceMetadata<T>> {
-
     /**
      * Whether this resource is a container, file, node, queue, etc.
      */
@@ -72,6 +69,4 @@ public interface VitamResourceMetadata<T extends Enum<T>> extends Comparable<Vit
      * Any key-value pairs associated with the resource.
      */
     Map<String, String> getUserMetadata();
-
-
 }

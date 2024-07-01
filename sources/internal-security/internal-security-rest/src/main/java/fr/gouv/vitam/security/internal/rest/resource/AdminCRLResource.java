@@ -44,8 +44,7 @@ public class AdminCRLResource {
 
     private final CRLService crlService;
 
-    public AdminCRLResource(
-        CRLService crlService) {
+    public AdminCRLResource(CRLService crlService) {
         this.crlService = crlService;
     }
 
@@ -58,7 +57,6 @@ public class AdminCRLResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public void checkIdentityWithCRL(byte[] crlCertificate)
         throws InvalidParseOperationException, CertificateException, CRLException {
-
         ParametersChecker.checkParameter("CRL certificate cannot be null", crlCertificate);
         crlService.checkIdentityWithCRL(crlCertificate);
     }

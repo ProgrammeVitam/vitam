@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.common.exception;
 
 public class AdminManagementClientBadRequestException extends AdminManagementClientServerException {
+
     public AdminManagementClientBadRequestException(String message) {
         super(message);
     }

@@ -71,6 +71,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
 public class EvidenceAuditPrepare extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditPrepare.class);
 
     private static final String EVIDENCE_AUDIT_LIST_OBJECT = "EVIDENCE_AUDIT_LIST_OBJECT";
@@ -95,8 +96,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT);
         JsonNode options = handlerIO.getJsonFromWorkspace("evidenceOptions");
         boolean correctiveAudit = options.get("correctiveOption").booleanValue();
@@ -116,8 +116,12 @@ public class EvidenceAuditPrepare extends ActionHandler {
         Response response = null;
         try (StorageClient client = storageClientFactory.getClient()) {
             String name = operationId + ".jsonl";
-            response = client.getContainerAsync(VitamConfiguration.getDefaultStrategy(), name, DataCategory.REPORT,
-                AccessLogUtils.getNoLogAccessLog());
+            response = client.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                name,
+                DataCategory.REPORT,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             inputStream = (InputStream) response.getEntity();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -136,7 +140,12 @@ public class EvidenceAuditPrepare extends ActionHandler {
                 saveItemToWorkSpace(item, handlerIO);
             }
             reader.close();
-        } catch (StorageServerClientException | StorageNotFoundException | IOException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            StorageServerClientException
+            | StorageNotFoundException
+            | IOException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {
@@ -148,12 +157,10 @@ public class EvidenceAuditPrepare extends ActionHandler {
         }
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
-
     }
 
     private ItemStatus handleEvidenceAudit(HandlerIO handlerIO, ItemStatus itemStatus) throws ProcessingException {
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
             JsonNode queryNode = handlerIO.getJsonFromWorkspace("query.json");
 
             SelectParserMultiple parser = new SelectParserMultiple();
@@ -167,7 +174,8 @@ public class EvidenceAuditPrepare extends ActionHandler {
             JsonNode projection = createObjectNode().set(FIELDS_KEY, objectNode);
             select.setProjection(projection);
 
-            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(select,
+            ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(
+                select,
                 query -> {
                     try {
                         JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
@@ -175,28 +183,30 @@ public class EvidenceAuditPrepare extends ActionHandler {
                     } catch (Exception e) {
                         throw new IllegalStateException(e);
                     }
-                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-                VitamConfiguration.getElasticSearchScrollLimit());
+                },
+                VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                VitamConfiguration.getElasticSearchScrollLimit()
+            );
 
-            StreamSupport.stream(scrollRequest, false).forEach(
-                item -> {
-                    ObjectNode itemUnit = createObjectNode();
-                    itemUnit.put(ID, item.get("#id").textValue());
-                    itemUnit.put(METADA_TYPE, MetadataType.UNIT.name());
+            StreamSupport.stream(scrollRequest, false).forEach(item -> {
+                ObjectNode itemUnit = createObjectNode();
+                itemUnit.put(ID, item.get("#id").textValue());
+                itemUnit.put(METADA_TYPE, MetadataType.UNIT.name());
 
-                    if (item.get(OBJECT) != null) {
-                        ObjectNode itemGot = createObjectNode();
-                        itemGot.put(ID, item.get(OBJECT).textValue());
-                        itemGot.put(METADA_TYPE, MetadataType.OBJECTGROUP.name());
-                        saveItemToWorkSpace(itemGot, handlerIO);
-                    }
-                    saveItemToWorkSpace(itemUnit, handlerIO);
-                });
+                if (item.get(OBJECT) != null) {
+                    ObjectNode itemGot = createObjectNode();
+                    itemGot.put(ID, item.get(OBJECT).textValue());
+                    itemGot.put(METADA_TYPE, MetadataType.OBJECTGROUP.name());
+                    saveItemToWorkSpace(itemGot, handlerIO);
+                }
+                saveItemToWorkSpace(itemUnit, handlerIO);
+            });
             if (ScrollSpliteratorHelper.checkNumberOfResultQuery(itemStatus, scrollRequest.estimateSize())) {
-                return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT)
-                    .setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);
+                return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(
+                    EVIDENCE_AUDIT_LIST_OBJECT,
+                    itemStatus
+                );
             }
-
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
@@ -209,20 +219,14 @@ public class EvidenceAuditPrepare extends ActionHandler {
     private void saveItemToWorkSpace(JsonNode item, HandlerIO handlerIO) {
         File file = null;
         try {
-
             String identifier = item.get(ID).asText();
             file = handlerIO.getNewLocalFile(identifier);
             JsonHandler.writeAsFile(item, file);
 
             handlerIO.transferFileToWorkspace("Object" + "/" + identifier, file, true, false);
-
         } catch (ProcessingException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw new IllegalStateException(e);
         }
-
     }
-
-
-
 }

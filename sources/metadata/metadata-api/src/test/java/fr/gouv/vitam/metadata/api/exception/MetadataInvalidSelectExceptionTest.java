@@ -40,5 +40,4 @@ public class MetadataInvalidSelectExceptionTest {
         assertNotNull(new MetadataInvalidSelectException(new Exception()).getCause());
         assertNotNull(new MetadataInvalidSelectException("test", new Exception()).getCause());
     }
-
 }

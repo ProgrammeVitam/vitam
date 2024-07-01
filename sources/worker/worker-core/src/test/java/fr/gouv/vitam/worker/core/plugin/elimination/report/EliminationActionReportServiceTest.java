@@ -66,29 +66,39 @@ import static org.mockito.Mockito.verify;
 
 public class EliminationActionReportServiceTest {
 
-
     private static final String PROC_ID = "procId";
-    @Rule public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    @Mock private BatchReportClientFactory batchReportClientFactory;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private BatchReportClient batchReportClient;
+    @Mock
+    private BatchReportClientFactory batchReportClientFactory;
 
-    @Mock private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private BatchReportClient batchReportClient;
 
-    @Mock private WorkspaceClient workspaceClient;
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
 
-    @Mock private StorageClientFactory storageClientFactory;
-    @Mock private StorageClient storageClient;
+    @Mock
+    private WorkspaceClient workspaceClient;
 
-    @InjectMocks private EliminationActionReportService instance;
+    @Mock
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
+
+    @InjectMocks
+    private EliminationActionReportService instance;
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
@@ -100,13 +110,23 @@ public class EliminationActionReportServiceTest {
     @Test
     @RunWithCustomExecutor
     public void appendUnitEntries() throws Exception {
-
         // Given
         List<EliminationActionUnitReportEntry> entries = Arrays.asList(
-            new EliminationActionUnitReportEntry("unit1", "sp1", "opi1", "got1",
-                EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name()),
-            new EliminationActionUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name()));
+            new EliminationActionUnitReportEntry(
+                "unit1",
+                "sp1",
+                "opi1",
+                "got1",
+                EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name()
+            ),
+            new EliminationActionUnitReportEntry(
+                "unit2",
+                "sp2",
+                "opi2",
+                "got2",
+                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name()
+            )
+        );
 
         // When
         instance.appendEntries(PROC_ID, entries);
@@ -130,7 +150,6 @@ public class EliminationActionReportServiceTest {
     @Test
     @RunWithCustomExecutor
     public void isReportWrittenInWorkspace() throws Exception {
-
         // Given / When
         instance.isReportWrittenInWorkspace(PROC_ID);
 
@@ -141,7 +160,6 @@ public class EliminationActionReportServiceTest {
     @Test
     @RunWithCustomExecutor
     public void storeReportToWorkspace() throws Exception {
-
         // Given / When
         Report report = mock(Report.class);
         instance.storeReportToWorkspace(report);
@@ -153,14 +171,17 @@ public class EliminationActionReportServiceTest {
     @Test
     @RunWithCustomExecutor
     public void storeReportToOffers() throws Exception {
-
         // Given / When
         instance.storeReportToOffers(PROC_ID);
 
         // Then
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
-            eq(DataCategory.REPORT), eq(PROC_ID + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.REPORT),
+            eq(PROC_ID + JSONL_EXTENSION),
+            descriptionArgumentCaptor.capture()
+        );
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(PROC_ID);
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);
     }
@@ -168,7 +189,6 @@ public class EliminationActionReportServiceTest {
     @Test
     @RunWithCustomExecutor
     public void cleanupReport() throws Exception {
-
         // Given / When
         instance.cleanupReport(PROC_ID);
 

@@ -54,8 +54,9 @@ public class AccessionRegisterDetailTest {
     private static final Integer TENANT_ID = 0;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     @RunWithCustomExecutor
@@ -92,11 +93,11 @@ public class AccessionRegisterDetailTest {
         assertEquals(TEST, register.getAcquisitionInformation());
         assertEquals(TEST, register.getLegalStatus());
 
-        final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");
+        final InputStream stream = Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream("accession-register.json");
         final Map<String, Object> documentMap = JsonHandler.getMapFromInputStream(stream);
         documentMap.put("_id", id);
         register = new AccessionRegisterDetail(new Document(documentMap));
     }
-
 }

@@ -40,5 +40,4 @@ public class MetaDataExecutionExceptionTest {
         assertNotNull(new MetaDataExecutionException(new Exception()).getCause());
         assertNotNull(new MetaDataExecutionException("test", new Exception()).getCause());
     }
-
 }

@@ -66,8 +66,7 @@ public class LogbookRuleImportManager {
     private static final String COMMIT_RULES = "COMMIT_RULES";
     private static final String USED_DELETED_RULE_IDS = "usedDeletedRuleIds";
     private static final String USED_UPDATED_RULE_IDS = "usedUpdatedRuleIds";
-    private static final String USED_RULE_IDS_WITH_DURATION_MODE_UPDATE
-        = "usedRuleIdsWithDurationModeUpdate";
+    private static final String USED_RULE_IDS_WITH_DURATION_MODE_UPDATE = "usedRuleIdsWithDurationModeUpdate";
     private static final String NB_DELETED = "nbDeleted";
     private static final String NB_UPDATED = "nbUpdated";
     private static final String NB_INSERTED = "nbInserted";
@@ -78,46 +77,64 @@ public class LogbookRuleImportManager {
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    public LogbookRuleImportManager(
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public LogbookRuleImportManager(LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    public void initStpImportRulesLogbookOperation(final GUID eip)
-        throws LogbookClientException {
-        final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
+    public void initStpImportRulesLogbookOperation(final GUID eip) throws LogbookClientException {
+        final LogbookOperationParameters logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            STP_IMPORT_RULES,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED),
+            eip
+        );
         createLogBookEntry(logbookParametersStart);
     }
 
-    public void updateCommitFileRulesLogbookOperationOkOrKo(StatusCode statusCode,
+    public void updateCommitFileRulesLogbookOperationOkOrKo(
+        StatusCode statusCode,
         GUID evIdentifierProcess,
-        int nbDeleted, int nbUpdated, int nbInserted)
-        throws LogbookClientException {
+        int nbDeleted,
+        int nbUpdated,
+        int nbInserted
+    ) throws LogbookClientException {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         evDetData.put(NB_DELETED, nbDeleted);
         evDetData.put(NB_UPDATED, nbUpdated);
         evDetData.put(NB_INSERTED, nbInserted);
         final GUID eventId = GUIDFactory.newOperationLogbookGUID(getTenantParameter());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParameterHelper
-                .newLogbookOperationParameters(eventId, COMMIT_RULES, evIdentifierProcess,
-                    LogbookTypeProcess.MASTERDATA,
-                    statusCode,
-                    VitamLogbookMessages.getCodeOp(COMMIT_RULES, statusCode), evIdentifierProcess);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.eventDetailData,
-            JsonHandler.unprettyPrint(evDetData));
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            COMMIT_RULES + "." + statusCode);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                eventId,
+                COMMIT_RULES,
+                evIdentifierProcess,
+                LogbookTypeProcess.MASTERDATA,
+                statusCode,
+                VitamLogbookMessages.getCodeOp(COMMIT_RULES, statusCode),
+                evIdentifierProcess
+            );
+        logbookOperationParameters.putParameterValue(
+            LogbookParameterName.eventDetailData,
+            JsonHandler.unprettyPrint(evDetData)
+        );
+        logbookOperationParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            COMMIT_RULES + "." + statusCode
+        );
         updateLogBookEntry(logbookOperationParameters);
     }
 
-    public void updateCheckFileRulesLogbookOperation(StatusCode statusCode,
-        Set<String> usedUpdatedRuleIds, Set<String> notUsedDeletedRuleIds,
-        Set<String> nonDeletableUsedRuleIds, Set<String> usedRuleIdsWithDurationModeUpdate, GUID evIdentifierProcess)
-        throws LogbookClientException {
+    public void updateCheckFileRulesLogbookOperation(
+        StatusCode statusCode,
+        Set<String> usedUpdatedRuleIds,
+        Set<String> notUsedDeletedRuleIds,
+        Set<String> nonDeletableUsedRuleIds,
+        Set<String> usedRuleIdsWithDurationModeUpdate,
+        GUID evIdentifierProcess
+    ) throws LogbookClientException {
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         if (!notUsedDeletedRuleIds.isEmpty()) {
             evDetData.set(DELETED_RULE_IDS, serializeRuleIds(notUsedDeletedRuleIds));
@@ -133,16 +150,23 @@ public class LogbookRuleImportManager {
         }
         final GUID eventId = GUIDFactory.newOperationLogbookGUID(getTenantParameter());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParameterHelper
-                .newLogbookOperationParameters(eventId, CHECK_RULES, evIdentifierProcess,
-                    LogbookTypeProcess.MASTERDATA,
-                    statusCode,
-                    VitamLogbookMessages.getCodeOp(CHECK_RULES, statusCode),
-                    evIdentifierProcess);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.eventDetailData,
-            JsonHandler.unprettyPrint(evDetData));
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, CHECK_RULES +
-            "." + statusCode);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                eventId,
+                CHECK_RULES,
+                evIdentifierProcess,
+                LogbookTypeProcess.MASTERDATA,
+                statusCode,
+                VitamLogbookMessages.getCodeOp(CHECK_RULES, statusCode),
+                evIdentifierProcess
+            );
+        logbookOperationParameters.putParameterValue(
+            LogbookParameterName.eventDetailData,
+            JsonHandler.unprettyPrint(evDetData)
+        );
+        logbookOperationParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            CHECK_RULES + "." + statusCode
+        );
         updateLogBookEntry(logbookOperationParameters);
     }
 
@@ -154,70 +178,81 @@ public class LogbookRuleImportManager {
         return arrayNode;
     }
 
-    public void updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(String subEvenType,
-        GUID evIdentifierProcess)
-        throws LogbookClientException {
+    public void updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(
+        String subEvenType,
+        GUID evIdentifierProcess
+    ) throws LogbookClientException {
         final GUID eventId = GUIDFactory.newOperationLogbookGUID(getTenantParameter());
         final LogbookOperationParameters logbookOperationParameters =
             LogbookParameterHelper.newLogbookOperationParameters(
-                eventId, CHECK_RULES, evIdentifierProcess,
+                eventId,
+                CHECK_RULES,
+                evIdentifierProcess,
                 LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
                 VitamLogbookMessages.getCodeOp(CHECK_RULES, subEvenType, StatusCode.KO),
-                evIdentifierProcess);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            VitamLogbookMessages.getOutcomeDetail(CHECK_RULES, subEvenType, StatusCode.KO));
+                evIdentifierProcess
+            );
+        logbookOperationParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            VitamLogbookMessages.getOutcomeDetail(CHECK_RULES, subEvenType, StatusCode.KO)
+        );
         updateLogBookEntry(logbookOperationParameters);
     }
 
-    public void updateStpImportRulesLogbookOperation(final GUID eip, StatusCode status,
-        String filename)
+    public void updateStpImportRulesLogbookOperation(final GUID eip, StatusCode status, String filename)
         throws InvalidParseOperationException, LogbookClientException {
         final GUID eip1 = GUIDFactory.newEventGUID(eip);
-        final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper
-            .newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA,
-                status, VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, status),
-                eip);
+        final LogbookOperationParameters logbookParametersEnd = LogbookParameterHelper.newLogbookOperationParameters(
+            eip1,
+            STP_IMPORT_RULES,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            status,
+            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, status),
+            eip
+        );
         ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
         updateLogBookEntry(logbookParametersEnd);
     }
 
     public void initializeUnitRuleUpdateWorkflowLogbook(GUID updateOperationGUID, GUID reqId)
         throws LogbookClientException {
-        final LogbookOperationParameters logbookUpdateParametersStart = LogbookParameterHelper
-            .newLogbookOperationParameters(updateOperationGUID, UPDATE_RULES_ARCHIVE_UNITS,
+        final LogbookOperationParameters logbookUpdateParametersStart =
+            LogbookParameterHelper.newLogbookOperationParameters(
+                updateOperationGUID,
+                UPDATE_RULES_ARCHIVE_UNITS,
                 updateOperationGUID,
                 LogbookTypeProcess.UPDATE,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS, StatusCode.STARTED),
-                reqId);
+                reqId
+            );
         createLogBookEntry(logbookUpdateParametersStart);
     }
 
     public void updateUnitRuleUpdateWorkflowLogbook(GUID updateOperationGUID, GUID reqId)
         throws LogbookClientException {
         final LogbookOperationParameters logbookUpdateParametersEnd =
-            LogbookParameterHelper
-                .newLogbookOperationParameters(updateOperationGUID,
-                    UPDATE_RULES_ARCHIVE_UNITS,
-                    updateOperationGUID,
-                    LogbookTypeProcess.UPDATE,
-                    StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS,
-                        StatusCode.KO),
-                    reqId);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                updateOperationGUID,
+                UPDATE_RULES_ARCHIVE_UNITS,
+                updateOperationGUID,
+                LogbookTypeProcess.UPDATE,
+                StatusCode.KO,
+                VitamLogbookMessages.getCodeOp(UPDATE_RULES_ARCHIVE_UNITS, StatusCode.KO),
+                reqId
+            );
         updateLogBookEntry(logbookUpdateParametersEnd);
     }
 
-    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart)
-        throws LogbookClientException {
+    private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.create(logbookParametersStart);
         }
     }
 
-    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd)
-        throws LogbookClientException {
+    private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.update(logbookParametersEnd);
         }
@@ -228,9 +263,12 @@ public class LogbookRuleImportManager {
             final Select select = new Select();
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
-            select.setQuery(eq(
-                String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
-                STP_IMPORT_RULES));
+            select.setQuery(
+                eq(
+                    String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
+                    STP_IMPORT_RULES
+                )
+            );
             // FIXME : #9847 Fix logbook projections - Add back projection once projection handling is fixed
             // select.addProjection(
             //    JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
@@ -238,15 +276,17 @@ public class LogbookRuleImportManager {
             //             .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
             //             .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
             //                 1)));
-            JsonNode logbookResult =
-                logbookOperationsClientFactory.getClient().selectOperation(select.getFinalSelect());
+            JsonNode logbookResult = logbookOperationsClientFactory
+                .getClient()
+                .selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);
             // one result and last event type is STP_IMPORT_RULES -> import in progress
             if (requestResponseOK.getHits().getSize() != 0) {
                 JsonNode result = requestResponseOK.getResults().get(0);
                 if (result.get(LogbookDocument.EVENTS) != null && result.get(LogbookDocument.EVENTS).size() > 0) {
-                    JsonNode lastEvent =
-                        result.get(LogbookDocument.EVENTS).get(result.get(LogbookDocument.EVENTS).size() - 1);
+                    JsonNode lastEvent = result
+                        .get(LogbookDocument.EVENTS)
+                        .get(result.get(LogbookDocument.EVENTS).size() - 1);
                     return !STP_IMPORT_RULES.equals(lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText());
                 } else {
                     return false;

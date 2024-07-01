@@ -38,8 +38,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoa
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfigurationValidator;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
@@ -72,15 +70,19 @@ public class AdminLogbookApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final LogbookConfiguration logbookConfiguration =
-                PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
+            final LogbookConfiguration logbookConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                LogbookConfiguration.class
+            );
 
             // Validate configuration
             LogbookConfigurationValidator.validateConfiguration(logbookConfiguration);
 
             // Elasticsearch configuration
-            ElasticsearchLogbookIndexManager indexManager =
-                new ElasticsearchLogbookIndexManager(logbookConfiguration, VitamConfiguration.getTenants());
+            ElasticsearchLogbookIndexManager indexManager = new ElasticsearchLogbookIndexManager(
+                logbookConfiguration,
+                VitamConfiguration.getTenants()
+            );
 
             adminApplication = new AdminApplication();
             CachedOntologyLoader ontologyLoader = new CachedOntologyLoader(

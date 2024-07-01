@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class UnitModel {
+
     @JsonProperty("ArchiveUnit")
     List<UnitModel> archiveUnit;
 
@@ -47,10 +48,11 @@ public class UnitModel {
     Map<String, JsonNode> content = new HashMap<>();
 
     @JsonIgnore
-    public static final Comparator<UnitModel> UNIT_MODEL_COMPARATOR = (o1, o2) -> CharSequence.compare(
-        Objects.requireNonNullElse(o1.getContent().get(VitamFieldsHelper.id()), TextNode.valueOf("")).asText(),
-        Objects.requireNonNullElse(o2.getContent().get(VitamFieldsHelper.id()), TextNode.valueOf("")).asText());
-
+    public static final Comparator<UnitModel> UNIT_MODEL_COMPARATOR = (o1, o2) ->
+        CharSequence.compare(
+            Objects.requireNonNullElse(o1.getContent().get(VitamFieldsHelper.id()), TextNode.valueOf("")).asText(),
+            Objects.requireNonNullElse(o2.getContent().get(VitamFieldsHelper.id()), TextNode.valueOf("")).asText()
+        );
 
     public UnitModel(List<UnitModel> archiveUnit, Map<String, JsonNode> content) {
         if (Objects.nonNull(archiveUnit)) {
@@ -60,8 +62,7 @@ public class UnitModel {
         this.content = content;
     }
 
-    public UnitModel() {
-    }
+    public UnitModel() {}
 
     public List<UnitModel> getArchiveUnit() {
         return archiveUnit;

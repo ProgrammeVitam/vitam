@@ -66,8 +66,11 @@ public class ExportsPurgeService {
     }
 
     @VisibleForTesting
-    public ExportsPurgeService(WorkspaceClientFactory workspaceClientFactory, StorageClientFactory storageClientFactory,
-        TimeToLiveConfiguration timeToLiveConfiguration) {
+    public ExportsPurgeService(
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageClientFactory storageClientFactory,
+        TimeToLiveConfiguration timeToLiveConfiguration
+    ) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.timeToLiveConfiguration = timeToLiveConfiguration;
@@ -76,8 +79,10 @@ public class ExportsPurgeService {
     public void purgeExpiredFiles(String container) throws ContentAddressableStorageServerException {
         try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient()) {
             int timeToLiveInMinutes = getTimeToLiveInMinutes(container, workspaceClient);
-            workspaceClient.purgeOldFilesInContainer(container,
-                new TimeToLive(timeToLiveInMinutes, ChronoUnit.MINUTES));
+            workspaceClient.purgeOldFilesInContainer(
+                container,
+                new TimeToLive(timeToLiveInMinutes, ChronoUnit.MINUTES)
+            );
         } catch (VitamClientException e) {
             throw new ContentAddressableStorageServerException(e);
         }
@@ -99,18 +104,27 @@ public class ExportsPurgeService {
 
     public void migrationPurgeDipFilesFromOffers() throws StorageServerClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
             Iterator<OfferLog> offerLogIterator = OfferLogHelper.getListing(
-                storageClientFactory, VitamConfiguration.getDefaultStrategy(), null, DataCategory.DIP, null,
-                Order.ASC, VitamConfiguration.getChunkSize(), null);
+                storageClientFactory,
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.DIP,
+                null,
+                Order.ASC,
+                VitamConfiguration.getChunkSize(),
+                null
+            );
 
             while (offerLogIterator.hasNext()) {
                 OfferLog offerLog = offerLogIterator.next();
                 switch (offerLog.getAction()) {
                     case WRITE:
                         LOGGER.info("Deleting DIP file " + offerLog.getFileName());
-                        storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.DIP,
-                            offerLog.getFileName());
+                        storageClient.delete(
+                            VitamConfiguration.getDefaultStrategy(),
+                            DataCategory.DIP,
+                            offerLog.getFileName()
+                        );
                         break;
                     case DELETE:
                         // NOP
@@ -119,7 +133,6 @@ public class ExportsPurgeService {
                         throw new IllegalStateException("Unexpected value: " + offerLog.getAction());
                 }
             }
-
         }
     }
 }

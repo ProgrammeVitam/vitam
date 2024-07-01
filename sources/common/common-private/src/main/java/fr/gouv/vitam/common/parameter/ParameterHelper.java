@@ -53,5 +53,4 @@ public class ParameterHelper {
         ParametersChecker.checkParameter(NO_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
         return VitamThreadUtils.getVitamSession().getTenantId();
     }
-
 }

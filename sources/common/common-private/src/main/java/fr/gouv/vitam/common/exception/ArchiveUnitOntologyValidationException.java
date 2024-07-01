@@ -31,6 +31,7 @@ package fr.gouv.vitam.common.exception;
  * long, etc...)
  **/
 public class ArchiveUnitOntologyValidationException extends VitamException {
+
     private static final long serialVersionUID = -944197890309351793L;
 
     /**

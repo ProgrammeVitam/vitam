@@ -53,4 +53,3 @@ public class FileRulesException extends ReferentialException {
         super(message, cause);
     }
 }
-

@@ -68,18 +68,23 @@ public class StorageLogAdministrationTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
     final StorageConfiguration configuration = new StorageConfiguration();
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock
     private StorageLog storageService;
+
     @Mock
     private StorageDistribution distribution;
+
     @Mock
     private WorkspaceClient workspaceClient;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
-
 
     private StorageLogAdministration storageLogAdministration;
 
@@ -87,33 +92,41 @@ public class StorageLogAdministrationTest {
     public void setUp() {
         final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        final LogbookOperationsClientFactory logbookOperationsClientFactory =
-            mock(LogbookOperationsClientFactory.class);
+        final LogbookOperationsClientFactory logbookOperationsClientFactory = mock(
+            LogbookOperationsClientFactory.class
+        );
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-        storageLogAdministration =
-            new StorageLogAdministration(storageService, distribution, configuration, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        storageLogAdministration = new StorageLogAdministration(
+            storageService,
+            distribution,
+            configuration,
+            workspaceClientFactory,
+            logbookOperationsClientFactory
+        );
     }
-
-
 
     @Test
     public void should_execute_storagelog_backup() throws Exception {
-
         when(storageService.rotateLogFile(eq(TENANT_ID), eq(true))).thenReturn(
             List.of(new LogInformation(tempFolder.newFile().toPath(), LocalDateTime.now(), LocalDateTime.now()))
         );
 
-        final List<StorageLogBackupResult> storageLogBackupResults =
-            storageLogAdministration.backupStorageWriteLog(STRATEGY_ID, List.of(TENANT_ID));
-
+        final List<StorageLogBackupResult> storageLogBackupResults = storageLogAdministration.backupStorageWriteLog(
+            STRATEGY_ID,
+            List.of(TENANT_ID)
+        );
 
         assertThat(storageLogBackupResults).isNotEmpty();
         assertThat(storageLogBackupResults).extracting(StorageLogBackupResult::getTenantId).contains(TENANT_ID);
 
-        verify(distribution).storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
-            eq(DataCategory.STORAGELOG), eq(null));
+        verify(distribution).storeDataInAllOffers(
+            eq(STRATEGY_ID),
+            anyString(),
+            any(ObjectDescription.class),
+            eq(DataCategory.STORAGELOG),
+            eq(null)
+        );
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
         verify(logbookOperationsClient).create(anyString(), anyIterable());
     }
@@ -124,14 +137,21 @@ public class StorageLogAdministrationTest {
             List.of(new LogInformation(tempFolder.newFile().toPath(), LocalDateTime.now(), LocalDateTime.now()))
         );
 
-        final List<StorageLogBackupResult> storageLogBackupResults =
-            storageLogAdministration.backupStorageAccessLog(STRATEGY_ID, List.of(TENANT_ID));
+        final List<StorageLogBackupResult> storageLogBackupResults = storageLogAdministration.backupStorageAccessLog(
+            STRATEGY_ID,
+            List.of(TENANT_ID)
+        );
 
         assertThat(storageLogBackupResults).isNotEmpty();
         assertThat(storageLogBackupResults).extracting(StorageLogBackupResult::getTenantId).contains(TENANT_ID);
 
-        verify(distribution).storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
-            eq(DataCategory.STORAGEACCESSLOG), eq(null));
+        verify(distribution).storeDataInAllOffers(
+            eq(STRATEGY_ID),
+            anyString(),
+            any(ObjectDescription.class),
+            eq(DataCategory.STORAGEACCESSLOG),
+            eq(null)
+        );
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
         verify(logbookOperationsClient).create(anyString(), any());
     }
@@ -139,16 +159,22 @@ public class StorageLogAdministrationTest {
     @Test
     public void should_delete_container_when_exception_raised() throws Exception {
         when(storageService.rotateLogFile(eq(TENANT_ID), eq(false))).thenReturn(
-            List.of(new LogInformation(tempFolder.newFile().toPath(), LocalDateTime.now(), LocalDateTime.now())));
-
-        when(distribution.storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
-            eq(DataCategory.STORAGEACCESSLOG), eq(null))).thenThrow(
-            StorageException.class
+            List.of(new LogInformation(tempFolder.newFile().toPath(), LocalDateTime.now(), LocalDateTime.now()))
         );
 
-        assertThatCode(
-            () -> storageLogAdministration.backupStorageAccessLog(STRATEGY_ID, List.of(TENANT_ID))).isInstanceOf(
-            StorageLogException.class).hasMessageContaining("One or more StorageAccessLog operations failed");
+        when(
+            distribution.storeDataInAllOffers(
+                eq(STRATEGY_ID),
+                anyString(),
+                any(ObjectDescription.class),
+                eq(DataCategory.STORAGEACCESSLOG),
+                eq(null)
+            )
+        ).thenThrow(StorageException.class);
+
+        assertThatCode(() -> storageLogAdministration.backupStorageAccessLog(STRATEGY_ID, List.of(TENANT_ID)))
+            .isInstanceOf(StorageLogException.class)
+            .hasMessageContaining("One or more StorageAccessLog operations failed");
 
         // ensure workspace clean
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());

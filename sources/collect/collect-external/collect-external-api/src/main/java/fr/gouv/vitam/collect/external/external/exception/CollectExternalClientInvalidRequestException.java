@@ -28,7 +28,7 @@ package fr.gouv.vitam.collect.external.external.exception;
 
 import fr.gouv.vitam.common.exception.VitamClientException;
 
-public class CollectExternalClientInvalidRequestException  extends VitamClientException {
+public class CollectExternalClientInvalidRequestException extends VitamClientException {
 
     public CollectExternalClientInvalidRequestException(String message) {
         super(message);

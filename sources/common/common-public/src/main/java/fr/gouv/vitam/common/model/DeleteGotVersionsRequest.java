@@ -42,12 +42,13 @@ public class DeleteGotVersionsRequest {
     @JsonProperty("DslQuery")
     private JsonNode dslQuery;
 
-    public DeleteGotVersionsRequest() {
-    }
+    public DeleteGotVersionsRequest() {}
 
-    public DeleteGotVersionsRequest(@JsonProperty(required = true) JsonNode dslQuery,
+    public DeleteGotVersionsRequest(
+        @JsonProperty(required = true) JsonNode dslQuery,
         @JsonProperty(required = true) String usageName,
-        @JsonProperty(required = true) List<Integer> specificVersions) {
+        @JsonProperty(required = true) List<Integer> specificVersions
+    ) {
         this.dslQuery = dslQuery;
         this.usageName = usageName;
         this.specificVersions = specificVersions;

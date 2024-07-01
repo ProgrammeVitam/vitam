@@ -74,8 +74,7 @@ public class PreservationScenarioReport {
         return operation;
     }
 
-    public PreservationScenarioReport setOperation(
-        FunctionalOperationModel operation) {
+    public PreservationScenarioReport setOperation(FunctionalOperationModel operation) {
         this.operation = operation;
         return this;
     }
@@ -109,8 +108,7 @@ public class PreservationScenarioReport {
         return updatedIdentifiers;
     }
 
-    void addUpdatedIdentifiers(
-        String identifier, List<String> diffs) {
+    void addUpdatedIdentifiers(String identifier, List<String> diffs) {
         this.updatedIdentifiers.put(identifier, diffs);
     }
 
@@ -121,7 +119,6 @@ public class PreservationScenarioReport {
     void addWarning(String message) {
         warnings.add(message);
     }
-
 
     String getPreviousScenariosCreationDate() {
         return previousScenariosCreationDate;

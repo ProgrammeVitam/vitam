@@ -66,8 +66,10 @@ public class CollectInternalClientFactory extends VitamClientFactory<CollectInte
     static ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }

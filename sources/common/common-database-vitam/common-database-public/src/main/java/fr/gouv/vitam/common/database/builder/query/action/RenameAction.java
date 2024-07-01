@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Rename Action: $rename : { name : newname }
  */
 public class RenameAction extends Action {
+
     protected RenameAction() {
         super();
     }
@@ -46,8 +47,7 @@ public class RenameAction extends Action {
      * @param newName new key name
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public RenameAction(final String variableName, final String newName)
-        throws InvalidCreateOperationException {
+    public RenameAction(final String variableName, final String newName) throws InvalidCreateOperationException {
         super();
         try {
             GlobalDatas.sanityParameterCheck(newName);

@@ -61,7 +61,6 @@ import java.util.Optional;
  * @param <T>
  */
 public interface GenericContractValidator<T extends AbstractContractModel> {
-
     /**
      * Validate a contract object
      *
@@ -178,7 +177,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectExceptionOccurred(String contractName, String msg, Throwable e) {
             return new GenericRejectionCause(
-                String.format(ERR_CONTRACT_EXCEPTION_OCCURRED, contractName, msg, e.getMessage()));
+                String.format(ERR_CONTRACT_EXCEPTION_OCCURRED, contractName, msg, e.getMessage())
+            );
         }
 
         /**
@@ -190,7 +190,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectRootUnitsNotFound(String contractName, String guidArrayAsString) {
             return new GenericRejectionCause(
-                String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+                String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString)
+            );
         }
 
         /**
@@ -200,10 +201,13 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * @param guidArrayAsString root units as string (guid array as string)
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectExcludedRootUnitsNotFound(String contractName,
-            String guidArrayAsString) {
+        public static GenericRejectionCause rejectExcludedRootUnitsNotFound(
+            String contractName,
+            String guidArrayAsString
+        ) {
             return new GenericRejectionCause(
-                String.format(ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+                String.format(ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString)
+            );
         }
 
         /**
@@ -213,10 +217,13 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * @param guidArrayAsString root units as string (guid array as string)
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectExcludedAndRootUnitsNotFound(String contractName,
-            String guidArrayAsString) {
+        public static GenericRejectionCause rejectExcludedAndRootUnitsNotFound(
+            String contractName,
+            String guidArrayAsString
+        ) {
             return new GenericRejectionCause(
-                String.format(ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+                String.format(ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString)
+            );
         }
 
         /**
@@ -241,7 +248,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
 
         public static GenericRejectionCause rejectInconsistentContract(String contractName, String reason) {
             return new GenericRejectionCause(
-                (String.format(ERR_INCONSISTENT_CONTRACT_DEFINITION, contractName, reason)));
+                (String.format(ERR_INCONSISTENT_CONTRACT_DEFINITION, contractName, reason))
+            );
         }
 
         /**
@@ -262,10 +270,13 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * @param fieldName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectStorageStrategyDoesNotContainsOneReferent(String storageStrategy,
-            String fieldName) {
-            return new GenericRejectionCause(String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER,
-                storageStrategy, fieldName));
+        public static GenericRejectionCause rejectStorageStrategyDoesNotContainsOneReferent(
+            String storageStrategy,
+            String fieldName
+        ) {
+            return new GenericRejectionCause(
+                String.format(ERR_STORAGE_STRATEGY_DOES_NOT_CONTAINS_ONE_REFERENT_OFFER, storageStrategy, fieldName)
+            );
         }
 
         /**
@@ -275,16 +286,23 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * @param fieldName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectInvalidVersionRetentionPolicyParamOfUsage(String fieldName,
-            String UsageName, String contractName) {
+        public static GenericRejectionCause rejectInvalidVersionRetentionPolicyParamOfUsage(
+            String fieldName,
+            String UsageName,
+            String contractName
+        ) {
             return new GenericRejectionCause(
-                String.format(ERR_VERSION_RETENTION_POLICY_INVALID, fieldName, UsageName, contractName));
+                String.format(ERR_VERSION_RETENTION_POLICY_INVALID, fieldName, UsageName, contractName)
+            );
         }
 
-        public static GenericRejectionCause rejectInvalidVersionRetentionPolicyUsage(String fieldName,
-            String contractName) {
+        public static GenericRejectionCause rejectInvalidVersionRetentionPolicyUsage(
+            String fieldName,
+            String contractName
+        ) {
             return new GenericRejectionCause(
-                String.format(ERR_VERSION_RETENTION_POLICY_INVALID_USAGE, fieldName, contractName));
+                String.format(ERR_VERSION_RETENTION_POLICY_INVALID_USAGE, fieldName, contractName)
+            );
         }
 
         /**
@@ -299,6 +317,5 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private void setReason(String reason) {
             this.reason = reason;
         }
-
     }
 }

@@ -158,25 +158,34 @@ public final class VitamContext {
 
     @Override
     public String toString() {
-        return "VitamContext{" +
-            "tenantId=" + tenantId +
-            ", accessContract='" + accessContract + '\'' +
-            ", applicationSessionId='" + applicationSessionId + '\'' +
-            ", personalCertificate='" + personalCertificate + '\'' +
-            '}';
+        return (
+            "VitamContext{" +
+            "tenantId=" +
+            tenantId +
+            ", accessContract='" +
+            accessContract +
+            '\'' +
+            ", applicationSessionId='" +
+            applicationSessionId +
+            '\'' +
+            ", personalCertificate='" +
+            personalCertificate +
+            '\'' +
+            '}'
+        );
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         VitamContext that = (VitamContext) o;
-        return Objects.equals(tenantId, that.tenantId) &&
+        return (
+            Objects.equals(tenantId, that.tenantId) &&
             Objects.equals(accessContract, that.accessContract) &&
             Objects.equals(applicationSessionId, that.applicationSessionId) &&
-            Objects.equals(personalCertificate, that.personalCertificate);
+            Objects.equals(personalCertificate, that.personalCertificate)
+        );
     }
 
     @Override

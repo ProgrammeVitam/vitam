@@ -54,8 +54,9 @@ import static org.mockito.Mockito.verify;
 public class EliminationActionFinalizationHandlerTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -76,25 +77,23 @@ public class EliminationActionFinalizationHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
             .setCurrentStep("StepName");
 
-        doReturn(VitamThreadUtils.getVitamSession().getRequestId())
-            .when(handler).getContainerName();
+        doReturn(VitamThreadUtils.getVitamSession().getRequestId()).when(handler).getContainerName();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_OK() throws Exception {
-
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
 

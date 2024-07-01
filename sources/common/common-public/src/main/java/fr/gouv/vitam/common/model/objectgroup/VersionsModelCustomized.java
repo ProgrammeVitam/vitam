@@ -114,14 +114,28 @@ public class VersionsModelCustomized {
 
     @Override
     public String toString() {
-        return "VersionsModel{" +
-            "id='" + id + '\'' +
-            ", dataObjectVersion='" + dataObjectVersion + '\'' +
-            ", dataObjectGroupId='" + dataObjectGroupId + '\'' +
-            ", size=" + size +
-            ", strategyId=" + strategyId +
-            ", opi='" + opIngest + '\'' +
-            ", opc='" + opCurrent + '\'' +
-            '}';
+        return (
+            "VersionsModel{" +
+            "id='" +
+            id +
+            '\'' +
+            ", dataObjectVersion='" +
+            dataObjectVersion +
+            '\'' +
+            ", dataObjectGroupId='" +
+            dataObjectGroupId +
+            '\'' +
+            ", size=" +
+            size +
+            ", strategyId=" +
+            strategyId +
+            ", opi='" +
+            opIngest +
+            '\'' +
+            ", opc='" +
+            opCurrent +
+            '\'' +
+            '}'
+        );
     }
 }

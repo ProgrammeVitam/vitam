@@ -32,10 +32,13 @@ import java.util.List;
 import java.util.Map;
 
 public class ResultPreservation {
+
     @JsonProperty("RequestId")
     private String requestId;
+
     @JsonProperty("Id")
     private String id;
+
     @JsonProperty("Outputs")
     private Map<String, List<OutputPreservation>> outputs;
 
@@ -77,11 +80,17 @@ public class ResultPreservation {
 
     @Override
     public String toString() {
-        return "ResultPreservation{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", outputs=" + outputs +
-            '}';
+        return (
+            "ResultPreservation{" +
+            "requestId='" +
+            requestId +
+            '\'' +
+            ", id='" +
+            id +
+            '\'' +
+            ", outputs=" +
+            outputs +
+            '}'
+        );
     }
 }
-

@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.base.Stopwatch;
@@ -63,7 +62,6 @@ public class TraceabilityLFCJob implements Job {
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-
     public TraceabilityLFCJob() {
         this(LogbookOperationsClientFactory.getInstance());
     }
@@ -81,11 +79,15 @@ public class TraceabilityLFCJob implements Job {
         AtomicBoolean atLeastOneTenantReachedMaxCapacity = new AtomicBoolean();
         for (Integer tenant : tenants) {
             completableFutures.add(
-                CompletableFuture.runAsync(() -> {
-                    if (secureByTenantId(tenant, metadataType)) {
-                        atLeastOneTenantReachedMaxCapacity.set(true);
-                    }
-                }, defaultExecutor));
+                CompletableFuture.runAsync(
+                    () -> {
+                        if (secureByTenantId(tenant, metadataType)) {
+                            atLeastOneTenantReachedMaxCapacity.set(true);
+                        }
+                    },
+                    defaultExecutor
+                )
+            );
         }
 
         // Await for all tenants
@@ -120,22 +122,26 @@ public class TraceabilityLFCJob implements Job {
                 int timeSleep = 1000;
                 Stopwatch stopwatch = Stopwatch.createStarted();
                 do {
-
                     TimeUnit.MILLISECONDS.sleep(timeSleep);
                     timeSleep = Math.min(timeSleep * 2, 60000);
 
                     lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus(operationId);
 
                     if (lifecycleTraceabilityStatus.isPaused()) {
-                        LOGGER.error("LFC traceability operation on tenant {} for operationId {} is in PAUSE state",
+                        LOGGER.error(
+                            "LFC traceability operation on tenant {} for operationId {} is in PAUSE state",
                             tenantId,
-                            operationId);
+                            operationId
+                        );
                         break;
                     }
 
-                    LOGGER.info("Traceability operation status for tenant {}, operationId {}, status {})",
-                        tenantId, operationId, lifecycleTraceabilityStatus.toString());
-
+                    LOGGER.info(
+                        "Traceability operation status for tenant {}, operationId {}, status {})",
+                        tenantId,
+                        operationId,
+                        lifecycleTraceabilityStatus.toString()
+                    );
                 } while (!lifecycleTraceabilityStatus.isCompleted() && stopwatch.elapsed(TimeUnit.MINUTES) < 30);
 
                 return lifecycleTraceabilityStatus.isMaxEntriesReached();
@@ -146,15 +152,15 @@ public class TraceabilityLFCJob implements Job {
         } catch (InterruptedException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
-                "Error on Thread on Tenant: " + tenantId + " for operationId: " + operationId, e);
+                "Error on Thread on Tenant: " + tenantId + " for operationId: " + operationId,
+                e
+            );
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(null);
         }
     }
 
-    private String runLfcTraceability(int tenantId, MetadataType metadataType,
-        LogbookOperationsClient client)
-
+    private String runLfcTraceability(int tenantId, MetadataType metadataType, LogbookOperationsClient client)
         throws LogbookClientServerException, InvalidParseOperationException {
         RequestResponseOK<String> response;
         switch (metadataType) {
@@ -177,12 +183,9 @@ public class TraceabilityLFCJob implements Job {
         return operationId;
     }
 
-
     private static String getOperationId(RequestResponseOK<String> response) {
         return response.getFirstResult();
     }
-
-
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
@@ -200,13 +203,13 @@ public class TraceabilityLFCJob implements Job {
             }
             LOGGER.info("Traceability LFC for " + metadataType.getName() + " operation is finished");
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Expecting traceability type argument. Valid values: {}",
-                StringUtils.join(TraceabilityType.values(), ", "));
+            LOGGER.error(
+                "Expecting traceability type argument. Valid values: {}",
+                StringUtils.join(TraceabilityType.values(), ", ")
+            );
             throw new IllegalStateException("Invalid command arguments", e);
         } catch (Exception e) {
             throw new JobExecutionException(e);
         }
     }
-
-
 }

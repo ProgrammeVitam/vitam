@@ -61,7 +61,6 @@ import org.elasticsearch.search.sort.SortOrder;
 import java.util.Collection;
 import java.util.List;
 
-
 /**
  * ElasticSearch model with MongoDB as main database
  */
@@ -77,15 +76,16 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param indexManager
      * @throws VitamException if nodes list is empty
      */
-    public ElasticsearchAccessMetadata(final String clusterName, List<ElasticsearchNode> nodes,
-        ElasticsearchMetadataIndexManager indexManager)
-        throws VitamException {
+    public ElasticsearchAccessMetadata(
+        final String clusterName,
+        List<ElasticsearchNode> nodes,
+        ElasticsearchMetadataIndexManager indexManager
+    ) throws VitamException {
         super(clusterName, nodes);
         this.indexManager = indexManager;
     }
 
-    public void createIndexesAndAliases(MetadataCollections ...collections) {
-
+    public void createIndexesAndAliases(MetadataCollections... collections) {
         try {
             createIndexesAndAliasesForDedicatedTenants(collections);
             createIndexesAndAliasesForTenantGroups(collections);
@@ -95,7 +95,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    private void createIndexesAndAliasesForDedicatedTenants(MetadataCollections ...collections) throws MetaDataExecutionException {
+    private void createIndexesAndAliasesForDedicatedTenants(MetadataCollections... collections)
+        throws MetaDataExecutionException {
         Collection<Integer> dedicatedTenants = this.indexManager.getDedicatedTenants();
 
         for (int tenantId : dedicatedTenants) {
@@ -105,10 +106,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    private void createIndexesAndAliasesForTenantGroups(MetadataCollections ...collections) throws MetaDataExecutionException {
+    private void createIndexesAndAliasesForTenantGroups(MetadataCollections... collections)
+        throws MetaDataExecutionException {
         Collection<String> tenantGroups = this.indexManager.getTenantGroups();
         for (String tenantGroup : tenantGroups) {
-
             Collection<Integer> tenantGroupTenants = this.indexManager.getTenantGroupTenants(tenantGroup);
             if (tenantGroupTenants.isEmpty()) {
                 continue;
@@ -134,7 +135,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-
     /**
      * @param collection
      * @param tenantId
@@ -145,25 +145,40 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      */
-    protected final Result<MetadataDocument<?>> search(final MetadataCollections collection, final Integer tenantId,
-        final QueryBuilder query, final List<SortBuilder<?>> sorts, int offset, Integer limit,
-        final List<AggregationBuilder> facets, final String scrollId, final Integer scrollTimeout,
-        boolean trackTotalHits)
-        throws MetaDataExecutionException, BadRequestException {
-
+    protected final Result<MetadataDocument<?>> search(
+        final MetadataCollections collection,
+        final Integer tenantId,
+        final QueryBuilder query,
+        final List<SortBuilder<?>> sorts,
+        int offset,
+        Integer limit,
+        final List<AggregationBuilder> facets,
+        final String scrollId,
+        final Integer scrollTimeout,
+        boolean trackTotalHits
+    ) throws MetaDataExecutionException, BadRequestException {
         final SearchResponse response;
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
 
-            QueryBuilder finalQuery = new BoolQueryBuilder().must(query)
+            QueryBuilder finalQuery = new BoolQueryBuilder()
+                .must(query)
                 .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
 
-            response = super
-                .search(indexAlias, finalQuery, null, MetadataDocument.ES_PROJECTION,
-                    sorts,
-                    offset,
-                    limit, facets, scrollId, scrollTimeout, trackTotalHits);
+            response = super.search(
+                indexAlias,
+                finalQuery,
+                null,
+                MetadataDocument.ES_PROJECTION,
+                sorts,
+                offset,
+                limit,
+                facets,
+                scrollId,
+                scrollTimeout,
+                trackTotalHits
+            );
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -173,20 +188,18 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             case NOT_FOUND:
             case NO_CONTENT:
                 break;
-
         }
 
         if (response.status() != RestStatus.OK) {
             throw new MetaDataExecutionException(
-                "Error collection : " + collection.getName() + ", tenant: " + tenantId + ", query: " + query);
+                "Error collection : " + collection.getName() + ", tenant: " + tenantId + ", query: " + query
+            );
         }
 
-
         final boolean isUnit = collection == MetadataCollections.UNIT;
-        final Result<MetadataDocument<?>> resultRequest =
-            isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
-                : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
-
+        final Result<MetadataDocument<?>> resultRequest = isUnit
+            ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
+            : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
 
         if (scrollId != null && !scrollId.isEmpty()) {
             resultRequest.setScrollId(response.getScrollId());
@@ -200,7 +213,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                     LOGGER.warn(e);
                 }
             }
-
         }
 
         final SearchHits hits = response.getHits();
@@ -209,8 +221,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
         if (hits.getTotalHits().value == 0) {
             LOGGER.debug(
-                "No result found collection : " + collection.getName() + ", tenant: " + tenantId + ", query: " + query);
-            return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
+                "No result found collection : " + collection.getName() + ", tenant: " + tenantId + ", query: " + query
+            );
+            return isUnit
+                ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
 
@@ -227,8 +241,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         Aggregations aggregations = response.getAggregations();
         if (aggregations != null) {
             for (Aggregation aggregation : aggregations) {
-                resultRequest
-                    .addFacetResult(ElasticsearchFacetResultHelper.transformFromEsAggregation(aggregation));
+                resultRequest.addFacetResult(ElasticsearchFacetResultHelper.transformFromEsAggregation(aggregation));
             }
         }
 
@@ -244,18 +257,32 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param query elasticsearch
      * @return the elasticsearch SearchResponse
      */
-    public Aggregations basicAggregationSearch(MetadataCollections collection, Integer tenantId,
-        List<AggregationBuilder> aggregations, QueryBuilder query)
-        throws MetaDataExecutionException {
+    public Aggregations basicAggregationSearch(
+        MetadataCollections collection,
+        Integer tenantId,
+        List<AggregationBuilder> aggregations,
+        QueryBuilder query
+    ) throws MetaDataExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
 
-            QueryBuilder finalQuery = new BoolQueryBuilder().must(query)
+            QueryBuilder finalQuery = new BoolQueryBuilder()
+                .must(query)
                 .must(QueryBuilders.termQuery(MetadataDocument.TENANT_ID, tenantId));
-            return super.search(indexAlias, finalQuery, null, null,
-                Lists.newArrayList(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME).order(SortOrder.ASC)), 0,
-                0, aggregations, null, null, false).getAggregations();
+            return super.search(
+                indexAlias,
+                finalQuery,
+                null,
+                null,
+                Lists.newArrayList(SortBuilders.fieldSort(FieldSortBuilder.DOC_FIELD_NAME).order(SortOrder.ASC)),
+                0,
+                0,
+                aggregations,
+                null,
+                null,
+                false
+            ).getAggregations();
         } catch (DatabaseException | BadRequestException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -269,8 +296,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param id
      * @param doc full document to insert
      */
-    public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument<?> doc)
-        throws MetaDataExecutionException {
+    public void insertFullDocument(
+        MetadataCollections collection,
+        Integer tenantId,
+        String id,
+        MetadataDocument<?> doc
+    ) throws MetaDataExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
@@ -280,10 +311,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    public void insertFullDocuments(MetadataCollections collection, Integer tenantId,
-        Collection<? extends MetadataDocument<?>> documents)
-        throws MetaDataExecutionException {
-
+    public void insertFullDocuments(
+        MetadataCollections collection,
+        Integer tenantId,
+        Collection<? extends MetadataDocument<?>> documents
+    ) throws MetaDataExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
@@ -293,7 +325,6 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-
     /**
      * Update one element fully
      *
@@ -302,9 +333,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param id
      * @param metadataDocument full document to update
      */
-    public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id,
-        MetadataDocument<?> metadataDocument)
-        throws MetaDataExecutionException {
+    public void updateFullDocument(
+        MetadataCollections collection,
+        Integer tenantId,
+        String id,
+        MetadataDocument<?> metadataDocument
+    ) throws MetaDataExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
@@ -314,8 +348,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    public void deleteBulkOGEntriesIndexes(List<String> ids, final Integer tenantId)
-        throws MetaDataExecutionException {
+    public void deleteBulkOGEntriesIndexes(List<String> ids, final Integer tenantId) throws MetaDataExecutionException {
         bulkDelete(ids, tenantId, MetadataCollections.OBJECTGROUP);
     }
 
@@ -332,8 +365,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
 
         try {
-            ElasticsearchIndexAlias indexAlias = this.indexManager.getElasticsearchIndexAliasResolver(
-                collection).resolveIndexName(tenantId);
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
             super.delete(indexAlias, ids);
         } catch (DatabaseException e) {
             LOGGER.error(e);
@@ -343,8 +376,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     public void refreshIndex(MetadataCollections collection, int tenantId) throws MetaDataExecutionException {
         try {
-            super.refreshIndex(this.indexManager
-                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId));
+            super.refreshIndex(
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId)
+            );
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -353,8 +387,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public void indexEntry(MetadataCollections collection, Integer tenantId, String id, VitamDocument<?> vitamDocument)
         throws MetaDataExecutionException {
         try {
-            super.indexEntry(this.indexManager
-                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId), id, vitamDocument);
+            super.indexEntry(
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId),
+                id,
+                vitamDocument
+            );
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -366,7 +403,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         try {
             super.purgeIndexForTesting(
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId),
-                tenantId);
+                tenantId
+            );
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }
@@ -377,7 +415,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         throws MetaDataExecutionException {
         try {
             super.purgeIndexForTesting(
-                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId));
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId)
+            );
         } catch (DatabaseException e) {
             throw new MetaDataExecutionException(e);
         }

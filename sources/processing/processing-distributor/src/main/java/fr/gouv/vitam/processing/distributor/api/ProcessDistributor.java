@@ -39,7 +39,6 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
  * Various methods Distributor engine
  */
 public interface ProcessDistributor {
-
     String JSON_EXTENSION = ".json";
     String EXCEPTION_MESSAGE = "Exception thrown by the process distributor during running...";
     String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";

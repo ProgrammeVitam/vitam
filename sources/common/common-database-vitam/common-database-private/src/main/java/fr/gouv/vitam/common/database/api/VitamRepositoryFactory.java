@@ -42,9 +42,7 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     /**
      * private constructor for instance initialization. <br />
      */
-    private VitamRepositoryFactory() {
-    }
-
+    private VitamRepositoryFactory() {}
 
     /**
      * get Thread-Safe instance instance. <br/>
@@ -62,10 +60,10 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
     }
 
     @Override
-    public VitamElasticsearchRepository getVitamESRepository(VitamCollection collection,
-        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver) {
-        return new VitamElasticsearchRepository(collection.getEsClient().getClient(),
-            elasticsearchIndexAliasResolver);
+    public VitamElasticsearchRepository getVitamESRepository(
+        VitamCollection collection,
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver
+    ) {
+        return new VitamElasticsearchRepository(collection.getEsClient().getClient(), elasticsearchIndexAliasResolver);
     }
-
 }

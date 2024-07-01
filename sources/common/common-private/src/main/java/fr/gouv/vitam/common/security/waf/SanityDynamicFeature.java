@@ -48,8 +48,9 @@ public class SanityDynamicFeature implements DynamicFeature {
             Class<?> parameterClass = parametersClass[i];
             if (parameterClass.isAssignableFrom(JsonNode.class)) {
                 context.register(SanityCheckerJsonFilter.class);
-            } else if (VitamConfiguration.isForceChunkModeInputStream() &&
-                parameterClass.isAssignableFrom(InputStream.class)) {
+            } else if (
+                VitamConfiguration.isForceChunkModeInputStream() && parameterClass.isAssignableFrom(InputStream.class)
+            ) {
                 context.register(SanityCheckerInputStreamFilter.class);
             }
         }

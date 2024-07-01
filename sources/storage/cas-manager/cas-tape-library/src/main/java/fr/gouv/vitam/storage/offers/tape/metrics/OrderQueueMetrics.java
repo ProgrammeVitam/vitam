@@ -53,43 +53,69 @@ public class OrderQueueMetrics {
     }
 
     public static void initializeMetrics(QueueRepositoryImpl queueRepository) {
-
         Collector collector = new Collector() {
             @Override
             public List<MetricFamilySamples> collect() {
-
                 try {
-                    Map<Pair<QueueState, QueueMessageType>, Integer> stats =
-                        queueRepository.countByStateAndType();
+                    Map<Pair<QueueState, QueueMessageType>, Integer> stats = queueRepository.countByStateAndType();
 
                     List<MetricFamilySamples> mfs = new ArrayList<>();
 
-                    addMetrics(mfs, stats, VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_READY_READ_ORDERS,
-                        "Number of read orders with READY state", QueueState.READY,
-                        List.of(QueueMessageType.ReadOrder));
+                    addMetrics(
+                        mfs,
+                        stats,
+                        VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_READY_READ_ORDERS,
+                        "Number of read orders with READY state",
+                        QueueState.READY,
+                        List.of(QueueMessageType.ReadOrder)
+                    );
 
-                    addMetrics(mfs, stats, VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_RUNNING_READ_ORDERS,
-                        "Number of read orders with RUNNING state", QueueState.RUNNING,
-                        List.of(QueueMessageType.ReadOrder));
+                    addMetrics(
+                        mfs,
+                        stats,
+                        VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_RUNNING_READ_ORDERS,
+                        "Number of read orders with RUNNING state",
+                        QueueState.RUNNING,
+                        List.of(QueueMessageType.ReadOrder)
+                    );
 
-                    addMetrics(mfs, stats, VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_ERROR_READ_ORDERS,
-                        "Number of read orders with ERROR state", QueueState.ERROR,
-                        List.of(QueueMessageType.ReadOrder));
+                    addMetrics(
+                        mfs,
+                        stats,
+                        VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_ERROR_READ_ORDERS,
+                        "Number of read orders with ERROR state",
+                        QueueState.ERROR,
+                        List.of(QueueMessageType.ReadOrder)
+                    );
 
-                    addMetrics(mfs, stats, VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_READY_WRITE_ORDERS,
-                        "Number of write orders with READY state", QueueState.READY,
-                        List.of(QueueMessageType.WriteOrder, QueueMessageType.WriteBackupOrder));
+                    addMetrics(
+                        mfs,
+                        stats,
+                        VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_READY_WRITE_ORDERS,
+                        "Number of write orders with READY state",
+                        QueueState.READY,
+                        List.of(QueueMessageType.WriteOrder, QueueMessageType.WriteBackupOrder)
+                    );
 
-                    addMetrics(mfs, stats, VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_RUNNING_WRITE_ORDERS,
-                        "Number of write orders with RUNNING state", QueueState.RUNNING,
-                        List.of(QueueMessageType.WriteOrder, QueueMessageType.WriteBackupOrder));
+                    addMetrics(
+                        mfs,
+                        stats,
+                        VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_RUNNING_WRITE_ORDERS,
+                        "Number of write orders with RUNNING state",
+                        QueueState.RUNNING,
+                        List.of(QueueMessageType.WriteOrder, QueueMessageType.WriteBackupOrder)
+                    );
 
-                    addMetrics(mfs, stats, VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_ERROR_WRITE_ORDERS,
-                        "Number of write orders with ERROR state", QueueState.ERROR,
-                        List.of(QueueMessageType.WriteOrder, QueueMessageType.WriteBackupOrder));
+                    addMetrics(
+                        mfs,
+                        stats,
+                        VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_ERROR_WRITE_ORDERS,
+                        "Number of write orders with ERROR state",
+                        QueueState.ERROR,
+                        List.of(QueueMessageType.WriteOrder, QueueMessageType.WriteBackupOrder)
+                    );
 
                     return mfs;
-
                 } catch (QueueException e) {
                     LOGGER.error("Could not get order queue stats", e);
                     return emptyList();
@@ -100,10 +126,14 @@ public class OrderQueueMetrics {
         collector.register();
     }
 
-    private static void addMetrics(List<Collector.MetricFamilySamples> mfs,
-        Map<Pair<QueueState, QueueMessageType>, Integer> stats, String metricName, String help,
+    private static void addMetrics(
+        List<Collector.MetricFamilySamples> mfs,
+        Map<Pair<QueueState, QueueMessageType>, Integer> stats,
+        String metricName,
+        String help,
         QueueState queueState,
-        List<QueueMessageType> queueMessageTypes) {
+        List<QueueMessageType> queueMessageTypes
+    ) {
         GaugeMetricFamily gaugeMetricFamily = new GaugeMetricFamily(metricName, help, emptyList());
         int total = 0;
         for (QueueMessageType queueMessageType : queueMessageTypes) {

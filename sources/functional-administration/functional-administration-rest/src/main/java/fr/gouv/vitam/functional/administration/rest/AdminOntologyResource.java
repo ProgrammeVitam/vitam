@@ -60,8 +60,7 @@ public class AdminOntologyResource {
     private final OntologyResource ontologyResource;
 
     public static final int ADMIN_TENANT = VitamConfiguration.getAdminTenant();
-    private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER =
-        "Ontology model list is mandatory";
+    private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER = "Ontology model list is mandatory";
 
     private final OntologyService ontologyService;
 
@@ -79,26 +78,26 @@ public class AdminOntologyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importInternalOntologies(List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
-
         LOGGER.info("imports internal ontologies and merge them with external already used if any");
         LOGGER.info("use of admin tenant: 1");
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try {
             VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-            RequestResponse<OntologyModel>
-                requestResponse = ontologyService.importInternalOntologies(ontologyModelList);
+            RequestResponse<OntologyModel> requestResponse = ontologyService.importInternalOntologies(
+                ontologyModelList
+            );
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -133,26 +132,24 @@ public class AdminOntologyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkOntologies(List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
-
         LOGGER.info("This is check of the safety ontology import");
         LOGGER.info("use of admin tenant: 1");
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try {
             VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-            RequestResponse<OntologyModel>
-                response = ontologyService.checkUpgradeOntologies(ontologyModelList);
+            RequestResponse<OntologyModel> response = ontologyService.checkUpgradeOntologies(ontologyModelList);
 
             if (!response.isOk()) {
                 return Response.status(response.getHttpCode()).entity(response).build();
             } else {
                 return Response.ok(uri.getRequestUri().normalize()).entity(response).build();
             }
-
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -167,13 +164,17 @@ public class AdminOntologyResource {
     private VitamError<OntologyModel> getErrorEntity(Response.Status status, String message, String code) {
         String aMessage = messageFromReason(status, message);
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError<OntologyModel>(aCode).setHttpCode(status.getStatusCode())
+        return new VitamError<OntologyModel>(aCode)
+            .setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState("code_vitam")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
     private String messageFromReason(Response.Status status, String message) {
-        return (message != null && !message.trim().isEmpty()) ? message
+        return (message != null && !message.trim().isEmpty())
+            ? message
             : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
     }
 }

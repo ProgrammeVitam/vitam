@@ -33,13 +33,18 @@ import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 
 public class OriginatingAgencyBucketResult {
+
     public final String originatingAgency;
     public final long docCount;
     public final long objectCount;
     public final double binaryObjectSize;
 
-    private OriginatingAgencyBucketResult(String originatingAgency, long docCount, ValueCount objectCount,
-        Sum binaryObjectSize) {
+    private OriginatingAgencyBucketResult(
+        String originatingAgency,
+        long docCount,
+        ValueCount objectCount,
+        Sum binaryObjectSize
+    ) {
         this.originatingAgency = originatingAgency;
         this.docCount = docCount;
         this.objectCount = objectCount.getValue();
@@ -51,7 +56,11 @@ public class OriginatingAgencyBucketResult {
     }
 
     public static OriginatingAgencyBucketResult of(String originatingAgency, long docCount, Nested nestedVersions) {
-        return new OriginatingAgencyBucketResult(originatingAgency, docCount, nestedVersions.getAggregations()
-            .get("binaryObjectCount"), nestedVersions.getAggregations().get("binaryObjectSize"));
+        return new OriginatingAgencyBucketResult(
+            originatingAgency,
+            docCount,
+            nestedVersions.getAggregations().get("binaryObjectCount"),
+            nestedVersions.getAggregations().get("binaryObjectSize")
+        );
     }
 }

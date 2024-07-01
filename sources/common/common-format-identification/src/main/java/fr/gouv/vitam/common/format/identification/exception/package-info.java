@@ -28,4 +28,3 @@
  * Provides Exception classes that could be thrown in the Format Identification module
  */
 package fr.gouv.vitam.common.format.identification.exception;
-

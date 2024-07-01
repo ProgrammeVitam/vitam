@@ -50,6 +50,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 public class UnitGraphComputePluginTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -64,9 +65,7 @@ public class UnitGraphComputePluginTest {
 
     @Test
     public void testGetGraphComputeAction() {
-
-        GraphComputeResponse.GraphComputeAction action =
-            unitGraphComputePlugin.getGraphComputeAction();
+        GraphComputeResponse.GraphComputeAction action = unitGraphComputePlugin.getGraphComputeAction();
         Assertions.assertThat(action).isEqualTo(GraphComputeResponse.GraphComputeAction.UNIT);
     }
 
@@ -74,7 +73,6 @@ public class UnitGraphComputePluginTest {
     public void testGetPluginKeyName() {
         String pluginName = unitGraphComputePlugin.getPluginKeyName();
         Assertions.assertThat(pluginName).isEqualTo("UNIT_GRAPH_COMPUTE");
-
     }
 
     @Test(expected = ProcessingException.class)

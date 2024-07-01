@@ -37,18 +37,25 @@ public class ProcessDetail {
 
     @JsonProperty("stepStatus")
     private String stepStatus;
+
     @JsonProperty("previousStep")
     private String previousStep;
+
     @JsonProperty("nextStep")
     private String nextStep;
+
     @JsonProperty("operationId")
     private String operationId;
+
     @JsonProperty("processType")
     private String processType;
+
     @JsonProperty("stepByStep")
     private boolean stepByStep;
+
     @JsonProperty("globalState")
     private String globalState;
+
     @JsonProperty("processDate")
     private String processDate;
 

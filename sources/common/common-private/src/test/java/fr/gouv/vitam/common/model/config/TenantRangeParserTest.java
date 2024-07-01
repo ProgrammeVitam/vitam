@@ -76,14 +76,14 @@ public class TenantRangeParserTest {
 
     @Test
     public void testInvalidTenantRange() {
-        assertThatThrownBy(() -> TenantRangeParser.parseTenantRanges("5-2"))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> TenantRangeParser.parseTenantRanges("5-2")).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void testInvalidTenant() {
-        assertThatThrownBy(() -> TenantRangeParser.parseTenantRanges("invalid"))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> TenantRangeParser.parseTenantRanges("invalid")).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test

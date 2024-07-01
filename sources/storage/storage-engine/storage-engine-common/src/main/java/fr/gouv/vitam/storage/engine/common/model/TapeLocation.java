@@ -39,14 +39,15 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  */
 @JsonInclude(NON_NULL)
 public class TapeLocation {
+
     public static final String INDEX = "index";
     public static final String TYPE = "locationType";
 
     @JsonProperty(INDEX)
     private Integer index;
+
     @JsonProperty(TYPE)
     private TapeLocationType locationType;
-
 
     @JsonCreator
     public TapeLocation(@JsonProperty(INDEX) Integer index, @JsonProperty(TYPE) TapeLocationType locationType) {
@@ -90,10 +91,11 @@ public class TapeLocation {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof TapeLocation) {
-
             TapeLocation tapeLocation = (TapeLocation) obj;
-            return Objects.equals(tapeLocation.getIndex(), getIndex()) &&
-                Objects.equals(tapeLocation.getLocationType(), getLocationType());
+            return (
+                Objects.equals(tapeLocation.getIndex(), getIndex()) &&
+                Objects.equals(tapeLocation.getLocationType(), getLocationType())
+            );
         }
         return false;
     }

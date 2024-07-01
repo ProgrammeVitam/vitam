@@ -79,35 +79,50 @@ public class CollectHelper {
     }
 
     public static FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
-        return formats.stream()
+        return formats
+            .stream()
             .filter(format -> FormatIdentifierSiegfried.PRONOM_NAMESPACE.equals(format.getMatchedNamespace()))
-            .findFirst().orElse(null);
+            .findFirst()
+            .orElse(null);
     }
 
-    public static DbVersionsModel getObjectVersionsModel(DbObjectGroupModel dbObjectGroupModel,
-        DataObjectVersionType usage, int version) {
-
+    public static DbVersionsModel getObjectVersionsModel(
+        DbObjectGroupModel dbObjectGroupModel,
+        DataObjectVersionType usage,
+        int version
+    ) {
         if (dbObjectGroupModel.getQualifiers() == null) {
             return null;
         }
 
         final String dataObjectVersion = usage.getName() + "_" + version;
 
-        return dbObjectGroupModel.getQualifiers().stream()
+        return dbObjectGroupModel
+            .getQualifiers()
+            .stream()
             .filter(dbQualifiersModel -> usage.getName().equals(dbQualifiersModel.getQualifier()))
             .flatMap(dbQualifiersModel -> dbQualifiersModel.getVersions().stream())
-            .filter(dbVersionsModel -> dataObjectVersion.equals(dbVersionsModel.getDataObjectVersion())).findFirst()
+            .filter(dbVersionsModel -> dataObjectVersion.equals(dbVersionsModel.getDataObjectVersion()))
+            .findFirst()
             .orElse(null);
     }
 
     public static int getLastVersion(DbQualifiersModel qualifierModelToUpdate) {
-        return qualifierModelToUpdate.getVersions().stream().map(DbVersionsModel::getDataObjectVersion)
-            .map(dataObjectVersion -> dataObjectVersion.split("_")[1]).map(Integer::parseInt)
-            .max(Comparator.naturalOrder()).orElse(0);
+        return qualifierModelToUpdate
+            .getVersions()
+            .stream()
+            .map(DbVersionsModel::getDataObjectVersion)
+            .map(dataObjectVersion -> dataObjectVersion.split("_")[1])
+            .map(Integer::parseInt)
+            .max(Comparator.naturalOrder())
+            .orElse(0);
     }
 
     public static DbQualifiersModel findQualifier(List<DbQualifiersModel> qualifiers, DataObjectVersionType usage) {
-        return qualifiers.stream().filter(qualifier -> qualifier.getQualifier().equals(usage.getName())).findFirst()
+        return qualifiers
+            .stream()
+            .filter(qualifier -> qualifier.getQualifier().equals(usage.getName()))
+            .findFirst()
             .orElse(null);
     }
 
@@ -117,8 +132,12 @@ public class CollectHelper {
         }
     }
 
-    public static void createGraph(ListMultimap<String, String> multimap, Set<String> originatingAgencies,
-        Map<String, String> ogs, JsonNode result) {
+    public static void createGraph(
+        ListMultimap<String, String> multimap,
+        Set<String> originatingAgencies,
+        Map<String, String> ogs,
+        JsonNode result
+    ) {
         String archiveUnitId = result.get(id()).asText();
         ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.unitups());
         for (JsonNode node : nodes) {
@@ -146,9 +165,11 @@ public class CollectHelper {
             projectDto.setMessageIdentifier(projectModel.getManifestContext().getMessageIdentifier());
             projectDto.setArchivalAgencyIdentifier(projectModel.getManifestContext().getArchivalAgencyIdentifier());
             projectDto.setTransferringAgencyIdentifier(
-                projectModel.getManifestContext().getTransferringAgencyIdentifier());
+                projectModel.getManifestContext().getTransferringAgencyIdentifier()
+            );
             projectDto.setOriginatingAgencyIdentifier(
-                projectModel.getManifestContext().getOriginatingAgencyIdentifier());
+                projectModel.getManifestContext().getOriginatingAgencyIdentifier()
+            );
             projectDto.setSubmissionAgencyIdentifier(projectModel.getManifestContext().getSubmissionAgencyIdentifier());
             projectDto.setArchivalProfile(projectModel.getManifestContext().getArchivalProfile());
             projectDto.setComment(projectModel.getManifestContext().getComment());
@@ -166,20 +187,25 @@ public class CollectHelper {
         transactionDto.setCreationDate(transactionModel.getCreationDate());
         transactionDto.setLastUpdate(transactionModel.getLastUpdate());
         transactionDto.setStatus(
-            Objects.requireNonNullElse(transactionModel.getStatus(), TransactionStatus.OPEN).toString());
+            Objects.requireNonNullElse(transactionModel.getStatus(), TransactionStatus.OPEN).toString()
+        );
         transactionDto.setProjectId(transactionModel.getProjectId());
         transactionDto.setTenant(transactionModel.getTenant());
         if (transactionModel.getManifestContext() != null) {
             transactionDto.setArchivalAgreement(transactionModel.getManifestContext().getArchivalAgreement());
             transactionDto.setMessageIdentifier(transactionModel.getManifestContext().getMessageIdentifier());
             transactionDto.setArchivalAgencyIdentifier(
-                transactionModel.getManifestContext().getArchivalAgencyIdentifier());
+                transactionModel.getManifestContext().getArchivalAgencyIdentifier()
+            );
             transactionDto.setTransferringAgencyIdentifier(
-                transactionModel.getManifestContext().getTransferringAgencyIdentifier());
+                transactionModel.getManifestContext().getTransferringAgencyIdentifier()
+            );
             transactionDto.setOriginatingAgencyIdentifier(
-                transactionModel.getManifestContext().getOriginatingAgencyIdentifier());
+                transactionModel.getManifestContext().getOriginatingAgencyIdentifier()
+            );
             transactionDto.setSubmissionAgencyIdentifier(
-                transactionModel.getManifestContext().getSubmissionAgencyIdentifier());
+                transactionModel.getManifestContext().getSubmissionAgencyIdentifier()
+            );
             transactionDto.setArchivalProfile(transactionModel.getManifestContext().getArchivalProfile());
             transactionDto.setComment(transactionModel.getManifestContext().getComment());
             transactionDto.setAcquisitionInformation(transactionModel.getManifestContext().getAcquisitionInformation());
@@ -190,43 +216,69 @@ public class CollectHelper {
     }
 
     public static ManifestContext mapProjectDtoToManifestContext(ProjectDto projectDto) {
-        return new ManifestContextBuilder().withArchivalAgreement(projectDto.getArchivalAgreement())
+        return new ManifestContextBuilder()
+            .withArchivalAgreement(projectDto.getArchivalAgreement())
             .withMessageIdentifier(projectDto.getMessageIdentifier())
             .withArchivalAgencyIdentifier(projectDto.getArchivalAgencyIdentifier())
             .withTransferringAgencyIdentifier(projectDto.getTransferringAgencyIdentifier())
             .withOriginatingAgencyIdentifier(projectDto.getOriginatingAgencyIdentifier())
             .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(projectDto.getArchivalProfile()).withComment(projectDto.getComment())
+            .withArchivalProfile(projectDto.getArchivalProfile())
+            .withComment(projectDto.getComment())
             .withAcquisitionInformation(projectDto.getAcquisitionInformation())
-            .withLegalStatus(projectDto.getLegalStatus()).build();
+            .withLegalStatus(projectDto.getLegalStatus())
+            .build();
     }
 
-    public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto,
-        ProjectDto projectDto) {
-        return new ManifestContextBuilder().withArchivalAgreement(transactionDto.getArchivalAgreement() != null ?
-                transactionDto.getArchivalAgreement() : projectDto.getArchivalAgreement())
-            .withMessageIdentifier(transactionDto.getMessageIdentifier() != null ?
-                transactionDto.getMessageIdentifier() : projectDto.getMessageIdentifier())
+    public static ManifestContext mapTransactionDtoToManifestContext(
+        TransactionDto transactionDto,
+        ProjectDto projectDto
+    ) {
+        return new ManifestContextBuilder()
+            .withArchivalAgreement(
+                transactionDto.getArchivalAgreement() != null
+                    ? transactionDto.getArchivalAgreement()
+                    : projectDto.getArchivalAgreement()
+            )
+            .withMessageIdentifier(
+                transactionDto.getMessageIdentifier() != null
+                    ? transactionDto.getMessageIdentifier()
+                    : projectDto.getMessageIdentifier()
+            )
             .withArchivalAgencyIdentifier(
-                transactionDto.getArchivalAgencyIdentifier() != null ?
-                    transactionDto.getArchivalAgencyIdentifier() : projectDto.getArchivalAgencyIdentifier())
+                transactionDto.getArchivalAgencyIdentifier() != null
+                    ? transactionDto.getArchivalAgencyIdentifier()
+                    : projectDto.getArchivalAgencyIdentifier()
+            )
             .withTransferringAgencyIdentifier(
-                transactionDto.getTransferringAgencyIdentifier() != null ?
-                    transactionDto.getTransferringAgencyIdentifier() : projectDto.getTransferringAgencyIdentifier())
+                transactionDto.getTransferringAgencyIdentifier() != null
+                    ? transactionDto.getTransferringAgencyIdentifier()
+                    : projectDto.getTransferringAgencyIdentifier()
+            )
             .withOriginatingAgencyIdentifier(
-                transactionDto.getOriginatingAgencyIdentifier() != null ?
-                    transactionDto.getOriginatingAgencyIdentifier() : projectDto.getOriginatingAgencyIdentifier())
+                transactionDto.getOriginatingAgencyIdentifier() != null
+                    ? transactionDto.getOriginatingAgencyIdentifier()
+                    : projectDto.getOriginatingAgencyIdentifier()
+            )
             .withSubmissionAgencyIdentifier(
-                transactionDto.getSubmissionAgencyIdentifier() != null ?
-                    transactionDto.getSubmissionAgencyIdentifier() : projectDto.getSubmissionAgencyIdentifier())
+                transactionDto.getSubmissionAgencyIdentifier() != null
+                    ? transactionDto.getSubmissionAgencyIdentifier()
+                    : projectDto.getSubmissionAgencyIdentifier()
+            )
             .withArchivalProfile(
-                transactionDto.getArchivalProfile() != null ?
-                    transactionDto.getArchivalProfile() : projectDto.getArchivalProfile())
+                transactionDto.getArchivalProfile() != null
+                    ? transactionDto.getArchivalProfile()
+                    : projectDto.getArchivalProfile()
+            )
             .withComment(transactionDto.getComment() != null ? transactionDto.getComment() : projectDto.getComment())
-            .withAcquisitionInformation(transactionDto.getAcquisitionInformation() != null ?
-                transactionDto.getAcquisitionInformation() : projectDto.getAcquisitionInformation())
+            .withAcquisitionInformation(
+                transactionDto.getAcquisitionInformation() != null
+                    ? transactionDto.getAcquisitionInformation()
+                    : projectDto.getAcquisitionInformation()
+            )
             .withLegalStatus(
-                transactionDto.getLegalStatus() != null ? transactionDto.getLegalStatus() : projectDto.getLegalStatus())
+                transactionDto.getLegalStatus() != null ? transactionDto.getLegalStatus() : projectDto.getLegalStatus()
+            )
             .build();
     }
 

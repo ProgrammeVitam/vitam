@@ -54,6 +54,7 @@ import static org.junit.Assert.assertTrue;
  *
  */
 public class WebApplicationResourceAuthTest {
+
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
     private static final String OPTIONS = "{\"name\": \"myName\"}";
@@ -79,11 +80,13 @@ public class WebApplicationResourceAuthTest {
         tenants.add(0);
         tenants.add(1);
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        final WebApplicationConfig webApplicationConfig =
-            (WebApplicationConfig) new WebApplicationConfig().setPort(port)
-                .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
-                .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
-                .setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2);
+        final WebApplicationConfig webApplicationConfig = (WebApplicationConfig) new WebApplicationConfig()
+            .setPort(port)
+            .setServerHost(DEFAULT_HOST)
+            .setJettyConfig(JETTY_CONFIG)
+            .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
+            .setAuthentication(true)
+            .setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2);
         VitamConfiguration.setTenants(tenants);
         webApplicationConfig.setSecureMode(Arrays.asList("File", "LDAP"));
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
@@ -94,14 +97,10 @@ public class WebApplicationResourceAuthTest {
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
-        Response response = given()
-            .contentType(ContentType.JSON)
-            .body(CREDENTIALS)
-            .post("/login");
+        Response response = given().contentType(ContentType.JSON).body(CREDENTIALS).post("/login");
         JsonNode body = JsonHandler.getFromString(response.body().asString());
         sessionId = response.getCookie("JSESSIONID");
         tokenCSRF = body.get("tokenCSRF").asText();
-
     }
 
     @AfterClass
@@ -116,55 +115,74 @@ public class WebApplicationResourceAuthTest {
 
     @Test
     public void testSecureModeAPI() {
-        String authMode = given()
-            .get("/securemode").body().asString();
+        String authMode = given().get("/securemode").body().asString();
         assertTrue(authMode.contains("LDAP"));
     }
 
     @Test
     public void givenEmptyPayloadWhenSearchOperationsThenReturnBadRequest() {
-        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-            .contentType(ContentType.JSON).body("{}").expect()
-            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        given()
+            .cookie("JSESSIONID", sessionId)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON)
+            .body("{}")
+            .expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode())
+            .when()
             .post("/logbook/operations");
     }
 
     @Test
     public void testSuccessGetLogbookResult() {
-
-        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-            .contentType(ContentType.JSON).body(OPTIONS).expect()
-            .statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .cookie("JSESSIONID", sessionId)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON)
+            .body(OPTIONS)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .post("/logbook/operations");
     }
 
-
     @Test
     public void testSuccessGetLogbookResultFromSession() {
+        final String requestId = given()
+            .cookie("JSESSIONID", sessionId)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON)
+            .body(OPTIONS)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .post("/logbook/operations")
+            .header(GlobalDataRest.X_REQUEST_ID);
 
-        final String requestId = given().cookie("JSESSIONID", sessionId)
-            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).contentType(ContentType.JSON).body(OPTIONS)
-            .expect().statusCode(Status.OK.getStatusCode()).when()
-            .post("/logbook/operations").header(GlobalDataRest.X_REQUEST_ID);
-
-
-        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+        given()
+            .cookie("JSESSIONID", sessionId)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_REQUEST_ID, requestId)
-            .contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.OK.getStatusCode()).when()
-            .post("/logbook/operations").header(GlobalDataRest.X_REQUEST_ID);
-
+            .contentType(ContentType.JSON)
+            .body(OPTIONS)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .post("/logbook/operations")
+            .header(GlobalDataRest.X_REQUEST_ID);
     }
 
     @Test
     public void testErrorGetLogbookResultUsingPagination() {
-
-        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+        given()
+            .cookie("JSESSIONID", sessionId)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(IhmDataRest.X_LIMIT, "1A")
-            .contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .post("/logbook/operations").header(GlobalDataRest.X_REQUEST_ID);
-
+            .contentType(ContentType.JSON)
+            .body(OPTIONS)
+            .expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode())
+            .when()
+            .post("/logbook/operations")
+            .header(GlobalDataRest.X_REQUEST_ID);
     }
-
-
-
 }

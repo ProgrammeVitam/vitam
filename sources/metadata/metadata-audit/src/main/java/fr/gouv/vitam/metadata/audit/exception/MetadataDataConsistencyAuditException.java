@@ -38,8 +38,11 @@ public class MetadataDataConsistencyAuditException extends Exception {
         this.errorCode = errorCode;
     }
 
-    public MetadataDataConsistencyAuditException(MetadataValidationErrorCode errorCode, String message,
-        Throwable cause) {
+    public MetadataDataConsistencyAuditException(
+        MetadataValidationErrorCode errorCode,
+        String message,
+        Throwable cause
+    ) {
         super(message, cause);
         this.errorCode = errorCode;
     }

@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class UnitTest {
+
     private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\"}";
 
     @Test

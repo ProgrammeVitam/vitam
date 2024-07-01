@@ -63,5 +63,4 @@ public class NoWritingPermissionException extends VitamException {
     public NoWritingPermissionException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }

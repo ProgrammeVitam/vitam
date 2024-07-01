@@ -30,7 +30,6 @@ package fr.gouv.vitam.logbook.common.model.coherence;
  * Enumeration of the Vitam logbook events' types. <br/>
  */
 public enum LogbookEventType {
-
     OPERATION,
 
     UNIT_LFC,
@@ -43,5 +42,5 @@ public enum LogbookEventType {
 
     TASK,
 
-    DEFAULT
+    DEFAULT,
 }

@@ -36,6 +36,7 @@ import java.util.List;
  * AuditCheckObjectGroupResult.
  */
 public class AuditCheckObjectGroupResult {
+
     /**
      * Id of object group
      */
@@ -71,11 +72,13 @@ public class AuditCheckObjectGroupResult {
 
     public StatusCode getObjectsGlobalStatus() {
         if (objectStatuses != null) {
-            return objectStatuses.stream().map(object -> object.getGlobalStatus())
-                .filter(objectStatus -> objectStatus != null).max(Comparator.comparing(StatusCode::getStatusLevel))
+            return objectStatuses
+                .stream()
+                .map(object -> object.getGlobalStatus())
+                .filter(objectStatus -> objectStatus != null)
+                .max(Comparator.comparing(StatusCode::getStatusLevel))
                 .orElse(null);
         }
         return null;
     }
-
 }

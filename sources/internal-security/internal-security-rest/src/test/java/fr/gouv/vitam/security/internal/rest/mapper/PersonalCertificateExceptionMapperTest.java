@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.mapper;
 
-
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
 import org.junit.Test;
 
@@ -37,7 +36,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalCertificateExceptionMapperTest {
 
-    private final PersonalCertificateExceptionMapper certificateExceptionMapper = new PersonalCertificateExceptionMapper();
+    private final PersonalCertificateExceptionMapper certificateExceptionMapper =
+        new PersonalCertificateExceptionMapper();
 
     @Test
     public void should_convert_exception_to_response() throws Exception {

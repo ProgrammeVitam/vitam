@@ -39,8 +39,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStream {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ResponseLengthCountingOutputStreamMetrics.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ResponseLengthCountingOutputStreamMetrics.class
+    );
 
     public static final Summary SENT_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_RESPONSES_SIZE_BYTES)
@@ -52,8 +54,10 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
 
     private boolean first = true;
 
-    public ResponseLengthCountingOutputStreamMetrics(ContainerRequestContext requestContext,
-        OutputStream outputStream) {
+    public ResponseLengthCountingOutputStreamMetrics(
+        ContainerRequestContext requestContext,
+        OutputStream outputStream
+    ) {
         super(outputStream);
         ParametersChecker.checkParameter("RequestContext param is required", requestContext);
         this.requestContext = requestContext;
@@ -75,9 +79,7 @@ public class ResponseLengthCountingOutputStreamMetrics extends CountingOutputStr
 
             String method = requestContext.getMethod();
 
-            SENT_BYTES
-                .labels(tenant, method)
-                .observe(super.getByteCount());
+            SENT_BYTES.labels(tenant, method).observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);
         }

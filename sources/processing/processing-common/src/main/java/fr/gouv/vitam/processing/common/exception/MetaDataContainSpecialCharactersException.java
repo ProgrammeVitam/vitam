@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when an archive unit contains a special character
  */
 public class MetaDataContainSpecialCharactersException extends ProcessingException {
+
     private static final long serialVersionUID = -8063612650088096556L;
 
     /**

@@ -53,10 +53,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ExtractSecureTraceabilityDataFilePluginTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private WorkspaceClientFactory workspaceClientFactory;
-    @Mock private WorkspaceClient workspaceClient;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
 
     private ExtractSecureTraceabilityDataFilePlugin extractSecureTraceabilityDataFilePlugin;
 
@@ -65,8 +70,6 @@ public class ExtractSecureTraceabilityDataFilePluginTest {
     private static final String RANDOM_STRING = "tmp";
 
     private static final String zipFolder = TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_NAME;
-
-
 
     @Before
     public void setUp() {
@@ -85,15 +88,17 @@ public class ExtractSecureTraceabilityDataFilePluginTest {
 
         ItemStatus itemStatus = extractSecureTraceabilityDataFilePlugin.execute(param, handler);
 
-        verify(workspaceClient).uncompressObject(eq(CONTAINER_NAME),
+        verify(workspaceClient).uncompressObject(
+            eq(CONTAINER_NAME),
             eq(zipFolder),
-            eq(CommonMediaType.ZIP), any(InputStream.class));
+            eq(CommonMediaType.ZIP),
+            any(InputStream.class)
+        );
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
     }
 
     @Test
     public void should_delete_zip_folder_if_exists() throws Exception {
-
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handler = mock(HandlerIO.class);
 
@@ -109,5 +114,4 @@ public class ExtractSecureTraceabilityDataFilePluginTest {
         verify(workspaceClient).deleteObject(eq(CONTAINER_NAME), eq(zipFolder));
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
     }
-
 }

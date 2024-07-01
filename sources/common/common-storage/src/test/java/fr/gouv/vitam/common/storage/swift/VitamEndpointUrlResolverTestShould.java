@@ -46,18 +46,20 @@ public class VitamEndpointUrlResolverTestShould {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Mock
     private StorageConfiguration configuration;
+
     @Mock
     private DefaultEndpointURLResolver defaultResolver;
+
     @Mock
     private URLResolverParams urlResolverParams;
+
     @Mock
     private Token token;
 
     private VitamEndpointUrlResolver vitamEndpointUrlResolver;
-
-
 
     @Before
     public void setUp() throws Exception {
@@ -130,6 +132,4 @@ public class VitamEndpointUrlResolverTestShould {
         // Then
         assertThat(urlv3).isEqualTo("/swift/v3");
     }
-
-
 }

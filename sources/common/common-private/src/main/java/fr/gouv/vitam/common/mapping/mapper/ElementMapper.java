@@ -49,9 +49,7 @@ import static java.util.Collections.singletonList;
  */
 public class ElementMapper {
 
-    private ElementMapper() {
-
-    }
+    private ElementMapper() {}
 
     /**
      * Transform list to map
@@ -60,11 +58,18 @@ public class ElementMapper {
      * @return the map
      */
     public static Map<String, Object> toMap(List<Object> elements) {
-        Map<String, List<Object>> collect =
-            elements.stream().filter(item -> item instanceof Element).map(item -> (Element) item)
-                .map(item -> new SimpleImmutableEntry<>(item.getLocalName(), elementToMap(item))).collect(
-                    Collectors.toMap(SimpleImmutableEntry::getKey, SimpleImmutableEntry::getValue,
-                        (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
+        Map<String, List<Object>> collect = elements
+            .stream()
+            .filter(item -> item instanceof Element)
+            .map(item -> (Element) item)
+            .map(item -> new SimpleImmutableEntry<>(item.getLocalName(), elementToMap(item)))
+            .collect(
+                Collectors.toMap(
+                    SimpleImmutableEntry::getKey,
+                    SimpleImmutableEntry::getValue,
+                    (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())
+                )
+            );
         return (Map) collect;
     }
 
@@ -112,5 +117,4 @@ public class ElementMapper {
 
         return singletonList(maps);
     }
-
 }

@@ -42,22 +42,20 @@ public class StrongReferenceCacheEntryTest {
         try {
             new StrongReferenceCacheEntry<>(integer0, -1324);
             fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-
-        } catch (final IllegalArgumentException e) {// NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             new StrongReferenceCacheEntry<>("AU4LKOz]pz+", 0L);
             fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-
-        } catch (final IllegalArgumentException e) {// NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
     }
 
     @Test
     public void testStillValid() {
         final Integer integer0 = new Integer(227);
-        final StrongReferenceCacheEntry<Integer> strongReferenceCacheEntry0 =
-            new StrongReferenceCacheEntry<>(integer0, 1L);
+        final StrongReferenceCacheEntry<Integer> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
+            integer0,
+            1L
+        );
         strongReferenceCacheEntry0.isStillValid(189L);
         final boolean boolean0 = strongReferenceCacheEntry0.isStillValid(1464473409004L);
         assertTrue(boolean0);
@@ -65,8 +63,10 @@ public class StrongReferenceCacheEntryTest {
 
     @Test
     public void testNotStillValid() {
-        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 =
-            new StrongReferenceCacheEntry<>("ttlmst be positive", 1987L);
+        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
+            "ttlmst be positive",
+            1987L
+        );
         strongReferenceCacheEntry0.resetTime(-1324);
         final String string0 = strongReferenceCacheEntry0.getValue();
         assertNull(string0);
@@ -74,8 +74,7 @@ public class StrongReferenceCacheEntryTest {
 
     @Test
     public void testValue() {
-        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 =
-            new StrongReferenceCacheEntry<>("", 71L);
+        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>("", 71L);
         final String string0 = strongReferenceCacheEntry0.getValue();
         assertEquals("", string0);
     }

@@ -47,23 +47,25 @@ public class JsonLineGenericIteratorTest {
 
     @Test
     public void testEmptyFileThenHasNotNextEntry() {
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator =
-            new JsonLineGenericIterator<>(new NullInputStream(0), JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+            new NullInputStream(0),
+            JSON_NODE_TYPE_REFERENCE
+        );
         assertThat(jsonLineGenericIterator.hasNext()).isFalse();
-        assertThatThrownBy(jsonLineGenericIterator::next)
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(jsonLineGenericIterator::next).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void testSingleEntryFileThenParseEntry() throws IOException {
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (JsonLineWriter writer = new JsonLineWriter(byteArrayOutputStream)) {
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id1"));
         }
 
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator =
-            new JsonLineGenericIterator<>(byteArrayOutputStream.toInputStream(), JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+            byteArrayOutputStream.toInputStream(),
+            JSON_NODE_TYPE_REFERENCE
+        );
 
         assertThat(jsonLineGenericIterator.hasNext()).isTrue();
         assertThat(jsonLineGenericIterator.next().get("_id").asText()).isEqualTo("id1");
@@ -73,7 +75,6 @@ public class JsonLineGenericIteratorTest {
 
     @Test
     public void testMultipleEntryFileThenParseEntry() throws IOException {
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (JsonLineWriter writer = new JsonLineWriter(byteArrayOutputStream)) {
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id1"));
@@ -81,8 +82,10 @@ public class JsonLineGenericIteratorTest {
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id3"));
         }
 
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator =
-            new JsonLineGenericIterator<>(byteArrayOutputStream.toInputStream(), JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+            byteArrayOutputStream.toInputStream(),
+            JSON_NODE_TYPE_REFERENCE
+        );
 
         assertThat(jsonLineGenericIterator.hasNext()).isTrue();
         assertThat(jsonLineGenericIterator.next().get("_id").asText()).isEqualTo("id1");
@@ -98,17 +101,18 @@ public class JsonLineGenericIteratorTest {
 
     @Test
     public void testFullLineConsumingBeforeReadingNextLine() {
-
-        String data = "{\"_id\":\"id1\"}                 \n" +
-            "{\"_id\":\"id2\"}                 ";
+        String data = "{\"_id\":\"id1\"}                 \n" + "{\"_id\":\"id2\"}                 ";
 
         // Jackson may not consume the whole line stream if it ends with spacing or \n
         // Reading byte per byte forces ensuring all data is read / avoid jackson read buffer size
-        InputStream inputStream = JunitHelper.getPerByteInputStream(new ByteArrayInputStream(
-            data.getBytes(StandardCharsets.UTF_8)));
+        InputStream inputStream = JunitHelper.getPerByteInputStream(
+            new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))
+        );
 
         JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
-            inputStream, JSON_NODE_TYPE_REFERENCE);
+            inputStream,
+            JSON_NODE_TYPE_REFERENCE
+        );
 
         assertThat(jsonLineGenericIterator.hasNext()).isTrue();
         assertThat(jsonLineGenericIterator.next().get("_id").asText()).isEqualTo("id1");

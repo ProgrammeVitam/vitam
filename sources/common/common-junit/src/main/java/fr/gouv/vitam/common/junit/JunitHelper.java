@@ -47,12 +47,11 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 
-
-
 /**
  * This class allows to get an available port during Junit execution
  */
 public class JunitHelper extends ExternalResource {
+
     private static final int WAIT_BETWEEN_TRY = 10;
     private static final int WAIT_AFTER_FULL_GC = 100;
     public static final int MIN_PORT = 11112;
@@ -84,7 +83,6 @@ public class JunitHelper extends ExternalResource {
         return JUNIT_HELPER;
     }
 
-
     /**
      * @return an available port if it exists
      * @throws IllegalStateException if no port available
@@ -101,8 +99,10 @@ public class JunitHelper extends ExternalResource {
     public final synchronized int findAvailablePort(String environmentVariable) {
         int port = getAvailablePort();
 
-        if (PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) ||
-            PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)) {
+        if (
+            PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) ||
+            PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)
+        ) {
             setJettyPortSystemProperty(environmentVariable, port);
         }
         return port;
@@ -274,10 +274,12 @@ public class JunitHelper extends ExternalResource {
      * @param port set to jetty server
      */
     public static final void setJettyPortSystemProperty(String environmentVariable, int port) {
-        if (!PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) &&
-            !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable))
-            throw new IllegalArgumentException(
-                "JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params");
+        if (
+            !PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) &&
+            !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)
+        ) throw new IllegalArgumentException(
+            "JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params"
+        );
 
         SystemPropertyUtil.set(environmentVariable, Integer.toString(port));
     }
@@ -304,22 +306,25 @@ public class JunitHelper extends ExternalResource {
             c.setAccessible(true);
             // finally call the constructor
             c.newInstance();
-        } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
-            IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
+        } catch (
+            NoSuchMethodException
+            | SecurityException
+            | InstantiationException
+            | IllegalAccessException
+            | IllegalArgumentException
+            | InvocationTargetException
+            | UnsupportedOperationException e
+        ) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
-
-
     private static final Set<Integer> usedPort = Sets.newConcurrentHashSet();
-
 
     /**
      * Copied from Spring SocketUtils
      */
     private enum SocketType {
-
         TCP {
             @Override
             protected boolean isPortAvailable(int port) {
@@ -328,8 +333,8 @@ public class JunitHelper extends ExternalResource {
                 }
 
                 try {
-                    ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(
-                        port, 1, InetAddress.getByName("localhost"));
+                    ServerSocket serverSocket = ServerSocketFactory.getDefault()
+                        .createServerSocket(port, 1, InetAddress.getByName("localhost"));
                     serverSocket.close();
                     return true;
                 } catch (Exception ex) {
@@ -361,7 +366,6 @@ public class JunitHelper extends ExternalResource {
          */
         protected abstract boolean isPortAvailable(int port);
 
-
         int findAvailablePort(int minPort, int maxPort) {
             Assert.isTrue(minPort > 0, "'minPort' must be greater than 0");
             Assert.isTrue(maxPort >= minPort, "'maxPort' must be greater than or equal to 'minPort'");
@@ -369,7 +373,6 @@ public class JunitHelper extends ExternalResource {
 
             Integer candidatePort = null;
             for (int port = minPort; port <= maxPort; port++) {
-
                 if (!isPortAvailable(port)) {
                     continue;
                 }
@@ -382,13 +385,18 @@ public class JunitHelper extends ExternalResource {
             }
 
             if (candidatePort == null) {
-                throw new IllegalStateException(String.format(
-                    "Could not find an available %s port in the range [%d, %d] after %d attempts",
-                    name(), minPort, maxPort, usedPort.size()));
+                throw new IllegalStateException(
+                    String.format(
+                        "Could not find an available %s port in the range [%d, %d] after %d attempts",
+                        name(),
+                        minPort,
+                        maxPort,
+                        usedPort.size()
+                    )
+                );
             }
 
             return candidatePort;
         }
     }
-
 }

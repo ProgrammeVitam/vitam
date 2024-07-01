@@ -75,8 +75,7 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final WebApplicationConfig configuration =
-                PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
+            final WebApplicationConfig configuration = PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
@@ -98,15 +97,18 @@ public class BusinessApplication extends Application {
 
             String testSystemSipDirectory = configuration.getTestSystemSipDirectory();
             String testSystemReportDirectory = configuration.getTestSystemReportDirectory();
-            ApplicativeTestService applicativeTestService =
-                new ApplicativeTestService(Paths.get(testSystemReportDirectory));
+            ApplicativeTestService applicativeTestService = new ApplicativeTestService(
+                Paths.get(testSystemReportDirectory)
+            );
 
             singletons.add(new ApplicativeTestResource(applicativeTestService, testSystemSipDirectory));
 
             StorageService storageService;
             try (final InputStream storageYamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
-                final StorageConfiguration storageConfiguration =
-                    PropertiesUtils.readYaml(storageYamlIS, StorageConfiguration.class);
+                final StorageConfiguration storageConfiguration = PropertiesUtils.readYaml(
+                    storageYamlIS,
+                    StorageConfiguration.class
+                );
                 storageService = new StorageService(storageConfiguration);
             }
 
@@ -116,17 +118,22 @@ public class BusinessApplication extends Application {
                 new FunctionAdministrationOntologyLoader()
             );
 
-            final WebApplicationResourceDelete deleteResource =
-                new WebApplicationResourceDelete(configuration, ontologyLoader,
-                    configuration.getFunctionalAdminIndexationConfiguration(),
-                    configuration.getMetadataIndexationConfiguration(),
-                    configuration.getLogbookIndexationConfiguration());
-            final WebApplicationResource resource =
-                new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
-                    PaginationHelper.getInstance(), DslQueryHelper.getInstance(), storageService);
+            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(
+                configuration,
+                ontologyLoader,
+                configuration.getFunctionalAdminIndexationConfiguration(),
+                configuration.getMetadataIndexationConfiguration(),
+                configuration.getLogbookIndexationConfiguration()
+            );
+            final WebApplicationResource resource = new WebApplicationResource(
+                configuration,
+                UserInterfaceTransactionManager.getInstance(),
+                PaginationHelper.getInstance(),
+                DslQueryHelper.getInstance(),
+                storageService
+            );
             singletons.add(deleteResource);
             singletons.add(resource);
-
         } catch (IOException e) {
             throw new VitamRuntimeException(e);
         }
@@ -136,5 +143,4 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

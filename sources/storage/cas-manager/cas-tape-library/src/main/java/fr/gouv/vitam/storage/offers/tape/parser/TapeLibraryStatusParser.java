@@ -35,6 +35,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeSlotType;
 import org.apache.commons.lang3.StringUtils;
 
 public class TapeLibraryStatusParser {
+
     private static final String DRIVE_VOLUME_TAG = ":VolumeTag = ";
     private static final String SLOT_VOLUME_TAG = ":VolumeTag=";
     private static final String DRIVE_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag = ";
@@ -51,13 +52,11 @@ public class TapeLibraryStatusParser {
     private static final String EMPTY = ":Empty";
     private static final String DATA_TRANSFER_ELEMENT = "Data Transfer Element";
 
-
     public TapeLibraryState parse(String output) {
         ParametersChecker.checkParameter("Output param is required", output);
 
         final TapeLibraryState tapeLibraryState = new TapeLibraryState();
         for (String s : output.split("\n")) {
-
             // Slots
             if (s.trim().startsWith(STORAGE_ELEMENT)) {
                 TapeSlot tapeSlot = new TapeSlot();
@@ -73,7 +72,6 @@ public class TapeLibraryStatusParser {
                 tapeSlot.setTape(cartridge);
 
                 extractSlotVolumeTag(s, cartridge);
-
                 // Drives
             } else if (s.trim().startsWith(DATA_TRANSFER_ELEMENT)) {
                 TapeDrive tapeDrive = new TapeDrive();
@@ -90,16 +88,13 @@ public class TapeLibraryStatusParser {
                 extractCartridgeSlotIndex(s, cartridge);
 
                 extractDriveVolumeTag(s, cartridge);
-
             } else if (s.trim().startsWith(STORAGE_CHANGER)) {
                 extractHeader(tapeLibraryState, s);
-
             }
         }
 
         return tapeLibraryState;
     }
-
 
     private void extractCartridgeSlotIndex(String s, TapeCartridge cartridge) {
         if (!s.contains(FULL_UNKNOWN_STORAGE_ELEMENT_LOADED)) {
@@ -142,7 +137,8 @@ public class TapeLibraryStatusParser {
     private void extractDriveVolumeTag(String s, TapeCartridge cartridge) {
         if (s.contains(DRIVE_VOLUME_TAG) && s.contains(DRIVE_ALTERNATE_VOLUME_TAG)) {
             cartridge.setVolumeTag(
-                StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG).trim());
+                StringUtils.substringBetween(s, DRIVE_VOLUME_TAG, DRIVE_ALTERNATE_VOLUME_TAG).trim()
+            );
             cartridge.setAlternateVolumeTag(StringUtils.substringAfterLast(s, DRIVE_ALTERNATE_VOLUME_TAG).trim());
         } else if (s.contains(DRIVE_VOLUME_TAG)) {
             cartridge.setVolumeTag(StringUtils.substringAfterLast(s, DRIVE_VOLUME_TAG).trim());

@@ -37,8 +37,8 @@ import java.io.InputStream;
  * Utility class for Junit
  */
 public class ResourcesPublicUtilTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ResourcesPublicUtilTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResourcesPublicUtilTest.class);
 
     public static final String GUID_TEST_PROPERTIES = "GUID-test.properties";
     private static final String JSON_TEST_JSON = "json-test.json";
@@ -111,8 +111,6 @@ public class ResourcesPublicUtilTest {
     public InputStream getJsonTestEmptyJsonInputStream() {
         return getTestResourcesInputStream(JSON_TEST_EMPTY_JSON);
     }
-
-
 
     /**
      * @return the ResourcesPublicUtilTest instance

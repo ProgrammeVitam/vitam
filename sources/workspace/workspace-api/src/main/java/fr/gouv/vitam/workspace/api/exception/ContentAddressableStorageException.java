@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 
 public class ContentAddressableStorageException extends VitamException {
 
-
     private static final long serialVersionUID = -4421004141804361330L;
 
     /**

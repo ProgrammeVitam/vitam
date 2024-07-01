@@ -38,11 +38,11 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFactory.LocalhostClient> {
+
     public LocalhostClientFactory(final int port, final String rootResourcePath) {
         super(new ClientConfigurationImpl("localhost", port), rootResourcePath);
     }
@@ -52,7 +52,8 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
         switch (getVitamClientType()) {
             case MOCK:
                 throw new UnsupportedOperationException(
-                    "No mock for this class is implemented (this class is for REST testing purpose only).");
+                    "No mock for this class is implemented (this class is for REST testing purpose only)."
+                );
             case PRODUCTION:
                 return new LocalhostClient(this);
             default:
@@ -61,6 +62,7 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
     }
 
     public static class LocalhostClient extends DefaultClient {
+
         public LocalhostClient(VitamClientFactoryInterface<?> factory) {
             super(factory);
         }
@@ -76,8 +78,10 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
         }
 
         public String doRequest(final String subResource, final MultivaluedHashMap<String, Object> headers) {
-            VitamRequestBuilder request =
-                get().withPath(subResource).withHeaders(headers).withAccept(MediaType.TEXT_PLAIN_TYPE);
+            VitamRequestBuilder request = get()
+                .withPath(subResource)
+                .withHeaders(headers)
+                .withAccept(MediaType.TEXT_PLAIN_TYPE);
             try (Response response = make(request)) {
                 check(response);
                 return response.readEntity(String.class);
@@ -92,9 +96,12 @@ public class LocalhostClientFactory extends VitamClientFactory<LocalhostClientFa
                 return;
             }
             throw new VitamClientInternalException(
-                String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+                String.format(
+                    "Error with the response, get status: '%d' and reason '%s'.",
+                    response.getStatus(),
+                    fromStatusCode(response.getStatus()).getReasonPhrase()
+                )
+            );
         }
     }
 }
-

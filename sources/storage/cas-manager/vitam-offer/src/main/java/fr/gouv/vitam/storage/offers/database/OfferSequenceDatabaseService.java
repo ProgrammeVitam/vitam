@@ -67,12 +67,14 @@ public class OfferSequenceDatabaseService {
                 return sequence.getLong(COUNTER_FIELD) + 1L - inc;
             } else {
                 throw new ContentAddressableStorageDatabaseException(
-                    String.format("Database Error sequence %s not found", sequenceId));
+                    String.format("Database Error sequence %s not found", sequenceId)
+                );
             }
-
         } catch (MongoException e) {
-            throw new ContentAddressableStorageDatabaseException(String.format(
-                "Database Error while getting next sequence value for %s", sequenceId), e);
+            throw new ContentAddressableStorageDatabaseException(
+                String.format("Database Error while getting next sequence value for %s", sequenceId),
+                e
+            );
         }
     }
 }

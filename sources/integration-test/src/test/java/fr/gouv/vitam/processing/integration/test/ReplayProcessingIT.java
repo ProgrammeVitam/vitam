@@ -116,17 +116,19 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReplayProcessingIT.class);
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ReplayProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ReplayProcessingIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class
+        )
+    );
 
     private static final Integer TENANT_ID = 0;
 
@@ -139,15 +141,14 @@ public class ReplayProcessingIT extends VitamRuleRunner {
     private static final String SIP_OK_REPLAY_2 = "integration-processing/OK_TEST_REPLAY_2.zip";
     private static DataLoader dataLoader = new DataLoader("integration-processing");
 
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        String configSiegfriedPath =
-            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+        String configSiegfriedPath = PropertiesUtils.getResourcePath(
+            "integration-processing/format-identifiers.conf"
+        ).toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configSiegfriedPath);
-
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
@@ -161,7 +162,6 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
 
-
         runAfter();
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
@@ -174,17 +174,19 @@ public class ReplayProcessingIT extends VitamRuleRunner {
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationId, "Process_SIP_unitary", objectId,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId,
+            "Process_SIP_unitary",
+            objectId,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
-            operationId);
+            operationId
+        );
         logbookClient.create(initParameters);
     }
-
 
     @RunWithCustomExecutor
     @Test
@@ -196,41 +198,49 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         JsonNode logbookResultReplay = logbookClient.selectOperationById(containerNameReplay);
         JsonNode logbookResultNoReplay = logbookClient.selectOperationById(containerNameNoReplay);
-        validateLogbookOperations(logbookResultReplay.get("$results").get(0),
-            logbookResultNoReplay.get("$results").get(0));
+        validateLogbookOperations(
+            logbookResultReplay.get("$results").get(0),
+            logbookResultNoReplay.get("$results").get(0)
+        );
 
         LogbookLifeCyclesClient lifecycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         final Select selectReplay = new Select();
         selectReplay.setQuery(QueryHelper.eq("evIdProc", containerNameReplay));
-        RequestResponseOK requestResponseOKReplay =
-            RequestResponseOK.getFromJsonNode(lifecycleClient.selectUnitLifeCycle(selectReplay.getFinalSelect()));
+        RequestResponseOK requestResponseOKReplay = RequestResponseOK.getFromJsonNode(
+            lifecycleClient.selectUnitLifeCycle(selectReplay.getFinalSelect())
+        );
 
         final Select selectNoReplay = new Select();
         selectNoReplay.setQuery(QueryHelper.eq("evIdProc", containerNameNoReplay));
-        RequestResponseOK requestResponseOKNoReplay =
-            RequestResponseOK.getFromJsonNode(lifecycleClient.selectUnitLifeCycle(selectNoReplay.getFinalSelect()));
-        validateLogbookLifecycles(requestResponseOKReplay.getResults(), requestResponseOKNoReplay.getResults(),
-            "Units");
-
+        RequestResponseOK requestResponseOKNoReplay = RequestResponseOK.getFromJsonNode(
+            lifecycleClient.selectUnitLifeCycle(selectNoReplay.getFinalSelect())
+        );
+        validateLogbookLifecycles(
+            requestResponseOKReplay.getResults(),
+            requestResponseOKNoReplay.getResults(),
+            "Units"
+        );
 
         final Select selectObjReplay = new Select();
         selectObjReplay.setQuery(QueryHelper.eq("evIdProc", containerNameReplay));
-        RequestResponseOK requestObjResponseOKReplay =
-            RequestResponseOK
-                .getFromJsonNode(lifecycleClient.selectObjectGroupLifeCycle(selectObjReplay.getFinalSelect()));
+        RequestResponseOK requestObjResponseOKReplay = RequestResponseOK.getFromJsonNode(
+            lifecycleClient.selectObjectGroupLifeCycle(selectObjReplay.getFinalSelect())
+        );
         final Select selectObjNoReplay = new Select();
         selectObjNoReplay.setQuery(QueryHelper.eq("evIdProc", containerNameNoReplay));
-        RequestResponseOK requestObjResponseOKNoReplay =
-            RequestResponseOK
-                .getFromJsonNode(lifecycleClient.selectObjectGroupLifeCycle(selectObjNoReplay.getFinalSelect()));
+        RequestResponseOK requestObjResponseOKNoReplay = RequestResponseOK.getFromJsonNode(
+            lifecycleClient.selectObjectGroupLifeCycle(selectObjNoReplay.getFinalSelect())
+        );
 
-        validateLogbookLifecycles(requestObjResponseOKReplay.getResults(), requestObjResponseOKNoReplay.getResults(),
-            "Objects");
+        validateLogbookLifecycles(
+            requestObjResponseOKReplay.getResults(),
+            requestObjResponseOKNoReplay.getResults(),
+            "Objects"
+        );
 
         validateUnitsGoTs(containerNameReplay, containerNameNoReplay);
 
         validateAccessRegInDetail();
-
     }
 
     private void validateAccessRegInDetail() throws Exception {
@@ -239,20 +249,25 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             final BooleanQuery query = and();
             query.add(exists("OriginatingAgency"));
             select.setQuery(query);
-            RequestResponse<AccessionRegisterDetailModel> responseNoReplay =
-                adminClient.getAccessionRegisterDetail("TestReplayOriginAgency1", select.getFinalSelect());
-            RequestResponse<AccessionRegisterDetailModel> responseReplay =
-                adminClient.getAccessionRegisterDetail("TestReplayOriginAgency2", select.getFinalSelect());
+            RequestResponse<AccessionRegisterDetailModel> responseNoReplay = adminClient.getAccessionRegisterDetail(
+                "TestReplayOriginAgency1",
+                select.getFinalSelect()
+            );
+            RequestResponse<AccessionRegisterDetailModel> responseReplay = adminClient.getAccessionRegisterDetail(
+                "TestReplayOriginAgency2",
+                select.getFinalSelect()
+            );
 
             if (responseNoReplay.isOk() && responseReplay.isOk()) {
-                RequestResponseOK<AccessionRegisterDetailModel> responseReplayOK =
-                    (RequestResponseOK<AccessionRegisterDetailModel>) responseReplay;
-                RequestResponseOK<AccessionRegisterDetailModel> responseNoReplayOK =
-                    (RequestResponseOK<AccessionRegisterDetailModel>) responseNoReplay;
+                RequestResponseOK<AccessionRegisterDetailModel> responseReplayOK = (RequestResponseOK<
+                        AccessionRegisterDetailModel
+                    >) responseReplay;
+                RequestResponseOK<AccessionRegisterDetailModel> responseNoReplayOK = (RequestResponseOK<
+                        AccessionRegisterDetailModel
+                    >) responseNoReplay;
 
                 assertEquals(responseReplayOK.getResults().size(), responseNoReplayOK.getResults().size());
             }
-
         }
     }
 
@@ -262,50 +277,55 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             SelectMultiQuery selectReplay = new SelectMultiQuery();
             selectReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameReplay));
             selectReplay.addOrderByDescFilter("Title");
-            ArrayNode resultUnitsReplay =
-                (ArrayNode) metadataClient.selectUnits(selectReplay.getFinalSelect()).get("$results");
+            ArrayNode resultUnitsReplay = (ArrayNode) metadataClient
+                .selectUnits(selectReplay.getFinalSelect())
+                .get("$results");
 
             SelectMultiQuery selectNoReplay = new SelectMultiQuery();
             selectNoReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameNoReplay));
             selectNoReplay.addOrderByDescFilter("Title");
-            ArrayNode resultUnitsNoReplay =
-                (ArrayNode) metadataClient.selectUnits(selectNoReplay.getFinalSelect()).get("$results");
+            ArrayNode resultUnitsNoReplay = (ArrayNode) metadataClient
+                .selectUnits(selectNoReplay.getFinalSelect())
+                .get("$results");
 
             assertEquals(resultUnitsReplay.size(), resultUnitsNoReplay.size());
-            assertEquals(resultUnitsReplay.get(0).get("Title").asText(),
-                resultUnitsNoReplay.get(0).get("Title").asText());
+            assertEquals(
+                resultUnitsReplay.get(0).get("Title").asText(),
+                resultUnitsNoReplay.get(0).get("Title").asText()
+            );
 
             // And now - GoT
             SelectMultiQuery selectObjReplay = new SelectMultiQuery();
             selectObjReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameReplay));
-            ArrayNode resultObjReplay =
-                (ArrayNode) metadataClient.selectObjectGroups(selectObjReplay.getFinalSelect()).get("$results");
+            ArrayNode resultObjReplay = (ArrayNode) metadataClient
+                .selectObjectGroups(selectObjReplay.getFinalSelect())
+                .get("$results");
 
             SelectMultiQuery selectObjNoReplay = new SelectMultiQuery();
             selectObjNoReplay.addQueries(QueryHelper.in(VitamFieldsHelper.operations(), containerNameNoReplay));
-            ArrayNode resultObjectsNoReplay =
-                (ArrayNode) metadataClient.selectObjectGroups(selectObjNoReplay.getFinalSelect()).get("$results");
+            ArrayNode resultObjectsNoReplay = (ArrayNode) metadataClient
+                .selectObjectGroups(selectObjNoReplay.getFinalSelect())
+                .get("$results");
 
             assertEquals(resultObjReplay.size(), resultObjectsNoReplay.size());
         }
     }
 
-
-    private void validateLogbookLifecycles(List<JsonNode> logbookResultReplay, List<JsonNode> logbookResultNoReplay,
-        String type) {
+    private void validateLogbookLifecycles(
+        List<JsonNode> logbookResultReplay,
+        List<JsonNode> logbookResultNoReplay,
+        String type
+    ) {
         assertEquals(logbookResultReplay.size(), logbookResultNoReplay.size());
         // maybe later, it could be improved
     }
 
     private void validateLogbookOperations(JsonNode logbookResultReplay, JsonNode logbookResultNoReplay)
         throws Exception {
-
         JsonNode evDetDataReplay = JsonHandler.getFromString(logbookResultReplay.get("evDetData").asText());
         JsonNode evDetDataNotReplay = JsonHandler.getFromString(logbookResultNoReplay.get("evDetData").asText());
-        assertEquals(evDetDataReplay.get("EvDetailReq").asText(),
-            evDetDataNotReplay.get("EvDetailReq").asText());
+        assertEquals(evDetDataReplay.get("EvDetailReq").asText(), evDetDataNotReplay.get("EvDetailReq").asText());
         Map<String, Integer> listStepsToCheck = new HashMap<>();
-
 
         ArrayNode eventsNoReplay = (ArrayNode) logbookResultNoReplay.get("events");
         for (JsonNode event : eventsNoReplay) {
@@ -321,8 +341,9 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         Map<String, Integer> listStepsExecutedReplay = new HashMap<>();
         ArrayNode eventsReplay = (ArrayNode) logbookResultReplay.get("events");
         for (JsonNode event : eventsReplay) {
-            if ("OK".equals(event.get("outcome").asText()) ||
-                "ALREADY_EXECUTED".equals(event.get("outcome").asText())) {
+            if (
+                "OK".equals(event.get("outcome").asText()) || "ALREADY_EXECUTED".equals(event.get("outcome").asText())
+            ) {
                 String evType = event.get("evType").asText();
                 if (listStepsExecutedReplay.containsKey(evType)) {
                     listStepsExecutedReplay.put(evType, listStepsExecutedReplay.get(evType) + 1);
@@ -333,14 +354,18 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         }
         SoftAssertions.assertSoftly(softAssertions -> {
             listStepsExecutedReplay.forEach((k, v) -> {
-                if ("ATR_NOTIFICATION".equals(k) || "ROLL_BACK".equals(k) || "PROCESS_SIP_UNITARY".equals(k) ||
-                    "STP_INGEST_FINALISATION".equals(k) || k.endsWith(".STARTED")) {
+                if (
+                    "ATR_NOTIFICATION".equals(k) ||
+                    "ROLL_BACK".equals(k) ||
+                    "PROCESS_SIP_UNITARY".equals(k) ||
+                    "STP_INGEST_FINALISATION".equals(k) ||
+                    k.endsWith(".STARTED")
+                ) {
                     softAssertions.assertThat(listStepsToCheck.get(k)).isEqualTo(v);
                 } else {
                     softAssertions.assertThat(2 * listStepsToCheck.get(k)).as("step " + k + " failed").isEqualTo(v);
                 }
             });
-
         });
     }
 
@@ -354,17 +379,14 @@ public class ReplayProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         InputStream zipInputStreamSipObject;
         if (replayModeActivated) {
-            zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_2);
+            zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_2);
         } else {
-            zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_1);
+            zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK_REPLAY_1);
         }
 
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
         // Insert sanityCheck file & StpUpload
         insertWaitForStepEssentialFiles(containerName);
 
@@ -378,9 +400,11 @@ public class ReplayProcessingIT extends VitamRuleRunner {
             while (true) {
                 if (!executedOnce) {
                     // First launch of the step
-                    RequestResponse<ItemStatus> resp =
-                        processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                            ProcessAction.NEXT.getValue());
+                    RequestResponse<ItemStatus> resp = processingClient.executeOperationProcess(
+                        containerName,
+                        Contexts.DEFAULT_WORKFLOW.name(),
+                        ProcessAction.NEXT.getValue()
+                    );
                     // wait a little bit
                     assertNotNull(resp);
                     assertThat(resp.isOk()).isTrue();
@@ -389,38 +413,40 @@ public class ReplayProcessingIT extends VitamRuleRunner {
 
                     ProcessQuery query = new ProcessQuery();
                     query.setId(containerName);
-                    RequestResponseOK<ProcessDetail> response =
-                        (RequestResponseOK<ProcessDetail>) processingClient.listOperationsDetails(query);
+                    RequestResponseOK<ProcessDetail> response = (RequestResponseOK<
+                            ProcessDetail
+                        >) processingClient.listOperationsDetails(query);
                     ProcessDetail currentProcess = response.getResults().get(0);
                     currentStep = currentProcess.getPreviousStep();
 
-                    processWorkflow =
-                        ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+                    processWorkflow = ProcessMonitoringImpl.getInstance()
+                        .findOneProcessWorkflow(containerName, TENANT_ID);
                     assertNotNull(processWorkflow);
                     assertEquals(ProcessState.PAUSE, processWorkflow.getState());
                     // assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
                     System.out.println("Launch step : " + currentStep);
                     executedOnce = true;
-
                 } else {
                     // LETS REPLAY THE SAME STEP AGAIN
-                    RequestResponse<ItemStatus> ret =
-                        processingClient.updateOperationActionProcess(ProcessAction.REPLAY.getValue(),
-                            containerName);
+                    RequestResponse<ItemStatus> ret = processingClient.updateOperationActionProcess(
+                        ProcessAction.REPLAY.getValue(),
+                        containerName
+                    );
                     assertNotNull(ret);
                     assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
                     waitOperation(NB_TRY, SLEEP_TIME, containerName);
 
                     ProcessQuery query = new ProcessQuery();
                     query.setId(containerName);
-                    RequestResponseOK<ProcessDetail> response =
-                        (RequestResponseOK<ProcessDetail>) processingClient.listOperationsDetails(query);
+                    RequestResponseOK<ProcessDetail> response = (RequestResponseOK<
+                            ProcessDetail
+                        >) processingClient.listOperationsDetails(query);
                     ProcessDetail currentProcess = response.getResults().get(0);
                     currentStep = currentProcess.getPreviousStep();
 
-                    processWorkflow =
-                        ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+                    processWorkflow = ProcessMonitoringImpl.getInstance()
+                        .findOneProcessWorkflow(containerName, TENANT_ID);
                     assertNotNull(processWorkflow);
                     assertEquals(ProcessState.PAUSE, processWorkflow.getState());
                     // assertEquals(StatusCode.OK, processWorkflow.getStatus());
@@ -430,36 +456,35 @@ public class ReplayProcessingIT extends VitamRuleRunner {
                     break;
                 }
             }
-            RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-                    containerName);
+            RequestResponse<ItemStatus> ret = processingClient.updateOperationActionProcess(
+                ProcessAction.RESUME.getValue(),
+                containerName
+            );
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
             waitOperation(NB_TRY, SLEEP_TIME, containerName);
-            processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
-
         } else {
-            final RequestResponse<ItemStatus> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                    ProcessAction.RESUME.getValue());
+            final RequestResponse<ItemStatus> ret = processingClient.executeOperationProcess(
+                containerName,
+                Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue()
+            );
 
             assertNotNull(ret);
             assertThat(ret.isOk()).isTrue();
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             waitOperation(NB_TRY, SLEEP_TIME, containerName);
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+                .findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
         }
         return containerName;
     }
-
-
 }

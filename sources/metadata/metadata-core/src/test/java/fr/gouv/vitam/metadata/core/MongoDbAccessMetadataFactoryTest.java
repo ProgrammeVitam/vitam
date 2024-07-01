@@ -59,7 +59,8 @@ public class MongoDbAccessMetadataFactoryTest {
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(
-        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
+        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class)
+    );
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -74,22 +75,29 @@ public class MongoDbAccessMetadataFactoryTest {
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils.createTestIndexManager(
-            tenantList, Collections.emptyMap(), mappingLoader);
+            tenantList,
+            Collections.emptyMap(),
+            mappingLoader
+        );
 
-        MetaDataConfiguration config =
-            new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
-                mappingLoader);
+        MetaDataConfiguration config = new MetaDataConfiguration(
+            mongoNodes,
+            MongoRule.VITAM_DB,
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes,
+            mappingLoader
+        );
         VitamConfiguration.setTenants(tenantList);
-        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config,
-            indexManager);
+        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config, indexManager);
 
         assertNotNull(mongoDbAccess);
         assertThat(mongoDbAccess.getMongoDatabase().getName()).isEqualTo(MongoRule.VITAM_DB);
 
         // Ensure indexes initialized
         for (Integer tenant : tenantList) {
-            ElasticsearchIndexAlias indexAlias = indexManager.getElasticsearchIndexAliasResolver(
-                MetadataCollections.UNIT).resolveIndexName(tenant);
+            ElasticsearchIndexAlias indexAlias = indexManager
+                .getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)
+                .resolveIndexName(tenant);
 
             assertThat(mongoDbAccess.getEsClient().existsAlias(indexAlias)).isTrue();
             mongoDbAccess.getEsClient().deleteIndexByAliasForTesting(indexAlias);

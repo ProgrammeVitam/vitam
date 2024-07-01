@@ -162,5 +162,4 @@ public enum VitamRestEasyConfiguration {
         }
         return defaultValue;
     }
-
 }

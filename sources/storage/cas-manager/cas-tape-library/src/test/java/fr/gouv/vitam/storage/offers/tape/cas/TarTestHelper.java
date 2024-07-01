@@ -42,9 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public final class TarTestHelper {
 
-    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-        throws IOException {
-
+    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription) throws IOException {
         Digest digest = new Digest(DigestType.SHA512);
         OutputStream digestOutputStream = digest.getDigestOutputStream(NullOutputStream.NULL_OUTPUT_STREAM);
         readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
@@ -52,11 +50,15 @@ public final class TarTestHelper {
         assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
     }
 
-    public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-        throws IOException {
-
-        try (FileInputStream tarFileInputStream = new FileInputStream(tarFilePath.toFile());
-            InputStream is = TarHelper.readEntryAtPos(tarFileInputStream, entryDescription)) {
+    public static void readEntryAtPos(
+        Path tarFilePath,
+        TarEntryDescription entryDescription,
+        OutputStream outputStream
+    ) throws IOException {
+        try (
+            FileInputStream tarFileInputStream = new FileInputStream(tarFilePath.toFile());
+            InputStream is = TarHelper.readEntryAtPos(tarFileInputStream, entryDescription)
+        ) {
             IOUtils.copy(is, outputStream);
         }
     }

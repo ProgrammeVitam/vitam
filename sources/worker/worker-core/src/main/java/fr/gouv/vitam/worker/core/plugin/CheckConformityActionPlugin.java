@@ -58,6 +58,7 @@ import java.util.Map;
  * CheckConformityAction Plugin.<br>
  */
 public class CheckConformityActionPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionPlugin.class);
 
     public static final String CALC_CHECK = "CALC_CHECK";
@@ -73,18 +74,18 @@ public class CheckConformityActionPlugin extends ActionHandler {
         // Nothing
     }
 
-
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         checkMandatoryParameters(params);
         LOGGER.debug("CheckConformityActionHandler running ...");
 
-        // Set default status code to OK 
+        // Set default status code to OK
         final ItemStatus itemStatus = new ItemStatus(CALC_CHECK);
         try {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
-                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName()
+            );
 
             handlerIO.addOutputResult(OG_OUT_RANK, jsonOG, true, false);
 
@@ -100,8 +101,12 @@ public class CheckConformityActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                boolean messagesDigestUpdated =
-                                    checkMessageDigest(binaryObjects.get(objectId), version, itemStatus, handlerIO);
+                                boolean messagesDigestUpdated = checkMessageDigest(
+                                    binaryObjects.get(objectId),
+                                    version,
+                                    itemStatus,
+                                    handlerIO
+                                );
                                 if (messagesDigestUpdated) {
                                     oneOrMoreMessagesDigestUpdated = true;
                                 }
@@ -112,10 +117,14 @@ public class CheckConformityActionPlugin extends ActionHandler {
             }
 
             if (oneOrMoreMessagesDigestUpdated) {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                    params.getObjectName(), jsonOG, false, false);
+                handlerIO.transferJsonToWorkspace(
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
+                    params.getObjectName(),
+                    jsonOG,
+                    false,
+                    false
+                );
             }
-
         } catch (ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -129,15 +138,18 @@ public class CheckConformityActionPlugin extends ActionHandler {
         return new ItemStatus(CALC_CHECK).setItemsStatus(CALC_CHECK, itemStatus);
     }
 
-    private boolean checkMessageDigest(DataObjectInfo binaryObject, JsonNode version, ItemStatus itemStatus,
-        HandlerIO handlerIO)
-        throws ProcessingException {
-
+    private boolean checkMessageDigest(
+        DataObjectInfo binaryObject,
+        JsonNode version,
+        ItemStatus itemStatus,
+        HandlerIO handlerIO
+    ) throws ProcessingException {
         InputStream inputStream = null;
         try {
             final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
             inputStream = handlerIO.getInputStreamFromWorkspace(
-                IngestWorkflowConstants.SEDA_FOLDER + File.separator + binaryObject.getUri());
+                IngestWorkflowConstants.SEDA_FOLDER + File.separator + binaryObject.getUri()
+            );
             final Digest vitamDigest = new Digest(digestTypeInput);
             Digest manifestDigest;
             boolean isVitamDigest = false;
@@ -159,8 +171,15 @@ public class CheckConformityActionPlugin extends ActionHandler {
             boolean messagesDigestUpdated = false;
 
             LOGGER.debug(
-                "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObjectMessageDigest + "\n\t" +
-                    manifestDigestString + "\n\t" + vitamDigestString);
+                "DEBUG: \n\t" +
+                binaryObject.getAlgo().getName() +
+                " " +
+                binaryObjectMessageDigest +
+                "\n\t" +
+                manifestDigestString +
+                "\n\t" +
+                vitamDigestString
+            );
 
             // create ItemStatus for subtask
             ItemStatus subTaskItemStatus = new ItemStatus(CALC_CHECK);
@@ -188,7 +207,6 @@ public class CheckConformityActionPlugin extends ActionHandler {
                 jsonNode.put("SystemAlgorithm", (String) handlerIO.getInput(ALGO_RANK));
 
                 subTaskItemStatus.setEvDetailData(JsonHandler.unprettyPrint(jsonNode));
-
             } else {
                 subTaskItemStatus.increment(StatusCode.KO);
                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(INVALID);
@@ -205,19 +223,19 @@ public class CheckConformityActionPlugin extends ActionHandler {
             itemStatus.setSubTaskStatus(binaryObject.getId(), subTaskItemStatus);
 
             return messagesDigestUpdated;
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e
+        ) {
             LOGGER.error(e);
             throw new ProcessingException(e.getMessage(), e);
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
-
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        handler.checkHandlerIO(1, Arrays.asList(new Class[] {String.class}));
+        handler.checkHandlerIO(1, Arrays.asList(new Class[] { String.class }));
     }
 
     private Map<String, DataObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
@@ -240,13 +258,15 @@ public class CheckConformityActionPlugin extends ActionHandler {
             LOGGER.debug(version.toString());
             for (final JsonNode jsonBinaryObject : version) {
                 if (jsonBinaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                    binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                    binaryObjects.put(
+                        jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
                         new DataObjectInfo()
                             .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
                             .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
                             .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
                             .setMessageDigest(jsonBinaryObject.get(SedaConstants.TAG_DIGEST).asText())
-                            .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText())));
+                            .setAlgo(DigestType.fromValue(jsonBinaryObject.get(SedaConstants.ALGORITHM).asText()))
+                    );
                 }
             }
         }

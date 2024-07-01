@@ -43,16 +43,15 @@ public class ArchiveUnitOntologyValidationExceptionTest {
             new ArchiveUnitOntologyValidationException("", ArchiveUnitOntologyValidationException0);
         assertFalse(ArchiveUnitOntologyValidationException0.equals(ArchiveUnitOntologyValidationException1));
         ArchiveUnitOntologyValidationException0 = new ArchiveUnitOntologyValidationException("");
-        ArchiveUnitOntologyValidationException1 =
-            new ArchiveUnitOntologyValidationException(ArchiveUnitOntologyValidationException0);
+        ArchiveUnitOntologyValidationException1 = new ArchiveUnitOntologyValidationException(
+            ArchiveUnitOntologyValidationException0
+        );
         assertFalse(ArchiveUnitOntologyValidationException0.equals(ArchiveUnitOntologyValidationException1));
         ArchiveUnitOntologyValidationException0 = new ArchiveUnitOntologyValidationException("");
-        ArchiveUnitOntologyValidationException1 =
-            new ArchiveUnitOntologyValidationException("", ArchiveUnitOntologyValidationException0);
+        ArchiveUnitOntologyValidationException1 = new ArchiveUnitOntologyValidationException(
+            "",
+            ArchiveUnitOntologyValidationException0
+        );
         assertFalse(ArchiveUnitOntologyValidationException1.equals(ArchiveUnitOntologyValidationException0));
-
-
-
     }
-
 }

@@ -48,7 +48,6 @@ public class LogbookReconstructionMetricsCache {
     }
 
     public Duration getLogbookOperationReconstructionLatency(int tenant) {
-
         LocalDateTime lastReconstructedDocumentDate = this.reconstructionStatsCache.get(tenant);
 
         if (lastReconstructedDocumentDate == null) {

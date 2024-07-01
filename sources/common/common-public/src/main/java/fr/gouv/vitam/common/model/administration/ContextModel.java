@@ -101,12 +101,10 @@ public class ContextModel {
     @JsonProperty(TAG_DEACTIVATION_DATE)
     private String deactivationdate;
 
-
     /**
      * empty constructor
      */
-    public ContextModel() {
-    }
+    public ContextModel() {}
 
     /**
      * @return id
@@ -121,7 +119,6 @@ public class ContextModel {
     public void setId(String id) {
         this.id = id;
     }
-
 
     /**
      * @return version
@@ -164,7 +161,6 @@ public class ContextModel {
     public void setStatus(ContextStatus status) {
         this.status = status;
     }
-
 
     /**
      * @return enableControle true we must check contract given contract exists in the current context, false else
@@ -209,7 +205,6 @@ public class ContextModel {
         this.identifier = identifier;
         return this;
     }
-
 
     /**
      * @return the creation date of context

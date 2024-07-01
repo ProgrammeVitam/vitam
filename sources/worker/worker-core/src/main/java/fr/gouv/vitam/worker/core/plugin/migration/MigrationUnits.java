@@ -90,6 +90,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  * MigrationUnits class
  */
 public class MigrationUnits extends StoreMetadataObjectActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
     private static final String UNIT_UPDATE_MIGRATION = "UPDATE_MIGRATION_UNITS";
 
@@ -100,8 +101,11 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
     private final StorageClientFactory storageClientFactory;
 
     @VisibleForTesting
-    public MigrationUnits(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory) {
+    public MigrationUnits(
+        MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        StorageClientFactory storageClientFactory
+    ) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
@@ -109,28 +113,34 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
     }
 
     public MigrationUnits() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+        this(
+            MetaDataClientFactory.getInstance(),
+            LogbookLifeCyclesClientFactory.getInstance(),
+            StorageClientFactory.getInstance()
+        );
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new IllegalStateException("UnsupportedOperation");
     }
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient logbookLifeCyclesClientFactoryClient = logbookLifeCyclesClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient()) {
-
+            StorageClient storageClient = storageClientFactory.getClient()
+        ) {
             // Add operationID to #operations
             UpdateMultiQuery multiQuery = new UpdateMultiQuery();
-            multiQuery.addActions(UpdateActionHelper
-                .push(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
-
+            multiQuery.addActions(
+                UpdateActionHelper.push(
+                    VitamFieldsHelper.operations(),
+                    VitamThreadUtils.getVitamSession().getRequestId()
+                )
+            );
 
             // remove search part (useless)
             multiQuery.resetQueries();
@@ -144,11 +154,19 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
 
             // Prepare rapport
             if (requestResponse != null && requestResponse.isOk()) {
-
                 return ((RequestResponseOK<JsonNode>) requestResponse).getResults()
                     .stream()
-                    .map(result -> postMigation(workerParameters, handler, metaDataClient,
-                        logbookLifeCyclesClientFactoryClient, storageClient, result))
+                    .map(
+                        result ->
+                            postMigation(
+                                workerParameters,
+                                handler,
+                                metaDataClient,
+                                logbookLifeCyclesClientFactoryClient,
+                                storageClient,
+                                result
+                            )
+                    )
                     .collect(Collectors.toList());
             }
 
@@ -158,48 +176,73 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private ItemStatus postMigation(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient metaDataClient,
-        LogbookLifeCyclesClient logbookLifeCyclesClientFactoryClient, StorageClient storageClient,
-        JsonNode unitNode) {
+    private ItemStatus postMigation(
+        WorkerParameters workerParameters,
+        HandlerIO handler,
+        MetaDataClient metaDataClient,
+        LogbookLifeCyclesClient logbookLifeCyclesClientFactoryClient,
+        StorageClient storageClient,
+        JsonNode unitNode
+    ) {
         String unitId = unitNode.get(ID).asText();
         String diff = unitNode.get(DIFF).asText();
 
         try {
             writeLfcToMongo(logbookLifeCyclesClientFactoryClient, workerParameters, unitId, diff);
-        } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
+        } catch (
+            LogbookClientServerException
+            | LogbookClientNotFoundException
+            | InvalidParseOperationException
+            | InvalidGuidOperationException e
+        ) {
             LOGGER.error(e);
-            return buildItemStatus(MIGRATION_UNITS, FATAL,
-                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(
+                MIGRATION_UNITS,
+                FATAL,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+            );
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(e);
-            return buildItemStatus(MIGRATION_UNITS, KO,
-                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(
+                MIGRATION_UNITS,
+                KO,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+            );
         }
 
         try {
-            storeUnitAndLfcToOffer(metaDataClient, logbookLifeCyclesClientFactoryClient, storageClient, handler,
-                workerParameters, unitId, unitId + ".json");
+            storeUnitAndLfcToOffer(
+                metaDataClient,
+                logbookLifeCyclesClientFactoryClient,
+                storageClient,
+                handler,
+                workerParameters,
+                unitId,
+                unitId + ".json"
+            );
         } catch (VitamException e) {
             LOGGER.error(e);
-            return buildItemStatus(MIGRATION_UNITS, FATAL,
-                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+            return buildItemStatus(
+                MIGRATION_UNITS,
+                FATAL,
+                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage()))
+            );
         }
         return buildItemStatus(MIGRATION_UNITS, OK, EventDetails.of("Update OK"));
     }
 
-
-
-    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId,
-        String currentOperationId) throws VitamException {
+    private boolean lfcAlreadyWrittenInMongo(
+        LogbookLifeCyclesClient lfcClient,
+        String unitId,
+        String currentOperationId
+    ) throws VitamException {
         JsonNode lfc = lfcClient.getRawUnitLifeCycleById(unitId);
         LogbookLifecycle unitLFC = JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
         return unitLFC.getEvents().stream().anyMatch(e -> e.getEvIdProc().equals(currentOperationId));
     }
 
     private void writeLfcToMongo(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        InvalidParseOperationException, InvalidGuidOperationException {
-
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidParseOperationException, InvalidGuidOperationException {
         LogbookLifeCycleParameters logbookLfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
             VitamLogbookMessages.getEventTypeLfc(UNIT_UPDATE_MIGRATION),
@@ -226,9 +269,15 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
         return JsonHandler.writeAsString(diffObject);
     }
 
-    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
-        throws VitamException {
+    private void storeUnitAndLfcToOffer(
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        HandlerIO handler,
+        WorkerParameters params,
+        String guid,
+        String fileName
+    ) throws VitamException {
         // get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
@@ -255,8 +304,11 @@ public class MigrationUnits extends StoreMetadataObjectActionHandler {
         ObjectDescription description = new ObjectDescription(UNIT, params.getContainerName(), fileName, uri);
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
-            description);
+        storageClient.storeFileFromWorkspace(
+            strategyId,
+            description.getType(),
+            description.getObjectName(),
+            description
+        );
     }
-
 }

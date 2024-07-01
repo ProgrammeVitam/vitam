@@ -134,7 +134,5 @@ public class CheckSedaActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
-
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

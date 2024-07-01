@@ -46,8 +46,7 @@ public class TransferReplyAccessionRegisterPreparationHandler extends PurgeAcces
      * Test only constructor
      */
     @VisibleForTesting
-    TransferReplyAccessionRegisterPreparationHandler(
-        PurgeReportService purgeReportService) {
+    TransferReplyAccessionRegisterPreparationHandler(PurgeReportService purgeReportService) {
         super(TRANSFER_REPLY_ACCESSION_REGISTER_PREPARATION, purgeReportService);
     }
 

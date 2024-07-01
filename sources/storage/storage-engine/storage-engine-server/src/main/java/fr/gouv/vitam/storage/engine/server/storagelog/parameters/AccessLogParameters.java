@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class AccessLogParameters implements StorageLogStructure {
+
     private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY =
         "Mandatory parameters can not be null or empty";
 

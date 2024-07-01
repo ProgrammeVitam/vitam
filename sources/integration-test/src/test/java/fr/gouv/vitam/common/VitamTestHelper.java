@@ -122,7 +122,6 @@ public class VitamTestHelper {
         throw new UnsupportedOperationException("Utility class");
     }
 
-
     public static void prepareVitamSession(Integer tenantId, String contractId, String contextId) {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadUtils.getVitamSession().setContractId(contractId);
@@ -131,10 +130,9 @@ public class VitamTestHelper {
 
     public static void runStepByStepUntilStepReached(String operationGuid, String targetStepName)
         throws VitamClientException, InternalServerException, InterruptedException, ProcessingException {
-
-        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
-
+        try (
+            ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient()
+        ) {
             while (true) {
                 ProcessQuery processQuery = new ProcessQuery();
                 processQuery.setId(operationGuid);
@@ -142,26 +140,25 @@ public class VitamTestHelper {
                 if (response.isOk()) {
                     ProcessDetail processDetail = ((RequestResponseOK<ProcessDetail>) response).getResults().get(0);
                     switch (ProcessState.valueOf(processDetail.getGlobalState())) {
-
                         case PAUSE:
-
                             if (processDetail.getPreviousStep().equals(targetStepName)) {
                                 LOGGER.info(operationGuid + " finished step " + targetStepName);
                                 return;
                             }
-                            processingClient.executeOperationProcess(operationGuid, DEFAULT_WORKFLOW.name(),
-                                ProcessAction.NEXT.getValue());
+                            processingClient.executeOperationProcess(
+                                operationGuid,
+                                DEFAULT_WORKFLOW.name(),
+                                ProcessAction.NEXT.getValue()
+                            );
                             break;
-
                         case RUNNING:
-
                             // Sleep and retry
                             TimeUnit.MILLISECONDS.sleep(SLEEP_TIME);
                             break;
-
                         case COMPLETED:
                             throw new VitamRuntimeException(
-                                "Process completion unexpected " + JsonHandler.unprettyPrint(processDetail));
+                                "Process completion unexpected " + JsonHandler.unprettyPrint(processDetail)
+                            );
                     }
                 } else {
                     throw new ProcessingException("listOperationsDetails does not response ...");
@@ -216,22 +213,36 @@ public class VitamTestHelper {
     }
 
     public static List<JsonNode> getReports(String operationGuid) {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            Response reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                operationGuid + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog())) {
+        try (
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            Response reportResponse = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                operationGuid + ".jsonl",
+                DataCategory.REPORT,
+                AccessLogUtils.getNoLogAccessLog()
+            )
+        ) {
             assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
             return getReport(reportResponse);
         } catch (InvalidParseOperationException | IOException e) {
             fail("error while retrieving report for operation ", operationGuid, e);
-        } catch (StorageServerClientException | StorageNotFoundException |
-                 StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            StorageServerClientException
+            | StorageNotFoundException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             fail("error while retrieving container from storage ", e);
         }
         return null;
     }
 
-    public static String doIngest(int tenantId, String zip, Contexts context, ProcessAction processAction,
-        StatusCode logbookStatus) throws VitamException {
+    public static String doIngest(
+        int tenantId,
+        String zip,
+        Contexts context,
+        ProcessAction processAction,
+        StatusCode logbookStatus
+    ) throws VitamException {
         final InputStream zipStream;
         try {
             zipStream = PropertiesUtils.getResourceAsStream(zip);
@@ -242,20 +253,33 @@ public class VitamTestHelper {
         }
     }
 
-    public static String doIngest(int tenantId, InputStream zipStream, Contexts context, ProcessAction processAction,
-        StatusCode logbookStatus) throws VitamException {
-        final WorkFlow workflow =
-            WorkFlow.of(context.name(), context.getEventType(), context.getLogbookTypeProcess().name());
+    public static String doIngest(
+        int tenantId,
+        InputStream zipStream,
+        Contexts context,
+        ProcessAction processAction,
+        StatusCode logbookStatus
+    ) throws VitamException {
+        final WorkFlow workflow = WorkFlow.of(
+            context.name(),
+            context.getEventType(),
+            context.getLogbookTypeProcess().name()
+        );
         final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters =
-            LogbookParameterHelper.newLogbookOperationParameters(ingestOperationGuid, context.getEventType(),
-                ingestOperationGuid, LogbookTypeProcess.INGEST, logbookStatus, ingestOperationGuid.toString(),
-                ingestOperationGuid);
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            ingestOperationGuid,
+            context.getEventType(),
+            ingestOperationGuid,
+            LogbookTypeProcess.INGEST,
+            logbookStatus,
+            ingestOperationGuid.toString(),
+            ingestOperationGuid
+        );
         params.add(initParameters);
 
         // call ingest
@@ -330,23 +354,29 @@ public class VitamTestHelper {
     }
 
     public static void verifyProcessState(String operationId, Integer tenantId, ProcessState processState) {
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(operationId, tenantId);
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getState()).isEqualTo(processState);
     }
 
     public static void waitOperation(long nbTry, long timeToSleep, String operationId, ProcessState processState) {
-        try (ProcessingManagementClient processingManagementClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
+        try (
+            ProcessingManagementClient processingManagementClient = ProcessingManagementClientFactory.getInstance()
+                .getClient()
+        ) {
             for (int nbtimes = 0; nbtimes <= nbTry; nbtimes++) {
                 final ItemStatus opStatus = processingManagementClient.getOperationProcessStatus(operationId);
                 final ProcessState state = opStatus.getGlobalState();
                 if ((processState == null && !state.equals(RUNNING)) || state.equals(processState)) {
                     break;
                 } else if (nbtimes == nbTry) {
-                    LOGGER.error("Process with id={} not finished state={}, status={}", operationId, state,
-                        opStatus.getGlobalStatus());
+                    LOGGER.error(
+                        "Process with id={} not finished state={}, status={}",
+                        operationId,
+                        state,
+                        opStatus.getGlobalStatus()
+                    );
                     fail("Process did not finished on time");
                 }
                 try {
@@ -359,7 +389,6 @@ public class VitamTestHelper {
             fail("An error occured while retreiving process status", e);
         }
     }
-
 
     public static void waitOperation(long nbTry, long timeToSleep, String operationId) {
         waitOperation(nbTry, timeToSleep, operationId, null);
@@ -389,9 +418,11 @@ public class VitamTestHelper {
         awaitForWorkflowTerminationWithStatus(operationGuid, status, COMPLETED);
     }
 
-    private static void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode status,
-        ProcessState processState) {
-
+    private static void awaitForWorkflowTerminationWithStatus(
+        GUID operationGuid,
+        StatusCode status,
+        ProcessState processState
+    ) {
         waitOperation(operationGuid.toString());
 
         ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
@@ -402,14 +433,15 @@ public class VitamTestHelper {
         assertEquals(status, processWorkflow.getStatus());
     }
 
-
     public static JsonNode getObjectfromOffer(String obId, DataCategory dataCategory)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            Response object =
-                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), obId + JSON_EXTENSION,
-                    dataCategory, AccessLogUtils.getNoLogAccessLog());
+            Response object = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                obId + JSON_EXTENSION,
+                dataCategory,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = object.readEntity(InputStream.class);
             JsonNode resultOffer = JsonHandler.getFromInputStream(inputStream);
             assertNotNull(resultOffer);
@@ -418,32 +450,28 @@ public class VitamTestHelper {
     }
 
     public static JsonNode getUnitLFCfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.UNIT);
         assertTrue(resultOffer.has(LFC_KEY));
         return resultOffer.get(LFC_KEY);
     }
 
     public static JsonNode getObjectGroupLFCfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.OBJECTGROUP);
         assertTrue(resultOffer.has(LFC_KEY));
         return resultOffer.get(LFC_KEY);
     }
 
     public static JsonNode getUnitfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.UNIT);
         assertTrue(resultOffer.has(UNIT_KEY));
         return resultOffer.get(UNIT_KEY);
     }
 
     public static JsonNode getObjectGroupfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.OBJECTGROUP);
         assertTrue(resultOffer.has(GOT_KEY));
         return resultOffer.get(GOT_KEY);
@@ -451,8 +479,9 @@ public class VitamTestHelper {
 
     public static JsonNode getUnitLFC(String obId)
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
-        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
-            .getClient()) {
+        try (
+            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
+        ) {
             final Select select = new Select();
             select.setQuery(QueryHelper.eq(OB_ID, obId));
             JsonNode unitLFCresponse = logbookLifeCyclesClient.selectUnitLifeCycle(select.getFinalSelect());
@@ -465,8 +494,9 @@ public class VitamTestHelper {
 
     public static JsonNode getObjectGroupLFC(String obId)
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
-        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
-            .getClient()) {
+        try (
+            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
+        ) {
             final Select select = new Select();
             select.setQuery(QueryHelper.eq(OB_ID, obId));
             JsonNode ogLFCresponse = logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect());

@@ -57,8 +57,12 @@ public class ResponseHelper {
      * @return the mocked outbound Response
      */
     @SuppressWarnings("unchecked")
-    public static Response getOutboundResponse(Status status, Object entity, String contentType,
-        Map<String, String> headers) {
+    public static Response getOutboundResponse(
+        Status status,
+        Object entity,
+        String contentType,
+        Map<String, String> headers
+    ) {
         if (status == null) {
             throw new IllegalArgumentException("status cannot be null");
         }

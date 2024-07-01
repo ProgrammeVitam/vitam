@@ -40,5 +40,4 @@ public class ContentAddressableStorageExceptionTest {
         assertNotNull(new ContentAddressableStorageException(new Exception()).getCause());
         assertNotNull(new ContentAddressableStorageException("test", new Exception()).getCause());
     }
-
 }

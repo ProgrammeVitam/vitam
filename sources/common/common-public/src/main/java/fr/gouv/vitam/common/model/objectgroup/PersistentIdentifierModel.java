@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.model.objectgroup;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -34,28 +33,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PersistentIdentifierModel {
 
-
     @JsonProperty("PersistentIdentifierType")
     private String persistentIdentifierType;
 
     @JsonProperty("PersistentIdentifierOrigin")
     private String persistentIdentifierOrigin;
 
-
     @JsonProperty("PersistentIdentifierReference")
     private String persistentIdentifierReference;
 
-
     @JsonProperty("PersistentIdentifierContent")
     private String persistentIdentifierContent;
-
 
     public String getPersistentIdentifierType() {
         return persistentIdentifierType;
     }
 
-    public void setPersistentIdentifierType(
-        String persistentIdentifierType) {
+    public void setPersistentIdentifierType(String persistentIdentifierType) {
         this.persistentIdentifierType = persistentIdentifierType;
     }
 
@@ -85,11 +79,21 @@ public class PersistentIdentifierModel {
 
     @Override
     public String toString() {
-        return "PersistentIdentifierModel {" +
-            "persistentIdentifierType='" + persistentIdentifierType + '\'' +
-            ", persistentIdentifierOrigin='" + persistentIdentifierOrigin + '\'' +
-            ", persistentIdentifierReference='" + persistentIdentifierReference + '\'' +
-            ", persistentIdentifierContent='" + persistentIdentifierContent + '\'' +
-            '}';
+        return (
+            "PersistentIdentifierModel {" +
+            "persistentIdentifierType='" +
+            persistentIdentifierType +
+            '\'' +
+            ", persistentIdentifierOrigin='" +
+            persistentIdentifierOrigin +
+            '\'' +
+            ", persistentIdentifierReference='" +
+            persistentIdentifierReference +
+            '\'' +
+            ", persistentIdentifierContent='" +
+            persistentIdentifierContent +
+            '\'' +
+            '}'
+        );
     }
 }

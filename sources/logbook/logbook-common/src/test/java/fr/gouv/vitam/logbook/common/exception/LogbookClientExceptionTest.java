@@ -67,5 +67,4 @@ public class LogbookClientExceptionTest {
         assertNotNull(new LogbookClientServerException(new Exception()).getCause());
         assertNotNull(new LogbookClientServerException("test", new Exception()).getCause());
     }
-
 }

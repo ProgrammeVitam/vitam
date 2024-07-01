@@ -56,7 +56,6 @@ import java.util.concurrent.Executor;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-
 /**
  * Cache for archive storage on disk with Least Recently Used (LRU) eviction policy.
  *
@@ -97,22 +96,37 @@ public class ArchiveCacheStorage {
      * @throws IllegalPathException if provided cache directory contains unsafe or illegal archive names.
      * @throws IOException if an I/O error is thrown when accessing disk.
      */
-    public ArchiveCacheStorage(String cacheDirectory, BucketTopologyHelper bucketTopologyHelper,
-        ArchiveCacheEvictionController archiveCacheEvictionController, long maxStorageSpace,
-        long evictionStorageSpaceThreshold, long safeStorageSpaceThreshold)
-        throws IllegalPathException, IOException {
-        this(cacheDirectory, bucketTopologyHelper, archiveCacheEvictionController, maxStorageSpace,
-            evictionStorageSpaceThreshold, safeStorageSpaceThreshold, VitamThreadPoolExecutor.getDefaultExecutor(),
+    public ArchiveCacheStorage(
+        String cacheDirectory,
+        BucketTopologyHelper bucketTopologyHelper,
+        ArchiveCacheEvictionController archiveCacheEvictionController,
+        long maxStorageSpace,
+        long evictionStorageSpaceThreshold,
+        long safeStorageSpaceThreshold
+    ) throws IllegalPathException, IOException {
+        this(
+            cacheDirectory,
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            maxStorageSpace,
+            evictionStorageSpaceThreshold,
+            safeStorageSpaceThreshold,
+            VitamThreadPoolExecutor.getDefaultExecutor(),
             new AlertServiceImpl()
         );
     }
 
     @VisibleForTesting
-    ArchiveCacheStorage(String cacheDirectory, BucketTopologyHelper bucketTopologyHelper,
-        ArchiveCacheEvictionController archiveCacheEvictionController, long maxStorageSpace,
-        long evictionStorageSpaceThreshold, long safeStorageSpaceThreshold,
-        Executor executor, AlertService alertService)
-        throws IllegalPathException, IOException {
+    ArchiveCacheStorage(
+        String cacheDirectory,
+        BucketTopologyHelper bucketTopologyHelper,
+        ArchiveCacheEvictionController archiveCacheEvictionController,
+        long maxStorageSpace,
+        long evictionStorageSpaceThreshold,
+        long safeStorageSpaceThreshold,
+        Executor executor,
+        AlertService alertService
+    ) throws IllegalPathException, IOException {
         this.archiveCacheEvictionController = archiveCacheEvictionController;
 
         // Sanity check
@@ -120,14 +134,22 @@ public class ArchiveCacheStorage {
         this.bucketTopologyHelper = bucketTopologyHelper;
 
         // Create / initialize LRU cache using current directory file listing
-        this.lruCache = createLRUCache(maxStorageSpace, evictionStorageSpaceThreshold, safeStorageSpaceThreshold,
-            this::fileEvictionJudgeFactory, executor, alertService);
+        this.lruCache = createLRUCache(
+            maxStorageSpace,
+            evictionStorageSpaceThreshold,
+            safeStorageSpaceThreshold,
+            this::fileEvictionJudgeFactory,
+            executor,
+            alertService
+        );
     }
 
     private LRUCacheEvictionJudge<ArchiveCacheEntry> fileEvictionJudgeFactory() {
-
-        LOGGER.warn("Preparing archive cache eviction. Max capacity {}MB, Current usage: {}MB",
-            this.lruCache.getMaxCapacity() / MB_TO_BYTES, this.lruCache.getCurrentCapacity() / MB_TO_BYTES);
+        LOGGER.warn(
+            "Preparing archive cache eviction. Max capacity {}MB, Current usage: {}MB",
+            this.lruCache.getMaxCapacity() / MB_TO_BYTES,
+            this.lruCache.getCurrentCapacity() / MB_TO_BYTES
+        );
 
         LRUCacheEvictionJudge<ArchiveCacheEntry> entryLRUCacheEvictionJudge =
             archiveCacheEvictionController.computeEvictionJudge();
@@ -137,10 +159,14 @@ public class ArchiveCacheStorage {
         return entryLRUCacheEvictionJudge;
     }
 
-    private LRUCache<ArchiveCacheEntry> createLRUCache(long maxCapacity, long evictionCapacity, long safeCapacity,
-        Supplier<LRUCacheEvictionJudge<ArchiveCacheEntry>> archiveEvictionJudgeFactory, Executor evictionExecutor,
-        AlertService alertService) throws IllegalPathException, IOException {
-
+    private LRUCache<ArchiveCacheEntry> createLRUCache(
+        long maxCapacity,
+        long evictionCapacity,
+        long safeCapacity,
+        Supplier<LRUCacheEvictionJudge<ArchiveCacheEntry>> archiveEvictionJudgeFactory,
+        Executor evictionExecutor,
+        AlertService alertService
+    ) throws IllegalPathException, IOException {
         // Directory structure is {cacheDirectory}/{fileBucketId}/{tarId}
         // Initialize cache with maxDepth = 2 for sub-directory/file listing
         try (Stream<Path> pathStream = Files.walk(this.cacheDirectory, 2)) {
@@ -151,8 +177,16 @@ public class ArchiveCacheStorage {
                 .peek(this::checkFileBucketId)
                 .map(this::createFileCacheEntry);
 
-            return new LRUCache<>(maxCapacity, evictionCapacity, safeCapacity, archiveEvictionJudgeFactory,
-                this::evictFileListener, initialFileCacheEntries, evictionExecutor, alertService);
+            return new LRUCache<>(
+                maxCapacity,
+                evictionCapacity,
+                safeCapacity,
+                archiveEvictionJudgeFactory,
+                this::evictFileListener,
+                initialFileCacheEntries,
+                evictionExecutor,
+                alertService
+            );
         } catch (RuntimeException e) {
             // Unwrap runtime exceptions
             Throwable cause = e.getCause();
@@ -168,7 +202,6 @@ public class ArchiveCacheStorage {
 
     public void reserveArchiveStorageSpace(String fileBucketId, String tarId, long fileSize)
         throws IllegalPathException {
-
         // Check file name
         Path filePath = checkSafeDirPath(fileBucketId, tarId);
 
@@ -181,8 +214,9 @@ public class ArchiveCacheStorage {
             throw new IllegalArgumentException("Reservation for file '" + archiveCacheEntry + "' already exists.");
         }
         if (Files.exists(filePath)) {
-            throw new IllegalArgumentException("File '" + archiveCacheEntry + "' already exists on storage directory "
-                + this.cacheDirectory);
+            throw new IllegalArgumentException(
+                "File '" + archiveCacheEntry + "' already exists on storage directory " + this.cacheDirectory
+            );
         }
 
         // Append file to cache
@@ -192,7 +226,6 @@ public class ArchiveCacheStorage {
 
     public void moveArchiveToCache(Path initialFilePath, String fileBucketId, String tarId)
         throws IllegalPathException, IOException {
-
         // Check file name
         Path cachedFilePath = checkSafeDirPath(fileBucketId, tarId);
 
@@ -219,8 +252,14 @@ public class ArchiveCacheStorage {
         LRUCacheEntry<ArchiveCacheEntry> reservedEntry = this.lruCache.getReservedEntry(archiveCacheEntry);
         long fileSize = Files.size(initialFilePath);
         if (reservedEntry.getWeight() != fileSize) {
-            throw new IllegalArgumentException("File '" + archiveCacheEntry + "' size " + fileSize
-                + " does not match reserved file capacity " + reservedEntry.getWeight());
+            throw new IllegalArgumentException(
+                "File '" +
+                archiveCacheEntry +
+                "' size " +
+                fileSize +
+                " does not match reserved file capacity " +
+                reservedEntry.getWeight()
+            );
         }
 
         // Atomic move file to cache
@@ -234,7 +273,6 @@ public class ArchiveCacheStorage {
     }
 
     public void cancelReservedArchive(String fileBucketId, String tarId) {
-
         // Check parameters
         ParametersChecker.checkParameter("Missing fileBucketId", fileBucketId);
         ParametersChecker.checkParameter("Missing tarId", tarId);
@@ -249,9 +287,7 @@ public class ArchiveCacheStorage {
         this.lruCache.cancelReservation(archiveCacheEntry);
     }
 
-    public Optional<FileInputStream> tryReadArchive(String fileBucketId, String tarId)
-        throws IllegalPathException {
-
+    public Optional<FileInputStream> tryReadArchive(String fileBucketId, String tarId) throws IllegalPathException {
         // Check file name
         Path cachedFilePath = checkSafeDirPath(fileBucketId, tarId);
 
@@ -276,7 +312,6 @@ public class ArchiveCacheStorage {
     }
 
     public boolean containsArchive(String fileBucketId, String tarId) {
-
         // Check parameters
         ParametersChecker.checkParameter("Missing fileBucketId", fileBucketId);
         ParametersChecker.checkParameter("Missing tarId", tarId);
@@ -287,7 +322,6 @@ public class ArchiveCacheStorage {
     }
 
     public boolean isArchiveReserved(String fileBucketId, String tarId) {
-
         // Check parameters
         ParametersChecker.checkParameter("Missing fileBucketId", fileBucketId);
         ParametersChecker.checkParameter("Missing tarId", tarId);
@@ -335,8 +369,13 @@ public class ArchiveCacheStorage {
         Path parentDir = filePath.getParent().toAbsolutePath();
         try {
             if (Files.isSameFile(parentDir, this.cacheDirectory)) {
-                throw new IllegalStateException("Invalid file '" + filePath + "'  at root of cache directory " +
-                    this.cacheDirectory + ". Expected {fileBucketId}/{tarId} format");
+                throw new IllegalStateException(
+                    "Invalid file '" +
+                    filePath +
+                    "'  at root of cache directory " +
+                    this.cacheDirectory +
+                    ". Expected {fileBucketId}/{tarId} format"
+                );
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -345,18 +384,24 @@ public class ArchiveCacheStorage {
 
     private void checkFileSafety(Path filePath) {
         try {
-
             String parentDir = filePath.getParent().getFileName().toString();
             String filename = filePath.getFileName().toString();
 
             // Check file path safety
-            Path safeFilePath =
-                SafeFileChecker.checkSafeFilePath(this.cacheDirectory.toString(), parentDir, filename).toPath();
+            Path safeFilePath = SafeFileChecker.checkSafeFilePath(
+                this.cacheDirectory.toString(),
+                parentDir,
+                filename
+            ).toPath();
             if (!Files.isSameFile(safeFilePath, filePath)) {
-                throw new IllegalPathException("Illegal file '" + filePath +
-                    "' path. Expected " + this.cacheDirectory + " folder to be its parent folder");
+                throw new IllegalPathException(
+                    "Illegal file '" +
+                    filePath +
+                    "' path. Expected " +
+                    this.cacheDirectory +
+                    " folder to be its parent folder"
+                );
             }
-
         } catch (IllegalPathException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -391,14 +436,24 @@ public class ArchiveCacheStorage {
             // No need for SafeFileChecker checks since filename have been checked when added to cache.
 
             // Delete file
-            LOGGER.info("Deleting unused archive {}/{}", archiveCacheEntry.getFileBucketId(),
-                archiveCacheEntry.getTarId());
+            LOGGER.info(
+                "Deleting unused archive {}/{}",
+                archiveCacheEntry.getFileBucketId(),
+                archiveCacheEntry.getTarId()
+            );
             Path filePath =
                 this.cacheDirectory.resolve(archiveCacheEntry.getFileBucketId()).resolve(archiveCacheEntry.getTarId());
             Files.delete(filePath);
         } catch (IOException e) {
-            LOGGER.warn("Could not delete file {}/{}" + archiveCacheEntry.getFileBucketId() + "/" +
-                archiveCacheEntry.getTarId() + " from " + this.cacheDirectory, e);
+            LOGGER.warn(
+                "Could not delete file {}/{}" +
+                archiveCacheEntry.getFileBucketId() +
+                "/" +
+                archiveCacheEntry.getTarId() +
+                " from " +
+                this.cacheDirectory,
+                e
+            );
         }
     }
 

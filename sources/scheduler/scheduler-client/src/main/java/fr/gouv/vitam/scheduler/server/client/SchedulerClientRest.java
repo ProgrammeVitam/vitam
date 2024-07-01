@@ -42,6 +42,7 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 class SchedulerClientRest extends DefaultClient implements SchedulerClient {
+
     /**
      * Constructor using given scheme (http)
      *
@@ -73,8 +74,9 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
 
     @Override
     public RequestResponseOK<JsonNode> jobState(String jobName) throws VitamClientException {
-        try (Response response = make(
-            VitamRequestBuilder.get().withPath("/job-state/" + jobName).withJsonContentType())) {
+        try (
+            Response response = make(VitamRequestBuilder.get().withPath("/job-state/" + jobName).withJsonContentType())
+        ) {
             check(response);
             return (RequestResponseOK<JsonNode>) RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -84,8 +86,7 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
 
     @Override
     public RequestResponse<JsonNode> scheduleJob(byte[] job) throws VitamClientException {
-        try (Response response = make(
-            VitamRequestBuilder.post().withPath("/schedule-job").withBody(job).withJson())) {
+        try (Response response = make(VitamRequestBuilder.post().withPath("/schedule-job").withBody(job).withJson())) {
             check(response);
             return RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -95,8 +96,7 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
 
     @Override
     public RequestResponse<JsonNode> triggerJob(String jobName) throws VitamClientException {
-        try (Response response = make(
-            VitamRequestBuilder.post().withPath("/trigger-job/" + jobName).withJson())) {
+        try (Response response = make(VitamRequestBuilder.post().withPath("/trigger-job/" + jobName).withJson())) {
             check(response);
             return RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -106,8 +106,11 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
 
     @Override
     public RequestResponse<JsonNode> triggerJob(String jobName, JsonNode jobDataMap) throws VitamClientException {
-        try (Response response = make(
-            VitamRequestBuilder.post().withPath("/trigger-job/" + jobName).withBody(jobDataMap).withJson())) {
+        try (
+            Response response = make(
+                VitamRequestBuilder.post().withPath("/trigger-job/" + jobName).withBody(jobDataMap).withJson()
+            )
+        ) {
             check(response);
             return RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -117,8 +120,9 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
 
     @Override
     public RequestResponse<JsonNode> triggerJob(byte[] trigger) throws VitamClientException {
-        try (Response response = make(
-            VitamRequestBuilder.post().withPath("/trigger-job").withBody(trigger).withJson())) {
+        try (
+            Response response = make(VitamRequestBuilder.post().withPath("/trigger-job").withBody(trigger).withJson())
+        ) {
             check(response);
             return RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
@@ -132,8 +136,12 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
             return;
         }
 
-        throw new VitamClientInternalException(String
-            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase()));
+        throw new VitamClientInternalException(
+            String.format(
+                "Error with the response, get status: '%d' and reason '%s'.",
+                response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()
+            )
+        );
     }
 }

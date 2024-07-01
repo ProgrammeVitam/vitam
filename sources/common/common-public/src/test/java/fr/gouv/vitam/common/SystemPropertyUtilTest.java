@@ -53,7 +53,6 @@ public class SystemPropertyUtilTest {
     private static final long KEY_LVALUE = 2L;
     private static final boolean KEY_BVALUE = true;
 
-
     @Test
     public final void testSystemPropertyDefault() {
         SystemPropertyUtil.refresh();
@@ -226,81 +225,54 @@ public class SystemPropertyUtilTest {
         try {
             SystemPropertyUtil.contains(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.get(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.get(null, KEY_IVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.get(null, KEY_BVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.get(null, KEY_LVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.getAndSet(null, KEY_VALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.getAndSet(null, KEY_BVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.getAndSet(null, KEY_IVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.getAndSet(null, KEY_LVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.set(null, KEY_VALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.set(null, KEY_BVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.set(null, KEY_IVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             SystemPropertyUtil.set(null, KEY_LVALUE);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
-
-        }
-
+        } catch (final IllegalArgumentException e) {} // NOSONAR
     }
 }

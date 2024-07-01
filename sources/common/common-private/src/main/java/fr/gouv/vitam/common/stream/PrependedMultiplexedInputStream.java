@@ -46,12 +46,13 @@ public class PrependedMultiplexedInputStream extends ProxyInputStream {
     private static final long LONG_SIZE = 8L;
     private final long size;
 
-    public PrependedMultiplexedInputStream(InputStream firstEntryStream, long firstEntrySize,
-        InputStream multiplexedInputStream, long multiplexedInputStreamSize)
-        throws IOException {
-
+    public PrependedMultiplexedInputStream(
+        InputStream firstEntryStream,
+        long firstEntrySize,
+        InputStream multiplexedInputStream,
+        long multiplexedInputStreamSize
+    ) throws IOException {
         super(buildSequence(firstEntryStream, firstEntrySize, multiplexedInputStream, multiplexedInputStreamSize));
-
         this.size = LONG_SIZE + firstEntrySize + multiplexedInputStreamSize;
     }
 
@@ -59,10 +60,12 @@ public class PrependedMultiplexedInputStream extends ProxyInputStream {
         return this.size;
     }
 
-    private static InputStream buildSequence(InputStream firstEntryStream, long firstEntrySize,
-        InputStream multiplexedInputStream, long multiplexedInputStreamSize)
-        throws IOException {
-
+    private static InputStream buildSequence(
+        InputStream firstEntryStream,
+        long firstEntrySize,
+        InputStream multiplexedInputStream,
+        long multiplexedInputStreamSize
+    ) throws IOException {
         ByteArrayOutputStream firstEntrySizeOutputStream = new ByteArrayOutputStream();
         try (DataOutputStream firstEntrySizeDataOutputStream = new DataOutputStream(firstEntrySizeOutputStream)) {
             firstEntrySizeDataOutputStream.writeLong(firstEntrySize);

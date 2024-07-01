@@ -37,6 +37,7 @@ import java.util.Objects;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AgenciesModel {
+
     public static final String TAG_NAME = "Name";
     public static final String TAG_IDENTIFIER = "Identifier";
     public static final String TAG_DESCRIPTION = "Description";
@@ -79,8 +80,8 @@ public class AgenciesModel {
         @JsonProperty(TAG_IDENTIFIER) String identifier,
         @JsonProperty(TAG_NAME) String name,
         @JsonProperty(TAG_DESCRIPTION) String description,
-        @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT) int tenant) {
-
+        @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT) int tenant
+    ) {
         this.tenant = tenant;
         this.identifier = identifier;
         this.name = name;
@@ -90,8 +91,7 @@ public class AgenciesModel {
     /**
      * empty constructor
      */
-    public AgenciesModel() {
-    }
+    public AgenciesModel() {}
 
     /**
      * @return id
@@ -187,13 +187,10 @@ public class AgenciesModel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         AgenciesModel that = (AgenciesModel) o;
-        return tenant.equals(that.tenant) &&
-            identifier.equals(that.identifier);
+        return tenant.equals(that.tenant) && identifier.equals(that.identifier);
     }
 
     @Override

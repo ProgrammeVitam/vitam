@@ -46,8 +46,8 @@ import static com.mongodb.client.model.Filters.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalRepositoryTest {
-    private static final String CERTIFICATE_HASH =
-        "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
+
+    private static final String CERTIFICATE_HASH = "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
     public static final String PERSONAL_COLLECTION = "PersonalCertificate" + GUIDFactory.newGUID().getId();
 
     @Rule
@@ -74,9 +74,7 @@ public class PersonalRepositoryTest {
         personalCertificateModel.setSubjectDN("distinguishedName");
         personalCertificateModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         personalCertificateModel.setId(id.toString());
-        personalCertificateModel.setCertificateHash(
-            CERTIFICATE_HASH);
-
+        personalCertificateModel.setCertificateHash(CERTIFICATE_HASH);
 
         // When
         personalRepository.createPersonalCertificate(personalCertificateModel);
@@ -101,24 +99,22 @@ public class PersonalRepositoryTest {
         personalCertificateModel.setSubjectDN("distinguishedName");
         personalCertificateModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         personalCertificateModel.setId(id.toString());
-        personalCertificateModel.setCertificateHash(
-            CERTIFICATE_HASH);
+        personalCertificateModel.setCertificateHash(CERTIFICATE_HASH);
 
         personalRepository.createPersonalCertificate(personalCertificateModel);
 
         // When
-        Optional<PersonalCertificateModel> result =
-            personalRepository
-                .findPersonalCertificateByHash(
-                    CERTIFICATE_HASH);
+        Optional<PersonalCertificateModel> result = personalRepository.findPersonalCertificateByHash(CERTIFICATE_HASH);
 
         // Then
-        assertThat(result).isPresent().hasValueSatisfying(identity -> {
-            assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
-            assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
-            assertThat(identity.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.TEN));
-            assertThat(identity.getId()).isEqualTo(id.toString());
-        });
+        assertThat(result)
+            .isPresent()
+            .hasValueSatisfying(identity -> {
+                assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
+                assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
+                assertThat(identity.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.TEN));
+                assertThat(identity.getId()).isEqualTo(id.toString());
+            });
     }
 
     @Test

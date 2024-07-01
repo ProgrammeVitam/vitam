@@ -78,17 +78,18 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class MetaDataClientRestTest extends ResteasyTestApplication {
+
     protected static MetaDataClientRest client;
     private static final String QUERY = "QUERY";
     private static final String VALID_QUERY = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
 
-
-    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+    protected static final ExpectedResults mock = mock(ExpectedResults.class);
 
     static MetaDataClientFactory factory = MetaDataClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(MetaDataClientRestTest.class, factory);
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        MetaDataClientRestTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -114,6 +115,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Path("/metadata/v1")
     @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -234,176 +236,193 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Test
     public void givenParentNotFoundRequestWhenInsertObjectGroupsThenReturnNotFound() {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataNotFoundException.class);
+        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY))).isInstanceOf(
+            MetaDataNotFoundException.class
+        );
     }
 
     @Test
     public void givenEntityTooLargeRequestWhenInsertObjectGroupsThenReturnRequestEntityTooLarge() {
         when(mock.post()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
+        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY))).isInstanceOf(
+            MetaDataDocumentSizeException.class
+        );
     }
 
     @Test
     public void givenRequestWhenInsertObjectGroupAndUnavailableServerThenReturnInternaServerError() {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(MetaDataExecutionException.class);
+        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY))).isInstanceOf(
+            MetaDataExecutionException.class
+        );
     }
 
     @Test
     public void givenInvalidRequestWhenInsertObjectGroupsThenReturnBadRequest() {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)))
-            .isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY))).isInstanceOf(
+            Exception.class
+        );
     }
 
     @Test
     public void insertObjectGroupTest() throws Exception {
-        when(mock.post())
-            .thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode()).build());
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode()).build());
         client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY));
     }
 
     @Test
     public void selectUnitShouldRaiseExceptionWhenExecution() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_InvalidRequest_When_Select_ThenReturn_BadRequest() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_select_ThenReturn_RequestEntityTooLarge() {
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_Select_ThenReturn_not_acceptable() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_blankQuery_whenSelectUnit_ThenReturn_MetadataInvalidSelectException() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString("")))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(""))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_internal_server_error_whenSelectUnitById_ThenReturn_internal_server_error() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"))
-            .isInstanceOf(MetaDataExecutionException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId")).isInstanceOf(
+            MetaDataExecutionException.class
+        );
     }
 
     @Test
     public void given_blankQuery_whenSelectUnitById_ThenReturn_MetadataInvalidSelectException() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(""), ""))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(""), "")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_QueryAndBlankUnitId_whenSelectUnitById_ThenReturn_internal_server_error() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), ""))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_selectUnitById_ThenReturn_RequestEntityTooLarge() {
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId")).isInstanceOf(
+            MetaDataDocumentSizeException.class
+        );
     }
-
 
     @Test
     public void given_InvalidRequest_When_SelectBYiD_ThenReturn_BadRequest() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
-
 
     @Test
     public void given_internal_server_error_whenSelectObjectGroupById_ThenReturn_MetaDataExecutionException() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId"))
-            .isInstanceOf(MetaDataExecutionException.class);
+        assertThatThrownBy(
+            () -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId")
+        ).isInstanceOf(MetaDataExecutionException.class);
     }
 
     @Test
     public void given_blankQuery_whenSelectObjectGroupById_ThenReturn_MetadataInvalidSelectException() {
-        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(""), ""))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(""), "")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_QueryAndBlankUnitId_whenSelectObjectGroupById_ThenReturn_internal_server_error() {
-        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), ""))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(
+            () -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "")
+        ).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_selectObjectGroupById_ThenReturn_RequestEntityTooLarge() {
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId"))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
+        assertThatThrownBy(
+            () -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId")
+        ).isInstanceOf(MetaDataDocumentSizeException.class);
     }
 
     @Test
     public void given_InvalidRequest_When_SelectObjectGroupById_ThenReturn_BadRequest() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId"))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(
+            () -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId")
+        ).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
     public void given_InvalidRequest_When_SelectObjectGroupById_ThenReturn_PreconditionFailed() {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThatThrownBy(() -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId"))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(
+            () -> client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId")
+        ).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
     public void given_ValidRequest_When_SelectObjectGroupById_ThenReturn_OK() throws Exception {
-        when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("test", true)).build());
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(JsonHandler.createObjectNode().put("test", true)).build()
+        );
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "ogId");
     }
 
     @Test
     public void selectUnitTest() {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
-        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void selectUnitByIdTest()
-        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         client.selectUnitbyId(JsonHandler.getFromString(VALID_QUERY), "id");
     }
 
     @Test
     public void selectOGByIdTest()
-        throws MetaDataClientServerException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        InvalidParseOperationException, MetaDataNotFoundException {
+        throws MetaDataClientServerException, MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException, MetaDataNotFoundException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "id");
     }
@@ -411,35 +430,38 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Test
     public void given_blankQuery_whenUpdateUnitById_ThenReturn_MetadataInvalidParseException() {
         when(mock.put()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(""), ""))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(""), "")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_QueryAndBlankUnitId_whenUpdateUnitById_ThenReturn_Exception() {
         when(mock.put()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), ""))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_updateUnitById_ThenReturn_RequestEntityTooLarge() {
         when(mock.put()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId")).isInstanceOf(
+            MetaDataDocumentSizeException.class
+        );
     }
 
     @Test
     public void given_InvalidRequest_When_UpdateBYiD_ThenReturn_BadRequest() {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).entity(JsonHandler.createObjectNode()).build());
-        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void updateUnitByIdTest()
-        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataClientServerException, MetaDataNotFoundException {
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
         when(mock.put()).thenReturn(Response.status(Status.OK).entity("true").build());
         client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "id");
     }
@@ -447,59 +469,54 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Test
     public void given_UnexistingUnit_When_UpdateByiD_ThenReturn_NotFound() {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"))
-            .isInstanceOf(MetaDataNotFoundException.class);
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId")).isInstanceOf(
+            MetaDataNotFoundException.class
+        );
     }
 
-
     @Test
-    public void should_validate_accession_register_client_for_unit()
-        throws Exception {
-
+    public void should_validate_accession_register_client_for_unit() throws Exception {
         // Given
-        RequestResponseOK<UnitPerOriginatingAgency> requestResponseOK =
-            new RequestResponseOK<>();
+        RequestResponseOK<UnitPerOriginatingAgency> requestResponseOK = new RequestResponseOK<>();
         requestResponseOK.addResult(new UnitPerOriginatingAgency("sp1", 3));
         requestResponseOK.addResult(new UnitPerOriginatingAgency("sp2", 4));
 
-        when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build());
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build()
+        );
 
         // When
-        List<UnitPerOriginatingAgency> unitPerOriginatingAgencies =
-            client.selectAccessionRegisterOnUnitByOperationId("122345");
+        List<UnitPerOriginatingAgency> unitPerOriginatingAgencies = client.selectAccessionRegisterOnUnitByOperationId(
+            "122345"
+        );
 
         // Then
-        assertThat(unitPerOriginatingAgencies).hasSize(2).extracting("value", "count")
+        assertThat(unitPerOriginatingAgencies)
+            .hasSize(2)
+            .extracting("value", "count")
             .contains(tuple("sp1", 3l), tuple("sp2", 4l));
     }
 
     @Test
     public void should_validate_accession_register_client_for_object_group()
-        throws InvalidParseOperationException,
-        MetaDataClientServerException {
-
+        throws InvalidParseOperationException, MetaDataClientServerException {
         // Given
-        RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK =
-            new RequestResponseOK<>();
-        requestResponseOK.addResult(
-            new ObjectGroupPerOriginatingAgency("op1", "sp1", 3, 2,
-                2000));
-        requestResponseOK.addResult(
-            new ObjectGroupPerOriginatingAgency("op1", "sp2", 4, 1,
-                3400));
+        RequestResponseOK<ObjectGroupPerOriginatingAgency> requestResponseOK = new RequestResponseOK<>();
+        requestResponseOK.addResult(new ObjectGroupPerOriginatingAgency("op1", "sp1", 3, 2, 2000));
+        requestResponseOK.addResult(new ObjectGroupPerOriginatingAgency("op1", "sp2", 4, 1, 3400));
 
-        when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build());
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(JsonHandler.writeAsString(requestResponseOK)).build()
+        );
 
         // When
         List<ObjectGroupPerOriginatingAgency> unitPerOriginatingAgencies =
             client.selectAccessionRegisterOnObjectByOperationId("122345");
 
         // Then
-        assertThat(unitPerOriginatingAgencies).hasSize(2)
-            .extracting("operation", "agency", "numberOfObject", "numberOfGOT",
-                "size")
+        assertThat(unitPerOriginatingAgencies)
+            .hasSize(2)
+            .extracting("operation", "agency", "numberOfObject", "numberOfGOT", "size")
             .contains(tuple("op1", "sp1", 3L, 2L, 2000L), tuple("op1", "sp2", 4L, 1L, 3400L));
     }
 
@@ -507,8 +524,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void launchReindexationTest()
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
-        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode())
-            .build());
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode()).build());
         JsonNode resp = client.reindex(new IndexParameters());
         assertNotNull(resp);
     }
@@ -517,8 +533,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void switchIndexesTest()
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
-            .build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode()).build());
         assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
     }
 
@@ -528,21 +543,23 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         // Given
         InputStream objectGroup = PropertiesUtils.getResourceAsStream("objectGroup_raw.json");
         RequestResponse<JsonNode> requestResponseOK = new RequestResponseOK<JsonNode>()
-            .addResult(JsonHandler.getFromInputStream(objectGroup)).setHttpCode(Status.OK.getStatusCode());
+            .addResult(JsonHandler.getFromInputStream(objectGroup))
+            .setHttpCode(Status.OK.getStatusCode());
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(requestResponseOK).build());
 
         // When
-        RequestResponse<JsonNode> requestResponse =
-            client.getObjectGroupByIdRaw("aebaaaaaaagwky22aboqialbbrqygmaaaaaq");
+        RequestResponse<JsonNode> requestResponse = client.getObjectGroupByIdRaw(
+            "aebaaaaaaagwky22aboqialbbrqygmaaaaaq"
+        );
 
         // Then
         assertThat(requestResponse).isNotNull();
         assertThat(requestResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(requestResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) requestResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult().get("_id").asText())
-            .isEqualTo("aebaaaaaaagwky22aboqialbbrqygmaaaaaq");
-
+        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult().get("_id").asText()).isEqualTo(
+            "aebaaaaaaagwky22aboqialbbrqygmaaaaaq"
+        );
     }
 
     @Test
@@ -556,7 +573,6 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
             // Then
         }).isInstanceOf(VitamClientException.class);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -577,20 +593,21 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         // Given
         InputStream unit = PropertiesUtils.getResourceAsStream("unit_raw.json");
         RequestResponse<JsonNode> requestResponseOK = new RequestResponseOK<JsonNode>()
-            .addResult(JsonHandler.getFromInputStream(unit)).setHttpCode(Status.OK.getStatusCode());
+            .addResult(JsonHandler.getFromInputStream(unit))
+            .setHttpCode(Status.OK.getStatusCode());
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(requestResponseOK).build());
 
         // When
-        RequestResponse<JsonNode> requestResponse =
-            client.getUnitByIdRaw("aeaqaaaaaagwky22aboqialbbrqygviaaaaq");
+        RequestResponse<JsonNode> requestResponse = client.getUnitByIdRaw("aeaqaaaaaagwky22aboqialbbrqygviaaaaq");
 
         // Then
         assertThat(requestResponse).isNotNull();
         assertThat(requestResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
         assertThat(requestResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<JsonNode>) requestResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult().get("_id").asText())
-            .isEqualTo("aeaqaaaaaagwky22aboqialbbrqygviaaaaq");
+        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult().get("_id").asText()).isEqualTo(
+            "aeaqaaaaaagwky22aboqialbbrqygviaaaaq"
+        );
     }
 
     @Test
@@ -621,93 +638,106 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Test
     public void selectObjectsShouldRaiseExceptionWhenExecution() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void givenInvalidRequestWhenSelectObjectsThenReturnBadRequest() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void givenEntityTooLargeRequestWhenSelectObjectsThenReturnRequestEntityTooLarge() {
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void givenEntityTooLargeRequestWhenSelectThenReturnNotAcceptable() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void givenBlankQueryWhenSelectObjectsThenReturnMetadataInvalidSelectException() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString("")))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(""))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void selectObjectsTest() {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
-        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectGroups(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void selectUnitsWithoutInheritedRulesShouldRaiseExceptionWhenExecution() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_InvalidRequest_When_SelectUnitsWithoutInheritedRules_ThenReturn_BadRequest() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_selectUnitsWithoutInheritedRules_ThenReturn_RequestEntityTooLarge() {
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_SelectUnitsWithoutInheritedRules_ThenReturn_not_acceptable() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void given_blankQuery_whenSelectUnitsWithoutInheritedRules_ThenReturn_MetadataInvalidSelectException() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString("")))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(""))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void selectUnitsWithoutInheritedRulesTest() {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("true").build());
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY)))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(JsonHandler.getFromString(QUERY))).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @Test
     public void selectUnitBulkTest_Ok() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        List<RequestResponseOK<JsonNode>> response =
-            Collections.singletonList(new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()));
+        List<RequestResponseOK<JsonNode>> response = Collections.singletonList(
+            new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode())
+        );
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(response).build());
         assertThatCode(() -> client.selectUnitsBulk(queries)).doesNotThrowAnyException();
     }
@@ -716,8 +746,8 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void selectUnitBulkTest_VitamError() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(
-                Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+            .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .setContext("METADATA")
             .setState("CODE_VITAM")
             .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
@@ -731,15 +761,13 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("wrong format").build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void selectUnitBulkTest_NullParam() throws InvalidParseOperationException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<JsonNode>()).build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -747,8 +775,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -756,8 +783,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -765,8 +791,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
-            .isInstanceOf(MetaDataExecutionException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(MetaDataExecutionException.class);
     }
 
     @Test
@@ -774,8 +799,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.get()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(MetaDataDocumentSizeException.class);
     }
 
     @Test
@@ -783,8 +807,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.selectUnitsBulk(queries))
-            .isInstanceOf(MetaDataClientServerException.class);
+        assertThatThrownBy(() -> client.selectUnitsBulk(queries)).isInstanceOf(MetaDataClientServerException.class);
     }
 
     // UpdateUnitBulk
@@ -801,8 +824,8 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void atomicUpdateBulkTest_VitamError() throws InvalidParseOperationException {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
-        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(
-                Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        VitamError vitamResponse = new VitamError(Status.INTERNAL_SERVER_ERROR.name())
+            .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .setContext("METADATA")
             .setState("CODE_VITAM")
             .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
@@ -816,15 +839,13 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.OK).entity("wrong format").build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries)).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void atomicUpdateBulkTest_NullParam() throws InvalidParseOperationException {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<JsonNode>()).build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -832,8 +853,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -841,8 +861,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -850,8 +869,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-            .isInstanceOf(MetaDataExecutionException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries)).isInstanceOf(MetaDataExecutionException.class);
     }
 
     @Test
@@ -859,8 +877,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-            .isInstanceOf(MetaDataDocumentSizeException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries)).isInstanceOf(MetaDataDocumentSizeException.class);
     }
 
     @Test
@@ -868,8 +885,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         List<JsonNode> queries = new ArrayList<JsonNode>();
         queries.add(JsonHandler.getFromString(VALID_QUERY));
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.atomicUpdateBulk(queries))
-            .isInstanceOf(MetaDataNotFoundException.class);
+        assertThatThrownBy(() -> client.atomicUpdateBulk(queries)).isInstanceOf(MetaDataNotFoundException.class);
     }
 
     @Test
@@ -882,4 +898,3 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
         }).isInstanceOf(InvalidParseOperationException.class);
     }
 }
-

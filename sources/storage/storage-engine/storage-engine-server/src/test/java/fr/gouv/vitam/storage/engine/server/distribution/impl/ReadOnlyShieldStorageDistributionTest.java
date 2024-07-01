@@ -87,10 +87,17 @@ public class ReadOnlyShieldStorageDistributionTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private StorageDistribution innerStorageDistribution;
-    @Mock private AlertService alertService;
-    @Mock private CloseableIterator<ObjectEntry> objectEntryIterator;
-    @Mock private RequestResponse<OfferLog> offerLogRequestResponse;
+    @Mock
+    private StorageDistribution innerStorageDistribution;
+
+    @Mock
+    private AlertService alertService;
+
+    @Mock
+    private CloseableIterator<ObjectEntry> objectEntryIterator;
+
+    @Mock
+    private RequestResponse<OfferLog> offerLogRequestResponse;
 
     private ReadOnlyShieldStorageDistribution instance;
 
@@ -114,8 +121,7 @@ public class ReadOnlyShieldStorageDistributionTest {
         // Given
 
         // When / Then
-        assertThatCode(instance::close)
-            .doesNotThrowAnyException();
+        assertThatCode(instance::close).doesNotThrowAnyException();
         verify(innerStorageDistribution).close();
     }
 
@@ -124,12 +130,14 @@ public class ReadOnlyShieldStorageDistributionTest {
         // Given
         DataContext dataContext = mock(DataContext.class);
         StoredInfoResult storedInfoResult = mock(StoredInfoResult.class);
-        doReturn(storedInfoResult).when(innerStorageDistribution)
+        doReturn(storedInfoResult)
+            .when(innerStorageDistribution)
             .copyObjectFromOfferToOffer(dataContext, OFFER1, OFFER2);
 
         // When / Then
-        assertThatThrownBy(() -> instance.copyObjectFromOfferToOffer(dataContext, OFFER1, OFFER2))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.copyObjectFromOfferToOffer(dataContext, OFFER1, OFFER2)).isInstanceOf(
+            IllegalStateException.class
+        );
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
     }
@@ -139,13 +147,14 @@ public class ReadOnlyShieldStorageDistributionTest {
         // Given
         ObjectDescription objectDescription = mock(ObjectDescription.class);
         StoredInfoResult storedInfoResult = mock(StoredInfoResult.class);
-        doReturn(storedInfoResult).when(innerStorageDistribution)
+        doReturn(storedInfoResult)
+            .when(innerStorageDistribution)
             .storeDataInAllOffers(STRATEGY, OFFER1, objectDescription, DATA_CATEGORY, REQUESTER);
 
         // When / Then
-        assertThatThrownBy(() -> instance.storeDataInAllOffers(STRATEGY, OFFER1, objectDescription,
-            DATA_CATEGORY, REQUESTER))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+            () -> instance.storeDataInAllOffers(STRATEGY, OFFER1, objectDescription, DATA_CATEGORY, REQUESTER)
+        ).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
     }
@@ -160,9 +169,8 @@ public class ReadOnlyShieldStorageDistributionTest {
             .storeDataInOffers(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, REQUESTER, OFFER_IDS, response);
 
         // When / Then
-        assertThatThrownBy(() ->
-            instance.storeDataInOffers(
-                STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, REQUESTER, OFFER_IDS, response)
+        assertThatThrownBy(
+            () -> instance.storeDataInOffers(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, REQUESTER, OFFER_IDS, response)
         ).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
@@ -178,9 +186,17 @@ public class ReadOnlyShieldStorageDistributionTest {
             .storeDataInOffers(STRATEGY, ORIGIN, streamAndInfo, OBJECT_ID, DATA_CATEGORY, REQUESTER, OFFER_IDS);
 
         // When / Then
-        assertThatThrownBy(() ->
-            instance.storeDataInOffers(
-                STRATEGY, ORIGIN, streamAndInfo, OBJECT_ID, DATA_CATEGORY, REQUESTER, OFFER_IDS)
+        assertThatThrownBy(
+            () ->
+                instance.storeDataInOffers(
+                    STRATEGY,
+                    ORIGIN,
+                    streamAndInfo,
+                    OBJECT_ID,
+                    DATA_CATEGORY,
+                    REQUESTER,
+                    OFFER_IDS
+                )
         ).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
@@ -217,7 +233,8 @@ public class ReadOnlyShieldStorageDistributionTest {
     public void testGetContainerInformationOfObjectReadOnly() throws StorageException {
         // Given
         JsonNode response = JsonHandler.createObjectNode();
-        doReturn(response).when(innerStorageDistribution)
+        doReturn(response)
+            .when(innerStorageDistribution)
             .getContainerInformation(STRATEGY, DATA_CATEGORY, OBJECT_ID, OFFER_IDS, true);
 
         // When
@@ -244,12 +261,12 @@ public class ReadOnlyShieldStorageDistributionTest {
     @Test
     public void testListContainerObjectsForOfferReadOnly() throws StorageException {
         // Given
-        doReturn(objectEntryIterator).when(innerStorageDistribution)
+        doReturn(objectEntryIterator)
+            .when(innerStorageDistribution)
             .listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         // When
-        CloseableIterator<ObjectEntry> result =
-            instance.listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
+        CloseableIterator<ObjectEntry> result = instance.listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         // Then
         verify(innerStorageDistribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
@@ -259,12 +276,12 @@ public class ReadOnlyShieldStorageDistributionTest {
     @Test
     public void testGetOfferLogsReadOnly() throws StorageException {
         // Given
-        doReturn(offerLogRequestResponse).when(innerStorageDistribution)
+        doReturn(offerLogRequestResponse)
+            .when(innerStorageDistribution)
             .getOfferLogs(STRATEGY, DATA_CATEGORY, 132L, 321, Order.ASC);
 
         // When
-        RequestResponse<OfferLog> result =
-            instance.getOfferLogs(STRATEGY, DATA_CATEGORY, 132L, 321, Order.ASC);
+        RequestResponse<OfferLog> result = instance.getOfferLogs(STRATEGY, DATA_CATEGORY, 132L, 321, Order.ASC);
 
         // Then
         verify(innerStorageDistribution).getOfferLogs(STRATEGY, DATA_CATEGORY, 132L, 321, Order.ASC);
@@ -274,12 +291,19 @@ public class ReadOnlyShieldStorageDistributionTest {
     @Test
     public void testGetOfferLogsByOfferIdReadOnly() throws StorageException {
         // Given
-        doReturn(offerLogRequestResponse).when(innerStorageDistribution)
+        doReturn(offerLogRequestResponse)
+            .when(innerStorageDistribution)
             .getOfferLogsByOfferId(STRATEGY, OFFER1, DATA_CATEGORY, 132L, 321, Order.ASC);
 
         // When
-        RequestResponse<OfferLog> result =
-            instance.getOfferLogsByOfferId(STRATEGY, OFFER1, DATA_CATEGORY, 132L, 321, Order.ASC);
+        RequestResponse<OfferLog> result = instance.getOfferLogsByOfferId(
+            STRATEGY,
+            OFFER1,
+            DATA_CATEGORY,
+            132L,
+            321,
+            Order.ASC
+        );
 
         // Then
         verify(innerStorageDistribution).getOfferLogsByOfferId(STRATEGY, OFFER1, DATA_CATEGORY, 132L, 321, Order.ASC);
@@ -291,16 +315,21 @@ public class ReadOnlyShieldStorageDistributionTest {
         // Given
         AccessLogInfoModel loginInformation = mock(AccessLogInfoModel.class);
         Response response = mock(Response.class);
-        doReturn(response).when(innerStorageDistribution)
+        doReturn(response)
+            .when(innerStorageDistribution)
             .getContainerByCategory(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, loginInformation);
 
         // When
-        Response result =
-            instance.getContainerByCategory(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, loginInformation);
+        Response result = instance.getContainerByCategory(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, loginInformation);
 
         // Then
-        verify(innerStorageDistribution).getContainerByCategory(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY,
-            loginInformation);
+        verify(innerStorageDistribution).getContainerByCategory(
+            STRATEGY,
+            ORIGIN,
+            OBJECT_ID,
+            DATA_CATEGORY,
+            loginInformation
+        );
         assertThat(result).isEqualTo(response);
     }
 
@@ -308,7 +337,8 @@ public class ReadOnlyShieldStorageDistributionTest {
     public void testGetContainerByCategoryForOfferReadOnly() throws StorageException {
         // Given
         Response response = mock(Response.class);
-        doReturn(response).when(innerStorageDistribution)
+        doReturn(response)
+            .when(innerStorageDistribution)
             .getContainerByCategory(STRATEGY, ORIGIN, OBJECT_ID, DATA_CATEGORY, OFFER1);
 
         // When
@@ -323,7 +353,8 @@ public class ReadOnlyShieldStorageDistributionTest {
     public void testCheckObjectExistingReadOnly() throws StorageException {
         // Given
         Map<String, Boolean> response = Map.of(OFFER1, true, OFFER2, false);
-        doReturn(response).when(innerStorageDistribution)
+        doReturn(response)
+            .when(innerStorageDistribution)
             .checkObjectExisting(STRATEGY, OBJECT_ID, DATA_CATEGORY, OFFER_IDS);
 
         // When
@@ -341,8 +372,9 @@ public class ReadOnlyShieldStorageDistributionTest {
         doNothing().when(innerStorageDistribution).deleteObjectInAllOffers(STRATEGY, dataContext);
 
         // When / Then
-        assertThatThrownBy(() -> instance.deleteObjectInAllOffers(STRATEGY, dataContext))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.deleteObjectInAllOffers(STRATEGY, dataContext)).isInstanceOf(
+            IllegalStateException.class
+        );
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
     }
@@ -354,8 +386,9 @@ public class ReadOnlyShieldStorageDistributionTest {
         doNothing().when(innerStorageDistribution).deleteObjectInOffers(STRATEGY, dataContext, OFFER_IDS);
 
         // When / Then
-        assertThatThrownBy(() -> instance.deleteObjectInOffers(STRATEGY, dataContext, OFFER_IDS))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.deleteObjectInOffers(STRATEGY, dataContext, OFFER_IDS)).isInstanceOf(
+            IllegalStateException.class
+        );
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
     }
@@ -364,16 +397,25 @@ public class ReadOnlyShieldStorageDistributionTest {
     public void testGetBatchObjectInformationReadOnly() throws StorageException {
         // Given
         List<BatchObjectInformationResponse> response = List.of(mock(BatchObjectInformationResponse.class));
-        doReturn(response).when(innerStorageDistribution)
+        doReturn(response)
+            .when(innerStorageDistribution)
             .getBatchObjectInformation(STRATEGY, DATA_CATEGORY, List.of(OBJECT_ID), OFFER_IDS);
 
         // When
-        List<BatchObjectInformationResponse> result =
-            instance.getBatchObjectInformation(STRATEGY, DATA_CATEGORY, List.of(OBJECT_ID), OFFER_IDS);
+        List<BatchObjectInformationResponse> result = instance.getBatchObjectInformation(
+            STRATEGY,
+            DATA_CATEGORY,
+            List.of(OBJECT_ID),
+            OFFER_IDS
+        );
 
         // Then
-        verify(innerStorageDistribution).getBatchObjectInformation(STRATEGY, DATA_CATEGORY, List.of(OBJECT_ID),
-            OFFER_IDS);
+        verify(innerStorageDistribution).getBatchObjectInformation(
+            STRATEGY,
+            DATA_CATEGORY,
+            List.of(OBJECT_ID),
+            OFFER_IDS
+        );
         assertThat(result).isEqualTo(response);
     }
 
@@ -382,12 +424,14 @@ public class ReadOnlyShieldStorageDistributionTest {
         // Given
         BulkObjectStoreRequest bulkObjectStoreRequest = mock(BulkObjectStoreRequest.class);
         BulkObjectStoreResponse response = mock(BulkObjectStoreResponse.class);
-        doReturn(response).when(innerStorageDistribution)
+        doReturn(response)
+            .when(innerStorageDistribution)
             .bulkCreateFromWorkspace(STRATEGY, bulkObjectStoreRequest, REQUESTER);
 
         // When / Then
-        assertThatThrownBy(() -> instance.bulkCreateFromWorkspace(STRATEGY, bulkObjectStoreRequest, REQUESTER))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+            () -> instance.bulkCreateFromWorkspace(STRATEGY, bulkObjectStoreRequest, REQUESTER)
+        ).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), any());
         verifyZeroInteractions(innerStorageDistribution);
     }
@@ -413,62 +457,72 @@ public class ReadOnlyShieldStorageDistributionTest {
     @Test
     public void testCreateAccessRequestIfRequiredReadOnly() throws StorageException {
         // Given
-        doReturn(Optional.of(ACCESS_REQUEST_ID)).when(innerStorageDistribution)
+        doReturn(Optional.of(ACCESS_REQUEST_ID))
+            .when(innerStorageDistribution)
             .createAccessRequestIfRequired(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
 
         // When
-        Optional<String> result =
-            instance.createAccessRequestIfRequired(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
+        Optional<String> result = instance.createAccessRequestIfRequired(
+            STRATEGY,
+            OFFER1,
+            DATA_CATEGORY,
+            List.of(OBJECT_ID)
+        );
 
         // Then
-        verify(innerStorageDistribution)
-            .createAccessRequestIfRequired(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
+        verify(innerStorageDistribution).createAccessRequestIfRequired(
+            STRATEGY,
+            OFFER1,
+            DATA_CATEGORY,
+            List.of(OBJECT_ID)
+        );
         assertThat(result).isEqualTo(Optional.of(ACCESS_REQUEST_ID));
     }
 
     @Test
     public void testCheckAccessRequestStatusesReadOnly() throws StorageException {
         // Given
-        doReturn(Map.of(ACCESS_REQUEST_ID, AccessRequestStatus.READY)).when(innerStorageDistribution)
+        doReturn(Map.of(ACCESS_REQUEST_ID, AccessRequestStatus.READY))
+            .when(innerStorageDistribution)
             .checkAccessRequestStatuses(STRATEGY, OFFER1, List.of(ACCESS_REQUEST_ID), true);
 
         // When
-        Map<String, AccessRequestStatus> result =
-            instance.checkAccessRequestStatuses(STRATEGY, OFFER1, List.of(ACCESS_REQUEST_ID), true);
+        Map<String, AccessRequestStatus> result = instance.checkAccessRequestStatuses(
+            STRATEGY,
+            OFFER1,
+            List.of(ACCESS_REQUEST_ID),
+            true
+        );
 
         // Then
-        verify(innerStorageDistribution)
-            .checkAccessRequestStatuses(STRATEGY, OFFER1, List.of(ACCESS_REQUEST_ID), true);
+        verify(innerStorageDistribution).checkAccessRequestStatuses(STRATEGY, OFFER1, List.of(ACCESS_REQUEST_ID), true);
         assertThat(result).isEqualTo(Map.of(ACCESS_REQUEST_ID, AccessRequestStatus.READY));
     }
 
     @Test
     public void testRemoveAccessRequestReadOnly() throws StorageException {
         // Given
-        doNothing().when(innerStorageDistribution)
-            .removeAccessRequest(STRATEGY, OFFER1, ACCESS_REQUEST_ID, true);
+        doNothing().when(innerStorageDistribution).removeAccessRequest(STRATEGY, OFFER1, ACCESS_REQUEST_ID, true);
 
         // When
         instance.removeAccessRequest(STRATEGY, OFFER1, ACCESS_REQUEST_ID, true);
 
         // Then
-        verify(innerStorageDistribution)
-            .removeAccessRequest(STRATEGY, OFFER1, ACCESS_REQUEST_ID, true);
+        verify(innerStorageDistribution).removeAccessRequest(STRATEGY, OFFER1, ACCESS_REQUEST_ID, true);
     }
 
     @Test
     public void testCheckObjectAvailabilityReadOnly() throws StorageException {
         // Given
-        doReturn(true).when(innerStorageDistribution)
+        doReturn(true)
+            .when(innerStorageDistribution)
             .checkObjectAvailability(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
 
         // When
-        boolean result =
-            instance.checkObjectAvailability(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
+        boolean result = instance.checkObjectAvailability(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
 
         // Then
-        verify(innerStorageDistribution)
-            .checkObjectAvailability(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
+        verify(innerStorageDistribution).checkObjectAvailability(STRATEGY, OFFER1, DATA_CATEGORY, List.of(OBJECT_ID));
         assertThat(result).isEqualTo(true);
     }
 

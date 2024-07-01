@@ -67,15 +67,15 @@ import static org.mockito.Mockito.when;
 public class PurgeAccessionRegisterUpdatePluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -94,31 +94,33 @@ public class PurgeAccessionRegisterUpdatePluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
 
-
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
             .setCurrentStep("StepName")
             .setObjectMetadata(JsonHandler.createObjectNode());
 
-        instance = new PurgeAccessionRegisterUpdatePlugin("PLUGIN_ACTION", LogbookTypeProcess.ELIMINATION,
-            adminManagementClientFactory);
+        instance = new PurgeAccessionRegisterUpdatePlugin(
+            "PLUGIN_ACTION",
+            LogbookTypeProcess.ELIMINATION,
+            adminManagementClientFactory
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void test_when_update_accession_register_then_FATAL() throws Exception {
-
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenThrow(new AdminManagementClientServerException("Simulate FATAL"));
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenThrow(
+            new AdminManagementClientServerException("Simulate FATAL")
+        );
         RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
         when(adminManagementClient.getAccessionRegister(any())).thenReturn(response);
 
@@ -132,27 +134,27 @@ public class PurgeAccessionRegisterUpdatePluginTest {
     @Test
     @RunWithCustomExecutor
     public void test_when_update_already_exists_accession_register_then_OK() throws Exception {
-
-        VitamError ve =
-            new VitamError(Response.Status.CONFLICT.name()).setHttpCode(Response.Status.CONFLICT.getStatusCode())
-                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                .setState("code_vitam")
-                .setMessage(Response.Status.CONFLICT.getReasonPhrase())
-                .setDescription("Document already exists in database");
+        VitamError ve = new VitamError(Response.Status.CONFLICT.name())
+            .setHttpCode(Response.Status.CONFLICT.getStatusCode())
+            .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+            .setState("code_vitam")
+            .setMessage(Response.Status.CONFLICT.getReasonPhrase())
+            .setDescription("Document already exists in database");
 
         RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
         when(adminManagementClient.getAccessionRegister(any())).thenReturn(response);
 
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenReturn(ve);
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(ve);
         File file = PropertiesUtils.getResourceFile(ACCESSION_REGISTER_DETAIL);
         RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting =
-            JsonHandler.getFromFileAsTypeReference(file,
-                new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(
+                file,
+                new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {}
+            );
         // When
         when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(
-            accessionRegisterDetailExisting);
+            accessionRegisterDetailExisting
+        );
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -161,26 +163,25 @@ public class PurgeAccessionRegisterUpdatePluginTest {
         Assertions.assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void test_when_update_accession_register_then_OK() throws Exception {
-
         RequestResponse<AccessionRegisterDetailModel> resp = new RequestResponseOK<>();
         resp.setHttpCode(Response.Status.OK.getStatusCode());
         RequestResponse response = new RequestResponseOK<>().setHttpCode(Response.Status.OK.getStatusCode());
         when(adminManagementClient.getAccessionRegister(any())).thenReturn(response);
 
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenReturn(resp);
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(resp);
         File file = PropertiesUtils.getResourceFile(ACCESSION_REGISTER_DETAIL);
         RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterDetailExisting =
-            JsonHandler.getFromFileAsTypeReference(file,
-                new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(
+                file,
+                new TypeReference<RequestResponseOK<AccessionRegisterDetailModel>>() {}
+            );
         // When
         when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(
-            accessionRegisterDetailExisting);
+            accessionRegisterDetailExisting
+        );
 
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);

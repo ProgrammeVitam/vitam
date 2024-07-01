@@ -44,16 +44,16 @@ import static org.junit.Assert.assertEquals;
 
 public class ProfileTest {
 
-
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     private static final Integer TENANT_ID = 0;
 
     @Test
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Profile profile = new Profile();
         final String id = GUIDFactory.newProfileGUID(TENANT_ID).getId();
@@ -83,5 +83,4 @@ public class ProfileTest {
         assertEquals(lastupdate, profile.getActivationdate());
         assertEquals(lastupdate, profile.getDeactivationdate());
     }
-
 }

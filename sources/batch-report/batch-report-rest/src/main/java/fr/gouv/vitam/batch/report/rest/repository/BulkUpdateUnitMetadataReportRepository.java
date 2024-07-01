@@ -64,11 +64,12 @@ import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
 
 public class BulkUpdateUnitMetadataReportRepository extends ReportCommonRepository {
+
     private static final String COLLECTION_NAME = "BulkUpdateUnitMetadataReport";
 
     private final MongoCollection<Document> collection;
 
-    private final static Bson PROJECTION = Aggregates.project(
+    private static final Bson PROJECTION = Aggregates.project(
         Projections.fields(
             new Document(RESULT_KEY, "$resultKey"),
             new Document(PROCESS_ID, "$processId"),
@@ -80,7 +81,8 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
             new Document(OUTCOME, "$outcome"),
             new Document(DETAIL_TYPE, "$detailType"),
             new Document(DETAIL_ID, "$id")
-        ));
+        )
+    );
 
     @VisibleForTesting
     public BulkUpdateUnitMetadataReportRepository(MongoDbAccess mongoDbAccess, String collectionName) {
@@ -94,11 +96,15 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
     private static WriteModel<Document> modelToWriteDocument(BulkUpdateUnitMetadataReportEntry model) {
         try {
             return new UpdateOneModel<>(
-                and(eq(PROCESS_ID, model.getProcessId()),
+                and(
+                    eq(PROCESS_ID, model.getProcessId()),
                     eq(TENANT_ID, model.getTenantId()),
-                    eq(DETAIL_ID, model.getDetailId())),
-                new Document("$set", Document.parse(JsonHandler.writeAsString(model)))
-                    .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
+                    eq(DETAIL_ID, model.getDetailId())
+                ),
+                new Document("$set", Document.parse(JsonHandler.writeAsString(model))).append(
+                    "$setOnInsert",
+                    new Document("_id", GUIDFactory.newGUID().toString())
+                ),
                 new UpdateOptions().upsert(true)
             );
         } catch (InvalidParseOperationException e) {
@@ -107,7 +113,8 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
     }
 
     public void bulkAppendReport(List<BulkUpdateUnitMetadataReportEntry> reports) {
-        List<WriteModel<Document>> preservationDocument = reports.stream()
+        List<WriteModel<Document>> preservationDocument = reports
+            .stream()
             .distinct()
             .map(BulkUpdateUnitMetadataReportRepository::modelToWriteDocument)
             .collect(Collectors.toList());
@@ -117,8 +124,13 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
         return collection
-            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))),
-                sort(Sorts.descending(STATUS_ID)), PROJECTION))
+            .aggregate(
+                Arrays.asList(
+                    match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))),
+                    sort(Sorts.descending(STATUS_ID)),
+                    PROJECTION
+                )
+            )
             .allowDiskUse(true)
             .iterator();
     }

@@ -76,11 +76,21 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
 
     private final JsonLineDataBase objectsDatabase;
 
-
-    public ExtractMetadataListener(HandlerIO handlerIO, IngestContext ingestContext, IngestSession ingestSession,
-        JsonLineDataBase unitsDatabase, JsonLineDataBase objectsDatabase, MetaDataClientFactory metaDataClientFactory) {
-        archiveUnitListener =
-            new ArchiveUnitListener(handlerIO, ingestContext, ingestSession, unitsDatabase, metaDataClientFactory);
+    public ExtractMetadataListener(
+        HandlerIO handlerIO,
+        IngestContext ingestContext,
+        IngestSession ingestSession,
+        JsonLineDataBase unitsDatabase,
+        JsonLineDataBase objectsDatabase,
+        MetaDataClientFactory metaDataClientFactory
+    ) {
+        archiveUnitListener = new ArchiveUnitListener(
+            handlerIO,
+            ingestContext,
+            ingestSession,
+            unitsDatabase,
+            metaDataClientFactory
+        );
         this.handlerIO = handlerIO;
         this.ingestSession = ingestSession;
         this.objectsDatabase = objectsDatabase;
@@ -100,8 +110,9 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             String currentGroupId = objectGroupType.getId();
 
             if (ingestSession.getObjectGroupIdToGuid().get(currentGroupId) == null) {
-                final String objectGroupGuid =
-                    GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).toString();
+                final String objectGroupGuid = GUIDFactory.newObjectGroupGUID(
+                    ParameterHelper.getTenantParameter()
+                ).toString();
                 ingestSession.getObjectGroupIdToGuid().put(currentGroupId, objectGroupGuid);
             }
 
@@ -123,12 +134,14 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             }
             if (currentGroupId == null) {
                 LOGGER.warn(
-                    "Current object does not have an ObjectGroup ! auto creating ObjectGroup using the same ID of Object");
+                    "Current object does not have an ObjectGroup ! auto creating ObjectGroup using the same ID of Object"
+                );
                 currentGroupId = dataObject.getId();
             }
-            final String objectGroupGuid =
-                Objects.requireNonNullElse(ingestSession.getObjectGroupIdToGuid().get(currentGroupId),
-                    GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).toString());
+            final String objectGroupGuid = Objects.requireNonNullElse(
+                ingestSession.getObjectGroupIdToGuid().get(currentGroupId),
+                GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).toString()
+            );
 
             extractDataObject(currentGroupId, objectGroupGuid, dataObject);
             updateState(currentGroupId, dataObject);
@@ -137,8 +150,12 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
     }
 
     private void extractLogbook(DataObjectGroupType objectGroupType, String objectGroupGuid) {
-        List<LogbookEvent> logbookEvents =
-            objectGroupType.getLogBook().getEvent().stream().map(LogbookEventMapper::map).collect(Collectors.toList());
+        List<LogbookEvent> logbookEvents = objectGroupType
+            .getLogBook()
+            .getEvent()
+            .stream()
+            .map(LogbookEventMapper::map)
+            .collect(Collectors.toList());
         File logbookTmpFile = handlerIO.getNewLocalFile(objectGroupGuid + LOGBOOK_OG_FILE_SUFFIX + JSON_EXTENSION);
         try {
             JsonHandler.writeAsFile(logbookEvents, logbookTmpFile);
@@ -152,8 +169,8 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             final String objectGuid = GUIDFactory.newObjectGUID(ParameterHelper.getTenantParameter()).toString();
             DbVersionsModel versionsModel = ObjectGroupMapper.map(dataObject, objectGroupGuid);
 
-            JsonNode value =
-                VitamObjectMapper.getSerializationObjectMapper().convertValue(versionsModel, JsonNode.class);
+            JsonNode value = VitamObjectMapper.getSerializationObjectMapper()
+                .convertValue(versionsModel, JsonNode.class);
             objectsDatabase.write(objectGuid, value);
 
             final DataObjectDetail detail = new DataObjectDetail();
@@ -167,19 +184,29 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
 
                 long gotSize = checkAndComputeSize(versionsModel, dataObjectInfo);
                 dataObjectInfo.setSize(gotSize);
-                detail.setVersion(Objects.requireNonNullElse(dataObject.getDataObjectVersion(),
-                    DataObjectVersionType.BINARY_MASTER.getName()));
+                detail.setVersion(
+                    Objects.requireNonNullElse(
+                        dataObject.getDataObjectVersion(),
+                        DataObjectVersionType.BINARY_MASTER.getName()
+                    )
+                );
                 detail.setPhysical(false);
                 ingestSession.getObjectGuidToDataObject().put(objectGuid, dataObjectInfo);
-                if (dataObject.getDataObjectVersion() == null || dataObject.getDataObjectVersion().startsWith(DataObjectVersionType.BINARY_MASTER.getName())) {
+                if (
+                    dataObject.getDataObjectVersion() == null ||
+                    dataObject.getDataObjectVersion().startsWith(DataObjectVersionType.BINARY_MASTER.getName())
+                ) {
                     ingestSession.getDataObjectGroupMasterMandatory().put(currentGroupId, true);
                 } else {
                     ingestSession.getDataObjectGroupMasterMandatory().putIfAbsent(currentGroupId, false);
                 }
-
             } else {
-                detail.setVersion(Objects.requireNonNullElse(dataObject.getDataObjectVersion(),
-                    DataObjectVersionType.PHYSICAL_MASTER.getName()));
+                detail.setVersion(
+                    Objects.requireNonNullElse(
+                        dataObject.getDataObjectVersion(),
+                        DataObjectVersionType.PHYSICAL_MASTER.getName()
+                    )
+                );
                 detail.setPhysical(true);
                 ingestSession.getPhysicalDataObjetsGuids().add(objectGuid);
                 ingestSession.getDataObjectGroupMasterMandatory().put(currentGroupId, true);
@@ -191,13 +218,13 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             ingestSession.getObjectGroupIdToGuid().put(currentGroupId, objectGroupGuid);
             ingestSession.getUsageToObjectGroupId().put(dataObject.getDataObjectVersion(), objectGroupGuid);
 
-            if (currentGroupId.equals(dataObject.getId()) &&
-                ingestSession.getDataObjectIdWithoutObjectGroupId().get(dataObject.getId()) == null) {
+            if (
+                currentGroupId.equals(dataObject.getId()) &&
+                ingestSession.getDataObjectIdWithoutObjectGroupId().get(dataObject.getId()) == null
+            ) {
                 final GotObj gotObj = new GotObj(currentGroupId, false);
                 ingestSession.getDataObjectIdWithoutObjectGroupId().put(versionsModel.getId(), gotObj);
             }
-
-
         } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
             throw new VitamRuntimeException(e);
         }

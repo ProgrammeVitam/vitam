@@ -43,16 +43,18 @@ public class MessageLogbookEngineHelperTest {
 
     @Test
     public void testGetKey() {
-        MessageLogbookEngineHelper messageLogbookEngineHelper =
-            new MessageLogbookEngineHelper(LogbookTypeProcess.HOLDINGSCHEME);
-        String key =
-            messageLogbookEngineHelper.getOutcomeDetail(LogbookTypeProcess.HOLDINGSCHEME.name(), StatusCode.STARTED);
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(
+            LogbookTypeProcess.HOLDINGSCHEME
+        );
+        String key = messageLogbookEngineHelper.getOutcomeDetail(
+            LogbookTypeProcess.HOLDINGSCHEME.name(),
+            StatusCode.STARTED
+        );
         assertEquals(uglyConcat(HOLDINGSCHEME, StatusCode.STARTED.name()), key);
         key = messageLogbookEngineHelper.getOutcomeDetail(STP_STEP, StatusCode.STARTED);
         assertEquals(uglyConcat(HOLDINGSCHEME, STP_STEP, StatusCode.STARTED.name()), key);
         key = messageLogbookEngineHelper.getOutcomeDetail(STP_STEP, TRANSACTION, StatusCode.STARTED);
-        assertEquals(uglyConcat(HOLDINGSCHEME, STP_STEP, TRANSACTION, StatusCode.STARTED.name()),
-            key);
+        assertEquals(uglyConcat(HOLDINGSCHEME, STP_STEP, TRANSACTION, StatusCode.STARTED.name()), key);
         // Unexisting process type key
         messageLogbookEngineHelper = new MessageLogbookEngineHelper(LogbookTypeProcess.FILINGSCHEME);
         key = messageLogbookEngineHelper.getOutcomeDetail(STP_STEP, StatusCode.STARTED);
@@ -63,10 +65,13 @@ public class MessageLogbookEngineHelperTest {
 
     @Test
     public void testMessages() {
-        MessageLogbookEngineHelper messageLogbookEngineHelper =
-            new MessageLogbookEngineHelper(LogbookTypeProcess.HOLDINGSCHEME);
-        String label =
-            messageLogbookEngineHelper.getLabelOp(LogbookTypeProcess.HOLDINGSCHEME.name(), StatusCode.STARTED);
+        MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(
+            LogbookTypeProcess.HOLDINGSCHEME
+        );
+        String label = messageLogbookEngineHelper.getLabelOp(
+            LogbookTypeProcess.HOLDINGSCHEME.name(),
+            StatusCode.STARTED
+        );
         assertEquals("HOLDING SCHEME started", label);
         label = messageLogbookEngineHelper.getLabelOp(STP_STEP, StatusCode.STARTED);
         assertEquals("HOLDING SCHEME step started", label);

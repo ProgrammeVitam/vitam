@@ -33,26 +33,25 @@ import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 
-
 public class ElasticsearchUtilTest {
 
     private static final String FILE_JSON = "/test.json";
     private static final String mapping =
         "{\n" +
-            "  \"properties\": {\n" +
-            "    \"Tenant\": {\n" +
-            "      \"type\": \"text\"\n" +
-            "    }\n" +
-            "  }\n" +
-            "}";
+        "  \"properties\": {\n" +
+        "    \"Tenant\": {\n" +
+        "      \"type\": \"text\"\n" +
+        "    }\n" +
+        "  }\n" +
+        "}";
 
     @Test
     public void test() throws IOException {
-        String mappingTrans =
-            ElasticsearchUtil.transferJsonToMapping(PropertiesUtils.class.getResourceAsStream(FILE_JSON));
+        String mappingTrans = ElasticsearchUtil.transferJsonToMapping(
+            PropertiesUtils.class.getResourceAsStream(FILE_JSON)
+        );
         System.out.println(mappingTrans);
         System.out.println(mapping);
         assertEquals(mapping, mappingTrans);
     }
-
 }

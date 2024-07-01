@@ -64,11 +64,17 @@ import static org.mockito.Mockito.when;
 
 public class TraceabilityLinkedCheckPreparePluginTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock private LogbookOperationsClient logbookOperationsClient;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
 
     private TraceabilityLinkedCheckPreparePlugin traceabilityLinkedCheckPreparePlugin;
 
@@ -76,9 +82,7 @@ public class TraceabilityLinkedCheckPreparePluginTest {
     private static final String LOGBOOKS_JSON = "linkedCheckTraceability/logbooks.json";
     private static final String LOGBOOKS_WITHOUT_EV_DATA_JSON = "linkedCheckTraceability/logbooks_without_evData.json";
 
-
-    private static final TypeReference<JsonLineModel> JSONLINE_MODEL_TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> JSONLINE_MODEL_TYPE_REFERENCE = new TypeReference<>() {};
 
     @Before
     public void setUp() {
@@ -92,12 +96,12 @@ public class TraceabilityLinkedCheckPreparePluginTest {
         InputStream query = PropertiesUtils.getResourceAsStream(LINKED_CHECK_TRACEABILITY_QUERY_JSON);
         File distributionFile = temporaryFolder.newFile();
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(WorkspaceConstants.QUERY))
-            .thenReturn(JsonHandler.getFromInputStream(query));
+        when(handlerIO.getJsonFromWorkspace(WorkspaceConstants.QUERY)).thenReturn(
+            JsonHandler.getFromInputStream(query)
+        );
         when(handlerIO.getNewLocalFile(LOGBOOK_OPERATIONS_JSONL_FILE)).thenReturn(distributionFile);
 
-        JsonNode logbookResponse = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-            LOGBOOKS_JSON));
+        JsonNode logbookResponse = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LOGBOOKS_JSON));
         when(logbookOperationsClient.selectOperation(any())).thenReturn(logbookResponse);
 
         File resultFile = temporaryFolder.newFile();
@@ -108,25 +112,33 @@ public class TraceabilityLinkedCheckPreparePluginTest {
                 Files.copy(distributionFileCaptured.toPath(), fileOutputStream);
             }
             return null;
-        }).when(handlerIO)
-            .transferFileToWorkspace(ArgumentMatchers.eq(LOGBOOK_OPERATIONS_JSONL_FILE), any(),
-                ArgumentMatchers.eq(true), ArgumentMatchers.eq(false));
+        })
+            .when(handlerIO)
+            .transferFileToWorkspace(
+                ArgumentMatchers.eq(LOGBOOK_OPERATIONS_JSONL_FILE),
+                any(),
+                ArgumentMatchers.eq(true),
+                ArgumentMatchers.eq(false)
+            );
 
         // When
         ItemStatus itemStatus = traceabilityLinkedCheckPreparePlugin.execute(null, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        JsonLineGenericIterator<JsonLineModel> lines =
-            new JsonLineGenericIterator<>(new FileInputStream(resultFile), JSONLINE_MODEL_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(
+            new FileInputStream(resultFile),
+            JSONLINE_MODEL_TYPE_REFERENCE
+        );
 
         List<String> logbooksIds = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         assertThat(logbooksIds.size()).isEqualTo(4);
-        assertThat(logbooksIds)
-            .contains("aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
-                "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
-                "aecaaaaaacc4hjizabv54alrxqcxxxiaaaaq",
-                "aecaaaaaacc4hjizabv54alrxqcz4uqaaaaq");
+        assertThat(logbooksIds).contains(
+            "aecaaaaaacc4hjizabv54alrxqcrb3qaaaaq",
+            "aecaaaaaacc4hjizabv54alrxqct7aqaaaaq",
+            "aecaaaaaacc4hjizabv54alrxqcxxxiaaaaq",
+            "aecaaaaaacc4hjizabv54alrxqcz4uqaaaaq"
+        );
     }
 
     @Test
@@ -135,12 +147,14 @@ public class TraceabilityLinkedCheckPreparePluginTest {
         InputStream query = PropertiesUtils.getResourceAsStream(LINKED_CHECK_TRACEABILITY_QUERY_JSON);
         File distributionFile = temporaryFolder.newFile();
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(WorkspaceConstants.QUERY))
-            .thenReturn(JsonHandler.getFromInputStream(query));
+        when(handlerIO.getJsonFromWorkspace(WorkspaceConstants.QUERY)).thenReturn(
+            JsonHandler.getFromInputStream(query)
+        );
         when(handlerIO.getNewLocalFile(LOGBOOK_OPERATIONS_JSONL_FILE)).thenReturn(distributionFile);
 
-        JsonNode logbookResponse = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-            LOGBOOKS_WITHOUT_EV_DATA_JSON));
+        JsonNode logbookResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LOGBOOKS_WITHOUT_EV_DATA_JSON)
+        );
         when(logbookOperationsClient.selectOperation(any())).thenReturn(logbookResponse);
 
         File resultFile = temporaryFolder.newFile();
@@ -151,17 +165,24 @@ public class TraceabilityLinkedCheckPreparePluginTest {
                 Files.copy(distributionFileCaptured.toPath(), fileOutputStream);
             }
             return null;
-        }).when(handlerIO)
-            .transferFileToWorkspace(ArgumentMatchers.eq(LOGBOOK_OPERATIONS_JSONL_FILE), any(),
-                ArgumentMatchers.eq(true), ArgumentMatchers.eq(false));
+        })
+            .when(handlerIO)
+            .transferFileToWorkspace(
+                ArgumentMatchers.eq(LOGBOOK_OPERATIONS_JSONL_FILE),
+                any(),
+                ArgumentMatchers.eq(true),
+                ArgumentMatchers.eq(false)
+            );
 
         // When
         ItemStatus itemStatus = traceabilityLinkedCheckPreparePlugin.execute(null, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(new FileInputStream(resultFile),
-            JSONLINE_MODEL_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(
+            new FileInputStream(resultFile),
+            JSONLINE_MODEL_TYPE_REFERENCE
+        );
 
         List<String> logbooksIds = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         assertThat(logbooksIds.size()).isEqualTo(0);

@@ -73,7 +73,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-
 public class AdminManagementClientMockTest {
 
     AdminManagementClientMock client = new AdminManagementClientMock();
@@ -81,8 +80,9 @@ public class AdminManagementClientMockTest {
     InputStream stream;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     public void givenClientMockWhenAndInputXMLOKThenReturnOK() throws FileFormatException, FileNotFoundException {
@@ -105,8 +105,7 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void getDocumentTest()
-        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        IOException {
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException, IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
@@ -142,13 +141,10 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ObjectNode objectNode = (ObjectNode) client.getRuleByID("APP-00001");
         assertEquals(1, ((ArrayNode) objectNode.get("$results")).size());
-        assertEquals("AppraisalRule",
-            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText());
+        assertEquals("AppraisalRule", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText());
         assertEquals("6", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleDuration").asText());
-        assertEquals("year",
-            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText());
+        assertEquals("year", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -165,8 +161,7 @@ public class AdminManagementClientMockTest {
     @Test
     @RunWithCustomExecutor
     public void getRuleTest()
-        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        IOException {
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException, IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
@@ -190,8 +185,7 @@ public class AdminManagementClientMockTest {
     @Test
     @RunWithCustomExecutor
     public void getAgenciesTest()
-        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        IOException {
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException, IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
@@ -216,8 +210,9 @@ public class AdminManagementClientMockTest {
         final Select select = new Select();
         final RequestResponse summaryResponse = client.getAccessionRegister(select.getFinalSelect());
         if (summaryResponse.isOk()) {
-            RequestResponseOK<AccessionRegisterSummaryModel> responseOK =
-                (RequestResponseOK<AccessionRegisterSummaryModel>) summaryResponse;
+            RequestResponseOK<AccessionRegisterSummaryModel> responseOK = (RequestResponseOK<
+                    AccessionRegisterSummaryModel
+                >) summaryResponse;
 
             assertNotNull(responseOK);
 
@@ -248,17 +243,19 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void getAccessionRegisterDetailTest()
-        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
-        IOException {
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException, IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        final RequestResponse detailResponse =
-            client.getAccessionRegisterDetail("aedqaaaaacaam7mxabsakakygeje2uyaaaaq", select.getFinalSelect());
+        final RequestResponse detailResponse = client.getAccessionRegisterDetail(
+            "aedqaaaaacaam7mxabsakakygeje2uyaaaaq",
+            select.getFinalSelect()
+        );
 
         if (detailResponse.isOk()) {
-            RequestResponseOK<AccessionRegisterDetailModel> responseOK =
-                (RequestResponseOK<AccessionRegisterDetailModel>) detailResponse;
+            RequestResponseOK<AccessionRegisterDetailModel> responseOK = (RequestResponseOK<
+                    AccessionRegisterDetailModel
+                >) detailResponse;
 
             assertNotNull(responseOK);
 
@@ -290,7 +287,6 @@ public class AdminManagementClientMockTest {
         throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenfindIngestContracts() throws Exception {
@@ -300,7 +296,6 @@ public class AdminManagementClientMockTest {
         assertThat(((RequestResponseOK) resp).isOk());
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -321,7 +316,6 @@ public class AdminManagementClientMockTest {
         throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenfindAccessContracts() throws Exception {
@@ -331,7 +325,6 @@ public class AdminManagementClientMockTest {
         assertThat(((RequestResponseOK) resp).isOk());
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -357,14 +350,12 @@ public class AdminManagementClientMockTest {
         assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 
-
     @Test(expected = ReferentialNotFoundException.class)
     @RunWithCustomExecutor
     public void givenClientMockWhenfindProfilesByFakeID() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.findProfilesByID("FakeId");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -375,7 +366,6 @@ public class AdminManagementClientMockTest {
         assertThat(((RequestResponseOK) resp).isOk());
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
-
 
     @Test
     public void givenMockExistsWhenDownloadProfileFileThenReturnOK() throws Exception {
@@ -416,7 +406,6 @@ public class AdminManagementClientMockTest {
         assertTrue(resp.isOk());
     }
 
-
     @Test
     public void removeForcePauseTest() throws Exception {
         ProcessPause info = new ProcessPause("INGEST", 0, null);
@@ -430,5 +419,4 @@ public class AdminManagementClientMockTest {
         Status resp = client.createExternalOperation(logbook);
         assertEquals(resp, Status.CREATED);
     }
-
 }

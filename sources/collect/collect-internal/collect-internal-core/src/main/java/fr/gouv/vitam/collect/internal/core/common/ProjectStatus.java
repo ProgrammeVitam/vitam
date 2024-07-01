@@ -27,5 +27,5 @@
 package fr.gouv.vitam.collect.internal.core.common;
 
 public enum ProjectStatus {
-    OPEN
+    OPEN,
 }

@@ -29,7 +29,6 @@ package fr.gouv.vitam.ingest.internal.api.response;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Class Ingest Reponse
  */
@@ -161,7 +160,6 @@ public class IngestResponse {
         this.sedaGuid = sedaGuid;
         return this;
     }
-
 
     /**
      * @return the numberOfElements in a received SIP

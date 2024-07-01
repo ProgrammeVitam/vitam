@@ -38,7 +38,7 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
     private String urlMetadata;
     private String urlWorkspace;
 
-    private static Integer DEFAULTSCHEDULER_PERIOD = 1;// one hour
+    private static Integer DEFAULTSCHEDULER_PERIOD = 1; // one hour
     private Integer workflowRefreshPeriod = DEFAULTSCHEDULER_PERIOD;
 
     private Integer processingCleanerPeriod;

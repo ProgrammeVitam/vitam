@@ -45,8 +45,7 @@ import java.util.Map;
  */
 public final class MetadataJsonResponseUtils {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MetadataJsonResponseUtils.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataJsonResponseUtils.class);
 
     /**
      * Hide default public constructor
@@ -73,8 +72,12 @@ public final class MetadataJsonResponseUtils {
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
         // the nbResult problem originates from DbRequest.execRequest:Result result = roots;
-        if (result != null && result.getNbResult() > 0 && selectRequest instanceof SelectParserMultiple &&
-            result.hasFinalResult()) {
+        if (
+            result != null &&
+            result.getNbResult() > 0 &&
+            selectRequest instanceof SelectParserMultiple &&
+            result.hasFinalResult()
+        ) {
             LOGGER.debug("Result document: " + result.getFinal().toString());
             jsonListResponse = (ArrayNode) getMetadataJsonObject(result.getListFiltered());
         }
@@ -86,7 +89,6 @@ public final class MetadataJsonResponseUtils {
         return JsonHandler.toJsonNode(unitOrObjectGroup);
     }
 
-
     /**
      * create Json response with diff information
      *
@@ -97,8 +99,7 @@ public final class MetadataJsonResponseUtils {
      * $context will be added later (Access)</br>
      * $result array of units or ObjectGroup (can be empty)
      */
-    public static ArrayNode populateJSONObjectResponse(Result result,
-        Map<String, List<String>> diff) {
+    public static ArrayNode populateJSONObjectResponse(Result result, Map<String, List<String>> diff) {
         ArrayNode arrayJsonListResponse = JsonHandler.createArrayNode();
         if (result != null && result.getNbResult() > 0) {
             arrayJsonListResponse = getJsonDiff(diff);
@@ -106,7 +107,6 @@ public final class MetadataJsonResponseUtils {
         LOGGER.debug("populateJSONObjectResponse: " + arrayJsonListResponse.toString());
         return arrayJsonListResponse;
     }
-
 
     private static ArrayNode getJsonDiff(Map<String, List<String>> diff) {
         final ArrayNode diffArrayNode = JsonHandler.createArrayNode();
@@ -118,6 +118,4 @@ public final class MetadataJsonResponseUtils {
         }
         return diffArrayNode;
     }
-
-
 }

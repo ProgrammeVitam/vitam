@@ -80,8 +80,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class IngestCleanupPreparationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IngestCleanupPreparationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestCleanupPreparationPlugin.class);
     private static final String INGEST_CLEANUP_PREPARATION = "INGEST_CLEANUP_PREPARATION";
 
     public static final String UNITS_TO_DELETE_JSONL = "units.jsonl";
@@ -96,18 +95,17 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    IngestCleanupPreparationPlugin(MetaDataClientFactory metaDataClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+    IngestCleanupPreparationPlugin(
+        MetaDataClientFactory metaDataClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             String ingestOperationId = param.getParameterValue(WorkerParameterName.ingestOperationIdToCleanup);
 
             PurgeAccessionRegisterModel accessionRegisterModel = new PurgeAccessionRegisterModel();
@@ -124,7 +122,6 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
 
             LOGGER.info("Ingest cleanup preparation succeeded");
             return buildItemStatus(INGEST_CLEANUP_PREPARATION, StatusCode.OK);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error(String.format("Ingest cleanup preparation failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(INGEST_CLEANUP_PREPARATION, e.getStatusCode(), e.getEventDetails());
@@ -140,32 +137,37 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         return cleanupReportManager.get();
     }
 
-    private void prepareUnits(HandlerIO handler, String ingestOperationId,
+    private void prepareUnits(
+        HandlerIO handler,
+        String ingestOperationId,
         PurgeAccessionRegisterModel accessionRegisterModel,
-        CleanupReportManager cleanupReportManager)
-        throws ProcessingStatusException {
-
+        CleanupReportManager cleanupReportManager
+    ) throws ProcessingStatusException {
         File unitsToDeleteFile = handler.getNewLocalFile(UNITS_TO_DELETE_JSONL);
-        try (MetaDataClient client = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient client = metaDataClientFactory.getClient();
             FileOutputStream fos = new FileOutputStream(unitsToDeleteFile);
-            JsonLineWriter writer = new JsonLineWriter(fos)) {
-
+            JsonLineWriter writer = new JsonLineWriter(fos)
+        ) {
             SelectMultiQuery query = new SelectMultiQuery();
             query.addUsedProjection(
                 VitamFieldsHelper.id(),
                 VitamFieldsHelper.originatingAgency(),
-                VitamFieldsHelper.storage());
+                VitamFieldsHelper.storage()
+            );
             query.addQueries(eq(VitamFieldsHelper.initialOperation(), ingestOperationId));
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, query, VitamConfiguration.getBatchSize());
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
+                client,
+                query,
+                VitamConfiguration.getBatchSize()
+            );
 
             scrollRequest.forEachRemaining(unit -> {
                 cleanupReportManager.reportDeletedUnit(unit.get(VitamFieldsHelper.id()).asText());
                 writeToUnitDistributionFile(writer, unit);
                 updateUnitAccessingRegisterData(accessionRegisterModel, unit);
             });
-
         } catch (IOException | InvalidParseOperationException | InvalidCreateOperationException | RuntimeException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not create unit distribution file", e);
         }
@@ -177,12 +179,9 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
             String id = unit.get(VitamFieldsHelper.id()).asText();
             String strategyId = MetadataDocumentHelper.getStrategyIdFromUnit(unit);
 
-            ObjectNode params = JsonHandler.createObjectNode()
-                .put("id", id)
-                .put("strategyId", strategyId);
+            ObjectNode params = JsonHandler.createObjectNode().put("id", id).put("strategyId", strategyId);
 
             writer.addEntry(new JsonLineModel(id, null, params));
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -193,38 +192,45 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         accessionRegisterModel.setTotalUnits(accessionRegisterModel.getTotalUnits() + 1);
     }
 
-    private void prepareObjectGroups(HandlerIO handler, String ingestOperationId,
+    private void prepareObjectGroups(
+        HandlerIO handler,
+        String ingestOperationId,
         PurgeAccessionRegisterModel accessionRegisterModel,
-        CleanupReportManager cleanupReportManager)
-        throws ProcessingStatusException {
-
+        CleanupReportManager cleanupReportManager
+    ) throws ProcessingStatusException {
         File objectGroupsToDeleteFile = handler.getNewLocalFile(OBJECT_GROUPS_TO_DELETE_JSONL);
 
-        try (MetaDataClient client = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient client = metaDataClientFactory.getClient();
             FileOutputStream fos = new FileOutputStream(objectGroupsToDeleteFile);
-            JsonLineWriter writer = new JsonLineWriter(fos)) {
-
+            JsonLineWriter writer = new JsonLineWriter(fos)
+        ) {
             SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(eq(VitamFieldsHelper.initialOperation(), ingestOperationId));
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createObjectGroupScrollSplitIterator(client, query, VitamConfiguration.getBatchSize());
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createObjectGroupScrollSplitIterator(
+                client,
+                query,
+                VitamConfiguration.getBatchSize()
+            );
 
             scrollRequest.forEachRemaining(objectGroupNode -> {
                 try {
-                    ObjectGroupResponse objectGroup =
-                        JsonHandler.getFromJsonNode(objectGroupNode, ObjectGroupResponse.class);
+                    ObjectGroupResponse objectGroup = JsonHandler.getFromJsonNode(
+                        objectGroupNode,
+                        ObjectGroupResponse.class
+                    );
 
-                    cleanupReportManager
-                        .reportDeletedObjectGroup(objectGroup.getId(), listBinaryObjectIds(objectGroup));
+                    cleanupReportManager.reportDeletedObjectGroup(
+                        objectGroup.getId(),
+                        listBinaryObjectIds(objectGroup)
+                    );
                     writeToObjectGroupDistributionFile(writer, objectGroup);
                     updateObjectGroupAccessingRegisterData(accessionRegisterModel, objectGroup);
-
                 } catch (IOException | InvalidParseOperationException e) {
                     throw new RuntimeException(e);
                 }
             });
-
         } catch (IOException | InvalidCreateOperationException | RuntimeException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not create object group distribution file", e);
         }
@@ -232,24 +238,24 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         copyDistributionFileToWorkspace(handler, objectGroupsToDeleteFile, OBJECT_GROUPS_TO_DELETE_JSONL);
     }
 
-    private void writeToObjectGroupDistributionFile(JsonLineWriter writer,
-        ObjectGroupResponse objectGroup) throws IOException, InvalidParseOperationException {
-
+    private void writeToObjectGroupDistributionFile(JsonLineWriter writer, ObjectGroupResponse objectGroup)
+        throws IOException, InvalidParseOperationException {
         PurgeObjectGroupParams params = PurgeObjectGroupParams.fromObjectGroup(objectGroup);
         writer.addEntry(new JsonLineModel(objectGroup.getId(), null, JsonHandler.toJsonNode(params)));
     }
 
-    private void updateObjectGroupAccessingRegisterData(PurgeAccessionRegisterModel accessionRegisterModel,
-        ObjectGroupResponse objectGroup) {
+    private void updateObjectGroupAccessingRegisterData(
+        PurgeAccessionRegisterModel accessionRegisterModel,
+        ObjectGroupResponse objectGroup
+    ) {
         accessionRegisterModel.setTotalObjectGroups(accessionRegisterModel.getTotalObjectGroups() + 1);
-        accessionRegisterModel.setTotalObjects(
-            accessionRegisterModel.getTotalObjects() + getObjectCount(objectGroup));
-        accessionRegisterModel.setTotalSize(
-            accessionRegisterModel.getTotalSize() + getTotalObjectSize(objectGroup));
+        accessionRegisterModel.setTotalObjects(accessionRegisterModel.getTotalObjects() + getObjectCount(objectGroup));
+        accessionRegisterModel.setTotalSize(accessionRegisterModel.getTotalSize() + getTotalObjectSize(objectGroup));
     }
 
     private List<String> listBinaryObjectIds(ObjectGroupResponse objectGroup) {
-        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+        return ListUtils.emptyIfNull(objectGroup.getQualifiers())
+            .stream()
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
             .filter(version -> version.getPhysicalId() == null)
             .map(VersionsModel::getId)
@@ -257,40 +263,47 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
     }
 
     private Long getObjectCount(ObjectGroupResponse objectGroup) {
-        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+        return ListUtils.emptyIfNull(objectGroup.getQualifiers())
+            .stream()
             .mapToLong(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).size())
             .sum();
     }
 
     private Long getTotalObjectSize(ObjectGroupResponse objectGroup) {
-        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+        return ListUtils.emptyIfNull(objectGroup.getQualifiers())
+            .stream()
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
             .filter(version -> version.getPhysicalId() == null)
             .mapToLong(VersionsModel::getSize)
             .sum();
     }
 
-    private void prepareAccessingRegister(HandlerIO handler, String ingestOperationId,
-        PurgeAccessionRegisterModel accessionRegisterModel)
-        throws ProcessingStatusException {
-
+    private void prepareAccessingRegister(
+        HandlerIO handler,
+        String ingestOperationId,
+        PurgeAccessionRegisterModel accessionRegisterModel
+    ) throws ProcessingStatusException {
         File accessionRegisterFile = handler.getNewLocalFile(ACCESSION_REGISTERS_JSONL);
 
-        try (FileOutputStream fos = new FileOutputStream(accessionRegisterFile);
-            JsonLineWriter writer = new JsonLineWriter(fos)) {
-
+        try (
+            FileOutputStream fos = new FileOutputStream(accessionRegisterFile);
+            JsonLineWriter writer = new JsonLineWriter(fos)
+        ) {
             if (!hasAccessionRegisterDetails(ingestOperationId)) {
                 LOGGER.warn("Accession register details not found...");
             } else if (accessionRegisterModel.getTotalUnits() == 0 && accessionRegisterModel.getTotalObjects() == 0) {
                 LOGGER.warn("No accession register details to update");
             } else {
                 writer.addEntry(
-                    new JsonLineModel(ingestOperationId, null, JsonHandler.toJsonNode(accessionRegisterModel)));
+                    new JsonLineModel(ingestOperationId, null, JsonHandler.toJsonNode(accessionRegisterModel))
+                );
             }
-
         } catch (IOException | RuntimeException | InvalidParseOperationException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not create accession register distribution file", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not create accession register distribution file",
+                e
+            );
         }
         copyDistributionFileToWorkspace(handler, accessionRegisterFile, ACCESSION_REGISTERS_JSONL);
     }
@@ -298,8 +311,10 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
     private boolean hasAccessionRegisterDetails(String operationId) throws ProcessingStatusException {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
             Select select = new Select();
-            select.setQuery(QueryHelper.and()
-                .add(QueryHelper.eq(AccessionRegisterDetailModel.OPI, operationId), exists(VitamFieldsHelper.id())));
+            select.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.eq(AccessionRegisterDetailModel.OPI, operationId), exists(VitamFieldsHelper.id()))
+            );
             RequestResponse<AccessionRegisterDetailModel> accessionRegisterDetail =
                 adminManagementClient.getAccessionRegisterDetail(select.getFinalSelect());
 
@@ -309,8 +324,9 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
                 return !results.isEmpty();
             }
             throw new ProcessingStatusException(
-                StatusCode.FATAL, "Could not check existing accessing register " + accessionRegisterDetail.getStatus());
-
+                StatusCode.FATAL,
+                "Could not check existing accessing register " + accessionRegisterDetail.getStatus()
+            );
         } catch (ReferentialException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not check existing accessing register", e);
         }
@@ -321,10 +337,11 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         try {
             handler.transferFileToWorkspace(fileName, jsonlFile, true, false);
         } catch (ProcessingException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not write object group distribution file " + fileName, e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not write object group distribution file " + fileName,
+                e
+            );
         }
     }
 }
-
-

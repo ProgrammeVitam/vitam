@@ -45,7 +45,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class AdminReconstructionResourceMock {
@@ -55,8 +54,7 @@ public class AdminReconstructionResourceMock {
 
     private final ResteasyTestApplication.ExpectedResults mock;
 
-    public AdminReconstructionResourceMock(
-        ResteasyTestApplication.ExpectedResults mock) {
+    public AdminReconstructionResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
     }
 
@@ -65,8 +63,10 @@ public class AdminReconstructionResourceMock {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response reconstructCollections(@Context HttpHeaders headers,
-        @Valid List<ReconstructionItem> reconstructionItems) {
+    public Response reconstructCollections(
+        @Context HttpHeaders headers,
+        @Valid List<ReconstructionItem> reconstructionItems
+    ) {
         return mock.post();
     }
 

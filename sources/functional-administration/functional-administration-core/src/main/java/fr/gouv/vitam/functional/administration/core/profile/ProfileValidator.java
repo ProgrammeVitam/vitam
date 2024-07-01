@@ -59,9 +59,6 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface ProfileValidator {
-
-
-
     /**
      * Validate a profile object
      *
@@ -69,7 +66,6 @@ public interface ProfileValidator {
      * @return empty optional if OK, Else return the rejection cause
      */
     Optional<RejectionCause> validate(ProfileModel profile);
-
 
     /**
      * Rejection Cause

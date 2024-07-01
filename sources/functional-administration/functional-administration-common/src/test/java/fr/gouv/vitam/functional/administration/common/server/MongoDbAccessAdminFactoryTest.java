@@ -41,9 +41,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class MongoDbAccessAdminFactoryTest {
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     private static MongoDbAccessAdminImpl mongoDbAccess;
 
@@ -54,7 +54,8 @@ public class MongoDbAccessAdminFactoryTest {
         mongoDbAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName(), true, "user", "pwd"),
             Collections::emptyList,
-            FunctionalAdminCollectionsTestUtils.createTestIndexManager());
+            FunctionalAdminCollectionsTestUtils.createTestIndexManager()
+        );
 
         assertNotNull(mongoDbAccess);
         assertEquals(MongoRule.VITAM_DB, mongoDbAccess.getMongoDatabase().getName());

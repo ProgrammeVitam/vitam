@@ -35,6 +35,7 @@ import java.util.Map;
  * Exception throw when csv to import is not well format or is bad to parse
  */
 public class FileRulesCsvException extends FileRulesReadException {
+
     /**
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
@@ -59,6 +60,5 @@ public class FileRulesCsvException extends FileRulesReadException {
 
     public FileRulesCsvException(String message, Map<Integer, List<ErrorReport>> errorsMap) {
         super(message, errorsMap);
-
     }
 }

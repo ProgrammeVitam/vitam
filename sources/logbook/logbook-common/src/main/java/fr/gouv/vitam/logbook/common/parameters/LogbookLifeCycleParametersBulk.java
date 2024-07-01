@@ -43,12 +43,13 @@ public class LogbookLifeCycleParametersBulk {
      */
     private List<LogbookLifeCycleParameters> lifeCycleParameters;
 
-    public LogbookLifeCycleParametersBulk() {
-    }
+    public LogbookLifeCycleParametersBulk() {}
 
     @JsonCreator
-    public LogbookLifeCycleParametersBulk(@JsonProperty("id") String id,
-        @JsonProperty("lifeCycleParameters") List<LogbookLifeCycleParameters> lifeCycleParameters) {
+    public LogbookLifeCycleParametersBulk(
+        @JsonProperty("id") String id,
+        @JsonProperty("lifeCycleParameters") List<LogbookLifeCycleParameters> lifeCycleParameters
+    ) {
         this.id = id;
         this.lifeCycleParameters = lifeCycleParameters;
     }
@@ -60,5 +61,4 @@ public class LogbookLifeCycleParametersBulk {
     public List<LogbookLifeCycleParameters> getLifeCycleParameters() {
         return lifeCycleParameters;
     }
-
 }

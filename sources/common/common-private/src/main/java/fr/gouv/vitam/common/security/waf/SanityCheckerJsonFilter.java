@@ -53,6 +53,7 @@ import java.util.Arrays;
  */
 @Priority(Priorities.AUTHORIZATION)
 public class SanityCheckerJsonFilter implements ContainerRequestFilter {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SanityCheckerJsonFilter.class);
     private static final String CHECK_SANITY = "CHECK_SANITY";
     private static final String CODE_VITAM = "code_vitam";
@@ -68,34 +69,49 @@ public class SanityCheckerJsonFilter implements ContainerRequestFilter {
             requestContext.setEntityStream(bout.toInputStream());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
-            if (Arrays.asList(((PostMatchContainerRequestContext) requestContext).getResourceMethod().getProduces())
-                .contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)) {
+            if (
+                Arrays.asList(
+                    ((PostMatchContainerRequestContext) requestContext).getResourceMethod().getProduces()
+                ).contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            ) {
                 // no entity
                 requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED).build());
             } else {
-                requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());
+                requestContext.abortWith(
+                    Response.status(Status.PRECONDITION_FAILED)
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage()))
+                        .build()
+                );
             }
         } catch (InvalidParseOperationException exc) {
             LOGGER.error(exc);
             alertService.createAlert("Json invalid: " + exc.getMessage());
-            if (Arrays.asList(((PostMatchContainerRequestContext) requestContext).getResourceMethod().getProduces())
-                .contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)) {
+            if (
+                Arrays.asList(
+                    ((PostMatchContainerRequestContext) requestContext).getResourceMethod().getProduces()
+                ).contains(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            ) {
                 // no entity
                 requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED).build());
             } else {
-                requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());
+                requestContext.abortWith(
+                    Response.status(Status.PRECONDITION_FAILED)
+                        .entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage()))
+                        .build()
+                );
             }
         }
     }
 
     private VitamError getErrorEntity(Response.Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(CHECK_SANITY)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setContext(CHECK_SANITY)
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
-
 }

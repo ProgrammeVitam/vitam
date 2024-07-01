@@ -182,12 +182,13 @@ public class ProcessResponse implements EngineResponse {
         final StringBuilder globalOutcomeMessage = new StringBuilder();
         final Map<String, Integer> histogramResponse = new LinkedHashMap<>();
         if (responses != null) {
-
             final int totalStepError = responses.stream().mapToInt(EngineResponse::getErrorNumber).sum();
             for (final EngineResponse response : responses) {
                 for (final Entry<String, OutcomeMessage> entry : response.getOutcomeMessages().entrySet()) {
-                    final String key =
-                        new StringBuilder(entry.getKey()).append(" ").append(response.getStatus()).toString();
+                    final String key = new StringBuilder(entry.getKey())
+                        .append(" ")
+                        .append(response.getStatus())
+                        .toString();
                     final Integer nb = histogramResponse.get(key);
                     if (nb == null) {
                         histogramResponse.put(key, 1);
@@ -197,7 +198,10 @@ public class ProcessResponse implements EngineResponse {
                 }
             }
             for (final Entry<String, Integer> histogramClass : histogramResponse.entrySet()) {
-                globalOutcomeMessage.append(histogramClass.getKey()).append(" : ").append(histogramClass.getValue())
+                globalOutcomeMessage
+                    .append(histogramClass.getKey())
+                    .append(" : ")
+                    .append(histogramClass.getValue())
                     .append("\n");
             }
             if (totalStepError > 0) {
@@ -209,10 +213,7 @@ public class ProcessResponse implements EngineResponse {
             globalOutcomeMessage.append("DefaultMessage");
         }
         return globalOutcomeMessage.toString();
-
     }
-
-
 
     /**
      * getMessageFromResponse return message id from list of response
@@ -290,7 +291,4 @@ public class ProcessResponse implements EngineResponse {
         this.processId = processId;
         return this;
     }
-
-
-
 }

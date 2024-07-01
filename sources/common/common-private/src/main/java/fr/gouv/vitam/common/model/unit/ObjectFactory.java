@@ -47,5 +47,4 @@ public class ObjectFactory {
     public ValidatorOrSignerModel createValidatorOrSignerModel() {
         return new ValidatorOrSignerModel();
     }
-
 }

@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.common.server.exception;
  * Exception indicating an error while executing a request on database index.
  */
 public class LogbookExecutionException extends LogbookException {
+
     private static final long serialVersionUID = -8199144049313837512L;
 
     /**

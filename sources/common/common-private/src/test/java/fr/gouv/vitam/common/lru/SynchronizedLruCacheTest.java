@@ -37,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SynchronizedLruCacheTest {
+
     private static final Integer ONE = new Integer(1);
     private static final Integer TWO = new Integer(2);
     private static final Integer THREE = new Integer(3);
@@ -79,26 +80,36 @@ public class SynchronizedLruCacheTest {
         assertEquals(TWO, synchronizedLruCache.get("key2"));
         assertEquals(1, synchronizedLruCache.size());
         try {
-            assertEquals(TWO, synchronizedLruCache.get("key2",
-                new Callable<Integer>() {
-                    @Override
-                    public Integer call() throws Exception {
-                        return FOUR;
+            assertEquals(
+                TWO,
+                synchronizedLruCache.get(
+                    "key2",
+                    new Callable<Integer>() {
+                        @Override
+                        public Integer call() throws Exception {
+                            return FOUR;
+                        }
                     }
-                }));
-        } catch (final VitamException e) {// NOSONAR
+                )
+            );
+        } catch (final VitamException e) { // NOSONAR
             fail(ResourcesPrivateUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         assertEquals(1, synchronizedLruCache.size());
         try {
-            assertEquals(FOUR, synchronizedLruCache.get("key",
-                new Callable<Integer>() {
-                    @Override
-                    public Integer call() throws Exception {
-                        return FOUR;
+            assertEquals(
+                FOUR,
+                synchronizedLruCache.get(
+                    "key",
+                    new Callable<Integer>() {
+                        @Override
+                        public Integer call() throws Exception {
+                            return FOUR;
+                        }
                     }
-                }));
-        } catch (final VitamException e) {// NOSONAR
+                )
+            );
+        } catch (final VitamException e) { // NOSONAR
             fail(ResourcesPrivateUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         assertEquals(2, synchronizedLruCache.size());
@@ -139,9 +150,8 @@ public class SynchronizedLruCacheTest {
             final SynchronizedLruCache<String, Integer> synchronizedLruCache = new SynchronizedLruCache<>(2, -100, 1);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
             synchronizedLruCache.clear();
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
-
     }
 }

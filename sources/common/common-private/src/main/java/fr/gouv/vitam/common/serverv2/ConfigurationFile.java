@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.serverv2;
  * Configuration File Interface
  */
 public interface ConfigurationFile {
-
     /**
      * get the configuration file
      *

@@ -42,25 +42,31 @@ public class ClassificationRule extends InheritedRule {
     private static final String CLASSIFICATION_REASSESSING_DATE = "ClassificationReassessingDate";
     private static final String NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
 
-
     @JsonProperty(CLASSIFICATION_AUDIENCE)
     private List<String> classificationAudience;
+
     @JsonProperty(CLASSIFICATION_LEVEL)
     private List<String> classificationLevel;
+
     @JsonProperty(CLASSIFICATION_OWNER)
     private List<String> classificationOwner;
+
     @JsonProperty(CLASSIFICATION_REASSESSING_DATE)
     private List<String> classificationReassessingDate;
+
     @JsonProperty(NEED_REASSESSING_AUTHORIZATION)
     private List<String> needReassessingAuthorization;
 
-    public ClassificationRule() {
+    public ClassificationRule() {}
 
-    }
-
-    public ClassificationRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
+    public ClassificationRule(
+        LocalDate maxEndDate,
+        Properties properties,
+        Map<String, LocalDate> ruleIdToRule,
         List<ComputedInheritedRuleModel> rules,
-        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin, Set<String> inheritedRuleIds) {
+        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds
+    ) {
         super(maxEndDate, ruleIdToRule, rules, ruleCategoryInheritanceOrigin, inheritedRuleIds);
         parseClassificationProperties(properties);
     }

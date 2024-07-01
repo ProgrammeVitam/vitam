@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.model.ModelConstants;
 
 import java.util.List;
 
-
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.Ontology}
  */
@@ -43,7 +42,6 @@ public class OntologyModel {
      * Document id
      */
     public static final String TAG_HASH_ID = ModelConstants.HASH + ModelConstants.TAG_ID;
-
 
     /**
      * Identifier Tag
@@ -90,6 +88,7 @@ public class OntologyModel {
      * Collections Tag
      */
     public static final String TAG_COLLECTIONS = "Collections";
+
     /**
      * unique id
      */
@@ -107,16 +106,19 @@ public class OntologyModel {
      */
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
+
     /**
      * The ontology identifier
      */
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
+
     /**
      * The ontology seda field
      */
     @JsonProperty(TAG_SEDAFIELD)
     private String sedaField;
+
     /**
      * The ontology api field
      */
@@ -128,27 +130,30 @@ public class OntologyModel {
      */
     @JsonProperty(TAG_DESCRIPTION)
     private String description;
+
     /**
      * The ontology type
      */
     @JsonProperty(TAG_TYPE)
     private OntologyType type;
+
     /**
      * The ontology origin
      */
     @JsonProperty(TAG_ORIGIN)
     private OntologyOrigin origin;
+
     /**
      * The ontology creationdate
      */
     @JsonProperty(CREATION_DATE)
     private String creationdate;
+
     /**
      * The ontology lastupdate
      */
     @JsonProperty(LAST_UPDATE)
     private String lastupdate;
-
 
     @JsonProperty(TAG_SHORT_NAME)
     private String shortName;
@@ -262,7 +267,6 @@ public class OntologyModel {
         return this;
     }
 
-
     public String getShortName() {
         return shortName;
     }
@@ -283,17 +287,36 @@ public class OntologyModel {
 
     @Override
     public String toString() {
-        return "OntologyModel{" +
-            "identifier='" + identifier + '\'' +
-            ", sedaField='" + sedaField + '\'' +
-            ", apiField='" + apiField + '\'' +
-            ", description='" + description + '\'' +
-            ", type=" + type +
-            ", origin=" + origin +
-            ", creationdate='" + creationdate + '\'' +
-            ", lastupdate='" + lastupdate + '\'' +
-            ", shortName='" + shortName + '\'' +
-            ", collections=" + collections +
-            '}';
+        return (
+            "OntologyModel{" +
+            "identifier='" +
+            identifier +
+            '\'' +
+            ", sedaField='" +
+            sedaField +
+            '\'' +
+            ", apiField='" +
+            apiField +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", type=" +
+            type +
+            ", origin=" +
+            origin +
+            ", creationdate='" +
+            creationdate +
+            '\'' +
+            ", lastupdate='" +
+            lastupdate +
+            '\'' +
+            ", shortName='" +
+            shortName +
+            '\'' +
+            ", collections=" +
+            collections +
+            '}'
+        );
     }
 }

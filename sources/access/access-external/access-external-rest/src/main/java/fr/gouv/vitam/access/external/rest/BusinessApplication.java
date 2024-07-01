@@ -69,18 +69,25 @@ public class BusinessApplication extends Application {
         SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final AccessExternalConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, AccessExternalConfiguration.class);
+            final AccessExternalConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                AccessExternalConfiguration.class
+            );
 
             commonBusinessApplication = new CommonBusinessApplication(true);
 
-            final AccessExternalResource accessExternalResource =
-                new AccessExternalResource(secureEndpointRegistry, configuration);
-            final AccessExternalResourceV2 accessExternalResourceV2 =
-                new AccessExternalResourceV2(secureEndpointRegistry, configuration);
+            final AccessExternalResource accessExternalResource = new AccessExternalResource(
+                secureEndpointRegistry,
+                configuration
+            );
+            final AccessExternalResourceV2 accessExternalResourceV2 = new AccessExternalResourceV2(
+                secureEndpointRegistry,
+                configuration
+            );
             final LogbookExternalResource logbookExternalResource = new LogbookExternalResource();
-            final AdminManagementExternalResource adminManagementExternalResource =
-                new AdminManagementExternalResource(secureEndpointRegistry);
+            final AdminManagementExternalResource adminManagementExternalResource = new AdminManagementExternalResource(
+                secureEndpointRegistry
+            );
 
             singletons = new HashSet<>();
             singletons.add(new InternalSecurityFilter(configuration.isAllowSslClientHeader()));

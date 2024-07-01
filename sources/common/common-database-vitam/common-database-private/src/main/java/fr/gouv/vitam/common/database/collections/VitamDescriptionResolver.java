@@ -38,14 +38,15 @@ public class VitamDescriptionResolver {
     private List<VitamDescriptionType> vitamDescriptionTypes;
 
     public VitamDescriptionResolver(List<VitamDescriptionType> vitamDescriptionTypes) {
-
         this.vitamDescriptionTypes = vitamDescriptionTypes;
 
-        this.descriptionTypeByStaticName = vitamDescriptionTypes.stream()
+        this.descriptionTypeByStaticName = vitamDescriptionTypes
+            .stream()
             .filter(vitamDescriptionType -> vitamDescriptionType.getPath() != null)
             .collect(Collectors.toMap(VitamDescriptionType::getPath, v -> v));
 
-        this.descriptionTypeByNamePattern = vitamDescriptionTypes.stream()
+        this.descriptionTypeByNamePattern = vitamDescriptionTypes
+            .stream()
             .filter(vitamDescriptionType -> vitamDescriptionType.getPath() == null)
             .collect(Collectors.toMap(VitamDescriptionResolver::createPatternMatcher, v -> v));
     }
@@ -59,8 +60,7 @@ public class VitamDescriptionResolver {
             return descriptionTypeByStaticName.get(name);
         }
 
-        for (Map.Entry<Pattern, VitamDescriptionType> entry : descriptionTypeByNamePattern
-            .entrySet()) {
+        for (Map.Entry<Pattern, VitamDescriptionType> entry : descriptionTypeByNamePattern.entrySet()) {
             if (entry.getKey().matcher(name).matches()) {
                 return entry.getValue();
             }

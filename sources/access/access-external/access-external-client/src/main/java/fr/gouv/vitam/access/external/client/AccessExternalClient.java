@@ -52,7 +52,6 @@ import java.util.Collection;
  * Access External Client Interface
  */
 public interface AccessExternalClient extends BasicClient {
-
     /**
      * selectUnits /units
      *
@@ -61,10 +60,7 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
-        throws VitamClientException;
-
-
+    RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery) throws VitamClientException;
 
     /**
      * selectUnits from persistent identifier defined on the unit
@@ -75,10 +71,11 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(VitamContext vitamContext,
-        JsonNode selectQuery, String persistentIdentifier)
-        throws VitamClientException;
-
+    RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String persistentIdentifier
+    ) throws VitamClientException;
 
     /**
      * streamUnits /units
@@ -88,8 +85,7 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException
      */
-    JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
-        throws VitamClientException;
+    JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery) throws VitamClientException;
 
     /**
      * streamUnits /objects
@@ -139,9 +135,11 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext, JsonNode selectQuery,
-        String unitId)
-        throws VitamClientException;
+    RequestResponse<JsonNode> selectObjectMetadatasByUnitId(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String unitId
+    ) throws VitamClientException;
 
     /**
      * Download the object by parent unit id, qualifier usage & version
@@ -158,8 +156,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientAccessUnavailableDataFromAsyncOfferException thrown when access to object in not currently available from async storage offer. Access request required.
      * @throws VitamClientException when an error occurs
      */
-    Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage,
-        int version)
+    Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
         throws VitamClientException;
 
     /**
@@ -179,9 +176,12 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientNotFoundException when unit has no object group with such object qualifier usage and version
      * @throws VitamClientException when an error occurs
      */
-    RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(VitamContext vitamContext, String unitId,
-        String usage, int version)
-        throws VitamClientException, AccessExternalClientNotFoundException;
+    RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(
+        VitamContext vitamContext,
+        String unitId,
+        String usage,
+        int version
+    ) throws VitamClientException, AccessExternalClientNotFoundException;
 
     /**
      * Bulk check of the status of a set of Access Requests.
@@ -195,9 +195,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return RequestResponse with of access request statuses.
      * @throws VitamClientException when an error occurs
      */
-    RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(VitamContext vitamContext,
-        Collection<AccessRequestReference> accessRequestReferences)
-        throws VitamClientException;
+    RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(
+        VitamContext vitamContext,
+        Collection<AccessRequestReference> accessRequestReferences
+    ) throws VitamClientException;
 
     /**
      * Removes an Access Request from an async storage offer (tape storage offer).
@@ -223,8 +224,7 @@ public interface AccessExternalClient extends BasicClient {
      * @return logbookOperation representation
      * @throws VitamClientException
      */
-    RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext,
-        JsonNode select)
+    RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -236,9 +236,11 @@ public interface AccessExternalClient extends BasicClient {
      * @return logbookOperation representation
      * @throws VitamClientException
      */
-    RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String operationId, JsonNode select)
-        throws VitamClientException;
+    RequestResponse<LogbookOperation> selectOperationbyId(
+        VitamContext vitamContext,
+        String operationId,
+        JsonNode select
+    ) throws VitamClientException;
 
     /**
      * selectUnitLifeCycleById
@@ -249,9 +251,11 @@ public interface AccessExternalClient extends BasicClient {
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
-    RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext,
-        String unitLifeCycleId, JsonNode select)
-        throws VitamClientException;
+    RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(
+        VitamContext vitamContext,
+        String unitLifeCycleId,
+        JsonNode select
+    ) throws VitamClientException;
 
     /**
      * selectObjectGroupLifeCycleById
@@ -263,19 +267,20 @@ public interface AccessExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String objectGroupLifeCycleId, JsonNode select)
-        throws VitamClientException;
+        VitamContext vitamContext,
+        String objectGroupLifeCycleId,
+        JsonNode select
+    ) throws VitamClientException;
 
     /**
      * @param vitamContext the vitam context
      * @return the result of the information obtained in the DIP
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-        JsonNode dslRequest) throws VitamClientException;
+    RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, JsonNode dslRequest) throws VitamClientException;
 
-    RequestResponse<JsonNode> transfer(VitamContext vitamContext,
-        TransferRequest transferRequest) throws VitamClientException;
+    RequestResponse<JsonNode> transfer(VitamContext vitamContext, TransferRequest transferRequest)
+        throws VitamClientException;
 
     /**
      * getDIPById<br>
@@ -287,8 +292,7 @@ public interface AccessExternalClient extends BasicClient {
      * @return Response including InputStream
      * @throws VitamClientException
      */
-    Response getDIPById(VitamContext vitamContext, String dipId)
-        throws VitamClientException;
+    Response getDIPById(VitamContext vitamContext, String dipId) throws VitamClientException;
 
     /**
      * Get Transfer SIP
@@ -367,8 +371,12 @@ public interface AccessExternalClient extends BasicClient {
      * @return
      * @throws VitamClientException
      */
-    Response getObjectByUnitPersistentIdentifier(VitamContext vitamContext,
-        String persistentIdentifier, String qualifier, String version) throws VitamClientException;
+    Response getObjectByUnitPersistentIdentifier(
+        VitamContext vitamContext,
+        String persistentIdentifier,
+        String qualifier,
+        String version
+    ) throws VitamClientException;
 
     /**
      * retrives objects from its persistent identifier filtred by dsl query
@@ -379,8 +387,11 @@ public interface AccessExternalClient extends BasicClient {
      * @return
      * @throws VitamClientException
      */
-    Response getObjectByObjectPersistentIdentifier(VitamContext vitamContext, JsonNode selectQuery,
-        String persistentIdentifier) throws VitamClientException;
+    Response getObjectByObjectPersistentIdentifier(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String persistentIdentifier
+    ) throws VitamClientException;
 
     /**
      * download object from its persistent identifier
@@ -390,8 +401,8 @@ public interface AccessExternalClient extends BasicClient {
      * @return
      * @throws VitamClientException
      */
-    Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext,
-        String persistentIdentifier) throws VitamClientException;
+    Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext, String persistentIdentifier)
+        throws VitamClientException;
 
     /**
      * Select units with inherited rules by select query (DSL)
@@ -411,9 +422,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException VitamClientException
      */
-    RequestResponse<JsonNode> startEliminationAnalysis(VitamContext vitamContext,
-        EliminationRequestBody eliminationRequestBody)
-        throws VitamClientException;
+    RequestResponse<JsonNode> startEliminationAnalysis(
+        VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody
+    ) throws VitamClientException;
 
     /**
      * Performs an elimination action workflow .
@@ -422,9 +434,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException VitamClientException
      */
-    RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
-        EliminationRequestBody eliminationRequestBody)
-        throws VitamClientException;
+    RequestResponse<JsonNode> startEliminationAction(
+        VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody
+    ) throws VitamClientException;
 
     /**
      * Get AccessLog file matching the given params
@@ -434,8 +447,7 @@ public interface AccessExternalClient extends BasicClient {
      * @return accesslog file
      * @throws VitamClientException
      */
-    Response getAccessLog(VitamContext vitamContext, JsonNode params)
-        throws VitamClientException;
+    Response getAccessLog(VitamContext vitamContext, JsonNode params) throws VitamClientException;
 
     /**
      * compute inherited rules.
@@ -456,9 +468,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
-        JsonNode deleteComputedInheritedRulesQuery)
-        throws VitamClientException;
+    RequestResponse<JsonNode> deleteComputedInheritedRules(
+        VitamContext vitamContext,
+        JsonNode deleteComputedInheritedRulesQuery
+    ) throws VitamClientException;
 
     RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext, PreservationRequest preservationRequest)
         throws VitamClientException;

@@ -95,10 +95,15 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         ObjectReferentialRepository objectReferentialRepository,
         ArchiveReferentialRepository archiveReferentialRepository,
         WriteOrderCreator writeOrderCreator,
-        String bucketId, String fileBucketId, int tarBufferingTimeout, TimeUnit tarBufferingTimeUnit,
-        String inputTarStorageFolder, long maxTarEntrySize, long maxTarFileSize) {
+        String bucketId,
+        String fileBucketId,
+        int tarBufferingTimeout,
+        TimeUnit tarBufferingTimeUnit,
+        String inputTarStorageFolder,
+        long maxTarEntrySize,
+        long maxTarFileSize
+    ) {
         super("FileBucketTarCreator-" + fileBucketId);
-
         this.maxTarEntrySize = maxTarEntrySize;
 
         this.basicFileStorage = basicFileStorage;
@@ -116,23 +121,17 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     }
 
     @Override
-    protected void processMessage(TarCreatorMessage message)
-        throws QueueProcessingException {
-
+    protected void processMessage(TarCreatorMessage message) throws QueueProcessingException {
         if (message instanceof TarBufferingTimedOutMessage) {
             checkTarBufferingTimeout((TarBufferingTimedOutMessage) message);
-
         } else if (message instanceof InputFileToProcessMessage) {
             writeFile((InputFileToProcessMessage) message);
-
         } else {
             throw new IllegalStateException("Unknown message time type " + message.getClass());
         }
     }
 
-    private void writeFile(InputFileToProcessMessage message)
-        throws QueueProcessingException {
-
+    private void writeFile(InputFileToProcessMessage message) throws QueueProcessingException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Processing message " + JsonHandler.unprettyPrint(message));
         }
@@ -143,8 +142,12 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
             if (inputStream.isEmpty()) {
                 // File deleted meanwhile. Skip quietly...
-                LOGGER.info("File {} ({}/{}) not found. Deleted meanwhile?", message.getStorageId(),
-                    message.getContainerName(), message.getObjectName());
+                LOGGER.info(
+                    "File {} ({}/{}) not found. Deleted meanwhile?",
+                    message.getStorageId(),
+                    message.getContainerName(),
+                    message.getObjectName()
+                );
                 return;
             }
 
@@ -159,71 +162,71 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
             int entryIndex = 0;
             do {
-
                 long entrySize = Math.min(remainingSize, maxTarEntrySize);
 
                 if (!currentTarAppender.canAppend(entrySize)) {
-
                     LOGGER.info("Finalizing full tar file {}", this.currentTempTarFilePath);
                     finalizeTarFile();
                     createTarFile();
                 }
 
                 String entryName = LocalFileUtils.createTarEntryName(
-                    message.getContainerName(), message.getStorageId(), entryIndex);
+                    message.getContainerName(),
+                    message.getStorageId(),
+                    entryIndex
+                );
                 BoundedInputStream entryInputStream = new BoundedInputStream(digestInputStream, entrySize);
 
-                TarEntryDescription tarEntryDescription =
-                    currentTarAppender.append(entryName, entryInputStream, entrySize);
+                TarEntryDescription tarEntryDescription = currentTarAppender.append(
+                    entryName,
+                    entryInputStream,
+                    entrySize
+                );
                 tarEntryDescriptions.add(tarEntryDescription);
 
                 remainingSize -= entrySize;
                 entryIndex++;
-            }
-            while (remainingSize > 0L);
+            } while (remainingSize > 0L);
             this.currentTarAppender.flush();
             this.currentTarOutputStream.fsync();
 
             if (!digest.digestHex().equals(message.getDigestValue())) {
                 throw new QueueProcessingException(
                     QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
-                    "Invalid file digest. request=" + JsonHandler.unprettyPrint(message) +
-                        ". Actual digest=" +
-                        digest.digestHex() + ".");
+                    "Invalid file digest. request=" +
+                    JsonHandler.unprettyPrint(message) +
+                    ". Actual digest=" +
+                    digest.digestHex() +
+                    "."
+                );
             }
 
             indexInObjectReferential(message, tarEntryDescriptions);
 
             IOUtils.closeQuietly(inputStream.get());
             basicFileStorage.deleteFile(message.getContainerName(), message.getStorageId());
-
         } catch (IOException | RuntimeException ex) {
-
             if (this.currentTarOutputStream != null) {
                 IOUtils.closeQuietly(this.currentTarOutputStream);
             }
 
-            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
-                "An error occurred while archiving file to tar", ex);
-
+            throw new QueueProcessingException(
+                QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
+                "An error occurred while archiving file to tar",
+                ex
+            );
         } finally {
             inputStream.ifPresent(IOUtils::closeQuietly);
 
-            InputFilesMetrics.QUEUED_INPUT_FILES_COUNT
-                .labels(bucketId)
-                .dec();
+            InputFilesMetrics.QUEUED_INPUT_FILES_COUNT.labels(bucketId).dec();
 
-            InputFilesMetrics.QUEUED_INPUT_FILES_SIZE
-                .labels(bucketId)
-                .dec(message.getSize());
+            InputFilesMetrics.QUEUED_INPUT_FILES_SIZE.labels(bucketId).dec(message.getSize());
         }
     }
 
     private Optional<InputStream> openInputFile(InputFileToProcessMessage message) throws IOException {
         try {
-            return Optional.of(
-                basicFileStorage.readFile(message.getContainerName(), message.getStorageId())
-            );
+            return Optional.of(basicFileStorage.readFile(message.getContainerName(), message.getStorageId()));
         } catch (FileNotFoundException ex) {
             LOGGER.debug(ex);
             return Optional.empty();
@@ -231,7 +234,6 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     }
 
     private void createTarFile() throws QueueProcessingException, IOException {
-
         LocalDateTime now = LocalDateUtil.now();
         String tarFileId = LocalFileUtils.createTarId(now);
 
@@ -242,22 +244,31 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         try {
             TapeArchiveReferentialEntity tarReferentialEntity = new TapeArchiveReferentialEntity(
-                tarFileId, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, now.toString());
+                tarFileId,
+                new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                null,
+                null,
+                now.toString()
+            );
             archiveReferentialRepository.insert(tarReferentialEntity);
         } catch (ArchiveReferentialException ex) {
-            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
-                "Could not create a new tar file", ex);
+            throw new QueueProcessingException(
+                QueueProcessingException.RetryPolicy.RETRY,
+                "Could not create a new tar file",
+                ex
+            );
         }
 
         this.currentTarOutputStream = new ExtendedFileOutputStream(currentTempTarFilePath, true);
-        this.currentTarAppender = new TarAppender(
-            currentTarOutputStream, tarFileId, this.maxTarFileSize);
+        this.currentTarAppender = new TarAppender(currentTarOutputStream, tarFileId, this.maxTarFileSize);
         this.tarBufferingTimoutChecker = this.scheduledExecutorService.schedule(
-            () -> checkTarBufferingTimeout(tarFileId), tarBufferingTimeout, tarBufferingTimeUnit);
+                () -> checkTarBufferingTimeout(tarFileId),
+                tarBufferingTimeout,
+                tarBufferingTimeUnit
+            );
     }
 
     private void finalizeTarFile() throws IOException {
-
         this.currentTarAppender.close();
 
         // Mark file as done (remove .tmp extension)
@@ -267,13 +278,15 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
             this.fileBucketId,
-            LocalFileUtils
-                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId,
-                    this.currentTarAppender.getTarId()),
+            LocalFileUtils.archiveFileNameRelativeToInputArchiveStorageFolder(
+                this.fileBucketId,
+                this.currentTarAppender.getTarId()
+            ),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue(),
             this.currentTarAppender.getTarId(),
-            QueueMessageType.WriteOrder);
+            QueueMessageType.WriteOrder
+        );
         this.writeOrderCreator.addToQueue(writeOrder);
 
         this.currentTarAppender = null;
@@ -281,9 +294,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         this.tarBufferingTimoutChecker.cancel(false);
     }
 
-    private void indexInObjectReferential(InputFileToProcessMessage inputFileToProcessMessage,
-        List<TarEntryDescription> tarEntryDescriptions) throws QueueProcessingException {
-
+    private void indexInObjectReferential(
+        InputFileToProcessMessage inputFileToProcessMessage,
+        List<TarEntryDescription> tarEntryDescriptions
+    ) throws QueueProcessingException {
         try {
             objectReferentialRepository.updateStorageLocation(
                 inputFileToProcessMessage.getContainerName(),
@@ -294,31 +308,44 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         } catch (ObjectReferentialException ex) {
             throw new QueueProcessingException(
                 QueueProcessingException.RetryPolicy.RETRY,
-                "Could not index object referential " + inputFileToProcessMessage.getContainerName() + "/" +
-                    inputFileToProcessMessage.getObjectName() + " (" +
-                    inputFileToProcessMessage.getStorageId() + ") to tar files " +
-                    JsonHandler.unprettyPrint(tarEntryDescriptions), ex);
+                "Could not index object referential " +
+                inputFileToProcessMessage.getContainerName() +
+                "/" +
+                inputFileToProcessMessage.getObjectName() +
+                " (" +
+                inputFileToProcessMessage.getStorageId() +
+                ") to tar files " +
+                JsonHandler.unprettyPrint(tarEntryDescriptions),
+                ex
+            );
         }
     }
 
     private void checkTarBufferingTimeout(TarBufferingTimedOutMessage tarBufferingTimedOutMessage)
         throws QueueProcessingException {
-
         // Double check tar Id in case of concurrent access
-        if (this.currentTarAppender == null ||
-            !this.currentTarAppender.getTarId().equals(tarBufferingTimedOutMessage.getTarId())) {
+        if (
+            this.currentTarAppender == null ||
+            !this.currentTarAppender.getTarId().equals(tarBufferingTimedOutMessage.getTarId())
+        ) {
             return;
         }
 
         try {
-
-            LOGGER.info("Finalizing tar file {} after timeout {} {}",
-                this.currentTempTarFilePath, this.tarBufferingTimeout, this.tarBufferingTimeUnit);
+            LOGGER.info(
+                "Finalizing tar file {} after timeout {} {}",
+                this.currentTempTarFilePath,
+                this.tarBufferingTimeout,
+                this.tarBufferingTimeUnit
+            );
 
             finalizeTarFile();
         } catch (IOException ex) {
-            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
-                "An error occurred while archiving file to tar", ex);
+            throw new QueueProcessingException(
+                QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
+                "An error occurred while archiving file to tar",
+                ex
+            );
         }
     }
 
@@ -327,7 +354,6 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     }
 
     public boolean containsTar(String tarId) {
-
         Path tempTarPath = fileBucketStoragePath.resolve(tarId + TMP_EXTENSION);
         if (Files.exists(tempTarPath)) {
             LOGGER.debug(tempTarPath + " found");
@@ -345,7 +371,6 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     }
 
     public Optional<FileInputStream> tryReadTar(String tarId) {
-
         Path tempTarPath = fileBucketStoragePath.resolve(tarId + TMP_EXTENSION);
         if (Files.exists(tempTarPath)) {
             try {
@@ -373,14 +398,11 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     public void addToQueue(TarCreatorMessage message) {
         super.addToQueue(message);
         if (message instanceof InputFileToProcessMessage) {
+            InputFilesMetrics.QUEUED_INPUT_FILES_COUNT.labels(bucketId).inc();
 
-            InputFilesMetrics.QUEUED_INPUT_FILES_COUNT
-                .labels(bucketId)
-                .inc();
-
-            InputFilesMetrics.QUEUED_INPUT_FILES_SIZE
-                .labels(bucketId)
-                .inc(((InputFileToProcessMessage) message).getSize());
+            InputFilesMetrics.QUEUED_INPUT_FILES_SIZE.labels(bucketId).inc(
+                ((InputFileToProcessMessage) message).getSize()
+            );
         }
     }
 }

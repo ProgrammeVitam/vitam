@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Simple class to replace # by _, use only for FunctionalAdministration collection.
  */
 public interface SimpleVarNameAdapter {
-
     static void change(JsonNode parent, String oldFieldName, String newFieldName) {
         if (parent.has(oldFieldName)) {
             JsonNode value = ((ObjectNode) parent).remove(oldFieldName);
@@ -44,5 +43,4 @@ public interface SimpleVarNameAdapter {
             change(child, oldFieldName, newFieldName);
         }
     }
-
 }

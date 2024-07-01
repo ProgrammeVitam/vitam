@@ -52,6 +52,7 @@ import java.util.TreeMap;
 @JsonSerialize(using = WorkerParametersSerializer.class)
 @JsonDeserialize(using = WorkerParametersDeserializer.class)
 abstract class AbstractWorkerParameters implements WorkerParameters {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractWorkerParameters.class);
     private static final String ERROR_MESSAGE = "%s cannot be null";
 
@@ -141,7 +142,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @Override
     public String getContainerName() {
         return mapParameters.get(WorkerParameterName.containerName);
-
     }
 
     @JsonIgnore
@@ -252,7 +252,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         return this;
     }
 
-
     @JsonIgnore
     @Override
     public String getMetadataRequest() {
@@ -273,7 +272,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         return mapParameters.get(WorkerParameterName.workerGUID);
     }
 
-
     @JsonIgnore
     @Override
     public WorkerParameters setWorkerGUID(String workerGUID) {
@@ -286,7 +284,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @Override
     public String getProcessId() {
         return mapParameters.get(WorkerParameterName.processId);
-
     }
 
     @JsonIgnore
@@ -339,7 +336,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         return this;
     }
 
-
     @Override
     public String getWorkflowIdentifier() {
         return mapParameters.get(WorkerParameterName.workflowIdentifier);
@@ -374,7 +370,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @Override
     public String getRequestId() {
         return mapParameters.get(WorkerParameterName.requestId);
-
     }
 
     @JsonIgnore
@@ -389,7 +384,5 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     @Override
     public String getWorkflowStatusKo() {
         return mapParameters.get(WorkerParameterName.workflowStatusKo);
-
     }
-
 }

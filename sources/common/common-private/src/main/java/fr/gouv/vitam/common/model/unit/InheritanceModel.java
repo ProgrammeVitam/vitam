@@ -85,7 +85,5 @@ public class InheritanceModel {
             this.preventInheritance = inheritance.isPreventInheritance();
         }
         preventRulesId.addAll(inheritance.getPreventRulesId());
-
     }
-
 }

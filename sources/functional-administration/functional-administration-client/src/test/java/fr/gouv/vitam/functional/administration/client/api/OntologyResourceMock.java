@@ -63,8 +63,11 @@ public class OntologyResourceMock {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
-        List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+    public Response importOntologies(
+        @HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
+        List<OntologyModel> ontologyModelList,
+        @Context UriInfo uri
+    ) {
         return mock.post();
     }
 

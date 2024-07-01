@@ -67,8 +67,12 @@ public class ReferenceFormat extends Format {
         } else {
             switch (validatePrimitive(type, node, fieldReport)) {
                 case PRIMITIVE_KO:
-                    validator.reportError(this, node, ValidationErrorMessage.Code.INVALID_VALUE,
-                        node.getNodeType().name());
+                    validator.reportError(
+                        this,
+                        node,
+                        ValidationErrorMessage.Code.INVALID_VALUE,
+                        node.getNodeType().name()
+                    );
                     break;
                 case PRIMITIVE_OK:
                     // All goes well, nothing to do
@@ -84,8 +88,7 @@ public class ReferenceFormat extends Format {
         consumer.accept(this);
     }
 
-    private void validateNotPrimitive(JsonNode node, Consumer<String> fieldReport,
-        ValidatorEngine validator) {
+    private void validateNotPrimitive(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
         validator.validate(referred, node, fieldReport);
     }
 
@@ -122,10 +125,8 @@ public class ReferenceFormat extends Format {
 
     @Override
     public String debugInfo() {
-        if (referred == null)
-            return type;
-        else
-            return referred.debugInfo();
+        if (referred == null) return type;
+        else return referred.debugInfo();
     }
 
     @Override
@@ -138,10 +139,8 @@ public class ReferenceFormat extends Format {
         if (validatePrimitive(type, NullNode.getInstance(), reportNothing) == NOT_PRIMITIVE) {
             referred = schema.getType(type);
             if (referred == null) {
-                throw new IllegalArgumentException(
-                    "Type " + type + " invalid: not a primitive nor a composite type");
+                throw new IllegalArgumentException("Type " + type + " invalid: not a primitive nor a composite type");
             }
         }
     }
-
 }

@@ -60,8 +60,10 @@ public class ElasticsearchMetadataIndexManager {
     private final Map<Integer, ElasticsearchIndexSettings> objectGroupIndexSettingsMap = new HashMap<>();
 
     public ElasticsearchMetadataIndexManager(
-        MetaDataConfiguration configuration, List<Integer> tenantIds,
-        MappingLoader mappingLoader) {
+        MetaDataConfiguration configuration,
+        List<Integer> tenantIds,
+        MappingLoader mappingLoader
+    ) {
         this.tenantIds = tenantIds;
 
         Map<Integer, CollectionConfiguration> customTenantUnitConfiguration = new HashMap<>();
@@ -82,15 +84,20 @@ public class ElasticsearchMetadataIndexManager {
 
         if (configuration.getIndexationConfiguration().getDedicatedTenantConfiguration() != null) {
             for (DedicatedTenantConfiguration dedicatedTenantConfiguration : configuration
-                .getIndexationConfiguration().getDedicatedTenantConfiguration()) {
-
-                List<TenantRange> tenantRanges =
-                    TenantRangeParser.parseTenantRanges(dedicatedTenantConfiguration.getTenants());
+                .getIndexationConfiguration()
+                .getDedicatedTenantConfiguration()) {
+                List<TenantRange> tenantRanges = TenantRangeParser.parseTenantRanges(
+                    dedicatedTenantConfiguration.getTenants()
+                );
 
                 CollectionConfiguration unitConfiguration = CollectionConfigurationUtils.merge(
-                    dedicatedTenantConfiguration.getUnit(), defaultUnitConfiguration);
+                    dedicatedTenantConfiguration.getUnit(),
+                    defaultUnitConfiguration
+                );
                 CollectionConfiguration objectGroupConfiguration = CollectionConfigurationUtils.merge(
-                    dedicatedTenantConfiguration.getObjectgroup(), defaultObjectGroupConfiguration);
+                    dedicatedTenantConfiguration.getObjectgroup(),
+                    defaultObjectGroupConfiguration
+                );
 
                 for (TenantRange tenantRange : tenantRanges) {
                     for (int tenantId : tenantIds) {
@@ -105,19 +112,26 @@ public class ElasticsearchMetadataIndexManager {
 
         if (configuration.getIndexationConfiguration().getGroupedTenantConfiguration() != null) {
             for (GroupedTenantConfiguration groupedTenantConfiguration : configuration
-                .getIndexationConfiguration().getGroupedTenantConfiguration()) {
-
-                List<TenantRange> tenantRanges =
-                    TenantRangeParser.parseTenantRanges(groupedTenantConfiguration.getTenants());
+                .getIndexationConfiguration()
+                .getGroupedTenantConfiguration()) {
+                List<TenantRange> tenantRanges = TenantRangeParser.parseTenantRanges(
+                    groupedTenantConfiguration.getTenants()
+                );
 
                 CollectionConfiguration unitConfiguration = CollectionConfigurationUtils.merge(
-                    groupedTenantConfiguration.getUnit(), defaultUnitConfiguration);
+                    groupedTenantConfiguration.getUnit(),
+                    defaultUnitConfiguration
+                );
                 groupedTenantUnitConfiguration.put(groupedTenantConfiguration.getName(), unitConfiguration);
 
                 CollectionConfiguration objectGroupConfiguration = CollectionConfigurationUtils.merge(
-                    groupedTenantConfiguration.getObjectgroup(), defaultObjectGroupConfiguration);
-                groupedTenantObjectGroupConfiguration
-                    .put(groupedTenantConfiguration.getName(), objectGroupConfiguration);
+                    groupedTenantConfiguration.getObjectgroup(),
+                    defaultObjectGroupConfiguration
+                );
+                groupedTenantObjectGroupConfiguration.put(
+                    groupedTenantConfiguration.getName(),
+                    objectGroupConfiguration
+                );
 
                 for (TenantRange tenantRange : tenantRanges) {
                     for (int tenantId : tenantIds) {
@@ -133,53 +147,57 @@ public class ElasticsearchMetadataIndexManager {
         Supplier<String> unitMappingLoader = getEsMappingLoader(mappingLoader, MetadataCollections.UNIT);
         Supplier<String> objectGroupMappingLoader = getEsMappingLoader(mappingLoader, MetadataCollections.OBJECTGROUP);
 
-        tenantIds.stream()
+        tenantIds
+            .stream()
             .filter(not(tenantToTenantGroupMap::containsKey))
             .forEach(tenantId -> {
+                CollectionConfiguration unitConfiguration = customTenantUnitConfiguration.getOrDefault(
+                    tenantId,
+                    defaultUnitConfiguration
+                );
+                ElasticsearchIndexSettings unitElasticsearchIndexSettings = new ElasticsearchIndexSettings(
+                    unitConfiguration.getNumberOfShards(),
+                    unitConfiguration.getNumberOfReplicas(),
+                    unitMappingLoader
+                );
+                this.unitIndexSettingsMap.put(tenantId, unitElasticsearchIndexSettings);
 
-                    CollectionConfiguration unitConfiguration =
-                        customTenantUnitConfiguration.getOrDefault(tenantId, defaultUnitConfiguration);
-                    ElasticsearchIndexSettings unitElasticsearchIndexSettings =
-                        new ElasticsearchIndexSettings(
-                            unitConfiguration.getNumberOfShards(),
-                            unitConfiguration.getNumberOfReplicas(),
-                            unitMappingLoader);
+                CollectionConfiguration objectGroupConfiguration = customTenantObjectGroupConfiguration.getOrDefault(
+                    tenantId,
+                    defaultObjectGroupConfiguration
+                );
+                ElasticsearchIndexSettings objectGroupElasticsearchIndexSettings = new ElasticsearchIndexSettings(
+                    objectGroupConfiguration.getNumberOfShards(),
+                    objectGroupConfiguration.getNumberOfReplicas(),
+                    objectGroupMappingLoader
+                );
+                this.objectGroupIndexSettingsMap.put(tenantId, objectGroupElasticsearchIndexSettings);
+            });
+
+        tenantGroupToTenantMap
+            .keySet()
+            .forEach(tenantGroupName -> {
+                CollectionConfiguration unitConfiguration = groupedTenantUnitConfiguration.get(tenantGroupName);
+                ElasticsearchIndexSettings unitElasticsearchIndexSettings = new ElasticsearchIndexSettings(
+                    unitConfiguration.getNumberOfShards(),
+                    unitConfiguration.getNumberOfReplicas(),
+                    unitMappingLoader
+                );
+
+                CollectionConfiguration objectGroupConfiguration = groupedTenantObjectGroupConfiguration.get(
+                    tenantGroupName
+                );
+                ElasticsearchIndexSettings objectGroupElasticsearchIndexSettings = new ElasticsearchIndexSettings(
+                    objectGroupConfiguration.getNumberOfShards(),
+                    objectGroupConfiguration.getNumberOfReplicas(),
+                    objectGroupMappingLoader
+                );
+
+                for (Integer tenantId : tenantGroupToTenantMap.get(tenantGroupName)) {
                     this.unitIndexSettingsMap.put(tenantId, unitElasticsearchIndexSettings);
-
-                    CollectionConfiguration objectGroupConfiguration =
-                        customTenantObjectGroupConfiguration.getOrDefault(tenantId, defaultObjectGroupConfiguration);
-                    ElasticsearchIndexSettings objectGroupElasticsearchIndexSettings =
-                        new ElasticsearchIndexSettings(
-                            objectGroupConfiguration.getNumberOfShards(),
-                            objectGroupConfiguration.getNumberOfReplicas(),
-                            objectGroupMappingLoader);
                     this.objectGroupIndexSettingsMap.put(tenantId, objectGroupElasticsearchIndexSettings);
                 }
-            );
-
-        tenantGroupToTenantMap.keySet()
-            .forEach(tenantGroupName -> {
-                    CollectionConfiguration unitConfiguration = groupedTenantUnitConfiguration.get(tenantGroupName);
-                    ElasticsearchIndexSettings unitElasticsearchIndexSettings =
-                        new ElasticsearchIndexSettings(
-                            unitConfiguration.getNumberOfShards(),
-                            unitConfiguration.getNumberOfReplicas(),
-                            unitMappingLoader);
-
-                    CollectionConfiguration objectGroupConfiguration =
-                        groupedTenantObjectGroupConfiguration.get(tenantGroupName);
-                    ElasticsearchIndexSettings objectGroupElasticsearchIndexSettings =
-                        new ElasticsearchIndexSettings(
-                            objectGroupConfiguration.getNumberOfShards(),
-                            objectGroupConfiguration.getNumberOfReplicas(),
-                            objectGroupMappingLoader);
-
-                    for (Integer tenantId : tenantGroupToTenantMap.get(tenantGroupName)) {
-                        this.unitIndexSettingsMap.put(tenantId, unitElasticsearchIndexSettings);
-                        this.objectGroupIndexSettingsMap.put(tenantId, objectGroupElasticsearchIndexSettings);
-                    }
-                }
-            );
+            });
     }
 
     private Supplier<String> getEsMappingLoader(MappingLoader mappingLoader, MetadataCollections collection) {
@@ -188,7 +206,9 @@ public class ElasticsearchMetadataIndexManager {
                 return ElasticsearchUtil.transferJsonToMapping(mappingLoader.loadMapping(collection.name()));
             } catch (IOException e) {
                 throw new VitamFatalRuntimeException(
-                    "Could not load mapping for collection " + MetadataCollections.UNIT.getName(), e);
+                    "Could not load mapping for collection " + MetadataCollections.UNIT.getName(),
+                    e
+                );
             }
         };
     }
@@ -201,13 +221,14 @@ public class ElasticsearchMetadataIndexManager {
             default:
                 throw new IllegalStateException("Unknown collection " + collection);
         }
-        return (tenantId) -> {
+        return tenantId -> {
             if (this.tenantToTenantGroupMap.containsKey(tenantId)) {
                 return ElasticsearchIndexAlias.ofMultiTenantCollection(
-                    collection.getName(), this.tenantToTenantGroupMap.get(tenantId));
+                    collection.getName(),
+                    this.tenantToTenantGroupMap.get(tenantId)
+                );
             } else {
-                return ElasticsearchIndexAlias.ofMultiTenantCollection(
-                    collection.getName(), tenantId);
+                return ElasticsearchIndexAlias.ofMultiTenantCollection(collection.getName(), tenantId);
             }
         };
     }
@@ -224,9 +245,7 @@ public class ElasticsearchMetadataIndexManager {
     }
 
     public Collection<Integer> getDedicatedTenants() {
-        return tenantIds.stream()
-            .filter(not(tenantToTenantGroupMap::containsKey))
-            .collect(Collectors.toList());
+        return tenantIds.stream().filter(not(tenantToTenantGroupMap::containsKey)).collect(Collectors.toList());
     }
 
     public Collection<String> getTenantGroups() {

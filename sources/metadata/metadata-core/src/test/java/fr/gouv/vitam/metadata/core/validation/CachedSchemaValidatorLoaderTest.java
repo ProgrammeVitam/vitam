@@ -58,8 +58,9 @@ public class CachedSchemaValidatorLoaderTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     AdminManagementClientFactory adminManagementClientFactory;
@@ -75,7 +76,6 @@ public class CachedSchemaValidatorLoaderTest {
     @Test
     @RunWithCustomExecutor
     public void testLoading() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -89,22 +89,16 @@ public class CachedSchemaValidatorLoaderTest {
         JsonSchemaValidator result = schemaValidatorLoader.loadSchemaValidator(schema);
 
         // Then
-        result.validateJson(JsonHandler.createObjectNode()
-            .put("_id", "MyId")
-            .put("Title", "MyTitle")
-        );
+        result.validateJson(JsonHandler.createObjectNode().put("_id", "MyId").put("Title", "MyTitle"));
 
-        assertThatThrownBy(() ->
-            result.validateJson(JsonHandler.createObjectNode()
-                .put("Title", "MyTitle")
-            )
+        assertThatThrownBy(
+            () -> result.validateJson(JsonHandler.createObjectNode().put("Title", "MyTitle"))
         ).isInstanceOf(JsonSchemaValidationException.class);
     }
 
     @Test
     @RunWithCustomExecutor
     public void testReLoadingFromCache() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -127,7 +121,6 @@ public class CachedSchemaValidatorLoaderTest {
     @Test
     @RunWithCustomExecutor
     public void testCacheTimeout() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);

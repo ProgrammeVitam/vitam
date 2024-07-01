@@ -46,8 +46,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class IngestCleanupFinalizationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IngestCleanupFinalizationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestCleanupFinalizationPlugin.class);
     static final String INGEST_CLEANUP_FINALIZATION = "INGEST_CLEANUP_FINALIZATION";
 
     private final StorageClientFactory storageClientFactory;
@@ -57,19 +56,16 @@ public class IngestCleanupFinalizationPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public IngestCleanupFinalizationPlugin(
-        StorageClientFactory storageClientFactory) {
+    public IngestCleanupFinalizationPlugin(StorageClientFactory storageClientFactory) {
         this.storageClientFactory = storageClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
-            Optional<CleanupReportManager> cleanupReportManager =
-                CleanupReportManager.loadReportDataFromWorkspace(handler);
+            Optional<CleanupReportManager> cleanupReportManager = CleanupReportManager.loadReportDataFromWorkspace(
+                handler
+            );
             if (!cleanupReportManager.isPresent()) {
                 LOGGER.warn("No report information available...");
                 return buildItemStatus(INGEST_CLEANUP_FINALIZATION, StatusCode.WARNING);

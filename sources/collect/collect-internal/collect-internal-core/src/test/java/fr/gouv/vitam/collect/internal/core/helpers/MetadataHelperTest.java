@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MetadataHelperTest {
+
     private static final String UNIT_UP = "UNIT_UP";
     private static final String UNIT_UP_1 = "UNIT_UP_1";
     private static final String UNIT_UP_2 = "UNIT_UP_2";
@@ -55,9 +56,11 @@ public class MetadataHelperTest {
         try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
-            Set<String> unitParent = MetadataHelper.findUnitParent(unit,
+            Set<String> unitParent = MetadataHelper.findUnitParent(
+                unit,
                 List.of(new MetadataUnitUp(UNIT_UP, COMPLEX_PATH, "Aisne (departement)")),
-                Map.of(UNIT_UP, UNIT_GUID));
+                Map.of(UNIT_UP, UNIT_GUID)
+            );
 
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
@@ -69,23 +72,26 @@ public class MetadataHelperTest {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
 
-            Set<String> unitParent =
-                MetadataHelper.findUnitParent(unit, List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH, "My title")),
-                    Map.of(UNIT_UP, UNIT_GUID));
+            Set<String> unitParent = MetadataHelper.findUnitParent(
+                unit,
+                List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH, "My title")),
+                Map.of(UNIT_UP, UNIT_GUID)
+            );
 
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
     }
-
 
     @Test
     public void findUnitParentWithSimplePathButValueIsArray() throws Exception {
         try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
-            Set<String> unitParent = MetadataHelper.findUnitParent(unit,
+            Set<String> unitParent = MetadataHelper.findUnitParent(
+                unit,
                 List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH_ARRAY_VALUE, "ID01")),
-                Map.of(UNIT_UP, UNIT_GUID));
+                Map.of(UNIT_UP, UNIT_GUID)
+            );
 
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
@@ -96,10 +102,14 @@ public class MetadataHelperTest {
         try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
-            Set<String> unitParent = MetadataHelper.findUnitParent(unit,
-                List.of(new MetadataUnitUp(UNIT_UP_1, SIMPLE_PATH_ARRAY_VALUE, "ID01"),
-                    new MetadataUnitUp(UNIT_UP_2, SIMPLE_PATH, "My title")),
-                Map.of(UNIT_UP_1, UNIT_GUID_1, UNIT_UP_2, UNIT_GUID_2));
+            Set<String> unitParent = MetadataHelper.findUnitParent(
+                unit,
+                List.of(
+                    new MetadataUnitUp(UNIT_UP_1, SIMPLE_PATH_ARRAY_VALUE, "ID01"),
+                    new MetadataUnitUp(UNIT_UP_2, SIMPLE_PATH, "My title")
+                ),
+                Map.of(UNIT_UP_1, UNIT_GUID_1, UNIT_UP_2, UNIT_GUID_2)
+            );
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID_1, UNIT_GUID_2);
         }
     }

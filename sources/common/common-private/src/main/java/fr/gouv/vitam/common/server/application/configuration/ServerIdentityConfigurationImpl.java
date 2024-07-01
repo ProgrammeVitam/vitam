@@ -39,7 +39,6 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     private int identitySiteId;
     private String identityRole;
 
-
     /**
      * ServerIdentityConfiguration empty constructor for YAMLFactory
      */
@@ -56,10 +55,13 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
      * @param identityRole identity role
      * @throws IllegalArgumentException if identityName or identityRole
      */
-    public ServerIdentityConfigurationImpl(String identityName, int identityServerId, int identitySiteId,
-        String identityRole) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            identityName, identityRole);
+    public ServerIdentityConfigurationImpl(
+        String identityName,
+        int identityServerId,
+        int identitySiteId,
+        String identityRole
+    ) {
+        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, identityName, identityRole);
         if (identitySiteId < 0) {
             throw new IllegalArgumentException("Site id must be positive");
         }
@@ -98,8 +100,7 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
      * @throws IllegalArgumentException if identityName is null or empty
      */
     public ServerIdentityConfigurationImpl setIdentityName(String identityName) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            identityName);
+        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, identityName);
         this.identityName = identityName;
         return this;
     }
@@ -130,15 +131,13 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
         return this;
     }
 
-
     /**
      * @param identityRole the identityRole to set
      * @return this
      * @throws IllegalArgumentException if identityRole is null or empty
      */
     public ServerIdentityConfigurationImpl setIdentityRole(String identityRole) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            identityRole);
+        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, identityRole);
         this.identityRole = identityRole;
         return this;
     }

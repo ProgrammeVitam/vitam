@@ -42,7 +42,6 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-
 /**
  * BulkAtomicUpdateStep class
  */
@@ -60,8 +59,9 @@ public class BulkAtomicUpdateStep extends CommonStep {
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        final RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().bulkAtomicUpdateUnits(vitamContext, queryString);
+        final RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .bulkAtomicUpdateUnits(vitamContext, queryString);
 
         assertThat(requestResponse.isOk()).isTrue();
 
@@ -69,8 +69,14 @@ public class BulkAtomicUpdateStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("units update  processing not finished. Timeout exceeded.");

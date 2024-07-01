@@ -55,9 +55,15 @@ public class EliminationActionDeleteUnitPlugin extends PurgeUnitPlugin {
         PurgeDeleteService purgeDeleteService,
         MetaDataClientFactory metaDataClientFactory,
         PurgeReportService purgeReportService,
-        LogbookLifeCyclesClientFactory lfcClientFactory) {
-        super(ELIMINATION_ACTION_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService,
-            lfcClientFactory);
+        LogbookLifeCyclesClientFactory lfcClientFactory
+    ) {
+        super(
+            ELIMINATION_ACTION_DELETE_UNIT,
+            purgeDeleteService,
+            metaDataClientFactory,
+            purgeReportService,
+            lfcClientFactory
+        );
     }
 
     public static String getId() {

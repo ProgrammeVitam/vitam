@@ -38,6 +38,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 public class HelloWorldPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HelloWorldPlugin.class);
 
     private static final String HELLO_WORLD_PLUGIN = "HELLO_WORLD_PLUGIN";
@@ -55,9 +56,9 @@ public class HelloWorldPlugin extends ActionHandler {
         itemStatus.setEvDetailData(unpretty);
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), unpretty);
 
-
-        return new ItemStatus(HELLO_WORLD_PLUGIN).setItemsStatus(HELLO_WORLD_PLUGIN,
-            itemStatus.increment(StatusCode.OK));
+        return new ItemStatus(HELLO_WORLD_PLUGIN).setItemsStatus(
+            HELLO_WORLD_PLUGIN,
+            itemStatus.increment(StatusCode.OK)
+        );
     }
-
 }

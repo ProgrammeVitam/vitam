@@ -54,11 +54,15 @@ public class CompactedOfferLog {
     @JsonProperty(LOGS)
     private List<OfferLog> logs;
 
-    public CompactedOfferLog() {
-    }
+    public CompactedOfferLog() {}
 
-    public CompactedOfferLog(long sequenceStart, long sequenceEnd, LocalDateTime compactionDateTime, String container,
-        List<OfferLog> logs) {
+    public CompactedOfferLog(
+        long sequenceStart,
+        long sequenceEnd,
+        LocalDateTime compactionDateTime,
+        String container,
+        List<OfferLog> logs
+    ) {
         this.sequenceStart = sequenceStart;
         this.sequenceEnd = sequenceEnd;
         this.compactionDateTime = Objects.requireNonNull(compactionDateTime);
@@ -108,16 +112,16 @@ public class CompactedOfferLog {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         CompactedOfferLog that = (CompactedOfferLog) o;
-        return sequenceStart == that.sequenceStart &&
+        return (
+            sequenceStart == that.sequenceStart &&
             sequenceEnd == that.sequenceEnd &&
             compactionDateTime.equals(that.compactionDateTime) &&
             container.equals(that.container) &&
-            Objects.equals(logs, that.logs);
+            Objects.equals(logs, that.logs)
+        );
     }
 
     @Override
@@ -127,11 +131,18 @@ public class CompactedOfferLog {
 
     @Override
     public String toString() {
-        return "OfferLogCompaction{" +
-            "sequenceStart=" + sequenceStart +
-            ", sequenceEnd=" + sequenceEnd +
-            ", compactionDateTime=" + compactionDateTime +
-            ", container='" + container + '\'' +
-            '}';
+        return (
+            "OfferLogCompaction{" +
+            "sequenceStart=" +
+            sequenceStart +
+            ", sequenceEnd=" +
+            sequenceEnd +
+            ", compactionDateTime=" +
+            compactionDateTime +
+            ", container='" +
+            container +
+            '\'' +
+            '}'
+        );
     }
 }

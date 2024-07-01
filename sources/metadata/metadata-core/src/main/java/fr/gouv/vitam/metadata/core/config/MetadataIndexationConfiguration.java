@@ -49,7 +49,8 @@ public class MetadataIndexationConfiguration {
     public MetadataIndexationConfiguration(
         DefaultCollectionConfiguration defaultCollectionConfiguration,
         List<DedicatedTenantConfiguration> dedicatedTenantConfiguration,
-        List<GroupedTenantConfiguration> groupedTenantConfiguration) {
+        List<GroupedTenantConfiguration> groupedTenantConfiguration
+    ) {
         this.defaultCollectionConfiguration = defaultCollectionConfiguration;
         this.dedicatedTenantConfiguration = dedicatedTenantConfiguration;
         this.groupedTenantConfiguration = groupedTenantConfiguration;
@@ -60,7 +61,8 @@ public class MetadataIndexationConfiguration {
     }
 
     public MetadataIndexationConfiguration setDefaultCollectionConfiguration(
-        DefaultCollectionConfiguration defaultCollectionConfiguration) {
+        DefaultCollectionConfiguration defaultCollectionConfiguration
+    ) {
         this.defaultCollectionConfiguration = defaultCollectionConfiguration;
         return this;
     }
@@ -70,7 +72,8 @@ public class MetadataIndexationConfiguration {
     }
 
     public MetadataIndexationConfiguration setDedicatedTenantConfiguration(
-        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration) {
+        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration
+    ) {
         this.dedicatedTenantConfiguration = dedicatedTenantConfiguration;
         return this;
     }
@@ -80,17 +83,23 @@ public class MetadataIndexationConfiguration {
     }
 
     public MetadataIndexationConfiguration setGroupedTenantConfiguration(
-        List<GroupedTenantConfiguration> groupedTenantConfiguration) {
+        List<GroupedTenantConfiguration> groupedTenantConfiguration
+    ) {
         this.groupedTenantConfiguration = groupedTenantConfiguration;
         return this;
     }
 
     @Override
     public String toString() {
-        return "MetadataIndexationConfiguration{" +
-            "defaultCollectionConfiguration=" + defaultCollectionConfiguration +
-            ", dedicatedTenantConfiguration=" + dedicatedTenantConfiguration +
-            ", groupedTenantConfiguration=" + groupedTenantConfiguration +
-            '}';
+        return (
+            "MetadataIndexationConfiguration{" +
+            "defaultCollectionConfiguration=" +
+            defaultCollectionConfiguration +
+            ", dedicatedTenantConfiguration=" +
+            dedicatedTenantConfiguration +
+            ", groupedTenantConfiguration=" +
+            groupedTenantConfiguration +
+            '}'
+        );
     }
 }

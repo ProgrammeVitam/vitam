@@ -68,8 +68,9 @@ public class WorkerClientConfiguration extends ClientConfigurationImpl {
             return false;
         }
         WorkerClientConfiguration conf = (WorkerClientConfiguration) other;
-        return Objects.equal(this.getServerHost(), conf.getServerHost()) &&
-            Objects.equal(this.getServerPort(), conf.getServerPort());
-
+        return (
+            Objects.equal(this.getServerHost(), conf.getServerHost()) &&
+            Objects.equal(this.getServerPort(), conf.getServerPort())
+        );
     }
 }

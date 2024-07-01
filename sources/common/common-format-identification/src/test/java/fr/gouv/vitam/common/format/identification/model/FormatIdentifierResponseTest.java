@@ -38,15 +38,16 @@ public class FormatIdentifierResponseTest {
 
     @Test
     public void testIdentifyFormatMock() throws Exception {
-        final FormatIdentifierResponse response =
-            new FormatIdentifierResponse("literal", "mimeType", "puid", "namespace");
+        final FormatIdentifierResponse response = new FormatIdentifierResponse(
+            "literal",
+            "mimeType",
+            "puid",
+            "namespace"
+        );
         assertNotNull(response);
         assertEquals("literal", response.getFormatLiteral());
         assertEquals("mimeType", response.getMimetype());
         assertEquals("puid", response.getPuid());
         assertEquals("namespace", response.getMatchedNamespace());
-
     }
-
 }
-

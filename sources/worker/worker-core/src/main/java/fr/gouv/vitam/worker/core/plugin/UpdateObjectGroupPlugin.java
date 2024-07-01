@@ -61,20 +61,21 @@ public class UpdateObjectGroupPlugin extends ActionHandler {
      * @throws ProcessingException
      */
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         final ItemStatus itemStatus = new ItemStatus(OBJECT_GROUP_UPDATE);
 
         try {
             // Get objectGroup
             final JsonNode existingGot = handlerIO.getJsonFromWorkspace(
-                IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+                IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/" + params.getObjectName()
+            );
 
             List<String> diffList = VitamDocument.getConcernedDiffLines(
-                VitamDocument.getUnifiedDiff(" {}", " " +
-                    existingGot.get(SedaConstants.PREFIX_WORK)
-                        .get(SedaConstants.PREFIX_EXISTING).toString()));
+                VitamDocument.getUnifiedDiff(
+                    " {}",
+                    " " + existingGot.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_EXISTING).toString()
+                )
+            );
 
             ObjectNode diffObject = JsonHandler.createObjectNode();
             diffObject.put("diff", String.join("\n", diffList));
@@ -97,7 +98,5 @@ public class UpdateObjectGroupPlugin extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

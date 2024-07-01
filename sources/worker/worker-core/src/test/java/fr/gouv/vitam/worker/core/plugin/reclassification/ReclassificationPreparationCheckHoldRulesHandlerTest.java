@@ -71,14 +71,16 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class ReclassificationPreparationCheckHoldRulesHandlerTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
@@ -99,27 +101,31 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
         int tenant = 0;
         String operationId = GUIDFactory.newRequestIdGUID(tenant).toString();
         String objectId = GUIDFactory.newGUID().toString();
-        parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(operationId)
+        parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(operationId)
             .setObjectNameList(Lists.newArrayList(objectId))
-            .setObjectName(objectId).setCurrentStep("StepName");
+            .setObjectName(objectId)
+            .setCurrentStep("StepName");
 
-        instance = new ReclassificationPreparationCheckHoldRulesHandler(
-            metaDataClientFactory, unitGraphInfoLoader, 10);
+        instance = new ReclassificationPreparationCheckHoldRulesHandler(metaDataClientFactory, unitGraphInfoLoader, 10);
 
         ReclassificationOrders reclassificationOrders = buildReclassificationOrders();
-        doReturn(reclassificationOrders).when(handlerIO).getInput(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
+        doReturn(reclassificationOrders)
+            .when(handlerIO)
+            .getInput(ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_ORDERS_PARAMETER_RANK);
     }
 
     @Test
     public void testCheckPreventInheritanceWhenEmptyRuleSetThenOK() throws Exception {
-
         // Given
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
-            "unit1", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
-            "unit2", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
-            "unit3", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())
+            "unit1",
+            new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
+            "unit2",
+            new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
+            "unit3",
+            new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())
         );
 
         doReturn(inheritedRules)
@@ -131,30 +137,38 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(unitGraphInfoLoader)
-            .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
+        verify(unitGraphInfoLoader).loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
         verifyNoMoreInteractions(unitGraphInfoLoader);
     }
 
     @Test
     public void testCheckPreventInheritanceWhenExpiredHoldRulesThenOK() throws Exception {
-
         // Given
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
-            "unit1", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit1", "R1", "2010-12-31", Boolean.TRUE),
-                buildHoldRule("unit1", "R2", "2010-12-31", Boolean.FALSE),
-                buildHoldRule("unit1", "R3", "2010-12-31", null)
-            ), Collections.emptyList()),
-            "unit2", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit2", "R4", today(), Boolean.TRUE),
-                buildHoldRule("unit2", "R5", today(), Boolean.FALSE),
-                buildHoldRule("unit2", "R6", today(), null)
-            ), Collections.emptyList()),
-            "unit3", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())
+            "unit1",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit1", "R1", "2010-12-31", Boolean.TRUE),
+                    buildHoldRule("unit1", "R2", "2010-12-31", Boolean.FALSE),
+                    buildHoldRule("unit1", "R3", "2010-12-31", null)
+                ),
+                Collections.emptyList()
+            ),
+            "unit2",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit2", "R4", today(), Boolean.TRUE),
+                    buildHoldRule("unit2", "R5", today(), Boolean.FALSE),
+                    buildHoldRule("unit2", "R6", today(), null)
+                ),
+                Collections.emptyList()
+            ),
+            "unit3",
+            new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())
         );
 
-        doReturn(inheritedRules).when(unitGraphInfoLoader)
+        doReturn(inheritedRules)
+            .when(unitGraphInfoLoader)
             .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
 
         // When
@@ -162,31 +176,42 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(unitGraphInfoLoader)
-            .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
+        verify(unitGraphInfoLoader).loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
         verifyNoMoreInteractions(unitGraphInfoLoader);
     }
 
     @Test
     public void testCheckPreventInheritanceWhenActiveHoldRulesWithoutPreventRearrangementThenOK() throws Exception {
-
         // Given
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
-            "unit1", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit1", "R1", "2099-12-31", Boolean.FALSE),
-                buildHoldRule("unit1", "R2", "2099-12-31", null)
-            ), Collections.emptyList()),
-            "unit2", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit2", "R3", null, Boolean.FALSE),
-                buildHoldRule("unit2", "R4", null, null)
-            ), Collections.emptyList()),
-            "unit3", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit3", "R5", tomorrow(), Boolean.FALSE),
-                buildHoldRule("unit3", "R6", tomorrow(), null)
-            ), Collections.emptyList())
+            "unit1",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit1", "R1", "2099-12-31", Boolean.FALSE),
+                    buildHoldRule("unit1", "R2", "2099-12-31", null)
+                ),
+                Collections.emptyList()
+            ),
+            "unit2",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit2", "R3", null, Boolean.FALSE),
+                    buildHoldRule("unit2", "R4", null, null)
+                ),
+                Collections.emptyList()
+            ),
+            "unit3",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit3", "R5", tomorrow(), Boolean.FALSE),
+                    buildHoldRule("unit3", "R6", tomorrow(), null)
+                ),
+                Collections.emptyList()
+            )
         );
 
-        doReturn(inheritedRules).when(unitGraphInfoLoader)
+        doReturn(inheritedRules)
+            .when(unitGraphInfoLoader)
             .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
 
         // When
@@ -194,31 +219,42 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(unitGraphInfoLoader)
-            .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
+        verify(unitGraphInfoLoader).loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
         verifyNoMoreInteractions(unitGraphInfoLoader);
     }
 
     @Test
     public void testCheckPreventInheritanceWhenActiveHoldRulesWithPreventRearrangementThenOK() throws Exception {
-
         // Given
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
-            "unit1", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit1", "R1", "2099-12-31", Boolean.FALSE),
-                buildHoldRule("unit1", "R2", "2099-12-31", Boolean.TRUE)
-            ), Collections.emptyList()),
-            "unit2", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit2", "R3", null, Boolean.FALSE),
-                buildHoldRule("unit2", "R4", null, null)
-            ), Collections.emptyList()),
-            "unit3", new InheritedRuleCategoryResponseModel(Arrays.asList(
-                buildHoldRule("unit3", "R5", tomorrow(), Boolean.TRUE),
-                buildHoldRule("unit3", "R6", tomorrow(), null)
-            ), Collections.emptyList())
+            "unit1",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit1", "R1", "2099-12-31", Boolean.FALSE),
+                    buildHoldRule("unit1", "R2", "2099-12-31", Boolean.TRUE)
+                ),
+                Collections.emptyList()
+            ),
+            "unit2",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit2", "R3", null, Boolean.FALSE),
+                    buildHoldRule("unit2", "R4", null, null)
+                ),
+                Collections.emptyList()
+            ),
+            "unit3",
+            new InheritedRuleCategoryResponseModel(
+                Arrays.asList(
+                    buildHoldRule("unit3", "R5", tomorrow(), Boolean.TRUE),
+                    buildHoldRule("unit3", "R6", tomorrow(), null)
+                ),
+                Collections.emptyList()
+            )
         );
 
-        doReturn(inheritedRules).when(unitGraphInfoLoader)
+        doReturn(inheritedRules)
+            .when(unitGraphInfoLoader)
             .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
 
         // When
@@ -227,28 +263,31 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(itemStatus.getEvDetailData()).isNotNull();
-        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(itemStatus.getEvDetailData(),
-            ReclassificationEventDetails.class);
+        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getUnitsBlockedByHoldRules()).containsExactly("unit1", "unit3");
         assertThat(eventDetails.getError()).isEqualTo(
-            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_BLOCKED_BY_HOLD_RULES);
+            ReclassificationPreparationCheckHoldRulesHandler.RECLASSIFICATION_BLOCKED_BY_HOLD_RULES
+        );
 
-        verify(unitGraphInfoLoader)
-            .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
+        verify(unitGraphInfoLoader).loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
         verifyNoMoreInteractions(unitGraphInfoLoader);
-
     }
 
     @Test
     public void testCheckPreventInheritanceWhenUnitNotFoundThenFatal() throws Exception {
-
         // Given
         Map<String, InheritedRuleCategoryResponseModel> inheritedRules = Map.of(
-            "unit1", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
-            "unit3", new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())
+            "unit1",
+            new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList()),
+            "unit3",
+            new InheritedRuleCategoryResponseModel(Collections.emptyList(), Collections.emptyList())
         );
 
-        doReturn(inheritedRules).when(unitGraphInfoLoader)
+        doReturn(inheritedRules)
+            .when(unitGraphInfoLoader)
             .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
 
         // When
@@ -257,14 +296,16 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(itemStatus.getEvDetailData()).isNotNull();
-        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(itemStatus.getEvDetailData(),
-            ReclassificationEventDetails.class);
+        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getNotFoundUnits()).containsExactly("unit2");
         assertThat(eventDetails.getError()).isEqualTo(
-            ReclassificationPreparationCheckHoldRulesHandler.COULD_NOT_FIND_UNITS_INHERITED_RULES);
+            ReclassificationPreparationCheckHoldRulesHandler.COULD_NOT_FIND_UNITS_INHERITED_RULES
+        );
 
-        verify(unitGraphInfoLoader)
-            .loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
+        verify(unitGraphInfoLoader).loadInheritedHoldRules(metaDataClient, Set.of("unit1", "unit2", "unit3"));
         verifyNoMoreInteractions(unitGraphInfoLoader);
     }
 
@@ -275,19 +316,21 @@ public class ReclassificationPreparationCheckHoldRulesHandlerTest {
         HashSetValuedHashMap<String, String> childToParentDetachments = new HashSetValuedHashMap<>();
         childToParentDetachments.put("unit2", "unit4");
         childToParentDetachments.put("unit3", "unit5");
-        return new ReclassificationOrders(
-            childToParentAttachments, childToParentDetachments);
+        return new ReclassificationOrders(childToParentAttachments, childToParentDetachments);
     }
 
-    private InheritedRuleResponseModel buildHoldRule(String unitId, String ruleId, String expirationDate,
-        Boolean preventRearrangement) {
+    private InheritedRuleResponseModel buildHoldRule(
+        String unitId,
+        String ruleId,
+        String expirationDate,
+        Boolean preventRearrangement
+    ) {
         Map<String, Object> ruleAttributes = new HashMap<>();
         ruleAttributes.put(RuleModel.END_DATE, expirationDate);
         if (preventRearrangement != null) {
             ruleAttributes.put(RuleModel.PREVENT_REARRANGEMENT, preventRearrangement);
         }
-        return new InheritedRuleResponseModel(unitId, "sp", List.of(List.of(unitId)),
-            ruleId, ruleAttributes);
+        return new InheritedRuleResponseModel(unitId, "sp", List.of(List.of(unitId)), ruleId, ruleAttributes);
     }
 
     private String today() {

@@ -118,13 +118,15 @@ public class VerifyTimeStampActionHandlerTest {
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Mock
     private WorkspaceClient workspaceClient;
@@ -137,7 +139,6 @@ public class VerifyTimeStampActionHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             BouncyCastleProvider provider = new BouncyCastleProvider();
             Security.addProvider(provider);
@@ -147,24 +148,21 @@ public class VerifyTimeStampActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-
-        when(handlerIO.getJsonFromWorkspace(eq(OBJECT_ID + separator + WorkspaceConstants.REPORT)))
-            .thenReturn(createObjectNode());
+        when(handlerIO.getJsonFromWorkspace(eq(OBJECT_ID + separator + WorkspaceConstants.REPORT))).thenReturn(
+            createObjectNode()
+        );
 
         guid = GUIDFactory.newGUID();
 
         when(params.getObjectName()).thenReturn(OBJECT_ID);
 
         reportTempFile = temporaryFolder.newFile(REPORT_FILENAME);
-        when(handlerIO.getNewLocalFile(anyString()))
-            .thenReturn(reportTempFile);
-
+        when(handlerIO.getNewLocalFile(anyString())).thenReturn(reportTempFile);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testVerifyTimeStampThenOK()
-        throws Exception {
+    public void testVerifyTimeStampThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(handlerIO.getInput(0)).thenReturn(PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
 
@@ -174,38 +172,57 @@ public class VerifyTimeStampActionHandlerTest {
         final InputStream computingInformationFile = PropertiesUtils.getResourceAsStream(COMPUTING_FILE);
         final InputStream merkleFile = PropertiesUtils.getResourceAsStream(MERKLE_FILE);
 
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + OBJECT_ID + "/" + TRACEABILITY_TOKEN)))
-            .thenReturn(tokenFile);
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + OBJECT_ID + "/" + TRACEABILITY_COMPUTING_INFORMATION)))
-            .thenReturn(computingInformationFile);
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + OBJECT_ID + "/" + TRACEABILITY_MERKLE_TREE)))
-            .thenReturn(merkleFile);
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + OBJECT_ID + "/" + TRACEABILITY_TOKEN)
+            )
+        ).thenReturn(tokenFile);
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + OBJECT_ID + "/" + TRACEABILITY_COMPUTING_INFORMATION)
+            )
+        ).thenReturn(computingInformationFile);
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + "/" + OBJECT_ID + "/" + TRACEABILITY_MERKLE_TREE)
+            )
+        ).thenReturn(merkleFile);
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
-        assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
+        assertEquals(
+            StatusCode.OK,
+            response
+                .getItemsStatus()
+                .get(verifyTimeStampActionHandler.getId())
+                .getItemsStatus()
+                .get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP)
+                .getGlobalStatus()
+        );
+        assertEquals(
+            StatusCode.OK,
+            response
+                .getItemsStatus()
+                .get(verifyTimeStampActionHandler.getId())
+                .getItemsStatus()
+                .get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP)
+                .getGlobalStatus()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testVerifyTimeStampWithErrorWorkspaceThenFATAL()
-        throws Exception {
+    public void testVerifyTimeStampWithErrorWorkspaceThenFATAL() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(handlerIO.getInput(0)).thenReturn(PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
-        when(handlerIO
-            .getInputStreamFromWorkspace(
-                eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator +
-                    "token.tsp")))
-            .thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator + "token.tsp")
+            )
+        ).thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -213,27 +230,30 @@ public class VerifyTimeStampActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testVerifyTimeStampCorruptThenKO()
-        throws Exception {
+    public void testVerifyTimeStampCorruptThenKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(handlerIO.getInput(0)).thenReturn(PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY));
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream(TOKEN_FAKE);
+        final InputStream tokenFile = PropertiesUtils.getResourceAsStream(TOKEN_FAKE);
 
-
-        when(handlerIO
-            .getInputStreamFromWorkspace(
-                eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator +
-                    "token.tsp")))
-            .thenReturn(tokenFile);
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_ID + File.separator + "token.tsp")
+            )
+        ).thenReturn(tokenFile);
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
+        assertEquals(
+            StatusCode.KO,
+            response
+                .getItemsStatus()
+                .get(verifyTimeStampActionHandler.getId())
+                .getItemsStatus()
+                .get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP)
+                .getGlobalStatus()
+        );
     }
-
 }

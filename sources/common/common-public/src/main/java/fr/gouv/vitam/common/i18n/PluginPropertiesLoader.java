@@ -45,6 +45,7 @@ import java.util.ResourceBundle;
  * Plugin Messages Helper for Logbooks
  */
 public class PluginPropertiesLoader {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginPropertiesLoader.class);
 
     static Map<String, String> resourceMap = new HashMap<>();
@@ -53,8 +54,7 @@ public class PluginPropertiesLoader {
     /**
      * Private constructor
      */
-    private PluginPropertiesLoader() {
-    }
+    private PluginPropertiesLoader() {}
 
     /**
      * loadProperties from handler Id and properties file
@@ -63,7 +63,6 @@ public class PluginPropertiesLoader {
      * @param propertyFilename the property file name
      */
     public static void loadProperties(String handlerID, String propertyFilename) {
-
         ParametersChecker.checkParameter("missing property file", propertyFilename);
 
         InputStream inputStream = null;
@@ -74,8 +73,9 @@ public class PluginPropertiesLoader {
                 return;
             }
             // Else
-            ResourceBundle resourceBundle =
-                new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
+            ResourceBundle resourceBundle = new PropertyResourceBundle(
+                new InputStreamReader(inputStream, CharsetUtils.UTF8)
+            );
             for (final String key : resourceBundle.keySet()) {
                 final String value = resourceBundle.getString(key);
                 resourceMap.put(key.replaceAll(PLUGIN, handlerID), value);
@@ -96,7 +96,6 @@ public class PluginPropertiesLoader {
      * @param urlClassLoader
      */
     public static void loadProperties(String handlerID, String propertyFilename, ClassLoader urlClassLoader) {
-
         InputStream inputStream = null;
         try {
             inputStream = urlClassLoader.getResourceAsStream(propertyFilename);
@@ -105,8 +104,9 @@ public class PluginPropertiesLoader {
                 return;
             }
             // Else
-            ResourceBundle resourceBundle =
-                new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
+            ResourceBundle resourceBundle = new PropertyResourceBundle(
+                new InputStreamReader(inputStream, CharsetUtils.UTF8)
+            );
             for (final String key : resourceBundle.keySet()) {
                 final String value = resourceBundle.getString(key);
                 if (LOGGER.isDebugEnabled()) {

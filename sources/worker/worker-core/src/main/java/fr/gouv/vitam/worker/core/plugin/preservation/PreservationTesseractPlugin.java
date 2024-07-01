@@ -58,21 +58,19 @@ public class PreservationTesseractPlugin extends ActionHandler {
     private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
     private static final String ITEM_ID = "TESSERACT_SPLIT_TEXT_CONTENT";
 
-
-    public PreservationTesseractPlugin() {
-    }
+    public PreservationTesseractPlugin() {}
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
 
         List<ItemStatus> itemStatuses = new ArrayList<>();
         List<WorkflowBatchResult> workflowBatchResults = new ArrayList<>();
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
-            List<WorkflowBatchResult.OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
+            List<WorkflowBatchResult.OutputExtra> outputExtras = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(WorkflowBatchResult.OutputExtra::isOkAndExtractedAu)
                 .collect(Collectors.toList());
@@ -84,10 +82,12 @@ public class PreservationTesseractPlugin extends ActionHandler {
                 continue;
             }
 
-            outputExtras
-                .forEach(
-                    o -> o.getExtractedMetadataAU()
-                        .ifPresent(metadata -> computeTextContent(metadata, itemStatuses, o.getBinaryGUID())));
+            outputExtras.forEach(
+                o ->
+                    o
+                        .getExtractedMetadataAU()
+                        .ifPresent(metadata -> computeTextContent(metadata, itemStatuses, o.getBinaryGUID()))
+            );
 
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, outputExtras));
         }
@@ -96,9 +96,11 @@ public class PreservationTesseractPlugin extends ActionHandler {
         return itemStatuses;
     }
 
-
-    private void computeTextContent(ExtractedMetadataForAu extractedMetadataForAu,
-        List<ItemStatus> itemStatuses, String subBinaryItemIds) {
+    private void computeTextContent(
+        ExtractedMetadataForAu extractedMetadataForAu,
+        List<ItemStatus> itemStatuses,
+        String subBinaryItemIds
+    ) {
         extractedMetadataForAu.computeIfPresent(TEXT_CONTENT, (key, value) -> {
             String textValue = String.valueOf(value);
             final int maxUtf8TextContentLength = VitamConfiguration.getTextContentMaxLength();
@@ -106,11 +108,23 @@ public class PreservationTesseractPlugin extends ActionHandler {
             String encodedString = StringEscapeUtils.escapeJava(textValue);
             if (OntologyValidator.stringExceedsMaxLuceneUtf8StorageSize(textValue, maxUtf8TextContentLength)) {
                 encodedString = encodedString.substring(0, maxUtf8TextContentLength);
-                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), WARNING,
-                    PluginHelper.EventDetails.of("TextContent metadata exceeds the limit")));
+                itemStatuses.add(
+                    buildItemStatusSubItems(
+                        ITEM_ID,
+                        Stream.of(subBinaryItemIds),
+                        WARNING,
+                        PluginHelper.EventDetails.of("TextContent metadata exceeds the limit")
+                    )
+                );
             } else {
-                itemStatuses.add(buildItemStatusSubItems(ITEM_ID, Stream.of(subBinaryItemIds), OK,
-                    PluginHelper.EventDetails.of("All metadata are OK.")));
+                itemStatuses.add(
+                    buildItemStatusSubItems(
+                        ITEM_ID,
+                        Stream.of(subBinaryItemIds),
+                        OK,
+                        PluginHelper.EventDetails.of("All metadata are OK.")
+                    )
+                );
             }
             // split text content if it exceeds the lucene limit
             return splitText(encodedString, maxUtf8Length - 1);

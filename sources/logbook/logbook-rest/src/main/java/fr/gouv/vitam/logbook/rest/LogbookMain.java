@@ -41,6 +41,7 @@ import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
  * Logbook web application
  */
 public class LogbookMain {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookMain.class);
     private static final String CONF_FILE_NAME = "logbook.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
@@ -54,10 +55,16 @@ public class LogbookMain {
      * @param configurationFile the path to configuration file
      */
     public LogbookMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(LogbookConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminLogbookApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            LogbookConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminLogbookApplication.class
+        );
     }
 
     /**
@@ -69,8 +76,9 @@ public class LogbookMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
 
             LogbookMain main = new LogbookMain(args[0]);
@@ -80,8 +88,11 @@ public class LogbookMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }
@@ -113,5 +124,4 @@ public class LogbookMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-
 }

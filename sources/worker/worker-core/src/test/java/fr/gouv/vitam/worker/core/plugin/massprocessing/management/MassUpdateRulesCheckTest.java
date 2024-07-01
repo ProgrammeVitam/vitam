@@ -63,6 +63,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
 public class MassUpdateRulesCheckTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -76,14 +77,17 @@ public class MassUpdateRulesCheckTest {
     private final List<String> classificationLevels = Arrays.asList("Superman", "Joker");
 
     public static Condition<String> massUpdateErrorWithMessage(String error) {
-        return new Condition<>(s -> {
-            try {
-                MassUpdateErrorInfo massUpdateError = JsonHandler.getFromString(s, MassUpdateErrorInfo.class);
-                return massUpdateError.getError().equals(error);
-            } catch (InvalidParseOperationException e) {
-                throw new VitamRuntimeException(e);
-            }
-        }, String.format("%s JSON with Error: '%s'.", MassUpdateErrorInfo.class.getSimpleName(), error));
+        return new Condition<>(
+            s -> {
+                try {
+                    MassUpdateErrorInfo massUpdateError = JsonHandler.getFromString(s, MassUpdateErrorInfo.class);
+                    return massUpdateError.getError().equals(error);
+                } catch (InvalidParseOperationException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            },
+            String.format("%s JSON with Error: '%s'.", MassUpdateErrorInfo.class.getSimpleName(), error)
+        );
     }
 
     @Before
@@ -110,7 +114,7 @@ public class MassUpdateRulesCheckTest {
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
         addRules.put(TAG_RULE_CLASSIFICATION, new RuleCategoryAction());
-        ruleActions.setAdd(Arrays.asList(addRules, addRules));                  // <- Here 2 ClassificationRule
+        ruleActions.setAdd(Arrays.asList(addRules, addRules)); // <- Here 2 ClassificationRule
 
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
@@ -129,7 +133,7 @@ public class MassUpdateRulesCheckTest {
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
         addRules.put(TAG_RULE_CLASSIFICATION, new RuleCategoryAction());
-        ruleActions.setUpdate(Arrays.asList(addRules, addRules));                  // <- Here 2 ClassificationRule
+        ruleActions.setUpdate(Arrays.asList(addRules, addRules)); // <- Here 2 ClassificationRule
 
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
@@ -151,9 +155,9 @@ public class MassUpdateRulesCheckTest {
         HashMap<String, RuleCategoryActionDeletion> deleteRules = new HashMap<>();
         deleteRules.put(TAG_RULE_CLASSIFICATION, new RuleCategoryActionDeletion());
 
-        ruleActions.setUpdate(Collections.singletonList(addRules));               // <- Here 1 ClassificationRule
-        ruleActions.setAdd(Collections.singletonList(addRules));                  // <- Here 1 ClassificationRule
-        ruleActions.setDelete(Collections.singletonList(deleteRules));            // <- Here 1 ClassificationRule
+        ruleActions.setUpdate(Collections.singletonList(addRules)); // <- Here 1 ClassificationRule
+        ruleActions.setAdd(Collections.singletonList(addRules)); // <- Here 1 ClassificationRule
+        ruleActions.setDelete(Collections.singletonList(deleteRules)); // <- Here 1 ClassificationRule
 
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
@@ -173,7 +177,7 @@ public class MassUpdateRulesCheckTest {
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
         RuleCategoryAction categoryAction = new RuleCategoryAction();
-        categoryAction.setClassificationLevel("Batman");                        // <- unknown classification level.
+        categoryAction.setClassificationLevel("Batman"); // <- unknown classification level.
         addRules.put(TAG_RULE_CLASSIFICATION, categoryAction);
         ruleActions.setAdd(Collections.singletonList(addRules));
 
@@ -196,7 +200,7 @@ public class MassUpdateRulesCheckTest {
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
         RuleCategoryAction categoryAction = new RuleCategoryAction();
-        categoryAction.setClassificationLevel("Batman");                        // <- unknown classification level.
+        categoryAction.setClassificationLevel("Batman"); // <- unknown classification level.
         addRules.put(TAG_RULE_CLASSIFICATION, categoryAction);
         ruleActions.setUpdate(Collections.singletonList(addRules));
 
@@ -289,8 +293,9 @@ public class MassUpdateRulesCheckTest {
         // Given
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryActionDeletion> deleteRules = new HashMap<>();
-        Set<String> preventRulesIdToRemove = Stream.of("APP-00003", "APP-00004")
-            .collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesIdToRemove = Stream.of("APP-00003", "APP-00004").collect(
+            Collectors.toCollection(HashSet::new)
+        );
 
         RuleCategoryActionDeletion ruleCategoryActionDeletion = new RuleCategoryActionDeletion();
         ruleCategoryActionDeletion.setPreventRulesIdToRemove(preventRulesIdToRemove);
@@ -314,10 +319,10 @@ public class MassUpdateRulesCheckTest {
         // Given
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
-        Set<String> preventRulesId = Stream.of("APP-00001", "APP-00002")
-            .collect(Collectors.toCollection(HashSet::new));
-        Set<String> preventRulesIdToAdd = Stream.of("APP-00003", "APP-00004")
-            .collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesId = Stream.of("APP-00001", "APP-00002").collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesIdToAdd = Stream.of("APP-00003", "APP-00004").collect(
+            Collectors.toCollection(HashSet::new)
+        );
 
         RuleCategoryAction ruleCategoryAction = new RuleCategoryAction();
         ruleCategoryAction.setPreventRulesIdToAdd(preventRulesIdToAdd);
@@ -342,10 +347,10 @@ public class MassUpdateRulesCheckTest {
         // Given
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryActionDeletion> deleteRules = new HashMap<>();
-        Set<String> preventRulesId = Stream.of("APP-00001", "APP-00002")
-            .collect(Collectors.toCollection(HashSet::new));
-        Set<String> preventRulesIdToRemove = Stream.of("APP-00003", "APP-00004")
-            .collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesId = Stream.of("APP-00001", "APP-00002").collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesIdToRemove = Stream.of("APP-00003", "APP-00004").collect(
+            Collectors.toCollection(HashSet::new)
+        );
 
         RuleCategoryActionDeletion ruleCategoryActionDeletion = new RuleCategoryActionDeletion();
         ruleCategoryActionDeletion.setPreventRulesIdToRemove(preventRulesIdToRemove);
@@ -369,8 +374,9 @@ public class MassUpdateRulesCheckTest {
         // Given
         RuleActions ruleActions = new RuleActions();
         HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
-        Set<String> preventRulesIdToAdd = Stream.of("APP-00001", "APP-00002", "APP-00003", "APP-00004")
-            .collect(Collectors.toCollection(HashSet::new));
+        Set<String> preventRulesIdToAdd = Stream.of("APP-00001", "APP-00002", "APP-00003", "APP-00004").collect(
+            Collectors.toCollection(HashSet::new)
+        );
 
         RuleCategoryAction categoryAction = new RuleCategoryAction();
         categoryAction.setPreventRulesIdToAdd(preventRulesIdToAdd);

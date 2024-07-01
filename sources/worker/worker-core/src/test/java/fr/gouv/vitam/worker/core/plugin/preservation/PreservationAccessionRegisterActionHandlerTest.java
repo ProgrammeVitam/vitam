@@ -64,6 +64,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class PreservationAccessionRegisterActionHandlerTest {
+
     private static final String FAKE_URL = "http://localhost:8080";
     PreservationAccessionRegisterActionHandler accessionRegisterHandler;
     private static final String HANDLER_ID = "PRESERVATION_ACCESSION_REGISTRATION";
@@ -73,9 +74,9 @@ public class PreservationAccessionRegisterActionHandlerTest {
     private static final Integer TENANT_ID = 0;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     MetaDataClient metaDataClient = mock(MetaDataClient.class);
     MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
@@ -87,10 +88,13 @@ public class PreservationAccessionRegisterActionHandlerTest {
     public void setUp() throws Exception {
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
-        params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                .setCurrentStep("currentStep").setContainerName(guid.getId());
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         String objectId = "manifest";
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
@@ -117,23 +121,24 @@ public class PreservationAccessionRegisterActionHandlerTest {
         List<ObjectGroupPerOriginatingAgency> originatingAgencies = new ArrayList<>();
         originatingAgencies.add(new ObjectGroupPerOriginatingAgency(operationId.getId(), "FRAN_NP_005568", 1l, 1l, 1l));
 
-
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
-
+        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString())).thenReturn(
+            originatingAgencies
+        );
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
-        accessionRegisterHandler =
-            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new PreservationAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
-        RequestResponse<AccessionRegisterDetailModel> res =
-            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenReturn(res);
+        RequestResponse<AccessionRegisterDetailModel> res = new RequestResponseOK<
+            AccessionRegisterDetailModel
+        >().setHttpCode(201);
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(res);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -157,17 +162,20 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString())).thenReturn(
+            originatingAgencies
+        );
 
-
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenThrow(
+            new AdminManagementClientServerException("AdminManagementClientServerException")
+        );
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
-        accessionRegisterHandler =
-            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new PreservationAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -175,7 +183,6 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
         // Then
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-
     }
 
     @Test
@@ -193,19 +200,22 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString())).thenReturn(
+            originatingAgencies
+        );
 
-        RequestResponse<AccessionRegisterDetailModel> res =
-            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
+        RequestResponse<AccessionRegisterDetailModel> res = new RequestResponseOK<
+            AccessionRegisterDetailModel
+        >().setHttpCode(201);
 
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenReturn(res);
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(res);
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
-        accessionRegisterHandler =
-            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new PreservationAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -213,9 +223,7 @@ public class PreservationAccessionRegisterActionHandlerTest {
 
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -230,16 +238,18 @@ public class PreservationAccessionRegisterActionHandlerTest {
         List<ObjectGroupPerOriginatingAgency> originatingAgencies = new ArrayList<>();
         originatingAgencies.add(new ObjectGroupPerOriginatingAgency(operationId.getId(), "FRAN_NP_005568", 1l, 1l, 1l));
 
-
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString()))
-            .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
+        when(metaDataClient.selectAccessionRegisterOnObjectByOperationId(operationId.toString())).thenThrow(
+            new MetaDataClientServerException("MetaDataClientServerException")
+        );
 
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
-        accessionRegisterHandler =
-            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new PreservationAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -259,8 +269,10 @@ public class PreservationAccessionRegisterActionHandlerTest {
         params.setContainerName(operationId.getId());
         AdminManagementClientFactory.changeMode(null);
         handlerIO.reset();
-        accessionRegisterHandler =
-            new PreservationAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new PreservationAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(PreservationAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -269,5 +281,4 @@ public class PreservationAccessionRegisterActionHandlerTest {
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-
 }

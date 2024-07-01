@@ -30,7 +30,6 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
  * Enumeration of distribution status
  */
 public enum DistributionStatus {
-
     /**
      * indicates the successful without warning
      */
@@ -54,8 +53,7 @@ public enum DistributionStatus {
     /**
      * Constructor. <br/>
      */
-    DistributionStatus() {
-    }
+    DistributionStatus() {}
 
     /**
      * getDistributionStatusLevel

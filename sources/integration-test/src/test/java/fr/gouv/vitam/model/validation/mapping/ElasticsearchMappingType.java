@@ -35,5 +35,5 @@ public enum ElasticsearchMappingType {
     DOUBLE,
     OBJECT,
     NESTED_OBJECT,
-    NOT_INDEXED
+    NOT_INDEXED,
 }

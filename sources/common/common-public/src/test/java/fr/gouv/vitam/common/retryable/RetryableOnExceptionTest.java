@@ -41,6 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class RetryableOnExceptionTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -51,9 +52,10 @@ public class RetryableOnExceptionTest {
         RetryableOnException<Void, VitamRuntimeException> retryable = new RetryableOnException<>(parameters);
 
         // When
-        ThrowingCallable runRetryable = () -> retryable.exec(() -> {
-            throw new VitamRuntimeException("throw");
-        });
+        ThrowingCallable runRetryable = () ->
+            retryable.exec(() -> {
+                throw new VitamRuntimeException("throw");
+            });
 
         // Then
         assertThatThrownBy(runRetryable).isInstanceOf(VitamRuntimeException.class);
@@ -127,11 +129,12 @@ public class RetryableOnExceptionTest {
         DelegateRetryVoid<VitamRuntimeException> delegate = () -> {
             counter.incrementAndGet();
             throw new VitamRuntimeException("throw");
-
         };
         RetryableParameters parameters = new RetryableParameters(3, 1, 1, 1, MILLISECONDS);
-        RetryableOnException<Void, VitamRuntimeException> retryable =
-            new RetryableOnException<>(parameters, e -> false);
+        RetryableOnException<Void, VitamRuntimeException> retryable = new RetryableOnException<>(
+            parameters,
+            e -> false
+        );
 
         // When
         ThrowingCallable runRetryable = () -> retryable.execute(delegate);

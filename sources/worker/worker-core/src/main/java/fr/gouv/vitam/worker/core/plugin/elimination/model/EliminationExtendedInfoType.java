@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 public enum EliminationExtendedInfoType {
-
     /**
      * The originating agency of the unit cannot has a "DESTROY" status, because one or more symbolic originating
      * agencies have a "KEEP" status.
@@ -43,5 +42,5 @@ public enum EliminationExtendedInfoType {
     /**
      * The same originating agency have a KEEP and a DESTROY status.
      */
-    FINAL_ACTION_INCONSISTENCY
+    FINAL_ACTION_INCONSISTENCY,
 }

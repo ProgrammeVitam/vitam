@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.client;
 
-
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
 import javax.ws.rs.core.MediaType;
@@ -67,6 +66,7 @@ import java.util.Objects;
  * </pre>
  */
 public class VitamRestTestClient extends DefaultClient {
+
     /**
      * Constructor using given scheme (http) and allowing multipart but no chunk
      *
@@ -87,6 +87,7 @@ public class VitamRestTestClient extends DefaultClient {
      * VItam Rest Test: mimic of Restassured.RequestSpecification
      */
     public static class VitamRestTest {
+
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         Object body;
         MediaType contentType;
@@ -103,13 +104,25 @@ public class VitamRestTestClient extends DefaultClient {
         @Override
         public String toString() {
             return new StringBuilder("VitamRestTest: { ")
-                .append("Headers: { ").append(headers).append(" } ")
-                .append(", Body: { value: ").append(body != null).append(", type: ").append(contentType).append(" } ")
-                .append(", pathParameters: \"").append(pathParameters).append("\"")
-                .append(", expectedStatus: ").append(expectedStatus)
-                .append(", acceptedMediaType: ").append(acceptMediaType)
-                .append(", ").append(client.toString())
-                .append(" }").toString();
+                .append("Headers: { ")
+                .append(headers)
+                .append(" } ")
+                .append(", Body: { value: ")
+                .append(body != null)
+                .append(", type: ")
+                .append(contentType)
+                .append(" } ")
+                .append(", pathParameters: \"")
+                .append(pathParameters)
+                .append("\"")
+                .append(", expectedStatus: ")
+                .append(expectedStatus)
+                .append(", acceptedMediaType: ")
+                .append(acceptMediaType)
+                .append(", ")
+                .append(client.toString())
+                .append(" }")
+                .toString();
         }
 
         private void reset() {
@@ -198,9 +211,15 @@ public class VitamRestTestClient extends DefaultClient {
 
         private void checkStatus(int status) throws VitamClientInternalException {
             if (expectedStatus != null && status != expectedStatus.getStatusCode()) {
-                throw new VitamClientInternalException(String.format("Status %d (%s) is not the one expected %d (%s)",
-                    status, Status.fromStatusCode(status).getReasonPhrase(),
-                    expectedStatus.getStatusCode(), expectedStatus.getReasonPhrase()));
+                throw new VitamClientInternalException(
+                    String.format(
+                        "Status %d (%s) is not the one expected %d (%s)",
+                        status,
+                        Status.fromStatusCode(status).getReasonPhrase(),
+                        expectedStatus.getStatusCode(),
+                        expectedStatus.getReasonPhrase()
+                    )
+                );
             }
         }
 
@@ -282,10 +301,8 @@ public class VitamRestTestClient extends DefaultClient {
             return execute(VitamRequestBuilder.put().withPath(getFinalPath(path)));
         }
 
-        public <T> T execute(VitamRequestBuilder request, Class<T> entityTpe)
-            throws VitamClientInternalException {
-            request.withHeaders(headers)
-                .withAccept(acceptMediaType);
+        public <T> T execute(VitamRequestBuilder request, Class<T> entityTpe) throws VitamClientInternalException {
+            request.withHeaders(headers).withAccept(acceptMediaType);
             if (!Objects.isNull(contentType)) {
                 request.withContentType(contentType);
             }

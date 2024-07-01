@@ -53,9 +53,14 @@ public class EliminationActionObjectGroupPreparationHandler extends PurgeObjectG
     EliminationActionObjectGroupPreparationHandler(
         MetaDataClientFactory metaDataClientFactory,
         PurgeReportService purgeReportService,
-        int objectGroupBulkSize) {
-        super(ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION, metaDataClientFactory, purgeReportService,
-            objectGroupBulkSize);
+        int objectGroupBulkSize
+    ) {
+        super(
+            ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION,
+            metaDataClientFactory,
+            purgeReportService,
+            objectGroupBulkSize
+        );
     }
 
     public static String getId() {

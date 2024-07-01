@@ -69,6 +69,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 public class WorkerManagerTest {
+
     private static final WorkerBean WORKER_DESCRIPTION;
     private static final WorkerBean WORKER_DESCRIPTION_2;
     private static final WorkerBean BIG_WORKER_DESCRIPTION;
@@ -77,16 +78,18 @@ public class WorkerManagerTest {
         try {
             WORKER_DESCRIPTION = JsonHandler.getFromString(
                 "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker1\", \"capacity\" : 2, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
-                WorkerBean.class);
+                WorkerBean.class
+            );
 
             WORKER_DESCRIPTION_2 = JsonHandler.getFromString(
                 "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker2\", \"capacity\" : 2, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
-                WorkerBean.class);
+                WorkerBean.class
+            );
 
             BIG_WORKER_DESCRIPTION = JsonHandler.getFromString(
                 "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 4, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
-                WorkerBean.class);
-
+                WorkerBean.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
@@ -94,9 +97,12 @@ public class WorkerManagerTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public TempFolderRule testFolder = new TempFolderRule();
+
     private WorkerManager workerManager;
+
     @Mock
     private WorkerClientFactory workerClientFactory;
 
@@ -109,7 +115,6 @@ public class WorkerManagerTest {
 
     @Before
     public void setup() throws Exception {
-
         when(workerClientFactory.getClient()).thenReturn(workerClient);
 
         doNothing().when(workerClient).checkStatus();
@@ -128,18 +133,25 @@ public class WorkerManagerTest {
         final String workerId = "NewWorkerId2";
         DescriptionStep descriptionStep = getDescriptionStep();
 
-        final WorkerTask task =
-            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
-                workerClientFactory);
-        doReturn(new ItemStatus().increment(StatusCode.OK))
-            .when(workerClient).submitStep(descriptionStep);
+        final WorkerTask task = new WorkerTask(
+            descriptionStep,
+            0,
+            "requestId",
+            "contractId",
+            "contextId",
+            "applicationId",
+            workerClientFactory
+        );
+        doReturn(new ItemStatus().increment(StatusCode.OK)).when(workerClient).submitStep(descriptionStep);
 
         workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
         assertNotNull(workerFamilyManager);
 
-        WorkerTaskResult workerTaskResult =
-            CompletableFuture.supplyAsync(task, workerFamilyManager.getExecutor(false)).get();
+        WorkerTaskResult workerTaskResult = CompletableFuture.supplyAsync(
+            task,
+            workerFamilyManager.getExecutor(false)
+        ).get();
 
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
@@ -158,7 +170,8 @@ public class WorkerManagerTest {
         actions.add(action);
 
         action.setActionDefinition(
-            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
+            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING)
+        );
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
         return new DescriptionStep(step, params);
     }
@@ -175,28 +188,34 @@ public class WorkerManagerTest {
         final String workerId = "NewWorkerId";
 
         action.setActionDefinition(
-            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
+            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING)
+        );
         actions.add(action);
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
-        DescriptionStep descriptionStep =
-            new DescriptionStep(step, params);
-        final WorkerTask task =
-            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
-                workerClientFactory);
-        doReturn(new ItemStatus().increment(StatusCode.OK))
-            .when(workerClient).submitStep(descriptionStep);
+        DescriptionStep descriptionStep = new DescriptionStep(step, params);
+        final WorkerTask task = new WorkerTask(
+            descriptionStep,
+            0,
+            "requestId",
+            "contractId",
+            "contextId",
+            "applicationId",
+            workerClientFactory
+        );
+        doReturn(new ItemStatus().increment(StatusCode.OK)).when(workerClient).submitStep(descriptionStep);
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
 
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
         assertNotNull(workerFamilyManager);
-        WorkerTaskResult workerTaskResult =
-            CompletableFuture.supplyAsync(task, workerFamilyManager.getExecutor(false)).get();
+        WorkerTaskResult workerTaskResult = CompletableFuture.supplyAsync(
+            task,
+            workerFamilyManager.getExecutor(false)
+        ).get();
 
         assertThat(workerTaskResult).isNotNull();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
         assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(workerTaskResult.isProcessed()).isTrue();
-
     }
 
     @Test
@@ -224,7 +243,6 @@ public class WorkerManagerTest {
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
     }
-
 
     @Test
     public void unregister_existing_worker_ok() throws Exception {
@@ -261,9 +279,13 @@ public class WorkerManagerTest {
     public void register_unmatched_family_then_throw_exception() throws Exception {
         final String familyId = "NewFamilyId";
         final String workerId = "NewWorkerId4" + GUIDFactory.newGUID().getId();
-        workerManager.registerWorker(familyId, workerId,
+        workerManager.registerWorker(
+            familyId,
+            workerId,
             JsonHandler.getFromString(
                 "{\"name\":\"worker_name\",\"status\":\"ok\", \"family\" : \"fakeValue\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" }}",
-                WorkerBean.class));
+                WorkerBean.class
+            )
+        );
     }
 }

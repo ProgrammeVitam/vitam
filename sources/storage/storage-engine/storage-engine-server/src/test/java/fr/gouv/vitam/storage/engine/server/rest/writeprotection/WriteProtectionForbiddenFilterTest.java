@@ -46,7 +46,6 @@ public class WriteProtectionForbiddenFilterTest {
 
     @Test
     public void testFilter() throws IOException {
-
         // Given
         AlertService alertService = mock(AlertService.class);
         WriteProtectionForbiddenFilter filter = new WriteProtectionForbiddenFilter(alertService);
@@ -65,8 +64,11 @@ public class WriteProtectionForbiddenFilterTest {
         ArgumentCaptor<Response> responseArgumentCaptor = ArgumentCaptor.forClass(Response.class);
         verify(request).abortWith(responseArgumentCaptor.capture());
         assertThat(responseArgumentCaptor.getValue().getStatus()).isEqualTo(
-            Response.Status.UNAUTHORIZED.getStatusCode());
-        verify(alertService).createAlert(VitamLogLevel.ERROR,
-            "SECURITY ALERT. Illegal Write API invocation on secondary site : POST https://uri/");
+            Response.Status.UNAUTHORIZED.getStatusCode()
+        );
+        verify(alertService).createAlert(
+            VitamLogLevel.ERROR,
+            "SECURITY ALERT. Illegal Write API invocation on secondary site : POST https://uri/"
+        );
     }
 }

@@ -68,17 +68,23 @@ public class ArchiveUnitMapperTest {
         archiveUnitMapper = new ArchiveUnitMapper(new DescriptiveMetadataMapper(), new RuleMapper());
     }
 
-
     @Test
     public void should_map_element_to_hashMap() throws Exception {
         // Given
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(
-            PropertiesUtils.getResourceAsStream("element_unit_with_agent_type.xml"));
+            PropertiesUtils.getResourceAsStream("element_unit_with_agent_type.xml")
+        );
 
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
 
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
@@ -105,12 +111,9 @@ public class ArchiveUnitMapperTest {
         assertThat(sender2.getFunction()).contains("IT Specialist");
         assertThat(sender2.getRole()).contains("Architect");
         assertThat(sender2.getMandate()).contains("Self Mandate");
-
-
     }
 
     private void assertAgentTypeModelProperties(AgentTypeModel agentTypeModel) {
-
         assertThat(agentTypeModel.getFirstName()).isEqualTo("John");
         assertThat(agentTypeModel.getBirthName()).isEqualTo("Doe");
         assertThat(agentTypeModel.getNationalities()).hasSize(2);
@@ -128,13 +131,19 @@ public class ArchiveUnitMapperTest {
     @Test
     public void should_transform_startDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_startDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_startDate.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -144,13 +153,19 @@ public class ArchiveUnitMapperTest {
     @Test
     public void should_do_nothing_on_startDate_when_date_format_is_good() throws Exception {
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_good_date_format.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_good_date_format.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -160,13 +175,19 @@ public class ArchiveUnitMapperTest {
     @Test
     public void should_transform_createdDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_createdDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_createdDate.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -176,13 +197,21 @@ public class ArchiveUnitMapperTest {
     @Test
     public void should_transform_transactedDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_transactedDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream(
+                "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_transactedDate.xml"
+            );
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -192,13 +221,19 @@ public class ArchiveUnitMapperTest {
     @Test
     public void should_transform_acquiredDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_acquiredDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_acquiredDate.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -209,13 +244,19 @@ public class ArchiveUnitMapperTest {
     public void should_transform_sentDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // test for BUG #3844
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_sentDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_sentDate.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         //when
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -226,13 +267,19 @@ public class ArchiveUnitMapperTest {
     public void should_transform_receivedDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // test for BUG #3844
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_receivedDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_receivedDate.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         //when
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -243,13 +290,19 @@ public class ArchiveUnitMapperTest {
     public void should_transform_registeredDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
         // test for BUG #3844
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_registerDate.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_registerDate.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         //when
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
@@ -261,26 +314,31 @@ public class ArchiveUnitMapperTest {
         // Given
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(
-            getClass().getResourceAsStream("/archiveUnit_multiple_objectreference.xml"));
+            getClass().getResourceAsStream("/archiveUnit_multiple_objectreference.xml")
+        );
 
         // When
-        assertThatThrownBy(
-            () -> archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION)).isInstanceOf(
-                ProcessingObjectReferenceException.class)
+        assertThatThrownBy(() -> archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION))
+            .isInstanceOf(ProcessingObjectReferenceException.class)
             .hasMessageContaining("references more than one technical object group");
     }
 
     @Test
     public void shouldFillCurrentSedaVersionAndImplementationVersion() throws Exception {
-
         // Given
-        final InputStream resourceAsStream = getClass().getResourceAsStream(
-            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_good_date_format.xml");
+        final InputStream resourceAsStream = getClass()
+            .getResourceAsStream("/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_good_date_format.xml");
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
         ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
         // When
-        ArchiveUnitRoot archiveUnitRoot =
-            archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST", SEDA_VERSION);
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            SEDA_VERSION
+        );
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         assertEquals(SEDA_VERSION, archiveUnit.getSedaVersion());

@@ -82,15 +82,12 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     private static final String OG_GUID = "aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq";
     private static final String OG_GUID_2 = "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq";
 
-    private static final String LFC_OG =
-        "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq_lfc.json";
+    private static final String LFC_OG = "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq_lfc.json";
     private static final String LFC_OG_2 =
         "storeMetadataObjectGroupPlugin/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq_lfc.json";
 
-    private static final String OG_MD =
-        "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq_md.json";
-    private static final String OG_MD_2 =
-        "storeMetadataObjectGroupPlugin/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq_md.json";
+    private static final String OG_MD = "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq_md.json";
+    private static final String OG_MD_2 = "storeMetadataObjectGroupPlugin/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq_md.json";
 
     private static final String OG_LFC_WITH_MD_1 =
         "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq_md_with_lfc.json";
@@ -121,7 +118,6 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     public StoreMetaDataObjectGroupActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
-
         rawObjectGroup1 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OG_MD));
         rawObjectGroup2 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OG_MD_2));
 
@@ -151,16 +147,23 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String container = args.getArgument(0);
             String filename = args.getArgument(1);
             InputStream is = args.getArgument(2);
             FileUtils.copyToFile(is, new File(temporaryFolder.getRoot(), container + "/" + filename));
             return null;
-        }).when(workspaceClient).putObject(any(), any(), any());
+        })
+            .when(workspaceClient)
+            .putObject(any(), any(), any());
 
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, CONTAINER_NAME, "workerId",
-            com.google.common.collect.Lists.newArrayList());
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            CONTAINER_NAME,
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
     }
 
     @After
@@ -170,18 +173,22 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     @Test
     public void givenMetadataClientWhenSearchOGThenReturnNotFound() throws Exception {
-
         // Given
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
-        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2))))
-            .thenReturn(VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, "not found"));
-        plugin = new StoreMetaDataObjectGroupActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2)))).thenReturn(
+            VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, "not found")
+        );
+        plugin = new StoreMetaDataObjectGroupActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);
@@ -193,30 +200,35 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     @Test
     public void givenMetadataClientAndLogbookLifeCycleClientAndWorkspaceResponsesWhenSearchOGThenReturnOK()
         throws Exception {
-
         // Given
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
-        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2))))
-            .thenReturn(new RequestResponseOK<JsonNode>()
-                .addResult(rawObjectGroup1)
-                .addResult(rawObjectGroup2));
+        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2)))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1).addResult(rawObjectGroup2)
+        );
 
-        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2)))
-            .thenReturn(Arrays.asList(lfcObjectGroup1, lfcObjectGroup2));
+        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2))).thenReturn(
+            Arrays.asList(lfcObjectGroup1, lfcObjectGroup2)
+        );
 
-        when(storageClient.bulkStoreFilesFromWorkspace(eq("default-got-fake"), any()))
-            .thenReturn(new BulkObjectStoreResponse(
-                Arrays.asList("offer1", "offer2"), DigestType.SHA512.getName(),
+        when(storageClient.bulkStoreFilesFromWorkspace(eq("default-got-fake"), any())).thenReturn(
+            new BulkObjectStoreResponse(
+                Arrays.asList("offer1", "offer2"),
+                DigestType.SHA512.getName(),
                 ImmutableMap.of(OG_GUID + ".json", "digest1", OG_GUID_2, "digest2")
-            ));
+            )
+        );
 
-        plugin = new StoreMetaDataObjectGroupActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataObjectGroupActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         List<ItemStatus> response = plugin.executeList(params, action);
@@ -225,10 +237,12 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         checkItemStatus(response, StatusCode.OK);
 
         JsonNode objectGroupWithLfc1CreatedFile = JsonHandler.getFromFile(
-            getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID + ".json"));
+            getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID + ".json")
+        );
         JsonNode objectGroupWithLfc1MockFile = JsonHandler.getFromFile(objectGroupWithLfc1);
         JsonNode objectGroupWithLfc2CreatedFile = JsonHandler.getFromFile(
-            getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID_2 + ".json"));
+            getSavedFile(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + OG_GUID_2 + ".json")
+        );
         JsonNode objectGroupWithLfc2MockFile = JsonHandler.getFromFile(objectGroupWithLfc2);
         assertThat(objectGroupWithLfc1CreatedFile).isEqualTo(objectGroupWithLfc1MockFile);
         assertThat(objectGroupWithLfc2CreatedFile).isEqualTo(objectGroupWithLfc2MockFile);
@@ -240,20 +254,26 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     @Test
     public void givenMetadataClientWhensearchOGThenThrowsException() throws Exception {
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
         doThrow(new VitamClientException("Error Metadata"))
-            .when(metaDataClient).getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2)));
+            .when(metaDataClient)
+            .getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2)));
 
-        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2)))
-            .thenReturn(Arrays.asList(lfcObjectGroup1, lfcObjectGroup2));
+        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2))).thenReturn(
+            Arrays.asList(lfcObjectGroup1, lfcObjectGroup2)
+        );
 
-        plugin = new StoreMetaDataObjectGroupActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataObjectGroupActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);
@@ -264,22 +284,26 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     @Test
     public void givenLogbookLifeCycleClientWhenSearchLfcThenThrowsException() throws Exception {
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
-        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2))))
-            .thenReturn(new RequestResponseOK<JsonNode>()
-                .addResult(rawObjectGroup1)
-                .addResult(rawObjectGroup2));
+        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2)))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1).addResult(rawObjectGroup2)
+        );
 
         doThrow(new LogbookClientException("Error Logbook"))
-            .when(logbookLifeCyclesClient).getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2));
+            .when(logbookLifeCyclesClient)
+            .getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2));
 
-        plugin = new StoreMetaDataObjectGroupActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataObjectGroupActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);
@@ -291,27 +315,31 @@ public class StoreMetaDataObjectGroupActionPluginTest {
     @Test
     public void givenStorageClientWhenStoreFromWorkspaceThenThrowStorageNotFoundClientExceptionThenFATAL()
         throws Exception {
-
         // Given
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(OG_GUID + ".json", OG_GUID_2 + ".json"));
 
-        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2))))
-            .thenReturn(new RequestResponseOK<JsonNode>()
-                .addResult(rawObjectGroup1)
-                .addResult(rawObjectGroup2));
+        when(metaDataClient.getObjectGroupsByIdsRaw(eq(Arrays.asList(OG_GUID, OG_GUID_2)))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1).addResult(rawObjectGroup2)
+        );
 
-        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2)))
-            .thenReturn(Arrays.asList(lfcObjectGroup1, lfcObjectGroup2));
+        when(logbookLifeCyclesClient.getRawObjectGroupLifeCycleByIds(Arrays.asList(OG_GUID, OG_GUID_2))).thenReturn(
+            Arrays.asList(lfcObjectGroup1, lfcObjectGroup2)
+        );
 
         doThrow(new StorageAlreadyExistsClientException("Error Metadata"))
-            .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
+            .when(storageClient)
+            .bulkStoreFilesFromWorkspace(any(), any());
 
-        plugin = new StoreMetaDataObjectGroupActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataObjectGroupActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);

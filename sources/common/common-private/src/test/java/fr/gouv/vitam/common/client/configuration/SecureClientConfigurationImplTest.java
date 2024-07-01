@@ -36,19 +36,16 @@ public class SecureClientConfigurationImplTest {
 
     @Test
     public void testSetterPort() {
-        final SecureClientConfigurationImpl clientConfigurationImpl0 =
-            new SecureClientConfigurationImpl();
+        final SecureClientConfigurationImpl clientConfigurationImpl0 = new SecureClientConfigurationImpl();
         final SecureClientConfigurationImpl clientConfigurationImpl1 =
             (SecureClientConfigurationImpl) clientConfigurationImpl0.setServerPort(470);
         final int int0 = clientConfigurationImpl1.getServerPort();
         assertEquals(470, int0);
-
     }
 
     @Test
     public void testSetterHost() {
-        final SecureClientConfigurationImpl clientConfigurationImpl0 =
-            new SecureClientConfigurationImpl();
+        final SecureClientConfigurationImpl clientConfigurationImpl0 = new SecureClientConfigurationImpl();
         final String string0 = clientConfigurationImpl0.getServerHost();
         assertNull(string0);
         clientConfigurationImpl0.setServerHost("test");
@@ -57,8 +54,7 @@ public class SecureClientConfigurationImplTest {
 
     @Test
     public void testBuildOk() {
-        SecureClientConfigurationImpl clientConfigurationImpl0 =
-            new SecureClientConfigurationImpl("H.Y", 75);
+        SecureClientConfigurationImpl clientConfigurationImpl0 = new SecureClientConfigurationImpl("H.Y", 75);
         assertEquals(75, clientConfigurationImpl0.getServerPort());
         clientConfigurationImpl0 = new SecureClientConfigurationImpl();
         final int int0 = clientConfigurationImpl0.getServerPort();
@@ -74,54 +70,52 @@ public class SecureClientConfigurationImplTest {
         clientConfigurationImpl0.setSslConfiguration(config);
         assertEquals(config, clientConfigurationImpl0.getSslConfiguration());
 
-        final SecureClientConfigurationImpl clientConfigurationImpl1 =
-            new SecureClientConfigurationImpl("H.Y", 123, false);
+        final SecureClientConfigurationImpl clientConfigurationImpl1 = new SecureClientConfigurationImpl(
+            "H.Y",
+            123,
+            false
+        );
         assertEquals(false, clientConfigurationImpl1.isSecure());
 
-        final SecureClientConfigurationImpl clientConfigurationImpl2 =
-            new SecureClientConfigurationImpl("H.Y", 123, true, config);
+        final SecureClientConfigurationImpl clientConfigurationImpl2 = new SecureClientConfigurationImpl(
+            "H.Y",
+            123,
+            true,
+            config
+        );
         assertEquals(true, clientConfigurationImpl2.isSecure());
     }
 
     @Test
     public void testFailed() {
-        SecureClientConfigurationImpl clientConfigurationImpl0 =
-            new SecureClientConfigurationImpl();
+        SecureClientConfigurationImpl clientConfigurationImpl0 = new SecureClientConfigurationImpl();
         try {
             clientConfigurationImpl0.setServerPort(0);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
             clientConfigurationImpl0.setServerPort(-1);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             clientConfigurationImpl0.setServerHost(null);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             clientConfigurationImpl0.setServerHost("");
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
-            clientConfigurationImpl0 =
-                new SecureClientConfigurationImpl(null, 10);
+            clientConfigurationImpl0 = new SecureClientConfigurationImpl(null, 10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
             final SSLConfiguration config = new SSLConfiguration();
             new SecureClientConfigurationImpl("H.Y", -10, true, config);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
-
+        } catch (final IllegalArgumentException e) {}
     }
 }

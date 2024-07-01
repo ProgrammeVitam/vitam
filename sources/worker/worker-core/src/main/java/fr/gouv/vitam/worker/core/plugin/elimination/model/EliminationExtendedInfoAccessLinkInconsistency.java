@@ -38,7 +38,8 @@ public class EliminationExtendedInfoAccessLinkInconsistency extends EliminationE
     }
 
     public EliminationExtendedInfoAccessLinkInconsistency(
-        EliminationExtendedInfoAccessLinkInconsistencyDetails details) {
+        EliminationExtendedInfoAccessLinkInconsistencyDetails details
+    ) {
         this.details = details;
     }
 
@@ -46,8 +47,7 @@ public class EliminationExtendedInfoAccessLinkInconsistency extends EliminationE
         return details;
     }
 
-    public void setDetails(
-        EliminationExtendedInfoAccessLinkInconsistencyDetails details) {
+    public void setDetails(EliminationExtendedInfoAccessLinkInconsistencyDetails details) {
         this.details = details;
     }
 }

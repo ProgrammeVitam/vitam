@@ -36,13 +36,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
-
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.*;
 
 public class CollectExternalResourceTest {
+
     private static CollectExternalMain application;
     private static JunitHelper junitHelper;
     private static int portAvailable;
@@ -53,24 +53,23 @@ public class CollectExternalResourceTest {
         portAvailable = junitHelper.findAvailablePort();
         RestAssured.port = portAvailable;
         RestAssured.basePath = "collect-external/v1";
-        application = new CollectExternalMain("collect-external-test.conf",
-                BusinessApplicationTest.class, null);
+        application = new CollectExternalMain("collect-external-test.conf", BusinessApplicationTest.class, null);
         application.start();
     }
 
     @Test
     public void shouldNotHaveDuplicatesInApiListResponse() {
         final EndpointInfo[] endpointInfoArray = given()
-                .accept(ContentType.JSON)
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .when()
-                .options()
-                .then()
-                .statusCode(Response.Status.OK.getStatusCode())
-                .extract()
-                .body()
-                .as(EndpointInfo[].class);
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .when()
+            .options()
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .as(EndpointInfo[].class);
         final List<EndpointInfo> endpointInfoList = Arrays.asList(endpointInfoArray);
         final Set<EndpointInfo> endpointInfoSet = new HashSet<>(endpointInfoList);
 

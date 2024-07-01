@@ -49,20 +49,18 @@ import static org.mockito.Mockito.verify;
 public class EndpointAdminOnlyAuthorizationFilterTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     public void testAccessDeniedToAPIAdmin() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamConfiguration.setAdminTenant(1);
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-
-        EndpointAdminOnlyAuthorizationFilter
-            instance = new EndpointAdminOnlyAuthorizationFilter(true);
+        EndpointAdminOnlyAuthorizationFilter instance = new EndpointAdminOnlyAuthorizationFilter(true);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, only()).abortWith(any());
@@ -70,15 +68,12 @@ public class EndpointAdminOnlyAuthorizationFilterTest {
 
     @Test
     public void testAccessGrantedToAPIAdmin() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(1);
         VitamConfiguration.setAdminTenant(1);
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-
-        EndpointAdminOnlyAuthorizationFilter
-            instance = new EndpointAdminOnlyAuthorizationFilter(true);
+        EndpointAdminOnlyAuthorizationFilter instance = new EndpointAdminOnlyAuthorizationFilter(true);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, never()).abortWith(any());
@@ -86,15 +81,12 @@ public class EndpointAdminOnlyAuthorizationFilterTest {
 
     @Test
     public void testAccessGrantedToNotAPIAdmin() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamConfiguration.setAdminTenant(1);
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-
-        EndpointAdminOnlyAuthorizationFilter
-            instance = new EndpointAdminOnlyAuthorizationFilter(false);
+        EndpointAdminOnlyAuthorizationFilter instance = new EndpointAdminOnlyAuthorizationFilter(false);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, never()).abortWith(any());

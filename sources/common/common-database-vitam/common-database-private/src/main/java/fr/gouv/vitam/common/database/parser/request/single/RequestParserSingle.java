@@ -54,7 +54,6 @@ import java.util.Map.Entry;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
 
-
 /**
  * Single Request Parser (common base) { $query : query, $filter : filter }
  */
@@ -87,8 +86,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         }
         hasFullTextQuery = false;
         if (rootNode == null || rootNode.isMissingNode()) {
-            throw new InvalidParseOperationException(
-                "The current Node is missing(empty): RequestRoot");
+            throw new InvalidParseOperationException("The current Node is missing(empty): RequestRoot");
         }
 
         /*
@@ -97,7 +95,6 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         queryParse(rootNode.get(GLOBAL.QUERY.exactToken()));
         filterParse(rootNode.get(GLOBAL.FILTER.exactToken()));
     }
-
 
     /**
      * @param jsonRequest containing a parsed JSON as { $query : query, $filter : filter }
@@ -113,8 +110,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * @param query containing only the JSON query part (no filter)
      * @throws InvalidParseOperationException if query could not parse to JSON or sanity check to query is in error
      */
-    protected void parseQueryOnly(final String query)
-        throws InvalidParseOperationException {
+    protected void parseQueryOnly(final String query) throws InvalidParseOperationException {
         GlobalDatasParser.sanityRequestCheck(query);
         sourceRequest = query;
         if (request != null) {
@@ -125,8 +121,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
         hasFullTextQuery = false;
         rootNode = JsonHandler.getFromString(query);
         if (rootNode.isMissingNode()) {
-            throw new InvalidParseOperationException(
-                "The current Node is missing(empty): RequestRoot");
+            throw new InvalidParseOperationException("The current Node is missing(empty): RequestRoot");
         }
         // Not as array and no filter
         queryParse(rootNode);
@@ -139,21 +134,18 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void filterParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void filterParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_FILTERS);
         try {
-
             // Check valid variable names first
             parseOrderByFilter(rootNode);
 
             request.setFilter(rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Filter: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Filter: " + rootNode, e);
         }
     }
 
@@ -163,8 +155,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void queryParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void queryParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -172,8 +163,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
             // 1 level only: (request)
             analyzeRootQuery(rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Query: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Query: " + rootNode, e);
         }
     }
 
@@ -185,8 +175,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
      * @throws InvalidCreateOperationException if could not set query to request or analyzeOneCommand is in error
      */
     protected void analyzeRootQuery(final JsonNode command)
-        throws InvalidParseOperationException,
-        InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         if (command == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
@@ -199,8 +188,7 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
             return;
         }
         // now single element
-        final Entry<String, JsonNode> queryItem =
-            JsonHandler.checkUnicity("RootRequest", command);
+        final Entry<String, JsonNode> queryItem = JsonHandler.checkUnicity("RootRequest", command);
         Query query;
         if (queryItem.getKey().equalsIgnoreCase(QUERY.PATH.exactToken())) {
             final ArrayNode array = (ArrayNode) queryItem.getValue();
@@ -296,5 +284,4 @@ public abstract class RequestParserSingle extends AbstractParser<RequestSingle> 
     public boolean hintCache() {
         return false;
     }
-
 }

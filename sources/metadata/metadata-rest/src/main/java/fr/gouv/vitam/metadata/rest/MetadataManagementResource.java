@@ -123,7 +123,6 @@ public class MetadataManagementResource {
     public static final String OBJECTGROUP = "OBJECTGROUP";
     public static final String UNIT = "UNIT";
 
-
     private static final String CODE_VITAM = "code_vitam";
 
     private static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
@@ -150,9 +149,12 @@ public class MetadataManagementResource {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final ExportsPurgeService exportsPurgeService;
 
-    MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
-        MetaDataImpl metadata, MetaDataConfiguration configuration,
-        ElasticsearchMetadataIndexManager indexManager) {
+    MetadataManagementResource(
+        VitamRepositoryProvider vitamRepositoryProvider,
+        MetaDataImpl metadata,
+        MetaDataConfiguration configuration,
+        ElasticsearchMetadataIndexManager indexManager
+    ) {
         this(
             GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata, indexManager),
             new ReclassificationDistributionService(metadata),
@@ -160,7 +162,8 @@ public class MetadataManagementResource {
             LogbookOperationsClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(),
             configuration,
-            new ExportsPurgeService(configuration.getTimeToLiveConfiguration()));
+            new ExportsPurgeService(configuration.getTimeToLiveConfiguration())
+        );
     }
 
     @VisibleForTesting
@@ -171,7 +174,8 @@ public class MetadataManagementResource {
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
         MetaDataConfiguration configuration,
-        ExportsPurgeService exportsPurgeService) {
+        ExportsPurgeService exportsPurgeService
+    ) {
         this.graphComputeService = graphComputeService;
         this.reclassificationDistributionService = reclassificationDistributionService;
         this.processingManagementClientFactory = processingManagementClientFactory;
@@ -193,7 +197,6 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response computeGraphByDSL(@HeaderParam(GlobalDataRest.X_TENANT_ID) Integer xTenantId, JsonNode queryDsl) {
-
         try {
             ParametersChecker.checkParameter("X_TENANT_ID header is required and mustn't be null", xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(xTenantId);
@@ -201,15 +204,15 @@ public class MetadataManagementResource {
             VitamThreadUtils.getVitamSession().initIfAbsent(xTenantId);
 
             GraphComputeResponse response = this.graphComputeService.computeGraph(queryDsl);
-            return Response.ok().header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .entity(response).build();
+            return Response.ok()
+                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .entity(response)
+                .build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
             return Response.serverError().entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
-
-
 
     /**
      * Check if graph builder is in progress.<br/>
@@ -221,7 +224,6 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response computeGraphByDSLInProgress(@HeaderParam(GlobalDataRest.X_TENANT_ID) Integer xTenantId) {
-
         ParametersChecker.checkParameter("X_TENANT_ID header is required and mustn't be null", xTenantId);
         VitamThreadUtils.getVitamSession().setTenantId(xTenantId);
 
@@ -233,11 +235,11 @@ public class MetadataManagementResource {
             return Response.ok("{\"msg\": \"Graph compute in progress ...\"}").build();
         } else {
             LOGGER.info("No active graph builder");
-            return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active graph compute service\"}")
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity("{\"msg\": \"No active graph compute service\"}")
                 .build();
         }
     }
-
 
     /**
      * API to access and launch the Vitam graph builder service for metadata.<br/>
@@ -279,11 +281,11 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response exportReclassificationChildNodes(ReclassificationChildNodeExportRequest request) {
         try {
-
             this.reclassificationDistributionService.exportReclassificationChildNodes(
-                request.getUnitIds(),
-                request.getUnitsToUpdateJsonLineFileName(),
-                request.getObjectGroupsToUpdateJsonLineFileName());
+                    request.getUnitIds(),
+                    request.getUnitsToUpdateJsonLineFileName(),
+                    request.getObjectGroupsToUpdateJsonLineFileName()
+                );
 
             return Response.ok().build();
         } catch (Exception e) {
@@ -314,9 +316,7 @@ public class MetadataManagementResource {
             return Response.status(ACCEPTED).build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
-            return Response.status(BAD_REQUEST)
-                .entity(ERROR_MSG + e.getMessage() + "\"}")
-                .build();
+            return Response.status(BAD_REQUEST).entity(ERROR_MSG + e.getMessage() + "\"}").build();
         }
     }
 
@@ -325,7 +325,6 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response purgeExpiredDipFiles() {
-
         try {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
@@ -334,8 +333,7 @@ public class MetadataManagementResource {
             return Response.status(OK).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage()).toResponse();
         }
     }
 
@@ -344,7 +342,6 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response purgeExpiredTransfersSIPFiles() {
-
         try {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
@@ -353,8 +350,7 @@ public class MetadataManagementResource {
             return Response.status(OK).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage()).toResponse();
         }
     }
 
@@ -364,9 +360,7 @@ public class MetadataManagementResource {
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response migrationPurgeDipFilesFromOffers() {
         try {
-
             for (Integer tenant : VitamConfiguration.getTenants()) {
-
                 LOGGER.info("Running DIP cleanup from offers for tenant " + tenant);
 
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
@@ -380,8 +374,7 @@ public class MetadataManagementResource {
             return Response.status(OK).build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.METADATA_INTERNAL_SERVER_ERROR, e.getMessage()).toResponse();
         }
     }
 
@@ -392,7 +385,8 @@ public class MetadataManagementResource {
 
         BooleanQuery incoherentValuesQuery = QueryHelper.and();
         incoherentValuesQuery.add(
-            QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.computedInheritedRules())));
+            QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.computedInheritedRules()))
+        );
         incoherentValuesQuery.add(QueryHelper.exists(VitamFieldsHelper.validComputedInheritedRules()));
 
         obsoleteQuery.add(incoherentValuesQuery);
@@ -405,13 +399,16 @@ public class MetadataManagementResource {
         GUID operationGuid = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
-        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+        try (
+            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
             LOGGER.debug("Accessing computedInheritedRulesCalculation");
             String message =
-                VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
-                    operationGuid;
+                VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") +
+                " : " +
+                operationGuid;
             LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
                 operationGuid,
                 COMPUTE_INHERITED_RULES.getEventType(),
@@ -425,32 +422,51 @@ public class MetadataManagementResource {
 
             workspaceClient.createContainer(operationGuid.getId());
 
-            workspaceClient
-                .putObject(operationGuid.getId(), OperationContextMonitor.OperationContextFileName, writeToInpustream(
-                    OperationContextModel.get(dslQuery)));
+            workspaceClient.putObject(
+                operationGuid.getId(),
+                OperationContextMonitor.OperationContextFileName,
+                writeToInpustream(OperationContextModel.get(dslQuery))
+            );
             workspaceClient.putObject(operationGuid.getId(), "query.json", writeToInpustream(dslQuery));
 
-            OperationContextMonitor.compressInWorkspace(workspaceClientFactory, operationGuid.getId(),
+            OperationContextMonitor.compressInWorkspace(
+                workspaceClientFactory,
+                operationGuid.getId(),
                 Contexts.COMPUTE_INHERITED_RULES.getLogbookTypeProcess(),
-                OperationContextMonitor.OperationContextFileName);
+                OperationContextMonitor.OperationContextFileName
+            );
 
-            processingClient
-                .initVitamProcess(new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name()));
+            processingClient.initVitamProcess(
+                new ProcessingEntry(operationGuid.getId(), COMPUTE_INHERITED_RULES.name())
+            );
 
-            RequestResponse<ItemStatus> response =
-                processingClient.executeOperationProcess(operationGuid.getId(), COMPUTE_INHERITED_RULES.name(),
-                    RESUME.getValue());
+            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(
+                operationGuid.getId(),
+                COMPUTE_INHERITED_RULES.name(),
+                RESUME.getValue()
+            );
             LOGGER.debug("End computedInheritedRulesCalculation");
             return response.toResponse();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException |
-                 ContentAddressableStorageServerException | InvalidParseOperationException | InternalServerException |
-                 VitamClientException | OperationContextException e) {
+        } catch (
+            LogbookClientBadRequestException
+            | LogbookClientAlreadyExistsException
+            | LogbookClientServerException
+            | ContentAddressableStorageServerException
+            | InvalidParseOperationException
+            | InternalServerException
+            | VitamClientException
+            | OperationContextException e
+        ) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
-                    String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
+                .entity(
+                    getErrorEntity(
+                        INTERNAL_SERVER_ERROR,
+                        String.format("An error occurred during %s workflow", PRESERVATION.getEventType())
+                    )
+                )
                 .build();
         }
     }
@@ -482,9 +498,17 @@ public class MetadataManagementResource {
         }
 
         return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(description)).toString())
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError(VitamCodeHelper.getCode(vitamCode))
+                            .setContext(vitamCode.getService().getName())
+                            .setState(vitamCode.getDomain().getName())
+                            .setMessage(vitamCode.getMessage())
+                            .setDescription(description)
+                    )
+                    .toString()
+            )
             .build();
     }
 }

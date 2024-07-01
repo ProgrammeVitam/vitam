@@ -38,6 +38,7 @@ import java.util.Date;
  * Add Action: $add : { name : [ value, value, ... ] }
  */
 public class AddAction extends Action {
+
     private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION =
         "Cannot add a set element since this is not a Add Action: ";
 
@@ -52,8 +53,7 @@ public class AddAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public AddAction(final String variableName, final String... value)
-        throws InvalidCreateOperationException {
+    public AddAction(final String variableName, final String... value) throws InvalidCreateOperationException {
         super();
         createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final String val : value) {
@@ -77,8 +77,7 @@ public class AddAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public AddAction(final String variableName, final long... value)
-        throws InvalidCreateOperationException {
+    public AddAction(final String variableName, final long... value) throws InvalidCreateOperationException {
         super();
         createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final long val : value) {
@@ -95,8 +94,7 @@ public class AddAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public AddAction(final String variableName, final boolean... value)
-        throws InvalidCreateOperationException {
+    public AddAction(final String variableName, final boolean... value) throws InvalidCreateOperationException {
         super();
         createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final boolean val : value) {
@@ -113,8 +111,7 @@ public class AddAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public AddAction(final String variableName, final double... value)
-        throws InvalidCreateOperationException {
+    public AddAction(final String variableName, final double... value) throws InvalidCreateOperationException {
         super();
         createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final double val : value) {
@@ -131,8 +128,7 @@ public class AddAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public AddAction(final String variableName, final Date... value)
-        throws InvalidCreateOperationException {
+    public AddAction(final String variableName, final Date... value) throws InvalidCreateOperationException {
         super();
         createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final Date val : value) {
@@ -149,11 +145,11 @@ public class AddAction extends Action {
      * @return the AddAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final AddAction add(final String... value)
-        throws InvalidCreateOperationException {
+    public final AddAction add(final String... value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION
+            );
         }
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
@@ -175,11 +171,11 @@ public class AddAction extends Action {
      * @return the AddAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final AddAction add(final boolean... value)
-        throws InvalidCreateOperationException {
+    public final AddAction add(final boolean... value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION
+            );
         }
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
@@ -194,11 +190,11 @@ public class AddAction extends Action {
      * @return the AddAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final AddAction add(final long... value)
-        throws InvalidCreateOperationException {
+    public final AddAction add(final long... value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION
+            );
         }
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
@@ -213,11 +209,11 @@ public class AddAction extends Action {
      * @return the AddAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final AddAction add(final double... value)
-        throws InvalidCreateOperationException {
+    public final AddAction add(final double... value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION
+            );
         }
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
@@ -232,16 +228,15 @@ public class AddAction extends Action {
      * @return the AddAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final AddAction add(final Date... value)
-        throws InvalidCreateOperationException {
+    public final AddAction add(final Date... value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.ADD) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_ADD_ACTION + currentUPDATEACTION
+            );
         }
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
         return this;
     }
-
 }

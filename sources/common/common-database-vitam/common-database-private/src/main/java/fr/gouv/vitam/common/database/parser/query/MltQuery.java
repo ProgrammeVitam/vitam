@@ -40,6 +40,7 @@ import java.util.HashSet;
  * the multiple query
  */
 public class MltQuery extends fr.gouv.vitam.common.database.builder.query.MltQuery {
+
     /**
      * For Parsing
      *

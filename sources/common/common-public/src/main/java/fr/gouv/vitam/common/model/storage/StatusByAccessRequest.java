@@ -35,13 +35,14 @@ public final class StatusByAccessRequest {
 
     @JsonProperty("objectAccessRequest")
     private final AccessRequestReference accessRequestReference;
+
     @JsonProperty("accessRequestStatus")
     private final AccessRequestStatus accessRequestStatus;
 
     public StatusByAccessRequest(
         @Nonnull @JsonProperty("objectAccessRequest") AccessRequestReference accessRequestReference,
-        @Nonnull @JsonProperty("accessRequestStatus") AccessRequestStatus accessRequestStatus) {
-
+        @Nonnull @JsonProperty("accessRequestStatus") AccessRequestStatus accessRequestStatus
+    ) {
         this.accessRequestReference = accessRequestReference;
         this.accessRequestStatus = accessRequestStatus;
     }
@@ -56,13 +57,13 @@ public final class StatusByAccessRequest {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         StatusByAccessRequest that = (StatusByAccessRequest) o;
-        return Objects.equal(accessRequestReference, that.accessRequestReference) &&
-            accessRequestStatus == that.accessRequestStatus;
+        return (
+            Objects.equal(accessRequestReference, that.accessRequestReference) &&
+            accessRequestStatus == that.accessRequestStatus
+        );
     }
 
     @Override

@@ -46,43 +46,35 @@ public class ServerIdentityConfigurationImplTest {
         try {
             siConf0.setIdentityServerId(-16);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0.setIdentityName((String) null);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0.setIdentityName("");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0.setIdentityRole((String) null);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0.setIdentityRole("");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0 = new ServerIdentityConfigurationImpl("", 265, 1, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0 = new ServerIdentityConfigurationImpl("AAA", -265, 1, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, 1, "");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, 1, "BBB");
     }
 

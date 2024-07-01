@@ -35,8 +35,10 @@ public class BulkObjectStoreResponse {
 
     @JsonProperty("offerIds")
     private List<String> offerIds;
+
     @JsonProperty("digestType")
     private String digestType;
+
     @JsonProperty("digests")
     private Map<String, String> objectDigests;
 
@@ -44,8 +46,7 @@ public class BulkObjectStoreResponse {
         // Empty constructor for deserialization
     }
 
-    public BulkObjectStoreResponse(List<String> offerIds, String digestType,
-        Map<String, String> objectDigests) {
+    public BulkObjectStoreResponse(List<String> offerIds, String digestType, Map<String, String> objectDigests) {
         this.offerIds = offerIds;
         this.digestType = digestType;
         this.objectDigests = objectDigests;

@@ -41,7 +41,6 @@ public class ReportWriterTest {
 
     @Test
     public void testEmptyReport() throws Exception {
-
         // Given
         File reportFile = tempFolder.newFile();
 
@@ -57,7 +56,6 @@ public class ReportWriterTest {
 
     @Test
     public void testSuccessReport() throws Exception {
-
         // Given
         File reportFile = tempFolder.newFile();
 
@@ -75,7 +73,6 @@ public class ReportWriterTest {
 
     @Test
     public void testSingleEntryReport() throws Exception {
-
         // Given
         File reportFile = tempFolder.newFile();
 
@@ -92,7 +89,6 @@ public class ReportWriterTest {
 
     @Test
     public void testMultiEntryReport() throws Exception {
-
         // Given
         File reportFile = tempFolder.newFile();
 
@@ -106,10 +102,12 @@ public class ReportWriterTest {
         reportWriter.close();
 
         // Then
-        assertThat(reportFile).hasContent("" +
+        assertThat(reportFile).hasContent(
+            "" +
             "{\"objectId\":\"obj1\",\"sizeInOffer1\":10,\"sizeInOffer2\":20}\n" +
             "{\"objectId\":\"obj3\",\"sizeInOffer1\":null,\"sizeInOffer2\":20}\n" +
-            "{\"objectId\":\"obj4\",\"sizeInOffer1\":10,\"sizeInOffer2\":null}");
+            "{\"objectId\":\"obj4\",\"sizeInOffer1\":10,\"sizeInOffer2\":null}"
+        );
         assertThat(reportWriter.getErrorCount()).isEqualTo(3L);
         assertThat(reportWriter.getTotalObjectCount()).isEqualTo(5L);
     }

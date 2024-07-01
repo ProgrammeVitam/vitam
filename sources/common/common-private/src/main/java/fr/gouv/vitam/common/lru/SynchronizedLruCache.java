@@ -42,6 +42,7 @@ import java.util.Iterator;
  * @param <V> Value
  */
 public class SynchronizedLruCache<K, V> extends AbstractLruCache<K, V> {
+
     /**
      * Initial capacity
      */
@@ -62,11 +63,9 @@ public class SynchronizedLruCache<K, V> extends AbstractLruCache<K, V> {
      * @param initialCapacity initial cache capacity
      * @param loadFactor
      */
-    public SynchronizedLruCache(int capacity, long ttl, int initialCapacity,
-        float loadFactor) {
+    public SynchronizedLruCache(int capacity, long ttl, int initialCapacity, float loadFactor) {
         super(ttl);
-        cacheMap = new CapacityLruLinkedHashMap<>(
-            capacity, initialCapacity, loadFactor);
+        cacheMap = new CapacityLruLinkedHashMap<>(capacity, initialCapacity, loadFactor);
     }
 
     /**
@@ -116,7 +115,7 @@ public class SynchronizedLruCache<K, V> extends AbstractLruCache<K, V> {
     }
 
     @Override
-    public synchronized void put(K key, V value, long ttl) {// NOSONAR do not remove (synchronized)
+    public synchronized void put(K key, V value, long ttl) { // NOSONAR do not remove (synchronized)
         super.put(key, value, ttl);
     }
 
@@ -149,5 +148,4 @@ public class SynchronizedLruCache<K, V> extends AbstractLruCache<K, V> {
         }
         return nb;
     }
-
 }

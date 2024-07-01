@@ -70,9 +70,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
-
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(),
-            algo);
+        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
 
         Stopwatch sw = Stopwatch.createStarted();
         try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
@@ -82,8 +80,13 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } catch (final IOException e) {
             throw new ContentAddressableStorageException(e);
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
-                "COMPUTE_DIGEST_FROM_STREAM", sw.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log(
+                    "STP_Offer_" + configuration.getProvider(),
+                    containerName,
+                    "COMPUTE_DIGEST_FROM_STREAM",
+                    sw.elapsed(TimeUnit.MILLISECONDS)
+                );
         }
     }
 

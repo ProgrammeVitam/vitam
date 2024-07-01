@@ -29,5 +29,5 @@ package fr.gouv.vitam.worker.core.plugin.transfer;
 public enum TransferStatus {
     OK,
     ALREADY_IN_TRANSFER,
-    KO
+    KO,
 }

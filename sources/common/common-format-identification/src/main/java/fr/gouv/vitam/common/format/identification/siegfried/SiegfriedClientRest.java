@@ -43,7 +43,6 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.BASE64;
 import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.FORMAT;
 import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.SCAN_ENTRIES_WITHIN_ZIP;
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
@@ -83,9 +82,11 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
-        String message =
-            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase());
+        String message = String.format(
+            "Error with the response, get status: '%d' and reason '%s'.",
+            response.getStatus(),
+            fromStatusCode(response.getStatus()).getReasonPhrase()
+        );
         if (NOT_FOUND.equals(status)) {
             throw new FormatIdentifierNotFoundException(message);
         }

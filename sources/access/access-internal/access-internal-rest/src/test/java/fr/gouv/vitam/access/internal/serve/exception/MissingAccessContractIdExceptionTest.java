@@ -43,5 +43,4 @@ public class MissingAccessContractIdExceptionTest {
         assertNotNull(new MissingAccessContractIdException(new Exception()).getCause());
         assertNotNull(new MissingAccessContractIdException("test", new Exception()).getCause());
     }
-
 }

@@ -65,6 +65,7 @@ import java.util.List;
  * Mock client implementation for logbook operation
  */
 public class LogbookOperationsClientMock extends AbstractMockClient implements LogbookOperationsClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientMock.class);
 
     private static final String UPDATE = "UPDATE";
@@ -117,12 +118,10 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     }
 
     @Override
-    public JsonNode selectOperationById(String id)
-        throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperationById(String id) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
-
 
     @Override
     public RequestResponseOK<TenantLogbookOperationTraceabilityResult> traceability(List<Integer> tenants) {
@@ -142,8 +141,7 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
             }
         } else {
             LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            throw new LogbookClientBadRequestException(
-                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
     }
 
@@ -156,8 +154,7 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
             }
         } else {
             LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            throw new LogbookClientBadRequestException(
-                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
     }
 

@@ -56,6 +56,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubIte
 import static java.util.function.Predicate.not;
 
 public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
+
     public static final String ITEM_ID = "PRESERVATION_UNIT_METADATA_SECURITY_CHECKS";
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUnitMetadataSecurityChecks.class);
 
@@ -82,7 +83,8 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
         List<WorkflowBatchResult> workflowBatchResults = new ArrayList<>();
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
-            List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
+            List<OutputExtra> outputExtras = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(OutputExtra::isOkAndExtractedAu)
                 .map(this::checkMetadataAndAddExtractedMetadata)
@@ -97,8 +99,12 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
 
             itemStatuses.add(getItemStatus(outputExtras));
 
-            workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult,
-                getOutputExtrasWithoutErrors(workflowBatchResult, outputExtras)));
+            workflowBatchResults.add(
+                WorkflowBatchResult.of(
+                    workflowBatchResult,
+                    getOutputExtrasWithoutErrors(workflowBatchResult, outputExtras)
+                )
+            );
         }
 
         handler.addOutputResult(0, new WorkflowBatchResults(results.getBatchDirectory(), workflowBatchResults));
@@ -106,22 +112,24 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
         return itemStatuses;
     }
 
-    private List<OutputExtra> getOutputExtrasWithoutErrors(WorkflowBatchResult workflowBatchResult,
-        List<OutputExtra> outputExtras) {
-        Stream<OutputExtra> nonExtractedOrOkOutputExtra = workflowBatchResult.getOutputExtras()
+    private List<OutputExtra> getOutputExtrasWithoutErrors(
+        WorkflowBatchResult workflowBatchResult,
+        List<OutputExtra> outputExtras
+    ) {
+        Stream<OutputExtra> nonExtractedOrOkOutputExtra = workflowBatchResult
+            .getOutputExtras()
             .stream()
             .filter(not(OutputExtra::isOkAndExtractedAu));
 
-        Stream<OutputExtra> extractedOutputExtraSanitize = outputExtras.stream()
-            .filter(not(OutputExtra::isInError));
+        Stream<OutputExtra> extractedOutputExtraSanitize = outputExtras.stream().filter(not(OutputExtra::isInError));
 
-        return Stream.concat(nonExtractedOrOkOutputExtra, extractedOutputExtraSanitize)
-            .collect(Collectors.toList());
+        return Stream.concat(nonExtractedOrOkOutputExtra, extractedOutputExtraSanitize).collect(Collectors.toList());
     }
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
         Stream<String> subBinaryItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
-        String error = outputExtras.stream()
+        String error = outputExtras
+            .stream()
             .filter(o -> o.getError().isPresent())
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
@@ -138,14 +146,16 @@ public class PreservationUnitMetadataSecurityChecks extends ActionHandler {
         try {
             ExtractedMetadataForAu extractedMetadataAU = output.getOutput().getExtractedMetadataAU();
             SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(extractedMetadataAU));
-            List<String> internalKeyFields =
-                internalActionKeysRetriever.getInternalKeyFields(JsonHandler.toJsonNode(extractedMetadataAU));
+            List<String> internalKeyFields = internalActionKeysRetriever.getInternalKeyFields(
+                JsonHandler.toJsonNode(extractedMetadataAU)
+            );
             if (!internalKeyFields.isEmpty()) {
-                String message = String.format("Extracted metadata contains these forbidden internal keys: '%s'.",
-                    internalKeyFields);
+                String message = String.format(
+                    "Extracted metadata contains these forbidden internal keys: '%s'.",
+                    internalKeyFields
+                );
                 logger.error(message);
                 return OutputExtra.inError(message);
-
             }
             return OutputExtra.withExtractedMetadataForAu(output, output.getOutput().getExtractedMetadataAU());
         } catch (InvalidParseOperationException e) {

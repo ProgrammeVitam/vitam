@@ -47,5 +47,4 @@ public class HandlerNotFoundException extends ProcessingException {
     public HandlerNotFoundException(String message) {
         super(message);
     }
-
 }

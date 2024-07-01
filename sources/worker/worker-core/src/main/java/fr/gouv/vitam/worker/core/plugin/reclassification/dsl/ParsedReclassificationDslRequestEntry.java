@@ -37,7 +37,10 @@ public class ParsedReclassificationDslRequestEntry {
     private final Set<String> detachments;
 
     public ParsedReclassificationDslRequestEntry(
-        SelectMultiQuery selectMultiQuery, Set<String> attachments, Set<String> detachments) {
+        SelectMultiQuery selectMultiQuery,
+        Set<String> attachments,
+        Set<String> detachments
+    ) {
         this.selectMultiQuery = selectMultiQuery;
         this.attachments = attachments;
         this.detachments = detachments;

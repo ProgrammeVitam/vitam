@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.exception;
  * Generic exception throws by any vitam java client
  */
 public class VitamClientException extends VitamException {
+
     private static final long serialVersionUID = -7275095656919666667L;
 
     /**

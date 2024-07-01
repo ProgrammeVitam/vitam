@@ -37,6 +37,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  * CommitLifeCycleUnit Handler
  */
 public class CommitLifeCycleUnitActionHandler extends CommitLifeCycleActionHandler {
+
     private static final String HANDLER_ID = "COMMIT_LIFE_CYCLE_UNIT";
 
     /**
@@ -48,8 +49,7 @@ public class CommitLifeCycleUnitActionHandler extends CommitLifeCycleActionHandl
 
     @Override
     public void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)
-        throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,
-        LogbookClientServerException {
+        throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         handlerIO.getLifecyclesClient().commitUnit(operationId, objectID);
     }
 

@@ -35,16 +35,17 @@ import java.util.Objects;
  * Facet bucket
  */
 public class FacetBucket {
+
     @JsonProperty("value")
     private String value;
+
     @JsonProperty("count")
     private long count = 0l;
 
     /**
      * Constructor
      */
-    public FacetBucket() {
-    }
+    public FacetBucket() {}
 
     /**
      * Constructor
@@ -86,16 +87,12 @@ public class FacetBucket {
         this.count = count;
     }
 
-
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         FacetBucket that = (FacetBucket) o;
-        return Objects.equals(value, that.value) &&
-            Objects.equals(count, that.count);
+        return Objects.equals(value, that.value) && Objects.equals(count, that.count);
     }
 
     @Override

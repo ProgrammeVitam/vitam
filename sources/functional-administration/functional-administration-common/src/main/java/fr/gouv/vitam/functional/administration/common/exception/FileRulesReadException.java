@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 public class FileRulesReadException extends ReferentialException {
+
     private Map<Integer, List<ErrorReport>> errorsMap;
 
     /**

@@ -93,10 +93,12 @@ public class UpdateMultiQueryTest {
         assertTrue(update.queries.isEmpty());
         try {
             update.addQueries(
-                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                    .setRelativeDepthLimit(5));
-            update.addQueries(new PathQuery("path1", "path2"),
-                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA")).setRelativeDepthLimit(5)
+            );
+            update.addQueries(
+                new PathQuery("path1", "path2"),
+                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10)
+            );
             update.addQueries(new PathQuery("path3"));
             assertEquals(4, update.queries.size());
             update.resetQueries();
@@ -166,7 +168,5 @@ public class UpdateMultiQueryTest {
             "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tRoots: []\n\tActions: \n{\"$inc\":{\"var2\":2}}";
         update.addActions(new IncAction("var2", 2));
         assertEquals(s, update.toString());
-
     }
-
 }

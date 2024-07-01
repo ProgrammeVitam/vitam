@@ -33,6 +33,7 @@ import com.mongodb.client.MongoCursor;
 import javax.validation.constraints.NotNull;
 
 public class VitamMongoCursor<T> implements MongoCursor<T> {
+
     private final MongoCursor<T> cursor;
     private long total;
     private String scrollId;
@@ -48,8 +49,7 @@ public class VitamMongoCursor<T> implements MongoCursor<T> {
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 
     @Override
     public boolean hasNext() {

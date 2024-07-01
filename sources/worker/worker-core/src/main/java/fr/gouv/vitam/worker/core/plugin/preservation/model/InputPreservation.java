@@ -29,13 +29,14 @@ package fr.gouv.vitam.worker.core.plugin.preservation.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class InputPreservation {
+
     @JsonProperty("Name")
     private String name;
+
     @JsonProperty("FormatId")
     private String formatId;
 
-    public InputPreservation() {
-    }
+    public InputPreservation() {}
 
     public InputPreservation(String name, String formatId) {
         this.name = name;
@@ -60,9 +61,6 @@ public class InputPreservation {
 
     @Override
     public String toString() {
-        return "Input{" +
-            "name='" + name + '\'' +
-            ", formatId='" + formatId + '\'' +
-            '}';
+        return "Input{" + "name='" + name + '\'' + ", formatId='" + formatId + '\'' + '}';
     }
 }

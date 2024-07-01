@@ -71,8 +71,9 @@ public class OfferDiffProcessTest {
     private static final int TENANT_ID = 2;
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -87,7 +88,6 @@ public class OfferDiffProcessTest {
         executorService = Executors.newFixedThreadPool(4, VitamThreadFactory.getInstance());
     }
 
-
     @AfterClass
     public static void afterClass() {
         executorService.shutdown();
@@ -98,26 +98,22 @@ public class OfferDiffProcessTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
         StorageStrategy storageStrategy = new StorageStrategy();
-        storageStrategy.setOffers(Arrays.asList(
-            new OfferReference("offer1"),
-            new OfferReference("offer2")
-        ));
-        doReturn(ImmutableMap.of(
-            "default", storageStrategy
-        )).when(distribution).getStrategies();
+        storageStrategy.setOffers(Arrays.asList(new OfferReference("offer1"), new OfferReference("offer2")));
+        doReturn(ImmutableMap.of("default", storageStrategy)).when(distribution).getStrategies();
     }
 
     @Test
     @RunWithCustomExecutor
     public void synchronizeEmptyOffer() throws Exception {
-
         // Given
-        CloseableIterator<ObjectEntry> entries1 =
-            CloseableIteratorUtils.toCloseableIterator(IteratorUtils.emptyIterator());
+        CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(
+            IteratorUtils.emptyIterator()
+        );
         doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
-        CloseableIterator<ObjectEntry> entries2 =
-            CloseableIteratorUtils.toCloseableIterator(IteratorUtils.emptyIterator());
+        CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
+            IteratorUtils.emptyIterator()
+        );
         doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
@@ -139,24 +135,28 @@ public class OfferDiffProcessTest {
         assertThat(new File(instance.getOfferDiffStatus().getReportFileName())).hasContent("");
         assertThat(instance.getOfferDiffStatus().getTenantId()).isEqualTo(TENANT_ID);
         assertThat(instance.getOfferDiffStatus().getRequestId()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void synchronizeIsoOffers() throws Exception {
-
         // Given
-        CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
-            new ObjectEntry().setObjectId("obj5").setSize(10L),
-            new ObjectEntry().setObjectId("obj2").setSize(30L)
-        ).iterator());
+        CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(
+            Arrays.asList(
+                new ObjectEntry().setObjectId("obj5").setSize(10L),
+                new ObjectEntry().setObjectId("obj2").setSize(30L)
+            ).iterator()
+        );
         doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
-        CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
-            new ObjectEntry().setObjectId("obj2").setSize(30L),
-            new ObjectEntry().setObjectId("obj5").setSize(10L)
-        ).iterator());
+        CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
+            Arrays.asList(
+                new ObjectEntry().setObjectId("obj2").setSize(30L),
+                new ObjectEntry().setObjectId("obj5").setSize(10L)
+            ).iterator()
+        );
         doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
@@ -178,30 +178,32 @@ public class OfferDiffProcessTest {
         assertThat(new File(instance.getOfferDiffStatus().getReportFileName())).hasContent("");
         assertThat(instance.getOfferDiffStatus().getTenantId()).isEqualTo(TENANT_ID);
         assertThat(instance.getOfferDiffStatus().getRequestId()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void synchronizeLargeIsoOffers() throws Exception {
-
         // Given
         int nbEntries = 1000;
 
         CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(
             IntStream.range(0, nbEntries)
                 // Quick shuffle
-                .map(i -> i * 7 % nbEntries)
+                .map(i -> (i * 7) % nbEntries)
                 .mapToObj(i -> new ObjectEntry().setObjectId("obj" + i).setSize(i))
-                .iterator());
+                .iterator()
+        );
         doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
             IntStream.range(0, nbEntries)
                 // Quick shuffle
-                .map(i -> i * 13 % nbEntries)
+                .map(i -> (i * 13) % nbEntries)
                 .mapToObj(i -> new ObjectEntry().setObjectId("obj" + i).setSize(i))
-                .iterator());
+                .iterator()
+        );
         doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
@@ -223,20 +225,22 @@ public class OfferDiffProcessTest {
         assertThat(instance.getOfferDiffStatus().getReportFileName()).isNotNull();
         assertThat(new File(instance.getOfferDiffStatus().getReportFileName())).hasContent("");
         assertThat(instance.getOfferDiffStatus().getRequestId()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void synchronizeUnknownOffer() throws Exception {
-
         // Given
         CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(
-            IteratorUtils.emptyIterator());
+            IteratorUtils.emptyIterator()
+        );
         doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
         CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
-            IteratorUtils.emptyIterator());
+            IteratorUtils.emptyIterator()
+        );
         doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, "UNKNOWN", true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, "UNKNOWN", DATA_CATEGORY);
@@ -257,30 +261,34 @@ public class OfferDiffProcessTest {
         assertThat(instance.getOfferDiffStatus().getStatusCode()).isEqualTo(StatusCode.KO);
         assertThat(instance.getOfferDiffStatus().getReportFileName()).isNull();
         assertThat(instance.getOfferDiffStatus().getRequestId()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void synchronizeLargeOffersWithErrors() throws Exception {
-
         // Given
-        CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
-            new ObjectEntry().setObjectId("obj1").setSize(1L),
-            new ObjectEntry().setObjectId("obj2").setSize(2L),
-            new ObjectEntry().setObjectId("obj4").setSize(4L),
-            new ObjectEntry().setObjectId("obj5").setSize(5L),
-            new ObjectEntry().setObjectId("obj6").setSize(6L)
-        ).iterator());
+        CloseableIterator<ObjectEntry> entries1 = CloseableIteratorUtils.toCloseableIterator(
+            Arrays.asList(
+                new ObjectEntry().setObjectId("obj1").setSize(1L),
+                new ObjectEntry().setObjectId("obj2").setSize(2L),
+                new ObjectEntry().setObjectId("obj4").setSize(4L),
+                new ObjectEntry().setObjectId("obj5").setSize(5L),
+                new ObjectEntry().setObjectId("obj6").setSize(6L)
+            ).iterator()
+        );
         doReturn(entries1).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER1, true);
 
-        CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(Arrays.asList(
-            new ObjectEntry().setObjectId("obj4").setSize(40L),
-            new ObjectEntry().setObjectId("obj2").setSize(2L),
-            new ObjectEntry().setObjectId("obj3").setSize(3L),
-            new ObjectEntry().setObjectId("obj1").setSize(1L),
-            new ObjectEntry().setObjectId("obj5").setSize(5L)
-        ).iterator());
+        CloseableIterator<ObjectEntry> entries2 = CloseableIteratorUtils.toCloseableIterator(
+            Arrays.asList(
+                new ObjectEntry().setObjectId("obj4").setSize(40L),
+                new ObjectEntry().setObjectId("obj2").setSize(2L),
+                new ObjectEntry().setObjectId("obj3").setSize(3L),
+                new ObjectEntry().setObjectId("obj1").setSize(1L),
+                new ObjectEntry().setObjectId("obj5").setSize(5L)
+            ).iterator()
+        );
         doReturn(entries2).when(distribution).listContainerObjectsForOffer(DATA_CATEGORY, OFFER2, true);
 
         OfferDiffProcess instance = new OfferDiffProcess(distribution, OFFER1, OFFER2, DATA_CATEGORY);
@@ -300,12 +308,14 @@ public class OfferDiffProcessTest {
         assertThat(instance.getOfferDiffStatus().getErrorCount()).isEqualTo(3L);
         assertThat(instance.getOfferDiffStatus().getStatusCode()).isEqualTo(StatusCode.WARNING);
         assertThat(instance.getOfferDiffStatus().getReportFileName()).isNotNull();
-        assertThat(new File(instance.getOfferDiffStatus().getReportFileName())).hasContent("" +
+        assertThat(new File(instance.getOfferDiffStatus().getReportFileName())).hasContent(
+            "" +
             "{\"objectId\":\"obj3\",\"sizeInOffer1\":null,\"sizeInOffer2\":3}\n" +
             "{\"objectId\":\"obj4\",\"sizeInOffer1\":4,\"sizeInOffer2\":40}\n" +
             "{\"objectId\":\"obj6\",\"sizeInOffer1\":6,\"sizeInOffer2\":null}"
         );
         assertThat(instance.getOfferDiffStatus().getRequestId()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
     }
 }

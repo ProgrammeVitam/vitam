@@ -59,7 +59,6 @@ import java.util.Set;
  */
 public class CheckOriginatingAgencyHandler extends ActionHandler {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckOriginatingAgencyHandler.class);
 
     // IN RANK
@@ -74,7 +73,6 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
      */
     public CheckOriginatingAgencyHandler() {
         this(AdminManagementClientFactory.getInstance());
-
     }
 
     /**
@@ -98,7 +96,6 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) {
-
         checkMandatoryParameters(param);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         Set<String> missingserviceAgents;
@@ -109,8 +106,10 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
             Map<String, Object> mandatoryValueMap = (Map<String, Object>) handlerIO.getInput(AGENT_RANK);
 
             Set<String> serviceAgentList = new HashSet<>();
-            if (mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null &&
-                !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
+            if (
+                mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null &&
+                !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))
+            ) {
                 serviceAgentList.add((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
             } else {
                 ObjectNode evDetData = JsonHandler.createObjectNode();
@@ -121,8 +120,10 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
 
-            if (mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER) != null &&
-                !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
+            if (
+                mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER) != null &&
+                !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))
+            ) {
                 serviceAgentList.add((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
             }
 
@@ -133,13 +134,14 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
                 ObjectNode evDetData = JsonHandler.createObjectNode();
                 ArrayNode serviceAgents = JsonHandler.createArrayNode();
                 missingserviceAgents.forEach(agent -> serviceAgents.add(agent));
-                evDetData.put(SedaConstants.EV_DET_TECH_DATA,
-                    "error originating agency validation" + JsonHandler.writeAsString(missingserviceAgents));
+                evDetData.put(
+                    SedaConstants.EV_DET_TECH_DATA,
+                    "error originating agency validation" + JsonHandler.writeAsString(missingserviceAgents)
+                );
                 itemStatus.setEvDetailData(JsonHandler.writeAsString(evDetData));
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
-
         } catch (final ProcessingException | InvalidParseOperationException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
@@ -149,7 +151,6 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
 
     private Set<String> getMissingServiceAgents(Set<String> serviceAgentList) throws ProcessingException {
         try (final AdminManagementClient client = adminManagementClientFactory.getClient()) {
-
             Set<String> missingServiceAgent = new HashSet<>();
             String[] serviceAgentArray = serviceAgentList.toArray(new String[serviceAgentList.size()]);
             Select select = new Select();
@@ -163,7 +164,6 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
                 }
             }
             return missingServiceAgent;
-
         } catch (ReferentialException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Originating agency not found: ", e);
             throw new ProcessingException("Error while accessing referential AGENCIES");
@@ -175,5 +175,4 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
         // TODO Auto-generated method stub
 
     }
-
 }

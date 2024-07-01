@@ -38,7 +38,6 @@ import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetad
  */
 public class ElasticsearchAccessMetadataFactory {
 
-
     /**
      * Creation of one ElasticsearchAccess
      *
@@ -46,12 +45,17 @@ public class ElasticsearchAccessMetadataFactory {
      * @return the ElasticsearchAccess
      * @throws MetaDataException if error of creating ElasticSearchAccessMetadata
      */
-    public static ElasticsearchAccessMetadata create(MetaDataConfiguration configuration,
-        ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager) throws MetaDataException {
+    public static ElasticsearchAccessMetadata create(
+        MetaDataConfiguration configuration,
+        ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager
+    ) throws MetaDataException {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         try {
-            return new ElasticsearchAccessMetadata(configuration.getClusterName(),
-                configuration.getElasticsearchNodes(), elasticsearchMetadataIndexManager);
+            return new ElasticsearchAccessMetadata(
+                configuration.getClusterName(),
+                configuration.getElasticsearchNodes(),
+                elasticsearchMetadataIndexManager
+            );
         } catch (final VitamException e) {
             throw new MetaDataException(e);
         }

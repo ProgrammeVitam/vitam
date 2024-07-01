@@ -75,7 +75,6 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testNoEntries() throws Exception {
-
         TarFileDigestVerifier tarFileDigestVerifier = new TarFileDigestVerifier(objectReferentialRepository, 10);
         tarFileDigestVerifier.finalizeChecks();
 
@@ -84,13 +83,13 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testSingleEntryOK() throws Exception {
-
         // Given
         String storageId1 = LocalFileUtils.createStorageId(FILE_1);
         String entryName1 = LocalFileUtils.createTarEntryName(CONTAINER_1, storageId1, 0);
 
         doReturn(singletonList(createObjectReferentialEntry(entryName1, "digest1")))
-            .when(objectReferentialRepository).bulkFind(any(), any());
+            .when(objectReferentialRepository)
+            .bulkFind(any(), any());
 
         TarFileDigestVerifier tarFileDigestVerifier = new TarFileDigestVerifier(objectReferentialRepository, 10);
 
@@ -105,13 +104,13 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testSingleEntryBadDigest() throws Exception {
-
         // Given
         String storageId1 = LocalFileUtils.createStorageId(FILE_1);
         String entryName1 = LocalFileUtils.createTarEntryName(CONTAINER_1, storageId1, 0);
 
         doReturn(singletonList(createObjectReferentialEntry(entryName1, "digest1")))
-            .when(objectReferentialRepository).bulkFind(any(), any());
+            .when(objectReferentialRepository)
+            .bulkFind(any(), any());
 
         TarFileDigestVerifier tarFileDigestVerifier = new TarFileDigestVerifier(objectReferentialRepository, 10);
 
@@ -124,13 +123,13 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testSingleEntryBadEntryIndex() throws Exception {
-
         // Given
         String storageId1 = LocalFileUtils.createStorageId(FILE_1);
         String entryName1 = LocalFileUtils.createTarEntryName(CONTAINER_1, storageId1, 99);
 
         doReturn(singletonList(createObjectReferentialEntry(entryName1, "digest1")))
-            .when(objectReferentialRepository).bulkFind(any(), any());
+            .when(objectReferentialRepository)
+            .bulkFind(any(), any());
 
         TarFileDigestVerifier tarFileDigestVerifier = new TarFileDigestVerifier(objectReferentialRepository, 10);
 
@@ -143,13 +142,18 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testEntriesLessThenBulkSize() throws Exception {
-
         Map<String, String> fileIdsWithContainers = ImmutableMap.of(
-            "file1", "container1",
-            "file2", "container1",
-            "file3", "container1",
-            "file4", "container1",
-            "file5", "container1");
+            "file1",
+            "container1",
+            "file2",
+            "container1",
+            "file3",
+            "container1",
+            "file4",
+            "container1",
+            "file5",
+            "container1"
+        );
         int bulkSize = 10;
 
         testVerify(fileIdsWithContainers, bulkSize);
@@ -161,13 +165,18 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testEntriesMatchingBulkSize() throws Exception {
-
         Map<String, String> fileIdsWithContainers = ImmutableMap.of(
-            "file1", "container1",
-            "file2", "container1",
-            "file3", "container1",
-            "file4", "container1",
-            "file5", "container1");
+            "file1",
+            "container1",
+            "file2",
+            "container1",
+            "file3",
+            "container1",
+            "file4",
+            "container1",
+            "file5",
+            "container1"
+        );
         int bulkSize = 5;
 
         testVerify(fileIdsWithContainers, bulkSize);
@@ -179,13 +188,18 @@ public class TarFileDigestVerifierTest {
 
     @Test
     public void testMultipleContainers() throws Exception {
-
         Map<String, String> fileIdsWithContainers = ImmutableMap.of(
-            "file1", CONTAINER_1,
-            "file2", CONTAINER_2,
-            "file3", CONTAINER_2,
-            "file4", CONTAINER_1,
-            "file5", CONTAINER_1);
+            "file1",
+            CONTAINER_1,
+            "file2",
+            CONTAINER_2,
+            "file3",
+            CONTAINER_2,
+            "file4",
+            CONTAINER_1,
+            "file5",
+            CONTAINER_1
+        );
         int bulkSize = 2;
 
         testVerify(fileIdsWithContainers, bulkSize);
@@ -196,24 +210,27 @@ public class TarFileDigestVerifierTest {
         verifyNoMoreInteractions(objectReferentialRepository);
     }
 
-    private void testVerify(Map<String, String> containersByFileIds, int bulkSize)
-        throws ObjectReferentialException {
-
+    private void testVerify(Map<String, String> containersByFileIds, int bulkSize) throws ObjectReferentialException {
         // Given
         Set<String> fileIds = containersByFileIds.keySet();
-        Map<String, String> storageIds =
-            fileIds.stream().collect(toMap(fileId -> fileId, LocalFileUtils::createStorageId));
-        Map<String, String> digests =
-            fileIds.stream().collect(toMap(fileId -> fileId, fileId -> "digest" + fileId));
+        Map<String, String> storageIds = fileIds
+            .stream()
+            .collect(toMap(fileId -> fileId, LocalFileUtils::createStorageId));
+        Map<String, String> digests = fileIds.stream().collect(toMap(fileId -> fileId, fileId -> "digest" + fileId));
 
-        Map<String, String> entryNames =
-            fileIds.stream().collect(toMap(fileId -> fileId, fileId -> LocalFileUtils.createTarEntryName(
-                containersByFileIds.get(fileId), storageIds.get(fileId), 0)));
+        Map<String, String> entryNames = fileIds
+            .stream()
+            .collect(
+                toMap(
+                    fileId -> fileId,
+                    fileId ->
+                        LocalFileUtils.createTarEntryName(containersByFileIds.get(fileId), storageIds.get(fileId), 0)
+                )
+            );
 
         Map<String, Integer> nbInvocationByContainer = new HashMap<>();
         List<String> queriedObjectNames = new ArrayList<>();
-        doAnswer((args) -> {
-
+        doAnswer(args -> {
             String container = args.getArgument(0);
             Set<String> objectNames = args.getArgument(1);
 
@@ -223,18 +240,23 @@ public class TarFileDigestVerifierTest {
             nbInvocationByContainer.put(container, cpt);
 
             // Check that elements are grouped by container
-            assertThat(containersByFileIds.entrySet().stream()
-                .filter(entry -> objectNames.contains(entry.getKey()))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toSet()))
-                .containsExactlyInAnyOrder(container);
+            assertThat(
+                containersByFileIds
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> objectNames.contains(entry.getKey()))
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toSet())
+            ).containsExactlyInAnyOrder(container);
 
             // Return response
-            return objectNames.stream().map(
-                    objectName -> createObjectReferentialEntry(entryNames.get(objectName), digests.get(objectName)))
+            return objectNames
+                .stream()
+                .map(objectName -> createObjectReferentialEntry(entryNames.get(objectName), digests.get(objectName)))
                 .collect(toList());
-
-        }).when(objectReferentialRepository).bulkFind(any(), any());
+        })
+            .when(objectReferentialRepository)
+            .bulkFind(any(), any());
 
         TarFileDigestVerifier tarFileDigestVerifier = new TarFileDigestVerifier(objectReferentialRepository, bulkSize);
 
@@ -252,10 +274,16 @@ public class TarFileDigestVerifierTest {
             new TapeLibraryObjectReferentialId(
                 LocalFileUtils.getContainerNameFromTarEntryName(entryName),
                 LocalFileUtils.storageIdToObjectName(LocalFileUtils.getStorageIdFromTarEntryName(entryName))
-            ), 1000, VitamConfiguration.getDefaultDigestType().getName(), digest,
-            LocalFileUtils.getStorageIdFromTarEntryName(entryName), new TapeLibraryTarObjectStorageLocation(
-            singletonList(new TarEntryDescription("tarId", entryName, 0, 1000,
-                digest)
-            )), null, null);
+            ),
+            1000,
+            VitamConfiguration.getDefaultDigestType().getName(),
+            digest,
+            LocalFileUtils.getStorageIdFromTarEntryName(entryName),
+            new TapeLibraryTarObjectStorageLocation(
+                singletonList(new TarEntryDescription("tarId", entryName, 0, 1000, digest))
+            ),
+            null,
+            null
+        );
     }
 }

@@ -38,8 +38,10 @@ import javax.ws.rs.container.ContainerRequestContext;
 import java.io.InputStream;
 
 public class RequestLengthCountingInputStreamMetrics extends CountingInputStream {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(RequestLengthCountingInputStreamMetrics.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        RequestLengthCountingInputStreamMetrics.class
+    );
 
     public static final Summary RECEIVED_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_REQUESTS_SIZE_BYTES)
@@ -74,9 +76,7 @@ public class RequestLengthCountingInputStreamMetrics extends CountingInputStream
 
             String method = requestContext.getMethod();
 
-            RECEIVED_BYTES
-                .labels(tenant, method)
-                .observe(super.getByteCount());
+            RECEIVED_BYTES.labels(tenant, method).observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);
         }

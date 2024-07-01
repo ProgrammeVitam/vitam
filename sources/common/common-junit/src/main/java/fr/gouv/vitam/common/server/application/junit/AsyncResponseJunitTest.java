@@ -56,7 +56,6 @@ public class AsyncResponseJunitTest implements AsyncResponse {
         return response;
     }
 
-
     @Override
     public boolean resume(Throwable response) {
         return false;
@@ -121,5 +120,4 @@ public class AsyncResponseJunitTest implements AsyncResponse {
     public Map<Class<?>, Collection<Class<?>>> register(Object callback, Object... callbacks) {
         return Collections.emptyMap();
     }
-
 }

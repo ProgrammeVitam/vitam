@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.List;
 
 public interface TapeDriveSpec {
-
     String getDescription();
 
     Integer getFileNumber();
@@ -61,8 +60,11 @@ public interface TapeDriveSpec {
     }
 
     default boolean hasDensity() {
-        return getDriveStatuses().contains(TapeDriveStatus.D_800) ||
-            getDriveStatuses().contains(TapeDriveStatus.D_6250) || getDriveStatuses().contains(TapeDriveStatus.D_1600);
+        return (
+            getDriveStatuses().contains(TapeDriveStatus.D_800) ||
+            getDriveStatuses().contains(TapeDriveStatus.D_6250) ||
+            getDriveStatuses().contains(TapeDriveStatus.D_1600)
+        );
     }
 
     default boolean isWormTape() {

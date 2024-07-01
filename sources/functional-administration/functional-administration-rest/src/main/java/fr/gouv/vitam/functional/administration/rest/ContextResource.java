@@ -67,8 +67,7 @@ public class ContextResource {
     static final String UPDATE_CONTEXT_URI = "/context";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextResource.class);
-    private static final String CONTEXTS_JSON_IS_MANDATORY_PATAMETER =
-        "The json input of contexts is mandatory";
+    private static final String CONTEXTS_JSON_IS_MANDATORY_PATAMETER = "The json input of contexts is mandatory";
 
     private final ContextService contextService;
 
@@ -96,22 +95,23 @@ public class ContextResource {
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
         } catch (ReferentialException exp) {
             LOGGER.error(exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         } catch (VitamException exp) {
             // FIXME Proper exception handling
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
-
     }
 
     /**
@@ -123,13 +123,16 @@ public class ContextResource {
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+        return new VitamError(aCode)
+            .setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-            .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState("ko")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
     /**
@@ -146,15 +149,18 @@ public class ContextResource {
         try {
             SanityChecker.checkJsonAll(queryDsl);
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
-                RequestResponseOK<ContextModel> response =
-                    result.getRequestResponseOK(queryDsl, fr.gouv.vitam.functional.administration.common.Context.class,
-                        ContextModel.class);
+                RequestResponseOK<ContextModel> response = result.getRequestResponseOK(
+                    queryDsl,
+                    fr.gouv.vitam.functional.administration.common.Context.class,
+                    ContextModel.class
+                );
                 return Response.status(Status.OK).entity(response).build();
             }
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -170,32 +176,32 @@ public class ContextResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
-
         try {
             RequestResponse<ContextModel> requestResponse = contextService.updateContext(contextId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError<ContextModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
         } catch (ReferentialNotFoundException exp) {
             LOGGER.error(exp);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null))
+                .build();
         } catch (VitamException exp) {
             // FIXME : Proper error management
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
-
 
     /**
      * Delate contexts
@@ -204,7 +210,6 @@ public class ContextResource {
      * @return Response
      */
     Response deleteContext(String contextId, boolean force) {
-
         try {
             RequestResponse<ContextModel> requestResponse = contextService.deleteContext(contextId, force);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
@@ -218,20 +223,21 @@ public class ContextResource {
             }
 
             return Response.status(Status.NO_CONTENT).entity(requestResponse).build();
-
         } catch (ReferentialNotFoundException exp) {
             LOGGER.error(exp);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null))
+                .build();
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
-
 }

@@ -153,10 +153,12 @@ public class EvidenceService {
     }
 
     @VisibleForTesting
-    EvidenceService(MetaDataClientFactory metaDataClientFactory,
+    EvidenceService(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
@@ -171,28 +173,38 @@ public class EvidenceService {
      * @param id identifier
      * @return EvidenceAuditReportLine
      */
-    public EvidenceAuditReportLine auditAndGenerateReportIfKo(EvidenceAuditParameters parameters,
+    public EvidenceAuditReportLine auditAndGenerateReportIfKo(
+        EvidenceAuditParameters parameters,
         List<String> securedLines,
-        String id) {
-
+        String id
+    ) {
         EvidenceAuditReportLine evidenceAuditReportLine = new EvidenceAuditReportLine(id);
         LifeCycleTraceabilitySecureFileObject securedObject;
         List<String> errorsMessage = new ArrayList<>();
         evidenceAuditReportLine.setObjectType(parameters.getMetadataType());
         try {
-            securedObject =
-                loadInformationFromFile(securedLines, parameters.getMetadataType(), id);
+            securedObject = loadInformationFromFile(securedLines, parameters.getMetadataType(), id);
 
             checkTraceabilityInformationVersion(parameters, securedObject);
 
             if (!parameters.getHashMdFromDatabase().equals(securedObject.getHashMetadata())) {
-                errorsMessage.add(String.format(" Metadata hash '%s' mismatch secured metadata hash '%s' ",
-                    parameters.getHashMdFromDatabase(), securedObject.getHashMetadata()));
+                errorsMessage.add(
+                    String.format(
+                        " Metadata hash '%s' mismatch secured metadata hash '%s' ",
+                        parameters.getHashMdFromDatabase(),
+                        securedObject.getHashMetadata()
+                    )
+                );
             }
 
             if (!parameters.getHashLfcFromDatabase().equals(securedObject.getHashLFC())) {
-                errorsMessage.add(String.format(" Metadata hash '%s' mismatch secured lfc hash '%s' ",
-                    parameters.getHashLfcFromDatabase(), securedObject.getHashLFC()));
+                errorsMessage.add(
+                    String.format(
+                        " Metadata hash '%s' mismatch secured lfc hash '%s' ",
+                        parameters.getHashLfcFromDatabase(),
+                        securedObject.getHashLFC()
+                    )
+                );
             }
 
             String securedGlobalHash = securedObject.getHashGlobalFromStorage();
@@ -201,35 +213,38 @@ public class EvidenceService {
             evidenceAuditReportLine.setSecuredHash(securedGlobalHash);
             Map<String, String> offerHashes = new HashMap<>();
             for (String offerId : mdOptimisticStorageInfo.getOfferIds()) {
-
                 String strategyId = mdOptimisticStorageInfo.getStrategy();
                 JsonNode metadataResultJsonNode = parameters.getStorageMetadataResultListJsonNode().get(offerId);
                 StorageMetadataResult storageMetadataResult = null;
                 if (metadataResultJsonNode != null && metadataResultJsonNode.isObject()) {
-
-
                     try {
-                        storageMetadataResult =
-                            JsonHandler.getFromJsonNode(metadataResultJsonNode, StorageMetadataResult.class);
-
+                        storageMetadataResult = JsonHandler.getFromJsonNode(
+                            metadataResultJsonNode,
+                            StorageMetadataResult.class
+                        );
                     } catch (InvalidParseOperationException e) {
-
-                        throw new EvidenceAuditException(EvidenceStatus.FATAL,
-                            "An error occurred during last traceability operation retrieval", e);
+                        throw new EvidenceAuditException(
+                            EvidenceStatus.FATAL,
+                            "An error occurred during last traceability operation retrieval",
+                            e
+                        );
                     }
 
                     if (!securedGlobalHash.equals(storageMetadataResult.getDigest())) {
-                        errorsMessage
-                            .add(String.format(" OfferId %s : Storage hash '%s' mismatch secured lfc hash '%s' ",
-                                offerId, storageMetadataResult.getDigest(), securedGlobalHash));
+                        errorsMessage.add(
+                            String.format(
+                                " OfferId %s : Storage hash '%s' mismatch secured lfc hash '%s' ",
+                                offerId,
+                                storageMetadataResult.getDigest(),
+                                securedGlobalHash
+                            )
+                        );
                     }
-
                 } else {
                     errorsMessage.add("No storage metadata found for file in offer " + offerId);
                 }
                 String digest = null;
                 if (storageMetadataResult != null) {
-
                     digest = storageMetadataResult.getDigest();
                 }
                 offerHashes.put(offerId, digest);
@@ -238,18 +253,16 @@ public class EvidenceService {
             }
 
             if (parameters.getMetadataType().equals(MetadataType.OBJECTGROUP)) {
-
                 auditObjects(parameters, securedObject, errorsMessage, evidenceAuditReportLine);
             }
 
             if (errorsMessage.size() > 0) {
-
-                String message = "Traceability audit KO  Database check failure Errors are :  " +
+                String message =
+                    "Traceability audit KO  Database check failure Errors are :  " +
                     JsonHandler.prettyPrint(errorsMessage);
                 evidenceAuditReportLine.setEvidenceStatus(EvidenceStatus.KO);
                 evidenceAuditReportLine.setMessage(message);
             }
-
         } catch (EvidenceAuditException | InvalidParseOperationException e) {
             LOGGER.error(e);
             evidenceAuditReportLine.setEvidenceStatus(EvidenceStatus.KO);
@@ -258,10 +271,12 @@ public class EvidenceService {
         return evidenceAuditReportLine;
     }
 
-    private void auditObjects(EvidenceAuditParameters parameters, LifeCycleTraceabilitySecureFileObject securedObject,
+    private void auditObjects(
+        EvidenceAuditParameters parameters,
+        LifeCycleTraceabilitySecureFileObject securedObject,
         List<String> errorsMessage,
-        EvidenceAuditReportLine evidenceAuditReportLine) throws InvalidParseOperationException {
-
+        EvidenceAuditReportLine evidenceAuditReportLine
+    ) throws InvalidParseOperationException {
         Map<String, JsonNode> objectStorageMetadataResultMap = parameters.getObjectStorageMetadataResultMap();
 
         List<String> errorsObjectMessages = new ArrayList<>();
@@ -270,17 +285,15 @@ public class EvidenceService {
 
         ArrayList<EvidenceAuditReportObject> reportList = new ArrayList<>();
         for (ObjectGroupDocumentHash objectGroupDocumentHash : objectGroupDocumentHashList) {
-
-            EvidenceAuditReportObject evidenceAuditReportObject =
-                new EvidenceAuditReportObject(objectGroupDocumentHash.getId());
+            EvidenceAuditReportObject evidenceAuditReportObject = new EvidenceAuditReportObject(
+                objectGroupDocumentHash.getId()
+            );
 
             String objectVersionId = objectGroupDocumentHash.getId();
             String objectVersionHash = objectGroupDocumentHash.gethObject();
             JsonNode objectVersionStorageMetadataResult = objectStorageMetadataResultMap.get(objectVersionId);
 
-
-            final StoredInfoResult storedInfoResult =
-                parameters.getMdOptimisticStorageInfoMap().get(objectVersionId);
+            final StoredInfoResult storedInfoResult = parameters.getMdOptimisticStorageInfoMap().get(objectVersionId);
             List<String> errorsObjectMessage = new ArrayList<>();
 
             Map<String, String> offerHashes = new HashMap<>();
@@ -288,25 +301,26 @@ public class EvidenceService {
                 final JsonNode objectVersionResultJsonNode = objectVersionStorageMetadataResult.get(offerId);
 
                 if (objectVersionResultJsonNode == null) {
-
-                    errorsObjectMessage.add(String.format(
-                        "The digest '%s' for the offer '%s' is null ",
-                        objectVersionHash, offerId));
+                    errorsObjectMessage.add(
+                        String.format("The digest '%s' for the offer '%s' is null ", objectVersionHash, offerId)
+                    );
                     offerHashes.put(offerId, null);
                     continue;
-
                 }
-                final StorageMetadataResult storageMetadataResult =
-                    JsonHandler.getFromJsonNode(objectVersionResultJsonNode, StorageMetadataResult.class);
+                final StorageMetadataResult storageMetadataResult = JsonHandler.getFromJsonNode(
+                    objectVersionResultJsonNode,
+                    StorageMetadataResult.class
+                );
                 String digestForOffer = storageMetadataResult.getDigest();
-
 
                 if (!objectVersionHash.equals(digestForOffer)) {
                     String message = String.format(
                         "The digest '%s' for the offer '%s' is null or not equal to the  Offer globalDigest expected (%s)",
-                        objectVersionHash, offerId, digestForOffer);
-                    errorsObjectMessage
-                        .add(message);
+                        objectVersionHash,
+                        offerId,
+                        digestForOffer
+                    );
+                    errorsObjectMessage.add(message);
                 }
                 offerHashes.put(offerId, storageMetadataResult.getDigest());
             }
@@ -315,7 +329,6 @@ public class EvidenceService {
             evidenceAuditReportObject.setStrategyId(storedInfoResult.getStrategy());
 
             if (!errorsObjectMessage.isEmpty()) {
-
                 evidenceAuditReportObject.setEvidenceStatus(EvidenceStatus.KO);
                 evidenceAuditReportObject.setMessage(JsonHandler.unprettyPrint(errorsObjectMessage));
                 errorsObjectMessages.add(JsonHandler.unprettyPrint(errorsObjectMessage));
@@ -328,16 +341,17 @@ public class EvidenceService {
         }
     }
 
-    private void extractObjectStorageMetadataResultMap(JsonNode metadata,
-        EvidenceAuditParameters auditParameters, List<StorageStrategy> storageStrategies) throws StorageException {
-
+    private void extractObjectStorageMetadataResultMap(
+        JsonNode metadata,
+        EvidenceAuditParameters auditParameters,
+        List<StorageStrategy> storageStrategies
+    ) throws StorageException {
         JsonNode qualifiers = metadata.get(SedaConstants.PREFIX_QUALIFIERS);
 
         Map<String, JsonNode> objectStorageMetadataResultMap = new HashMap<>();
         Map<String, StoredInfoResult> mdOptimisticStorageInfoMap = new HashMap<>();
 
         if (qualifiers != null && qualifiers.isArray() && qualifiers.size() > 0) {
-
             List<JsonNode> listQualifiers = JsonHandler.toArrayList((ArrayNode) qualifiers);
             for (final JsonNode qualifier : listQualifiers) {
                 JsonNode versions = qualifier.get(SedaConstants.TAG_VERSIONS);
@@ -352,8 +366,11 @@ public class EvidenceService {
                         StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(version, storageStrategies);
                         mdOptimisticStorageInfoMap.put(objectId, mdOptimisticStorageInfo);
 
-                        JsonNode storageMetadataResultListJsonNode =
-                            getStorageResultsJsonNode(mdOptimisticStorageInfo, DataCategory.OBJECT, objectId);
+                        JsonNode storageMetadataResultListJsonNode = getStorageResultsJsonNode(
+                            mdOptimisticStorageInfo,
+                            DataCategory.OBJECT,
+                            objectId
+                        );
 
                         objectStorageMetadataResultMap.put(objectId, storageMetadataResultListJsonNode);
                     }
@@ -361,35 +378,36 @@ public class EvidenceService {
             }
         }
 
-
         auditParameters.setMdOptimisticStorageInfoMap(mdOptimisticStorageInfoMap);
         auditParameters.setObjectStorageMetadataResultMap(objectStorageMetadataResultMap);
     }
 
-    private JsonNode getStorageResultsJsonNode(StoredInfoResult mdOptimisticStorageInfo, DataCategory dataCategory,
-        String uid) throws StorageException {
-
-
+    private JsonNode getStorageResultsJsonNode(
+        StoredInfoResult mdOptimisticStorageInfo,
+        DataCategory dataCategory,
+        String uid
+    ) throws StorageException {
         JsonNode storageMetadataResultListJsonNode;
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
-            storageMetadataResultListJsonNode = storageClient.
-                getInformation(mdOptimisticStorageInfo.getStrategy(),
-                    dataCategory, uid, mdOptimisticStorageInfo.getOfferIds(), true);
-
-
+            storageMetadataResultListJsonNode = storageClient.getInformation(
+                mdOptimisticStorageInfo.getStrategy(),
+                dataCategory,
+                uid,
+                mdOptimisticStorageInfo.getOfferIds(),
+                true
+            );
         } catch (StorageServerClientException | StorageNotFoundClientException e) {
-            throw new StorageException(
-                "An error occurred during last traceability operation retrieval", e);
+            throw new StorageException("An error occurred during last traceability operation retrieval", e);
         }
         return storageMetadataResultListJsonNode;
     }
 
-    private void checkTraceabilityInformationVersion(EvidenceAuditParameters auditParameters,
-        LifeCycleTraceabilitySecureFileObject lifeCycleTraceabilitySecureFileObject)
-        throws EvidenceAuditException {
-
+    private void checkTraceabilityInformationVersion(
+        EvidenceAuditParameters auditParameters,
+        LifeCycleTraceabilitySecureFileObject lifeCycleTraceabilitySecureFileObject
+    ) throws EvidenceAuditException {
         int lfcVersion = auditParameters.getLfcVersion();
         int securedVersion = lifeCycleTraceabilitySecureFileObject.getVersion();
 
@@ -399,17 +417,23 @@ public class EvidenceService {
         }
 
         if (lfcVersion < securedVersion) {
-            throw new EvidenceAuditException(EvidenceStatus.KO,
-                String.format(KO_DATABASE_VERSION_LOWER_THAN_TRACEABILITY_FILE, lfcVersion, securedVersion));
+            throw new EvidenceAuditException(
+                EvidenceStatus.KO,
+                String.format(KO_DATABASE_VERSION_LOWER_THAN_TRACEABILITY_FILE, lfcVersion, securedVersion)
+            );
         }
 
         if (auditParameters.isLastSecurisation()) {
-            throw new EvidenceAuditException(EvidenceStatus.WARN,
-                String.format(WARN_DATABASE_VERSION_NET_YET_SECURED, lfcVersion, securedVersion));
+            throw new EvidenceAuditException(
+                EvidenceStatus.WARN,
+                String.format(WARN_DATABASE_VERSION_NET_YET_SECURED, lfcVersion, securedVersion)
+            );
         }
 
-        throw new EvidenceAuditException(EvidenceStatus.KO,
-            String.format(KO_UNSECURED_DATABASE_VERSION, lfcVersion, securedVersion));
+        throw new EvidenceAuditException(
+            EvidenceStatus.KO,
+            String.format(KO_UNSECURED_DATABASE_VERSION, lfcVersion, securedVersion)
+        );
     }
 
     /**
@@ -419,63 +443,77 @@ public class EvidenceService {
      * @return LifeCycleTraceabilitySecureFileObject
      * @throws EvidenceAuditException the EvidenceAuditException
      */
-    public File downloadAndExtractDataFromStorage(String fileName, String fileToExtract, String extension,
-        boolean delele) throws EvidenceAuditException {
+    public File downloadAndExtractDataFromStorage(
+        String fileName,
+        String fileToExtract,
+        String extension,
+        boolean delele
+    ) throws EvidenceAuditException {
         File traceabilityFile = downloadFileInTemporaryFolder(fileName, extension);
         return extractFileStreamFromZip(traceabilityFile, fileToExtract, extension, delele);
     }
-
 
     private File downloadFileInTemporaryFolder(String fileName, String extension) throws EvidenceAuditException {
         // Get zip file
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            response = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, DataCategory.LOGBOOK,
-                    AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                DataCategory.LOGBOOK,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             try (InputStream inputStream = response.readEntity(InputStream.class)) {
-
                 final File file = FileUtil.createFileInTempDirectoryWithPathCheck(TMP, extension);
                 Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 response.close();
                 return file;
             }
-
-        } catch (StorageNotFoundException | StorageServerClientException | IOException | IllegalPathException | StorageUnavailableDataFromAsyncOfferClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL,
-                String.format("Could not retrieve traceability zip file '%s'", fileName), e);
+        } catch (
+            StorageNotFoundException
+            | StorageServerClientException
+            | IOException
+            | IllegalPathException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
+                String.format("Could not retrieve traceability zip file '%s'", fileName),
+                e
+            );
         } finally {
             StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
-    public static LifeCycleTraceabilitySecureFileObject loadInformationFromFile(List<String> securedLines,
+    public static LifeCycleTraceabilitySecureFileObject loadInformationFromFile(
+        List<String> securedLines,
         MetadataType metadataType,
-        String id)
-        throws EvidenceAuditException {
-
+        String id
+    ) throws EvidenceAuditException {
         try {
             for (String line : securedLines) {
                 if (StringUtils.isEmpty(line)) {
                     continue;
                 }
-                LifeCycleTraceabilitySecureFileObject traceabilityLine =
-                    JsonHandler.getFromString(line, LifeCycleTraceabilitySecureFileObject.class);
+                LifeCycleTraceabilitySecureFileObject traceabilityLine = JsonHandler.getFromString(
+                    line,
+                    LifeCycleTraceabilitySecureFileObject.class
+                );
                 boolean result = findLine(traceabilityLine, metadataType, id);
                 if (result) {
                     return traceabilityLine;
                 }
             }
-            throw new EvidenceAuditException(EvidenceStatus.KO,
-                "Could not find matching traceability info in the file");
-
+            throw new EvidenceAuditException(
+                EvidenceStatus.KO,
+                "Could not find matching traceability info in the file"
+            );
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not parse securised lines " + e);
-
         }
     }
-
 
     public File extractFileStreamFromZip(File file, String fileToExtract, String extension, boolean delete)
         throws EvidenceAuditException {
@@ -495,18 +533,16 @@ public class EvidenceService {
         }
     }
 
-    private static boolean findLine(LifeCycleTraceabilitySecureFileObject traceabilityLine, MetadataType metadataType,
-        String id) {
+    private static boolean findLine(
+        LifeCycleTraceabilitySecureFileObject traceabilityLine,
+        MetadataType metadataType,
+        String id
+    ) {
         if (traceabilityLine.getLfcId() == null) {
             throw new IllegalStateException("Missing lfc Id");
         }
 
-        return
-
-            traceabilityLine.getMetadataType() == metadataType
-                &&
-                traceabilityLine.getLfcId().equals(id);
-
+        return traceabilityLine.getMetadataType() == metadataType && traceabilityLine.getLfcId().equals(id);
     }
 
     /**
@@ -516,8 +552,11 @@ public class EvidenceService {
      * @param metadataType the metadataType
      * @param storageStrategies the storageStrategies
      */
-    public EvidenceAuditParameters evidenceAuditsChecks(String id, MetadataType metadataType,
-        List<StorageStrategy> storageStrategies) {
+    public EvidenceAuditParameters evidenceAuditsChecks(
+        String id,
+        MetadataType metadataType,
+        List<StorageStrategy> storageStrategies
+    ) {
         EvidenceAuditParameters auditParameters = new EvidenceAuditParameters();
         try {
             auditParameters.setId(id);
@@ -525,7 +564,6 @@ public class EvidenceService {
 
             // Get metadata from DB
             JsonNode metadata = getRawMetadata(id, metadataType);
-
 
             StoredInfoResult mdOptimisticStorageInfo = fromMetadataJson(metadata, storageStrategies);
             auditParameters.setMdOptimisticStorageInfo(mdOptimisticStorageInfo);
@@ -537,24 +575,27 @@ public class EvidenceService {
             auditParameters.setLfcVersion(lfcVersion);
 
             // get storage info
-            JsonNode storageResultsJsonNode = getStorageResultsJsonNode(auditParameters.getMdOptimisticStorageInfo(),
-                getDataCategory(auditParameters.getMetadataType()), auditParameters.getId() + JSON);
+            JsonNode storageResultsJsonNode = getStorageResultsJsonNode(
+                auditParameters.getMdOptimisticStorageInfo(),
+                getDataCategory(auditParameters.getMetadataType()),
+                auditParameters.getId() + JSON
+            );
 
             // Get most recent traceability operation
-            String logbookOperationSecurisationId =
-                getLogbookSecureOperationId(lifecycle, metadataType);
+            String logbookOperationSecurisationId = getLogbookSecureOperationId(lifecycle, metadataType);
             auditParameters.setSecurisationOperationId(logbookOperationSecurisationId);
 
             // Is the current operation the last lifecycle traceability
-            boolean isLastLifeCycleTraceabilityOperation =
-                isLastLifeCycleTraceabilityOperation(logbookOperationSecurisationId, metadataType);
+            boolean isLastLifeCycleTraceabilityOperation = isLastLifeCycleTraceabilityOperation(
+                logbookOperationSecurisationId,
+                metadataType
+            );
             auditParameters.setLastSecurisation(isLastLifeCycleTraceabilityOperation);
 
             // Get filename, digest algorithm & digest from
             loadFileInfoFromLogbook(logbookOperationSecurisationId, auditParameters);
 
             if (metadataType.equals(MetadataType.OBJECTGROUP)) {
-
                 extractObjectStorageMetadataResultMap(metadata, auditParameters, storageStrategies);
             }
 
@@ -575,11 +616,9 @@ public class EvidenceService {
             auditParameters.setHashMdFromDatabase(hashMdFromDatabase);
             auditParameters.setHashLfcFromDatabase(hashLfcFromDatabase);
 
-
             auditParameters.setStorageMetadataResultListJsonNode(storageResultsJsonNode);
 
             auditParameters.setEvidenceStatus(EvidenceStatus.OK);
-
         } catch (StorageException e) {
             LOGGER.error(e);
             auditParameters.setEvidenceStatus(EvidenceStatus.FATAL);
@@ -592,9 +631,7 @@ public class EvidenceService {
         return auditParameters;
     }
 
-    private JsonNode getRawLifeCycle(String id, MetadataType metadataType)
-        throws EvidenceAuditException {
-
+    private JsonNode getRawLifeCycle(String id, MetadataType metadataType) throws EvidenceAuditException {
         switch (metadataType) {
             case UNIT:
                 return getRawUnitLifeCycle(id);
@@ -610,17 +647,20 @@ public class EvidenceService {
      * @return unit lifecycle as json
      */
     private JsonNode getRawUnitLifeCycle(String unitId) throws EvidenceAuditException {
-
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
             return logbookLifeCyclesClient.getRawUnitLifeCycleById(unitId);
-
         } catch (LogbookClientNotFoundException e) {
-            throw new EvidenceAuditException(EvidenceStatus.KO,
-                String.format("No such lifecycle unit found '%s'", unitId), e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.KO,
+                String.format("No such lifecycle unit found '%s'", unitId),
+                e
+            );
         } catch (InvalidParseOperationException | LogbookClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL, "An error occurred during unit lifecycle retrieval",
-                e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
+                "An error occurred during unit lifecycle retrieval",
+                e
+            );
         }
     }
 
@@ -629,24 +669,24 @@ public class EvidenceService {
      * @return Object group lifecycle as json
      */
     private JsonNode getRawObjectGroupLifeCycle(String objectGroupId) throws EvidenceAuditException {
-
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
             return logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId);
-
         } catch (LogbookClientNotFoundException e) {
-            throw new EvidenceAuditException(EvidenceStatus.KO,
-                String.format("No such lifecycle object group found '%s'", objectGroupId), e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.KO,
+                String.format("No such lifecycle object group found '%s'", objectGroupId),
+                e
+            );
         } catch (InvalidParseOperationException | LogbookClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL,
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
                 "An error occurred during object group lifecycle retrieval",
-                e);
+                e
+            );
         }
     }
 
-    private JsonNode getRawMetadata(String id, MetadataType metadataType)
-        throws EvidenceAuditException {
-
+    private JsonNode getRawMetadata(String id, MetadataType metadataType) throws EvidenceAuditException {
         switch (metadataType) {
             case UNIT:
                 return getRawUnitMetadata(id);
@@ -673,10 +713,12 @@ public class EvidenceService {
             }
 
             throw new EvidenceAuditException(EvidenceStatus.KO, String.format("No such unit metadata '%s'", unitId));
-
         } catch (VitamClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL, "An error occurred during unit metadata retrieval",
-                e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
+                "An error occurred during unit metadata retrieval",
+                e
+            );
         }
     }
 
@@ -695,13 +737,16 @@ public class EvidenceService {
                 return ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
             }
 
-            throw new EvidenceAuditException(EvidenceStatus.KO,
-                String.format("No such object group metadata '%s'", objectGroupId));
-
+            throw new EvidenceAuditException(
+                EvidenceStatus.KO,
+                String.format("No such object group metadata '%s'", objectGroupId)
+            );
         } catch (VitamClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL,
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
                 "An error occurred during object group metadata retrieval",
-                e);
+                e
+            );
         }
     }
 
@@ -712,13 +757,11 @@ public class EvidenceService {
      * @param metadataType
      * @return the logbookOperationId
      */
-    private String getLogbookSecureOperationId(JsonNode unitLifecycle,
-        MetadataType metadataType) throws EvidenceAuditException {
-
+    private String getLogbookSecureOperationId(JsonNode unitLifecycle, MetadataType metadataType)
+        throws EvidenceAuditException {
         String lastPersistedDate = unitLifecycle.get(LAST_PERSISTED_DATE).asText();
 
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
-
             Select select;
             switch (metadataType) {
                 case UNIT:
@@ -731,40 +774,44 @@ public class EvidenceService {
                     throw new IllegalStateException("Unsupported metadata type " + metadataType);
             }
 
-            RequestResponseOK<JsonNode> requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
+            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
+                logbookOperationsClient.selectOperation(select.getFinalSelect())
+            );
 
             if (requestResponseOK.getResults().isEmpty()) {
-                throw new EvidenceAuditException(EvidenceStatus.WARN,
-                    NO_TRACEABILITY_OPERATION_FOUND_MATCHING_DATE + lastPersistedDate);
+                throw new EvidenceAuditException(
+                    EvidenceStatus.WARN,
+                    NO_TRACEABILITY_OPERATION_FOUND_MATCHING_DATE + lastPersistedDate
+                );
             }
 
             return requestResponseOK.getResults().get(0).get(LogbookMongoDbName.eventIdentifier.getDbname()).asText();
-
         } catch (InvalidCreateOperationException | InvalidParseOperationException | LogbookClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL,
-                "An error occurred during traceability operation retrieval", e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
+                "An error occurred during traceability operation retrieval",
+                e
+            );
         }
     }
 
     private Select createLastSecureSelect(String lastPersistedDate, String eventType)
-        throws InvalidCreateOperationException,
-        InvalidParseOperationException {
+        throws InvalidCreateOperationException, InvalidParseOperationException {
         Select select = new Select();
-        BooleanQuery query = and().add(
-            eq(LogbookMongoDbName.eventType.getDbname(), eventType),
-            in(EVENTS_OUT_DETAIL, eventType + OK, eventType + WARNING),
-            exists(EVENTS_EVDETDATA_FILENAME),
-            QueryHelper.lte("events.evDetData.StartDate", lastPersistedDate),
-            gte("events.evDetData.EndDate", lastPersistedDate)
-        );
+        BooleanQuery query = and()
+            .add(
+                eq(LogbookMongoDbName.eventType.getDbname(), eventType),
+                in(EVENTS_OUT_DETAIL, eventType + OK, eventType + WARNING),
+                exists(EVENTS_EVDETDATA_FILENAME),
+                QueryHelper.lte("events.evDetData.StartDate", lastPersistedDate),
+                gte("events.evDetData.EndDate", lastPersistedDate)
+            );
 
         select.setQuery(query);
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter("events.evDateTime");
         return select;
     }
-
 
     /**
      * Returns whether the traceability operation is the last traceability operation.
@@ -773,28 +820,34 @@ public class EvidenceService {
      * @param metadataType
      * @return true if the operationId is the last traceability operation. False otherwise.
      */
-    private boolean isLastLifeCycleTraceabilityOperation(String operationId,
-        MetadataType metadataType) throws EvidenceAuditException {
-
+    private boolean isLastLifeCycleTraceabilityOperation(String operationId, MetadataType metadataType)
+        throws EvidenceAuditException {
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
-
-
             BooleanQuery query;
             switch (metadataType) {
                 case UNIT:
-                    query = and().add(
-                        eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_UNIT_LFC_TRACEABILITY),
-                        in(EVENTS_OUT_DETAIL, LOGBOOK_UNIT_LFC_TRACEABILITY_OK, LOGBOOK_UNIT_LFC_TRACEABILITY_WARNING),
-                        exists(EVENTS_EVDETDATA_FILENAME)
-                    );
+                    query = and()
+                        .add(
+                            eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_UNIT_LFC_TRACEABILITY),
+                            in(
+                                EVENTS_OUT_DETAIL,
+                                LOGBOOK_UNIT_LFC_TRACEABILITY_OK,
+                                LOGBOOK_UNIT_LFC_TRACEABILITY_WARNING
+                            ),
+                            exists(EVENTS_EVDETDATA_FILENAME)
+                        );
                     break;
                 case OBJECTGROUP:
-                    query = and().add(
-                        eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY),
-                        in(EVENTS_OUT_DETAIL, EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK,
-                            EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_WARNING),
-                        exists(EVENTS_EVDETDATA_FILENAME)
-                    );
+                    query = and()
+                        .add(
+                            eq(LogbookMongoDbName.eventType.getDbname(), LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY),
+                            in(
+                                EVENTS_OUT_DETAIL,
+                                EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_OK,
+                                EvidenceService.LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY_WARNING
+                            ),
+                            exists(EVENTS_EVDETDATA_FILENAME)
+                        );
                     break;
                 default:
                     throw new IllegalStateException("Unsupported metadata type " + metadataType);
@@ -804,21 +857,29 @@ public class EvidenceService {
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter("events.evDateTime");
 
-            RequestResponseOK<JsonNode> requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
+            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
+                logbookOperationsClient.selectOperation(select.getFinalSelect())
+            );
 
             if (requestResponseOK.getResults().isEmpty()) {
-                throw new EvidenceAuditException(EvidenceStatus.FATAL,
-                    "An error occurred during last traceability operation retrieval. At least one expected");
+                throw new EvidenceAuditException(
+                    EvidenceStatus.FATAL,
+                    "An error occurred during last traceability operation retrieval. At least one expected"
+                );
             }
 
-            String lastOperationId =
-                requestResponseOK.getResults().get(0).get(LogbookMongoDbName.eventIdentifier.getDbname()).asText();
+            String lastOperationId = requestResponseOK
+                .getResults()
+                .get(0)
+                .get(LogbookMongoDbName.eventIdentifier.getDbname())
+                .asText();
             return lastOperationId.equals(operationId);
-
         } catch (InvalidCreateOperationException | InvalidParseOperationException | LogbookClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL,
-                "An error occurred during last traceability operation retrieval", e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
+                "An error occurred during last traceability operation retrieval",
+                e
+            );
         }
     }
 
@@ -833,17 +894,16 @@ public class EvidenceService {
         }
     }
 
-
-
-    private void loadFileInfoFromLogbook(String id,
-        EvidenceAuditParameters auditParameters) throws EvidenceAuditException {
-
+    private void loadFileInfoFromLogbook(String id, EvidenceAuditParameters auditParameters)
+        throws EvidenceAuditException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-
             JsonNode result = client.selectOperationById(id);
 
-            String detailData =
-                result.get(TAG_RESULTS).get(0).get(LogbookMongoDbName.eventDetailData.getDbname()).asText();
+            String detailData = result
+                .get(TAG_RESULTS)
+                .get(0)
+                .get(LogbookMongoDbName.eventDetailData.getDbname())
+                .asText();
             JsonNode nodeEvDetData = JsonHandler.getFromString(detailData);
 
             auditParameters.setFileName(nodeEvDetData.get(FILE_NAME).asText());
@@ -855,10 +915,12 @@ public class EvidenceService {
 
             String digestValue = nodeEvDetData.get(DIGEST).asText();
             auditParameters.setFileDigest(digestValue);
-
         } catch (InvalidParseOperationException | LogbookClientException e) {
-            throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not retrieve logbook operation information",
-                e);
+            throw new EvidenceAuditException(
+                EvidenceStatus.FATAL,
+                "Could not retrieve logbook operation information",
+                e
+            );
         }
     }
 
@@ -867,8 +929,6 @@ public class EvidenceService {
         digest.update(CanonicalJsonFormatter.serializeToByteArray(jsonNode));
         return digest.digest64();
     }
-
-
 
     /**
      * Creates an instance of StoredInfoResult from metadata json _storage field
@@ -885,12 +945,12 @@ public class EvidenceService {
         JsonNode storageNode = metadataJsonNode.get(SedaConstants.STORAGE);
 
         if (storageNode != null && storageNode.isObject()) {
-
             JsonNode strategy = storageNode.get(SedaConstants.STRATEGY_ID);
 
             if (strategy == null || strategy.asText().isEmpty()) {
                 throw new IllegalArgumentException(
-                    String.format("no strategy found in or jsonNode in '%s'", storageNode));
+                    String.format("no strategy found in or jsonNode in '%s'", storageNode)
+                );
             }
 
             List<String> offersIds = null;
@@ -898,12 +958,14 @@ public class EvidenceService {
                 offersIds = StorageStrategyUtils.loadOfferIds(strategy.asText(), storageStrategies);
             } catch (StorageStrategyNotFoundException e) {
                 throw new IllegalArgumentException(
-                    String.format("strategy '%s' not found in storage engine", strategy.asText()));
+                    String.format("strategy '%s' not found in storage engine", strategy.asText())
+                );
             }
 
             if (offersIds == null || offersIds.isEmpty()) {
                 throw new IllegalArgumentException(
-                    String.format("no active OfferIds found in storage strategy '%s'", strategy.asText()));
+                    String.format("no active OfferIds found in storage strategy '%s'", strategy.asText())
+                );
             }
             metadataOptimisticBasicStorageInfos.setOfferIds(offersIds);
             metadataOptimisticBasicStorageInfos.setStrategy(strategy.asText());

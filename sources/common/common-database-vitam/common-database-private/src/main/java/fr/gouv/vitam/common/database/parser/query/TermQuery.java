@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Term query
  */
 public class TermQuery extends fr.gouv.vitam.common.database.builder.query.TermQuery {
+
     /**
      * For Parsing
      *

@@ -55,4 +55,3 @@ public class SelectToElasticsearch extends RequestToElasticsearch {
         return list;
     }
 }
-

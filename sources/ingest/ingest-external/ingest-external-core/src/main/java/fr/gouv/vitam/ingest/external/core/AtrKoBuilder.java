@@ -73,9 +73,15 @@ public class AtrKoBuilder {
      * @return the corresponding InputStream with the ATR KO in XML format
      * @throws IngestExternalException
      */
-    public static String buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
-        String eventType, String addedMessage, StatusCode code, LocalDateTime eventDateTime)
-        throws IngestExternalException {
+    public static String buildAtrKo(
+        String messageIdentifier,
+        String archivalAgency,
+        String transferringAgency,
+        String eventType,
+        String addedMessage,
+        StatusCode code,
+        LocalDateTime eventDateTime
+    ) throws IngestExternalException {
         String xmlDefault;
         try {
             xmlDefault = FileUtil.readInputStream(PropertiesUtils.getResourceAsStream(ATR_KO_DEFAULT_XML));
@@ -87,13 +93,17 @@ public class AtrKoBuilder {
             detail += addedMessage;
         }
         String event = VitamLogbookMessages.getLabelOp(eventType);
-        return
-            xmlDefault.replace(DATE, LocalDateUtil.now().toString()).replace(MESSAGE_IDENTIFIER, messageIdentifier)
-                .replace(ARCHIVAL_AGENCY, archivalAgency).replace(TRANSFERRING_AGENCY, transferringAgency)
-                .replace(COMMENT, detail)
-                .replace(EVENT_TYPE_CODE, eventType).replace(EVENT_TYPE, event)
-                .replace(EVENT_DATE_TIME, eventDateTime.toString())
-                .replaceAll(OUTCOME, code.name())
-                .replace(OUTCOME_DETAIL, eventType + "." + code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
+        return xmlDefault
+            .replace(DATE, LocalDateUtil.now().toString())
+            .replace(MESSAGE_IDENTIFIER, messageIdentifier)
+            .replace(ARCHIVAL_AGENCY, archivalAgency)
+            .replace(TRANSFERRING_AGENCY, transferringAgency)
+            .replace(COMMENT, detail)
+            .replace(EVENT_TYPE_CODE, eventType)
+            .replace(EVENT_TYPE, event)
+            .replace(EVENT_DATE_TIME, eventDateTime.toString())
+            .replaceAll(OUTCOME, code.name())
+            .replace(OUTCOME_DETAIL, eventType + "." + code.name())
+            .replace(OUTCOME_DETAIL_MESSAGE, detail);
     }
 }

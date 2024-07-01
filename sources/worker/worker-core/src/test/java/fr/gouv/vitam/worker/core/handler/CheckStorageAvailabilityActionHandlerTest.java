@@ -69,31 +69,33 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class CheckStorageAvailabilityActionHandlerTest {
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private GUID guid;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
+    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = mock(
+        LogbookLifeCyclesClientFactory.class
+    );
     private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
     private static final StorageClient storageClient = mock(StorageClient.class);
     private static final LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
     private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
     private static final HandlerIO handlerIO = mock(HandlerIO.class);
 
-
     private static final SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
     private static final SedaUtils sedaUtils = mock(SedaUtils.class);
 
-    private CheckStorageAvailabilityActionHandler handler =
-        new CheckStorageAvailabilityActionHandler(storageClientFactory, sedaUtilsFactory);
+    private CheckStorageAvailabilityActionHandler handler = new CheckStorageAvailabilityActionHandler(
+        storageClientFactory,
+        sedaUtilsFactory
+    );
 
     @Before
     public void setUp() throws FileNotFoundException {
@@ -109,7 +111,6 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtilsFactory.createSedaUtils(handlerIO)).thenReturn(sedaUtils);
 
         guid = GUIDFactory.newGUID();
-
     }
 
     @Test
@@ -117,11 +118,13 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenThrow(new ProcessingException(""));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
 
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -130,24 +133,29 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseKO() throws Exception {
         File input = PropertiesUtils.getResourceFile(
-            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json");
+            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json"
+        );
         when(handlerIO.getInput(eq(0))).thenReturn(input);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(838860800));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
 
-
-        final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
-            "838860700, \"nbc\": 2}," + "{\"offerId\": " +
+        final String MOCK_INFOS_RESULT_ARRAY =
+            "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
+            "838860700, \"nbc\": 2}," +
+            "{\"offerId\": " +
             "\"offer2\",\"usableSpace\": 838860800,  \"nbc\": 2}]}";
 
-        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy())))
-            .thenReturn(JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY));
+        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY)
+        );
 
         final ItemStatus response = handler.execute(params, handlerIO);
 
@@ -162,18 +170,22 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseOK() throws Exception {
         File input = PropertiesUtils.getResourceFile(
-            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json");
+            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json"
+        );
         when(handlerIO.getInput(eq(0))).thenReturn(input);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
 
-        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy())))
-            .thenReturn(new StorageClientMock().getStorageInformation("str"));
+        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            new StorageClientMock().getStorageInformation("str")
+        );
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -193,16 +205,19 @@ public class CheckStorageAvailabilityActionHandlerTest {
     public void givenProblemWithOfferCheckStorageExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-1);
         File input = PropertiesUtils.getResourceFile(
-            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json");
+            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json"
+        );
         when(handlerIO.getInput(eq(0))).thenReturn(input);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -215,16 +230,19 @@ public class CheckStorageAvailabilityActionHandlerTest {
     public void givenProblemWithOffersCheckStorageExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-2);
         File input = PropertiesUtils.getResourceFile(
-            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json");
+            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_no_MC.json"
+        );
         when(handlerIO.getInput(eq(0))).thenReturn(input);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -232,18 +250,22 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenMcNoObjectStorageWhenCheckStorageExecuteThenReturnResponseOK() throws Exception {
         File input = PropertiesUtils.getResourceFile(
-            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_MC_noObjectStorage.json");
+            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_MC_noObjectStorage.json"
+        );
         when(handlerIO.getInput(eq(0))).thenReturn(input);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
 
-        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy())))
-            .thenReturn(new StorageClientMock().getStorageInformation(VitamConfiguration.getDefaultStrategy()));
+        when(storageClient.getStorageInformation(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            new StorageClientMock().getStorageInformation(VitamConfiguration.getDefaultStrategy())
+        );
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -255,18 +277,22 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenMcObjectStorageWhenCheckStorageExecuteThenReturnResponseOK() throws Exception {
         File input = PropertiesUtils.getResourceFile(
-            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_MC_ObjectStorage.json");
+            "CheckStorageAvailabilityActionHandler/ingestContractWithDetail_MC_ObjectStorage.json"
+        );
         when(handlerIO.getInput(eq(0))).thenReturn(input);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
 
-        when(storageClient.getStorageInformation(eq("test")))
-            .thenReturn(new StorageClientMock().getStorageInformation(VitamConfiguration.getDefaultStrategy()));
+        when(storageClient.getStorageInformation(eq("test"))).thenReturn(
+            new StorageClientMock().getStorageInformation(VitamConfiguration.getDefaultStrategy())
+        );
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
 
         verify(storageClient, never()).getStorageInformation(eq(VitamConfiguration.getDefaultStrategy()));
@@ -275,6 +301,4 @@ public class CheckStorageAvailabilityActionHandlerTest {
         assertEquals(evDetData.get("offer1").textValue(), "OK");
         assertEquals(evDetData.get("offer2").textValue(), "OK");
     }
-
-
 }

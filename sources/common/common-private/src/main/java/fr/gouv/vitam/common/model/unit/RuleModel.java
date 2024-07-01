@@ -43,6 +43,7 @@ public class RuleModel {
     public static final String HOLD_REASON = "HoldReason";
     public static final String HOLD_REASSESSING_DATE = "HoldReassessingDate";
     public static final String PREVENT_REARRANGEMENT = "PreventRearrangement";
+
     /**
      * rule id
      */
@@ -91,8 +92,7 @@ public class RuleModel {
     @JsonProperty(PREVENT_REARRANGEMENT)
     private Boolean preventRearrangement;
 
-    public RuleModel() {
-    }
+    public RuleModel() {}
 
     public RuleModel(String rule, String startDate) {
         this.rule = rule;

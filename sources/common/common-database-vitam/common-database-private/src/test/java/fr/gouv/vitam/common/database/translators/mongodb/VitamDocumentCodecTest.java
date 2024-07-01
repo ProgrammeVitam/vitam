@@ -43,7 +43,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class VitamDocumentCodecTest {
+
     private static class PseudoClass extends Document {
+
         /**
          *
          */
@@ -56,7 +58,6 @@ public class VitamDocumentCodecTest {
         public PseudoClass(Document doc) {
             super(doc);
         }
-
     }
 
     @Test
@@ -93,23 +94,27 @@ public class VitamDocumentCodecTest {
         obNode1.put("_v", 0);
         obNode1.put("_a", "test\"");
         obNode1.set("Title_", JsonHandler.createObjectNode().put("FR", "$Title_FR"));
-        obNode1
-            .set("elems", JsonHandler.createArrayNode().addAll(List.of(TextNode.valueOf("1"), TextNode.valueOf("A"))));
+        obNode1.set(
+            "elems",
+            JsonHandler.createArrayNode().addAll(List.of(TextNode.valueOf("1"), TextNode.valueOf("A")))
+        );
 
         ObjectNode obNode2 = JsonHandler.createObjectNode();
         obNode2.put("Name", "MyModifiedName \" é ");
         obNode2.put("_v", 1);
         obNode2.put("_a", "test1\"");
         obNode2.set("Title_", JsonHandler.createObjectNode().put("FR", "@Title_FR/New"));
-        obNode2
-            .set("elems", JsonHandler.createArrayNode().addAll(List.of(TextNode.valueOf("Z"), TextNode.valueOf("A"))));
+        obNode2.set(
+            "elems",
+            JsonHandler.createArrayNode().addAll(List.of(TextNode.valueOf("Z"), TextNode.valueOf("A")))
+        );
 
-
-        List<String> list =
-            VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(obNode1), JsonHandler.prettyPrint(obNode2));
+        List<String> list = VitamDocument.getUnifiedDiff(
+            JsonHandler.prettyPrint(obNode1),
+            JsonHandler.prettyPrint(obNode2)
+        );
 
         List<String> result = VitamDocument.getConcernedDiffLines(list);
-
 
         List<String> expected = List.of(
             "-  \"Name\" : \"MyName \\\" \\u00E9 \"",

@@ -29,9 +29,11 @@ package fr.gouv.vitam.batch.report.model.entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
+
 import java.util.List;
 
 public class PurgeObjectGroupObjectVersion {
+
     private final String id;
     private final String opi;
     private final Long size;
@@ -41,12 +43,13 @@ public class PurgeObjectGroupObjectVersion {
 
     @JsonCreator
     public PurgeObjectGroupObjectVersion(
-      @JsonProperty("id") String id,
-      @JsonProperty("opi") String opi,
-      @JsonProperty("size") Long size,
-      @JsonProperty("version") String version,
-      @JsonProperty("usage") String usage,
-      @JsonProperty("persistentIdentifier") List<PersistentIdentifierModel> persistentIdentifier) {
+        @JsonProperty("id") String id,
+        @JsonProperty("opi") String opi,
+        @JsonProperty("size") Long size,
+        @JsonProperty("version") String version,
+        @JsonProperty("usage") String usage,
+        @JsonProperty("persistentIdentifier") List<PersistentIdentifierModel> persistentIdentifier
+    ) {
         this.opi = opi;
         this.size = size;
         this.version = version;

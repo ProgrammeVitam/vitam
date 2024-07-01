@@ -40,11 +40,9 @@ import fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 public class TransferReplyFinalizationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(TransferReplyFinalizationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferReplyFinalizationPlugin.class);
 
     private static final String TRANSFER_REPLY_FINALIZATION = "TRANSFER_REPLY_FINALIZATION";
 
@@ -64,26 +62,22 @@ public class TransferReplyFinalizationPlugin extends ActionHandler {
     @VisibleForTesting
     TransferReplyFinalizationPlugin(
         TransferReplyReportService TransferReplyReportService,
-        PurgeReportService purgeReportService) {
+        PurgeReportService purgeReportService
+    ) {
         this.transferReplyReportService = TransferReplyReportService;
         this.purgeReportService = purgeReportService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             transferReplyReportService.cleanupReport(param.getContainerName());
             purgeReportService.cleanupReport(param.getContainerName());
 
             LOGGER.info("Transfer reply finalization succeeded");
             return buildItemStatus(TRANSFER_REPLY_FINALIZATION, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
-            LOGGER.error(
-                String.format("Transfer reply finalization failed with status [%s]", e.getStatusCode()), e);
+            LOGGER.error(String.format("Transfer reply finalization failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(TRANSFER_REPLY_FINALIZATION, e.getStatusCode(), e.getEventDetails());
         }
     }

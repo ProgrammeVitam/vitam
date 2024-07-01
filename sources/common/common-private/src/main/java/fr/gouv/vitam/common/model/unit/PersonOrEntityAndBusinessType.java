@@ -32,11 +32,9 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.util.ArrayList;
 import java.util.List;
 
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
-
 
 /**
  * Model for PersonOrEntityAndBusiness defined in seda.xsd
@@ -132,9 +130,7 @@ public class PersonOrEntityAndBusinessType {
     @XmlElement(name = MANDATE, namespace = UNIFIED_NAMESPACE)
     private List<String> mandate;
 
-
-    public PersonOrEntityAndBusinessType() {
-    }
+    public PersonOrEntityAndBusinessType() {}
 
     public LocationGroupModel getBirthPlace() {
         return birthPlace;

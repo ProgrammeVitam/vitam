@@ -46,6 +46,7 @@ import java.io.IOException;
  * Basic implementation of a vitam server using embedded jetty as underlying app server
  */
 public class BasicVitamServer implements VitamServer {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
         "A problem occurred while attempting to start the server";
@@ -81,7 +82,6 @@ public class BasicVitamServer implements VitamServer {
         this(port, true);
     }
 
-
     /**
      * A Vitam server can be instantiated with a jetty xml configuration file. This configuration file can be in : -
      * /vitam/conf, - resource folder - resource in classpath
@@ -91,7 +91,6 @@ public class BasicVitamServer implements VitamServer {
      * can't started
      */
     protected BasicVitamServer(final String jettyConfigPath) throws VitamApplicationServerException {
-
         try {
             LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
             try (final Resource resource = Resource.newResource(PropertiesUtils.getConfigFile(jettyConfigPath))) {
@@ -175,8 +174,6 @@ public class BasicVitamServer implements VitamServer {
         }
     }
 
-
-
     /**
      * Retrieving the underlying jetty server is restricted to sub-implementations only
      *
@@ -240,8 +237,7 @@ public class BasicVitamServer implements VitamServer {
             int length = server.getConnectors().length;
             for (int i = 0; i < length; i++) {
                 ServerConnector c = ((ServerConnector) server.getConnectors()[i]);
-                if (VitamServerInterface.BUSINESS_CONNECTOR_NAME.equals(c.getName()))
-                    return c.getLocalPort();
+                if (VitamServerInterface.BUSINESS_CONNECTOR_NAME.equals(c.getName())) return c.getLocalPort();
             }
         }
         return port;
@@ -258,8 +254,7 @@ public class BasicVitamServer implements VitamServer {
             int length = server.getConnectors().length;
             for (int i = 0; i < length; i++) {
                 ServerConnector c = ((ServerConnector) server.getConnectors()[i]);
-                if (VitamServerInterface.ADMIN_CONNECTOR_NAME.equals(c.getName()))
-                    return c.getLocalPort();
+                if (VitamServerInterface.ADMIN_CONNECTOR_NAME.equals(c.getName())) return c.getLocalPort();
             }
         }
         return -1;
@@ -293,7 +288,6 @@ public class BasicVitamServer implements VitamServer {
     public Handler getHandler() {
         return handler;
     }
-
 
     /**
      * setter of the handler

@@ -57,8 +57,10 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final IngestInternalConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, IngestInternalConfiguration.class);
+            final IngestInternalConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                IngestInternalConfiguration.class
+            );
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
@@ -66,7 +68,6 @@ public class BusinessApplication extends Application {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

@@ -53,22 +53,23 @@ import static org.mockito.Mockito.when;
 
 public class WorkerRegistrationListenerTest {
 
-
     private static final WorkerBean WORKER_DESCRIPTION;
 
     static {
         try {
             WORKER_DESCRIPTION = JsonHandler.getFromString(
                 "{ \"name\" : \"workername\", \"workerId\":\"workerId\", \"family\" : \"DefaultWorker1\", \"capacity\" : 2, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
-                WorkerBean.class);
+                WorkerBean.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -82,7 +83,6 @@ public class WorkerRegistrationListenerTest {
     @Mock
     private ProcessingManagementClient processingManagementClient;
 
-
     @Before
     public void setup() throws Exception {
         reset(processingManagementClientFactory);
@@ -91,10 +91,8 @@ public class WorkerRegistrationListenerTest {
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
     }
 
-
     @Test
     public void test_on_contextInitialized_schedule_registration_on_contextDestroyed_unregister_ok() throws Exception {
-
         WorkerConfiguration workerConfiguration = new WorkerConfiguration();
         workerConfiguration.setCapacity(1);
         workerConfiguration.setRegisterDelay(1);
@@ -105,24 +103,29 @@ public class WorkerRegistrationListenerTest {
         workerConfiguration.setRegisterServerHost("localhost");
         workerConfiguration.setRegisterServerPort(80);
 
-        WorkerRegistrationListener workerRegistrationListener =
-            new WorkerRegistrationListener(workerConfiguration, processingManagementClientFactory);
+        WorkerRegistrationListener workerRegistrationListener = new WorkerRegistrationListener(
+            workerConfiguration,
+            processingManagementClientFactory
+        );
 
         workerRegistrationListener.contextInitialized(null);
 
         TimeUnit.MILLISECONDS.sleep(2500);
 
         // because of setRegisterDelay(2) then 2100 milliseconds > 2 seconds so at least 2 invocation
-        verify(processingManagementClient, VerificationModeFactory.atLeast(2))
-            .registerWorker(anyString(), anyString(), any());
+        verify(processingManagementClient, VerificationModeFactory.atLeast(2)).registerWorker(
+            anyString(),
+            anyString(),
+            any()
+        );
 
         workerRegistrationListener.contextDestroyed(null);
 
-
         TimeUnit.MILLISECONDS.sleep(500);
 
-        verify(processingManagementClient, VerificationModeFactory.atLeastOnce())
-            .unregisterWorker(anyString(), anyString());
-
+        verify(processingManagementClient, VerificationModeFactory.atLeastOnce()).unregisterWorker(
+            anyString(),
+            anyString()
+        );
     }
 }

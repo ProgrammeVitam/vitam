@@ -33,6 +33,7 @@ import org.junit.rules.ExternalResource;
  *
  */
 public class DisableCacheContainerRule extends ExternalResource {
+
     @Override
     protected void before() {
         ContentAddressableStorageAbstract.disableContainerCaching();

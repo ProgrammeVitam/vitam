@@ -56,14 +56,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CheckNoObjectsActionHandlerTest {
+
     private static final String GUID = "aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq2203";
     private static final String CURRENT_STEP = "currentStep";
     private static final String OBJECT_NAME = "objectName.json";
     private static final String HTTP_LOCALHOST = "http://localhost:8080";
-    private static final String PLAN_MANIFEST =
-        "CheckNoObjectsActionHandler/manifest.xml";
-    private static final String KO_MANIFEST =
-        "CheckNoObjectsActionHandler/manifestKO.xml";
+    private static final String PLAN_MANIFEST = "CheckNoObjectsActionHandler/manifest.xml";
+    private static final String KO_MANIFEST = "CheckNoObjectsActionHandler/manifestKO.xml";
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
     private WorkerParameters params;
@@ -72,29 +71,38 @@ public class CheckNoObjectsActionHandlerTest {
     private InputStream sedaKO;
 
     private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
+
     @Before
     public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
         final GUID guid = GUIDFactory.newGUID();
-        params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(HTTP_LOCALHOST)
-                .setUrlMetadata(HTTP_LOCALHOST).setObjectName(OBJECT_NAME).setCurrentStep(CURRENT_STEP)
-                .setContainerName(guid.getId()).setProcessId(GUID);
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(HTTP_LOCALHOST)
+            .setUrlMetadata(HTTP_LOCALHOST)
+            .setObjectName(OBJECT_NAME)
+            .setCurrentStep(CURRENT_STEP)
+            .setContainerName(guid.getId())
+            .setProcessId(GUID);
         sedaOK = PropertiesUtils.getResourceAsStream(PLAN_MANIFEST);
         sedaKO = PropertiesUtils.getResourceAsStream(KO_MANIFEST);
     }
 
     @Test
-    public void checkManifestHavingObjectOrNot()
-        throws Exception {
+    public void checkManifestHavingObjectOrNot() throws Exception {
         final CheckNoObjectsActionHandler handler = new CheckNoObjectsActionHandler();
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaOK);
         when(handlerIO.isExistingFileInWorkspace(SEDA_INGEST_PARAMS_FILE)).thenReturn(true);
-        when(handlerIO.getJsonFromWorkspace(SEDA_INGEST_PARAMS_FILE)).thenReturn(JsonHandler.toJsonNode(new SedaIngestParams(
-            SupportedSedaVersions.SEDA_2_1.getVersion(), SupportedSedaVersions.SEDA_2_1.getNamespaceURI())));
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())
-                .setObjectNameList(Lists.newArrayList("objectName.json"));
+        when(handlerIO.getJsonFromWorkspace(SEDA_INGEST_PARAMS_FILE)).thenReturn(
+            JsonHandler.toJsonNode(
+                new SedaIngestParams(
+                    SupportedSedaVersions.SEDA_2_1.getVersion(),
+                    SupportedSedaVersions.SEDA_2_1.getNamespaceURI()
+                )
+            )
+        );
+        WorkerParameters parameters = params
+            .putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())
+            .setObjectNameList(Lists.newArrayList("objectName.json"));
         final ItemStatus response = handler.execute(parameters, handlerIO);
         handler.close();
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -103,6 +111,5 @@ public class CheckNoObjectsActionHandlerTest {
         final ItemStatus responseKO = handler.execute(parameters, handlerIO);
         handler.close();
         assertEquals(responseKO.getGlobalStatus(), StatusCode.KO);
-
     }
 }

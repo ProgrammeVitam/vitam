@@ -32,14 +32,13 @@ import com.google.common.io.BaseEncoding;
  * Base16, Base32 and Base64 codecs
  */
 public final class BaseXx {
+
     private static final String ARGUMENT_NULL_NOT_ALLOWED = "argument null not allowed";
     private static final BaseEncoding BASE64_URL_WITHOUT_PADDING = BaseEncoding.base64Url().omitPadding();
     private static final BaseEncoding BASE64_URL_WITH_PADDING = BaseEncoding.base64Url();
     private static final BaseEncoding BASE64 = BaseEncoding.base64();
-    private static final BaseEncoding BASE32 =
-        BaseEncoding.base32().lowerCase().omitPadding();
-    private static final BaseEncoding BASE16 =
-        BaseEncoding.base16().lowerCase().omitPadding();
+    private static final BaseEncoding BASE32 = BaseEncoding.base32().lowerCase().omitPadding();
+    private static final BaseEncoding BASE16 = BaseEncoding.base16().lowerCase().omitPadding();
 
     private BaseXx() {
         // empty

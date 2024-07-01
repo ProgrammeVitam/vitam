@@ -73,17 +73,18 @@ public class BusinessApplication extends Application {
             pluginLoader = new PluginLoader();
             pluginLoader.loadConfiguration();
             checkPluginsCreation();
-            final WorkerConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
+            final WorkerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
 
-            MetadataValidationProvider.getInstance().initialize(
-                AdminManagementClientFactory.getInstance(),
-                VitamConfiguration.getOntologyCacheMaxEntries(),
-                VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
-                configuration.getArchiveUnitProfileCacheMaxEntries(),
-                configuration.getArchiveUnitProfileCacheTimeoutInSeconds(),
-                configuration.getSchemaValidatorCacheMaxEntries(),
-                configuration.getSchemaValidatorCacheTimeoutInSeconds());
+            MetadataValidationProvider.getInstance()
+                .initialize(
+                    AdminManagementClientFactory.getInstance(),
+                    VitamConfiguration.getOntologyCacheMaxEntries(),
+                    VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
+                    configuration.getArchiveUnitProfileCacheMaxEntries(),
+                    configuration.getArchiveUnitProfileCacheTimeoutInSeconds(),
+                    configuration.getSchemaValidatorCacheMaxEntries(),
+                    configuration.getSchemaValidatorCacheTimeoutInSeconds()
+                );
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
@@ -94,11 +95,9 @@ public class BusinessApplication extends Application {
                 WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
                 singletons.add(new WorkerResource(pluginLoader));
             }
-
         } catch (PluginException | IOException | InvalidParseOperationException | IllegalPathException e) {
             throw new VitamRuntimeException(e);
         }
-
     }
 
     @Override

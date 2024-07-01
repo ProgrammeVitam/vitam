@@ -34,6 +34,7 @@ import java.util.Set;
  * Result Error only
  */
 public class ResultError extends Result<MetadataDocument<?>> {
+
     /**
      * Constructor
      *

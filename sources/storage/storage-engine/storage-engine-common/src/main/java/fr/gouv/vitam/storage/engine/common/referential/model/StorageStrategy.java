@@ -39,8 +39,10 @@ import java.util.stream.Collectors;
  * exclusively)
  */
 public class StorageStrategy {
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("offers")
     private List<OfferReference> offers = new ArrayList<>();
 
@@ -81,9 +83,10 @@ public class StorageStrategy {
      */
     public void postInit() {
         setOffers(
-            Collections.unmodifiableList(getOffers().stream()
-                .filter(offerReference -> offerReference.isEnabled())
-                .collect(Collectors.toList())));
+            Collections.unmodifiableList(
+                getOffers().stream().filter(offerReference -> offerReference.isEnabled()).collect(Collectors.toList())
+            )
+        );
     }
 
     /**
@@ -93,19 +96,20 @@ public class StorageStrategy {
      * @return
      */
     public boolean isStorageOfferEnabled(String offerId) {
-        Optional<OfferReference>
-            offerReference = getOffers().stream()
-            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+        Optional<OfferReference> offerReference = getOffers()
+            .stream()
+            .filter(offerRef -> offerRef.getId().equals(offerId))
+            .findFirst();
 
         return offerReference.isPresent() && offerReference.get().isEnabled();
     }
 
     public boolean isStorageOfferReferent(String offerId) {
-        Optional<OfferReference>
-            offerReference = getOffers().stream()
-            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+        Optional<OfferReference> offerReference = getOffers()
+            .stream()
+            .filter(offerRef -> offerRef.getId().equals(offerId))
+            .findFirst();
 
         return offerReference.isPresent() && offerReference.get().isReferent();
     }
-
 }

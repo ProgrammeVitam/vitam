@@ -61,8 +61,13 @@ public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
         // Empty constructor for deserialization
     }
 
-    public InheritedRuleResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String ruleId, Map<String, Object> extendedRuleAttributes) {
+    public InheritedRuleResponseModel(
+        String unitId,
+        String originatingAgency,
+        List<List<String>> paths,
+        String ruleId,
+        Map<String, Object> extendedRuleAttributes
+    ) {
         super(unitId, originatingAgency, paths);
         this.ruleId = ruleId;
         this.extendedRuleAttributes = extendedRuleAttributes;

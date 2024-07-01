@@ -99,18 +99,17 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         String unitId = "";
         String url = ARCHIVE_UNIT_FOLDER + separator + objectName;
         try (InputStream archiveUnitInputStream = handlerIO.getInputStreamFromWorkspace(url)) {
-
             ObjectNode archiveUnit = (ObjectNode) JsonHandler.getFromInputStream(archiveUnitInputStream);
             JsonNode archiveUnitTag = archiveUnit.get(TAG_ARCHIVE_UNIT);
 
             boolean hasArchiveUnitProfile = archiveUnitTag.has(TAG_ARCHIVE_UNIT_PROFILE);
             if (!hasArchiveUnitProfile) {
                 String evdev = JsonHandler.unprettyPrint(infoNode);
-                itemStatus.setEvDetailData(evdev)
-                    .setMasterData(eventDetailData.name(), evdev)
-                    .increment(OK);
-                return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID)
-                    .setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, itemStatus);
+                itemStatus.setEvDetailData(evdev).setMasterData(eventDetailData.name(), evdev).increment(OK);
+                return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(
+                    CHECK_UNIT_PROFILE_TASK_ID,
+                    itemStatus
+                );
             }
 
             final File file = (File) handlerIO.getInput(GUID_MAP_RANK);
@@ -123,66 +122,69 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             String archiveUnitProfileIdentifier = archiveUnitTag.get(TAG_ARCHIVE_UNIT_PROFILE).asText();
 
             try {
-                PerformanceLogger.getInstance().log(CHECK_UNIT_PROFILE_TASK_ID, "Validation of archive against AUP.",
-                    Instant.now().toEpochMilli());
-                LOGGER.info("START - Validation of archive unit {} on {} - Time: {}", archiveUnitTagId,
-                    archiveUnitProfileIdentifier, Instant.now().toEpochMilli());
+                PerformanceLogger.getInstance()
+                    .log(
+                        CHECK_UNIT_PROFILE_TASK_ID,
+                        "Validation of archive against AUP.",
+                        Instant.now().toEpochMilli()
+                    );
+                LOGGER.info(
+                    "START - Validation of archive unit {} on {} - Time: {}",
+                    archiveUnitTagId,
+                    archiveUnitProfileIdentifier,
+                    Instant.now().toEpochMilli()
+                );
                 checkAUAgainstAUProfileSchema(archiveUnit);
-                PerformanceLogger.getInstance().log(CHECK_UNIT_PROFILE_TASK_ID, "Validation of archive against AUP.",
-                    Instant.now().toEpochMilli());
+                PerformanceLogger.getInstance()
+                    .log(
+                        CHECK_UNIT_PROFILE_TASK_ID,
+                        "Validation of archive against AUP.",
+                        Instant.now().toEpochMilli()
+                    );
 
                 String evdev = JsonHandler.unprettyPrint(infoNode);
-                itemStatus.setEvDetailData(evdev)
-                    .setMasterData(eventDetailData.name(), evdev)
-                    .increment(OK);
-                return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID)
-                    .setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, itemStatus);
-
+                itemStatus.setEvDetailData(evdev).setMasterData(eventDetailData.name(), evdev).increment(OK);
+                return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(
+                    CHECK_UNIT_PROFILE_TASK_ID,
+                    itemStatus
+                );
             } catch (MetadataValidationException e) {
-
                 LOGGER.warn("Unit archive unit profile validation failed " + params.getObjectName(), e);
 
                 String outcomeDetails;
 
                 switch (e.getErrorCode()) {
-
                     case ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE:
                         outcomeDetails = OUTCOME_DETAILS_NOT_AU_JSON_VALID;
                         break;
-
                     case EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA:
-
                         outcomeDetails = OUTCOME_DETAILS_EMPTY_CONTROL_SCHEMA;
                         break;
-
                     case UNKNOWN_ARCHIVE_UNIT_PROFILE:
                         outcomeDetails = OUTCOME_DETAILS_NOT_FOUND;
                         break;
-
                     case ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE:
-
                         outcomeDetails = OUTCOME_DETAILS_INACTIVE_STATUS;
                         break;
-
                     case ONTOLOGY_VALIDATION_FAILURE:
                     case INVALID_UNIT_DATE_FORMAT:
                     case INVALID_START_END_DATE:
                     case SCHEMA_VALIDATION_FAILURE:
-                        // Should never occur (Only AUP validation is done here)
+                    // Should never occur (Only AUP validation is done here)
                     case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE:
                     case RULE_UPDATE_UNEXPECTED_HOLD_END_DATE:
-                        // Should never occur (unit rule update only)
+                    // Should never occur (unit rule update only)
                     default:
                         throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
                 }
 
-                infoNode.put(TAG_ARCHIVE_UNIT, unitId)
+                infoNode
+                    .put(TAG_ARCHIVE_UNIT, unitId)
                     .put(TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier)
                     .put(EV_DET_TECH_DATA, e.getMessage());
 
                 return createItemStatusKo(itemStatus, outcomeDetails, infoNode);
             }
-
         } catch (Exception e) {
             LOGGER.error(e);
             itemStatus.increment(FATAL);
@@ -191,14 +193,14 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
     }
 
     private ItemStatus createItemStatusKo(ItemStatus subItemStatus, String outcomeDetail, JsonNode evDetailData) {
-        subItemStatus.increment(KO)
+        subItemStatus
+            .increment(KO)
             .setEvDetailData(JsonHandler.unprettyPrint(evDetailData))
             .setGlobalOutcomeDetailSubcode(outcomeDetail);
         return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, subItemStatus);
     }
 
     private void checkAUAgainstAUProfileSchema(ObjectNode archiveUnit) throws MetadataValidationException {
-
         // FIXME : What about "other" fields computed just before commit to db (eg. other graph fields)
         ObjectNode archiveUnitCopy = archiveUnit.get(TAG_ARCHIVE_UNIT).deepCopy();
         if (!archiveUnit.path(PREFIX_WORK).path(UP).isMissingNode()) {

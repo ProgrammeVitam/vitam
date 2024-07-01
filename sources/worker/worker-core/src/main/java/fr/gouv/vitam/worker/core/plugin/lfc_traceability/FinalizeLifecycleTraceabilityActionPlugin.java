@@ -57,28 +57,32 @@ import java.io.IOException;
  * FinalizeLifecycleTraceabilityAction Plugin
  */
 public abstract class FinalizeLifecycleTraceabilityActionPlugin extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(FinalizeLifecycleTraceabilityActionPlugin.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        FinalizeLifecycleTraceabilityActionPlugin.class
+    );
     public static final String TRACEABILITY_ZIP_FILE_NAME = "traceabilityFile.zip";
     public static final String TRACEABILITY_EVENT_FILE_NAME = "traceabilityEvent.json";
 
     private final String actionHandlerId;
     private final StorageClientFactory storageClientFactory;
 
-    protected FinalizeLifecycleTraceabilityActionPlugin(StorageClientFactory storageClientFactory,
-        String actionHandlerId) {
+    protected FinalizeLifecycleTraceabilityActionPlugin(
+        StorageClientFactory storageClientFactory,
+        String actionHandlerId
+    ) {
         this.storageClientFactory = storageClientFactory;
         this.actionHandlerId = actionHandlerId;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
-
         final ItemStatus itemStatus = new ItemStatus(actionHandlerId);
 
-        try (StorageClient storageClient = storageClientFactory.getClient();
-            WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
-
+        try (
+            StorageClient storageClient = storageClientFactory.getClient();
+            WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()
+        ) {
             if (!workspaceClient.isExistingObject(handler.getContainerName(), TRACEABILITY_EVENT_FILE_NAME)) {
                 LOGGER.warn("No traceability event file found. Empty traceability zip.");
                 itemStatus.increment(StatusCode.OK);
@@ -87,26 +91,38 @@ public abstract class FinalizeLifecycleTraceabilityActionPlugin extends ActionHa
             }
 
             File traceabilityEventFile = handler.getFileFromWorkspace(TRACEABILITY_EVENT_FILE_NAME);
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromFile(traceabilityEventFile, TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromFile(
+                traceabilityEventFile,
+                TraceabilityEvent.class
+            );
 
             String evDetailData = JsonHandler.unprettyPrint(traceabilityEvent);
             itemStatus.setEvDetailData(evDetailData);
-            itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-                evDetailData);
+            itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evDetailData);
 
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(handler.getContainerName());
             description.setWorkspaceObjectURI(TRACEABILITY_ZIP_FILE_NAME);
 
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.LOGBOOK,
-                traceabilityEvent.getFileName(), description);
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.LOGBOOK,
+                traceabilityEvent.getFileName(),
+                description
+            );
 
             itemStatus.increment(StatusCode.OK);
             LOGGER.info("Lifecycle traceability finished with status " + itemStatus.getGlobalStatus());
             return new ItemStatus(actionHandlerId).setItemsStatus(actionHandlerId, itemStatus);
-
-        } catch (InvalidParseOperationException | StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+        } catch (
+            InvalidParseOperationException
+            | StorageAlreadyExistsClientException
+            | StorageNotFoundClientException
+            | StorageServerClientException
+            | IOException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageServerException e
+        ) {
             LOGGER.error("Exception while finalizing", e);
             itemStatus.increment(StatusCode.FATAL);
             LOGGER.info("Lifecycle traceability finished with status " + itemStatus.getGlobalStatus());

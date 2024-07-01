@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -42,7 +41,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.quartz.JobExecutionContext;
@@ -65,8 +63,9 @@ public class ReconstructionOperationJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -82,27 +81,23 @@ public class ReconstructionOperationJobTest {
 
     @Before
     public void setup() {
-
         doReturn(logbookOperationsClient).when(logbookOperationsClientFactory).getClient();
         VitamConfiguration.setAdminTenant(1);
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
     }
 
-
-
     @Test
     @RunWithCustomExecutor
     public void testTraceabilityLFCOKThenSuccess() throws Exception {
-
-
         // Given
         AtomicInteger tenantId = new AtomicInteger();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
             tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
             return new RequestResponseOK<>();
-        }).when(logbookOperationsClient).reconstructCollection(any());
-
+        })
+            .when(logbookOperationsClient)
+            .reconstructCollection(any());
 
         // When
         callReconstructionOperation.execute(context);
@@ -112,6 +107,4 @@ public class ReconstructionOperationJobTest {
         verify(logbookOperationsClient).close();
         verifyNoMoreInteractions(logbookOperationsClient);
     }
-
-
 }

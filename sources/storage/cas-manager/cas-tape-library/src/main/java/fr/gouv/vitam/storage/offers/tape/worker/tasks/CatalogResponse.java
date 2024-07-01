@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 
 public class CatalogResponse {
+
     private StatusCode status;
     private TapeCatalog currentTape;
 

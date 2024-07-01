@@ -58,27 +58,20 @@ public class MtTapeLibraryServiceTest {
     private ProcessExecutor processExecutor = mock(ProcessExecutor.class);
 
     @Before
-    public void setUp() {
-    }
+    public void setUp() {}
 
     @After
-    public void tearDown() {
-    }
+    public void tearDown() {}
 
     @Test
     public void test_constructor() {
+        assertThatCode(() -> new MtTapeLibraryService(tapeDriveConf)).doesNotThrowAnyException();
 
-        assertThatCode(() ->
-            new MtTapeLibraryService(tapeDriveConf)
-        ).doesNotThrowAnyException();
+        assertThatThrownBy(() -> new MtTapeLibraryService(null)).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new MtTapeLibraryService(null)
-        ).isInstanceOf(IllegalArgumentException.class);
-
-        assertThatThrownBy(() ->
-            new MtTapeLibraryService(tapeDriveConf, null)
-        ).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new MtTapeLibraryService(tapeDriveConf, null)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     @Test
@@ -87,12 +80,10 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
-
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
@@ -104,8 +95,11 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
@@ -118,34 +112,34 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
         Throwable throwable = catchThrowable(mtTapeLibraryService::status);
 
-        assertThat(throwable)
-            .isInstanceOf(TapeCommandException.class);
-        assertThat(((Output) ((TapeCommandException) throwable).getDetails()).getStderr())
-            .contains("Fake Just To Avoid Null");
+        assertThat(throwable).isInstanceOf(TapeCommandException.class);
+        assertThat(((Output) ((TapeCommandException) throwable).getDetails()).getStderr()).contains(
+            "Fake Just To Avoid Null"
+        );
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "status");
     }
-
 
     @Test
     public void test_rewind_OK() {
@@ -153,24 +147,24 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
-        assertThatCode(mtTapeLibraryService::rewind)
-            .doesNotThrowAnyException();
+        assertThatCode(mtTapeLibraryService::rewind).doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
@@ -183,34 +177,34 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
         Throwable throwable = catchThrowable(mtTapeLibraryService::rewind);
 
-        assertThat(throwable)
-            .isInstanceOf(TapeCommandException.class);
-        assertThat(((Output) ((TapeCommandException) throwable).getDetails()).getStderr())
-            .contains("Fake Just To Avoid Null");
+        assertThat(throwable).isInstanceOf(TapeCommandException.class);
+        assertThat(((Output) ((TapeCommandException) throwable).getDetails()).getStderr()).contains(
+            "Fake Just To Avoid Null"
+        );
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "rewind");
     }
-
 
     @Test
     public void test_goto_end_OK() {
@@ -218,23 +212,23 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
-        assertThatCode(mtTapeLibraryService::goToEnd)
-            .doesNotThrowAnyException();
+        assertThatCode(mtTapeLibraryService::goToEnd).doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
@@ -247,35 +241,34 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
         Throwable throwable = catchThrowable(mtTapeLibraryService::goToEnd);
 
-        assertThat(throwable)
-            .isInstanceOf(TapeCommandException.class);
-        assertThat(((Output) ((TapeCommandException) throwable).getDetails()).getStderr())
-            .contains("Fake Just To Avoid Null");
+        assertThat(throwable).isInstanceOf(TapeCommandException.class);
+        assertThat(((Output) ((TapeCommandException) throwable).getDetails()).getStderr()).contains(
+            "Fake Just To Avoid Null"
+        );
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "eod");
     }
-
-
 
     @Test
     public void test_goto_position_fsf_OK() {
@@ -283,45 +276,45 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
-        assertThatCode(() -> mtTapeLibraryService.move(5, false))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> mtTapeLibraryService.move(5, false)).doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "fsf", "5");
 
-
-        assertThatCode(() -> mtTapeLibraryService.move(5, false))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> mtTapeLibraryService.move(5, false)).doesNotThrowAnyException();
 
         commandPath = ArgumentCaptor.forClass(String.class);
         timeout = ArgumentCaptor.forClass(Long.class);
         args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(2))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(2)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "fsf", "5");
     }
-
 
     @Test
     public void test_goto_position_bsf_OK() {
@@ -329,24 +322,24 @@ public class MtTapeLibraryServiceTest {
         when(tapeDriveConf.getDevice()).thenReturn(DEVICE_NST);
         when(tapeDriveConf.getTimeoutInMilliseconds()).thenReturn(1_000L);
 
-
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
         when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
 
-
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
 
-        assertThatCode(() -> mtTapeLibraryService.move(5, true))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> mtTapeLibraryService.move(5, true)).doesNotThrowAnyException();
 
         ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
-        verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+        verify(processExecutor, VerificationModeFactory.times(1)).execute(
+            commandPath.capture(),
+            timeout.capture(),
+            args.capture()
+        );
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000L);

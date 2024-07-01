@@ -30,7 +30,6 @@ package fr.gouv.vitam.logbook.common.model.coherence;
  * Enumeration of the outcome status. <br/>
  */
 public enum OutcomeStatus {
-
     STARTED(0),
     OK(1),
     WARNING(2),
@@ -54,5 +53,4 @@ public enum OutcomeStatus {
     public int getWeight() {
         return weight;
     }
-
 }

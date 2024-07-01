@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Enum of Vitam services
  */
 public enum ServiceName {
-
     /**
      * Used if the service does not exist. Also used in test.
      */
@@ -104,7 +103,6 @@ public enum ServiceName {
      */
     COLLECT_EXTERNAL_ACCESS("13", "Collect External Access");
 
-
     private final String code;
     private final String name;
 
@@ -126,7 +124,6 @@ public enum ServiceName {
     public String getName() {
         return name;
     }
-
 
     /**
      * Retrieve ServiceName from code

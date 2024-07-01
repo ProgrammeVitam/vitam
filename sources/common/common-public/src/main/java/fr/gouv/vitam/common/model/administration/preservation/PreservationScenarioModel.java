@@ -110,7 +110,8 @@ public class PreservationScenarioModel {
         @NotEmpty String identifier,
         @NotEmpty List<ActionTypePreservation> actionList,
         @NotEmpty List<GriffinByFormat> griffinByFormat,
-        @NotEmpty DefaultGriffin defaultGriffin) {
+        @NotEmpty DefaultGriffin defaultGriffin
+    ) {
         this.name = name;
         this.identifier = identifier;
         this.actionList = actionList;
@@ -218,7 +219,8 @@ public class PreservationScenarioModel {
 
     @JsonIgnore
     public Optional<GriffinByFormat> getGriffinByFormat(String format) {
-        GriffinByFormat griffinByFormat = getGriffinByFormat().stream()
+        GriffinByFormat griffinByFormat = getGriffinByFormat()
+            .stream()
             .filter(element -> element.getFormatList().contains(format))
             .findFirst()
             .orElse(defaultGriffin == null ? null : new GriffinByFormat(defaultGriffin));
@@ -228,7 +230,8 @@ public class PreservationScenarioModel {
 
     @JsonIgnore
     public Set<String> getAllGriffinIdentifiers() {
-        Set<String> identifiers = getGriffinByFormat().stream()
+        Set<String> identifiers = getGriffinByFormat()
+            .stream()
             .map(GriffinByFormat::getGriffinIdentifier)
             .collect(Collectors.toSet());
 
@@ -241,18 +244,37 @@ public class PreservationScenarioModel {
 
     @Override
     public String toString() {
-        return "PreservationScenarioModel{" +
-            "id='" + id + '\'' +
-            ", tenant=" + tenant +
-            ", version=" + version +
-            ", name='" + name + '\'' +
-            ", identifier='" + identifier + '\'' +
-            ", description='" + description + '\'' +
-            ", creationDate='" + creationDate + '\'' +
-            ", lastUpdate='" + lastUpdate + '\'' +
-            ", actionList=" + actionList +
-            ", griffinByFormat=" + griffinByFormat +
-            ", defaultGriffin=" + defaultGriffin +
-            '}';
+        return (
+            "PreservationScenarioModel{" +
+            "id='" +
+            id +
+            '\'' +
+            ", tenant=" +
+            tenant +
+            ", version=" +
+            version +
+            ", name='" +
+            name +
+            '\'' +
+            ", identifier='" +
+            identifier +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", creationDate='" +
+            creationDate +
+            '\'' +
+            ", lastUpdate='" +
+            lastUpdate +
+            '\'' +
+            ", actionList=" +
+            actionList +
+            ", griffinByFormat=" +
+            griffinByFormat +
+            ", defaultGriffin=" +
+            defaultGriffin +
+            '}'
+        );
     }
 }

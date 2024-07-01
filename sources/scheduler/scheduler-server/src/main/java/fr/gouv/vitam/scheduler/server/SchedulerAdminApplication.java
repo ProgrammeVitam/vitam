@@ -47,10 +47,11 @@ public class SchedulerAdminApplication extends AdminApplication {
     public SchedulerAdminApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final SchedulerConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, SchedulerConfiguration.class);
+            final SchedulerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, SchedulerConfiguration.class);
 
-            final VitamJobsDataProcessorPlugin jobsDataProcessorPlugin = new VitamJobsDataProcessorPlugin(configuration);
+            final VitamJobsDataProcessorPlugin jobsDataProcessorPlugin = new VitamJobsDataProcessorPlugin(
+                configuration
+            );
 
             super.getSingletons().add(new BasicAuthenticationFilter(configuration));
             super.getSingletons().add(new JsonParseExceptionMapper());
@@ -59,5 +60,4 @@ public class SchedulerAdminApplication extends AdminApplication {
             throw new RuntimeException(e);
         }
     }
-
 }

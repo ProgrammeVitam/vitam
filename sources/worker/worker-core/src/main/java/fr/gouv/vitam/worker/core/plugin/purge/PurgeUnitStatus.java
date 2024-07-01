@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.purge;
 
 public enum PurgeUnitStatus {
-
     DELETED,
-    NON_DESTROYABLE_HAS_CHILD_UNITS
+    NON_DESTROYABLE_HAS_CHILD_UNITS,
 }

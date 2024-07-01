@@ -32,7 +32,6 @@ package fr.gouv.vitam.common.model.administration;
  * different constants status code for Accession register
  */
 public enum AccessionRegisterStatus {
-
     /**
      * STORED_AND_COMPLETED : indicates that the Accession register stored and completed
      */
@@ -59,5 +58,4 @@ public enum AccessionRegisterStatus {
     public String value() {
         return value;
     }
-
 }

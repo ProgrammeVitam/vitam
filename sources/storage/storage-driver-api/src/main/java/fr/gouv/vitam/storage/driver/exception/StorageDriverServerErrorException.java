@@ -58,5 +58,4 @@ public class StorageDriverServerErrorException extends StorageDriverException {
     public StorageDriverServerErrorException(String driverInfos, Throwable cause) {
         super(driverInfos, true, cause);
     }
-
 }

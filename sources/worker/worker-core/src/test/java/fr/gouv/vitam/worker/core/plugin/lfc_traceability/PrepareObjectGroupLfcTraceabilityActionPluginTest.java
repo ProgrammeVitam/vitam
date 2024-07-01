@@ -109,8 +109,7 @@ import static org.mockito.Mockito.when;
 
 public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
 
-    private static final TypeReference<LfcMetadataPair> LFC_METADATA_PAIR_TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<LfcMetadataPair> LFC_METADATA_PAIR_TYPE_REFERENCE = new TypeReference<>() {};
     private HandlerIOImpl handlerIO;
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
@@ -152,9 +151,9 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Mock
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
-
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -162,8 +161,9 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private File storedFilesDirectory;
 
@@ -189,33 +189,37 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
             Path filePath = Paths.get(storedFilesDirectory.getAbsolutePath(), filename);
             java.nio.file.Files.copy(inputStream, filePath);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
-            anyString(), org.mockito.ArgumentMatchers.any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(
+                org.mockito.ArgumentMatchers.anyString(),
+                anyString(),
+                org.mockito.ArgumentMatchers.any(InputStream.class)
+            );
 
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
-        when(logbookLifeCyclesClientFactory.getClient())
-            .thenReturn(logbookLifeCyclesClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
-        when(logbookOperationsClientFactory.getClient())
-            .thenReturn(logbookOperationsClient);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-            "PrepareObjectGroupLfcTraceabilityActionPluginTest", "workerId",
-            Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "PrepareObjectGroupLfcTraceabilityActionPluginTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
         // mock later ?
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "lastOperation.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "lastOperation.json")));
         out = new ArrayList<>();
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
-            "traceabilityInformation.json")));
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
-            "lfcWithMetadata.jsonl")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "traceabilityInformation.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "lfcWithMetadata.jsonl")));
     }
 
     @After
@@ -226,36 +230,47 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenMultipleLifecyclesWhenExecuteAndNotMaxEntriesReachedThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertEquals(PrepareObjectGroupLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
         reset(logbookLifeCyclesClient);
-        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL)).when(logbookLifeCyclesClient)
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL))
+            .when(logbookLifeCyclesClient)
             .exportRawObjectGroupLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
-                RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
 
-        when(metadataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
-            "aebaaaaaaag457juaap7qaldnejfprqaaaaq",
-            "aebaaaaaaag457juaap7qaldnejfpsiaaaaq"
-        ))))).thenReturn(metadataResponse);
+        when(
+            metadataClient.getObjectGroupsByIdsRaw(
+                eq(
+                    new HashSet<>(
+                        Arrays.asList("aebaaaaaaag457juaap7qaldnejfprqaaaaq", "aebaaaaaaag457juaap7qaldnejfpsiaaaaq")
+                    )
+                )
+            )
+        ).thenReturn(metadataResponse);
 
         int temporizationDelayInSeconds = 300;
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, 100000);
-        PrepareObjectGroupLfcTraceabilityActionPlugin handler =
-            new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+        PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         LocalDateTime snapshot1 = LocalDateUtil.now();
@@ -266,16 +281,21 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
-        try (JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
-            new FileInputStream(savedLfcWithMetadataFile), LFC_METADATA_PAIR_TYPE_REFERENCE)) {
-
+        try (
+            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(savedLfcWithMetadataFile),
+                LFC_METADATA_PAIR_TYPE_REFERENCE
+            )
+        ) {
             List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(2);
-            assertThat(entries.get(0).getLfc().get("_id").textValue())
-                .isEqualTo("aebaaaaaaag457juaap7qaldnejfprqaaaaq");
-            assertThat(entries.get(0).getMetadata().get("_id").textValue())
-                .isEqualTo("aebaaaaaaag457juaap7qaldnejfprqaaaaq");
+            assertThat(entries.get(0).getLfc().get("_id").textValue()).isEqualTo(
+                "aebaaaaaaag457juaap7qaldnejfprqaaaaq"
+            );
+            assertThat(entries.get(0).getMetadata().get("_id").textValue()).isEqualTo(
+                "aebaaaaaaag457juaap7qaldnejfprqaaaaq"
+            );
             assertThat(entries.get(0).getMetadata().get("dummy").intValue()).isEqualTo(1);
         }
 
@@ -295,37 +315,48 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenMultipleLifecyclesWhenExecuteAndMaxEntriesReachedThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertEquals(PrepareObjectGroupLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
         reset(logbookLifeCyclesClient);
-        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL)).when(logbookLifeCyclesClient)
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL))
+            .when(logbookLifeCyclesClient)
             .exportRawObjectGroupLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
-                RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
 
-        when(metadataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
-            "aebaaaaaaag457juaap7qaldnejfprqaaaaq",
-            "aebaaaaaaag457juaap7qaldnejfpsiaaaaq"
-        ))))).thenReturn(metadataResponse);
+        when(
+            metadataClient.getObjectGroupsByIdsRaw(
+                eq(
+                    new HashSet<>(
+                        Arrays.asList("aebaaaaaaag457juaap7qaldnejfprqaaaaq", "aebaaaaaaag457juaap7qaldnejfpsiaaaaq")
+                    )
+                )
+            )
+        ).thenReturn(metadataResponse);
 
         int temporizationDelayInSeconds = 300;
         int maxEntries = 2;
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, maxEntries);
-        PrepareObjectGroupLfcTraceabilityActionPlugin handler =
-            new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+        PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -334,16 +365,21 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
-        try (JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
-            new FileInputStream(savedLfcWithMetadataFile), LFC_METADATA_PAIR_TYPE_REFERENCE)) {
-
+        try (
+            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(savedLfcWithMetadataFile),
+                LFC_METADATA_PAIR_TYPE_REFERENCE
+            )
+        ) {
             List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(2);
-            assertThat(entries.get(0).getLfc().get("_id").textValue())
-                .isEqualTo("aebaaaaaaag457juaap7qaldnejfprqaaaaq");
-            assertThat(entries.get(0).getMetadata().get("_id").textValue())
-                .isEqualTo("aebaaaaaaag457juaap7qaldnejfprqaaaaq");
+            assertThat(entries.get(0).getLfc().get("_id").textValue()).isEqualTo(
+                "aebaaaaaaag457juaap7qaldnejfprqaaaaq"
+            );
+            assertThat(entries.get(0).getMetadata().get("_id").textValue()).isEqualTo(
+                "aebaaaaaaag457juaap7qaldnejfprqaaaaq"
+            );
             assertThat(entries.get(0).getMetadata().get("dummy").intValue()).isEqualTo(1);
         }
 
@@ -361,26 +397,30 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenSelectLFCErrorWhenExecuteThenReturnResponseKO() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
 
         reset(logbookOperationsClient);
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
         reset(logbookLifeCyclesClient);
-        doThrow(new InvalidParseOperationException("InvalidParseOperationException")).when(logbookLifeCyclesClient)
+        doThrow(new InvalidParseOperationException("InvalidParseOperationException"))
+            .when(logbookLifeCyclesClient)
             .exportRawObjectGroupLifecyclesByLastPersistedDate(any(), any(), anyInt());
 
         WorkerParameters params = createExecParams(300, 100000);
-        PrepareObjectGroupLfcTraceabilityActionPlugin handler =
-            new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+        PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -397,33 +437,45 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         assertEquals(PrepareObjectGroupLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
         reset(logbookLifeCyclesClient);
         doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL))
             .when(logbookLifeCyclesClient)
             .exportRawObjectGroupLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
-                RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
 
-        when(metadataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
-            "aebaaaaaaag457juaap7qaldnejfprqaaaaq",
-            "aebaaaaaaag457juaap7qaldnejfpsiaaaaq"
-        ))))).thenReturn(metadataResponse);
+        when(
+            metadataClient.getObjectGroupsByIdsRaw(
+                eq(
+                    new HashSet<>(
+                        Arrays.asList("aebaaaaaaag457juaap7qaldnejfprqaaaaq", "aebaaaaaaag457juaap7qaldnejfpsiaaaaq")
+                    )
+                )
+            )
+        ).thenReturn(metadataResponse);
 
         doThrow(new ContentAddressableStorageServerException("ContentAddressableStorageServerException"))
-            .when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
         WorkerParameters params = createExecParams(300, 100000);
-        PrepareObjectGroupLfcTraceabilityActionPlugin handler =
-            new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+        PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -435,24 +487,28 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenLogbookExceptionWhenExecuteThenReturnResponseFATAL() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         handlerIO.addOutIOParameters(out);
         reset(logbookLifeCyclesClient);
-        doThrow(new LogbookClientException("LogbookClientException")).when(logbookLifeCyclesClient)
+        doThrow(new LogbookClientException("LogbookClientException"))
+            .when(logbookLifeCyclesClient)
             .exportRawObjectGroupLifecyclesByLastPersistedDate(any(), any(), anyInt());
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
         reset(logbookOperationsClient);
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
         WorkerParameters params = createExecParams(300, 100000);
-        PrepareObjectGroupLfcTraceabilityActionPlugin handler =
-            new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+        PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -464,27 +520,32 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenMetadataExceptionWhenExecuteThenReturnResponseFATAL() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertEquals(PrepareObjectGroupLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
         reset(logbookLifeCyclesClient);
-        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL)).when(logbookLifeCyclesClient)
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_JSONL))
+            .when(logbookLifeCyclesClient)
             .exportRawObjectGroupLifecyclesByLastPersistedDate(any(), any(), anyInt());
         reset(logbookOperationsClient);
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
         doThrow(new VitamClientException("prb")).when(metadataClient).getObjectGroupsByIdsRaw(any());
 
         WorkerParameters params = createExecParams(300, 100000);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
-            metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -496,46 +557,69 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenMultipleLifecyclesWhenExecuteWithMultiSelectQueriesThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertEquals(PrepareObjectGroupLfcTraceabilityActionPlugin.getId(), HANDLER_ID);
         handlerIO.addOutIOParameters(out);
 
-        final JsonNode lastTraceability =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON));
+        final JsonNode lastTraceability = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(LAST_TRACEABILITY_JSON)
+        );
         reset(logbookLifeCyclesClient);
 
-        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_BIG_JSON)).when(logbookLifeCyclesClient)
-            .exportRawObjectGroupLifecyclesByLastPersistedDate(eq(
-                LocalDateUtil.parseMongoFormattedDate("2018-05-16T13:09:22.407")), any(), anyInt());
+        doReturn(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_BIG_JSON))
+            .when(logbookLifeCyclesClient)
+            .exportRawObjectGroupLifecyclesByLastPersistedDate(
+                eq(LocalDateUtil.parseMongoFormattedDate("2018-05-16T13:09:22.407")),
+                any(),
+                anyInt()
+            );
         reset(logbookOperationsClient);
-        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build()).
-            when(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
+        doReturn(Response.ok(JsonHandler.writeToInpustream(lastTraceability)).build())
+            .when(workspaceClient)
+            .getObject(anyString(), eq("lastOperation.json"));
         handlerIO.addInIOParameters(in);
 
-        List<JsonNode> gotIds =
-            new JsonLineGenericIterator<>(PropertiesUtils.getResourceAsStream(LFC_OBJECTS_BIG_JSON),
-                new TypeReference<JsonNode>() {
-                }).stream().collect(Collectors.toList());
+        List<JsonNode> gotIds = new JsonLineGenericIterator<>(
+            PropertiesUtils.getResourceAsStream(LFC_OBJECTS_BIG_JSON),
+            new TypeReference<JsonNode>() {}
+        )
+            .stream()
+            .collect(Collectors.toList());
 
-        Set<String> gotIds1 =
-            gotIds.stream().map(entry -> entry.get("_id").asText()).limit(10).collect(Collectors.toSet());
-        Set<String> gotIds2 =
-            gotIds.stream().map(entry -> entry.get("_id").asText()).skip(10).collect(Collectors.toSet());
+        Set<String> gotIds1 = gotIds
+            .stream()
+            .map(entry -> entry.get("_id").asText())
+            .limit(10)
+            .collect(Collectors.toSet());
+        Set<String> gotIds2 = gotIds
+            .stream()
+            .map(entry -> entry.get("_id").asText())
+            .skip(10)
+            .collect(Collectors.toSet());
 
-        when(metadataClient.getObjectGroupsByIdsRaw(gotIds1))
-            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MD_GOTS_BIG_1_JSON),
-                RequestResponseOK.class, JsonNode.class));
-        when(metadataClient.getObjectGroupsByIdsRaw(gotIds2))
-            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MD_GOTS_BIG_2_JSON),
-                RequestResponseOK.class, JsonNode.class));
+        when(metadataClient.getObjectGroupsByIdsRaw(gotIds1)).thenReturn(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(MD_GOTS_BIG_1_JSON),
+                RequestResponseOK.class,
+                JsonNode.class
+            )
+        );
+        when(metadataClient.getObjectGroupsByIdsRaw(gotIds2)).thenReturn(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(MD_GOTS_BIG_2_JSON),
+                RequestResponseOK.class,
+                JsonNode.class
+            )
+        );
 
         int temporizationDelayInSeconds = 300;
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, 100000);
-        PrepareObjectGroupLfcTraceabilityActionPlugin handler =
-            new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, 10);
+        PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
+            metadataClientFactory,
+            logbookLifeCyclesClientFactory,
+            10
+        );
 
         // When
         LocalDateTime snapshot1 = LocalDateUtil.now();
@@ -546,16 +630,20 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
-        try (JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
-            new FileInputStream(savedLfcWithMetadataFile), LFC_METADATA_PAIR_TYPE_REFERENCE)) {
-
+        try (
+            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(savedLfcWithMetadataFile),
+                LFC_METADATA_PAIR_TYPE_REFERENCE
+            )
+        ) {
             List<LfcMetadataPair> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(13);
 
             Integer[] expectedVals = IntStream.rangeClosed(1, 13).boxed().toArray(Integer[]::new);
-            assertThat(entries.stream().map(entry -> entry.getMetadata().get("dummy").intValue())
-                .collect(Collectors.toSet())).containsExactlyInAnyOrder(expectedVals);
+            assertThat(
+                entries.stream().map(entry -> entry.getMetadata().get("dummy").intValue()).collect(Collectors.toSet())
+            ).containsExactlyInAnyOrder(expectedVals);
         }
         verify(workspaceClient).getObject(anyString(), eq("lastOperation.json"));
         JsonNode traceabilityInformation = getSavedJsonNodeWorkspaceObject("traceabilityInformation.json");
@@ -571,12 +659,17 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     }
 
     private WorkerParameters createExecParams(int temporizationDelayInSeconds, int maxEntries) {
-        return WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+        return WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY)
-            .putParameterValue(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds,
-                Integer.toString(temporizationDelayInSeconds))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId())
+            .setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY)
+            .putParameterValue(
+                WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds,
+                Integer.toString(temporizationDelayInSeconds)
+            )
             .putParameterValue(WorkerParameterName.lifecycleTraceabilityMaxEntries, Integer.toString(maxEntries));
     }
 
@@ -586,13 +679,11 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
     }
 
     private File getSavedWorkspaceObjectFile(String filename) {
-        return Paths.get(storedFilesDirectory.getAbsolutePath(), filename)
-            .toFile();
+        return Paths.get(storedFilesDirectory.getAbsolutePath(), filename).toFile();
     }
 
     private void checkNumberOfSavedObjectInWorkspace(int files) throws ContentAddressableStorageServerException {
-        verify(workspaceClient, times(files)).putObject(anyString(),
-            anyString(), any(InputStream.class));
+        verify(workspaceClient, times(files)).putObject(anyString(), anyString(), any(InputStream.class));
     }
 
     private LfcMetadataPair parse(JsonNode jsonNode) {

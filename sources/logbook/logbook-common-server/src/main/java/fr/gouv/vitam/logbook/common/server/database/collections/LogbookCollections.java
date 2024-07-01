@@ -43,7 +43,6 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.IMPORT_ONTOLOGY;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFERENTIAL_FORMAT_IMPORT;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.REFRENTIAL_FORMAT_DELETE;
 
-
 /**
  * All collections
  */
@@ -75,7 +74,7 @@ public enum LogbookCollections {
     public static final String[] MULTI_TENANT_EV_TYPES = {
         IMPORT_ONTOLOGY.getEventType(),
         REFERENTIAL_FORMAT_IMPORT.getEventType(),
-        REFRENTIAL_FORMAT_DELETE.getEventType()
+        REFRENTIAL_FORMAT_DELETE.getEventType(),
     };
 
     LogbookCollections(final Class<? extends VitamDocument<?>> clasz) {

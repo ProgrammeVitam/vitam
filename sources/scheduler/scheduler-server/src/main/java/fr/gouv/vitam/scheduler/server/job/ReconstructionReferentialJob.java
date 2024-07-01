@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -61,24 +60,17 @@ public class ReconstructionReferentialJob implements Job {
         this(AdminManagementClientFactory.getInstance());
     }
 
-    ReconstructionReferentialJob(
-        AdminManagementClientFactory adminManagementClientFactory) {
+    ReconstructionReferentialJob(AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
-
-
     public void execute(JobExecutionContext context) throws JobExecutionException {
-
-
         boolean allReferentialsSucceeded = true;
 
         // voir s'il faut lancer sur plusieurs pool
         ExecutorService executorService = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
 
         try {
-
-
             List<CompletableFuture<Void>> completableFutures = getReconstructionCompletableFutures(executorService);
 
             for (CompletableFuture<Void> completableFuture : completableFutures) {
@@ -99,12 +91,9 @@ public class ReconstructionReferentialJob implements Job {
         if (!allReferentialsSucceeded) {
             throw new JobExecutionException("one or more referentials are failed");
         }
-
-
     }
 
     private List<CompletableFuture<Void>> getReconstructionCompletableFutures(ExecutorService executorService) {
-
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
         for (FunctionalAdminCollections referential : FunctionalAdminCollections.values()) {
             switch (referential) {
@@ -116,31 +105,30 @@ public class ReconstructionReferentialJob implements Job {
             }
             String referentialValue = referential.name();
 
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-                try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
-                    VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-                    VitamThreadUtils.getVitamSession()
-                        .setRequestId(GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant()));
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(
+                () -> {
+                    try (AdminManagementClient client = this.adminManagementClientFactory.getClient()) {
+                        VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+                        VitamThreadUtils.getVitamSession()
+                            .setRequestId(GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant()));
 
-                    LOGGER.info("Reconstruction " + referentialValue + " in progress...");
-                    client.reconstructCollection(referentialValue);
-                    LOGGER.info("Reconstruction " + referentialValue + " is finished");
-
-
-                } catch (AdminManagementClientServerException e) {
-
-                    throw new IllegalStateException(
-                        " Error when reconstruction " + referentialValue + "  :  " +
+                        LOGGER.info("Reconstruction " + referentialValue + " in progress...");
+                        client.reconstructCollection(referentialValue);
+                        LOGGER.info("Reconstruction " + referentialValue + " is finished");
+                    } catch (AdminManagementClientServerException e) {
+                        throw new IllegalStateException(
+                            " Error when reconstruction " +
+                            referentialValue +
+                            "  :  " +
                             VitamConfiguration.getAdminTenant(),
-                        e);
-                }
-
-            }, executorService);
+                            e
+                        );
+                    }
+                },
+                executorService
+            );
             completableFutures.add(completableFuture);
         }
         return completableFutures;
     }
-
-
-
 }

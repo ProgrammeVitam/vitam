@@ -37,7 +37,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 public class ContainerUtils {
 
     public static String buildContainerName(DataCategory type, String tenantId) {
-
         if (type == null || Strings.isNullOrEmpty(type.getFolder()) || Strings.isNullOrEmpty(tenantId)) {
             return null;
         }
@@ -47,7 +46,6 @@ public class ContainerUtils {
     }
 
     public static DataCategory parseDataCategoryFromContainerName(String containerName) {
-
         String environmentName = getEnvironmentNamePrefix();
         if (!containerName.startsWith(environmentName)) {
             throw new IllegalArgumentException("Invalid container name '" + containerName + "'. Env name mismatch.");
@@ -69,7 +67,6 @@ public class ContainerUtils {
     }
 
     public static int parseTenantFromContainerName(String containerName) {
-
         String environmentName = getEnvironmentNamePrefix();
         if (!containerName.startsWith(environmentName)) {
             throw new IllegalArgumentException("Invalid container name '" + containerName + "'. Env name mismatch.");
@@ -82,8 +79,8 @@ public class ContainerUtils {
     }
 
     private static String getEnvironmentNamePrefix() {
-        return Strings.isNullOrEmpty(VitamConfiguration.getEnvironmentName()) ?
-            "" :
-            VitamConfiguration.getEnvironmentName() + "_";
+        return Strings.isNullOrEmpty(VitamConfiguration.getEnvironmentName())
+            ? ""
+            : VitamConfiguration.getEnvironmentName() + "_";
     }
 }

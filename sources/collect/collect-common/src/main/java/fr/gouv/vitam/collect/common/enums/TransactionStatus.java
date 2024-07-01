@@ -36,5 +36,5 @@ public enum TransactionStatus {
     ACK_OK,
     ACK_WARNING,
     ABORTED,
-    ACK_KO
+    ACK_KO,
 }

@@ -39,6 +39,7 @@ import static org.junit.Assert.assertTrue;
  *
  */
 public class StoredInfoResultTest {
+
     private static StoredInfoResult storedInfoResult = new StoredInfoResult();
 
     @Test

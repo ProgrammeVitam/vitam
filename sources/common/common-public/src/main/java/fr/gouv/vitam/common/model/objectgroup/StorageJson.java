@@ -44,8 +44,7 @@ public class StorageJson {
     @JsonProperty("offerIds")
     private List<String> offerIds;
 
-    public StorageJson() {
-    }
+    public StorageJson() {}
 
     public StorageJson(List<String> offerIds) {
         this.offerIds = offerIds;
@@ -74,6 +73,4 @@ public class StorageJson {
     public void setOfferIds(List<String> offerIds) {
         this.offerIds = offerIds;
     }
-
-
 }

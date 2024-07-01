@@ -201,8 +201,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
 
     @Override
-    public void log(final VitamLogLevel level, final String format, final Object argA,
-        final Object argB) {
+    public void log(final VitamLogLevel level, final String format, final Object argA, final Object argB) {
         final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:
@@ -225,8 +224,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
 
     @Override
-    public void log(final VitamLogLevel level, final String format,
-        final Object... arguments) {
+    public void log(final VitamLogLevel level, final String format, final Object... arguments) {
         final String newmsg = getMessagePrepend() + format;
         switch (level) {
             case TRACE:

@@ -79,11 +79,8 @@ public class StoreExports extends ActionHandler {
         this.storageClientFactory = storageClientFactory;
     }
 
-
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         String container;
         String statusAction;
         if (isTransferWorkflow(params)) {
@@ -100,8 +97,10 @@ public class StoreExports extends ActionHandler {
             String tenantFolder = Integer.toString(VitamThreadUtils.getVitamSession().getTenantId());
             String zipFileName = params.getContainerName();
 
-            if (isTransferWorkflow(params) &&
-                handler.isExistingFileInWorkspace(params.getContainerName() + JSONL_EXTENSION)) {
+            if (
+                isTransferWorkflow(params) &&
+                handler.isExistingFileInWorkspace(params.getContainerName() + JSONL_EXTENSION)
+            ) {
                 storeReportToOffers(params.getContainerName());
             }
 
@@ -116,7 +115,12 @@ public class StoreExports extends ActionHandler {
             }
 
             itemStatus.increment(StatusCode.OK);
-        } catch (ContentAddressableStorageException | StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+        } catch (
+            ContentAddressableStorageException
+            | StorageAlreadyExistsClientException
+            | StorageNotFoundClientException
+            | StorageServerClientException e
+        ) {
             throw new ProcessingException(e);
         }
         return new ItemStatus(statusAction).setItemsStatus(statusAction, itemStatus);
@@ -132,13 +136,22 @@ public class StoreExports extends ActionHandler {
             ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(container);
             description.setWorkspaceObjectURI(container + JSONL_EXTENSION);
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
-                DataCategory.REPORT, container + JSONL_EXTENSION, description);
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT,
+                container + JSONL_EXTENSION,
+                description
+            );
         }
     }
 
-    private void zipWorkspace(WorkspaceClient workspaceClient, String operationId, String outputDir, String outputFile, String container)
-        throws ContentAddressableStorageException {
+    private void zipWorkspace(
+        WorkspaceClient workspaceClient,
+        String operationId,
+        String outputDir,
+        String outputFile,
+        String container
+    ) throws ContentAddressableStorageException {
         LOGGER.debug("Try to compress into workspace...");
 
         // Create Content folder if not exists
@@ -161,9 +174,11 @@ public class StoreExports extends ActionHandler {
         throws ContentAddressableStorageException {
         LOGGER.debug("Compute object digest from workspace...");
         try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient()) {
-            return workspaceClient
-                .computeObjectDigest(container, tenantFolder + "/" + fileName,
-                    VitamConfiguration.getDefaultDigestType());
+            return workspaceClient.computeObjectDigest(
+                container,
+                tenantFolder + "/" + fileName,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
     }
 

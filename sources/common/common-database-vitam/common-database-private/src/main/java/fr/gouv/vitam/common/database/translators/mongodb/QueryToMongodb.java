@@ -66,6 +66,7 @@ import static com.mongodb.client.model.Filters.size;
  * Query to MongoDB
  */
 public class QueryToMongodb {
+
     private static final String INVALID_RANGE_REQUEST_COMMAND = "Invalid Range request command: ";
     private static final String COMMAND_NOT_ALLOWED_WITH_MONGO_DB = "Command not allowed with MongoDB: ";
 
@@ -106,8 +107,7 @@ public class QueryToMongodb {
      * @return the associated MongoDB BSON request
      * @throws InvalidParseOperationException if query could not parse to command
      */
-    public static Bson getCommand(final Query query)
-        throws InvalidParseOperationException {
+    public static Bson getCommand(final Query query) throws InvalidParseOperationException {
         final QUERY req = query.getQUERY();
         final JsonNode content = query.getNode(req.exactToken());
         switch (req) {
@@ -126,8 +126,7 @@ public class QueryToMongodb {
             case MATCH_PHRASE_PREFIX:
             case SEARCH:
             case SUBOBJECT:
-                throw new InvalidParseOperationException(
-                    COMMAND_NOT_ALLOWED_WITH_MONGO_DB + req.exactToken());
+                throw new InvalidParseOperationException(COMMAND_NOT_ALLOWED_WITH_MONGO_DB + req.exactToken());
             case NIN:
             case IN:
                 return inCommand(req, content);
@@ -194,8 +193,7 @@ public class QueryToMongodb {
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static Bson sizeCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element =
-            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         return size(element.getKey(), element.getValue().asInt());
     }
 
@@ -207,8 +205,7 @@ public class QueryToMongodb {
      */
     private static Bson comparatorCommand(final QUERY req, final JsonNode content)
         throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element =
-            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final Object value = GlobalDatasParser.getValue(element.getValue());
         switch (req) {
             case EQ:
@@ -234,8 +231,7 @@ public class QueryToMongodb {
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static Bson wildcardCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element =
-            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         String value = element.getValue().asText();
         value = value.replace('?', '.').replace("*", ".*");
         return regex(element.getKey(), value);
@@ -251,8 +247,7 @@ public class QueryToMongodb {
         final BasicDBObject bson = new BasicDBObject();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> element = iterator.next();
-            bson.append(element.getKey(),
-                GlobalDatasParser.getValue(element.getValue()));
+            bson.append(element.getKey(), GlobalDatasParser.getValue(element.getValue()));
         }
         return bson;
     }
@@ -264,8 +259,7 @@ public class QueryToMongodb {
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static Bson regexCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element =
-            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         return regex(element.getKey(), element.getValue().asText());
     }
 
@@ -276,26 +270,21 @@ public class QueryToMongodb {
      * @throws InvalidParseOperationException if could not get JSON value
      */
     private static Bson rangeCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element =
-            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String var = element.getKey();
         final BasicDBObject range = new BasicDBObject();
-        for (final Iterator<Entry<String, JsonNode>> iterator =
-             element.getValue().fields(); iterator.hasNext(); ) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             try {
                 final String key = requestItem.getKey();
                 if (key.startsWith(BuilderToken.DEFAULT_PREFIX)) {
                     RANGEARGS.valueOf(key.substring(1).toUpperCase());
-                    range.append(key,
-                        GlobalDatasParser.getValue(requestItem.getValue()));
+                    range.append(key, GlobalDatasParser.getValue(requestItem.getValue()));
                 } else {
-                    throw new InvalidParseOperationException(
-                        INVALID_RANGE_REQUEST_COMMAND + requestItem);
+                    throw new InvalidParseOperationException(INVALID_RANGE_REQUEST_COMMAND + requestItem);
                 }
             } catch (final IllegalArgumentException e) {
-                throw new InvalidParseOperationException(
-                    INVALID_RANGE_REQUEST_COMMAND + requestItem, e);
+                throw new InvalidParseOperationException(INVALID_RANGE_REQUEST_COMMAND + requestItem, e);
             }
         }
         return new BasicDBObject(var, range);
@@ -308,8 +297,7 @@ public class QueryToMongodb {
      * @throws InvalidParseOperationException if check unicity is in error or could not get JSON value
      */
     private static Bson inCommand(final QUERY req, final JsonNode content) throws InvalidParseOperationException {
-        final Entry<String, JsonNode> element =
-            JsonHandler.checkUnicity(req.exactToken(), content);
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final ArrayNode array = (ArrayNode) element.getValue();
         final Object[] values = new Object[array.size()];
         int i = 0;
@@ -350,7 +338,8 @@ public class QueryToMongodb {
     }
 
     protected static Iterable<Bson> getCommands(final List<Query> queries) {
-        return queries.stream()
+        return queries
+            .stream()
             .map(query -> {
                 try {
                     return getCommand(query);

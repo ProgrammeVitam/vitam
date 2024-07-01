@@ -48,15 +48,13 @@ import java.util.Map;
  * The ContentAddressableStorage interface.
  */
 public interface ContentAddressableStorage extends VitamAutoCloseable {
-
     /**
      * Creates a container
      *
      * @param containerName name of container to create
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    void createContainer(String containerName)
-        throws ContentAddressableStorageServerException;
+    void createContainer(String containerName) throws ContentAddressableStorageServerException;
 
     /**
      * Determines if a container exists
@@ -79,9 +77,13 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    void writeObject(String containerName, String objectName, InputStream inputStream,
-        DigestType digestType, long size)
-        throws ContentAddressableStorageException;
+    void writeObject(
+        String containerName,
+        String objectName,
+        InputStream inputStream,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException;
 
     /**
      * Checks objet digest & update persist its digest in object metadata
@@ -93,16 +95,22 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param size size off the input stream
      * @throws ContentAddressableStorageException
      */
-    void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
-        DigestType digestType, long size)
-        throws ContentAddressableStorageException;
-
+    void checkObjectDigestAndStoreDigest(
+        String containerName,
+        String objectName,
+        String objectDigest,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException;
 
     @VisibleForTesting
-    default String putObject(String containerName, String objectName, InputStream inputStream,
-        DigestType digestType, long size)
-        throws ContentAddressableStorageException {
-
+    default String putObject(
+        String containerName,
+        String objectName,
+        InputStream inputStream,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException {
         Digest digest = new Digest(digestType);
         InputStream digestInputStream = digest.getDigestInputStream(inputStream);
         writeObject(containerName, objectName, digestInputStream, digestType, size);
@@ -123,8 +131,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
     ObjectContent getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException,
-        ContentAddressableStorageUnavailableDataFromAsyncOfferException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException, ContentAddressableStorageUnavailableDataFromAsyncOfferException;
 
     /**
      * Create an access request for objects (asynchronous read from tape to local FS).
@@ -146,9 +153,10 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param adminCrossTenantAccessRequestAllowed when {@code true}, access to access requests of other tenants is allowed from Admin tenant
      * @return {@code AccessRequestStatus} representing access request status
      */
-    default Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws ContentAddressableStorageException {
+    default Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws ContentAddressableStorageException {
         throw new UnsupportedOperationException("Operation not supported");
     }
 
@@ -198,8 +206,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
 
-    boolean isExistingObject(String containerName, String objectName)
-        throws ContentAddressableStorageException;
+    boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageException;
 
     /**
      * compute Object Digest using a defined algorithm
@@ -214,8 +221,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      */
     String getObjectDigest(String containerName, String objectName, DigestType algo, boolean noCache)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ContentAddressableStorageException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageException;
 
     /**
      * Get container information like capacity

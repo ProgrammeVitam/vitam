@@ -34,8 +34,10 @@ public class DedicatedTenantConfiguration {
 
     @JsonProperty("tenants")
     private String tenants;
+
     @JsonProperty("unit")
     private CollectionConfiguration unit;
+
     @JsonProperty("objectgroup")
     private CollectionConfiguration objectgroup;
 
@@ -43,8 +45,11 @@ public class DedicatedTenantConfiguration {
         // Default constructor for deserialization
     }
 
-    public DedicatedTenantConfiguration(String tenants,
-        CollectionConfiguration unit, CollectionConfiguration objectgroup) {
+    public DedicatedTenantConfiguration(
+        String tenants,
+        CollectionConfiguration unit,
+        CollectionConfiguration objectgroup
+    ) {
         this.tenants = tenants;
         this.unit = unit;
         this.objectgroup = objectgroup;
@@ -72,18 +77,23 @@ public class DedicatedTenantConfiguration {
         return objectgroup;
     }
 
-    public DedicatedTenantConfiguration setObjectgroup(
-        CollectionConfiguration objectgroup) {
+    public DedicatedTenantConfiguration setObjectgroup(CollectionConfiguration objectgroup) {
         this.objectgroup = objectgroup;
         return this;
     }
 
     @Override
     public String toString() {
-        return "DedicatedTenantConfiguration{" +
-            "tenants='" + tenants + '\'' +
-            ", unit=" + unit +
-            ", objectgroup=" + objectgroup +
-            '}';
+        return (
+            "DedicatedTenantConfiguration{" +
+            "tenants='" +
+            tenants +
+            '\'' +
+            ", unit=" +
+            unit +
+            ", objectgroup=" +
+            objectgroup +
+            '}'
+        );
     }
 }

@@ -35,8 +35,12 @@ public class DataRectificationHelper {
         // Empty
     }
 
-    public static boolean canDoCorrection(Map<String, String> offers, String securedHash, List<String> goodOffers,
-        List<String> badOffers) {
+    public static boolean canDoCorrection(
+        Map<String, String> offers,
+        String securedHash,
+        List<String> goodOffers,
+        List<String> badOffers
+    ) {
         if (offers.isEmpty()) {
             return false;
         }
@@ -45,9 +49,7 @@ public class DataRectificationHelper {
         }
 
         for (Map.Entry<String, String> currentOffer : offers.entrySet()) {
-
             if (securedHash.equals(currentOffer.getValue())) {
-
                 goodOffers.add(currentOffer.getKey());
             } else {
                 badOffers.add(currentOffer.getKey());

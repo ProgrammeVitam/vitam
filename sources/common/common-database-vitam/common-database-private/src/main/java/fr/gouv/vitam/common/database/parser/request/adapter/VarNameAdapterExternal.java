@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.database.parser.request.adapter;
 
-
 /**
  * Model for VarNameAdapter for external usage (security for Object/Unit)
  */

@@ -45,7 +45,7 @@ public class ProcessExecutor {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessExecutor.class);
 
-    private final static ProcessExecutor instance = new ProcessExecutor();
+    private static final ProcessExecutor instance = new ProcessExecutor();
 
     public static ProcessExecutor getInstance() {
         return instance;
@@ -55,8 +55,12 @@ public class ProcessExecutor {
         return execute(commandPath, false, timeoutInMilliseconds, args);
     }
 
-    public Output execute(String commandPath, boolean redirectStreamToFile, long timeoutInMilliseconds,
-        List<String> args) {
+    public Output execute(
+        String commandPath,
+        boolean redirectStreamToFile,
+        long timeoutInMilliseconds,
+        List<String> args
+    ) {
         List<String> command = Lists.newArrayList(commandPath);
 
         if (!CollectionUtils.isEmpty(args)) {
@@ -64,8 +68,14 @@ public class ProcessExecutor {
         }
 
         String operationId = GUIDFactory.newGUID().toString();
-        LOGGER.info("[" + operationId + "] < Running '" + Strings.join(command, "' '") + "' with timeout " +
-            timeoutInMilliseconds);
+        LOGGER.info(
+            "[" +
+            operationId +
+            "] < Running '" +
+            Strings.join(command, "' '") +
+            "' with timeout " +
+            timeoutInMilliseconds
+        );
         Stopwatch started = Stopwatch.createStarted();
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -77,11 +87,16 @@ public class ProcessExecutor {
 
         try {
             if (redirectStreamToFile) {
-
-                cmd_stderr = File.createTempFile("cmd_stderr_", GUIDFactory.newGUID().getId(),
-                    new File(VitamConfiguration.getVitamTmpFolder()));
-                cmd_stdout = File.createTempFile("cmd_stdout_", GUIDFactory.newGUID().getId(),
-                    new File(VitamConfiguration.getVitamTmpFolder()));
+                cmd_stderr = File.createTempFile(
+                    "cmd_stderr_",
+                    GUIDFactory.newGUID().getId(),
+                    new File(VitamConfiguration.getVitamTmpFolder())
+                );
+                cmd_stdout = File.createTempFile(
+                    "cmd_stdout_",
+                    GUIDFactory.newGUID().getId(),
+                    new File(VitamConfiguration.getVitamTmpFolder())
+                );
 
                 processBuilder.redirectError(cmd_stderr);
                 processBuilder.redirectOutput(cmd_stdout);
@@ -108,15 +123,27 @@ public class ProcessExecutor {
 
         if (0 == result.getExitCode()) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms): " +
-                    JsonHandler.unprettyPrint(result));
+                LOGGER.debug(
+                    "[" +
+                    operationId +
+                    "] > Success (" +
+                    started.elapsed(TimeUnit.MILLISECONDS) +
+                    " ms): " +
+                    JsonHandler.unprettyPrint(result)
+                );
             } else {
                 LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
             }
-
         } else {
-            LOGGER.error("[" + operationId + "] > KO " + JsonHandler.unprettyPrint(result)
-                + " (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
+            LOGGER.error(
+                "[" +
+                operationId +
+                "] > KO " +
+                JsonHandler.unprettyPrint(result) +
+                " (" +
+                started.elapsed(TimeUnit.MILLISECONDS) +
+                " ms)"
+            );
         }
         return result;
     }

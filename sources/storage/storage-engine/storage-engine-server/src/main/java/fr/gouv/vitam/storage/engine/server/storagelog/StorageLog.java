@@ -33,12 +33,10 @@ import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookP
 import java.io.IOException;
 import java.util.List;
 
-
 /**
  * Storage log provider. It describes methods to be implemented.
  */
 public interface StorageLog extends VitamAutoCloseable {
-
     /**
      * Add a storage write operation log entry.
      *

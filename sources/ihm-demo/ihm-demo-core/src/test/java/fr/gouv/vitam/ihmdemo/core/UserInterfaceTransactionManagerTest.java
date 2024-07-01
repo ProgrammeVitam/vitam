@@ -69,14 +69,16 @@ import static org.mockito.Mockito.when;
  * Tests UserInterfaceTransactionManager class
  */
 public class UserInterfaceTransactionManagerTest {
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
     private static String SEARCH_UNIT_DSL_QUERY =
         "{ \"$queries\": [{$eq : { #id : 1 }}], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
-            "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
+        "\"$projection\": {$fields : {#id : 1, Title : 1, TransactedDate:1 }}}";
     private static String ID_UNIT = "1";
     private static String UNIT_DETAILS =
         "{$hits: {'total':'1'}, $results:[{#id: '1', Title: 'Archive 1', DescriptionLevel: 'Archive Mock'}]}";
@@ -86,7 +88,7 @@ public class UserInterfaceTransactionManagerTest {
         "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
     private static String UPDATE_UNIT_DSL_QUERY =
         "{ \"$queries\": [{$eq : { '#id' : 1 }}], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
-            "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
+        "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
 
@@ -107,7 +109,6 @@ public class UserInterfaceTransactionManagerTest {
     private AccessExternalClient accessExternalClient;
     private AdminExternalClient adminExternalClient;
     private AccessExternalClientV2 accessExternalClientV2;
-
 
     private VitamContext context = getVitamContext();
     private UserInterfaceTransactionManager userInterfaceTransactionManager;
@@ -133,46 +134,52 @@ public class UserInterfaceTransactionManagerTest {
         adminExternalClient = org.mockito.Mockito.spy(AdminExternalClient.class);
         when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
 
-        userInterfaceTransactionManager =
-            new UserInterfaceTransactionManager(accessExternalClientFactory, adminExternalClientFactory,
-                accessExternalClientV2Factory, DslQueryHelper.getInstance());
+        userInterfaceTransactionManager = new UserInterfaceTransactionManager(
+            accessExternalClientFactory,
+            adminExternalClientFactory,
+            accessExternalClientV2Factory,
+            DslQueryHelper.getInstance()
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testSuccessSearchUnits()
-        throws Exception {
+    public void testSuccessSearchUnits() throws Exception {
         when(accessExternalClient.selectUnits(any(), any())).thenReturn(searchResult);
         // Test method
-        final RequestResponseOK result = (RequestResponseOK) userInterfaceTransactionManager
-            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), context);
+        final RequestResponseOK result = (RequestResponseOK) userInterfaceTransactionManager.searchUnits(
+            JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY),
+            context
+        );
         assertTrue(result.getHits().getTotal() == 1);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testSuccessGetArchiveUnitDetails()
-        throws Exception {
-        when(accessExternalClient.selectUnitbyId(
-            any(),
-            eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)))
-            .thenReturn(unitDetails);
+    public void testSuccessGetArchiveUnitDetails() throws Exception {
+        when(
+            accessExternalClient.selectUnitbyId(any(), eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT))
+        ).thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
-            (RequestResponseOK) userInterfaceTransactionManager
-                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, context);
+            (RequestResponseOK) userInterfaceTransactionManager.getArchiveUnitDetails(
+                JsonHandler.getFromString(SELECT_ID_DSL_QUERY),
+                ID_UNIT,
+                context
+            );
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testgetLifecycleUnit()
-        throws Exception {
+    public void testgetLifecycleUnit() throws Exception {
         when(accessExternalClient.selectUnitLifeCycleById(any(), any(), any())).thenReturn(searchResult);
 
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager
-            .selectUnitLifeCycleById("1", context);
+        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager.selectUnitLifeCycleById(
+            "1",
+            context
+        );
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
         verify(accessExternalClient).selectUnitLifeCycleById(any(), any(), selectArgument.capture());
@@ -182,13 +189,12 @@ public class UserInterfaceTransactionManagerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testgetLifecycleObjectGroup()
-        throws Exception {
+    public void testgetLifecycleObjectGroup() throws Exception {
         when(accessExternalClient.selectObjectGroupLifeCycleById(any(), any(), any())).thenReturn(searchResult);
 
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager
-            .selectObjectGroupLifeCycleById("1", context);
+        final RequestResponseOK results =
+            (RequestResponseOK) userInterfaceTransactionManager.selectObjectGroupLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
         verify(accessExternalClient).selectObjectGroupLifeCycleById(any(), any(), selectArgument.capture());
@@ -196,64 +202,83 @@ public class UserInterfaceTransactionManagerTest {
         assertFalse(selectArgument.getValue().has("$query"));
     }
 
-
     @Test
     @RunWithCustomExecutor
-    public void testSuccessUpdateUnits()
-        throws Exception {
+    public void testSuccessUpdateUnits() throws Exception {
         when(accessExternalClient.updateUnitbyId(any(), any(), any())).thenReturn(updateResult);
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager.updateUnits(JsonHandler
-            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", context);
+        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager.updateUnits(
+            JsonHandler.getFromString(UPDATE_UNIT_DSL_QUERY),
+            "1",
+            context
+        );
         assertTrue(results.getHits().getTotal() == 1);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testSuccessSelectObjectbyId()
-        throws Exception {
-        final RequestResponse result =
-            JsonHandler.getFromString(
-                "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
-                    SEARCH_UNIT_DSL_QUERY + "}",
-                RequestResponseOK.class, JsonNode.class);
-        when(accessExternalClient.selectObjectMetadatasByUnitId(
-            any(),
-            eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)))
-            .thenReturn(result);
+    public void testSuccessSelectObjectbyId() throws Exception {
+        final RequestResponse result = JsonHandler.getFromString(
+            "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
+            SEARCH_UNIT_DSL_QUERY +
+            "}",
+            RequestResponseOK.class,
+            JsonNode.class
+        );
+        when(
+            accessExternalClient.selectObjectMetadatasByUnitId(
+                any(),
+                eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)),
+                eq(ID_OBJECT_GROUP)
+            )
+        ).thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
-            (RequestResponseOK) userInterfaceTransactionManager
-                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, context);
-        assertTrue(
-            objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
+            (RequestResponseOK) userInterfaceTransactionManager.selectObjectbyId(
+                JsonHandler.getFromString(OBJECT_GROUP_QUERY),
+                ID_OBJECT_GROUP,
+                context
+            );
+        assertTrue(objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
     }
 
     @Test
     @RunWithCustomExecutor
-    public void testSuccessGetObjectAsInputStream()
-        throws Exception {
-        when(accessExternalClient.getObjectStreamByUnitId(
-            any(),
-            eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
-            .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
-        assertTrue(userInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null));
+    public void testSuccessGetObjectAsInputStream() throws Exception {
+        when(accessExternalClient.getObjectStreamByUnitId(any(), eq(ID_OBJECT_GROUP), eq("usage"), eq(1))).thenReturn(
+            new AbstractMockClient.FakeInboundResponse(
+                Status.OK,
+                StreamUtils.toInputStream("Vitam Test"),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                null
+            )
+        );
+        assertTrue(
+            userInterfaceTransactionManager.getObjectAsInputStream(
+                asynResponse,
+                ID_OBJECT_GROUP,
+                "usage",
+                1,
+                "vitam_test",
+                context,
+                null
+            )
+        );
     }
 
     @Test
     public void testExtractInformationFromTimestamp() throws Exception {
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream("token.tsp");
+        final InputStream tokenFile = PropertiesUtils.getResourceAsStream("token.tsp");
         String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
 
-        final JsonNode timeStampInfo =
-            userInterfaceTransactionManager.extractInformationFromTimestamp(encodedTimeStampToken);
+        final JsonNode timeStampInfo = userInterfaceTransactionManager.extractInformationFromTimestamp(
+            encodedTimeStampToken
+        );
         assertTrue(!timeStampInfo.isNull());
         assertTrue("2017-05-26T17:25:26".equals(timeStampInfo.get("genTime").asText()));
         assertTrue(
-            "C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText()));
+            "C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText())
+        );
 
         try {
             userInterfaceTransactionManager.extractInformationFromTimestamp("FakeTimeStamp");
@@ -261,7 +286,6 @@ public class UserInterfaceTransactionManagerTest {
         } catch (BadRequestException e) {
             // do nothing
         }
-
     }
 
     private VitamContext getVitamContext() {

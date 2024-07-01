@@ -40,7 +40,6 @@ public final class CollectionConfigurationUtils {
 
     public static void validate(CollectionConfiguration collectionConfiguration, boolean allowNulls)
         throws IllegalStateException {
-
         if (!allowNulls && collectionConfiguration.getNumberOfShards() == null) {
             throw new IllegalStateException("Invalid configuration. Missing shards");
         }
@@ -50,30 +49,46 @@ public final class CollectionConfigurationUtils {
         }
 
         if (collectionConfiguration.getNumberOfShards() != null) {
-            if (collectionConfiguration.getNumberOfShards() < MIN_SHARDS ||
-                collectionConfiguration.getNumberOfShards() > MAX_SHARDS) {
-                throw new IllegalStateException(String.format(
-                    "Invalid configuration. Invalid number of shards %d. Expected between %d and %d (inclusive)",
-                    collectionConfiguration.getNumberOfShards(), MIN_SHARDS, MAX_SHARDS));
+            if (
+                collectionConfiguration.getNumberOfShards() < MIN_SHARDS ||
+                collectionConfiguration.getNumberOfShards() > MAX_SHARDS
+            ) {
+                throw new IllegalStateException(
+                    String.format(
+                        "Invalid configuration. Invalid number of shards %d. Expected between %d and %d (inclusive)",
+                        collectionConfiguration.getNumberOfShards(),
+                        MIN_SHARDS,
+                        MAX_SHARDS
+                    )
+                );
             }
         }
 
         if (collectionConfiguration.getNumberOfReplicas() != null) {
-            if (collectionConfiguration.getNumberOfReplicas() < MIN_REPLICAS ||
-                collectionConfiguration.getNumberOfReplicas() > MAX_REPLICAS) {
-                throw new IllegalStateException(String.format(
-                    "Invalid configuration. Invalid number of replicas %d. Expected between %d and %d (inclusive)",
-                    collectionConfiguration.getNumberOfReplicas(), MIN_REPLICAS, MAX_REPLICAS));
+            if (
+                collectionConfiguration.getNumberOfReplicas() < MIN_REPLICAS ||
+                collectionConfiguration.getNumberOfReplicas() > MAX_REPLICAS
+            ) {
+                throw new IllegalStateException(
+                    String.format(
+                        "Invalid configuration. Invalid number of replicas %d. Expected between %d and %d (inclusive)",
+                        collectionConfiguration.getNumberOfReplicas(),
+                        MIN_REPLICAS,
+                        MAX_REPLICAS
+                    )
+                );
             }
         }
     }
 
     public static CollectionConfiguration merge(
         CollectionConfiguration customConfig,
-        CollectionConfiguration defaultConfig) {
-
-        if (customConfig == null ||
-            (customConfig.getNumberOfShards() == null && customConfig.getNumberOfReplicas() == null)) {
+        CollectionConfiguration defaultConfig
+    ) {
+        if (
+            customConfig == null ||
+            (customConfig.getNumberOfShards() == null && customConfig.getNumberOfReplicas() == null)
+        ) {
             return defaultConfig;
         }
 
@@ -82,9 +97,15 @@ public final class CollectionConfigurationUtils {
         }
 
         return new CollectionConfiguration()
-            .setNumberOfShards(customConfig.getNumberOfShards() != null ?
-                customConfig.getNumberOfShards() : defaultConfig.getNumberOfShards())
-            .setNumberOfReplicas(customConfig.getNumberOfReplicas() != null ?
-                customConfig.getNumberOfReplicas() : defaultConfig.getNumberOfReplicas());
+            .setNumberOfShards(
+                customConfig.getNumberOfShards() != null
+                    ? customConfig.getNumberOfShards()
+                    : defaultConfig.getNumberOfShards()
+            )
+            .setNumberOfReplicas(
+                customConfig.getNumberOfReplicas() != null
+                    ? customConfig.getNumberOfReplicas()
+                    : defaultConfig.getNumberOfReplicas()
+            );
     }
 }

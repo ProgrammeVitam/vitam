@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.exception;
  * Internal exception throws by any vitam java client when unknown issue occurs
  */
 public class VitamClientInternalException extends VitamClientException {
+
     private static final long serialVersionUID = -7275095656919666667L;
 
     /**

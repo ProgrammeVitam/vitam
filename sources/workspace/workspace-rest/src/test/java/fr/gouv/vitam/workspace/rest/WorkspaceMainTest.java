@@ -34,8 +34,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class WorkspaceMainTest {
-    private static final String CONFIG_FILE_NAME = "workspace-test.conf";
 
+    private static final String CONFIG_FILE_NAME = "workspace-test.conf";
 
     private WorkspaceMain application;
     private static JunitHelper junitHelper;
@@ -71,11 +71,9 @@ public class WorkspaceMainTest {
 
     @Test
     public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
-        SystemPropertyUtil
-            .set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         application = new WorkspaceMain(CONFIG_FILE_NAME);
         application.start();
         application.stop();
     }
-
 }

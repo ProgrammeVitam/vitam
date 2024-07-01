@@ -36,7 +36,6 @@ import java.util.List;
  * Your configuration class must implement it whenever you use database configuration in your configuration file
  */
 public interface DbConfiguration extends VitamApplicationConfiguration {
-
     /**
      * Must return the value of a 'mongoDbNodes' attribute
      *

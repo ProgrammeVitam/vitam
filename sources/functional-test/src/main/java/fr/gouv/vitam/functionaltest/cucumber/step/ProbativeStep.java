@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Then;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -52,14 +51,12 @@ public class ProbativeStep extends CommonStep {
         super(world);
     }
 
-
     /**
      * @return generic Model
      */
     public JsonNode getModel() {
         return model;
     }
-
 
     public void setModel(JsonNode model) {
         this.model = model;
@@ -70,7 +67,6 @@ public class ProbativeStep extends CommonStep {
      */
     private JsonNode model;
 
-
     /**
      * Tentative d'import d'un contrat si jamais il n'existe pas
      *
@@ -79,16 +75,17 @@ public class ProbativeStep extends CommonStep {
      */
     @Then("^Je lance un rélevé de valeur probante avec l'usage suivant (.*)")
     public void probativeValue(String usage) throws Exception {
-
-
         JsonNode query = JsonHandler.getFromString(world.getQuery());
         ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(query, usage, "1");
 
-        RequestResponse response = world.getAdminClient().exportProbativeValue(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            probativeValueRequest);
-
+        RequestResponse response = world
+            .getAdminClient()
+            .exportProbativeValue(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                probativeValueRequest
+            );
 
         assertThat(response.isOk()).isTrue();
 
@@ -96,8 +93,14 @@ public class ProbativeStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("dip processing not finished. Timeout exceeded.");
@@ -105,6 +108,4 @@ public class ProbativeStep extends CommonStep {
 
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
-
-
 }

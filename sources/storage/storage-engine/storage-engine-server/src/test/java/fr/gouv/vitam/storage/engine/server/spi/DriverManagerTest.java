@@ -153,5 +153,4 @@ public class DriverManagerTest {
             // Nothing
         }
     }
-
 }

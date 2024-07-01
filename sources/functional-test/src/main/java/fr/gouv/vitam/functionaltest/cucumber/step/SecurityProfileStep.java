@@ -79,11 +79,13 @@ public class SecurityProfileStep extends CommonStep {
     public void success_upload_security_profile()
         throws IOException, VitamClientException, AccessExternalClientException, InvalidParseOperationException {
         Path securityProfile = Paths.get(world.getBaseDirectory(), fileName);
-        RequestResponse response =
-            world.getAdminClient().createSecurityProfiles(
+        RequestResponse response = world
+            .getAdminClient()
+            .createSecurityProfiles(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 Files.newInputStream(securityProfile, StandardOpenOption.READ),
-                fileName);
+                fileName
+            );
 
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
@@ -94,11 +96,13 @@ public class SecurityProfileStep extends CommonStep {
     public void fail_upload_security_profile()
         throws VitamClientException, IOException, AccessExternalClientException, InvalidParseOperationException {
         Path securityProfile = Paths.get(world.getBaseDirectory(), fileName);
-        RequestResponse response =
-            world.getAdminClient().createSecurityProfiles(
+        RequestResponse response = world
+            .getAdminClient()
+            .createSecurityProfiles(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 Files.newInputStream(securityProfile, StandardOpenOption.READ),
-                fileName);
+                fileName
+            );
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -114,19 +118,23 @@ public class SecurityProfileStep extends CommonStep {
         this.securityProfileName = securityOperationName;
     }
 
-    @When("^je modifie le profile de sécurité avec le fichier de requête suivant (.*) le statut de la requête est (.*)$")
+    @When(
+        "^je modifie le profile de sécurité avec le fichier de requête suivant (.*) le statut de la requête est (.*)$"
+    )
     public void update_security_profile_by_query(String queryFilename, Integer statusCode)
         throws VitamClientException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
-
         String securityProfileIdentifier = getSecurityProfileByName().getIdentifier();
 
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
         String query = FileUtil.readFile(queryFile.toFile());
         JsonNode queryDsl = JsonHandler.getFromString(query);
-        RequestResponse<SecurityProfileModel> requestResponse =
-            world.getAdminClient().updateSecurityProfile(
+        RequestResponse<SecurityProfileModel> requestResponse = world
+            .getAdminClient()
+            .updateSecurityProfile(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                securityProfileIdentifier, queryDsl);
+                securityProfileIdentifier,
+                queryDsl
+            );
 
         final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
@@ -135,18 +143,14 @@ public class SecurityProfileStep extends CommonStep {
 
     @Then("^le profile de sécurité contient la permission (.*)$")
     public void has_permission(String permission)
-        throws AccessExternalClientException, InvalidParseOperationException,
-        VitamClientException, InvalidCreateOperationException {
-
+        throws AccessExternalClientException, InvalidParseOperationException, VitamClientException, InvalidCreateOperationException {
         SecurityProfileModel securityProfileModel = getSecurityProfileByName();
         assertThat(securityProfileModel.getPermissions()).contains(permission);
     }
 
     @Then("^le profile de sécurité ne contient pas la permission (.*)$")
     public void has_not_permission(String permission)
-        throws AccessExternalClientException, InvalidParseOperationException,
-        VitamClientException, InvalidCreateOperationException {
-
+        throws AccessExternalClientException, InvalidParseOperationException, VitamClientException, InvalidCreateOperationException {
         SecurityProfileModel securityProfileModel = getSecurityProfileByName();
         assertThat(securityProfileModel.getPermissions()).doesNotContain(permission);
     }
@@ -154,24 +158,25 @@ public class SecurityProfileStep extends CommonStep {
     @Then("^le profile de sécurité a toutes les permissions$")
     public void has_full_access()
         throws InvalidParseOperationException, VitamClientException, InvalidCreateOperationException {
-
         SecurityProfileModel securityProfileModel = getSecurityProfileByName();
         assertThat(securityProfileModel.getFullAccess()).isTrue();
     }
 
     private SecurityProfileModel getSecurityProfileByName()
         throws InvalidCreateOperationException, VitamClientException {
-
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         select.setQuery(eq(SecurityProfile.NAME, securityProfileName));
         final JsonNode query = select.getFinalSelect();
 
-        RequestResponse<SecurityProfileModel> requestResponse =
-            world.getAdminClient().findSecurityProfiles(
-                new VitamContext(world.getTenantId()).setAccessContract(null)
+        RequestResponse<SecurityProfileModel> requestResponse = world
+            .getAdminClient()
+            .findSecurityProfiles(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(null)
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                query);
+                query
+            );
 
         assertThat(requestResponse.isOk()).isTrue();
         assertThat(((RequestResponseOK<SecurityProfileModel>) requestResponse).getResults().size()).isEqualTo(1);

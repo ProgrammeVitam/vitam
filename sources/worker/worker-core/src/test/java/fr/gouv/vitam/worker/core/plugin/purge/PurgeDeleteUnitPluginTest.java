@@ -72,8 +72,9 @@ import static org.mockito.Mockito.when;
 public class PurgeDeleteUnitPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -104,37 +105,45 @@ public class PurgeDeleteUnitPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_unit_1", "id_unit_2", "id_unit_3", "id_unit_4", "id_unit_5"))
-            .setObjectMetadataList(Arrays.asList(
-                buildUnit(1), buildUnit(2), buildUnit(3), buildUnit(4), buildUnit(5)))
+            .setObjectMetadataList(Arrays.asList(buildUnit(1), buildUnit(2), buildUnit(3), buildUnit(4), buildUnit(5)))
             .setCurrentStep("StepName");
 
         reportEntries = new ArrayList<>();
-        doAnswer((args) -> reportEntries.addAll(args.getArgument(1)))
+        doAnswer(args -> reportEntries.addAll(args.getArgument(1)))
             .when(purgeReportService)
             .appendUnitEntries(any(), any());
 
-        instance = new PurgeUnitPlugin("PLUGIN_ACTION", purgeDeleteService, metaDataClientFactory, purgeReportService,
-            lfcClientFactory);
+        instance = new PurgeUnitPlugin(
+            "PLUGIN_ACTION",
+            purgeDeleteService,
+            metaDataClientFactory,
+            purgeReportService,
+            lfcClientFactory
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecuteList_OK() throws Exception {
-
-        Map<String, String> unitIdsWithStrategies = ImmutableMap.of("id_unit_2", "default-fake",
-            "id_unit_3", "default-fake",
-            "id_unit_5", "default-fake");
+        Map<String, String> unitIdsWithStrategies = ImmutableMap.of(
+            "id_unit_2",
+            "default-fake",
+            "id_unit_3",
+            "default-fake",
+            "id_unit_5",
+            "default-fake"
+        );
 
         /* id_unit_1 has too many children */
         JsonNode childUnitsForUnit1 = buildChildUnitsResponse("id_unit_1", VitamConfiguration.getBatchSize());
@@ -149,11 +158,13 @@ public class PurgeDeleteUnitPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.WARNING)).hasSize(2);
 
         assertThat(reportEntries).hasSize(5);
-        Map<String, PurgeUnitReportEntry> reports =
-            reportEntries.stream().collect(Collectors.toMap(PurgeUnitReportEntry::getId, Function.identity()));
+        Map<String, PurgeUnitReportEntry> reports = reportEntries
+            .stream()
+            .collect(Collectors.toMap(PurgeUnitReportEntry::getId, Function.identity()));
 
         assertThat(reports.get("id_unit_1").getStatus()).isEqualTo(
-            PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+            PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name()
+        );
         assertThat(reports.get("id_unit_1").getExtraInfo()).isNull();
 
         assertThat(reports.get("id_unit_2").getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
@@ -163,12 +174,12 @@ public class PurgeDeleteUnitPluginTest {
         assertThat(reports.get("id_unit_3").getExtraInfo()).isNotNull();
 
         assertThat(reports.get("id_unit_4").getStatus()).isEqualTo(
-            PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+            PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name()
+        );
         assertThat(reports.get("id_unit_4").getExtraInfo()).isNull();
 
         assertThat(reports.get("id_unit_5").getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
         assertThat(reports.get("id_unit_5").getExtraInfo()).isNotNull();
-
 
         verify(purgeDeleteService).deleteUnits(eq(unitIdsWithStrategies));
     }
@@ -194,5 +205,4 @@ public class PurgeDeleteUnitPluginTest {
         }
         return childUnits.toJsonNode();
     }
-
 }

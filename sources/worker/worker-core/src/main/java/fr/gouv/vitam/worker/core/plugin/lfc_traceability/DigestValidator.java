@@ -40,9 +40,7 @@ import java.util.stream.Collectors;
 
 public class DigestValidator {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(DigestValidator.class);
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DigestValidator.class);
 
     public static final String INVALID_HASH = "INVALID_HASH";
 
@@ -60,12 +58,20 @@ public class DigestValidator {
         this.alertService = alertService;
     }
 
-    public DigestValidationDetails validateMetadataDigest(String id, String strategyId, String digestInDb,
-        Map<String, String> digestByOfferId) {
-
-        DigestValidationDetails digestValidationDetails =
-            validateDigest(id, strategyId, digestInDb, digestByOfferId, alertService, "metadata");
-
+    public DigestValidationDetails validateMetadataDigest(
+        String id,
+        String strategyId,
+        String digestInDb,
+        Map<String, String> digestByOfferId
+    ) {
+        DigestValidationDetails digestValidationDetails = validateDigest(
+            id,
+            strategyId,
+            digestInDb,
+            digestByOfferId,
+            alertService,
+            "metadata"
+        );
 
         if (digestValidationDetails.hasInconsistencies()) {
             nbMetadataWarnings++;
@@ -76,11 +82,20 @@ public class DigestValidator {
         return digestValidationDetails;
     }
 
-    public DigestValidationDetails validateObjectDigest(String id, String strategyId, String digestInDb,
-        Map<String, String> digestByOfferId) {
-
-        DigestValidationDetails digestValidationDetails =
-            validateDigest(id, strategyId, digestInDb, digestByOfferId, alertService, "binary object");
+    public DigestValidationDetails validateObjectDigest(
+        String id,
+        String strategyId,
+        String digestInDb,
+        Map<String, String> digestByOfferId
+    ) {
+        DigestValidationDetails digestValidationDetails = validateDigest(
+            id,
+            strategyId,
+            digestInDb,
+            digestByOfferId,
+            alertService,
+            "binary object"
+        );
 
         if (digestValidationDetails.hasInconsistencies()) {
             nbObjectWarnings++;
@@ -91,50 +106,75 @@ public class DigestValidator {
         return digestValidationDetails;
     }
 
-    private DigestValidationDetails validateDigest(String id, String strategyId, String digestInDb,
-        Map<String, String> digestByOfferId, AlertService alertService, String objectType) {
-
-        List<String> offersWithoutDigest = digestByOfferId.entrySet()
+    private DigestValidationDetails validateDigest(
+        String id,
+        String strategyId,
+        String digestInDb,
+        Map<String, String> digestByOfferId,
+        AlertService alertService,
+        String objectType
+    ) {
+        List<String> offersWithoutDigest = digestByOfferId
+            .entrySet()
             .stream()
             .filter(entry -> entry.getValue() == null)
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
 
         if (!offersWithoutDigest.isEmpty()) {
-            alertService.createAlert(VitamLogLevel.WARN,
-                String.format("Missing digest for %s with id=%s in offers %s. Digest in db : %s",
-                    objectType, id, String.join(", ", offersWithoutDigest), digestInDb));
+            alertService.createAlert(
+                VitamLogLevel.WARN,
+                String.format(
+                    "Missing digest for %s with id=%s in offers %s. Digest in db : %s",
+                    objectType,
+                    id,
+                    String.join(", ", offersWithoutDigest),
+                    digestInDb
+                )
+            );
         }
 
         // Ensure that all digests match db
-        Map<String, String> offersWithInconsistentDigest = digestByOfferId.entrySet()
+        Map<String, String> offersWithInconsistentDigest = digestByOfferId
+            .entrySet()
             .stream()
             .filter(entry -> entry.getValue() != null && !digestInDb.equals(entry.getValue()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         if (!offersWithInconsistentDigest.isEmpty()) {
-            alertService.createAlert(VitamLogLevel.ERROR,
-                String.format("Digest mismatch for %s (%s). %s. Digest in db : %s", objectType, id,
-                    offersWithInconsistentDigest.entrySet().stream()
+            alertService.createAlert(
+                VitamLogLevel.ERROR,
+                String.format(
+                    "Digest mismatch for %s (%s). %s. Digest in db : %s",
+                    objectType,
+                    id,
+                    offersWithInconsistentDigest
+                        .entrySet()
+                        .stream()
                         .map(entry -> entry.getKey() + ":" + entry.getValue())
-                        .collect(Collectors.joining(", ", "{", "}")), digestInDb));
+                        .collect(Collectors.joining(", ", "{", "}")),
+                    digestInDb
+                )
+            );
         }
 
         Predicate<String> notEqual = x -> !digestInDb.equals(x);
-        boolean atLeastOneOfferKO = digestByOfferId.values()
-            .stream()
-            .anyMatch(notEqual);
+        boolean atLeastOneOfferKO = digestByOfferId.values().stream().anyMatch(notEqual);
 
         //all offers are KO
-        boolean allOffersKO = digestByOfferId.values()
-            .stream()
-            .allMatch(notEqual);
-
+        boolean allOffersKO = digestByOfferId.values().stream().allMatch(notEqual);
 
         String globalDigest = atLeastOneOfferKO ? INVALID_HASH : digestInDb;
         Set<String> offerIds = digestByOfferId.keySet();
-        return new DigestValidationDetails(strategyId, offerIds, globalDigest, digestInDb, digestByOfferId,
-            atLeastOneOfferKO, allOffersKO);
+        return new DigestValidationDetails(
+            strategyId,
+            offerIds,
+            globalDigest,
+            digestInDb,
+            digestByOfferId,
+            atLeastOneOfferKO,
+            allOffersKO
+        );
     }
 
     public EntryTraceabilityStatistics getMetadataValidationStatistics() {

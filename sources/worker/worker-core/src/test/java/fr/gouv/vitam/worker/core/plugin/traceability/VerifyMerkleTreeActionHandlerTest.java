@@ -81,11 +81,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-
 public class VerifyMerkleTreeActionHandlerTest {
 
-    @Rule public MockitoRule rule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static final String DETAIL_EVENT_TRACEABILITY = "EVENT_DETAIL_DATA.json";
     private static final String DETAIL_EVENT_TRACEABILITY_WRONG_ROOT = "EVENT_DETAIL_DATA_WRONG_ROOT.json";
@@ -99,43 +101,44 @@ public class VerifyMerkleTreeActionHandlerTest {
     private static final String OBJECT_NAME = "objectName.json";
     private static final String REPORT_FILENAME = "report";
 
-    private static final String ZIP_DATA_FOLDER =
-        TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_NAME;
-
+    private static final String ZIP_DATA_FOLDER = TRACEABILITY_OPERATION_DIRECTORY + File.separator + OBJECT_NAME;
 
     private VerifyMerkleTreeActionHandler verifyMerkleTreeActionHandler;
     private File reportTempFile;
 
-    @Mock private HandlerIO handler;
-    @Mock private WorkerParameters params;
+    @Mock
+    private HandlerIO handler;
+
+    @Mock
+    private WorkerParameters params;
 
     @Before
     public void setUp() throws Exception {
         when(params.getObjectName()).thenReturn(OBJECT_NAME);
-        when(handler.getJsonFromWorkspace(eq(params.getObjectName() + separator + WorkspaceConstants.REPORT)))
-            .thenReturn(createObjectNode());
+        when(
+            handler.getJsonFromWorkspace(eq(params.getObjectName() + separator + WorkspaceConstants.REPORT))
+        ).thenReturn(createObjectNode());
 
         final File traceabilityFile = PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY);
         when(handler.getInput(eq(0), eq(File.class))).thenReturn(traceabilityFile);
 
         reportTempFile = temporaryFolder.newFile(REPORT_FILENAME);
-        when(handler.getNewLocalFile(anyString()))
-            .thenReturn(reportTempFile);
+        when(handler.getNewLocalFile(anyString())).thenReturn(reportTempFile);
 
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
     }
 
     @Test
     public void testVerifyMerkleTreeThenOK() throws Exception {
-
         final InputStream operationsJson = PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson = PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);
 
-        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE)))
-            .thenReturn(operationsJson);
-        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON)))
-            .thenReturn(JsonHandler.getFromInputStream(merkleTreeJson));
-
+        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE))).thenReturn(
+            operationsJson
+        );
+        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON))).thenReturn(
+            JsonHandler.getFromInputStream(merkleTreeJson)
+        );
 
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handler);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -149,17 +152,23 @@ public class VerifyMerkleTreeActionHandlerTest {
         final InputStream operationsJson = PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson = PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);
 
-        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE)))
-            .thenReturn(operationsJson);
-        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON)))
-            .thenReturn(JsonHandler.getFromInputStream(merkleTreeJson));
+        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE))).thenReturn(
+            operationsJson
+        );
+        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON))).thenReturn(
+            JsonHandler.getFromInputStream(merkleTreeJson)
+        );
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handler);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         ItemStatus itemStatus = response.getItemsStatus().get("CHECK_MERKLE_TREE");
-        assertEquals(StatusCode.OK,
-            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_SAVED_HASH").getGlobalStatus());
-        assertEquals(StatusCode.KO,
-            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_INDEXED_HASH").getGlobalStatus());
+        assertEquals(
+            StatusCode.OK,
+            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_SAVED_HASH").getGlobalStatus()
+        );
+        assertEquals(
+            StatusCode.KO,
+            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_INDEXED_HASH").getGlobalStatus()
+        );
     }
 
     @Test
@@ -167,29 +176,36 @@ public class VerifyMerkleTreeActionHandlerTest {
         final InputStream operationsJson = PropertiesUtils.getResourceAsStream(DATA_FILE);
         final InputStream merkleTreeJson = PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON_WRONG_ROOT);
 
-        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE)))
-            .thenReturn(operationsJson);
-        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON)))
-            .thenReturn(JsonHandler.getFromInputStream(merkleTreeJson));
+        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE))).thenReturn(
+            operationsJson
+        );
+        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON))).thenReturn(
+            JsonHandler.getFromInputStream(merkleTreeJson)
+        );
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handler);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         ItemStatus itemStatus = response.getItemsStatus().get("CHECK_MERKLE_TREE");
-        assertEquals(StatusCode.KO,
-            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_SAVED_HASH").getGlobalStatus());
-        assertEquals(StatusCode.OK,
-            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_INDEXED_HASH").getGlobalStatus());
+        assertEquals(
+            StatusCode.KO,
+            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_SAVED_HASH").getGlobalStatus()
+        );
+        assertEquals(
+            StatusCode.OK,
+            itemStatus.getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_INDEXED_HASH").getGlobalStatus()
+        );
     }
 
     @Test
-    public void testVerifyMerkleTreeWithIncorrectDatesThenKO()
-        throws Exception {
+    public void testVerifyMerkleTreeWithIncorrectDatesThenKO() throws Exception {
         final InputStream operationsJson = PropertiesUtils.getResourceAsStream(OPERATIONS_WRONG_DATES_JSON);
         final InputStream merkleTreeJson = PropertiesUtils.getResourceAsStream(MERKLE_TREE_JSON);
 
-        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE)))
-            .thenReturn(operationsJson);
-        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON)))
-            .thenReturn(JsonHandler.getFromInputStream(merkleTreeJson));
+        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE))).thenReturn(
+            operationsJson
+        );
+        when(handler.getJsonFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + MERKLE_TREE_JSON))).thenReturn(
+            JsonHandler.getFromInputStream(merkleTreeJson)
+        );
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handler);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -204,10 +220,10 @@ public class VerifyMerkleTreeActionHandlerTest {
 
     @Test
     public void testVerifyMerkleTreeWithDataFileNotFoundThenFATAL() throws Exception {
-        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE)))
-            .thenThrow(new ContentAddressableStorageNotFoundException(DATA_FILE + " not found"));
+        when(handler.getInputStreamFromWorkspace(eq(ZIP_DATA_FOLDER + File.separator + DATA_FILE))).thenThrow(
+            new ContentAddressableStorageNotFoundException(DATA_FILE + " not found")
+        );
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handler);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
-
 }

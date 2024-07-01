@@ -42,6 +42,4 @@ public class FileFormatNotFoundExceptionTest {
         assertNotNull(new FileFormatNotFoundException(exception));
         assertNotNull(new FileFormatNotFoundException(MESSAGE, exception));
     }
-
 }
-

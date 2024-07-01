@@ -35,7 +35,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +44,7 @@ import java.util.Map;
  */
 public class ProcessWorkflow {
 
-
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
-
 
     private String workflowId;
 
@@ -61,13 +58,11 @@ public class ProcessWorkflow {
 
     private String prodService;
 
-
     private List<ProcessStep> steps = new ArrayList<>();
 
     private String processDate = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
 
     private LocalDateTime processCompletedDate;
-
 
     private LogbookTypeProcess logbookTypeProcess;
 
@@ -89,11 +84,9 @@ public class ProcessWorkflow {
      */
     private PauseRecover pauseRecover = PauseRecover.NO_RECOVER;
 
-
     private Map<String, String> parameters = new HashMap<>();
 
-    public ProcessWorkflow() {
-    }
+    public ProcessWorkflow() {}
 
     @VisibleForTesting
     public ProcessWorkflow(LogbookTypeProcess logbookTypeProcess, StatusCode status, ProcessState state) {
@@ -159,7 +152,8 @@ public class ProcessWorkflow {
     public ProcessWorkflow setStatus(StatusCode status) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, status);
         this.status = (this.status.compareTo(status) < 0 || this.status.equals(StatusCode.FATAL))
-            ? status : this.status;
+            ? status
+            : this.status;
 
         return this;
     }
@@ -248,7 +242,6 @@ public class ProcessWorkflow {
         this.prodService = prodService;
         return this;
     }
-
 
     /**
      * @return the logbookTypeProcess
@@ -349,8 +342,7 @@ public class ProcessWorkflow {
         return parameters;
     }
 
-    public ProcessWorkflow setParameters(
-        Map<String, String> parameters) {
+    public ProcessWorkflow setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
         return this;
     }

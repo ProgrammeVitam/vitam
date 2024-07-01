@@ -60,5 +60,4 @@ public class LogbookLifeCycleUnitParameters extends LogbookLifeCycleParameters {
         super(LogbookParameterHelper.getDefaultLifeCycleMandatory());
         setMap(map);
     }
-
 }

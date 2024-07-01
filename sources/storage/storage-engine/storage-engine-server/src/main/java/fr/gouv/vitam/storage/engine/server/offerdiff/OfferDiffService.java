@@ -57,7 +57,7 @@ public class OfferDiffService {
     public boolean startOfferDiff(String offer1, String offer2, DataCategory dataCategory) {
         OfferDiffProcess offerDiffProcess = createOfferDiffProcess(offer1, offer2, dataCategory);
 
-        OfferDiffProcess currentOfferDiffProcess = lastOfferDiffProcess.updateAndGet((previousOfferDiffService) -> {
+        OfferDiffProcess currentOfferDiffProcess = lastOfferDiffProcess.updateAndGet(previousOfferDiffService -> {
             if (previousOfferDiffService != null && previousOfferDiffService.isRunning()) {
                 return previousOfferDiffService;
             }
@@ -76,27 +76,23 @@ public class OfferDiffService {
     }
 
     void runDiffAsync(OfferDiffProcess offerDiffProcess) {
-
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(
-            () -> {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
                 try {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
                     offerDiffProcess.run();
-
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during offer diff process execution", e);
                 }
-            }
-        );
+            });
     }
 
-    OfferDiffProcess createOfferDiffProcess(String offer1, String offer2,
-        DataCategory dataCategory) {
+    OfferDiffProcess createOfferDiffProcess(String offer1, String offer2, DataCategory dataCategory) {
         return new OfferDiffProcess(distribution, offer1, offer2, dataCategory);
     }
 

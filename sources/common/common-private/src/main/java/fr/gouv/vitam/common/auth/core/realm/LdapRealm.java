@@ -84,7 +84,6 @@ public class LdapRealm extends AbstractLdapRealm {
         this.groupRolesMap = groupRolesMap;
     }
 
-
     /**
      * set Template to convert username to dn, defined in shiro.ini
      *
@@ -95,9 +94,10 @@ public class LdapRealm extends AbstractLdapRealm {
     }
 
     @Override
-    protected AuthenticationInfo queryForAuthenticationInfo(AuthenticationToken token,
-        LdapContextFactory ldapContextFactory) throws NamingException {
-
+    protected AuthenticationInfo queryForAuthenticationInfo(
+        AuthenticationToken token,
+        LdapContextFactory ldapContextFactory
+    ) throws NamingException {
         UsernamePasswordToken upToken = (UsernamePasswordToken) token;
 
         String userName = upToken.getUsername();
@@ -117,9 +117,10 @@ public class LdapRealm extends AbstractLdapRealm {
         return new SimpleAuthenticationInfo(userDn, upToken.getPassword(), getName());
     }
 
-    protected AuthorizationInfo queryForAuthorizationInfo(PrincipalCollection principals,
-        LdapContextFactory ldapContextFactory) throws NamingException {
-
+    protected AuthorizationInfo queryForAuthorizationInfo(
+        PrincipalCollection principals,
+        LdapContextFactory ldapContextFactory
+    ) throws NamingException {
         String username = (String) getAvailablePrincipal(principals);
 
         // get ldap context admin
@@ -139,7 +140,7 @@ public class LdapRealm extends AbstractLdapRealm {
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
         // Search all group contain userName as member
-        Object[] searchArguments = new Object[] {userName};
+        Object[] searchArguments = new Object[] { userName };
 
         NamingEnumeration answer = ldapContext.search(searchBase, this.groupRequestFilter, searchArguments, searchCtls);
 

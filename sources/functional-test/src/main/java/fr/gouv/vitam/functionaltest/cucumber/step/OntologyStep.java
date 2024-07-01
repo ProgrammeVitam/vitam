@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import cucumber.api.java.en.Given;
@@ -54,7 +53,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OntologyStep extends CommonStep {
-
 
     public OntologyStep(World world) {
         super(world);
@@ -88,12 +86,12 @@ public class OntologyStep extends CommonStep {
     private void importOntology(boolean forceUpdate)
         throws IOException, InvalidParseOperationException, AccessExternalClientException {
         try (InputStream inputStream = Files.newInputStream(fileName, StandardOpenOption.READ)) {
-
             VitamContext vitamContext = new VitamContext(world.getTenantId());
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
 
-            RequestResponse requestResponse =
-                world.getAdminClient().importOntologies(forceUpdate, vitamContext, inputStream);
+            RequestResponse requestResponse = world
+                .getAdminClient()
+                .importOntologies(forceUpdate, vitamContext, inputStream);
             final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
 
@@ -110,8 +108,7 @@ public class OntologyStep extends CommonStep {
     public void searchOntologyByIdentifier(String identifer) throws VitamClientException {
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-        RequestResponse requestResponse =
-            world.getAdminClient().findOntologyById(vitamContext, identifer);
+        RequestResponse requestResponse = world.getAdminClient().findOntologyById(vitamContext, identifer);
         assertThat(requestResponse.isOk()).isTrue();
 
         ontologyModel = (OntologyModel) ((RequestResponseOK) requestResponse).getFirstResult();
@@ -120,6 +117,5 @@ public class OntologyStep extends CommonStep {
     @Then("^le type du vocabulaire est (.*)$")
     public void ontology_type_is(String type) {
         assertThat(ontologyModel.getType().name()).isEqualTo(type);
-
     }
 }

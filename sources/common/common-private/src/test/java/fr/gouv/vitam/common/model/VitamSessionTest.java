@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
-
 public class VitamSessionTest {
 
     // Write access from another thread as the owning thread should produce an exception.
@@ -61,6 +60,4 @@ public class VitamSessionTest {
         final VitamSession session = new VitamSession(new VitamThreadFactory.VitamThread(null, 0));
         Assert.assertNull(session.getRequestId());
     }
-
-
 }

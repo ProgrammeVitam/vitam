@@ -91,7 +91,6 @@ public class ContractResource {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-
     /**
      * Import a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are
      * stored in the collection and indexed. </BR>
@@ -115,28 +114,32 @@ public class ContractResource {
     public Response importContracts(List<IngestContractModel> ingestContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER, ingestContractModelList);
 
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
-            vitamCounterService)) {
-            RequestResponse<IngestContractModel> requestResponse =
-                ingestContract.createContracts(ingestContractModelList);
+        try (
+            ContractService<IngestContractModel> ingestContract = new IngestContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            RequestResponse<IngestContractModel> requestResponse = ingestContract.createContracts(
+                ingestContractModelList
+            );
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -151,21 +154,22 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findIngestContracts(JsonNode queryDsl) {
+        try (
+            ContractService<IngestContractModel> ingestContract = new IngestContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            final RequestResponseOK<IngestContractModel> ingestContractModelList = ingestContract
+                .findContracts(queryDsl)
+                .setQuery(queryDsl);
 
-        try (ContractService<IngestContractModel> ingestContract =
-            new IngestContractImpl(mongoAccess, vitamCounterService)) {
-
-            final RequestResponseOK<IngestContractModel> ingestContractModelList =
-                ingestContract.findContracts(queryDsl).setQuery(queryDsl);
-
-            return Response.status(Status.OK)
-                .entity(ingestContractModelList)
-                .build();
-
+            return Response.status(Status.OK).entity(ingestContractModelList).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -191,39 +195,46 @@ public class ContractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importAccessContracts(List<AccessContractModel> accessContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
-            vitamCounterService)) {
-            RequestResponse<AccessContractModel> requestResponse =
-                accessContract.createContracts(accessContractModelList);
+        try (
+            ContractService<AccessContractModel> accessContract = new AccessContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            RequestResponse<AccessContractModel> requestResponse = accessContract.createContracts(
+                accessContractModelList
+            );
 
             if (!requestResponse.isOk()) {
                 ((VitamError<AccessContractModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
-
 
     @Path(UPDATE_ACCESS_CONTRACTS_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateAccessContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
-            vitamCounterService)) {
+        try (
+            ContractService<AccessContractModel> accessContract = new AccessContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
             RequestResponse<AccessContractModel> requestResponse = accessContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError<AccessContractModel>) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
@@ -237,11 +248,13 @@ public class ContractResource {
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -250,8 +263,12 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateIngestContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
-            vitamCounterService)) {
+        try (
+            ContractService<IngestContractModel> ingestContract = new IngestContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
             RequestResponse<IngestContractModel> requestResponse = ingestContract.updateContract(contractId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
@@ -260,20 +277,20 @@ public class ContractResource {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
-
 
     /**
      * find access contracts by queryDsl
@@ -286,21 +303,23 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessContracts(JsonNode queryDsl) {
-        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
-            vitamCounterService)) {
-
-            final RequestResponseOK<AccessContractModel> accessContractModelList =
-                accessContract.findContracts(queryDsl)
-                    .setQuery(queryDsl);
-            return Response.status(Status.OK)
-                .entity(accessContractModelList).build();
+        try (
+            ContractService<AccessContractModel> accessContract = new AccessContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            final RequestResponseOK<AccessContractModel> accessContractModelList = accessContract
+                .findContracts(queryDsl)
+                .setQuery(queryDsl);
+            return Response.status(Status.OK).entity(accessContractModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
-
 
     /**
      * Import a set of management contracts after passing the validation steps. If all the contracts are valid, they are
@@ -323,31 +342,37 @@ public class ContractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importManagementContracts(List<ManagementContractModel> managementContractModelList,
-        @Context UriInfo uri) {
+    public Response importManagementContracts(
+        List<ManagementContractModel> managementContractModelList,
+        @Context UriInfo uri
+    ) {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, managementContractModelList);
-        try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
-            vitamCounterService)) {
-            RequestResponse<ManagementContractModel> requestResponse =
-                managementContract.createContracts(managementContractModelList);
+        try (
+            ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            RequestResponse<ManagementContractModel> requestResponse = managementContract.createContracts(
+                managementContractModelList
+            );
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -362,31 +387,39 @@ public class ContractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findManagementContracts(JsonNode queryDsl) {
-        try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
-            vitamCounterService)) {
-
-            final RequestResponseOK<ManagementContractModel> managementContractModelList =
-                managementContract.findContracts(queryDsl)
-                    .setQuery(queryDsl);
-            return Response.status(Status.OK)
-                .entity(managementContractModelList).build();
+        try (
+            ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            final RequestResponseOK<ManagementContractModel> managementContractModelList = managementContract
+                .findContracts(queryDsl)
+                .setQuery(queryDsl);
+            return Response.status(Status.OK).entity(managementContractModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
-
 
     @Path(UPDATE_MANAGEMENT_CONTRACTS_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateManagementContract(@PathParam("id") String contractId, JsonNode queryDsl) {
-        try (ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(mongoAccess,
-            vitamCounterService)) {
-            RequestResponse<ManagementContractModel> requestResponse =
-                managementContract.updateContract(contractId, queryDsl);
+        try (
+            ContractService<ManagementContractModel> managementContract = new ManagementContractImpl(
+                mongoAccess,
+                vitamCounterService
+            )
+        ) {
+            RequestResponse<ManagementContractModel> requestResponse = managementContract.updateContract(
+                contractId,
+                queryDsl
+            );
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
                 return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
@@ -399,11 +432,13 @@ public class ContractResource {
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -416,12 +451,15 @@ public class ContractResource {
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ADMIN_MODULE)
-            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        return new VitamError(aCode)
+            .setHttpCode(status.getStatusCode())
+            .setContext(ADMIN_MODULE)
+            .setState("code_vitam")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
-
 }

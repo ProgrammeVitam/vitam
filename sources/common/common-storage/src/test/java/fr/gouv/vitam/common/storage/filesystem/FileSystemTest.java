@@ -41,6 +41,7 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class FileSystemTest extends ContentAddressableStorageTestAbstract {
+
     /*                                         ⬆
      *                                  Tests are there
      */
@@ -69,8 +70,8 @@ public class FileSystemTest extends ContentAddressableStorageTestAbstract {
         container.mkdir();
 
         //WHEN && THEN
-        assertThatThrownBy(() -> fileSystem.getObjectMetadata(containerName, OBJECT_ID, NO_CACHE))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> fileSystem.getObjectMetadata(containerName, OBJECT_ID, NO_CACHE)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
     }
-
 }

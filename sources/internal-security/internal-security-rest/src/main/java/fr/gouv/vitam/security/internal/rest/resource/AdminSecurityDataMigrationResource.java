@@ -62,8 +62,7 @@ public class AdminSecurityDataMigrationResource {
      * Constructor
      */
     @VisibleForTesting
-    public AdminSecurityDataMigrationResource(
-        SecurityDataMigrationService securityDataMigrationService) {
+    public AdminSecurityDataMigrationResource(SecurityDataMigrationService securityDataMigrationService) {
         this.securityDataMigrationService = securityDataMigrationService;
     }
 
@@ -77,7 +76,6 @@ public class AdminSecurityDataMigrationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response startSecurityDataMigration() {
-
         try {
             boolean started = this.securityDataMigrationService.tryStartMongoDataUpdate();
 
@@ -87,7 +85,8 @@ public class AdminSecurityDataMigrationResource {
             } else {
                 LOGGER.warn("Security migration already in progress");
                 return Response.status(Response.Status.CONFLICT)
-                    .entity(new ResponseMessage("Security data migration already in progress")).build();
+                    .entity(new ResponseMessage("Security data migration already in progress"))
+                    .build();
             }
         } catch (Exception e) {
             LOGGER.error("An error occurred during security data migration", e);
@@ -104,7 +103,6 @@ public class AdminSecurityDataMigrationResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response isMigrationInProgress() {
-
         try {
             boolean started = this.securityDataMigrationService.isMongoDataUpdateInProgress();
 
@@ -131,8 +129,7 @@ public class AdminSecurityDataMigrationResource {
             this.message = message;
         }
 
-        public ResponseMessage() {
-        }
+        public ResponseMessage() {}
 
         public void setMessage(String message) {
             this.message = message;

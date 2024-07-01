@@ -31,5 +31,5 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
  */
 public enum QueryType {
     UPDATE,
-    SELECT;
+    SELECT,
 }

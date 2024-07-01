@@ -88,6 +88,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CheckDataObjectPackageActionHandlerTest {
+
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String STORAGE_INFO_JSON = "CheckDataObjectPackageActionHandler/storageInfo.json";
     private static final String INGEST_CONTRACT = "CheckDataObjectPackageActionHandler/ingestContractWithDetails.json";
@@ -111,18 +112,24 @@ public class CheckDataObjectPackageActionHandlerTest {
     private List<IOParameter> in;
     private static final Integer TENANT_ID = 0;
     private final Set<URI> uriSetWorkspaceOK = new HashSet<>();
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083").setObjectNameList(Lists.newArrayList("objectName.json"))
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setLogbookTypeProcess(LogbookTypeProcess.INGEST).setContainerName("ExtractSedaActionHandlerTest");
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectNameList(Lists.newArrayList("objectName.json"))
+        .setObjectName("objectName.json")
+        .setCurrentStep("currentStep")
+        .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
+        .setContainerName("ExtractSedaActionHandlerTest");
 
     private CheckDataObjectPackageActionHandler handler;
 
-    @Rule public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    @Rule public TempFolderRule temporaryFolder = new TempFolderRule();
+    @Rule
+    public TempFolderRule temporaryFolder = new TempFolderRule();
 
     @Before
     public void setUp() throws URISyntaxException, IOException, InvalidParseOperationException {
@@ -145,73 +152,108 @@ public class CheckDataObjectPackageActionHandlerTest {
         sedaUtils = mock(SedaUtils.class);
 
         CheckNoObjectsActionHandler checkNoObjectsActionHandler = mock(CheckNoObjectsActionHandler.class);
-        try (InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
-            CHECK_NO_OBJECTS_ACTION_HANDLER_ITEM_STATUS_FILE)) {
+        try (
+            InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+                CHECK_NO_OBJECTS_ACTION_HANDLER_ITEM_STATUS_FILE
+            )
+        ) {
             ItemStatus itemStatus = JsonHandler.getFromInputStream(resourceAsStream, ItemStatus.class);
             when(checkNoObjectsActionHandler.execute(any(), any())).thenReturn(itemStatus);
         }
 
         CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = mock(CheckObjectsNumberActionHandler.class);
-        try (InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
-            CHECK_OBJECTS_NUMBER_ACTION_HANDLER_ITEM_STATUS_FILE)) {
+        try (
+            InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+                CHECK_OBJECTS_NUMBER_ACTION_HANDLER_ITEM_STATUS_FILE
+            )
+        ) {
             ItemStatus itemStatus = JsonHandler.getFromInputStream(resourceAsStream, ItemStatus.class);
             when(checkObjectsNumberActionHandler.execute(any(), any())).thenReturn(itemStatus);
         }
 
         ExtractSedaActionHandler extractSedaActionHandler = mock(ExtractSedaActionHandler.class);
-        try (InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
-            EXTRACT_SEDA_ACTION_HANDLER_ITEM_STATUS_FILE)) {
+        try (
+            InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+                EXTRACT_SEDA_ACTION_HANDLER_ITEM_STATUS_FILE
+            )
+        ) {
             ItemStatus itemStatus = JsonHandler.getFromInputStream(resourceAsStream, ItemStatus.class);
             when(extractSedaActionHandler.execute(any(), any())).thenReturn(itemStatus);
         }
 
-        handler = new CheckDataObjectPackageActionHandler(metadataClientFactory, adminManagementClientFactory,
-            logbookLifeCyclesClientFactory, sedaUtilsFactory, checkNoObjectsActionHandler,
-            checkObjectsNumberActionHandler, extractSedaActionHandler,
-            mock(CheckObjectUnitConsistencyActionHandler.class));
-
+        handler = new CheckDataObjectPackageActionHandler(
+            metadataClientFactory,
+            adminManagementClientFactory,
+            logbookLifeCyclesClientFactory,
+            sedaUtilsFactory,
+            checkNoObjectsActionHandler,
+            checkObjectsNumberActionHandler,
+            extractSedaActionHandler,
+            mock(CheckObjectUnitConsistencyActionHandler.class)
+        );
 
         String objectId = "objectId";
-        action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
-                "workerId", newArrayList(objectId));
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "ExtractSedaActionHandlerTest",
+            "workerId",
+            newArrayList(objectId)
+        );
         action.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
         out.add(
-            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"))
+        );
         out.add(
-            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"))
+        );
+        out.add(
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"))
+        );
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
+        out.add(
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"))
+        );
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        out.add(
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"))
+        );
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/GUID_TO_ARCHIVE_ID_MAP.json")));
 
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Ontology/ontology.json")));
 
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json")));
+        out.add(
+            new IOParameter()
+                .setUri(
+                    new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json")
+                )
+        );
 
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json")));
+        out.add(
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json"))
+        );
 
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json")));
+        out.add(
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json"))
+        );
 
         in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/storageInfo.json")));
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "referential/contracts.json")));
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json")));
+        out.add(
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UpdateObjectGroup/existing_object_group.json"))
+        );
 
         uriSetWorkspaceOK.add(new URI("content/file1.pdf"));
         uriSetWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -233,30 +275,38 @@ public class CheckDataObjectPackageActionHandlerTest {
         final InputStream seda_arborescence = PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         final InputStream storageInfo = PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(INGEST_CONTRACT);
-        SedaIngestParams sedaIngestParams =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS),
-                SedaIngestParams.class);
+        SedaIngestParams sedaIngestParams = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS),
+            SedaIngestParams.class
+        );
         when(sedaUtils.getSedaIngestParams()).thenReturn(sedaIngestParams);
         when(sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(any())).thenReturn(sedaUtils);
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
 
         when(workspaceClient.isExistingObject(any(), eq(SEDA_INGEST_PARAMS_FILE))).thenReturn(true);
         when(workspaceClient.getObject(any(), eq(SEDA_INGEST_PARAMS_FILE))).thenReturn(
-            Response.status(Status.OK).entity(sedaIngestParams).build());
+            Response.status(Status.OK).entity(sedaIngestParams).build()
+        );
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
-            Response.status(Status.OK).entity(seda_arborescence).build());
+            Response.status(Status.OK).entity(seda_arborescence).build()
+        );
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any())).thenReturn(
-            new RequestResponseOK<List<URI>>().addResult(List.copyOf(uriSetWorkspaceOK)));
+            new RequestResponseOK<List<URI>>().addResult(List.copyOf(uriSetWorkspaceOK))
+        );
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json"))).thenReturn(
-            Response.status(Status.OK).entity(storageInfo).build());
+            Response.status(Status.OK).entity(storageInfo).build()
+        );
         when(workspaceClient.getObject(any(), eq("referential/contracts.json"))).thenReturn(
-            Response.status(Status.OK).entity(ingestContract).build());
+            Response.status(Status.OK).entity(ingestContract).build()
+        );
         when(workspaceClient.getObject(any(), eq("Maps/sedaParams.json"))).thenReturn(
-            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build());
+            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(SEDA_INGEST_PARAMS)).build()
+        );
         when(adminManagementClient.findIngestContractsByID(anyString())).thenReturn(
-            ClientMockResultHelper.getIngestContracts());
+            ClientMockResultHelper.getIngestContracts()
+        );
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());
         action.addOutIOParameters(out);
         action.addInIOParameters(in);

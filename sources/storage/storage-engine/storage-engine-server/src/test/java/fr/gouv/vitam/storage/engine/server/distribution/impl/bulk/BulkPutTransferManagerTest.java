@@ -102,8 +102,9 @@ public class BulkPutTransferManagerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private WorkspaceClient workspaceClient;
@@ -137,15 +138,19 @@ public class BulkPutTransferManagerTest {
 
     @Before
     public void before() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
         executor = Executors.newFixedThreadPool(5, VitamThreadFactory.getInstance());
 
         doReturn(60000L).when(transfertTimeoutHelper).getBulkTransferTimeout(anyLong(), anyInt());
 
-        bulkPutTransferManager = new BulkPutTransferManager(workspaceClientFactory, digestType,
-            alertService, executor, transfertTimeoutHelper);
+        bulkPutTransferManager = new BulkPutTransferManager(
+            workspaceClientFactory,
+            digestType,
+            alertService,
+            executor,
+            transfertTimeoutHelper
+        );
 
         doReturn(workspaceClient).when(workspaceClientFactory).getClient();
 
@@ -162,17 +167,17 @@ public class BulkPutTransferManagerTest {
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersOk() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
@@ -182,20 +187,32 @@ public class BulkPutTransferManagerTest {
         File file3 = PropertiesUtils.getResourceFile("file3.txt");
 
         doReturn(getMultiplexedStream(file1, file2, file3))
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
-        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(Arrays.asList(
-            new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
-            new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
-            new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
-        ));
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
+            Arrays.asList(
+                new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
+                new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
+                new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
+            )
+        );
         doReturn(storageBulkPutResult).when(connection1).bulkPutObjects(any());
         doReturn(storageBulkPutResult).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -204,10 +221,9 @@ public class BulkPutTransferManagerTest {
         assertThat(bulkPutResult.getObjectInfos().get(2).getObjectId()).isEqualTo("obj3");
         assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(getFileDigest(file1));
         assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(file1.length());
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.OK,
-            "offer2", OfferBulkPutStatus.OK
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.OK, "offer2", OfferBulkPutStatus.OK)
+        );
 
         verify(transfertTimeoutHelper).getBulkTransferTimeout(106L, 3);
     }
@@ -215,85 +231,103 @@ public class BulkPutTransferManagerTest {
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersKoWorkspaceError() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
 
         doThrow(ContentAddressableStorageServerException.class)
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).isNull();
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.KO,
-            "offer2", OfferBulkPutStatus.KO
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.KO, "offer2", OfferBulkPutStatus.KO)
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersConflictNotFoundInWorkspace() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
 
         doThrow(ContentAddressableStorageNotFoundException.class)
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).isNull();
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.BLOCKER,
-            "offer2", OfferBulkPutStatus.BLOCKER
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.BLOCKER, "offer2", OfferBulkPutStatus.BLOCKER)
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersKoBrokenWorkspaceStream() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
@@ -303,35 +337,44 @@ public class BulkPutTransferManagerTest {
         File file3 = PropertiesUtils.getResourceFile("file3.txt");
 
         doReturn(getBrokenMultiplexedStream(file1, file2, file3))
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).isNull();
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.KO,
-            "offer2", OfferBulkPutStatus.KO
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.KO, "offer2", OfferBulkPutStatus.KO)
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersOfferKo() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
@@ -341,21 +384,33 @@ public class BulkPutTransferManagerTest {
         File file3 = PropertiesUtils.getResourceFile("file3.txt");
 
         doReturn(getMultiplexedStream(file1, file2, file3))
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
-        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(Arrays.asList(
-            new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
-            new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
-            new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
-        ));
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
+            Arrays.asList(
+                new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
+                new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
+                new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
+            )
+        );
         doReturn(storageBulkPutResult).when(connection1).bulkPutObjects(any());
 
         doThrow(new StorageDriverException("", "", true)).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -364,26 +419,25 @@ public class BulkPutTransferManagerTest {
         assertThat(bulkPutResult.getObjectInfos().get(2).getObjectId()).isEqualTo("obj3");
         assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(getFileDigest(file1));
         assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(file1.length());
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.OK,
-            "offer2", OfferBulkPutStatus.KO
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.OK, "offer2", OfferBulkPutStatus.KO)
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersOfferConflict() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
@@ -393,21 +447,33 @@ public class BulkPutTransferManagerTest {
         File file3 = PropertiesUtils.getResourceFile("file3.txt");
 
         doReturn(getMultiplexedStream(file1, file2, file3))
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
-        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(Arrays.asList(
-            new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
-            new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
-            new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
-        ));
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
+            Arrays.asList(
+                new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
+                new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
+                new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
+            )
+        );
         doReturn(storageBulkPutResult).when(connection1).bulkPutObjects(any());
 
         doThrow(StorageDriverPreconditionFailedException.class).when(connection2).bulkPutObjects(any());
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -416,26 +482,25 @@ public class BulkPutTransferManagerTest {
         assertThat(bulkPutResult.getObjectInfos().get(2).getObjectId()).isEqualTo("obj3");
         assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(getFileDigest(file1));
         assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(file1.length());
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.OK,
-            "offer2", OfferBulkPutStatus.BLOCKER
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.OK, "offer2", OfferBulkPutStatus.BLOCKER)
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOffersOfferTimeout() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectIds = Arrays.asList("obj1", "obj2", "obj3");
@@ -445,25 +510,39 @@ public class BulkPutTransferManagerTest {
         File file3 = PropertiesUtils.getResourceFile("file3.txt");
 
         doReturn(getMultiplexedStream(file1, file2, file3))
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
-        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(Arrays.asList(
-            new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
-            new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
-            new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
-        ));
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
+            Arrays.asList(
+                new StorageBulkPutResultEntry("obj1", getFileDigest(file1), file1.length()),
+                new StorageBulkPutResultEntry("obj2", getFileDigest(file2), file1.length()),
+                new StorageBulkPutResultEntry("obj3", getFileDigest(file3), file2.length())
+            )
+        );
         doReturn(storageBulkPutResult).when(connection1).bulkPutObjects(any());
-        doAnswer((args) -> {
+        doAnswer(args -> {
             Thread.sleep(3000);
             return storageBulkPutResult;
-        }).when(connection2).bulkPutObjects(any());
+        })
+            .when(connection2)
+            .bulkPutObjects(any());
 
         doReturn(2000L).when(transfertTimeoutHelper).getBulkTransferTimeout(anyLong(), anyInt());
 
         // When
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(3);
@@ -472,10 +551,9 @@ public class BulkPutTransferManagerTest {
         assertThat(bulkPutResult.getObjectInfos().get(2).getObjectId()).isEqualTo("obj3");
         assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(getFileDigest(file1));
         assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(file1.length());
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.OK,
-            "offer2", OfferBulkPutStatus.KO
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.OK, "offer2", OfferBulkPutStatus.KO)
+        );
 
         verify(transfertTimeoutHelper).getBulkTransferTimeout(106L, 3);
     }
@@ -483,17 +561,17 @@ public class BulkPutTransferManagerTest {
     @Test
     @RunWithCustomExecutor
     public void bulkSendDataToOfferTestDeadlockOfferFailureTransferThreadShutdown() throws Exception {
-
         // Given
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
         Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
-            "offer1", mock(StorageOffer.class),
-            "offer2", mock(StorageOffer.class));
+            "offer1",
+            mock(StorageOffer.class),
+            "offer2",
+            mock(StorageOffer.class)
+        );
 
-        Map<String, Driver> driverMap = ImmutableMap.of(
-            "offer1", driver1,
-            "offer2", driver2);
+        Map<String, Driver> driverMap = ImmutableMap.of("offer1", driver1, "offer2", driver2);
 
         List<String> workspaceObjectURIs = Arrays.asList("uri1");
         List<String> objectIds = Arrays.asList("obj1");
@@ -510,51 +588,62 @@ public class BulkPutTransferManagerTest {
             multiplexedStreamWriter.appendEndOfFile();
         }
 
-        doReturn(Response.ok(new FileInputStream(veryLargeFile))
-            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), veryLargeFile.length()).build())
-            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+        doReturn(
+            Response.ok(new FileInputStream(veryLargeFile))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), veryLargeFile.length())
+                .build()
+        )
+            .when(workspaceClient)
+            .bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
 
-        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(Arrays.asList(
-            new StorageBulkPutResultEntry("obj1", digest.digestHex(), longFileSize)
-        ));
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
+            Arrays.asList(new StorageBulkPutResultEntry("obj1", digest.digestHex(), longFileSize))
+        );
         doReturn(storageBulkPutResult).when(connection1).bulkPutObjects(any());
 
         doThrow(new StorageDriverException("driver", "ko", true)).when(connection2).bulkPutObjects(any());
 
         // When / Then
-        BulkPutResult bulkPutResult =
-            bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, STRATEGY, ATTEMPT, TENANT_ID,
-                DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(
+            WORKSPACE_CONTAINER,
+            STRATEGY,
+            ATTEMPT,
+            TENANT_ID,
+            DATA_CATEGORY,
+            offerIds,
+            driverMap,
+            storageOfferMap,
+            workspaceObjectURIs,
+            objectIds
+        );
 
         // Then
         assertThat(bulkPutResult.getObjectInfos()).hasSize(1);
         assertThat(bulkPutResult.getObjectInfos().get(0).getObjectId()).isEqualTo("obj1");
         assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(digest.digestHex());
         assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(longFileSize);
-        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
-            "offer1", OfferBulkPutStatus.OK,
-            "offer2", OfferBulkPutStatus.KO
-        ));
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(
+            ImmutableMap.of("offer1", OfferBulkPutStatus.OK, "offer2", OfferBulkPutStatus.KO)
+        );
     }
 
     private Response getMultiplexedStream(File... files) throws IOException {
-
         byte[] multiplexedStreamBody = getMultiplexedStreamBody(files);
 
         return Response.ok(new ByteArrayInputStream(multiplexedStreamBody))
-            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), multiplexedStreamBody.length).build();
+            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), multiplexedStreamBody.length)
+            .build();
     }
 
     private Response getBrokenMultiplexedStream(File... files) throws IOException {
-
         byte[] multiplexedStreamBody = getMultiplexedStreamBody(files);
 
         return Response.ok(new ByteArrayInputStream(multiplexedStreamBody, 0, multiplexedStreamBody.length - 1))
-            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), multiplexedStreamBody.length).build();
+            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), multiplexedStreamBody.length)
+            .build();
     }
 
     private byte[] getMultiplexedStreamBody(File... files) throws IOException {
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(byteArrayOutputStream);
 

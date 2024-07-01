@@ -36,6 +36,7 @@ import java.util.Map;
  * Cache the Marshaller Object as its initialization takes about 40ms
  */
 public class MarshallerObjectCache {
+
     private final Map<Class<?>, Marshaller> marshallbyclass = new HashMap<>();
 
     /**
@@ -61,8 +62,5 @@ public class MarshallerObjectCache {
             marshallbyclass.put(c, marshaller);
         }
         return marshallbyclass.get(c);
-
     }
-
-
 }

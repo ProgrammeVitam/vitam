@@ -51,7 +51,4 @@ public final class SedaUtilInfo {
     public void setDataObjectMap(DataObjectInfo binaryObjectInfo) {
         dataObjectMap.put(binaryObjectInfo.getId(), binaryObjectInfo);
     }
-
-
-
 }

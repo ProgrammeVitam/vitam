@@ -72,15 +72,15 @@ public class GenericReportGenerationHandlerTest {
     private static final String ACTION_KEY = "ACTION_KEY";
     private static final String PLUGIN_ID = "PLUGIN_ID";
 
-
     private CommonReportService<?> reportService;
     private GenericReportGenerationHandler genericReportGenerationHandler;
     private HandlerIO handler;
     private WorkerParameters workerParameters;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Before
     public void setup() {
@@ -144,7 +144,6 @@ public class GenericReportGenerationHandlerTest {
         assertThat(report.getContext().toString()).isEqualTo("{}");
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void should_not_regenerate_report_when_already_exists_in_workspace() throws Exception {
@@ -152,8 +151,13 @@ public class GenericReportGenerationHandlerTest {
         genericReportGenerationHandler = getGenericReportGenerationHandler(10, 0, 0);
 
         Report report = new Report();
-        ReportSummary reportSummary =
-            new ReportSummary("", "", ReportType.AUDIT, new ReportResults(10, 0, 0), JsonHandler.createObjectNode());
+        ReportSummary reportSummary = new ReportSummary(
+            "",
+            "",
+            ReportType.AUDIT,
+            new ReportResults(10, 0, 0),
+            JsonHandler.createObjectNode()
+        );
         report.setReportSummary(reportSummary);
         when(handler.getJsonFromWorkspace(eq(WORKSPACE_REPORT_URI))).thenReturn(JsonHandler.toJsonNode(report));
 
@@ -172,7 +176,8 @@ public class GenericReportGenerationHandlerTest {
         // Given
         genericReportGenerationHandler = getGenericReportGenerationHandler(1, 0, 0);
 
-        doThrow(new ProcessingStatusException(StatusCode.FATAL, "Client error cause FATAL.")).when(reportService)
+        doThrow(new ProcessingStatusException(StatusCode.FATAL, "Client error cause FATAL."))
+            .when(reportService)
             .storeReportToWorkspace(any());
         // When
         ItemStatus itemStatus = genericReportGenerationHandler.execute(workerParameters, handler);
@@ -182,8 +187,11 @@ public class GenericReportGenerationHandlerTest {
     }
 
     @Nonnull
-    private GenericReportGenerationHandler getGenericReportGenerationHandler(int numberOfOK, int numberOfWarning,
-        int numberOfKO) {
+    private GenericReportGenerationHandler getGenericReportGenerationHandler(
+        int numberOfOK,
+        int numberOfWarning,
+        int numberOfKO
+    ) {
         return new GenericReportGenerationHandler(reportService) {
             @Override
             protected ReportType getReportType() {
@@ -211,16 +219,19 @@ public class GenericReportGenerationHandlerTest {
     private LogbookOperation getLogbookOperation(int numberOfOK, int numberOfWarning, int numberOfKO) {
         LogbookOperation operation = new LogbookOperation();
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
-        logbookEventOperation
-            .setEvDetData(JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("data", "data")));
+        logbookEventOperation.setEvDetData(
+            JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("data", "data"))
+        );
         logbookEventOperation.setEvType(ACTION_KEY);
         logbookEventOperation.setOutMessg(
-            "My awesome message" + DETAILS + "OK:" + numberOfOK + " WARNING:" + numberOfWarning + " KO:" + numberOfKO);
+            "My awesome message" + DETAILS + "OK:" + numberOfOK + " WARNING:" + numberOfWarning + " KO:" + numberOfKO
+        );
         LogbookEventOperation logbookEventOperation1 = new LogbookEventOperation();
         logbookEventOperation1.setEvType("EVENT_TYPE");
         operation.setEvents(Arrays.asList(logbookEventOperation1, logbookEventOperation, logbookEventOperation1));
         operation.setRightsStatementIdentifier(
-            JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("identifier", "identifier")));
+            JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("identifier", "identifier"))
+        );
         return operation;
     }
 }

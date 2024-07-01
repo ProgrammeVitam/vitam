@@ -107,18 +107,15 @@ public class ContextStep extends CommonStep {
         this.fileName = queryContextfileName;
     }
 
-
     @Then("^j'importe ce contexte en succès")
     public void success_upload_context()
-        throws IOException,
-        AccessExternalClientServerException,
-        InvalidParseOperationException {
-
+        throws IOException, AccessExternalClientServerException, InvalidParseOperationException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
 
-        final RequestResponse response = world.getAdminClient()
+        final RequestResponse response = world
+            .getAdminClient()
             .createContexts(vitamContext, Files.newInputStream(context, StandardOpenOption.READ));
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
@@ -134,10 +131,12 @@ public class ContextStep extends CommonStep {
     public void fail_upload_context()
         throws AccessExternalClientServerException, InvalidParseOperationException, IOException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
-        final RequestResponse response =
-            world.getAdminClient().createContexts(
+        final RequestResponse response = world
+            .getAdminClient()
+            .createContexts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                Files.newInputStream(context, StandardOpenOption.READ));
+                Files.newInputStream(context, StandardOpenOption.READ)
+            );
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
@@ -145,8 +144,7 @@ public class ContextStep extends CommonStep {
 
     @When("^je modifie le contexte nommé (.*) le statut de la requête est (.*)$")
     public void update_context_by_name_query(String name, Integer status)
-        throws InvalidParseOperationException, VitamClientException, IOException, AccessExternalClientException,
-        InvalidCreateOperationException {
+        throws InvalidParseOperationException, VitamClientException, IOException, AccessExternalClientException, InvalidCreateOperationException {
         this.contextName = name;
         Path queryFile = Paths.get(world.getBaseDirectory(), fileName);
         this.query = FileUtil.readFile(queryFile.toFile());
@@ -161,14 +159,13 @@ public class ContextStep extends CommonStep {
         VitamContext context = new VitamContext(world.getTenantId());
         context.setApplicationSessionId(world.getApplicationSessionId());
 
-        RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
+        RequestResponse<ContextModel> requestResponse = world
+            .getAdminClient()
+            .updateContext(context, contextIdentifier, queryDsl);
         assertThat(requestResponse.getHttpCode()).isEqualTo(status);
         final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
-
     }
-
 
     @When("^je modifie le contexte dont l'identifiant est (.*) le statut de la requête est (.*)$")
     public void update_context_by_identifier_query(String contextIdentifier, Integer status)
@@ -184,13 +181,13 @@ public class ContextStep extends CommonStep {
         VitamContext context = new VitamContext(world.getTenantId());
         context.setApplicationSessionId(world.getApplicationSessionId());
 
-        RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
+        RequestResponse<ContextModel> requestResponse = world
+            .getAdminClient()
+            .updateContext(context, contextIdentifier, queryDsl);
         assertThat(requestResponse.getHttpCode()).isEqualTo(status);
         final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
     }
-
 
     @When("^je recherche un contexte nommé (.*)$")
     public void find_a_context_id(String name)
@@ -198,11 +195,14 @@ public class ContextStep extends CommonStep {
         Select select = new Select();
         select.setQuery(QueryHelper.eq(ContextModel.TAG_NAME, name));
         JsonNode queryDsl = select.getFinalSelect();
-        RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findContexts(
-                new VitamContext(world.getTenantId()).setAccessContract(null)
+        RequestResponse<ContextModel> requestResponse = world
+            .getAdminClient()
+            .findContexts(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(null)
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryDsl);
+                queryDsl
+            );
         if (requestResponse.isOk()) {
             ContextModel model = ((RequestResponseOK<ContextModel>) requestResponse).getFirstResult();
             this.model = JsonHandler.toJsonNode(model);
@@ -210,7 +210,6 @@ public class ContextStep extends CommonStep {
             return;
         }
         throw new VitamClientException("No context was found");
-
     }
 
     @Then("^les métadonnées du context sont$")
@@ -223,7 +222,6 @@ public class ContextStep extends CommonStep {
                 assertThat(value).isEqualTo(this.model.get(index).toString());
             } else {
                 assertThat(value).contains(this.model.get(index).asText());
-
             }
         }
     }

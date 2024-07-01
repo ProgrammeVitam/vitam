@@ -58,8 +58,9 @@ public class ComputedInheritedRulesCheckDistributionThresholdTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -75,7 +76,6 @@ public class ComputedInheritedRulesCheckDistributionThresholdTest {
         checkDistributionThresholdBase = new ComputedInheritedRulesCheckDistributionThreshold(metaDataClientFactory);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void whenCheckDistributionComputedInheritedRulesDefaultThresholdOnSelectQueryThenReturnKO()
@@ -90,20 +90,26 @@ public class ComputedInheritedRulesCheckDistributionThresholdTest {
         given(handlerIO.getInput(1)).willReturn("query.json");
 
         JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/computeInheritedRules/select_with_default_threshold.json"));
+            getClass().getResourceAsStream("/computeInheritedRules/select_with_default_threshold.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
         given(metaDataClient.selectUnits(any())).willReturn(
             JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/computeInheritedRules/result_metadata_exeed_threshold.json")));
+                getClass().getResourceAsStream("/computeInheritedRules/result_metadata_exeed_threshold.json")
+            )
+        );
 
         // When
-        ItemStatus itemStatus =
-            checkDistributionThresholdBase.execute(WorkerParametersFactory.newWorkerParameters(), handlerIO);
+        ItemStatus itemStatus = checkDistributionThresholdBase.execute(
+            WorkerParametersFactory.newWorkerParameters(),
+            handlerIO
+        );
 
         // Then
         assertThat(itemStatus).isNotNull();
         assertThat(itemStatus.getData().toString()).isEqualTo(
-            "{eventDetailData={\"error\":\"Too many units found. Threshold=100000000, found=100000002\"}}");
+            "{eventDetailData={\"error\":\"Too many units found. Threshold=100000000, found=100000002\"}}"
+        );
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
     }
 }

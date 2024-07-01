@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 
 public class ExportRequest {
+
     public static final String EXPORT_QUERY_FILE_NAME = "export_query.json";
 
     @JsonProperty("dataObjectVersionToExport")
@@ -45,7 +46,6 @@ public class ExportRequest {
     @JsonProperty("exportRequestParameters")
     private ExportRequestParameters exportRequestParameters;
 
-
     @JsonProperty("exportWithLogBookLFC")
     private boolean exportWithLogBookLFC;
 
@@ -56,19 +56,21 @@ public class ExportRequest {
     private JsonNode dslRequest;
 
     @JsonProperty("sedaVersion")
-    private String sedaVersion =  SupportedSedaVersions.SEDA_2_2.getVersion();
+    private String sedaVersion = SupportedSedaVersions.SEDA_2_2.getVersion();
 
-
-    public ExportRequest() {
-    }
-
+    public ExportRequest() {}
 
     public ExportRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;
     }
 
-    public ExportRequest(DataObjectVersions dataObjectVersionToExport, JsonNode dslRequest, boolean withLogBookLFC,
-        Long maxSizeThreshold, String sedaVersion) {
+    public ExportRequest(
+        DataObjectVersions dataObjectVersionToExport,
+        JsonNode dslRequest,
+        boolean withLogBookLFC,
+        Long maxSizeThreshold,
+        String sedaVersion
+    ) {
         this.dataObjectVersionToExport = dataObjectVersionToExport;
         this.dslRequest = dslRequest;
         this.exportWithLogBookLFC = withLogBookLFC;
@@ -87,28 +89,39 @@ public class ExportRequest {
     }
 
     public static ExportRequest from(DipRequest dipRequest) {
-        ExportRequest exportRequest =
-            new ExportRequest(dipRequest.getDataObjectVersionToExport(), dipRequest.getDslRequest(),
-                dipRequest.isExportWithLogBookLFC());
+        ExportRequest exportRequest = new ExportRequest(
+            dipRequest.getDataObjectVersionToExport(),
+            dipRequest.getDslRequest(),
+            dipRequest.isExportWithLogBookLFC()
+        );
         exportRequest.setExportType(ExportType.get(dipRequest.getDipExportType()));
         exportRequest.setExportRequestParameters(ExportRequestParameters.from(dipRequest.getDipRequestParameters()));
         exportRequest.setMaxSizeThreshold(dipRequest.getMaxSizeThreshold());
-        exportRequest.setSedaVersion(dipRequest.getSedaVersion() != null ? dipRequest.getSedaVersion() :
-            SupportedSedaVersions.SEDA_2_2.getVersion());
+        exportRequest.setSedaVersion(
+            dipRequest.getSedaVersion() != null
+                ? dipRequest.getSedaVersion()
+                : SupportedSedaVersions.SEDA_2_2.getVersion()
+        );
 
         return exportRequest;
     }
 
     public static ExportRequest from(TransferRequest transferRequest) {
-        ExportRequest exportRequest =
-            new ExportRequest(transferRequest.getDataObjectVersionToExport(), transferRequest.getDslRequest(),
-                transferRequest.isTransferWithLogBookLFC());
+        ExportRequest exportRequest = new ExportRequest(
+            transferRequest.getDataObjectVersionToExport(),
+            transferRequest.getDslRequest(),
+            transferRequest.isTransferWithLogBookLFC()
+        );
         exportRequest.setExportType(ExportType.ArchiveTransfer);
-        exportRequest
-            .setExportRequestParameters(ExportRequestParameters.from(transferRequest.getTransferRequestParameters()));
+        exportRequest.setExportRequestParameters(
+            ExportRequestParameters.from(transferRequest.getTransferRequestParameters())
+        );
         exportRequest.setMaxSizeThreshold(transferRequest.getMaxSizeThreshold());
-        exportRequest.setSedaVersion(transferRequest.getSedaVersion() != null ? transferRequest.getSedaVersion() :
-            SupportedSedaVersions.SEDA_2_2.getVersion());
+        exportRequest.setSedaVersion(
+            transferRequest.getSedaVersion() != null
+                ? transferRequest.getSedaVersion()
+                : SupportedSedaVersions.SEDA_2_2.getVersion()
+        );
 
         return exportRequest;
     }

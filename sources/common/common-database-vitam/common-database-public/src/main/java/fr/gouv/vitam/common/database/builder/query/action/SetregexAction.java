@@ -63,8 +63,7 @@ public class SetregexAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final String variableName, final String value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(BuilderToken.UPDATEACTION.SETREGEX, variableName, value);
         currentUPDATEACTION = BuilderToken.UPDATEACTION.SETREGEX;
@@ -78,8 +77,7 @@ public class SetregexAction extends Action {
      * @param value key value as a list of values
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final String variableName, final List<?> value)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final String variableName, final List<?> value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(BuilderToken.UPDATEACTION.SETREGEX, variableName, value);
         currentUPDATEACTION = BuilderToken.UPDATEACTION.SETREGEX;
@@ -92,11 +90,9 @@ public class SetregexAction extends Action {
      * @param variableNameValue map of key and Value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final Map<String, ?> variableNameValue)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final Map<String, ?> variableNameValue) throws InvalidCreateOperationException {
         super();
-        currentObject =
-            ((ObjectNode) currentObject).putObject(BuilderToken.UPDATEACTION.SETREGEX.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(BuilderToken.UPDATEACTION.SETREGEX.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         for (final Map.Entry<String, ?> entry : variableNameValue.entrySet()) {
             final String name = entry.getKey();
@@ -121,12 +117,9 @@ public class SetregexAction extends Action {
      * @param updateData ObjectNode natively
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final ObjectNode updateData)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final ObjectNode updateData) throws InvalidCreateOperationException {
         super();
-
-        currentObject =
-            ((ObjectNode) currentObject).putObject(BuilderToken.UPDATEACTION.SETREGEX.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(BuilderToken.UPDATEACTION.SETREGEX.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
 
         Iterator<String> iterator = updateData.fieldNames();
@@ -150,8 +143,7 @@ public class SetregexAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final String variableName, final long value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(BuilderToken.UPDATEACTION.SETREGEX, variableName, value);
         currentUPDATEACTION = BuilderToken.UPDATEACTION.SETREGEX;
@@ -165,8 +157,7 @@ public class SetregexAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final String variableName, final boolean value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(BuilderToken.UPDATEACTION.SETREGEX, variableName, value);
         currentUPDATEACTION = BuilderToken.UPDATEACTION.SETREGEX;
@@ -180,8 +171,7 @@ public class SetregexAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetregexAction(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public SetregexAction(final String variableName, final double value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(BuilderToken.UPDATEACTION.SETREGEX, variableName, value);
         currentUPDATEACTION = BuilderToken.UPDATEACTION.SETREGEX;
@@ -200,11 +190,13 @@ public class SetregexAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != BuilderToken.UPDATEACTION.SETREGEX) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_ELEMENT_SINCE_THIS_IS_NOT_A_SETREGEX_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_AN_ELEMENT_SINCE_THIS_IS_NOT_A_SETREGEX_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -228,15 +220,16 @@ public class SetregexAction extends Action {
         throws InvalidCreateOperationException {
         if (currentUPDATEACTION != BuilderToken.UPDATEACTION.SETREGEX) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_ELEMENT_SINCE_THIS_IS_NOT_A_SETREGEX_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_AN_ELEMENT_SINCE_THIS_IS_NOT_A_SETREGEX_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         if (values == null) {
-            throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + " cannot update with null list");
+            throw new InvalidCreateOperationException(ACTION + currentUPDATEACTION + " cannot update with null list");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

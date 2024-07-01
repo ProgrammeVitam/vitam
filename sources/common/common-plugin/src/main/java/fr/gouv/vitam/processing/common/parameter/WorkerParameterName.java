@@ -162,7 +162,6 @@ public enum WorkerParameterName {
     ingestOperationIdToCleanup;
 
     public static HashSet<String> getEnums() {
-
         HashSet<String> values = new HashSet<String>();
 
         for (WorkerParameterName c : WorkerParameterName.values()) {

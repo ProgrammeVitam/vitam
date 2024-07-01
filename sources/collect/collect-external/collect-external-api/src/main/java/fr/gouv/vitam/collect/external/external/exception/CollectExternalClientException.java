@@ -32,8 +32,8 @@ import fr.gouv.vitam.common.exception.VitamClientException;
  * Main Access Client Exception
  */
 public class CollectExternalClientException extends VitamClientException {
-    private static final long serialVersionUID = -7474519631306009204L;
 
+    private static final long serialVersionUID = -7474519631306009204L;
 
     /**
      * constructor with message

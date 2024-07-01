@@ -36,9 +36,7 @@ import java.io.File;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-
 public class DirectedGraphTest {
-
 
     @Test
     public void given_acyclycGraph_then_returnfalse() throws Exception {
@@ -57,6 +55,4 @@ public class DirectedGraphTest {
         assertNotNull(g.reverse());
         assertNotNull(g.getVertices());
     }
-
-
 }

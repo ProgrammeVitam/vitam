@@ -32,8 +32,11 @@ public class TransfertTimeoutHelper {
     private final int minObjectWriteTimeoutMs;
     private final int minBulkWriteTimeoutMsPerObject;
 
-    public TransfertTimeoutHelper(long millisecondsPerKB, int minObjectWriteTimeoutMs,
-        int minBulkWriteTimeoutMsPerObject) {
+    public TransfertTimeoutHelper(
+        long millisecondsPerKB,
+        int minObjectWriteTimeoutMs,
+        int minBulkWriteTimeoutMsPerObject
+    ) {
         this.millisecondsPerKB = millisecondsPerKB;
         this.minObjectWriteTimeoutMs = minObjectWriteTimeoutMs;
         this.minBulkWriteTimeoutMsPerObject = minBulkWriteTimeoutMsPerObject;
@@ -48,8 +51,7 @@ public class TransfertTimeoutHelper {
     }
 
     public long getBulkTransferTimeout(long sizeToTransfer, int nbObjects) {
-        long timeout = (sizeToTransfer / 1024) * millisecondsPerKB +
-            (long) nbObjects * minBulkWriteTimeoutMsPerObject;
+        long timeout = (sizeToTransfer / 1024) * millisecondsPerKB + (long) nbObjects * minBulkWriteTimeoutMsPerObject;
         if (timeout < minObjectWriteTimeoutMs) {
             return minObjectWriteTimeoutMs;
         }

@@ -47,8 +47,7 @@ public class PronomParserTest {
 
     @Test
     public void testPronomFormat() throws FileFormatException, FileNotFoundException {
-        List<FileFormatModel> jsonFileFormat =
-            PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST));
+        List<FileFormatModel> jsonFileFormat = PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST));
         final FileFormatModel fileFormatModel = jsonFileFormat.get(1327);
         assertTrue(fileFormatModel.getName().contains("RDF/XML"));
         assertEquals(fileFormatModel.getPuid(), "fmt/875");

@@ -92,37 +92,35 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MultiFamilyWorkerProcessingIT.class);
 
-
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(MultiFamilyWorkerProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                WorkspaceMain.class,
-                ProcessManagementMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        MultiFamilyWorkerProcessingIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(WorkspaceMain.class, ProcessManagementMain.class)
+    );
+
     private static final Integer TENANT_ID = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
-    private final int[] elementCountPerStep = {1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1};
+    private final int[] elementCountPerStep = { 1, 0, 170, 1, 0, 170, 0, 170, 0, 1, 1 };
 
-    public static final String INGEST_LEVEL_STACK_JSON =
-        "integration-processing/ingestLevelStack.json";
+    public static final String INGEST_LEVEL_STACK_JSON = "integration-processing/ingestLevelStack.json";
     public static final String UNITS_LEVEL_STACK_PATH = "UnitsLevel/ingestLevelStack.json";
 
-    public static final String EXISING_GOT_FILE =
-        "integration-processing/existing_object_group.json";
+    public static final String EXISING_GOT_FILE = "integration-processing/existing_object_group.json";
 
     public static final String EXISTING_GOT = "UpdateObjectGroup/existing_object_group.json";
 
-
     @ClassRule
     public static WireMockClassRule workerMockRule_Family_One = new WireMockClassRule(options().dynamicPort());
+
     @Rule
     public WireMockClassRule workerInstanceFamilyOne = workerMockRule_Family_One;
 
     @ClassRule
     public static WireMockClassRule workerMockRule_Family_Two = new WireMockClassRule(options().dynamicPort());
+
     @Rule
     public WireMockClassRule workerInstanceFamilyTwo = workerMockRule_Family_Two;
 
@@ -143,8 +141,9 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         // Override default ingest workflow
         // For more information on how this works, please refer to the hello-world-plugin docs
         //======================================
-        InputStream overrideWorkflow =
-            PropertiesUtils.getResourceAsStream("integration-processing/family_worker/MultiFamilyIngestWorkflow.json");
+        InputStream overrideWorkflow = PropertiesUtils.getResourceAsStream(
+            "integration-processing/family_worker/MultiFamilyIngestWorkflow.json"
+        );
 
         File processingWorkflowConfig = PropertiesUtils.fileFromConfigFolder("workflows");
 
@@ -158,7 +157,6 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
 
         // Start processing to take in account the new workflow
         runner.startProcessManagementServer();
-
     }
 
     @AfterClass
@@ -173,10 +171,12 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         VitamConfiguration.setWorkerBulkSize(10);
         VitamConfiguration.setDistributeurBatchSize(100);
 
-        ProcessingManagementClientFactory.getInstance().getClient()
+        ProcessingManagementClientFactory.getInstance()
+            .getClient()
             .unregisterWorker("FamilyOne", String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
 
-        ProcessingManagementClientFactory.getInstance().getClient()
+        ProcessingManagementClientFactory.getInstance()
+            .getClient()
             .unregisterWorker("FamilyTwo", String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
 
         // Restart processing in order to remove override default ingest workflow
@@ -197,71 +197,86 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
 
     @Before
     public void setUp() throws Exception {
-
         // Ensure processing is started
         runner.startProcessManagementServer();
-        WorkerBean workerBeanOne =
-            new WorkerBean("FamilyOneWorker", "FamilyOne", 1, "status",
-                new WorkerRemoteConfiguration("localhost", workerMockRule_Family_One.port()));
+        WorkerBean workerBeanOne = new WorkerBean(
+            "FamilyOneWorker",
+            "FamilyOne",
+            1,
+            "status",
+            new WorkerRemoteConfiguration("localhost", workerMockRule_Family_One.port())
+        );
         workerBeanOne.setWorkerId(ServerIdentity.getInstance().getGlobalPlatformId() + "_family_one");
 
-        WorkerBean workerBeanTwo =
-            new WorkerBean("FamilyTwoWorker", "FamilyTwo", 1, "status",
-                new WorkerRemoteConfiguration("localhost", workerMockRule_Family_Two.port()));
+        WorkerBean workerBeanTwo = new WorkerBean(
+            "FamilyTwoWorker",
+            "FamilyTwo",
+            1,
+            "status",
+            new WorkerRemoteConfiguration("localhost", workerMockRule_Family_Two.port())
+        );
         workerBeanTwo.setWorkerId(ServerIdentity.getInstance().getGlobalPlatformId() + "_family_two");
-
 
         ProcessingManagementClientFactory processingManagementClientFactory =
             ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient();
 
-        processingManagementClient
-            .registerWorker(workerBeanOne.getFamily(), workerBeanOne.getWorkerId(), workerBeanOne);
+        processingManagementClient.registerWorker(
+            workerBeanOne.getFamily(),
+            workerBeanOne.getWorkerId(),
+            workerBeanOne
+        );
 
-        processingManagementClient
-            .registerWorker(workerBeanTwo.getFamily(), workerBeanTwo.getWorkerId(), workerBeanTwo);
+        processingManagementClient.registerWorker(
+            workerBeanTwo.getFamily(),
+            workerBeanTwo.getWorkerId(),
+            workerBeanTwo
+        );
 
-        workerInstanceFamilyOne.stubFor(WireMock.get(urlMatching("/worker/v1/status"))
-            .willReturn(
-                aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workerInstanceFamilyOne.stubFor(
+            WireMock.get(urlMatching("/worker/v1/status")).willReturn(
+                aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
 
-        workerInstanceFamilyOne
-            .stubFor(WireMock.post(urlMatching("/worker/v1/tasks"))
-                .willReturn(
-                    aResponse()
-                        .withStatus(200)
-                        .withBody(JsonHandler.unprettyPrint(getMockedItemStatus(StatusCode.OK, "FamilyOne")))
-                        .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
-                        .withHeader("Content-Type", "application/json"))
-            );
+        workerInstanceFamilyOne.stubFor(
+            WireMock.post(urlMatching("/worker/v1/tasks")).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withBody(JsonHandler.unprettyPrint(getMockedItemStatus(StatusCode.OK, "FamilyOne")))
+                    .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+                    .withHeader("Content-Type", "application/json")
+            )
+        );
 
-        workerInstanceFamilyTwo.stubFor(WireMock.get(urlMatching("/worker/v1/status"))
-            .willReturn(
-                aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workerInstanceFamilyTwo.stubFor(
+            WireMock.get(urlMatching("/worker/v1/status")).willReturn(
+                aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
 
-        workerInstanceFamilyTwo.stubFor(WireMock.post(urlMatching("/worker/v1/tasks"))
-            .willReturn(
+        workerInstanceFamilyTwo.stubFor(
+            WireMock.post(urlMatching("/worker/v1/tasks")).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withBody(JsonHandler.unprettyPrint(getMockedItemStatus(StatusCode.OK, "FamilyTwo")))
                     .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
                     .withHeader("X_FAMILY_HEADER", "FamilyTwo")
-                    .withHeader("Content-Type", "application/json"))
+                    .withHeader("Content-Type", "application/json")
+            )
         );
     }
 
     ItemStatus getMockedItemStatus(StatusCode statusCode, String family) {
-        return new ItemStatus(family)
-            .setItemsStatus(family, new ItemStatus(family)
-                .setMessage(family)
-                .increment(statusCode, VitamConfiguration.getWorkerBulkSize())
-            );
+        return new ItemStatus(family).setItemsStatus(
+            family,
+            new ItemStatus(family).setMessage(family).increment(statusCode, VitamConfiguration.getWorkerBulkSize())
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void test_multi_family_workers_by_overriding_default_ingest()
-        throws Exception {
+    public void test_multi_family_workers_by_overriding_default_ingest() throws Exception {
         ProcessingIT.prepareVitamSession();
 
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
@@ -269,12 +284,12 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         final String operationId = operationGuid.toString();
         simulateIngest(operationId);
 
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(operationId, TENANT_ID);
 
-        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
-            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(),
-                ProcessAction.NEXT.getValue());
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
 
         assertThat(resp).isNotNull();
         assertThat(resp.isOk()).isTrue();
@@ -294,9 +309,9 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
 
         workerInstanceFamilyOne.resetRequests();
 
-        resp = ProcessingManagementClientFactory.getInstance().getClient()
-            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(),
-                ProcessAction.NEXT.getValue());
+        resp = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
 
         assertThat(resp).isNotNull();
         assertThat(resp.isOk()).isTrue();
@@ -309,9 +324,9 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         // Worker of the family two not invoked. Because distribution is empty
         assertThat(workerInstanceFamilyTwo.getServeEvents().getMeta().total).isEqualTo(0);
 
-        resp = ProcessingManagementClientFactory.getInstance().getClient()
-            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(),
-                ProcessAction.NEXT.getValue());
+        resp = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
 
         assertThat(resp).isNotNull();
         assertThat(resp.isOk()).isTrue();
@@ -333,9 +348,9 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         assertThat(secondThree.getWorkerGroupId()).isEqualTo("FamilyTwo");
         assertThat(secondThree.getStepResponses().getItemsStatus()).containsKey("FamilyTwo");
 
-        resp = ProcessingManagementClientFactory.getInstance().getClient()
-            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(),
-                ProcessAction.RESUME.getValue());
+        resp = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
         assertThat(resp).isNotNull();
         assertThat(resp.isOk()).isTrue();
@@ -361,8 +376,7 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         workerInstanceFamilyOne.resetRequests();
         workerInstanceFamilyTwo.resetRequests();
 
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
+        processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
@@ -374,24 +388,24 @@ public class MultiFamilyWorkerProcessingIT extends VitamRuleRunner {
         throws ContentAddressableStorageServerException, BadRequestException, InternalServerException, IOException {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
-        ProcessingManagementClientFactory.getInstance().getClient()
+        ProcessingManagementClientFactory.getInstance()
+            .getClient()
             .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final File resourceFile = PropertiesUtils.getResourceFile(INGEST_LEVEL_STACK_JSON);
-        workspaceClient
-            .putObject(containerName, UNITS_LEVEL_STACK_PATH, Files.newInputStream(resourceFile.toPath()));
+        workspaceClient.putObject(containerName, UNITS_LEVEL_STACK_PATH, Files.newInputStream(resourceFile.toPath()));
 
         final File existing_got = PropertiesUtils.getResourceFile(EXISING_GOT_FILE);
-        workspaceClient
-            .putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
+        workspaceClient.putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
     }
 
     private void checkAllSteps(ProcessWorkflow processWorkflow) {
         int stepIndex = 0;
         for (ProcessStep step : processWorkflow.getSteps()) {
             // check status
-            assertTrue(step.getStepStatusCode().equals(StatusCode.OK) ||
-                step.getStepStatusCode().equals(StatusCode.WARNING));
+            assertTrue(
+                step.getStepStatusCode().equals(StatusCode.OK) || step.getStepStatusCode().equals(StatusCode.WARNING)
+            );
 
             // check processed elements
             Assertions.assertThat(step.getElementProcessed().get())

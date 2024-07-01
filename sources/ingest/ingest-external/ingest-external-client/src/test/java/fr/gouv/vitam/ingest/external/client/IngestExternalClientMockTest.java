@@ -58,24 +58,25 @@ public class IngestExternalClientMockTest {
     public void givenNullStreamThenThrowIngestExternalException() throws IngestExternalException, XMLStreamException {
         IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
+        final IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientMock);
         client.ingest(new VitamContext(TENANT_ID), null, CONTEXT_ID, EXECUTION_MODE);
     }
-
 
     @Test
     public void givenNonEmptyStreamThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
         IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
+        final IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM, CharsetUtils.UTF8);
-        RequestResponse<Void> requestResponse =
-            client.ingest(new VitamContext(TENANT_ID), firstStream, CONTEXT_ID, EXECUTION_MODE);
+        RequestResponse<Void> requestResponse = client.ingest(
+            new VitamContext(TENANT_ID),
+            firstStream,
+            CONTEXT_ID,
+            EXECUTION_MODE
+        );
 
         assertEquals(requestResponse.getHttpCode(), 202);
     }
@@ -84,29 +85,30 @@ public class IngestExternalClientMockTest {
     public void givenNonEmptyLocalFileThenUploadWithSuccess() throws IngestExternalException, XMLStreamException {
         IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
+        final IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        RequestResponse<Void> requestResponse =
-            client.ingestLocal(new VitamContext(TENANT_ID), new LocalFile("path"), CONTEXT_ID, EXECUTION_MODE);
+        RequestResponse<Void> requestResponse = client.ingestLocal(
+            new VitamContext(TENANT_ID),
+            new LocalFile("path"),
+            CONTEXT_ID,
+            EXECUTION_MODE
+        );
 
         assertEquals(requestResponse.getHttpCode(), 202);
     }
 
     @Test
-    public void givenNonEmptyStreamWhenDownloadSuccess()
-        throws VitamClientException {
+    public void givenNonEmptyStreamWhenDownloadSuccess() throws VitamClientException {
         IngestExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
+        final IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final InputStream firstStream = StreamUtils.toInputStream("test");
-        final InputStream responseStream =
-            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
-                .readEntity(InputStream.class);
+        final InputStream responseStream = client
+            .downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
+            .readEntity(InputStream.class);
 
         assertNotNull(responseStream);
         try {

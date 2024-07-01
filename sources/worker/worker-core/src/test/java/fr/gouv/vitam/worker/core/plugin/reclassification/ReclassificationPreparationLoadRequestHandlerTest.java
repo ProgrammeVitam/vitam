@@ -92,22 +92,25 @@ import static org.mockito.Mockito.verify;
 @RunWithCustomExecutor
 public class ReclassificationPreparationLoadRequestHandlerTest {
 
-    private final static int MAX_BULK_THRESHOLD = 1000;
+    private static final int MAX_BULK_THRESHOLD = 1000;
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
+
     @Mock
     private AdminManagementClient adminManagementClient;
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
@@ -135,19 +138,26 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
 
         String objectId = GUIDFactory.newGUID().toString();
-        parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(operationId)
+        parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(operationId)
             .setObjectNameList(Lists.newArrayList(objectId))
-            .setObjectName(objectId).setCurrentStep("StepName");
+            .setObjectName(objectId)
+            .setCurrentStep("StepName");
 
-        reclassificationPreparationLoadRequestHandler =
-            new ReclassificationPreparationLoadRequestHandler(adminManagementClientFactory, metaDataClientFactory,
-                unitGraphInfoLoader, reclassificationRequestDslParser, MAX_BULK_THRESHOLD, 1000, 1000);
+        reclassificationPreparationLoadRequestHandler = new ReclassificationPreparationLoadRequestHandler(
+            adminManagementClientFactory,
+            metaDataClientFactory,
+            unitGraphInfoLoader,
+            reclassificationRequestDslParser,
+            MAX_BULK_THRESHOLD,
+            1000,
+            1000
+        );
     }
 
     @Test
     public void execute_GivenExceptionWhenLoadingJsonRequestFromWorkspaceThenExpectFatal() throws Exception {
-
         doThrow(ProcessingException.class).when(handlerIO).getJsonFromWorkspace("request.json");
 
         // When
@@ -159,10 +169,10 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
 
     @Test
     public void execute_GivenInvalidDslRequestThenExpectKO() throws Exception {
-
         // Given
         doThrow(InvalidParseOperationException.class)
-            .when(reclassificationRequestDslParser).parseReclassificationRequest(any());
+            .when(reclassificationRequestDslParser)
+            .parseReclassificationRequest(any());
 
         // When
         ItemStatus itemStatus = reclassificationPreparationLoadRequestHandler.execute(parameters, handlerIO);
@@ -170,13 +180,12 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
-            .isEqualTo(COULD_NOT_PARSE_RECLASSIFICATION_REQUEST);
+            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError()
+        ).isEqualTo(COULD_NOT_PARSE_RECLASSIFICATION_REQUEST);
     }
 
     @Test
     public void execute_GivenRequestWithTooManyQueriesThenExpectKO() throws Exception {
-
         // Given request with too many entries
         List<ParsedReclassificationDslRequestEntry> entries = new ArrayList<>();
         for (int i = 0; i < MAX_BULK_THRESHOLD + 1; i++) {
@@ -190,13 +199,12 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
-            .isEqualTo("Too many reclassification requests (count= 1001, max= 1000)");
+            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError()
+        ).isEqualTo("Too many reclassification requests (count= 1001, max= 1000)");
     }
 
     @Test
     public void execute_GivenNoAccessContractProvidedThenKO() throws Exception {
-
         // Given
         givenDslRequests(mock(ParsedReclassificationDslRequestEntry.class));
 
@@ -208,13 +216,12 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
-            .isEqualTo(NO_ACCESS_CONTRACT_PROVIDED);
+            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError()
+        ).isEqualTo(NO_ACCESS_CONTRACT_PROVIDED);
     }
 
     @Test
     public void execute_GivenAccessContractNotFoundThenKO() throws Exception {
-
         // Given
         givenDslRequests(mock(ParsedReclassificationDslRequestEntry.class));
 
@@ -229,13 +236,12 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
-            .isEqualTo(ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE);
+            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError()
+        ).isEqualTo(ACCESS_CONTRACT_NOT_FOUND_OR_NOT_ACTIVE);
     }
 
     @Test
     public void execute_GivenDocumentIdsNotFoundViaAccessContractThenExpectKO() throws Exception {
-
         // Given
         AccessContractModel accessContract = givenExistingAccessContract();
 
@@ -258,25 +264,29 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
-            itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getError()).isEqualTo(ACCESS_DENIED_OR_MISSING_UNITS);
         assertThat(eventDetails.getMissingOrForbiddenUnits()).containsExactlyInAnyOrder("id1", "id3", "id4");
     }
 
     @Test
     public void execute_EmptyChildUnitIdsViaAccessContractThenExpectKO() throws Exception {
-
         // Given
         AccessContractModel accessContract = givenExistingAccessContract();
 
         SelectMultiQuery fakeSelectMultiQuery = mock(SelectMultiQuery.class);
-        givenDslRequests(new ParsedReclassificationDslRequestEntry(
-            fakeSelectMultiQuery,
-            new HashSet<>(Arrays.asList("id1")),
-            new HashSet<>(Arrays.asList("id2"))
-        ));
+        givenDslRequests(
+            new ParsedReclassificationDslRequestEntry(
+                fakeSelectMultiQuery,
+                new HashSet<>(Arrays.asList("id1")),
+                new HashSet<>(Arrays.asList("id2"))
+            )
+        );
         givenAccessibleParentUnitIds(accessContract, "id1", "id2");
-        doReturn(Collections.emptySet()).when(unitGraphInfoLoader)
+        doReturn(Collections.emptySet())
+            .when(unitGraphInfoLoader)
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery, accessContract);
 
         // When
@@ -285,13 +295,14 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
-            itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getError()).isEqualTo(NO_UNITS_TO_UPDATE);
     }
 
     @Test
     public void execute_GivenAttachmentAndDetachmentOfSameParentThenExpectKO() throws Exception {
-
         // Given
         AccessContractModel accessContract = givenExistingAccessContract();
 
@@ -310,9 +321,11 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         givenDslRequests(entry1, entry2);
         givenAccessibleParentUnitIds(accessContract, "id1", "id2", "id3");
 
-        doReturn(new HashSet<>(Arrays.asList("id4"))).when(unitGraphInfoLoader)
+        doReturn(new HashSet<>(Arrays.asList("id4")))
+            .when(unitGraphInfoLoader)
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery1, accessContract);
-        doReturn(new HashSet<>(Arrays.asList("id4", "id5"))).when(unitGraphInfoLoader)
+        doReturn(new HashSet<>(Arrays.asList("id4", "id5")))
+            .when(unitGraphInfoLoader)
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery2, accessContract);
 
         // When
@@ -321,13 +334,14 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
-            itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getError()).isEqualTo(CANNOT_ATTACH_DETACH_SAME_PARENT_UNITS);
     }
 
     @Test
     public void execute_testOK() throws Exception {
-
         // Given
         AccessContractModel accessContract = givenExistingAccessContract();
 
@@ -346,9 +360,11 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         givenDslRequests(entry1, entry2);
         givenAccessibleParentUnitIds(accessContract, "id1", "id2", "id3", "id4");
 
-        doReturn(new HashSet<>(Arrays.asList("id5"))).when(unitGraphInfoLoader)
+        doReturn(new HashSet<>(Arrays.asList("id5")))
+            .when(unitGraphInfoLoader)
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery1, accessContract);
-        doReturn(new HashSet<>(Arrays.asList("id2", "id5"))).when(unitGraphInfoLoader)
+        doReturn(new HashSet<>(Arrays.asList("id2", "id5")))
+            .when(unitGraphInfoLoader)
             .selectUnitsByQueryDslAndAccessContract(metaDataClient, fakeSelectMultiQuery2, accessContract);
 
         // When
@@ -356,28 +372,30 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        ArgumentCaptor<ReclassificationOrders> reclassificationOrdersArgumentCaptor
-            = ArgumentCaptor.forClass(ReclassificationOrders.class);
+        ArgumentCaptor<ReclassificationOrders> reclassificationOrdersArgumentCaptor = ArgumentCaptor.forClass(
+            ReclassificationOrders.class
+        );
         verify(handlerIO).addOutputResult(eq(0), reclassificationOrdersArgumentCaptor.capture(), eq(false));
         ReclassificationOrders reclassificationOrders = reclassificationOrdersArgumentCaptor.getValue();
 
         assertThat(reclassificationOrders.getChildToParentAttachments().keySet()).hasSize(2);
 
-        assertThat(reclassificationOrders.getChildToParentAttachments().get("id5"))
-            .containsExactlyInAnyOrder("id1", "id2", "id4");
+        assertThat(reclassificationOrders.getChildToParentAttachments().get("id5")).containsExactlyInAnyOrder(
+            "id1",
+            "id2",
+            "id4"
+        );
         assertThat(reclassificationOrders.getChildToParentAttachments().get("id2")).containsExactlyInAnyOrder("id4");
 
         assertThat(reclassificationOrders.getChildToParentDetachments().keySet()).hasSize(1);
         assertThat(reclassificationOrders.getChildToParentDetachments().get("id5")).containsExactlyInAnyOrder("id3");
-
     }
 
-    private void givenAccessibleParentUnitIds(AccessContractModel accessContract,
-        String... ids)
-        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException,
-        MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
+    private void givenAccessibleParentUnitIds(AccessContractModel accessContract, String... ids)
+        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
         doReturn(new HashSet<>(Arrays.asList(ids)))
-            .when(unitGraphInfoLoader).selectUnitsByIdsAndAccessContract(any(), any(), eq(accessContract));
+            .when(unitGraphInfoLoader)
+            .selectUnitsByIdsAndAccessContract(any(), any(), eq(accessContract));
     }
 
     private AccessContractModel givenExistingAccessContract()
@@ -385,17 +403,17 @@ public class ReclassificationPreparationLoadRequestHandlerTest {
         String accessContractId = "ContractId";
         VitamThreadUtils.getVitamSession().setContractId(accessContractId);
         AccessContractModel accessContractModel = mock(AccessContractModel.class);
-        doReturn(new RequestResponseOK<>().addResult(accessContractModel)).when(adminManagementClient)
+        doReturn(new RequestResponseOK<>().addResult(accessContractModel))
+            .when(adminManagementClient)
             .findAccessContracts(any());
         return accessContractModel;
     }
 
-    private void givenDslRequests(ParsedReclassificationDslRequestEntry... entries)
-        throws Exception {
-
+    private void givenDslRequests(ParsedReclassificationDslRequestEntry... entries) throws Exception {
         JsonNode fake = mock(JsonNode.class);
         doReturn(fake).when(handlerIO).getJsonFromWorkspace("request.json");
-        doReturn(new ParsedReclassificationDslRequest(Arrays.asList(entries))).when(reclassificationRequestDslParser)
+        doReturn(new ParsedReclassificationDslRequest(Arrays.asList(entries)))
+            .when(reclassificationRequestDslParser)
             .parseReclassificationRequest(fake);
     }
 }

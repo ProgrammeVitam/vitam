@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * MetaDataException the father of all metadata exception
  */
 public class MetaDataException extends VitamException {
+
     /**
      *
      */

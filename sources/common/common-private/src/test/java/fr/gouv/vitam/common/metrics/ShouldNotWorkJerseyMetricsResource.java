@@ -36,7 +36,7 @@ import java.util.Set;
 @Path("/home3")
 public class ShouldNotWorkJerseyMetricsResource {
 
-    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList());
+    public static final Set<String> expectedNames = new HashSet<>(Arrays.asList());
 
     public Response unreachableMethod() {
         throw new UnsupportedOperationException("Not implemented");

@@ -59,27 +59,33 @@ public class ItemStatus {
 
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
+
     @JsonProperty("subTaskStatus")
     private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
-
     @JsonProperty("itemId")
     private String itemId;
+
     @JsonProperty("message")
     protected String message;
+
     @JsonProperty("globalStatus")
     private StatusCode globalStatus;
+
     @JsonProperty("statusMeter")
     private List<Integer> statusMeter;
+
     @JsonProperty("data")
     protected Map<String, Object> data;
+
     @JsonProperty("globalState")
     private ProcessState globalState;
+
     @JsonProperty("globalOutcomeDetailSubcode")
     private String globalOutcomeDetailSubcode;
+
     @JsonProperty("lifecycleEnable")
     private boolean lifecycleEnable = true;
-
 
     @JsonIgnore
     private String logbookTypeProcess;
@@ -92,14 +98,17 @@ public class ItemStatus {
 
         globalStatus = StatusCode.UNKNOWN;
         data = new HashMap<>();
-
     }
 
-    public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
+    public ItemStatus(
+        @JsonProperty("itemId") String itemId,
+        @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
-        @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
+        @JsonProperty("statusMeter") List<Integer> statusMeter,
+        @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
-        @JsonProperty("globalState") ProcessState globalState) {
+        @JsonProperty("globalState") ProcessState globalState
+    ) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
@@ -107,7 +116,6 @@ public class ItemStatus {
         this.statusMeter = statusMeter;
         this.data = data;
         this.globalState = globalState;
-
     }
 
     /**
@@ -183,8 +191,7 @@ public class ItemStatus {
     public ItemStatus increment(StatusCode statusCode, int increment) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, statusCode);
         // update statusMeter
-        statusMeter.set(statusCode.getStatusLevel(),
-            increment + statusMeter.get(statusCode.getStatusLevel()));
+        statusMeter.set(statusCode.getStatusLevel(), increment + statusMeter.get(statusCode.getStatusLevel()));
         // update globalStatus
         globalStatus = globalStatus.compareTo(statusCode) > 0 ? globalStatus : statusCode;
 
@@ -200,28 +207,31 @@ public class ItemStatus {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemStatus1, itemStatus2);
         // update statusMeter
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
-            itemStatus1.getStatusMeter().set(i,
-                itemStatus1.getStatusMeter().get(i) + itemStatus2.getStatusMeter().get(i));
+            itemStatus1
+                .getStatusMeter()
+                .set(i, itemStatus1.getStatusMeter().get(i) + itemStatus2.getStatusMeter().get(i));
         }
         // update globalStatus
         itemStatus1.setGlobalStatus(
-            itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1 ? itemStatus1.getGlobalStatus()
-                : itemStatus2.getGlobalStatus());
+            itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1
+                ? itemStatus1.getGlobalStatus()
+                : itemStatus2.getGlobalStatus()
+        );
 
         // update itemStatus
         Set<String> keySet1 = itemStatus1.getItemsStatus().keySet();
         Set<String> keySet2 = itemStatus2.getItemsStatus().keySet();
         for (String key : keySet2) {
             if (keySet1.contains(key) && !key.equals(itemStatus1.getItemId())) {
-                itemStatus1.getItemsStatus().put(key, increment(
-                    itemStatus1.getItemsStatus().get(key),
-                    itemStatus2.getItemsStatus().get(key)
-                ));
+                itemStatus1
+                    .getItemsStatus()
+                    .put(key, increment(itemStatus1.getItemsStatus().get(key), itemStatus2.getItemsStatus().get(key)));
             }
         }
 
-        if (itemStatus2.getGlobalOutcomeDetailSubcode() != null &&
-            itemStatus1.getGlobalOutcomeDetailSubcode() == null) {
+        if (
+            itemStatus2.getGlobalOutcomeDetailSubcode() != null && itemStatus1.getGlobalOutcomeDetailSubcode() == null
+        ) {
             itemStatus1.setGlobalOutcomeDetailSubcode(itemStatus2.getGlobalOutcomeDetailSubcode());
         }
 
@@ -234,7 +244,6 @@ public class ItemStatus {
     public StatusCode getGlobalStatus() {
         return globalStatus;
     }
-
 
     /**
      * @param globalStatus the globalStatus to set
@@ -275,7 +284,6 @@ public class ItemStatus {
         return this;
     }
 
-
     /**
      * @return masterData
      */
@@ -305,7 +313,6 @@ public class ItemStatus {
         return computeMessage.toString();
     }
 
-
     /**
      * @return the itemsStatus
      */
@@ -317,9 +324,11 @@ public class ItemStatus {
         return setItemsStatus(itemId, statusDetails, StatusAggregationBehavior.DEFAULT);
     }
 
-    public ItemStatus setItemsStatus(String itemId, ItemStatus statusDetails,
-        StatusAggregationBehavior statusAggregationBehavior) {
-
+    public ItemStatus setItemsStatus(
+        String itemId,
+        ItemStatus statusDetails,
+        StatusAggregationBehavior statusAggregationBehavior
+    ) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemId, statusDetails);
         // update itemStatus
 
@@ -330,8 +339,10 @@ public class ItemStatus {
         }
 
         // update globalStatus
-        if (StatusAggregationBehavior.KO_CAUSES_WARNING.equals(statusAggregationBehavior)
-            && KO.equals(statusDetails.getGlobalStatus())) {
+        if (
+            StatusAggregationBehavior.KO_CAUSES_WARNING.equals(statusAggregationBehavior) &&
+            KO.equals(statusDetails.getGlobalStatus())
+        ) {
             globalStatus = WARNING;
         } else {
             globalStatus = globalStatus.compareTo(statusDetails.getGlobalStatus()) > 0
@@ -363,24 +374,27 @@ public class ItemStatus {
      * @return this
      */
     public ItemStatus setItemsStatus(ItemStatus compositeItemStatus) {
-
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, compositeItemStatus);
         // update statusMeter, globalStatus
         // As now we bulk in worker, we have to increment by status meter of the current status code
-        increment(compositeItemStatus.getGlobalStatus(),
-            compositeItemStatus.getStatusMeter().get(compositeItemStatus.getGlobalStatus().ordinal()));
+        increment(
+            compositeItemStatus.getGlobalStatus(),
+            compositeItemStatus.getStatusMeter().get(compositeItemStatus.getGlobalStatus().ordinal())
+        );
 
         if (compositeItemStatus.getItemsStatus() != null && !compositeItemStatus.getItemsStatus().isEmpty()) {
             // update itemStatus
-            for (final Entry<String, ItemStatus> itemStatus : compositeItemStatus.getItemsStatus()
-                .entrySet()) {
+            for (final Entry<String, ItemStatus> itemStatus : compositeItemStatus.getItemsStatus().entrySet()) {
                 final String key = itemStatus.getKey();
                 final ItemStatus value = itemStatus.getValue();
                 final ItemStatus is = itemsStatus.get(key);
 
                 if (is != null) {
-                    if (value.getGlobalStatus().isGreaterOrEqualToKo() && null != value.getData() &&
-                        value.getData().size() > 0) {
+                    if (
+                        value.getGlobalStatus().isGreaterOrEqualToKo() &&
+                        null != value.getData() &&
+                        value.getData().size() > 0
+                    ) {
                         is.getData().putAll(value.getData());
                     }
 
@@ -429,8 +443,7 @@ public class ItemStatus {
      */
     @JsonIgnore
     public boolean shallStop(boolean blocking) {
-        return getGlobalStatus().isGreaterOrEqualToFatal() ||
-            blocking && getGlobalStatus().isGreaterOrEqualToKo();
+        return getGlobalStatus().isGreaterOrEqualToFatal() || (blocking && getGlobalStatus().isGreaterOrEqualToKo());
     }
 
     /**
@@ -462,14 +475,12 @@ public class ItemStatus {
      */
     @JsonIgnore
     public String getEvDetailData() {
-
         String evDetailData = (String) data.get(EVENT_DETAIL_DATA);
         if (Strings.isNullOrEmpty(evDetailData)) {
             return "{}";
         }
         return evDetailData;
     }
-
 
     /**
      * set EvDetailData
@@ -501,12 +512,10 @@ public class ItemStatus {
     private void computeEvDetData(ItemStatus statusDetails) {
         String detailDataString = "";
 
-        if (!Strings.isNullOrEmpty(statusDetails.getEvDetailData()) &&
-            data.containsKey(EVENT_DETAIL_DATA)) {
+        if (!Strings.isNullOrEmpty(statusDetails.getEvDetailData()) && data.containsKey(EVENT_DETAIL_DATA)) {
             try {
                 ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(statusDetails.getEvDetailData());
-                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) data.get(EVENT_DETAIL_DATA));
+                ObjectNode detailData = (ObjectNode) JsonHandler.getFromString((String) data.get(EVENT_DETAIL_DATA));
                 subDetailData.setAll(detailData);
                 detailDataString = JsonHandler.unprettyPrint(subDetailData);
             } catch (InvalidParseOperationException e) {
@@ -519,16 +528,19 @@ public class ItemStatus {
         }
     }
 
-
     private void computeMasterData(ItemStatus statusDetails) {
         String detailDataString = "";
-        if (statusDetails.getMasterData().containsKey(EVENT_DETAIL_DATA) &&
-            getMasterData().containsKey(EVENT_DETAIL_DATA)) {
+        if (
+            statusDetails.getMasterData().containsKey(EVENT_DETAIL_DATA) &&
+            getMasterData().containsKey(EVENT_DETAIL_DATA)
+        ) {
             try {
                 ObjectNode subDetailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) statusDetails.getMasterData().get(EVENT_DETAIL_DATA));
+                    (String) statusDetails.getMasterData().get(EVENT_DETAIL_DATA)
+                );
                 ObjectNode detailData = (ObjectNode) JsonHandler.getFromString(
-                    (String) getMasterData().get(EVENT_DETAIL_DATA));
+                    (String) getMasterData().get(EVENT_DETAIL_DATA)
+                );
                 subDetailData.setAll(detailData);
                 detailDataString = JsonHandler.unprettyPrint(subDetailData);
             } catch (InvalidParseOperationException e) {
@@ -576,7 +588,6 @@ public class ItemStatus {
         for (int i = 0; i < this.statusMeter.size(); i++) {
             this.statusMeter.set(i, 0);
         }
-
     }
 
     public void clearStatusMeterFatal() {
@@ -586,25 +597,18 @@ public class ItemStatus {
         for (StatusCode statusCode : StatusCode.values()) {
             Integer count = this.statusMeter.get(statusCode.ordinal());
             if (count > 0) {
-                globalStatus = globalStatus.compareTo(statusCode) > 0
-                    ? globalStatus
-                    : statusCode;
+                globalStatus = globalStatus.compareTo(statusCode) > 0 ? globalStatus : statusCode;
             }
         }
 
         for (ItemStatus is : itemsStatus.values()) {
             is.clearStatusMeterFatal();
-            globalStatus = globalStatus.compareTo(is.globalStatus) > 0
-                ? globalStatus
-                : is.globalStatus;
+            globalStatus = globalStatus.compareTo(is.globalStatus) > 0 ? globalStatus : is.globalStatus;
         }
-
 
         for (ItemStatus is : subTaskStatus.values()) {
             is.clearStatusMeterFatal();
-            globalStatus = globalStatus.compareTo(is.globalStatus) > 0
-                ? globalStatus
-                : is.globalStatus;
+            globalStatus = globalStatus.compareTo(is.globalStatus) > 0 ? globalStatus : is.globalStatus;
         }
     }
 }

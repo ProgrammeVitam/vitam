@@ -30,6 +30,7 @@ package fr.gouv.vitam.ihmdemo.common.api;
  * Global Variables and eventually method used by REST services
  */
 public class IhmDataRest {
+
     /**
      * The X_LIMIT header, pagination limit
      */
@@ -48,5 +49,4 @@ public class IhmDataRest {
     private IhmDataRest() {
         // empty
     }
-
 }

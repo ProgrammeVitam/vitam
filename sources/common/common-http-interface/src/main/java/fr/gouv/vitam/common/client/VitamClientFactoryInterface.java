@@ -37,7 +37,6 @@ import java.util.Map;
  * @param <T> the type of the Vitam client returned
  */
 public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
-
     /**
      * Get the internal Http client
      *
@@ -139,7 +138,6 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
         /**
          * Use real service (need server to be set)
          */
-        PRODUCTION
+        PRODUCTION,
     }
-
 }

@@ -30,7 +30,5 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 
 public interface DocumentValidator {
-
     void validateDocument(JsonNode jsonNode) throws SchemaValidationException;
-
 }

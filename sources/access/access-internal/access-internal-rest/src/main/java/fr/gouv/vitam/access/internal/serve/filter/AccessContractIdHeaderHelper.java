@@ -65,15 +65,17 @@ public class AccessContractIdHeaderHelper {
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
      * @throws MissingAccessContractIdException
      */
-    public static void manageAccessContractFromHeader(MultivaluedMap<String, String> requestHeaders,
-        AdminManagementClientFactory adminManagementClientFactory) throws
-        MissingAccessContractIdException {
+    public static void manageAccessContractFromHeader(
+        MultivaluedMap<String, String> requestHeaders,
+        AdminManagementClientFactory adminManagementClientFactory
+    ) throws MissingAccessContractIdException {
         try (final AdminManagementClient client = adminManagementClientFactory.getClient()) {
             String headerAccessContractId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
             if (headerAccessContractId == null) {
                 throw new MissingAccessContractIdException(
-                    "Missing access contract header " + GlobalDataRest.X_ACCESS_CONTRAT_ID);
+                    "Missing access contract header " + GlobalDataRest.X_ACCESS_CONTRAT_ID
+                );
             }
 
             JsonNode queryDsl = getQueryDsl(headerAccessContractId);
@@ -82,7 +84,8 @@ public class AccessContractIdHeaderHelper {
             if (!response.isOk()) {
                 VitamError vitamError = (VitamError) response;
                 throw new MissingAccessContractIdException(
-                    vitamError.getMessage() + " : " + vitamError.getDescription());
+                    vitamError.getMessage() + " : " + vitamError.getDescription()
+                );
             }
 
             if (((RequestResponseOK<AccessContractModel>) response).getResults().size() == 0) {
@@ -91,20 +94,26 @@ public class AccessContractIdHeaderHelper {
 
             List<AccessContractModel> contracts = ((RequestResponseOK<AccessContractModel>) response).getResults();
             VitamThreadUtils.getVitamSession().setContract(contracts.get(0));
-        } catch (final VitamThreadAccessException | AdminManagementClientServerException |
-            InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (
+            final VitamThreadAccessException
+            | AdminManagementClientServerException
+            | InvalidParseOperationException
+            | InvalidCreateOperationException e
+        ) {
             throw new MissingAccessContractIdException(
                 "Got an exception while trying to check the access contract in the current session ; exception was : {}",
-                e);
+                e
+            );
         }
     }
 
-    private static JsonNode getQueryDsl(String headerAccessContractId)
-        throws InvalidCreateOperationException {
-
+    private static JsonNode getQueryDsl(String headerAccessContractId) throws InvalidCreateOperationException {
         Select select = new Select();
-        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContractId),
-            QueryHelper.eq(AccessContract.STATUS, ACTIVE_STATUS));
+        Query query = QueryHelper.and()
+            .add(
+                QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContractId),
+                QueryHelper.eq(AccessContract.STATUS, ACTIVE_STATUS)
+            );
         select.setQuery(query);
         JsonNode queryDsl = select.getFinalSelect();
 

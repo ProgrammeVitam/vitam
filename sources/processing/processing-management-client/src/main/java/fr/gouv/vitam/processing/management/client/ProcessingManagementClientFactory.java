@@ -40,6 +40,7 @@ import java.net.URISyntaxException;
  * ProcessingManagement factory for creating ProcessingManagement client
  */
 public class ProcessingManagementClientFactory extends VitamClientFactory<ProcessingManagementClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientFactory.class);
     private static final String RESOURCE_PATH = "/processing/v1";
     private static final String CONFIGURATION_FILENAME = "processing-client.conf";
@@ -88,17 +89,15 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
     static final ClientConfigurationImpl changeConfigurationFile(String configurationPath) {
         ClientConfigurationImpl configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER
-                .debug("Error when retrieving configuration file {}, using mock",
-                    CONFIGURATION_FILENAME,
-                    fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
         }
         return configuration;
     }
@@ -125,5 +124,4 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
     public static final void changeMode(ClientConfigurationImpl configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
-
 }

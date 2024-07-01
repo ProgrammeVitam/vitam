@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.transfer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class TransferReportHeader {
+
     private JsonNode dslQuery;
 
     public TransferReportHeader(JsonNode dslQuery) {

@@ -97,17 +97,30 @@ public class RestoreBackupService {
      */
     public Iterator<List<OfferLog>> getListing(String strategy, long offset, int limit)
         throws StorageServerClientException, StorageNotFoundClientException {
-        LOGGER.info(String.format(
-            "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
-            DataCategory.BACKUP_OPERATION.name(), strategy, offset, limit));
+        LOGGER.info(
+            String.format(
+                "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
+                DataCategory.BACKUP_OPERATION.name(),
+                strategy,
+                offset,
+                limit
+            )
+        );
 
         return Iterators.partition(
-            OfferLogHelper.getListing(storageClientFactory, strategy,
-                storageClientFactory.getClient().getReferentOffer(strategy), DataCategory.BACKUP_OPERATION, offset,
-                Order.ASC, VitamConfiguration.getBatchSize(), limit),
-            VitamConfiguration.getBatchSize());
+            OfferLogHelper.getListing(
+                storageClientFactory,
+                strategy,
+                storageClientFactory.getClient().getReferentOffer(strategy),
+                DataCategory.BACKUP_OPERATION,
+                offset,
+                Order.ASC,
+                VitamConfiguration.getBatchSize(),
+                limit
+            ),
+            VitamConfiguration.getBatchSize()
+        );
     }
-
 
     /**
      * Load data from storage
@@ -119,28 +132,43 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public LogbookBackupModel loadData(String strategy, String filename,
-        long offset) throws StorageNotFoundException {
-        LOGGER
-            .info(String.format(
+    public LogbookBackupModel loadData(String strategy, String filename, long offset) throws StorageNotFoundException {
+        LOGGER.info(
+            String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
-                filename, DataCategory.BACKUP_OPERATION.name(), strategy));
+                filename,
+                DataCategory.BACKUP_OPERATION.name(),
+                strategy
+            )
+        );
         InputStream inputStream = null;
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type = DataCategory.BACKUP_OPERATION;
             String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
-            response = storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, type,
-                AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(
+                strategy,
+                referentOfferForStrategy,
+                filename,
+                type,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             inputStream = response.readEntity(InputStream.class);
-            LogbookOperation logbookOperationDocument =
-                new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
+            LogbookOperation logbookOperationDocument = new LogbookOperation(
+                JsonHandler.getFromInputStream(inputStream, JsonNode.class)
+            );
             LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
             logbookBackupModel.setLogbookOperation(logbookOperationDocument);
             logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
             logbookBackupModel.setOffset(offset);
             return logbookBackupModel;
-        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            StorageServerClientException
+            | InvalidParseOperationException
+            | StorageNotFoundClientException
+            | StorageException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             StreamUtils.closeSilently(inputStream);

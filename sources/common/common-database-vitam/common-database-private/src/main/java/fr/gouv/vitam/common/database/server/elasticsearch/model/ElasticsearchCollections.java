@@ -32,7 +32,6 @@ import java.io.InputStream;
  * Elasticsearch Collections
  */
 public enum ElasticsearchCollections {
-
     /**
      * Unit Collection
      */

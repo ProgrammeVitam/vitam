@@ -63,5 +63,4 @@ public class StorageDriverNotFoundException extends StorageDriverException {
     public StorageDriverNotFoundException(String driverInfos, Throwable cause) {
         super(driverInfos, false, cause);
     }
-
 }

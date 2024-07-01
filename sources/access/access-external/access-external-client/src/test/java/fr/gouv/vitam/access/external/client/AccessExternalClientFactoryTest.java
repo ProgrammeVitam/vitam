@@ -39,11 +39,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AccessExternalClientFactoryTest {
+
     @Before
     public void initFileConfiguration() {
-        AccessExternalClientFactory
-            .changeMode(AccessExternalClientFactory.changeConfigurationFile("access-external-client-test.conf"));
-
+        AccessExternalClientFactory.changeMode(
+            AccessExternalClientFactory.changeConfigurationFile("access-external-client-test.conf")
+        );
     }
 
     @Test
@@ -51,57 +52,44 @@ public class AccessExternalClientFactoryTest {
         try {
             AccessExternalClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
             AccessExternalClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             AccessExternalClientFactory.changeMode(new ClientConfigurationImpl());
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         AccessExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
-        final AccessExternalClient client =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final AccessExternalClient client2 =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client2 = AccessExternalClientFactory.getInstance().getClient();
         assertNotNull(client2);
         assertNotSame(client, client2);
 
         AccessExternalClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AccessExternalClient client3 =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client3 = AccessExternalClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AccessExternalClientRest);
-
     }
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final AccessExternalClient client =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AccessExternalClientFactory.getInstance().getVitamClientType());
 
         AccessExternalClientFactory.changeMode((SecureClientConfiguration) null);
-        final AccessExternalClient client2 =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client2 = AccessExternalClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof AccessExternalClientMock);
         assertEquals(VitamClientType.MOCK, AccessExternalClientFactory.getInstance().getVitamClientType());
 
         AccessExternalClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AccessExternalClient client3 =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client3 = AccessExternalClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AccessExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AccessExternalClientFactory.getInstance().getVitamClientType());
     }
@@ -116,8 +104,7 @@ public class AccessExternalClientFactoryTest {
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        AccessExternalClientFactory.changeMode(
-            AccessExternalClientFactory.changeConfigurationFile("tmp"));
+        AccessExternalClientFactory.changeMode(AccessExternalClientFactory.changeConfigurationFile("tmp"));
         final AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessExternalClientMock);
         assertEquals(VitamClientType.MOCK, AccessExternalClientFactory.getInstance().getVitamClientType());
@@ -125,8 +112,7 @@ public class AccessExternalClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final AccessExternalClient client =
-            AccessExternalClientFactory.getInstance().getClient();
+        final AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AccessExternalClientFactory.getInstance().getVitamClientType());
     }

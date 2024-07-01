@@ -63,17 +63,31 @@ public class BulkStorageDistribution {
     private final int minSleepDelayBeforeRetry;
     private final int maxSleepDelayBeforeRetry;
 
-    public BulkStorageDistribution(int nbReties, WorkspaceClientFactory workspaceClientFactory,
-        StorageLog storageLogService, TransfertTimeoutHelper transfertTimeoutHelper) {
-        this(nbReties, storageLogService, VitamConfiguration.getDefaultDigestType(),
+    public BulkStorageDistribution(
+        int nbReties,
+        WorkspaceClientFactory workspaceClientFactory,
+        StorageLog storageLogService,
+        TransfertTimeoutHelper transfertTimeoutHelper
+    ) {
+        this(
+            nbReties,
+            storageLogService,
+            VitamConfiguration.getDefaultDigestType(),
             new BulkPutTransferManager(workspaceClientFactory, transfertTimeoutHelper),
-            MIN_SLEEP_DELAY_BEFORE_RETRY, MAX_SLEEP_DELAY_BEFORE_RETRY);
+            MIN_SLEEP_DELAY_BEFORE_RETRY,
+            MAX_SLEEP_DELAY_BEFORE_RETRY
+        );
     }
 
     @VisibleForTesting
-    BulkStorageDistribution(int nbReties, StorageLog storageLogService,
-        DigestType digestType, BulkPutTransferManager bulkPutTransferManager, int minSleepDelayBeforeRetry,
-        int maxSleepDelayBeforeRetry) {
+    BulkStorageDistribution(
+        int nbReties,
+        StorageLog storageLogService,
+        DigestType digestType,
+        BulkPutTransferManager bulkPutTransferManager,
+        int minSleepDelayBeforeRetry,
+        int maxSleepDelayBeforeRetry
+    ) {
         this.nbReties = nbReties;
         this.storageLogService = storageLogService;
         this.digestType = digestType;
@@ -82,33 +96,46 @@ public class BulkStorageDistribution {
         this.maxSleepDelayBeforeRetry = maxSleepDelayBeforeRetry;
     }
 
-    public Map<String, String> bulkCreateFromWorkspaceWithRetries(String strategyId, int tenantId,
-        List<String> allOfferIds, Map<String, Driver> storageDrivers,
+    public Map<String, String> bulkCreateFromWorkspaceWithRetries(
+        String strategyId,
+        int tenantId,
+        List<String> allOfferIds,
+        Map<String, Driver> storageDrivers,
         Map<String, StorageOffer> storageOffers,
-        DataCategory dataCategory, String workspaceContainerGUID,
-        List<String> workspaceObjectURIs, List<String> objectIds, String requester)
-        throws StorageException {
-
+        DataCategory dataCategory,
+        String workspaceContainerGUID,
+        List<String> workspaceObjectURIs,
+        List<String> objectIds,
+        String requester
+    ) throws StorageException {
         List<String> remainingOfferIds = new ArrayList<>(allOfferIds);
         Map<String, ObjectInfo> objectInfos = null;
 
         List<String> events = new ArrayList<>();
 
         try {
-
             for (int attempt = 1; attempt <= nbReties; attempt++) {
-
-                BulkPutResult bulkOutResult =
-                    bulkPutTransferManager.bulkSendDataToOffers(workspaceContainerGUID, strategyId, attempt, tenantId,
-                        dataCategory, remainingOfferIds, storageDrivers, storageOffers, workspaceObjectURIs, objectIds);
+                BulkPutResult bulkOutResult = bulkPutTransferManager.bulkSendDataToOffers(
+                    workspaceContainerGUID,
+                    strategyId,
+                    attempt,
+                    tenantId,
+                    dataCategory,
+                    remainingOfferIds,
+                    storageDrivers,
+                    storageOffers,
+                    workspaceObjectURIs,
+                    objectIds
+                );
 
                 if (bulkOutResult.getObjectInfos() != null) {
-                    objectInfos = bulkOutResult.getObjectInfos().stream()
+                    objectInfos = bulkOutResult
+                        .getObjectInfos()
+                        .stream()
                         .collect(Collectors.toMap(ObjectInfo::getObjectId, objectInfo -> objectInfo));
                 }
 
                 for (Map.Entry<String, OfferBulkPutStatus> entry : bulkOutResult.getStatusByOfferIds().entrySet()) {
-
                     String offerId = entry.getKey();
                     OfferBulkPutStatus status = entry.getValue();
 
@@ -119,15 +146,19 @@ public class BulkStorageDistribution {
                     }
                 }
 
-                boolean hasBlockerError =
-                    bulkOutResult.getStatusByOfferIds().values().contains(OfferBulkPutStatus.BLOCKER);
+                boolean hasBlockerError = bulkOutResult
+                    .getStatusByOfferIds()
+                    .values()
+                    .contains(OfferBulkPutStatus.BLOCKER);
                 if (hasBlockerError) {
                     throw new StorageInconsistentStateException("A fatal error occurred during bulk object storage");
                 }
 
                 if (remainingOfferIds.isEmpty()) {
                     // Build response
-                    return objectInfos.entrySet().stream()
+                    return objectInfos
+                        .entrySet()
+                        .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getDigest()));
                 }
 
@@ -135,7 +166,6 @@ public class BulkStorageDistribution {
             }
 
             throw new StorageException("Could not proceed bulk put operation after " + nbReties + " attempts");
-
         } finally {
             // Log events to storage log
             logStorageEvents(tenantId, dataCategory, objectIds, requester, remainingOfferIds, objectInfos, events);
@@ -153,21 +183,26 @@ public class BulkStorageDistribution {
         }
     }
 
-    private void logStorageEvents(Integer tenantId, DataCategory dataCategory, List<String> objectIds, String requester,
-        List<String> remainingOfferIds, Map<String, ObjectInfo> objectInfos, List<String> events) {
+    private void logStorageEvents(
+        Integer tenantId,
+        DataCategory dataCategory,
+        List<String> objectIds,
+        String requester,
+        List<String> remainingOfferIds,
+        Map<String, ObjectInfo> objectInfos,
+        List<String> events
+    ) {
         for (String objectId : objectIds) {
-
-            StorageLogbookParameters parameters =
-                StorageLogbookParameters.createLogParameters(
-                    objectId,
-                    dataCategory.getFolder(),
-                    objectInfos != null ? objectInfos.get(objectId).getDigest() : null,
-                    digestType.getName(),
-                    objectInfos != null ? Long.toString(objectInfos.get(objectId).getSize()) : null,
-                    String.join(", ", events),
-                    requester,
-                    remainingOfferIds.isEmpty() ? StorageLogbookOutcome.OK : StorageLogbookOutcome.KO
-                );
+            StorageLogbookParameters parameters = StorageLogbookParameters.createLogParameters(
+                objectId,
+                dataCategory.getFolder(),
+                objectInfos != null ? objectInfos.get(objectId).getDigest() : null,
+                digestType.getName(),
+                objectInfos != null ? Long.toString(objectInfos.get(objectId).getSize()) : null,
+                String.join(", ", events),
+                requester,
+                remainingOfferIds.isEmpty() ? StorageLogbookOutcome.OK : StorageLogbookOutcome.KO
+            );
 
             try {
                 storageLogService.appendWriteLog(tenantId, parameters);

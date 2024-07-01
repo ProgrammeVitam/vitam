@@ -113,17 +113,19 @@ import static org.junit.Assert.assertEquals;
 public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(BackupAndReconstructionFunctionalAdminIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                AdminManagementMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        BackupAndReconstructionFunctionalAdminIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            AdminManagementMain.class
+        )
+    );
 
     private static final int TENANT_0 = 0;
     private static final int TENANT_1 = 1;
@@ -196,39 +198,46 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testReconstructionAgenciesOk() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository
-            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         // Import 1 document agencies
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
-                INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV), "agencies_1.csv");
+            client.importAgenciesFile(
+                PropertiesUtils.getResourceAsStream(INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV),
+                "agencies_1.csv"
+            );
         }
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
-        final VitamMongoRepository agenciesMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection());
+        final VitamMongoRepository agenciesMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.AGENCIES.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository agenciesEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.AGENCIES.getVitamCollection(),
-                functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.AGENCIES));
+        final VitamElasticsearchRepository agenciesEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.AGENCIES.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.AGENCIES)
+        );
 
         Optional<Document> agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isPresent();
         Document inMogo11 = agencyDoc.get();
         assertThat(inMogo11.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
         assertThat(inMogo11.getString("Name")).isEqualTo("agency 1");
-
 
         agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isPresent();
@@ -245,11 +254,15 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isEmpty();
 
-        FunctionalAdministrationReconstructionMetricsCache
-            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
-        ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager, reconstructionMetricsCache);
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+            new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+        ReconstructionServiceImpl reconstructionService = new ReconstructionServiceImpl(
+            vitamRepository,
+            new RestoreBackupServiceImpl(),
+            offsetRepository,
+            functionalAdminIndexManager,
+            reconstructionMetricsCache
+        );
 
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
 
@@ -265,7 +278,6 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inEs11Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
         assertThat(inEs11Reconstructed.getString("Name")).isEqualTo("agency 1");
 
-
         assertThat(inMogo11).isEqualTo(inMogo11Reconstructed);
         assertThat(inEs11).isEqualTo(inEs11Reconstructed);
 
@@ -274,10 +286,11 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         // Create and save some backup files for reconstruction.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
-                INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_2_CSV), "agencies_2.csv");
+            client.importAgenciesFile(
+                PropertiesUtils.getResourceAsStream(INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_2_CSV),
+                "agencies_2.csv"
+            );
         }
-
 
         agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isPresent();
@@ -318,7 +331,6 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
         assertThat(agencyDoc).isEmpty();
 
-
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
 
         agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
@@ -354,39 +366,45 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testReconstructionSecurityProfileOk() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         OffsetRepository offsetRepository;
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository
-            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         // Import 1 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles =
-                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
-            List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler
-                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
-                    });
+            File securityProfileFiles = PropertiesUtils.getResourceFile(
+                INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON
+            );
+            List<SecurityProfileModel> securityProfileModelList = JsonHandler.getFromFileAsTypeReference(
+                securityProfileFiles,
+                new TypeReference<>() {}
+            );
             client.importSecurityProfiles(securityProfileModelList);
         }
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
-        final VitamMongoRepository securityProfileMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository securityProfileEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-                functionalAdminIndexManager
-                    .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE)
+        );
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
@@ -409,13 +427,17 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
 
-        FunctionalAdministrationReconstructionMetricsCache
-            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+            new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
 
         // Reconstruction service
-        ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager, reconstructionMetricsCache);
+        ReconstructionServiceImpl reconstructionService = new ReconstructionServiceImpl(
+            vitamRepository,
+            new RestoreBackupServiceImpl(),
+            offsetRepository,
+            functionalAdminIndexManager,
+            reconstructionMetricsCache
+        );
         reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
 
         securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
@@ -430,19 +452,19 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inEs11Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inEs11Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_1");
 
-
         assertThat(inMogo11).isEqualTo(inMogo11Reconstructed);
         assertThat(inEs11).isEqualTo(inEs11Reconstructed);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         // Import 2 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles =
-                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
-            List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler
-                    .getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
-                    });
+            File securityProfileFiles = PropertiesUtils.getResourceFile(
+                INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON
+            );
+            List<SecurityProfileModel> securityProfileModelList = JsonHandler.getFromFileAsTypeReference(
+                securityProfileFiles,
+                new TypeReference<>() {}
+            );
             client.importSecurityProfiles(securityProfileModelList);
         }
 
@@ -520,7 +542,6 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testBackupAndReconstructAccessionRegisterDetailOk() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
         AccessionRegisterDetailModel register1;
@@ -530,42 +551,49 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         OffsetRepository offsetRepository;
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository
-            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         logicalClock.freezeTime();
 
-
         // Insert new register detail
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            register1 =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_1),
-                    AccessionRegisterDetailModel.class);
+            register1 = JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_1),
+                AccessionRegisterDetailModel.class
+            );
             client.createOrUpdateAccessionRegister(register1);
             logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
-            register2 =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_2),
-                    AccessionRegisterDetailModel.class);
+            register2 = JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_2),
+                AccessionRegisterDetailModel.class
+            );
             client.createOrUpdateAccessionRegister(register2);
             logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
-            register3 =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
-                    AccessionRegisterDetailModel.class);
+            register3 = JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
+                AccessionRegisterDetailModel.class
+            );
             client.createOrUpdateAccessionRegister(register3);
             logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
-
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            register4 =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_4),
-                    AccessionRegisterDetailModel.class);
+            register4 = JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_4),
+                AccessionRegisterDetailModel.class
+            );
             client.createOrUpdateAccessionRegister(register4);
             logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
         }
@@ -573,25 +601,27 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
-        final VitamMongoRepository ardMongo =
-            vitamRepository
-                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection());
+        final VitamMongoRepository ardMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository ardEs =
-            vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection(),
-                    functionalAdminIndexManager
-                        .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL));
+        final VitamElasticsearchRepository ardEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL
+            )
+        );
 
-        final VitamMongoRepository arsMongo =
-            vitamRepository
-                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection());
+        final VitamMongoRepository arsMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository arsEs =
-            vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection(),
-                    functionalAdminIndexManager
-                        .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+        final VitamElasticsearchRepository arsEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY
+            )
+        );
 
         Optional<Document> registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -607,7 +637,6 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         inMogo22Reconstructed = registerDetailDoc.get();
         assertThat(inMogo22Reconstructed.getString("Opc")).isEqualTo(register1.getOpc());
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register1.getEndDate());
-
 
         registerDetailDoc = ardMongo.getByID(register2.getId(), TENANT_1);
         assertThat(registerDetailDoc).isNotNull();
@@ -655,7 +684,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
 
         ArrayNode registerSummaryDocs = (ArrayNode) JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()));
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find())
+        );
 
         assertThat(registerSummaryDocs.size()).isEqualTo(3);
 
@@ -706,13 +736,17 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         registerDetailDoc = ardMongo.getByID(register4.getId(), TENANT_0);
         assertThat(registerDetailDoc).isEmpty();
 
-        FunctionalAdministrationReconstructionMetricsCache
-            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+            new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
 
         // Reconstruction service
-        ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager, reconstructionMetricsCache);
+        ReconstructionServiceImpl reconstructionService = new ReconstructionServiceImpl(
+            vitamRepository,
+            new RestoreBackupServiceImpl(),
+            offsetRepository,
+            functionalAdminIndexManager,
+            reconstructionMetricsCache
+        );
 
         // First reconstruct Accession Register Details + summary (with limit 2)
 
@@ -758,9 +792,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
         assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
 
-        registerSummaryDocs = (ArrayNode) JsonHandler
-            .toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()));
+        registerSummaryDocs = (ArrayNode) JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find())
+        );
 
         assertThat(registerSummaryDocs.size()).isEqualTo(3);
 
@@ -775,10 +809,16 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             assertEquals(9999, doc.get("ObjectSize").get("remained").asInt());
         }
 
-        long offset0 = offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
-        long offset1 = offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        long offset0 = offsetRepository.findOffsetBy(
+            TENANT_0,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+        );
+        long offset1 = offsetRepository.findOffsetBy(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+        );
         assertThat(offset0).isEqualTo(4L);
         assertThat(offset1).isEqualTo(2L);
 
@@ -832,9 +872,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(inMogo22Reconstructed.getString("EndDate")).isEqualTo(register4.getEndDate());
         assertThat(inMogo22Reconstructed.getInteger("_v")).isEqualTo(0);
 
-        registerSummaryDocs = (ArrayNode) JsonHandler
-            .toJsonNode(
-                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()));
+        registerSummaryDocs = (ArrayNode) JsonHandler.toJsonNode(
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find())
+        );
 
         assertThat(registerSummaryDocs.size()).isEqualTo(3);
 
@@ -868,45 +908,54 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             }
         }
 
-        long newOffset0 = offsetRepository.findOffsetBy(TENANT_0, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
-        long newOffset1 = offsetRepository.findOffsetBy(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        long newOffset0 = offsetRepository.findOffsetBy(
+            TENANT_0,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+        );
+        long newOffset1 = offsetRepository.findOffsetBy(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+        );
         assertThat(newOffset0).isEqualTo(4L);
         assertThat(newOffset1).isEqualTo(3L);
 
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        assertThat(reconstructionMetricsCache.getReconstructionLatency(
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 0)
+        assertThat(
+            reconstructionMetricsCache.getReconstructionLatency(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 0)
         ).isEqualTo(Duration.between(accessionRegisterDetailReconstructionDate, LocalDateUtil.now()));
 
-        assertThat(reconstructionMetricsCache.getReconstructionLatency(
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 1)
+        assertThat(
+            reconstructionMetricsCache.getReconstructionLatency(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 1)
         ).isEqualTo(Duration.between(accessionRegisterDetailReconstructionDate, LocalDateUtil.now()));
 
-        assertThat(reconstructionMetricsCache.getReconstructionLatency(
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 2)
+        assertThat(
+            reconstructionMetricsCache.getReconstructionLatency(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 2)
         ).isNull();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testBackupAndReconstructAccessionRegisterSymbolicOk() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
 
-
         OffsetRepository offsetRepository;
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository
-            .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(),
+            0L
+        );
 
         initializeDbWithUnitAndObjectGroupData();
 
@@ -921,37 +970,44 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
         ArrayNode registerSymbolicDocs = (ArrayNode) JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find()));
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find())
+        );
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(3);
         checkSymbolicRegisterResult(registerSymbolicDocs);
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
-        final VitamMongoRepository arsMongo =
-            vitamRepository
-                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
+        final VitamMongoRepository arsMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository arsEs =
-            vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection(),
-                    functionalAdminIndexManager
-                        .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC));
+        final VitamElasticsearchRepository arsEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC
+            )
+        );
 
         arsMongo.purge();
         arsEs.purge();
 
         registerSymbolicDocs = (ArrayNode) JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find()));
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find())
+        );
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(0);
 
-        FunctionalAdministrationReconstructionMetricsCache
-            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+            new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
 
         // Reconstruction service
-        ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager, reconstructionMetricsCache);
+        ReconstructionServiceImpl reconstructionService = new ReconstructionServiceImpl(
+            vitamRepository,
+            new RestoreBackupServiceImpl(),
+            offsetRepository,
+            functionalAdminIndexManager,
+            reconstructionMetricsCache
+        );
 
         LocalDateTime accessionRegisterReconstructionDate = LocalDateUtil.now();
 
@@ -963,40 +1019,54 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         reconstructionService.reconstructAccessionRegister(reconstructionItem);
 
         registerSymbolicDocs = (ArrayNode) JsonHandler.toJsonNode(
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find()));
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find())
+        );
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(3);
         checkSymbolicRegisterResult(registerSymbolicDocs);
 
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
 
-        assertThat(reconstructionMetricsCache.getReconstructionLatency(
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, 0)
+        assertThat(
+            reconstructionMetricsCache.getReconstructionLatency(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
+                0
+            )
         ).isNull();
-        assertThat(reconstructionMetricsCache.getReconstructionLatency(
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, 1)
+        assertThat(
+            reconstructionMetricsCache.getReconstructionLatency(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
+                1
+            )
         ).isEqualTo(Duration.between(accessionRegisterReconstructionDate, LocalDateUtil.now()));
-        assertThat(reconstructionMetricsCache.getReconstructionLatency(
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, 2)
+        assertThat(
+            reconstructionMetricsCache.getReconstructionLatency(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
+                2
+            )
         ).isNull();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testBackupAndReconstructAccessionRegisterSymbolicWithManyAgenciesOk() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
 
         OffsetRepository offsetRepository;
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository
-            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_0,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName(),
+            0L
+        );
 
         initializeDbWithManyUnitsAndObjectGroups();
 
@@ -1006,21 +1076,22 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             adminManagementClient.createAccessionRegisterSymbolic(Collections.singletonList(TENANT_0));
         }
 
-        long registerSymbolicSize =
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().countDocuments();
+        long registerSymbolicSize = FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection()
+            .countDocuments();
 
         assertThat(registerSymbolicSize).isEqualTo(16);
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
-        final VitamMongoRepository arsMongo =
-            vitamRepository
-                .getVitamMongoRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection());
+        final VitamMongoRepository arsMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository arsEs =
-            vitamRepository
-                .getVitamESRepository(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection(),
-                    functionalAdminIndexManager
-                        .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC));
+        final VitamElasticsearchRepository arsEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC
+            )
+        );
 
         arsMongo.purge();
         arsEs.purge();
@@ -1029,13 +1100,17 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         assertThat(registerSymbolicSize).isEqualTo(0);
 
-        FunctionalAdministrationReconstructionMetricsCache
-            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+            new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
 
         // Reconstruction service
-        ReconstructionServiceImpl reconstructionService =
-            new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager, reconstructionMetricsCache);
+        ReconstructionServiceImpl reconstructionService = new ReconstructionServiceImpl(
+            vitamRepository,
+            new RestoreBackupServiceImpl(),
+            offsetRepository,
+            functionalAdminIndexManager,
+            reconstructionMetricsCache
+        );
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
@@ -1072,7 +1147,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.UP, Lists.newArrayList())
             .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-            .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
+            .append(Unit.ORIGINATING_AGENCY, "OA1")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
         Document au2 = new Document(Unit.ID, "AU_2")
             .append(Unit.MAXDEPTH, 1)
@@ -1080,17 +1156,17 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.UP, Lists.newArrayList())
             .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
-        Document au3 =
-            new Document(Unit.ID, "AU_3")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.OG, "GOT_8")
-                .append(Unit.UP, Lists.newArrayList("AU_1"))
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
-                    Lists.newArrayList("OA1"));
+        Document au3 = new Document(Unit.ID, "AU_3")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_8")
+            .append(Unit.UP, Lists.newArrayList("AU_1"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA1")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
         Document au4 = new Document(Unit.ID, "AU_4")
             .append(Unit.MAXDEPTH, 1)
@@ -1099,8 +1175,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
             .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-            .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+            .append(Unit.ORIGINATING_AGENCY, "OA4")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au5 = new Document(Unit.ID, "AU_5")
             .append(Unit.MAXDEPTH, 1)
@@ -1108,7 +1184,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.UP, Lists.newArrayList("AU_2"))
             .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au6 = new Document(Unit.ID, "AU_6")
             .append(Unit.MAXDEPTH, 1)
@@ -1119,15 +1196,14 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
-        Document au7 =
-            new Document(Unit.ID, "AU_7")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.OG, "GOT_8")
-                .append(Unit.UP, Lists.newArrayList("AU_4"))
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
-                    Lists.newArrayList("OA4", "OA1", "OA2"));
+        Document au7 = new Document(Unit.ID, "AU_7")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_8")
+            .append(Unit.UP, Lists.newArrayList("AU_4"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA4")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au8 = new Document(Unit.ID, "AU_8")
             .append(Unit.MAXDEPTH, 1)
@@ -1136,8 +1212,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
             .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au9 = new Document(Unit.ID, "AU_9")
             .append(Unit.MAXDEPTH, 1)
@@ -1146,22 +1222,26 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
             .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-            .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
-        Document au10 =
-            new Document(Unit.ID, "AU_10")
-                .append(Unit.MAXDEPTH, 1)
-                .append(Unit.TENANT_ID, 1)
-                .append(Unit.OG, "GOT_10")
-                .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
-                    Lists.newArrayList("OA4", "OA1", "OA2"));
+        Document au10 = new Document(Unit.ID, "AU_10")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_10")
+            .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
+        VitamRepositoryFactory.get()
+            .getVitamESRepository(
+                MetadataCollections.UNIT.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)
+            )
+            .save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
@@ -1178,8 +1258,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
-            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
-                Lists.newArrayList("OA4", "OA1", "OA2"));
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2")
+            .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
         //Unit "AU_8", "AU_3", "AU_7" attached to got 8
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
@@ -1194,44 +1274,58 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
-        Document got10 =
-            new Document(ObjectGroup.ID, "GOT_10")
-                .append(Unit.TENANT_ID, 1)
-                .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
-                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
-                .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
+        Document got10 = new Document(ObjectGroup.ID, "GOT_10")
+            .append(Unit.TENANT_ID, 1)
+            .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+        VitamRepositoryFactory.get()
+            .getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
             .save(gots);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+        VitamRepositoryFactory.get()
+            .getVitamESRepository(
+                MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP)
+            )
             .save(gots);
     }
 
     private void initializeDbWithManyUnitsAndObjectGroups() throws IOException, DatabaseException {
         try (InputStream is = PropertiesUtils.getResourceAsStream("reconstruction/units.jsonl")) {
-            final Iterator<List<Document>> iterator =
-                Iterators.partition(new JsonLineGenericIterator<>(is, new TypeReference<>() {
-                }), 1000);
+            final Iterator<List<Document>> iterator = Iterators.partition(
+                new JsonLineGenericIterator<>(is, new TypeReference<>() {}),
+                1000
+            );
             while (iterator.hasNext()) {
                 List<Document> units = iterator.next();
-                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                VitamRepositoryFactory.get()
+                    .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                     .save(units);
-                VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-                    metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)).save(units);
+                VitamRepositoryFactory.get()
+                    .getVitamESRepository(
+                        MetadataCollections.UNIT.getVitamCollection(),
+                        metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)
+                    )
+                    .save(units);
             }
         }
         try (InputStream is = PropertiesUtils.getResourceAsStream("reconstruction/objectgroups.jsonl")) {
-            final Iterator<List<Document>> iterator =
-                Iterators.partition(new JsonLineGenericIterator<>(is, new TypeReference<>() {
-                }), 1000);
+            final Iterator<List<Document>> iterator = Iterators.partition(
+                new JsonLineGenericIterator<>(is, new TypeReference<>() {}),
+                1000
+            );
             while (iterator.hasNext()) {
                 List<Document> objectgroups = iterator.next();
                 VitamRepositoryFactory.get()
-                    .getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()).save(objectgroups);
-                VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-                        metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP))
+                    .getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+                    .save(objectgroups);
+                VitamRepositoryFactory.get()
+                    .getVitamESRepository(
+                        MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                        metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP)
+                    )
                     .save(objectgroups);
             }
         }
@@ -1240,51 +1334,61 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void importSecurityProfile_OK() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
-        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         List<SecurityProfileModel> securityProfileModelList;
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles =
-                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
-            securityProfileModelList =
-                JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
-                });
+            File securityProfileFiles = PropertiesUtils.getResourceFile(
+                INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON
+            );
+            securityProfileModelList = JsonHandler.getFromFileAsTypeReference(
+                securityProfileFiles,
+                new TypeReference<>() {}
+            );
             client.importSecurityProfiles(securityProfileModelList);
         }
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
-        final VitamMongoRepository securityProfileMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection()
+        );
 
-        final VitamElasticsearchRepository securityProfileEs =
-            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-                functionalAdminIndexManager
-                    .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE)
+        );
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
         Document inMogo11 = securityProfileyDoc.get();
         assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
-        assertThat(inMogo11.getList("Permissions", String.class).toString())
-            .isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+        assertThat(inMogo11.getList("Permissions", String.class).toString()).isEqualTo(
+            securityProfileModelList.get(0).getPermissions().toString()
+        );
 
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
         Document inEs11 = securityProfileyDoc.get();
         assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
-        assertThat(inEs11.getList("Permissions", String.class).toString())
-            .isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+        assertThat(inEs11.getList("Permissions", String.class).toString()).isEqualTo(
+            securityProfileModelList.get(0).getPermissions().toString()
+        );
 
         securityProfileMongo.purge();
         securityProfileEs.purge();
@@ -1294,29 +1398,34 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void importSecurityProfileUnknownPermission_KO() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
-        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         List<SecurityProfileModel> securityProfileModelList;
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             File securityProfileFiles = PropertiesUtils.getResourceFile(IMPORT_SECURITY_PROFILE_3_JSON);
-            securityProfileModelList =
-                JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
-                });
+            securityProfileModelList = JsonHandler.getFromFileAsTypeReference(
+                securityProfileFiles,
+                new TypeReference<>() {}
+            );
             assertThatThrownBy(() -> client.importSecurityProfiles(securityProfileModelList))
                 .isInstanceOf(AdminManagementClientServerException.class)
                 .hasMessageContaining("SecurityProfile service error")
@@ -1324,12 +1433,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         }
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
 
-        final VitamMongoRepository securityProfileMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
-        final VitamElasticsearchRepository securityProfileEs = vitamRepository
-            .getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-                functionalAdminIndexManager
-                    .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection()
+        );
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE)
+        );
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
@@ -1341,25 +1451,32 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void importSecurityProfileAndUpdatePermission_OK() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
-        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         List<SecurityProfileModel> securityProfileModelList;
         final String newPermission = "units:read";
         // import security profile
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles =
-                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
-            securityProfileModelList =
-                JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
-                });
+            File securityProfileFiles = PropertiesUtils.getResourceFile(
+                INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON
+            );
+            securityProfileModelList = JsonHandler.getFromFileAsTypeReference(
+                securityProfileFiles,
+                new TypeReference<>() {}
+            );
             client.importSecurityProfiles(securityProfileModelList);
 
             // update permissions in security profile
@@ -1377,28 +1494,31 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         }
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
-        final VitamMongoRepository securityProfileMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
-        final VitamElasticsearchRepository securityProfileEs = vitamRepository
-            .getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-                functionalAdminIndexManager
-                    .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection()
+        );
+        final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE)
+        );
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
         Document inMogo11 = securityProfileyDoc.get();
         assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
-        assertThat(inMogo11.getList("Permissions", String.class).toString())
-            .isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+        assertThat(inMogo11.getList("Permissions", String.class).toString()).isEqualTo(
+            securityProfileModelList.get(0).getPermissions().toString()
+        );
 
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
         Document inEs11 = securityProfileyDoc.get();
         assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
-        assertThat(inEs11.getList("Permissions", String.class).toString())
-            .isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+        assertThat(inEs11.getList("Permissions", String.class).toString()).isEqualTo(
+            securityProfileModelList.get(0).getPermissions().toString()
+        );
 
         securityProfileMongo.purge();
         securityProfileEs.purge();
@@ -1413,25 +1533,32 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void importSecurityProfileAndUpdateUnknownPermission_KO() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
-        offsetRepository.createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_1,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         List<SecurityProfileModel> securityProfileModelList;
         final String newPermission = "test:test";
         // import security profile
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles =
-                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
-            securityProfileModelList =
-                JsonHandler.getFromFileAsTypeReference(securityProfileFiles, new TypeReference<>() {
-                });
+            File securityProfileFiles = PropertiesUtils.getResourceFile(
+                INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON
+            );
+            securityProfileModelList = JsonHandler.getFromFileAsTypeReference(
+                securityProfileFiles,
+                new TypeReference<>() {}
+            );
             client.importSecurityProfiles(securityProfileModelList);
 
             // update permissions in security profile
@@ -1451,28 +1578,31 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         }
 
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
-        final VitamMongoRepository securityProfileMongo =
-            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection());
+        final VitamMongoRepository securityProfileMongo = vitamRepository.getVitamMongoRepository(
+            FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection()
+        );
         final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
             FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
-            functionalAdminIndexManager
-                .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE));
+            functionalAdminIndexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.SECURITY_PROFILE)
+        );
 
         Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
         Document inMogo11 = securityProfileyDoc.get();
         assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
-        assertThat(inMogo11.getList("Permissions", String.class).toString())
-            .isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+        assertThat(inMogo11.getList("Permissions", String.class).toString()).isEqualTo(
+            securityProfileModelList.get(0).getPermissions().toString()
+        );
 
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isPresent();
         Document inEs11 = securityProfileyDoc.get();
         assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
-        assertThat(inEs11.getList("Permissions", String.class).toString())
-            .isEqualTo(securityProfileModelList.get(0).getPermissions().toString());
+        assertThat(inEs11.getList("Permissions", String.class).toString()).isEqualTo(
+            securityProfileModelList.get(0).getPermissions().toString()
+        );
 
         securityProfileMongo.purge();
         securityProfileEs.purge();

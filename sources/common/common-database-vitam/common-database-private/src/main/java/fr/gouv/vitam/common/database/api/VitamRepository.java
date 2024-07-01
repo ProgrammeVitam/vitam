@@ -94,8 +94,6 @@ public interface VitamRepository {
      */
     void remove(String id, Integer tenant) throws DatabaseException;
 
-
-
     /**
      * Be careful when using this method
      * Remove by query
@@ -134,7 +132,6 @@ public interface VitamRepository {
      */
     long purge() throws DatabaseException;
 
-
     /**
      * Get vitam document by id
      *
@@ -144,7 +141,6 @@ public interface VitamRepository {
      * @throws DatabaseException in case error with database occurs
      */
     Optional<Document> getByID(String id, Integer tenant) throws DatabaseException;
-
 
     /**
      * find by identifier for all tenant

@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.engine.common.exception;
 
 public class StorageIllegalOperationException extends StorageException {
 
-
     public StorageIllegalOperationException(String message) {
         super(message);
     }

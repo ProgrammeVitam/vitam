@@ -40,9 +40,11 @@ public class DeleteGotVersionsReportService extends CommonReportService<Object> 
     }
 
     @VisibleForTesting
-    public DeleteGotVersionsReportService(BatchReportClientFactory reportFactory,
+    public DeleteGotVersionsReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.DELETE_GOT_VERSIONS, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

@@ -46,7 +46,6 @@ public class HeaderIdClientFilter implements ClientRequestFilter {
      */
     @Override
     public void filter(ClientRequestContext requestContext) {
-        HeaderIdHelper.putVitamIdFromSessionInHeader(requestContext.getHeaders(),
-            HeaderIdHelper.Context.REQUEST, 0);
+        HeaderIdHelper.putVitamIdFromSessionInHeader(requestContext.getHeaders(), HeaderIdHelper.Context.REQUEST, 0);
     }
 }

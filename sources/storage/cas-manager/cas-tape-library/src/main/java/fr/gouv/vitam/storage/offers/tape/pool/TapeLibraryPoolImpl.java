@@ -43,9 +43,11 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
     private final BlockingQueue<TapeRobotService> tapeRobotServicePool;
     private final ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool;
 
-    public TapeLibraryPoolImpl(String libraryIdentifier,
+    public TapeLibraryPoolImpl(
+        String libraryIdentifier,
         BlockingQueue<TapeRobotService> tapeRobotServicePool,
-        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool) {
+        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool
+    ) {
         this.libraryIdentifier = libraryIdentifier;
         this.tapeRobotServicePool = tapeRobotServicePool;
         this.tapeDriveServicePool = tapeDriveServicePool;
@@ -54,13 +56,11 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
     @Override
     public TapeRobotService checkoutRobotService() throws InterruptedException {
         return this.tapeRobotServicePool.take();
-
     }
 
     @Override
     public TapeRobotService checkoutRobotService(long timeout, TimeUnit unit) throws InterruptedException {
         return this.tapeRobotServicePool.poll(timeout, unit);
-
     }
 
     @Override

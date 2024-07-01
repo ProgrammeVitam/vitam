@@ -60,6 +60,7 @@ import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 public class VitamMongoRepository implements VitamRepository {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMongoRepository.class);
     private static final String NAME = "Name";
     private static final String ALL_PARAMS_REQUIRED = "All params are required";
@@ -85,11 +86,16 @@ public class VitamMongoRepository implements VitamRepository {
     public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, document);
         try {
-            ReplaceOneModel<Document> replaceOneModel =
-                new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
-                    new ReplaceOptions().upsert(true));
-            UpdateResult result = collection.replaceOne(replaceOneModel.getFilter(), replaceOneModel.getReplacement(),
-                replaceOneModel.getReplaceOptions());
+            ReplaceOneModel<Document> replaceOneModel = new ReplaceOneModel<>(
+                eq("_id", document.get("_id")),
+                document,
+                new ReplaceOptions().upsert(true)
+            );
+            UpdateResult result = collection.replaceOne(
+                replaceOneModel.getFilter(),
+                replaceOneModel.getReplacement(),
+                replaceOneModel.getReplaceOptions()
+            );
             if (result.getModifiedCount() > 0) {
                 return VitamRepositoryStatus.UPDATED;
             } else {
@@ -104,7 +110,8 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void save(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
-        List<InsertOneModel<Document>> insertOneModels = documents.stream()
+        List<InsertOneModel<Document>> insertOneModels = documents
+            .stream()
             .map(InsertOneModel::new)
             .collect(Collectors.toList());
         try {
@@ -117,9 +124,12 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void saveOrUpdate(List<Document> documents) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, collection, documents);
-        List<ReplaceOneModel<Document>> replaceOneModels = documents.stream()
-            .map(document -> new ReplaceOneModel<>(eq("_id", document.get("_id")), document,
-                new ReplaceOptions().upsert(true)))
+        List<ReplaceOneModel<Document>> replaceOneModels = documents
+            .stream()
+            .map(
+                document ->
+                    new ReplaceOneModel<>(eq("_id", document.get("_id")), document, new ReplaceOptions().upsert(true))
+            )
             .collect(Collectors.toList());
         try {
             collection.bulkWrite(replaceOneModels);
@@ -169,7 +179,8 @@ public class VitamMongoRepository implements VitamRepository {
         if (count == 0) {
             LOGGER.error(String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
             throw new DatabaseException(
-                String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant));
+                String.format("Error while removeByNameAndTenant> Name : %s and tenant: %s", name, tenant)
+            );
         }
     }
 
@@ -209,8 +220,7 @@ public class VitamMongoRepository implements VitamRepository {
     }
 
     @Override
-    public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
-        throws DatabaseException {
+    public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, identifier, tenant);
         Bson query = and(eq("Identifier", identifier), eq(VitamDocument.TENANT_ID, tenant));
         try {
@@ -218,11 +228,21 @@ public class VitamMongoRepository implements VitamRepository {
             return Optional.ofNullable(result);
         } catch (MongoException e) {
             LOGGER.error(
-                String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier,
-                    tenant), e);
+                String.format(
+                    "Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
+                    identifier,
+                    tenant
+                ),
+                e
+            );
             throw new DatabaseException(
-                String.format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s", identifier,
-                    tenant), e);
+                String.format(
+                    "Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
+                    identifier,
+                    tenant
+                ),
+                e
+            );
         }
     }
 
@@ -235,13 +255,18 @@ public class VitamMongoRepository implements VitamRepository {
         } catch (MongoException e) {
             LOGGER.error(String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
             throw new DatabaseException(
-                String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier), e);
+                String.format("Error while findByIdentifierAndTenant > identifier : %s", identifier),
+                e
+            );
         }
     }
 
     @Override
-    public FindIterable<Document> findByFieldsDocuments(Map<String, String> fields, int mongoBatchSize,
-        Integer tenant) {
+    public FindIterable<Document> findByFieldsDocuments(
+        Map<String, String> fields,
+        int mongoBatchSize,
+        Integer tenant
+    ) {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
         if (fields == null || fields.isEmpty()) {
             return findDocuments(mongoBatchSize, tenant);
@@ -280,10 +305,8 @@ public class VitamMongoRepository implements VitamRepository {
     @Override
     public void delete(List<String> ids, int tenant) {
         collection.deleteMany(
-            Filters.and(
-                Filters.in(VitamDocument.ID, ids),
-                Filters.eq(VitamDocument.TENANT_ID, tenant)
-            ));
+            Filters.and(Filters.in(VitamDocument.ID, ids), Filters.eq(VitamDocument.TENANT_ID, tenant))
+        );
     }
 
     @Override

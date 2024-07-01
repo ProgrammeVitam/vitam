@@ -70,9 +70,7 @@ public class LogbookParameterHelper {
     private static final Set<LogbookParameterName> genericMandatoryOperation;
     private static final Set<LogbookParameterName> genericMandatoryLifeCycle = new HashSet<>();
 
-
     static {
-
         genericMandatoryOperation = LogbookParametersFactory.getDefaultOperationMandatory();
 
         genericMandatoryLifeCycle.add(LogbookParameterName.eventIdentifier);
@@ -95,10 +93,8 @@ public class LogbookParameterHelper {
      * @param mandatoryFieldsToAdd set of LogbookParameterName to add to the default mandatory fields, can be null
      * @return the LogbookOperationParameters
      */
-    static LogbookOperationParameters newLogbookOperationParameters(
-        Set<LogbookParameterName> mandatoryFieldsToAdd) {
-        return new LogbookOperationParameters(
-            initLogbookOperationMandatoriesParameters(mandatoryFieldsToAdd));
+    static LogbookOperationParameters newLogbookOperationParameters(Set<LogbookParameterName> mandatoryFieldsToAdd) {
+        return new LogbookOperationParameters(initLogbookOperationMandatoriesParameters(mandatoryFieldsToAdd));
     }
 
     /**
@@ -108,9 +104,9 @@ public class LogbookParameterHelper {
      * @return the LogbookLifeCycleUnitParameters
      */
     static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters(
-        Set<LogbookParameterName> mandatoryFieldsToAdd) {
-        return new LogbookLifeCycleUnitParameters(
-            initLogbookLifeCycleMandatoriesParameters(mandatoryFieldsToAdd));
+        Set<LogbookParameterName> mandatoryFieldsToAdd
+    ) {
+        return new LogbookLifeCycleUnitParameters(initLogbookLifeCycleMandatoriesParameters(mandatoryFieldsToAdd));
     }
 
     /**
@@ -120,11 +116,12 @@ public class LogbookParameterHelper {
      * @return the LogbookLifeCycleObjectGroupParameters
      */
     static LogbookLifeCycleObjectGroupParameters newLogbookLifeCycleObjectGroupParameters(
-        Set<LogbookParameterName> mandatoryFieldsToAdd) {
+        Set<LogbookParameterName> mandatoryFieldsToAdd
+    ) {
         return new LogbookLifeCycleObjectGroupParameters(
-            initLogbookLifeCycleMandatoriesParameters(mandatoryFieldsToAdd));
+            initLogbookLifeCycleMandatoriesParameters(mandatoryFieldsToAdd)
+        );
     }
-
 
     /**
      * Get a new Empty LogbookOperationParameters object. <br>
@@ -133,8 +130,7 @@ public class LogbookParameterHelper {
      * @return the LogbookOperationParameters
      */
     public static LogbookOperationParameters newLogbookOperationParameters() {
-        return new LogbookOperationParameters(
-            initLogbookOperationMandatoriesParameters(null));
+        return new LogbookOperationParameters(initLogbookOperationMandatoriesParameters(null));
     }
 
     /**
@@ -144,8 +140,7 @@ public class LogbookParameterHelper {
      * @return the LogbookLifeCycleUnitParameters
      */
     public static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters() {
-        return new LogbookLifeCycleUnitParameters(
-            initLogbookLifeCycleMandatoriesParameters(null));
+        return new LogbookLifeCycleUnitParameters(initLogbookLifeCycleMandatoriesParameters(null));
     }
 
     /**
@@ -155,8 +150,7 @@ public class LogbookParameterHelper {
      * @return the LogbookLifeCycleObjectGroupParameters
      */
     public static LogbookLifeCycleObjectGroupParameters newLogbookLifeCycleObjectGroupParameters() {
-        return new LogbookLifeCycleObjectGroupParameters(
-            initLogbookLifeCycleMandatoriesParameters(null));
+        return new LogbookLifeCycleObjectGroupParameters(initLogbookLifeCycleMandatoriesParameters(null));
     }
 
     /**
@@ -172,11 +166,23 @@ public class LogbookParameterHelper {
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
-        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetailMessage, GUID eventIdentifierRequest) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
+    public static LogbookOperationParameters newLogbookOperationParameters(
+        GUID eventIdentifier,
+        String eventType,
+        GUID eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome,
+        String outcomeDetailMessage,
+        GUID eventIdentifierRequest
+    ) {
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventIdentifier,
+            eventIdentifierProcess,
+            eventIdentifierRequest,
+            outcome,
+            eventTypeProcess
+        );
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
         final LogbookOperationParameters parameters = newLogbookOperationParameters();
 
@@ -214,11 +220,24 @@ public class LogbookParameterHelper {
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static LogbookOperationParameters newLogbookOperationParameters(GUID eventIdentifier,
-        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String subtask, String appendedDetailMessage, GUID eventIdentifierRequest) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
+    public static LogbookOperationParameters newLogbookOperationParameters(
+        GUID eventIdentifier,
+        String eventType,
+        GUID eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome,
+        String subtask,
+        String appendedDetailMessage,
+        GUID eventIdentifierRequest
+    ) {
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventIdentifier,
+            eventIdentifierProcess,
+            eventIdentifierRequest,
+            outcome,
+            eventTypeProcess
+        );
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType);
 
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
@@ -251,14 +270,30 @@ public class LogbookParameterHelper {
      * @return the LogbookLifeCycleUnitParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters(GUID eventIdentifier,
-        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetail, String outcomeDetailMessage,
-        GUID objectIdentifier) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail,
-            outcomeDetailMessage);
+    public static LogbookLifeCycleUnitParameters newLogbookLifeCycleUnitParameters(
+        GUID eventIdentifier,
+        String eventType,
+        GUID eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome,
+        String outcomeDetail,
+        String outcomeDetailMessage,
+        GUID objectIdentifier
+    ) {
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventIdentifier,
+            eventIdentifierProcess,
+            eventTypeProcess,
+            outcome,
+            objectIdentifier
+        );
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventType,
+            outcomeDetail,
+            outcomeDetailMessage
+        );
         final LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters();
         return (LogbookLifeCycleUnitParameters) parameters
             .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
@@ -285,14 +320,30 @@ public class LogbookParameterHelper {
      * @return the LogbookLifeCycleObjectGroupParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static LogbookLifeCycleObjectGroupParameters newLogbookLifeCycleObjectGroupParameters(GUID eventIdentifier,
-        String eventType, GUID eventIdentifierProcess, LogbookTypeProcess eventTypeProcess,
-        StatusCode outcome, String outcomeDetail, String outcomeDetailMessage,
-        GUID objectIdentifier) {
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
-            eventIdentifierProcess, eventTypeProcess, outcome, objectIdentifier);
-        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetail,
-            outcomeDetailMessage);
+    public static LogbookLifeCycleObjectGroupParameters newLogbookLifeCycleObjectGroupParameters(
+        GUID eventIdentifier,
+        String eventType,
+        GUID eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome,
+        String outcomeDetail,
+        String outcomeDetailMessage,
+        GUID objectIdentifier
+    ) {
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventIdentifier,
+            eventIdentifierProcess,
+            eventTypeProcess,
+            outcome,
+            objectIdentifier
+        );
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventType,
+            outcomeDetail,
+            outcomeDetailMessage
+        );
         final LogbookLifeCycleObjectGroupParameters parameters = newLogbookLifeCycleObjectGroupParameters();
         return (LogbookLifeCycleObjectGroupParameters) parameters
             .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
@@ -317,7 +368,8 @@ public class LogbookParameterHelper {
      * @return the new Set of parameter names
      */
     private static Set<LogbookParameterName> initLogbookOperationMandatoriesParameters(
-        Set<LogbookParameterName> mandatoryFieldsToAdd) {
+        Set<LogbookParameterName> mandatoryFieldsToAdd
+    ) {
         final Set<LogbookParameterName> mandatory = new HashSet<>(genericMandatoryOperation);
         if (mandatoryFieldsToAdd != null) {
             mandatory.addAll(mandatoryFieldsToAdd);
@@ -330,13 +382,12 @@ public class LogbookParameterHelper {
      * @return the new Set of parameter names
      */
     private static Set<LogbookParameterName> initLogbookLifeCycleMandatoriesParameters(
-        Set<LogbookParameterName> mandatoryFieldsToAdd) {
+        Set<LogbookParameterName> mandatoryFieldsToAdd
+    ) {
         final Set<LogbookParameterName> mandatory = new HashSet<>(genericMandatoryLifeCycle);
         if (mandatoryFieldsToAdd != null) {
             mandatory.addAll(mandatoryFieldsToAdd);
         }
         return Collections.unmodifiableSet(mandatory);
     }
-
-
 }

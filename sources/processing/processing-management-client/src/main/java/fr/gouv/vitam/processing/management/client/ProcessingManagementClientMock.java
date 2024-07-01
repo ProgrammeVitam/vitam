@@ -76,10 +76,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, Collections.emptyMap(), null,
-            null);
+        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, Collections.emptyMap(), null, null);
     }
-
 
     @Override
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) {
@@ -90,15 +88,20 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        ItemStatus itemStatus =
-            new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, Collections.emptyMap(), null,
-                null);
+        ItemStatus itemStatus = new ItemStatus(
+            "FakeId",
+            "FakeMessage",
+            StatusCode.OK,
+            status,
+            Collections.emptyMap(),
+            null,
+            null
+        );
 
-        return new RequestResponseOK<ItemStatus>().addResult(itemStatus)
+        return new RequestResponseOK<ItemStatus>()
+            .addResult(itemStatus)
             .setHttpCode(StatusCode.OK.getEquivalentHttpStatus().getStatusCode());
     }
-
-
 
     @Override
     public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) {
@@ -109,39 +112,40 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        final ItemStatus itemStatus =
-            new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, Collections.emptyMap(), null,
-                null);
+        final ItemStatus itemStatus = new ItemStatus(
+            "FakeId",
+            "FakeMessage",
+            StatusCode.OK,
+            status,
+            Collections.emptyMap(),
+            null,
+            null
+        );
 
         return new RequestResponseOK<ItemStatus>().addResult(itemStatus);
     }
-
-
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) {
         return new RequestResponseOK<>();
     }
 
-
-
     @Override
     public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflow, String actionId) {
-        return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
-            FAKE_EXECUTION_STATUS);
+        return new RequestResponseOK<ItemStatus>().addHeader(
+            GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
+            FAKE_EXECUTION_STATUS
+        );
     }
 
     @Override
-    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription) {
-    }
+    public void registerWorker(String familyId, String workerId, WorkerBean workerDescription) {}
 
     @Override
-    public void unregisterWorker(String familyId, String workerId) {
-    }
+    public void unregisterWorker(String familyId, String workerId) {}
 
     @Override
-    public void initVitamProcess(String container, String workflowId) {
-    }
+    public void initVitamProcess(String container, String workflowId) {}
 
     @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) {
@@ -158,19 +162,29 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         WorkFlow workflow = new WorkFlow();
 
         List<Action> actions = new ArrayList<>();
-        actions.add(getAction("CHECK_DIGEST", ProcessBehavior.BLOCKING, new ArrayList<>(
-                Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))),
-            null));
+        actions.add(
+            getAction(
+                "CHECK_DIGEST",
+                ProcessBehavior.BLOCKING,
+                new ArrayList<>(
+                    Arrays.asList(new IOParameter().setName("algo").setUri(new ProcessingUri("VALUE", "SHA-512")))
+                ),
+                null
+            )
+        );
         actions.add(getAction("OG_OBJECTS_FORMAT_CHECK", ProcessBehavior.BLOCKING, null, null));
 
         List<Step> steps = new ArrayList<>();
-        steps.add(new Step()
-            .setWorkerGroupId("DefaultWorker")
-            .setStepName("STP_OG_CHECK_AND_TRANSFORME")
-            .setBehavior(ProcessBehavior.BLOCKING)
-            .setDistribution(
-                new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup"))
-            .setActions(actions));
+        steps.add(
+            new Step()
+                .setWorkerGroupId("DefaultWorker")
+                .setStepName("STP_OG_CHECK_AND_TRANSFORME")
+                .setBehavior(ProcessBehavior.BLOCKING)
+                .setDistribution(
+                    new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE).setElement("ObjectGroup")
+                )
+                .setActions(actions)
+        );
 
         workflow.setId("DefaultIngestWorkflow");
         workflow.setIdentifier("PROCESS_SIP_UNITARY");
@@ -189,9 +203,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
     @Override
-    public void initVitamProcess(ProcessingEntry entry) {
-
-    }
+    public void initVitamProcess(ProcessingEntry entry) {}
 
     /**
      * Create a POJO action
@@ -202,17 +214,19 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
      * @param out list of IO outs
      * @return Action object
      */
-    private Action getAction(String actionKey, ProcessBehavior actionBehavior, List<IOParameter> in,
-        List<IOParameter> out) {
+    private Action getAction(
+        String actionKey,
+        ProcessBehavior actionBehavior,
+        List<IOParameter> in,
+        List<IOParameter> out
+    ) {
         ActionDefinition actionDefinition = new ActionDefinition();
         actionDefinition.setActionKey(actionKey);
         actionDefinition.setBehavior(actionBehavior);
         actionDefinition.setIn(in);
         actionDefinition.setOut(out);
         return new Action().setActionDefinition(actionDefinition);
-
     }
-
 
     @Override
     public RequestResponse<ProcessPause> forcePause(ProcessPause info) {
@@ -223,6 +237,4 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) {
         return new RequestResponseOK<ProcessPause>().addResult(info).setHttpCode(Status.OK.getStatusCode());
     }
-
-
 }

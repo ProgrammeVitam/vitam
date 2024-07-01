@@ -68,9 +68,6 @@ public class BulkUnitInsertEntry {
 
     @Override
     public String toString() {
-        return "BulkUnitInsertEntry{" +
-            "parentUnitIds=" + parentUnitIds +
-            ", unit=" + unit +
-            '}';
+        return "BulkUnitInsertEntry{" + "parentUnitIds=" + parentUnitIds + ", unit=" + unit + '}';
     }
 }

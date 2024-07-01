@@ -37,6 +37,7 @@ import java.util.Map;
  * Update associated actions helper
  */
 public class UpdateActionHelper {
+
     protected UpdateActionHelper() {
         // empty
     }
@@ -112,8 +113,7 @@ public class UpdateActionHelper {
      * @return an IncAction using default value 1
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final IncAction inc(final String variableName)
-        throws InvalidCreateOperationException {
+    public static final IncAction inc(final String variableName) throws InvalidCreateOperationException {
         return new IncAction(variableName);
     }
 
@@ -288,8 +288,7 @@ public class UpdateActionHelper {
      * @return a PopAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final PopAction pop(final String variableName, final int way)
-        throws InvalidCreateOperationException {
+    public static final PopAction pop(final String variableName, final int way) throws InvalidCreateOperationException {
         return new PopAction(variableName, way);
     }
 
@@ -298,8 +297,7 @@ public class UpdateActionHelper {
      * @return a PopAction with default last position
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final PopAction pop(final String variableName)
-        throws InvalidCreateOperationException {
+    public static final PopAction pop(final String variableName) throws InvalidCreateOperationException {
         return new PopAction(variableName, 1);
     }
 
@@ -364,8 +362,7 @@ public class UpdateActionHelper {
      * @return a RenameAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final RenameAction rename(final String variableName,
-        final String newName)
+    public static final RenameAction rename(final String variableName, final String newName)
         throws InvalidCreateOperationException {
         return new RenameAction(variableName, newName);
     }
@@ -441,8 +438,7 @@ public class UpdateActionHelper {
      * @return a SectAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final SetAction set(final Map<String, ?> map)
-        throws InvalidCreateOperationException {
+    public static final SetAction set(final Map<String, ?> map) throws InvalidCreateOperationException {
         return new SetAction(map);
     }
 
@@ -451,8 +447,7 @@ public class UpdateActionHelper {
      * @return a SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final SetAction set(final ObjectNode node)
-        throws InvalidCreateOperationException {
+    public static final SetAction set(final ObjectNode node) throws InvalidCreateOperationException {
         return new SetAction(node);
     }
 
@@ -461,8 +456,7 @@ public class UpdateActionHelper {
      * @return an UnsetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public static final UnsetAction unset(final String... variableName)
-        throws InvalidCreateOperationException {
+    public static final UnsetAction unset(final String... variableName) throws InvalidCreateOperationException {
         return new UnsetAction(variableName);
     }
 }

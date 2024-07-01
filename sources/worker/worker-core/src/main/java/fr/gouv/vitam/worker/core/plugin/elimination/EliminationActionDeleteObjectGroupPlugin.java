@@ -48,8 +48,7 @@ public class EliminationActionDeleteObjectGroupPlugin extends PurgeDeleteObjectG
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationActionDeleteObjectGroupPlugin(
-        PurgeDeleteService purgeDeleteService) {
+    EliminationActionDeleteObjectGroupPlugin(PurgeDeleteService purgeDeleteService) {
         super(ELIMINATION_ACTION_DELETE_OBJECT_GROUP, purgeDeleteService);
     }
 

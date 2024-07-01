@@ -61,7 +61,6 @@ public class RuleMapper {
 
         List<RuleModel> rules = new ArrayList<>();
 
-
         for (Object ruleOrStartDate : rule.getRuleAndStartDate()) {
             if (ruleOrStartDate instanceof RuleIdType) {
                 ruleModel = new RuleModel();
@@ -87,8 +86,11 @@ public class RuleMapper {
 
         if (rule.getRefNonRuleId().size() > 0) {
             ruleUsed = true;
-            List<String> refNonRuleId =
-                rule.getRefNonRuleId().stream().map(RuleIdType::getValue).collect(Collectors.toList());
+            List<String> refNonRuleId = rule
+                .getRefNonRuleId()
+                .stream()
+                .map(RuleIdType::getValue)
+                .collect(Collectors.toList());
             ruleCategoryModel.addAllPreventRulesId(refNonRuleId);
         }
 
@@ -96,7 +98,6 @@ public class RuleMapper {
             return null;
         }
         return ruleCategoryModel;
-
     }
 
     public RuleCategoryModel fillHoldRule(HoldRuleType rule) {
@@ -164,8 +165,11 @@ public class RuleMapper {
 
         if (!rule.getRefNonRuleId().isEmpty()) {
             ruleUsed = true;
-            List<String> refNonRuleId =
-                rule.getRefNonRuleId().stream().map(RuleIdType::getValue).collect(Collectors.toList());
+            List<String> refNonRuleId = rule
+                .getRefNonRuleId()
+                .stream()
+                .map(RuleIdType::getValue)
+                .collect(Collectors.toList());
             ruleCategoryModel.addAllPreventRulesId(refNonRuleId);
         }
 

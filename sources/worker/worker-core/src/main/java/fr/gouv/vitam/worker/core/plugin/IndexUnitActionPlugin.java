@@ -120,7 +120,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
             List<QueryCache> queryCaches = new ArrayList<>();
 
             for (String objectId : workerParameters.getObjectNameList()) {
-
                 workerParameters.setObjectName(objectId);
                 handlerIO.setCurrentObjectId(objectId);
 
@@ -128,41 +127,54 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
                 QueryCache query = null;
                 try {
-
-                    query = indexArchiveUnit(workerParameters, workerParameters.getContainerName(),
-                        workerParameters.getObjectName(), handlerIO);
+                    query = indexArchiveUnit(
+                        workerParameters,
+                        workerParameters.getContainerName(),
+                        workerParameters.getObjectName(),
+                        handlerIO
+                    );
                     if (!query.update) {
                         queryCaches.add(query);
                         itemStatus.increment(StatusCode.OK);
-                        ItemStatus itemsStatus =
-                            new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                        ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(
+                            HANDLER_PROCESS,
+                            itemStatus
+                        );
                         itemStatuses.add(itemsStatus);
                     } else {
-                        metadataClient.updateUnitById(((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(),
-                            query.unitId);
+                        metadataClient.updateUnitById(
+                            ((UpdateMultiQuery) query.requestMultiple).getFinalUpdate(),
+                            query.unitId
+                        );
                         itemStatus.increment(StatusCode.OK);
-                        ItemStatus itemsStatus =
-                            new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                        ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(
+                            HANDLER_PROCESS,
+                            itemStatus
+                        );
                         itemStatuses.add(itemsStatus);
                     }
-
                 } catch (final IllegalArgumentException | InvalidCreateOperationException e) {
                     LOGGER.error(e);
                     itemStatus.increment(StatusCode.KO);
-                    ItemStatus itemsStatus =
-                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(
+                        HANDLER_PROCESS,
+                        itemStatus
+                    );
                     itemStatuses.add(itemsStatus);
-
                 } catch (final ProcessingException e) {
                     LOGGER.error(e);
                     itemStatus.increment(StatusCode.FATAL);
-                    ItemStatus itemsStatus =
-                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(
+                        HANDLER_PROCESS,
+                        itemStatus
+                    );
                     itemStatuses.add(itemsStatus);
                 } catch (InvalidParseOperationException e) {
                     itemStatus.increment(StatusCode.FATAL);
-                    ItemStatus itemsStatus =
-                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(
+                        HANDLER_PROCESS,
+                        itemStatus
+                    );
                     itemStatuses.add(itemsStatus);
                     throw new IllegalArgumentException(e);
                 } catch (final MetaDataNotFoundException e) {
@@ -174,7 +186,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 }
             }
 
-            List<BulkUnitInsertEntry> entries = queryCaches.stream()
+            List<BulkUnitInsertEntry> entries = queryCaches
+                .stream()
                 .map(query -> query.requestMultiple)
                 .map(query -> ((InsertMultiQuery) query))
                 .map(query -> new BulkUnitInsertEntry(query.getRoots(), query.getData()))
@@ -196,18 +209,18 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 for (int i = 0; i < workerParameters.getObjectNameList().size(); i++) {
                     final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
                     itemStatus.increment(statusCode);
-                    ItemStatus itemsStatus =
-                        new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
+                    ItemStatus itemsStatus = new ItemStatus(HANDLER_PROCESS).setItemsStatus(
+                        HANDLER_PROCESS,
+                        itemStatus
+                    );
                     itemStatuses.set(i, itemsStatus);
                 }
             }
             return itemStatuses;
-
         } finally {
             handlerIO.setCurrentObjectId(null);
         }
     }
-
 
     /**
      * Index archive unit
@@ -219,16 +232,20 @@ public class IndexUnitActionPlugin extends ActionHandler {
      * @throws ProcessingException when error in execution
      * @throws InvalidCreateOperationException
      */
-    private QueryCache indexArchiveUnit(WorkerParameters params, String operationId, String unitId, HandlerIO handlerIO)
-        throws ProcessingException, InvalidCreateOperationException {
+    private QueryCache indexArchiveUnit(
+        WorkerParameters params,
+        String operationId,
+        String unitId,
+        HandlerIO handlerIO
+    ) throws ProcessingException, InvalidCreateOperationException {
         ParametersChecker.checkNullOrEmptyParameters(params);
 
         RequestMultiple query = null;
         InputStream input = null;
         try {
-            input = handlerIO
-                .getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
-                    File.separator + unitId);
+            input = handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + unitId
+            );
 
             JsonNode archiveUnit = prepareArchiveUnitJson(input, operationId, unitId, handlerIO);
             final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
@@ -252,12 +269,12 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 ((InsertMultiQuery) query).addData(data);
                 return new QueryCache(false, query, null);
             } else {
-                ((UpdateMultiQuery) query)
-                    .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                ((UpdateMultiQuery) query).addActions(
+                        UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName())
+                    );
                 String existingAuGUID = data.get("_id").asText();
                 return new QueryCache(true, query, existingAuGUID);
             }
-
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
@@ -278,9 +295,12 @@ public class IndexUnitActionPlugin extends ActionHandler {
         }
     }
 
-    private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName,
-        HandlerIO handlerIO)
-        throws InvalidParseOperationException, ProcessingException {
+    private JsonNode prepareArchiveUnitJson(
+        InputStream input,
+        String containerId,
+        String objectName,
+        HandlerIO handlerIO
+    ) throws InvalidParseOperationException, ProcessingException {
         try {
             ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
             ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
@@ -292,11 +312,18 @@ public class IndexUnitActionPlugin extends ActionHandler {
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
 
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
-        if (sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-            .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
-
-            String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER)
-                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+        if (
+            sedaParameters
+                .get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE)
+                .get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) !=
+            null
+        ) {
+            String prodService = sedaParameters
+                .get(SedaConstants.TAG_ARCHIVE_TRANSFER)
+                .get(SedaConstants.TAG_DATA_OBJECT_PACKAGE)
+                .get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)
+                .asText();
 
             ArrayNode originatingAgencies = JsonHandler.createArrayNode();
             originatingAgencies.add(prodService);
@@ -305,7 +332,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
             archiveUnitNode.put(Unit.ORIGINATING_AGENCY, prodService);
         }
         return archiveUnit;
-
     }
 
     @Override
@@ -314,6 +340,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
     }
 
     static class QueryCache {
+
         boolean update;
 
         RequestMultiple requestMultiple;
@@ -326,5 +353,4 @@ public class IndexUnitActionPlugin extends ActionHandler {
             this.unitId = unitId;
         }
     }
-
 }

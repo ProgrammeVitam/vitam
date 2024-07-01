@@ -52,5 +52,4 @@ class WorkerClientMock extends AbstractMockClient implements WorkerClient {
         mockResponse.setItemsStatus("ItemId", itemStatus);
         return mockResponse;
     }
-
 }

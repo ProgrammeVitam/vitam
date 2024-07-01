@@ -39,7 +39,6 @@ import java.util.Optional;
  */
 class InternalSecurityClientMock extends AbstractMockClient implements InternalSecurityClient {
 
-
     /**
      * Constructor using given scheme (http)
      */
@@ -65,7 +64,8 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
     public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
         throws VitamClientInternalException, InternalSecurityException {
         return new IsPersonalCertificateRequiredModel(
-            IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
+            IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE
+        );
     }
 
     @Override
@@ -75,14 +75,10 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
     }
 
     @Override
-    public void checkIdentityExpiration() throws VitamClientInternalException, InternalSecurityException {
-
-    }
+    public void checkIdentityExpiration() throws VitamClientInternalException, InternalSecurityException {}
 
     @Override
-    public void checkPersonalCertificateExpiration() throws VitamClientInternalException, InternalSecurityException {
-
-    }
+    public void checkPersonalCertificateExpiration() throws VitamClientInternalException, InternalSecurityException {}
 
     @Override
     public boolean contextIsUsed(String contextId) {

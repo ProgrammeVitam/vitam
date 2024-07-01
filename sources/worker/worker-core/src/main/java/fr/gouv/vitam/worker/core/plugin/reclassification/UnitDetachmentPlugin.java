@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.reclassification;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -92,25 +91,23 @@ public class UnitDetachmentPlugin extends ActionHandler {
      */
     @VisibleForTesting
     UnitDetachmentPlugin(
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, MetaDataClientFactory metaDataClientFactory) {
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        MetaDataClientFactory metaDataClientFactory
+    ) {
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         String unitId = param.getObjectName();
 
         try {
-
             Set<String> parentUnitsToRemove = getParentsToRemove(handler, unitId);
 
             updateUnit(unitId, parentUnitsToRemove);
 
             updateUnitLifeCycle(param, unitId, parentUnitsToRemove);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Unit detachment failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(UNIT_DETACHMENT, e.getStatusCode(), e.getEventDetails());
@@ -124,8 +121,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
     private Set<String> getParentsToRemove(HandlerIO handler, String unitId)
         throws ProcessingException, ProcessingStatusException {
         try {
-            JsonNode detachmentJson = handler
-                .getJsonFromWorkspace(UNITS_TO_DETACH_DIR + "/" + unitId);
+            JsonNode detachmentJson = handler.getJsonFromWorkspace(UNITS_TO_DETACH_DIR + "/" + unitId);
             return JsonHandler.getFromJsonNode(detachmentJson, Set.class);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not parse detachment json", e);
@@ -133,10 +129,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
     }
 
     private void updateUnit(String unitId, Set<String> parentUnitsToAdd) throws ProcessingStatusException {
-
-        try (
-            MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
             updateMultiQuery.addActions(
                 pull(VitamFieldsHelper.unitups(), parentUnitsToAdd.toArray(new String[0])),
@@ -144,28 +137,39 @@ public class UnitDetachmentPlugin extends ActionHandler {
             );
 
             metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
-
-        } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (
+            MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | MetaDataExecutionException
+            | MetaDataNotFoundException
+            | InvalidParseOperationException
+            | InvalidCreateOperationException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "An error occurred during unit detachment", e);
         }
-
     }
 
     private void updateUnitLifeCycle(WorkerParameters param, String unitId, Set<String> parentUnitsToRemove)
         throws ProcessingStatusException {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
-
             ReclassificationEventDetails eventDetails = new ReclassificationEventDetails()
                 .setRemovedParents(parentUnitsToRemove);
             LogbookLifeCycleUnitParameters logbookLCParam = createParameters(
-                GUIDReader.getGUID(param.getContainerName()), StatusCode.OK,
-                GUIDReader.getGUID(unitId), UNIT_DETACHMENT, eventDetails, LogbookTypeProcess.RECLASSIFICATION);
+                GUIDReader.getGUID(param.getContainerName()),
+                StatusCode.OK,
+                GUIDReader.getGUID(unitId),
+                UNIT_DETACHMENT,
+                eventDetails,
+                LogbookTypeProcess.RECLASSIFICATION
+            );
 
             logbookLifeCyclesClient.update(logbookLCParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
         } catch (VitamException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "An error occurred during lifecycle update for unit " + unitId, e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "An error occurred during lifecycle update for unit " + unitId,
+                e
+            );
         }
     }
 

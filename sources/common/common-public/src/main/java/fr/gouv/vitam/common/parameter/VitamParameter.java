@@ -35,7 +35,6 @@ import java.util.Set;
  * @param <T> the enum of parameter name
  */
 public interface VitamParameter<T> {
-
     /**
      * Get all the parameters
      *
@@ -49,5 +48,4 @@ public interface VitamParameter<T> {
      * @return a set of attributes name
      */
     Set<T> getMandatoriesParameters();
-
 }

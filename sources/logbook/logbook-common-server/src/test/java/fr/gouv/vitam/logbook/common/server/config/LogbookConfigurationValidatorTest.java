@@ -37,10 +37,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class LogbookConfigurationValidatorTest {
 
-
     @Test
     public void testConfigOK_full() throws Exception {
-
         // Given
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config.yml")) {
@@ -48,13 +46,11 @@ public class LogbookConfigurationValidatorTest {
         }
 
         // When / Then
-        assertThatCode(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> LogbookConfigurationValidator.validateConfiguration(config)).doesNotThrowAnyException();
     }
 
     @Test
     public void testConfigOK_defaults_only() throws Exception {
-
         // Given
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config_defaults_only.yml")) {
@@ -62,82 +58,92 @@ public class LogbookConfigurationValidatorTest {
         }
 
         // When / Then
-        assertThatCode(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> LogbookConfigurationValidator.validateConfiguration(config)).doesNotThrowAnyException();
     }
 
     @Test
     public void testConfigKO_InvalidDefaultConf() throws Exception {
-
         // Given
         LogbookConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "logbook_test_config_invalid_defaults.yml")) {
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("logbook_test_config_invalid_defaults.yml")) {
             config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantGroupName() throws Exception {
-
         // Given
         LogbookConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "logbook_test_config_invalid_tenant_group_name.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "logbook_test_config_invalid_tenant_group_name.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantRange1() throws Exception {
-
         // Given
         LogbookConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "logbook_test_config_invalid_tenant_range1.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "logbook_test_config_invalid_tenant_range1.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantRange2() throws Exception {
-
         // Given
         LogbookConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "logbook_test_config_invalid_tenant_range1.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "logbook_test_config_invalid_tenant_range1.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantRange3() throws Exception {
-
         // Given
         LogbookConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "logbook_test_config_invalid_tenant_range3.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "logbook_test_config_invalid_tenant_range3.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> LogbookConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 }

@@ -169,7 +169,6 @@ public class VitamCodeHelperTest {
         } catch (final IllegalArgumentException exc) {
             // nothing, wanted
         }
-
     }
 
     @Test
@@ -330,7 +329,13 @@ public class VitamCodeHelperTest {
     public void getLogMessageTest() {
         final String message = VitamCodeHelper.getLogMessage(VitamCode.TEST, "test");
         assertNotNull(message);
-        assertEquals(String.format("[%s] %s", VitamCodeHelper.getCode(VitamCode.TEST), String.format(VitamCode.TEST
-            .getMessage(), "test")), message);
+        assertEquals(
+            String.format(
+                "[%s] %s",
+                VitamCodeHelper.getCode(VitamCode.TEST),
+                String.format(VitamCode.TEST.getMessage(), "test")
+            ),
+            message
+        );
     }
 }

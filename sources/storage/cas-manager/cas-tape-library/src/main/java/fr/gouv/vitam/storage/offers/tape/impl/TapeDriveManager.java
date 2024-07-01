@@ -49,18 +49,22 @@ public class TapeDriveManager implements TapeDriveService {
         ParametersChecker.checkParameter("inputDirectory param is required", inputDirectory);
         ParametersChecker.checkParameter("tmpTarOutputStorageFolder param is required", tmpTarOutputStorageFolder);
         this.tapeDriveConf = tapeDriveConf;
-        this.ddReadWriteService =
-            new DdTapeLibraryService(tapeDriveConf, inputDirectory, tmpTarOutputStorageFolder);
+        this.ddReadWriteService = new DdTapeLibraryService(tapeDriveConf, inputDirectory, tmpTarOutputStorageFolder);
         this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf);
     }
 
     @VisibleForTesting
-    public TapeDriveManager(TapeDriveConf tapeDriveConf,
+    public TapeDriveManager(
+        TapeDriveConf tapeDriveConf,
         TapeReadWriteService ddReadWriteService,
-        TapeDriveCommandService tapeDriveCommandService) {
-        ParametersChecker
-            .checkParameter("All params are required", tapeDriveConf, ddReadWriteService,
-                tapeDriveCommandService);
+        TapeDriveCommandService tapeDriveCommandService
+    ) {
+        ParametersChecker.checkParameter(
+            "All params are required",
+            tapeDriveConf,
+            ddReadWriteService,
+            tapeDriveCommandService
+        );
         this.tapeDriveConf = tapeDriveConf;
         this.ddReadWriteService = ddReadWriteService;
         this.tapeDriveCommandService = tapeDriveCommandService;

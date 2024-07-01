@@ -46,6 +46,7 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class RequestToMongodbTest {
+
     private static JsonNode exampleSelectMd;
 
     private static JsonNode exampleDeleteMd;
@@ -58,62 +59,88 @@ public class RequestToMongodbTest {
 
     private static JsonNode exampleUpdateMd;
 
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        exampleSelectMd =
-            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-                "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-                "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
-                "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-                "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " +
-                "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
-                "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-                "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }");
+        exampleSelectMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " +
+            "], " +
+            "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
+            "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
+            "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }"
+        );
 
-        data = JsonHandler
-            .getFromString("{ " + "\"address\": { \"streetAddress\": \"21 2nd Street\", \"city\": \"New York\" }, " +
-                "\"phoneNumber\": [ { \"location\": \"home\", \"code\": 44 } ] }");
+        data = JsonHandler.getFromString(
+            "{ " +
+            "\"address\": { \"streetAddress\": \"21 2nd Street\", \"city\": \"New York\" }, " +
+            "\"phoneNumber\": [ { \"location\": \"home\", \"code\": 44 } ] }"
+        );
 
-        exampleDeleteMd =
-            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-                "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-                "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
-                "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-                "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false } }");
+        exampleDeleteMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " +
+            "], " +
+            "$filter : {$mult : false } }"
+        );
 
-        exampleInsertMd =
-            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-                "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-                "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
-                "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-                "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
-                "$data : " + data + " }");
+        exampleInsertMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " +
+            "], " +
+            "$filter : {$mult : false }," +
+            "$data : " +
+            data +
+            " }"
+        );
 
-        updateAction = JsonHandler
-            .getFromString("[ " + "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
-                "{ $unset : [ 'mavar5', 'mavar6' ] }," + "{ $inc : { mavar7 : 2 } }," + "{ $min : { mavar8 : 3 } }," +
-                "{ $min : { mavar16 : 12 } }," + "{ $max : { mavar9 : 3 } }," +
-                "{ $rename : { mavar10 : 'mavar11' } }," +
-                "{ $push : { mavar12 : [ 1, 2 ] } }," + "{ $add : { mavar13 : [ 1, 2 ] } }," +
-                "{ $pop : { mavar14 : -1 } }," + "{ $pull : { mavar15 : [ 1, 2 ] } } ]");
+        updateAction = JsonHandler.getFromString(
+            "[ " +
+            "{ $set : { mavar1 : 1, mavar2 : 1.2, mavar3 : true, mavar4 : 'ma chaine' } }," +
+            "{ $unset : [ 'mavar5', 'mavar6' ] }," +
+            "{ $inc : { mavar7 : 2 } }," +
+            "{ $min : { mavar8 : 3 } }," +
+            "{ $min : { mavar16 : 12 } }," +
+            "{ $max : { mavar9 : 3 } }," +
+            "{ $rename : { mavar10 : 'mavar11' } }," +
+            "{ $push : { mavar12 : [ 1, 2 ] } }," +
+            "{ $add : { mavar13 : [ 1, 2 ] } }," +
+            "{ $pop : { mavar14 : -1 } }," +
+            "{ $pull : { mavar15 : [ 1, 2 ] } } ]"
+        );
 
-        exampleUpdateMd =
-            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-                "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-                "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
-                "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
-                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-                "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
-                "$action : " + updateAction + " }");
+        exampleUpdateMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ {$exists : 'mavar1'}, {$missing : 'mavar2'}, {$isNull : 'mavar3'}, { $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, { $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ { $size : { 'mavar5' : 5 } }, { $gt : { 'mavar6' : 7 } }, { $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ { $eq : { 'mavar8' : 5 } }, { $ne : { 'mavar9' : 'ab' } }, { $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
+            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " +
+            "], " +
+            "$filter : {$mult : false }," +
+            "$action : " +
+            updateAction +
+            " }"
+        );
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     private SelectToMongodb createSelect() {
         try {
@@ -221,17 +248,25 @@ public class RequestToMongodbTest {
             try {
                 rtm.getNthQueries(size);
                 fail("Should failed");
-            } catch (final IllegalAccessError e) {
-
-            }
+            } catch (final IllegalAccessError e) {}
             assertNotNull(rtm.getRequest());
             assertNotNull(rtm.getNthQuery(0));
             assertNotNull(rtm.getRequestParser());
             assertNotNull(rtm.model());
             System.out.println("OrderBy = " + MongoDbHelper.bsonToString(rtm.getFinalOrderBy(), false));
             System.out.println("Projection = " + MongoDbHelper.bsonToString(rtm.getFinalProjection(), false));
-            System.out.println("Select Context = " + rtm.getLastDepth() + ":" + rtm.getFinalLimit() + ":" +
-                rtm.getFinalOffset() + ":" + rtm.getUsage() + ":" + rtm.getHints());
+            System.out.println(
+                "Select Context = " +
+                rtm.getLastDepth() +
+                ":" +
+                rtm.getFinalLimit() +
+                ":" +
+                rtm.getFinalOffset() +
+                ":" +
+                rtm.getUsage() +
+                ":" +
+                rtm.getHints()
+            );
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -309,8 +344,10 @@ public class RequestToMongodbTest {
         final SelectParserMultiple request1 = new SelectParserMultiple();
         request1.parse(JsonHandler.getFromString(example1));
         final SelectToMongodb rtm1 = new SelectToMongodb(request1);
-        assertEquals("{\"#dua\": 1, \"_id\": 1, \"#all\": 0}",
-            MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false));
+        assertEquals(
+            "{\"#dua\": 1, \"_id\": 1, \"#all\": 0}",
+            MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false)
+        );
 
         final String example2 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : 1}} }";
         final SelectParserMultiple request2 = new SelectParserMultiple();
@@ -324,22 +361,27 @@ public class RequestToMongodbTest {
         final SelectToMongodb rtm3 = new SelectToMongodb(request3);
         assertEquals("{\"_id\": 1, \"#dua\": 0}", MongoDbHelper.bsonToString(rtm3.getFinalProjection(), false));
 
-        final String example4 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+        final String example4 =
+            "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
             "\"test1\" : {\"$slice\" : 1}}} }";
         final SelectParserMultiple request4 = new SelectParserMultiple();
         request4.parse(JsonHandler.getFromString(example4));
         final SelectToMongodb rtm4 = new SelectToMongodb(request4);
-        assertEquals("{\"_id\": 1, \"#dua\": 0, \"test1\": {\"$slice\": 1}}", MongoDbHelper.bsonToString(rtm4
-            .getFinalProjection(), false));
+        assertEquals(
+            "{\"_id\": 1, \"#dua\": 0, \"test1\": {\"$slice\": 1}}",
+            MongoDbHelper.bsonToString(rtm4.getFinalProjection(), false)
+        );
 
-
-        final String example5 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+        final String example5 =
+            "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
             "\"test1\" : {\"$slice\" : [0,1]}}} }";
         final SelectParserMultiple request5 = new SelectParserMultiple();
         request5.parse(JsonHandler.getFromString(example5));
         final SelectToMongodb rtm5 = new SelectToMongodb(request5);
-        assertEquals("{\"_id\": 1, \"#dua\": 0, \"test1\": {\"$slice\": [0, 1]}}", MongoDbHelper.bsonToString(rtm5
-            .getFinalProjection(), false));
+        assertEquals(
+            "{\"_id\": 1, \"#dua\": 0, \"test1\": {\"$slice\": [0, 1]}}",
+            MongoDbHelper.bsonToString(rtm5.getFinalProjection(), false)
+        );
 
         final String exampleEmptyProjection = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields:{}} }";
         final SelectParserMultiple requestEmptyProjection = new SelectParserMultiple();
@@ -349,7 +391,8 @@ public class RequestToMongodbTest {
 
         try {
             // Test invalid slice projection
-            final String example6 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+            final String example6 =
+                "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
                 "\"test1\" : {\"$slice\" : [0,0,1]}}} }";
             final SelectParserMultiple request6 = new SelectParserMultiple();
             request6.parse(JsonHandler.getFromString(example6));
@@ -362,7 +405,8 @@ public class RequestToMongodbTest {
 
         try {
             // Test invalid slice projection
-            final String example7 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+            final String example7 =
+                "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
                 "\"test1\" : {\"$slice\" : {\"field\":\"value\"}}}} }";
             final SelectParserMultiple request7 = new SelectParserMultiple();
             request7.parse(JsonHandler.getFromString(example7));
@@ -375,7 +419,8 @@ public class RequestToMongodbTest {
 
         try {
             // Test invalid slice projection
-            final String example7 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+            final String example7 =
+                "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
                 "\"test1\" : {\"$slice\" : [\"test\", \"s\"]}}} }";
             final SelectParserMultiple request7 = new SelectParserMultiple();
             request7.parse(JsonHandler.getFromString(example7));
@@ -388,7 +433,8 @@ public class RequestToMongodbTest {
 
         try {
             // Test unsupported projection
-            final String example8 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
+            final String example8 =
+                "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
                 "\"test1\" : {\"field\":\"value\"}}} }";
             final SelectParserMultiple request8 = new SelectParserMultiple();
             request8.parse(JsonHandler.getFromString(example8));
@@ -408,5 +454,4 @@ public class RequestToMongodbTest {
         assertEquals(false, rtm.hintCache());
         assertEquals(false, rtm.hintNoTimeout());
     }
-
 }

@@ -40,9 +40,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class X509AuthenticationTokenTest {
+
     private X509Certificate cert;
 
-    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
+    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
     BigInteger serial = new BigInteger("1000000000000000");
 
     @Before
@@ -54,7 +55,7 @@ public class X509AuthenticationTokenTest {
 
     @Test
     public void testGetters() {
-        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+        final X509Certificate[] clientCertChain = new X509Certificate[] { cert };
         X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
 
         assertNull(token.getCredentials());
@@ -62,7 +63,11 @@ public class X509AuthenticationTokenTest {
         assertTrue(token.getX509CertSelector() instanceof CertSelector);
         assertNull(token.getX509CertChainStore());
 
-        token = new X509AuthenticationToken(token.getSubjectDN(),
-            token.getIssuerDN(), token.getHexSerialNumber(), token.getHost());
+        token = new X509AuthenticationToken(
+            token.getSubjectDN(),
+            token.getIssuerDN(),
+            token.getHexSerialNumber(),
+            token.getHost()
+        );
     }
 }

@@ -53,7 +53,6 @@ import java.util.List;
  * Logbook client interface
  */
 public interface LogbookOperationsClient extends BasicClient {
-
     /**
      * Create logbook entry <br>
      * <br>
@@ -105,7 +104,6 @@ public interface LogbookOperationsClient extends BasicClient {
      */
     JsonNode selectOperationById(String id) throws LogbookClientException, InvalidParseOperationException;
 
-
     /**
      * Bulk Create<br>
      * <br>
@@ -119,8 +117,7 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
     void create(String eventIdProc, Iterable<LogbookOperationParameters> queue)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
-        LogbookClientServerException;
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
      * Bulk Update<br>
@@ -208,7 +205,6 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws LogbookClientServerException
      */
     LogbookCheckResult checkLogbookCoherence() throws LogbookClientServerException;
-
 
     RequestResponse<JsonNode> getLastOperationByType(String operationType) throws LogbookClientServerException;
 

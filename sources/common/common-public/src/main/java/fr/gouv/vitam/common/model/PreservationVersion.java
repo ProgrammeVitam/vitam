@@ -28,5 +28,5 @@ package fr.gouv.vitam.common.model;
 
 public enum PreservationVersion {
     FIRST,
-    LAST
+    LAST,
 }

@@ -86,8 +86,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class EliminationAnalysisPreparationHandlerTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -113,10 +114,8 @@ public class EliminationAnalysisPreparationHandlerTest {
     private Map<String, InputStream> writtenFiles = new HashMap<>();
     private WorkerParameters parameters;
 
-
     @Before
     public void init() throws Exception {
-
         File vitamTempFolder = folder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
 
@@ -125,17 +124,21 @@ public class EliminationAnalysisPreparationHandlerTest {
 
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
 
-        doAnswer((args) -> folder.newFile(args.getArgument(0)))
-            .when(handlerIO).getNewLocalFile(any());
+        doAnswer(args -> folder.newFile(args.getArgument(0))).when(handlerIO).getNewLocalFile(any());
 
-        doAnswer((args) -> {
-            writtenFiles.put(args.getArgument(0),
-                new ByteArrayInputStream(FileUtils.readFileToByteArray(args.getArgument(1))));
+        doAnswer(args -> {
+            writtenFiles.put(
+                args.getArgument(0),
+                new ByteArrayInputStream(FileUtils.readFileToByteArray(args.getArgument(1)))
+            );
             return null;
-        }).when(handlerIO).transferFileToWorkspace(any(), any(), eq(true), eq(false));
+        })
+            .when(handlerIO)
+            .transferFileToWorkspace(any(), any(), eq(true), eq(false));
 
-        this.parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        this.parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Collections.emptyList())
             .setCurrentStep("StepName");
@@ -144,16 +147,18 @@ public class EliminationAnalysisPreparationHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testExecute_OK() throws Exception {
-
         // Given
         givenValidRequestJson();
 
         List<JsonNode> unitsWithInheritedRules = JsonHandler.getFromInputStream(
             PropertiesUtils.getResourceAsStream("EliminationAnalysis/PreparationUnitsWithInheritedRules.json"),
-            List.class, JsonNode.class);
+            List.class,
+            JsonNode.class
+        );
 
         doReturn(new RequestResponseOK<JsonNode>().addAllResults(unitsWithInheritedRules).toJsonNode())
-            .when(metaDataClient).selectUnitsWithInheritedRules(any());
+            .when(metaDataClient)
+            .selectUnitsWithInheritedRules(any());
 
         // When
         ItemStatus execute = instance.execute(parameters, handlerIO);
@@ -171,17 +176,14 @@ public class EliminationAnalysisPreparationHandlerTest {
             assertJsonEquals("EliminationAnalysis/PreparationExpectedDistribution_unit2.json", actual_unit2);
             assertJsonEquals("EliminationAnalysis/PreparationExpectedDistribution_unit4.json", actual_unit4);
             assertThat(reader.readLine()).isNull();
-
         }
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_OnInvalidJsonRequestThenFatal() throws Exception {
-
         // Given
-        doThrow(ContentAddressableStorageNotFoundException.class)
-            .when(handlerIO).getInputStreamFromWorkspace(any());
+        doThrow(ContentAddressableStorageNotFoundException.class).when(handlerIO).getInputStreamFromWorkspace(any());
 
         // When
         ItemStatus execute = instance.execute(parameters, handlerIO);
@@ -195,10 +197,10 @@ public class EliminationAnalysisPreparationHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testExecute_OnInvalidJsonRequestThenKO() throws Exception {
-
         // Given
         doReturn(new ByteArrayInputStream("INVALID_DATA".getBytes()))
-            .when(handlerIO).getInputStreamFromWorkspace("request.json");
+            .when(handlerIO)
+            .getInputStreamFromWorkspace("request.json");
 
         // When
         ItemStatus execute = instance.execute(parameters, handlerIO);
@@ -210,16 +212,18 @@ public class EliminationAnalysisPreparationHandlerTest {
     }
 
     private void givenValidRequestJson()
-        throws InvalidCreateOperationException, IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, InvalidParseOperationException {
+        throws InvalidCreateOperationException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException {
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.eq("#id", "test"));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2018-01-23", select.getFinalSelect());
+            "2018-01-23",
+            select.getFinalSelect()
+        );
 
         doReturn(JsonHandler.writeToInpustream(eliminationRequestBody))
-            .when(handlerIO).getInputStreamFromWorkspace("request.json");
+            .when(handlerIO)
+            .getInputStreamFromWorkspace("request.json");
     }
 
     private void assertJsonEquals(String resourcesFile, JsonNode actual)

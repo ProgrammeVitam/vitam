@@ -42,8 +42,7 @@ public class SiegfriedClientMockTest {
     public void statusTest() {
         SiegfriedClientFactory.changeMode(null);
 
-        final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         Boolean catchException = false;
@@ -62,8 +61,7 @@ public class SiegfriedClientMockTest {
     public void analysePathTest() {
         SiegfriedClientFactory.changeMode(null);
 
-        final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         Boolean catchException = false;
@@ -77,5 +75,4 @@ public class SiegfriedClientMockTest {
         assertNotNull(response);
         assertEquals(1, response.toJsonNode().get("$results").get(0).get("files").size());
     }
-
 }

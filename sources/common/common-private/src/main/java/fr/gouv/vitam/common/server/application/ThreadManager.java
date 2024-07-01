@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * ThreadManager class to manage all request in and out
  */
 public class ThreadManager {
+
     private ConcurrentLinkedQueue<String> requests = new ConcurrentLinkedQueue<String>();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ThreadManager.class);
 

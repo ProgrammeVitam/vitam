@@ -141,8 +141,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @HEAD
     @Path("/objects/{type}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getCapacity(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("type") DataCategory type) {
+    public Response getCapacity(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("type") DataCategory type
+    ) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -176,7 +178,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getContainerList(
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("type") DataCategory type) {
+        @PathParam("type") DataCategory type
+    ) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -185,22 +188,19 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         StreamingOutput streamingOutput = output -> {
             try (
                 CloseShieldOutputStream closeShieldOutputStream = new CloseShieldOutputStream(output);
-                ObjectEntryWriter objectEntryWriter = new ObjectEntryWriter(closeShieldOutputStream)) {
-
+                ObjectEntryWriter objectEntryWriter = new ObjectEntryWriter(closeShieldOutputStream)
+            ) {
                 defaultOfferService.listObjects(buildContainerName(type, xTenantId), objectEntryWriter::write);
 
                 // No errors ==> write EOF
                 objectEntryWriter.writeEof();
-
             } catch (Exception e) {
                 LOGGER.error("Could not return object listing. Internal server error", e);
                 throw new WebApplicationException("Could not return object listing", e);
             }
         };
 
-        return Response
-            .ok(streamingOutput)
-            .build();
+        return Response.ok(streamingOutput).build();
     }
 
     /**
@@ -215,8 +215,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}/logs")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("type") DataCategory type, OfferLogRequest offerLogRequest) {
+    public Response getOfferLogs(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("type") DataCategory type,
+        OfferLogRequest offerLogRequest
+    ) {
         try {
             if (offerLogRequest == null) {
                 LOGGER.error(MISSING_THE_BODY);
@@ -229,17 +232,22 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
             try {
                 final String containerName = buildContainerName(type, xTenantId);
-                List<OfferLog> offerLogs =
-                    defaultOfferService.getOfferLogs(containerName, offerLogRequest.getOffset(),
-                        offerLogRequest.getLimit(), offerLogRequest.getOrder());
+                List<OfferLog> offerLogs = defaultOfferService.getOfferLogs(
+                    containerName,
+                    offerLogRequest.getOffset(),
+                    offerLogRequest.getLimit(),
+                    offerLogRequest.getOrder()
+                );
                 final RequestResponseOK<OfferLog> responseOK = new RequestResponseOK<>();
                 responseOK.addAllResults(offerLogs).setHttpCode(Status.OK.getStatusCode());
                 LOGGER.debug("Result {}", responseOK);
                 return Response.status(Status.OK).entity(JsonHandler.writeAsString(responseOK)).build();
             } catch (ContentAddressableStorageException exc) {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
-                return VitamCodeHelper.toVitamError(VitamCode.STORAGE_GET_OFFER_LOG_ERROR, exc.getMessage())
-                    .toResponse();
+                return VitamCodeHelper.toVitamError(
+                    VitamCode.STORAGE_GET_OFFER_LOG_ERROR,
+                    exc.getMessage()
+                ).toResponse();
             }
         } catch (Exception e) {
             LOGGER.error("An internal error occurred during offer log listing", e);
@@ -262,9 +270,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @GET
     @Path("/objects/{type}/{id_object}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
-    public Response getObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
-        @Context HttpHeaders headers) {
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
+    public Response getObject(
+        @PathParam("type") DataCategory type,
+        @NotNull @PathParam("id_object") String objectId,
+        @Context HttpHeaders headers
+    ) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             SanityChecker.checkParameter(objectId);
@@ -276,17 +287,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             ObjectContent objectContent = defaultOfferService.getObject(containerName, objectId);
 
             StreamingOutput streamingOutput = output -> {
-
                 TaggedInputStream taggedInputStream = null;
                 try {
-
                     taggedInputStream = new TaggedInputStream(
-                        new ExactSizeInputStream(objectContent.getInputStream(), objectContent.getSize()));
+                        new ExactSizeInputStream(objectContent.getInputStream(), objectContent.getSize())
+                    );
 
                     IOUtils.copy(taggedInputStream, output);
-
                 } catch (IOException e) {
-
                     // 2 types on IO Exceptions :
                     // - Client-side exceptions (caused by networking errors, client closing connection...). Just let jetty handle it
                     // - Server-side exceptions (caused by inner CAS provider...). These exceptions need at least to be logged.
@@ -296,7 +304,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     if (taggedInputStream == null || taggedInputStream.isCauseOf(e)) {
                         LOGGER.error("Server-side IOException. Could not serve object stream from CAS container", e);
                         throw new WebApplicationException(
-                            "Server-side IOException. Could not serve object stream from CAS container", e);
+                            "Server-side IOException. Could not serve object stream from CAS container",
+                            e
+                        );
                     }
 
                     // Client-side IOException. Let webapp container handle it
@@ -306,19 +316,19 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 }
             };
 
-            return Response
-                .ok(streamingOutput)
+            return Response.ok(streamingOutput)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), String.valueOf(objectContent.getSize()))
                 .build();
-
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
         } catch (final ContentAddressableStorageUnavailableDataFromAsyncOfferException e) {
             LOGGER.warn(e);
-            return buildCustomErrorResponse(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER,
-                e.getMessage());
+            return buildCustomErrorResponse(
+                CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER,
+                e.getMessage()
+            );
         } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
@@ -340,8 +350,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/access-request/{type}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createAccessRequest(@PathParam("type") DataCategory type, List<String> objectNames,
-        @Context HttpHeaders headers) {
+    public Response createAccessRequest(
+        @PathParam("type") DataCategory type,
+        List<String> objectNames,
+        @Context HttpHeaders headers
+    ) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             if (type == null) {
@@ -366,7 +379,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .addResult(accessRequestId)
                 .setHttpCode(Status.CREATED.getStatusCode())
                 .toResponse();
-
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND, e.getMessage());
@@ -402,24 +414,26 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            final String adminCrossTenantAccessRequestAllowedStr =
-                headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
+            final String adminCrossTenantAccessRequestAllowedStr = headers.getHeaderString(
+                GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED
+            );
             if (Strings.isNullOrEmpty(adminCrossTenantAccessRequestAllowedStr)) {
                 LOGGER.error("Required " + GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED + " header");
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
-            boolean adminCrossTenantAccessRequestAllowed =
-                Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+            boolean adminCrossTenantAccessRequestAllowed = Boolean.parseBoolean(
+                adminCrossTenantAccessRequestAllowedStr
+            );
 
-
-            Map<String, AccessRequestStatus> accessRequestStatus =
-                defaultOfferService.checkAccessRequestStatuses(accessRequestIds, adminCrossTenantAccessRequestAllowed);
+            Map<String, AccessRequestStatus> accessRequestStatus = defaultOfferService.checkAccessRequestStatuses(
+                accessRequestIds,
+                adminCrossTenantAccessRequestAllowed
+            );
 
             return new RequestResponseOK<>()
                 .addResult(accessRequestStatus)
                 .setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
-
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST, e.getMessage());
@@ -429,13 +443,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
-
     @DELETE
     @Path("/access-request/{accessRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeAccessRequest(@PathParam("accessRequestId") String accessRequestId,
-        @Context HttpHeaders headers) {
+    public Response removeAccessRequest(
+        @PathParam("accessRequestId") String accessRequestId,
+        @Context HttpHeaders headers
+    ) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
             SanityChecker.checkParameter(accessRequestId);
@@ -444,14 +459,16 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
 
-            final String adminCrossTenantAccessRequestAllowedStr =
-                headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED);
+            final String adminCrossTenantAccessRequestAllowedStr = headers.getHeaderString(
+                GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED
+            );
             if (Strings.isNullOrEmpty(adminCrossTenantAccessRequestAllowedStr)) {
                 LOGGER.error("Required " + GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED + " header");
                 return Response.status(Status.PRECONDITION_FAILED).build();
             }
-            boolean adminCrossTenantAccessRequestAllowed =
-                Boolean.parseBoolean(adminCrossTenantAccessRequestAllowedStr);
+            boolean adminCrossTenantAccessRequestAllowed = Boolean.parseBoolean(
+                adminCrossTenantAccessRequestAllowedStr
+            );
 
             defaultOfferService.removeAccessRequest(accessRequestId, adminCrossTenantAccessRequestAllowed);
 
@@ -481,11 +498,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/object-availability-check/{type}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response checkObjectAvailability(@PathParam("type") DataCategory type, List<String> objectNames,
-        @Context HttpHeaders headers) {
+    public Response checkObjectAvailability(
+        @PathParam("type") DataCategory type,
+        List<String> objectNames,
+        @Context HttpHeaders headers
+    ) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         try {
-
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Status.PRECONDITION_FAILED).build();
@@ -497,14 +516,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
 
             final String containerName = buildContainerName(type, xTenantId);
-            boolean areObjectsAvailable =
-                defaultOfferService.checkObjectAvailability(containerName, objectNames);
+            boolean areObjectsAvailable = defaultOfferService.checkObjectAvailability(containerName, objectNames);
 
             return new RequestResponseOK<>()
                 .addResult(new StorageCheckObjectAvailabilityResult(areObjectsAvailable))
                 .setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
-
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage());
@@ -523,9 +540,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}/{objectId:.+}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(@PathParam("objectId") String objectId, @PathParam("type") DataCategory type,
-        @Context HttpHeaders headers, InputStream input) {
-
+    public Response putObject(
+        @PathParam("objectId") String objectId,
+        @PathParam("type") DataCategory type,
+        @Context HttpHeaders headers,
+        InputStream input
+    ) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
@@ -554,16 +574,25 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
             SanityChecker.checkParameter(objectId);
 
-            final String digest =
-                defaultOfferService.createObject(containerName, objectId, sis,
-                    type, inputStreamSize, digestType);
+            final String digest = defaultOfferService.createObject(
+                containerName,
+                objectId,
+                sis,
+                type,
+                inputStreamSize,
+                digestType
+            );
             return Response.status(Response.Status.CREATED)
-                .entity("{\"digest\":\"" + digest + "\",\"size\":" + inputStreamSize + "}").build();
+                .entity("{\"digest\":\"" + digest + "\",\"size\":" + inputStreamSize + "}")
+                .build();
         } catch (ConnectionException e) {
             LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
-            return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode()
-                .put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)).build();
-
+            return Response.status(Status.SERVICE_UNAVAILABLE)
+                .entity(
+                    JsonHandler.createObjectNode()
+                        .put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)
+                )
+                .build();
         } catch (NonUpdatableContentAddressableStorageException e) {
             LOGGER.error("Object overriding forbidden", e);
             return Response.status(Status.CONFLICT).build();
@@ -586,9 +615,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/bulk/objects/{type}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response bulkPutObjects(@PathParam("type") DataCategory type,
-        @Context HttpHeaders headers, InputStream input) {
-
+    public Response bulkPutObjects(
+        @PathParam("type") DataCategory type,
+        @Context HttpHeaders headers,
+        InputStream input
+    ) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
@@ -607,7 +638,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
         try {
             MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(
-                new ExactSizeInputStream(input, inputStreamSize));
+                new ExactSizeInputStream(input, inputStreamSize)
+            );
 
             Optional<ExactSizeInputStream> headerEntry = multiplexedStreamReader.readNextEntry();
             if (!headerEntry.isPresent()) {
@@ -622,11 +654,15 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
             DigestType digestType = DigestType.fromValue(xDigestAlgorithm);
 
-            StorageBulkPutResult storageBulkPutResult = defaultOfferService
-                .bulkPutObjects(containerName, objectIds, multiplexedStreamReader, type, digestType);
+            StorageBulkPutResult storageBulkPutResult = defaultOfferService.bulkPutObjects(
+                containerName,
+                objectIds,
+                multiplexedStreamReader,
+                type,
+                digestType
+            );
 
             return Response.status(Status.CREATED).entity(storageBulkPutResult).build();
-
         } catch (NonUpdatableContentAddressableStorageException e) {
             LOGGER.error("Object overriding forbidden", e);
             return Response.status(Status.CONFLICT).build();
@@ -650,10 +686,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @DELETE
     @Path("/objects/{type}/{id:.+}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm, @PathParam("type") DataCategory
-        type,
-        @PathParam("id") String idObject) {
+    public Response deleteObject(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm,
+        @PathParam("type") DataCategory type,
+        @PathParam("id") String idObject
+    ) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -661,8 +699,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
         try {
             SanityChecker.checkParameter(idObject);
-            VitamThreadUtils.getVitamSession()
-                .setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
             final String containerName = buildContainerName(type, xTenantId);
             defaultOfferService.deleteObject(containerName, idObject, type);
             return Response.status(Response.Status.OK)
@@ -675,7 +712,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-
     }
 
     /**
@@ -696,8 +732,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      */
     @HEAD
     @Path("/objects/{type}/{id:.+}")
-    public Response checkObjectExistence(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response checkObjectExistence(
+        @PathParam("type") DataCategory type,
+        @PathParam("id") String idObject,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId
+    ) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -728,10 +767,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @GET
     @Path("/objects/{type}/{id:.+}/metadatas")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
+    public Response getObjectMetadata(
+        @PathParam("type") DataCategory type,
+        @PathParam("id") String idObject,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) Boolean noCache) {
-
+        @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) Boolean noCache
+    ) {
         if (Strings.isNullOrEmpty(xTenantId) || noCache == null) {
             LOGGER.error("Missing tenant ID (X-Tenant-Id) or noCache");
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -761,11 +802,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/bulk/objects/{type}/metadata")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getBulkObjectMetadata(@PathParam("type") DataCategory type,
+    public Response getBulkObjectMetadata(
+        @PathParam("type") DataCategory type,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) Boolean noCache,
-        List<String> objectIds) {
-
+        List<String> objectIds
+    ) {
         if (Strings.isNullOrEmpty(xTenantId) || noCache == null) {
             LOGGER.error("Missing tenant ID (X-Tenant-Id) or noCache");
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -777,8 +819,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             for (String objectID : objectIds) {
                 SanityChecker.checkParameter(objectID);
             }
-            StorageBulkMetadataResult result =
-                defaultOfferService.getBulkMetadata(containerName, objectIds, noCache);
+            StorageBulkMetadataResult result = defaultOfferService.getBulkMetadata(containerName, objectIds, noCache);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
@@ -809,25 +850,36 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      */
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
-        return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
-            new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName())
-                .setHttpCode(vitamCode.getStatus().getStatusCode())
-                .setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage())
-                .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message))
-            .toString()).build();
+        return Response.status(vitamCode.getStatus())
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError(VitamCodeHelper.getCode(vitamCode))
+                            .setContext(vitamCode.getService().getName())
+                            .setHttpCode(vitamCode.getStatus().getStatusCode())
+                            .setState(vitamCode.getDomain().getName())
+                            .setMessage(vitamCode.getMessage())
+                            .setDescription(Strings.isNullOrEmpty(message) ? vitamCode.getMessage() : message)
+                    )
+                    .toString()
+            )
+            .build();
     }
 
     private Response buildCustomErrorResponse(CustomVitamHttpStatusCode customStatusCode, String message) {
         return Response.status(customStatusCode.getStatusCode())
-            .entity(new RequestResponseError().setError(
-                new VitamError(customStatusCode.toString())
-                    .setContext(ServiceName.STORAGE.getName())
-                    .setHttpCode(customStatusCode.getStatusCode())
-                    .setState(DomainName.STORAGE.getName())
-                    .setMessage(customStatusCode.getMessage())
-                    .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
-                .toString()).build();
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError(customStatusCode.toString())
+                            .setContext(ServiceName.STORAGE.getName())
+                            .setHttpCode(customStatusCode.getStatusCode())
+                            .setState(DomainName.STORAGE.getName())
+                            .setMessage(customStatusCode.getMessage())
+                            .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message)
+                    )
+                    .toString()
+            )
+            .build();
     }
 }

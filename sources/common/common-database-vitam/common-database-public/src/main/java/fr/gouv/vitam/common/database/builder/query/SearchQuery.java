@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Search Query
  */
 public class SearchQuery extends Query {
+
     protected SearchQuery() {
         super();
     }
@@ -45,8 +46,7 @@ public class SearchQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SearchQuery(final QUERY searchQuery, final String variableName,
-        final String value)
+    public SearchQuery(final QUERY searchQuery, final String variableName, final String value)
         throws InvalidCreateOperationException {
         super();
         switch (searchQuery) {
@@ -57,8 +57,7 @@ public class SearchQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    "Query " + searchQuery + " is not an Search Query");
+                throw new InvalidCreateOperationException("Query " + searchQuery + " is not an Search Query");
         }
     }
 }

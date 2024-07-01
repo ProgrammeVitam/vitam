@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.filter;
 
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -85,7 +84,6 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     public static final String INGEST_EXTERNAL = "/ingest-external/";
     private final boolean allowSslClientHeader;
 
-
     @Context
     private HttpServletRequest httpServletRequest;
 
@@ -101,10 +99,12 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     }
 
     @VisibleForTesting
-    InternalSecurityFilter(HttpServletRequest httpServletRequest,
+    InternalSecurityFilter(
+        HttpServletRequest httpServletRequest,
         InternalSecurityClientFactory internalSecurityClientFactory,
         AdminManagementClientFactory adminManagementClientFactory,
-        boolean allowSslClientHeader) {
+        boolean allowSslClientHeader
+    ) {
         this.httpServletRequest = httpServletRequest;
         this.internalSecurityClientFactory = internalSecurityClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
@@ -136,8 +136,9 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
         try (InternalSecurityClient internalSecurityClient = internalSecurityClientFactory.getClient()) {
             Optional<IdentityModel> result = internalSecurityClient.findIdentity(cert.getEncoded());
 
-            IdentityModel identityModel = result
-                .orElseThrow(() -> new VitamSecurityException("Certificate revoked or not found in database."));
+            IdentityModel identityModel = result.orElseThrow(
+                () -> new VitamSecurityException("Certificate revoked or not found in database.")
+            );
 
             final ContextModel contextModel = getContext(identityModel);
             String uri = requestContext.getUriInfo().getPath();
@@ -148,9 +149,12 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
 
             // EnableControl should be enabled in the context
             // We also skip all uri that match tenant url and status url
-            if (contextModel.isEnablecontrol() != null && contextModel.isEnablecontrol() &&
-                !uri.endsWith(VitamConfiguration.STATUS_URL) && !uri.endsWith(VitamConfiguration.TENANTS_URL)) {
-
+            if (
+                contextModel.isEnablecontrol() != null &&
+                contextModel.isEnablecontrol() &&
+                !uri.endsWith(VitamConfiguration.STATUS_URL) &&
+                !uri.endsWith(VitamConfiguration.TENANTS_URL)
+            ) {
                 if (uri.contains(ACCESS_EXTERNAL)) {
                     verifyAccessContract(tenantId, accessContract, contextModel);
                 } else if (uri.contains(INGEST_EXTERNAL)) {
@@ -158,21 +162,25 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
                 } else {
                     verifyTenant(tenantId, contextModel);
                 }
-
             }
             VitamThreadUtils.getVitamSession().setContextId(contextModel.getIdentifier());
             VitamThreadUtils.getVitamSession()
                 .setSecurityProfileIdentifier(contextModel.getSecurityProfileIdentifier());
-
-        } catch (VitamClientInternalException | InternalSecurityException |
-                 CertificateEncodingException | VitamSecurityException e) {
-
+        } catch (
+            VitamClientInternalException
+            | InternalSecurityException
+            | CertificateEncodingException
+            | VitamSecurityException e
+        ) {
             LOGGER.error("Security Error :", e);
             final VitamError vitamError = generateVitamError(e);
 
             requestContext.abortWith(
-                Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                    .build());
+                Response.status(vitamError.getHttpCode())
+                    .entity(vitamError)
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .build()
+            );
         }
     }
 
@@ -183,14 +191,14 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
      * @return
      */
     private VitamError generateVitamError(Exception e) {
-        final VitamError vitamError =
-            new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+        final VitamError vitamError = new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
 
         String description = e.getMessage();
         if (Strings.isNullOrEmpty(description)) {
             description = StringUtils.getClassName(e);
         }
-        vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+        vitamError
+            .setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
             .setDescription(description)
             .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
@@ -206,21 +214,21 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
      * @param contextModel
      */
     private void verifyAccessContract(int tenantId, String accessContract, ContextModel contextModel) {
-
         boolean accessContractVerified = false;
 
         if (contextModel.getPermissions() != null && !contextModel.getPermissions().isEmpty()) {
-            accessContractVerified = contextModel.getPermissions()
+            accessContractVerified = contextModel
+                .getPermissions()
                 .stream()
                 .filter(pm -> pm.getTenant() == tenantId)
                 .filter(pm -> pm.getAccessContract() != null)
                 .anyMatch(pm -> pm.getAccessContract().contains(accessContract));
-
         }
 
         if (!accessContractVerified) {
             throw new VitamSecurityException(
-                "Access contract " + accessContract + " not found in the context for the tenant id :" + tenantId);
+                "Access contract " + accessContract + " not found in the context for the tenant id :" + tenantId
+            );
         }
     }
 
@@ -231,24 +239,21 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
      * @param contextModel
      */
     private void verifyIngestContract(int tenantId, ContextModel contextModel) {
-
         boolean ingestContractVerified = false;
 
         if (contextModel.getPermissions() != null && !contextModel.getPermissions().isEmpty()) {
-            ingestContractVerified = contextModel.getPermissions()
+            ingestContractVerified = contextModel
+                .getPermissions()
                 .stream()
                 .filter(pm -> pm.getTenant() == tenantId)
                 .filter(pm -> pm.getIngestContract() != null)
                 .anyMatch(pm -> !pm.getIngestContract().isEmpty());
-
         }
 
         if (!ingestContractVerified) {
-            throw new VitamSecurityException(
-                "Ingest contract not found in the context for the tenant id :" + tenantId);
+            throw new VitamSecurityException("Ingest contract not found in the context for the tenant id :" + tenantId);
         }
     }
-
 
     /**
      * Verify tenant according to the context
@@ -256,13 +261,10 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
      * @param tenantId
      */
     private void verifyTenant(int tenantId, ContextModel contextModel) {
-
         boolean tenantVerified = false;
 
         if (contextModel.getPermissions() != null && !contextModel.getPermissions().isEmpty()) {
-            tenantVerified = contextModel.getPermissions()
-                .stream()
-                .anyMatch(pm -> pm.getTenant() == tenantId);
+            tenantVerified = contextModel.getPermissions().stream().anyMatch(pm -> pm.getTenant() == tenantId);
         }
 
         if (!tenantVerified) {
@@ -278,11 +280,9 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     private ContextModel getContext(IdentityModel identityModel) {
         final String contextId = identityModel.getContextId();
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-            RequestResponse<ContextModel>
-                contextResponse = adminManagementClient.findContextById(contextId);
+            RequestResponse<ContextModel> contextResponse = adminManagementClient.findContextById(contextId);
 
             if (contextResponse.isOk()) {
-
                 List<ContextModel> results = ((RequestResponseOK<ContextModel>) contextResponse).getResults();
                 if (results.isEmpty()) {
                     throw new VitamSecurityException("The context " + contextId + "  not found in database");
@@ -298,9 +298,9 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
             } else {
                 throw new VitamSecurityException("The context " + contextId + "  not found in database");
             }
-        } catch (InvalidParseOperationException |
-                 ReferentialNotFoundException |
-                 AdminManagementClientServerException e) {
+        } catch (
+            InvalidParseOperationException | ReferentialNotFoundException | AdminManagementClientServerException e
+        ) {
             throw new VitamSecurityException(e);
         }
     }
@@ -308,5 +308,4 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     public void destroy() {
         // Nothing to do
     }
-
 }

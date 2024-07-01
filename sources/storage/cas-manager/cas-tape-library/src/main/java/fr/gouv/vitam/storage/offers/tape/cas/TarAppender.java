@@ -70,7 +70,6 @@ public class TarAppender implements AutoCloseable {
     }
 
     public boolean canAppend(long size) {
-
         if (size > TarConstants.MAXSIZE) {
             throw new IllegalStateException("Invalid entry size. MAX=" + TarConstants.MAXSIZE);
         }
@@ -79,19 +78,18 @@ public class TarAppender implements AutoCloseable {
         long contentWithPaddingSize = (size + TarConstants.DEFAULT_RCDSIZE - 1L) + TarConstants.DEFAULT_RCDSIZE;
 
         // Header (1 record) + content size (padded to record size) + footer (2 empty records)
-        return (currentPos + TarConstants.DEFAULT_RCDSIZE + contentWithPaddingSize + 2 * TarConstants.DEFAULT_RCDSIZE
-            < maxTarSize);
+        return (
+            currentPos + TarConstants.DEFAULT_RCDSIZE + contentWithPaddingSize + 2 * TarConstants.DEFAULT_RCDSIZE <
+            maxTarSize
+        );
     }
 
-    public TarEntryDescription append(String entryName, InputStream inputStream, long size)
-        throws IOException {
-
+    public TarEntryDescription append(String entryName, InputStream inputStream, long size) throws IOException {
         if (!canAppend(size)) {
             throw new IllegalStateException("Could not append to tar file");
         }
 
         try {
-
             long startPos = tarArchiveOutputStream.getBytesWritten();
 
             TarArchiveEntry tarEntry = new TarArchiveEntry(entryName);
@@ -107,13 +105,19 @@ public class TarAppender implements AutoCloseable {
 
             String entryDigestValue = digest.digestHex();
 
-            LOGGER.info("Written {} [{} bytes] into tar file {} [{}-{}] with digest {}",
-                entryName, size, tarId, startPos, endPos, entryDigestValue);
+            LOGGER.info(
+                "Written {} [{} bytes] into tar file {} [{}-{}] with digest {}",
+                entryName,
+                size,
+                tarId,
+                startPos,
+                endPos,
+                entryDigestValue
+            );
             entryCount++;
             bytesWritten = tarArchiveOutputStream.getBytesWritten();
 
             return new TarEntryDescription(this.tarId, entryName, startPos, size, entryDigestValue);
-
         } catch (IOException ex) {
             IOUtils.closeQuietly(outputStream);
             throw ex;

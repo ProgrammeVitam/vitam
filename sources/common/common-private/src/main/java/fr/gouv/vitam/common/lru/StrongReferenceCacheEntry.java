@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.lru;
  * author Damian Momot
  */
 class StrongReferenceCacheEntry<V> implements InterfaceLruCacheEntry<V> {
+
     private final V value;
 
     private long expirationTime;

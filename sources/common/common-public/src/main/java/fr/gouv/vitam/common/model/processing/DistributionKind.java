@@ -88,5 +88,4 @@ public enum DistributionKind {
     public boolean isDistributed() {
         return this != REF;
     }
-
 }

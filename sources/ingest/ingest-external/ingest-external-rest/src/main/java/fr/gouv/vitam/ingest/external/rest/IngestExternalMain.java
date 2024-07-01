@@ -44,6 +44,7 @@ import javax.ws.rs.core.Application;
  * Ingest External web application
  */
 public class IngestExternalMain {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalMain.class);
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.ingest-external.port";
 
@@ -58,10 +59,16 @@ public class IngestExternalMain {
      * @param configurationFile
      */
     public IngestExternalMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(IngestExternalConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            IngestExternalConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class
+        );
     }
 
     /**
@@ -71,11 +78,15 @@ public class IngestExternalMain {
      * @param testBusinessApplication Custom BusinessApplication
      * @param testAdminApplication Custom AdminApplication
      */
-    public IngestExternalMain(String configurationFile,
+    public IngestExternalMain(
+        String configurationFile,
         Class<? extends Application> testBusinessApplication,
-        Class<? extends Application> testAdminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+        Class<? extends Application> testAdminApplication
+    ) {
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
         if (null == testBusinessApplication) {
             testBusinessApplication = BusinessApplication.class;
         }
@@ -83,10 +94,13 @@ public class IngestExternalMain {
         if (null == testAdminApplication) {
             testAdminApplication = AdminApplication.class;
         }
-        vitamStarter = new VitamStarter(IngestExternalConfiguration.class, configurationFile,
-            testBusinessApplication, testAdminApplication);
+        vitamStarter = new VitamStarter(
+            IngestExternalConfiguration.class,
+            configurationFile,
+            testBusinessApplication,
+            testAdminApplication
+        );
     }
-
 
     /**
      * Main method to run the application (doing start and join)
@@ -97,8 +111,9 @@ public class IngestExternalMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
             IngestExternalMain main = new IngestExternalMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
@@ -106,8 +121,11 @@ public class IngestExternalMain {
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }
@@ -148,5 +166,4 @@ public class IngestExternalMain {
     public VitamStarter getVitamStarter() {
         return vitamStarter;
     }
-
 }

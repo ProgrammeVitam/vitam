@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * The range query
  */
 public class RangeQuery extends fr.gouv.vitam.common.database.builder.query.RangeQuery {
+
     /**
      * For Parsing
      *

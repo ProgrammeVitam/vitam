@@ -94,7 +94,6 @@ public class SwiftMigrationService {
     }
 
     public boolean tryStartMigration(SwiftMigrationMode swiftMigrationMode) {
-
         boolean lockAcquired = isRunning.compareAndSet(false, true);
         if (!lockAcquired) {
             // A migration is already running
@@ -102,20 +101,20 @@ public class SwiftMigrationService {
         }
         migrationSucceeded.set(false);
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-            try {
-                LOGGER.warn("Starting swift offer migration : " + swiftMigrationMode.toString());
-                migrateOffer(swiftMigrationMode);
-            } catch (Exception e) {
-                LOGGER.error("A fatal error occurred during swift offer migration", e);
-            } finally {
-                isRunning.set(false);
-                LOGGER.info("Swift offer migration finished");
-            }
-        });
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
+                try {
+                    LOGGER.warn("Starting swift offer migration : " + swiftMigrationMode.toString());
+                    migrateOffer(swiftMigrationMode);
+                } catch (Exception e) {
+                    LOGGER.error("A fatal error occurred during swift offer migration", e);
+                } finally {
+                    isRunning.set(false);
+                    LOGGER.info("Swift offer migration finished");
+                }
+            });
 
         return true;
-
     }
 
     public boolean isMigrationInProgress() {
@@ -128,9 +127,9 @@ public class SwiftMigrationService {
 
     private void migrateOffer(SwiftMigrationMode swiftMigrationMode)
         throws ContentAddressableStorageException, IOException {
-
-        VitamSwiftObjectStorageService vitamSwiftObjectStorageService =
-            new VitamSwiftObjectStorageService(this.osClient);
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService = new VitamSwiftObjectStorageService(
+            this.osClient
+        );
 
         for (Integer tenant : VitamConfiguration.getTenants()) {
             for (DataCategory dataCategory : DataCategory.values()) {
@@ -144,12 +143,11 @@ public class SwiftMigrationService {
     private void migrateContainer(
         SwiftMigrationMode swiftMigrationMode,
         VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName) throws ContentAddressableStorageException, IOException {
-
+        String containerName
+    ) throws ContentAddressableStorageException, IOException {
         LOGGER.warn("Processing swift migration for container " + containerName + ": (" + swiftMigrationMode + ")");
         Stopwatch timer = Stopwatch.createStarted();
         try {
-
             // Ensure container exists
             if (!isExistingContainer(containerName)) {
                 LOGGER.info("Container " + containerName + " not exists.");
@@ -157,18 +155,29 @@ public class SwiftMigrationService {
             }
 
             // List objects to migrate
-            MultiValuedMap<String, String> largeObjectChunksByObjectName =
-                listLargeObjects(vitamSwiftObjectStorageService, containerName);
+            MultiValuedMap<String, String> largeObjectChunksByObjectName = listLargeObjects(
+                vitamSwiftObjectStorageService,
+                containerName
+            );
 
             // Migrate large objects
             for (String objectName : largeObjectChunksByObjectName.keySet()) {
-                processLargeObjet(swiftMigrationMode, vitamSwiftObjectStorageService, containerName, objectName,
-                    largeObjectChunksByObjectName.get(objectName));
+                processLargeObjet(
+                    swiftMigrationMode,
+                    vitamSwiftObjectStorageService,
+                    containerName,
+                    objectName,
+                    largeObjectChunksByObjectName.get(objectName)
+                );
             }
-
         } finally {
-            LOGGER.warn("Done migrating swift container " + containerName + " in " + timer.elapsed(TimeUnit.SECONDS) +
-                " seconds.");
+            LOGGER.warn(
+                "Done migrating swift container " +
+                containerName +
+                " in " +
+                timer.elapsed(TimeUnit.SECONDS) +
+                " seconds."
+            );
         }
     }
 
@@ -180,14 +189,13 @@ public class SwiftMigrationService {
     }
 
     private MultiValuedMap<String, String> listLargeObjects(
-        VitamSwiftObjectStorageService vitamSwiftObjectStorageService, String containerName)
-        throws ContentAddressableStorageException {
-
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName
+    ) throws ContentAddressableStorageException {
         LOGGER.warn("Listing objects for container " + containerName + "...");
         Stopwatch timer = Stopwatch.createStarted();
         int listedObjects = 0;
         try {
-
             // List large object segments in container (name pattern : {objectName}/{segmentIndex})
             MultiValuedMap<String, String> largeObjectChunksByObjectName = new ArrayListValuedHashMap<>();
 
@@ -200,8 +208,11 @@ public class SwiftMigrationService {
                     objectListOptions.marker(nextMarker);
                 }
 
-                List<? extends SwiftObject> swiftObjects =
-                    vitamSwiftObjectStorageService.list(containerName, objectListOptions, Collections.emptyMap());
+                List<? extends SwiftObject> swiftObjects = vitamSwiftObjectStorageService.list(
+                    containerName,
+                    objectListOptions,
+                    Collections.emptyMap()
+                );
 
                 if (swiftObjects.isEmpty()) {
                     break;
@@ -210,7 +221,6 @@ public class SwiftMigrationService {
                 LOGGER.info("Found objets & object segments: " + listedObjects);
 
                 for (SwiftObject swiftObject : swiftObjects) {
-
                     if (swiftObject.getName().matches("^.*/\\d+$")) {
                         String objectName = StringUtils.substringBeforeLast(swiftObject.getName(), "/");
                         largeObjectChunksByObjectName.put(objectName, swiftObject.getName());
@@ -219,69 +229,110 @@ public class SwiftMigrationService {
                 }
 
                 nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
-
             } while (nextMarker != null);
 
             return largeObjectChunksByObjectName;
-
         } finally {
-            LOGGER.warn("Listing objects took " + timer.elapsed(TimeUnit.SECONDS) +
-                " seconds. Total objects found in container " + containerName + ": " + listedObjects);
+            LOGGER.warn(
+                "Listing objects took " +
+                timer.elapsed(TimeUnit.SECONDS) +
+                " seconds. Total objects found in container " +
+                containerName +
+                ": " +
+                listedObjects
+            );
         }
     }
 
     private void processLargeObjet(
         SwiftMigrationMode swiftMigrationMode,
         VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName, String objectName, Collection<String> segments)
-        throws ContentAddressableStorageException, IOException {
-
+        String containerName,
+        String objectName,
+        Collection<String> segments
+    ) throws ContentAddressableStorageException, IOException {
         LOGGER.info("Processing large object " + containerName + "/" + objectName);
 
         // Check manifest object existence
-        Optional<SwiftObject> manifestObject =
-            vitamSwiftObjectStorageService.getObjectInformation(containerName, objectName, Collections.emptyMap());
+        Optional<SwiftObject> manifestObject = vitamSwiftObjectStorageService.getObjectInformation(
+            containerName,
+            objectName,
+            Collections.emptyMap()
+        );
         if (manifestObject.isEmpty()) {
-            deleteOrphanObjectSegments(swiftMigrationMode, vitamSwiftObjectStorageService, containerName, objectName,
-                segments);
+            deleteOrphanObjectSegments(
+                swiftMigrationMode,
+                vitamSwiftObjectStorageService,
+                containerName,
+                objectName,
+                segments
+            );
             return;
         }
 
         // Rename large object segments from format (ex. obj/12 to obj/00000012) to fix segment ordering
-        SortedSet<String> newSegmentNames = migrateObjectSegmentNames(swiftMigrationMode,
-            vitamSwiftObjectStorageService, containerName, objectName, segments);
+        SortedSet<String> newSegmentNames = migrateObjectSegmentNames(
+            swiftMigrationMode,
+            vitamSwiftObjectStorageService,
+            containerName,
+            objectName,
+            segments
+        );
 
         // Migrate large object
         Map<String, String> objectMetadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         objectMetadata.putAll(manifestObject.get().getMetadata());
-        migrateLargeObjectManifest(swiftMigrationMode, vitamSwiftObjectStorageService, containerName, objectName,
-            newSegmentNames, objectMetadata);
+        migrateLargeObjectManifest(
+            swiftMigrationMode,
+            vitamSwiftObjectStorageService,
+            containerName,
+            objectName,
+            newSegmentNames,
+            objectMetadata
+        );
     }
 
-    private void deleteOrphanObjectSegments(SwiftMigrationMode swiftMigrationMode,
-        VitamSwiftObjectStorageService vitamSwiftObjectStorageService, String containerName,
-        String objectName, Collection<String> segments) throws ContentAddressableStorageException {
-
+    private void deleteOrphanObjectSegments(
+        SwiftMigrationMode swiftMigrationMode,
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String objectName,
+        Collection<String> segments
+    ) throws ContentAddressableStorageException {
         if (!swiftMigrationMode.isDeleteOrphanSegments()) {
             LOGGER.warn(
-                "INCONSISTENCY FOUND : Orphan large object segments " + segments + " without parent object manifest: " +
-                    containerName
-                    + "/" + objectName + ". Eliminated object? Incomplete write?"
-                    + " Run migration script with delete mode to prune container.");
+                "INCONSISTENCY FOUND : Orphan large object segments " +
+                segments +
+                " without parent object manifest: " +
+                containerName +
+                "/" +
+                objectName +
+                ". Eliminated object? Incomplete write?" +
+                " Run migration script with delete mode to prune container."
+            );
             return;
         }
 
-        LOGGER.warn("DELETING orphan large object segments (elimination? incomplete write?): " +
-            containerName + "/" + objectName + ". Cleaning up its segments " + segments);
+        LOGGER.warn(
+            "DELETING orphan large object segments (elimination? incomplete write?): " +
+            containerName +
+            "/" +
+            objectName +
+            ". Cleaning up its segments " +
+            segments
+        );
         for (String segmentName : segments) {
             vitamSwiftObjectStorageService.deleteFullObject(containerName, segmentName, null, Collections.emptyMap());
         }
     }
 
-    private SortedSet<String> migrateObjectSegmentNames(SwiftMigrationMode swiftMigrationMode,
-        VitamSwiftObjectStorageService vitamSwiftObjectStorageService, String containerName, String objectName,
-        Collection<String> segments) throws IOException, ContentAddressableStorageException {
-
+    private SortedSet<String> migrateObjectSegmentNames(
+        SwiftMigrationMode swiftMigrationMode,
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String objectName,
+        Collection<String> segments
+    ) throws IOException, ContentAddressableStorageException {
         Map<String, String> oldSegmentNamesToMigrate = new HashMap<>();
         SortedSet<String> targetSegmentNames = new TreeSet<>();
 
@@ -301,9 +352,15 @@ public class SwiftMigrationService {
         }
 
         if (!swiftMigrationMode.isFixInconsistencies()) {
-            LOGGER.warn("INCONSISTENCY FOUND : Object " + containerName + "/" + objectName + " has old segment names " +
+            LOGGER.warn(
+                "INCONSISTENCY FOUND : Object " +
+                containerName +
+                "/" +
+                objectName +
+                " has old segment names " +
                 oldSegmentNamesToMigrate.keySet() +
-                ". Run migration script with fix inconsistencies mode to prune container.");
+                ". Run migration script with fix inconsistencies mode to prune container."
+            );
             return targetSegmentNames;
         }
 
@@ -325,65 +382,100 @@ public class SwiftMigrationService {
         return segmentPrefix + "/" + StringUtils.leftPad(segmentId, 8, '0');
     }
 
-    private void renameSegment(VitamSwiftObjectStorageService vitamSwiftObjectStorageService, String containerName,
-        String oldSegmentName, String newSegmentName)
-        throws ContentAddressableStorageException, IOException {
-
-        LOGGER.warn("Renaming segment " + containerName + "/" + oldSegmentName +
-            " to " + containerName + "/" + newSegmentName);
+    private void renameSegment(
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String oldSegmentName,
+        String newSegmentName
+    ) throws ContentAddressableStorageException, IOException {
+        LOGGER.warn(
+            "Renaming segment " + containerName + "/" + oldSegmentName + " to " + containerName + "/" + newSegmentName
+        );
 
         ObjectPutOptions objectPutOptions = ObjectPutOptions.create();
         objectPutOptions.getOptions().put("X-Copy-From", containerName + "/" + oldSegmentName);
 
         vitamSwiftObjectStorageService.put(
-            containerName, newSegmentName, Payloads.create(new NullInputStream(0L)), objectPutOptions);
+            containerName,
+            newSegmentName,
+            Payloads.create(new NullInputStream(0L)),
+            objectPutOptions
+        );
 
         String oldSegmentDigest = computeDigest(vitamSwiftObjectStorageService, containerName, oldSegmentName);
         String newSegmentDigest = computeDigest(vitamSwiftObjectStorageService, containerName, newSegmentName);
 
         if (!oldSegmentDigest.equals(newSegmentDigest)) {
             throw new IllegalStateException(
-                String.format("Copied segment %s/%s digest (%s) does not match old segment %s/%s digest (%s)",
-                    containerName, newSegmentName, newSegmentDigest, containerName, oldSegmentName, oldSegmentDigest));
+                String.format(
+                    "Copied segment %s/%s digest (%s) does not match old segment %s/%s digest (%s)",
+                    containerName,
+                    newSegmentName,
+                    newSegmentDigest,
+                    containerName,
+                    oldSegmentName,
+                    oldSegmentDigest
+                )
+            );
         }
 
         vitamSwiftObjectStorageService.deleteFullObject(containerName, oldSegmentName, null, Collections.emptyMap());
     }
 
-    private String computeDigest(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName, String segmentName) throws ContentAddressableStorageException, IOException {
-
-        ObjectContent segmentContent =
-            vitamSwiftObjectStorageService.download(containerName, segmentName, Collections.emptyMap());
-        try (InputStream inputStream = segmentContent.getInputStream();
-            InputStream exactSizeInputStream = new ExactSizeInputStream(
-                inputStream, segmentContent.getSize())) {
+    private String computeDigest(
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String segmentName
+    ) throws ContentAddressableStorageException, IOException {
+        ObjectContent segmentContent = vitamSwiftObjectStorageService.download(
+            containerName,
+            segmentName,
+            Collections.emptyMap()
+        );
+        try (
+            InputStream inputStream = segmentContent.getInputStream();
+            InputStream exactSizeInputStream = new ExactSizeInputStream(inputStream, segmentContent.getSize())
+        ) {
             Digest segmentDigest = new Digest(VitamConfiguration.getDefaultDigestType());
             segmentDigest.update(exactSizeInputStream);
             return segmentDigest.digestHex();
         }
     }
 
-    private void migrateLargeObjectManifest(SwiftMigrationMode swiftMigrationMode,
-        VitamSwiftObjectStorageService vitamSwiftObjectStorageService, String containerName, String objectName,
-        SortedSet<String> sortedSegmentNames, Map<String, String> objectMetadata)
-        throws ContentAddressableStorageException, IOException {
-
-        if (objectMetadata.containsKey(X_OBJECT_MANIFEST)
-            && objectMetadata.containsKey(X_OBJECT_META_DIGEST)
-            && objectMetadata.containsKey(X_OBJECT_META_DIGEST_TYPE)) {
+    private void migrateLargeObjectManifest(
+        SwiftMigrationMode swiftMigrationMode,
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String objectName,
+        SortedSet<String> sortedSegmentNames,
+        Map<String, String> objectMetadata
+    ) throws ContentAddressableStorageException, IOException {
+        if (
+            objectMetadata.containsKey(X_OBJECT_MANIFEST) &&
+            objectMetadata.containsKey(X_OBJECT_META_DIGEST) &&
+            objectMetadata.containsKey(X_OBJECT_META_DIGEST_TYPE)
+        ) {
             LOGGER.info("No migration needed for object manifest " + containerName + "/" + objectName);
             return;
         }
 
         if (!swiftMigrationMode.isFixInconsistencies()) {
-            LOGGER.warn("INCONSISTENCY FOUND : Object " + containerName + "/" + objectName + " has missing metadata."
-                + " Run migration script with fix inconsistencies mode enabled to set object metadata.");
+            LOGGER.warn(
+                "INCONSISTENCY FOUND : Object " +
+                containerName +
+                "/" +
+                objectName +
+                " has missing metadata." +
+                " Run migration script with fix inconsistencies mode enabled to set object metadata."
+            );
             return;
         }
 
-        String globalDigest = computeGlobalDigestFromSegments(vitamSwiftObjectStorageService, containerName,
-            sortedSegmentNames);
+        String globalDigest = computeGlobalDigestFromSegments(
+            vitamSwiftObjectStorageService,
+            containerName,
+            sortedSegmentNames
+        );
 
         // If initial object digest was set, check computed global digest
         checkInitialObjectDigestMetadata(containerName, objectName, objectMetadata, globalDigest);
@@ -394,26 +486,27 @@ public class SwiftMigrationService {
         // Double check object digest & metadata
         doubleCheckObjectManifest(vitamSwiftObjectStorageService, containerName, objectName, globalDigest);
 
-
-
-        LOGGER.warn("Object " + containerName + "/" + objectName + " migrated successfully. Digest: " +
-            globalDigest);
+        LOGGER.warn("Object " + containerName + "/" + objectName + " migrated successfully. Digest: " + globalDigest);
     }
 
-    private String computeGlobalDigestFromSegments(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName, SortedSet<String> sortedSegmentNames)
-        throws ContentAddressableStorageException, IOException {
-
+    private String computeGlobalDigestFromSegments(
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        SortedSet<String> sortedSegmentNames
+    ) throws ContentAddressableStorageException, IOException {
         Digest globalDigest = new Digest(VitamConfiguration.getDefaultDigestType());
 
         for (String segmentName : sortedSegmentNames) {
-            ObjectContent segmentContent =
-                vitamSwiftObjectStorageService.download(containerName, segmentName, Collections.emptyMap());
+            ObjectContent segmentContent = vitamSwiftObjectStorageService.download(
+                containerName,
+                segmentName,
+                Collections.emptyMap()
+            );
 
-            try (InputStream inputStream = segmentContent.getInputStream();
-                InputStream exactSizeInputStream = new ExactSizeInputStream(
-                    inputStream, segmentContent.getSize())) {
-
+            try (
+                InputStream inputStream = segmentContent.getInputStream();
+                InputStream exactSizeInputStream = new ExactSizeInputStream(inputStream, segmentContent.getSize())
+            ) {
                 globalDigest.update(exactSizeInputStream);
             }
         }
@@ -421,29 +514,50 @@ public class SwiftMigrationService {
         return globalDigest.digestHex();
     }
 
-    private void checkInitialObjectDigestMetadata(String containerName, String objectName,
+    private void checkInitialObjectDigestMetadata(
+        String containerName,
+        String objectName,
         Map<String, String> objectMetadata,
-        String globalDigest) {
+        String globalDigest
+    ) {
         String declaredDigestType = objectMetadata.get(X_OBJECT_META_DIGEST_TYPE);
-        if (declaredDigestType != null &&
-            !declaredDigestType.equals(VitamConfiguration.getDefaultDigestType().getName())) {
+        if (
+            declaredDigestType != null &&
+            !declaredDigestType.equals(VitamConfiguration.getDefaultDigestType().getName())
+        ) {
             throw new IllegalStateException(
-                "Illegal object " + containerName + "/" + objectName + " digest type. Expected: " +
-                    VitamConfiguration.getDefaultDigestType().getName() + ", actual: " + declaredDigestType);
+                "Illegal object " +
+                containerName +
+                "/" +
+                objectName +
+                " digest type. Expected: " +
+                VitamConfiguration.getDefaultDigestType().getName() +
+                ", actual: " +
+                declaredDigestType
+            );
         }
 
         String declaredObjectDigest = objectMetadata.get(X_OBJECT_META_DIGEST);
         if (declaredObjectDigest != null && !declaredObjectDigest.equals(globalDigest)) {
             throw new IllegalStateException(
-                "Illegal object " + containerName + "/" + objectName + " digest. Expected=" +
-                    globalDigest + ", actual= " + declaredObjectDigest);
+                "Illegal object " +
+                containerName +
+                "/" +
+                objectName +
+                " digest. Expected=" +
+                globalDigest +
+                ", actual= " +
+                declaredObjectDigest
+            );
         }
     }
 
-    private void updateLargeObjectManifest(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName, String objectName, String digest)
-        throws ContentAddressableStorageException {
-
+    private void updateLargeObjectManifest(
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String objectName,
+        String digest
+    ) throws ContentAddressableStorageException {
         String largeObjectPrefix = containerName + "/" + objectName + "/";
 
         ObjectPutOptions options = ObjectPutOptions.create();
@@ -451,25 +565,41 @@ public class SwiftMigrationService {
         options.getOptions().put(X_OBJECT_META_DIGEST, digest);
         options.getOptions().put(X_OBJECT_META_DIGEST_TYPE, VitamConfiguration.getDefaultDigestType().getName());
 
-        vitamSwiftObjectStorageService
-            .put(containerName, objectName, Payloads.create(new NullInputStream(0L)), options);
+        vitamSwiftObjectStorageService.put(
+            containerName,
+            objectName,
+            Payloads.create(new NullInputStream(0L)),
+            options
+        );
     }
 
-    private void doubleCheckObjectManifest(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName, String objectName, String expectedDigest)
-        throws ContentAddressableStorageException, IOException {
-
+    private void doubleCheckObjectManifest(
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        String objectName,
+        String expectedDigest
+    ) throws ContentAddressableStorageException, IOException {
         // Check digest
         String actualGlobalDigest = computeDigest(vitamSwiftObjectStorageService, containerName, objectName);
         if (!actualGlobalDigest.equals(expectedDigest)) {
             throw new IllegalStateException(
-                "Invalid digest value for object " + containerName + "/" + objectName +
-                    ". Expected: " + expectedDigest + ", actual: " + actualGlobalDigest);
+                "Invalid digest value for object " +
+                containerName +
+                "/" +
+                objectName +
+                ". Expected: " +
+                expectedDigest +
+                ", actual: " +
+                actualGlobalDigest
+            );
         }
 
         // Check metadata
-        Optional<SwiftObject> updatedManifestObject =
-            vitamSwiftObjectStorageService.getObjectInformation(containerName, objectName, Collections.emptyMap());
+        Optional<SwiftObject> updatedManifestObject = vitamSwiftObjectStorageService.getObjectInformation(
+            containerName,
+            objectName,
+            Collections.emptyMap()
+        );
         if (updatedManifestObject.isEmpty()) {
             throw new IllegalStateException("Could not read manifest " + containerName + "/" + objectName);
         }
@@ -480,23 +610,40 @@ public class SwiftMigrationService {
         String expectedObjectPrefix = containerName + "/" + objectName + "/";
         String actualObjectPrefix = updatedObjectMetadata.get(X_OBJECT_MANIFEST);
         if (!expectedObjectPrefix.equals(actualObjectPrefix)) {
-            throw new IllegalStateException("Manifest header not found for updated manifest " +
-                containerName + "/" + objectName + ". Expected: " + expectedObjectPrefix + ", actual: " +
-                actualObjectPrefix);
+            throw new IllegalStateException(
+                "Manifest header not found for updated manifest " +
+                containerName +
+                "/" +
+                objectName +
+                ". Expected: " +
+                expectedObjectPrefix +
+                ", actual: " +
+                actualObjectPrefix
+            );
         }
 
         String updatedDigestType = updatedObjectMetadata.get(X_OBJECT_META_DIGEST_TYPE);
         if (!VitamConfiguration.getDefaultDigestType().getName().equals(updatedDigestType)) {
             throw new IllegalStateException(
-                "Invalid updated digest type. Expected: " + VitamConfiguration.getDefaultDigestType().getName() +
-                    ", actual: " + updatedDigestType);
+                "Invalid updated digest type. Expected: " +
+                VitamConfiguration.getDefaultDigestType().getName() +
+                ", actual: " +
+                updatedDigestType
+            );
         }
 
         String updatedManifestDigestValue = updatedObjectMetadata.get(X_OBJECT_META_DIGEST);
         if (!expectedDigest.equals(updatedManifestDigestValue)) {
             throw new IllegalStateException(
-                "Invalid digest value for updated manifest object " + containerName + "/" + objectName +
-                    ". Expected: " + expectedDigest + ", actual: " + updatedManifestDigestValue);
+                "Invalid digest value for updated manifest object " +
+                containerName +
+                "/" +
+                objectName +
+                ". Expected: " +
+                expectedDigest +
+                ", actual: " +
+                updatedManifestDigestValue
+            );
         }
     }
 }

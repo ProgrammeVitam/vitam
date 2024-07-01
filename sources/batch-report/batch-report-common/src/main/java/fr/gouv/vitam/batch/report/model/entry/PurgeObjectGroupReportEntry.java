@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 public class PurgeObjectGroupReportEntry {
+
     private final String id;
     private final String originatingAgency;
     private final String initialOperation;
@@ -49,7 +50,8 @@ public class PurgeObjectGroupReportEntry {
         @JsonProperty("deletedParentUnitIds") Set<String> deletedParentUnitIds,
         @JsonProperty("objectIds") Set<String> objectIds,
         @JsonProperty("status") String status,
-        @JsonProperty("objectVersions") List<PurgeObjectGroupObjectVersion> objectVersions) {
+        @JsonProperty("objectVersions") List<PurgeObjectGroupObjectVersion> objectVersions
+    ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;

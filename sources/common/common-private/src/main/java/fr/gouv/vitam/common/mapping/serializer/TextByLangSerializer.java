@@ -64,15 +64,14 @@ public class TextByLangSerializer extends StdSerializer<TextByLang> {
      * @throws IOException
      */
     @Override
-    public void serialize(TextByLang textByLang, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException {
+    public void serialize(TextByLang textByLang, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         for (TextType textType : textByLang.getTextTypes()) {
-            String lang =
-                Strings.isNullOrEmpty(textType.getLang()) ? VitamConfiguration.getDefaultLang() : textType.getLang();
+            String lang = Strings.isNullOrEmpty(textType.getLang())
+                ? VitamConfiguration.getDefaultLang()
+                : textType.getLang();
             jgen.writeStringField(lang, textType.getValue());
         }
         jgen.writeEndObject();
-
     }
 }

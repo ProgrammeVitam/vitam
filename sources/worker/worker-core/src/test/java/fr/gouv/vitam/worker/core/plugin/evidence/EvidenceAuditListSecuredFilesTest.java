@@ -51,10 +51,19 @@ import static org.mockito.Mockito.when;
  * EvidenceAuditListSecuredFilesTest
  */
 public class EvidenceAuditListSecuredFilesTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock public HandlerIO handlerIO;
-    @Mock WorkerParameters defaultWorkerParameters;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Mock
+    public HandlerIO handlerIO;
+
+    @Mock
+    WorkerParameters defaultWorkerParameters;
+
     private EvidenceAuditListSecuredFiles evidenceAuditListSecuredFiles;
 
     @Before
@@ -72,8 +81,9 @@ public class EvidenceAuditListSecuredFilesTest {
         uriListObjectsWorkspace.add(new URI("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"));
         when(handlerIO.getUriList(handlerIO.getContainerName(), "data")).thenReturn(uriListObjectsWorkspace);
 
-        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"))
-            .thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(
+            PropertiesUtils.getResourceFile("evidenceAudit/test.json")
+        );
         when(handlerIO.getNewLocalFile("0_LogbookLifecycles_20180312_181919.zip")).thenReturn(file2);
 
         File resourceFile = PropertiesUtils.getResourceFile("evidenceAudit/data.txt");
@@ -83,5 +93,4 @@ public class EvidenceAuditListSecuredFilesTest {
         ItemStatus execute = evidenceAuditListSecuredFiles.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
-
 }

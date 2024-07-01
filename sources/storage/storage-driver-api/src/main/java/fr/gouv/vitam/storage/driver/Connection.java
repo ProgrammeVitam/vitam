@@ -103,8 +103,7 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    String createAccessRequest(StorageAccessRequestCreationRequest request)
-        throws StorageDriverException;
+    String createAccessRequest(StorageAccessRequestCreationRequest request) throws StorageDriverException;
 
     /**
      * Check access request statuses of asynchronous offer.
@@ -115,9 +114,11 @@ public interface Connection extends AutoCloseable {
      * @return a Map of {@code AccessRequestStatus} by access request Id
      * @throws StorageDriverException if any problem occurs during request
      */
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws StorageDriverException;
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        List<String> accessRequestIds,
+        int tenant,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageDriverException;
 
     /**
      * Removes (cancel / delete) and access request for an asynchronous offer.
@@ -139,8 +140,7 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    boolean checkObjectAvailability(StorageCheckObjectAvailabilityRequest request)
-        throws StorageDriverException;
+    boolean checkObjectAvailability(StorageCheckObjectAvailabilityRequest request) throws StorageDriverException;
 
     /**
      * Put the object file into the storage offer based on criteria defined in request argument and underlying
@@ -216,7 +216,6 @@ public interface Connection extends AutoCloseable {
      */
     RequestResponse<OfferLog> getOfferLogs(StorageOfferLogRequest request) throws StorageDriverException;
 
-
     /**
      * launch Offer Log Compaction
      *
@@ -232,5 +231,4 @@ public interface Connection extends AutoCloseable {
      */
     @Override
     void close() throws StorageDriverException;
-
 }

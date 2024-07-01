@@ -27,12 +27,11 @@
 package fr.gouv.vitam.model.validation.jsonschema;
 
 public enum JsonSchemaFieldType {
-
     DATE,
     ENUM,
     STRING,
     BOOLEAN,
     INTEGER,
     NUMERIC,
-    OBJECT
+    OBJECT,
 }

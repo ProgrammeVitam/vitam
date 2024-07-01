@@ -91,5 +91,4 @@ public class FormatIdentifierConfiguration {
     public void setConfigurationProperty(String name, Object value) {
         configurationProperties.put(name, value);
     }
-
 }

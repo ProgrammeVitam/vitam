@@ -66,8 +66,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ReclassificationPreparationCheckGraphHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckGraphHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ReclassificationPreparationCheckGraphHandler.class
+    );
 
     private static final String RECLASSIFICATION_PREPARATION_CHECK_GRAPH = "RECLASSIFICATION_PREPARATION_CHECK_GRAPH";
     private static final int RECLASSIFICATION_ORDERS_PARAMETER_RANK = 0;
@@ -88,7 +89,8 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
         this(
             MetaDataClientFactory.getInstance(),
             new UnitGraphInfoLoader(),
-            VitamConfiguration.getReclassificationMaxGuildListSizeInLogbookOperation());
+            VitamConfiguration.getReclassificationMaxGuildListSizeInLogbookOperation()
+        );
     }
 
     /***
@@ -96,25 +98,23 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
      */
     @VisibleForTesting
     ReclassificationPreparationCheckGraphHandler(
-        MetaDataClientFactory metaDataClientFactory, UnitGraphInfoLoader unitGraphInfoLoader,
-        int maxGuildListSizeInLogbookOperation) {
+        MetaDataClientFactory metaDataClientFactory,
+        UnitGraphInfoLoader unitGraphInfoLoader,
+        int maxGuildListSizeInLogbookOperation
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.unitGraphInfoLoader = unitGraphInfoLoader;
         this.maxGuildListSizeInLogbookOperation = maxGuildListSizeInLogbookOperation;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             // Load / parse & validate request
             ReclassificationOrders reclassificationOrders = loadReclassificationOrders(handler);
 
             // Check graph (check unit types & graph cycles)
             checkGraphCoherence(reclassificationOrders);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Reclassification graph check failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(RECLASSIFICATION_PREPARATION_CHECK_GRAPH, e.getStatusCode(), e.getEventDetails());
@@ -130,7 +130,6 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
     }
 
     private void checkGraphCoherence(ReclassificationOrders reclassificationUpdates) throws ProcessingStatusException {
-
         // Load all units & their parents recursively
         Map<String, UnitGraphInfo> unitGraphByIds = loadAllUnitGraphByIds(reclassificationUpdates);
 
@@ -143,35 +142,38 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
 
     private Map<String, UnitGraphInfo> loadAllUnitGraphByIds(ReclassificationOrders reclassificationOrders)
         throws ProcessingStatusException {
-
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
             Set<String> allUnitIds = getAllUnitIds(reclassificationOrders);
 
             Map<String, UnitGraphInfo> result = unitGraphInfoLoader.selectAllUnitGraphByIds(metaDataClient, allUnitIds);
 
-            Set<String> notFoundUnits = result.entrySet().stream()
+            Set<String> notFoundUnits = result
+                .entrySet()
+                .stream()
                 .filter(entry -> entry.getValue() == null)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
 
             if (!notFoundUnits.isEmpty()) {
+                Set<String> firstNotFoundUnits = notFoundUnits
+                    .stream()
+                    .limit(maxGuildListSizeInLogbookOperation)
+                    .collect(Collectors.toSet());
 
-                Set<String> firstNotFoundUnits =
-                    notFoundUnits.stream()
-                        .limit(maxGuildListSizeInLogbookOperation)
-                        .collect(Collectors.toSet());
-
-                ReclassificationEventDetails eventDetails =
-                    new ReclassificationEventDetails().setError(COULD_NOT_LOAD_UNITS)
-                        .setNotFoundUnits(firstNotFoundUnits);
+                ReclassificationEventDetails eventDetails = new ReclassificationEventDetails()
+                    .setError(COULD_NOT_LOAD_UNITS)
+                    .setNotFoundUnits(firstNotFoundUnits);
                 throw new ProcessingStatusException(StatusCode.FATAL, eventDetails, COULD_NOT_LOAD_UNITS);
             }
 
             return result;
-
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException
-            | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+        } catch (
+            InvalidCreateOperationException
+            | InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load unit graph information", e);
         }
     }
@@ -187,12 +189,11 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
 
     private void checkAttachmentUnitTypeCoherence(
         ReclassificationOrders reclassificationOrders,
-        Map<String, UnitGraphInfo> unitGraphByIds) throws ProcessingStatusException {
-
+        Map<String, UnitGraphInfo> unitGraphByIds
+    ) throws ProcessingStatusException {
         List<IllegalUnitTypeAttachment> illegalUnitTypeAttachments = new ArrayList<>();
 
         for (Map.Entry<String, String> entry : reclassificationOrders.getChildToParentAttachments().entries()) {
-
             String childUnitId = entry.getKey();
             String parentUnitId = entry.getValue();
             UnitType childUnitType = unitGraphByIds.get(childUnitId).getUnitType();
@@ -200,26 +201,28 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
 
             if (childUnitType.ordinal() > parentUnitType.ordinal()) {
                 illegalUnitTypeAttachments.add(
-                    new IllegalUnitTypeAttachment(childUnitId, childUnitType, parentUnitId, parentUnitType));
+                    new IllegalUnitTypeAttachment(childUnitId, childUnitType, parentUnitId, parentUnitType)
+                );
             }
         }
 
         if (!illegalUnitTypeAttachments.isEmpty()) {
             String error = INVALID_UNIT_TYPE_ATTACHMENTS;
 
-            List<IllegalUnitTypeAttachment> firstIllegalUnitTypeAttachments =
-                illegalUnitTypeAttachments.stream().limit(maxGuildListSizeInLogbookOperation)
-                    .collect(Collectors.toList());
+            List<IllegalUnitTypeAttachment> firstIllegalUnitTypeAttachments = illegalUnitTypeAttachments
+                .stream()
+                .limit(maxGuildListSizeInLogbookOperation)
+                .collect(Collectors.toList());
 
-            ReclassificationEventDetails eventDetails = new ReclassificationEventDetails().setError(error)
+            ReclassificationEventDetails eventDetails = new ReclassificationEventDetails()
+                .setError(error)
                 .setIllegalUnitTypeAttachments(firstIllegalUnitTypeAttachments);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, error);
         }
     }
 
-    private void checkCycles(ReclassificationOrders reclassificationOrders,
-        Map<String, UnitGraphInfo> unitGraphByIds) throws ProcessingStatusException {
-
+    private void checkCycles(ReclassificationOrders reclassificationOrders, Map<String, UnitGraphInfo> unitGraphByIds)
+        throws ProcessingStatusException {
         GraphCycleDetector graphCycleDetector = new GraphCycleDetector();
 
         for (UnitGraphInfo unitGraph : unitGraphByIds.values()) {
@@ -230,22 +233,24 @@ public class ReclassificationPreparationCheckGraphHandler extends ActionHandler 
 
             // Add attachments / detachments
             graphCycleDetector.addRelations(unitId, reclassificationOrders.getChildToParentAttachments().get(unitId));
-            graphCycleDetector.removeRelations(unitId,
-                reclassificationOrders.getChildToParentDetachments().get(unitId));
+            graphCycleDetector.removeRelations(
+                unitId,
+                reclassificationOrders.getChildToParentDetachments().get(unitId)
+            );
         }
 
         Set<String> graphCycles = graphCycleDetector.checkCycles();
 
         if (!graphCycles.isEmpty()) {
-
-            Set<String> firstGraphCycles =
-                graphCycles.stream().limit(maxGuildListSizeInLogbookOperation)
-                    .collect(Collectors.toSet());
+            Set<String> firstGraphCycles = graphCycles
+                .stream()
+                .limit(maxGuildListSizeInLogbookOperation)
+                .collect(Collectors.toSet());
 
             String error = CANNOT_APPLY_RECLASSIFICATION_REQUEST_CYCLE_DETECTED;
-            ReclassificationEventDetails eventDetails =
-                new ReclassificationEventDetails().setError(error)
-                    .setUnitsWithCycles(firstGraphCycles);
+            ReclassificationEventDetails eventDetails = new ReclassificationEventDetails()
+                .setError(error)
+                .setUnitsWithCycles(firstGraphCycles);
 
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, error);
         }

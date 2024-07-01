@@ -54,6 +54,4 @@ public class UnitGraphComputePlugin extends AbstractGraphComputePlugin {
     String getPluginKeyName() {
         return UNIT_GRAPH_COMPUTE;
     }
-
-
 }

@@ -28,7 +28,6 @@ package fr.gouv.vitam.common.format.identification.exception;
 
 import fr.gouv.vitam.common.exception.VitamException;
 
-
 /**
  * Define a File Format Exception to be thrown when the file format is not in white list (rejected)
  */

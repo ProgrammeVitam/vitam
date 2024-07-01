@@ -63,14 +63,19 @@ public class SelectMultipleSchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public SelectMultipleSchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.SELECT_MULTIPLE.name(),
-            DslSchema.SELECT_MULTIPLE.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.SELECT_MULTIPLE.getFilename())) {
+        LOGGER.debug(
+            "Loading schema {} from {}",
+            DslSchema.SELECT_MULTIPLE.name(),
+            DslSchema.SELECT_MULTIPLE.getFilename()
+        );
+        try (
+            final InputStream schemaSource = PropertiesUtils.getResourceAsStream(
+                DslSchema.SELECT_MULTIPLE.getFilename()
+            )
+        ) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
-
 
     @Override
     public void validate(JsonNode dsl) throws ValidationException {
@@ -85,25 +90,40 @@ public class SelectMultipleSchemaValidator implements DslValidator {
      * @throws ValidationException
      */
     public static void validateStreamQuery(JsonNode queryJson) throws ValidationException {
-        JsonNode offset = JsonHandler.getNodeByPath(queryJson, BuilderToken.GLOBAL.FILTER.exactToken() +
-            "." + BuilderToken.SELECTFILTER.OFFSET.exactToken(), false);
+        JsonNode offset = JsonHandler.getNodeByPath(
+            queryJson,
+            BuilderToken.GLOBAL.FILTER.exactToken() + "." + BuilderToken.SELECTFILTER.OFFSET.exactToken(),
+            false
+        );
         if (offset != null) {
             throw new ValidationException(
-                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, "Cannot use " +
-                    BuilderToken.SELECTFILTER.OFFSET.exactToken() + " in this query"));
+                VitamCodeHelper.toVitamError(
+                    VitamCode.GLOBAL_INVALID_DSL,
+                    "Cannot use " + BuilderToken.SELECTFILTER.OFFSET.exactToken() + " in this query"
+                )
+            );
         }
-        JsonNode limit = JsonHandler.getNodeByPath(queryJson, BuilderToken.GLOBAL.FILTER.exactToken() +
-            "." + BuilderToken.SELECTFILTER.LIMIT.exactToken(), false);
+        JsonNode limit = JsonHandler.getNodeByPath(
+            queryJson,
+            BuilderToken.GLOBAL.FILTER.exactToken() + "." + BuilderToken.SELECTFILTER.LIMIT.exactToken(),
+            false
+        );
         if (limit != null) {
             throw new ValidationException(
-                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, "Cannot use " +
-                    BuilderToken.SELECTFILTER.LIMIT.exactToken() + " in this query"));
+                VitamCodeHelper.toVitamError(
+                    VitamCode.GLOBAL_INVALID_DSL,
+                    "Cannot use " + BuilderToken.SELECTFILTER.LIMIT.exactToken() + " in this query"
+                )
+            );
         }
         JsonNode facets = JsonHandler.getNodeByPath(queryJson, BuilderToken.GLOBAL.FACETS.exactToken(), false);
         if (facets != null && facets.elements().hasNext()) {
             throw new ValidationException(
-                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, "Cannot use " +
-                    BuilderToken.GLOBAL.FACETS.exactToken() + " in this query"));
+                VitamCodeHelper.toVitamError(
+                    VitamCode.GLOBAL_INVALID_DSL,
+                    "Cannot use " + BuilderToken.GLOBAL.FACETS.exactToken() + " in this query"
+                )
+            );
         }
     }
 
@@ -114,16 +134,24 @@ public class SelectMultipleSchemaValidator implements DslValidator {
      * @param configAuthorizeTrackTotalHits
      * @throws ValidationException
      */
-    public static void checkAuthorizeTrackTotalHits(JsonNode queryJson, boolean configAuthorizeTrackTotalHits) throws
-        ValidationException {
-        JsonNode dslAuthorizeTrackTotalHits = JsonHandler.getNodeByPath(queryJson,
+    public static void checkAuthorizeTrackTotalHits(JsonNode queryJson, boolean configAuthorizeTrackTotalHits)
+        throws ValidationException {
+        JsonNode dslAuthorizeTrackTotalHits = JsonHandler.getNodeByPath(
+            queryJson,
             BuilderToken.GLOBAL.FILTER.exactToken() + "." + BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken(),
-            false);
-        if (dslAuthorizeTrackTotalHits != null && dslAuthorizeTrackTotalHits.asBoolean() &&
-            !configAuthorizeTrackTotalHits) {
+            false
+        );
+        if (
+            dslAuthorizeTrackTotalHits != null &&
+            dslAuthorizeTrackTotalHits.asBoolean() &&
+            !configAuthorizeTrackTotalHits
+        ) {
             throw new ValidationException(
-                VitamCodeHelper.toVitamError(VitamCode.UNAUTHORIZED_PARAMETER_DSL,
-                    BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken() + " is not authorized!"));
+                VitamCodeHelper.toVitamError(
+                    VitamCode.UNAUTHORIZED_PARAMETER_DSL,
+                    BuilderToken.SELECTFILTER.TRACK_TOTAL_HITS.exactToken() + " is not authorized!"
+                )
+            );
         }
     }
 
@@ -135,7 +163,6 @@ public class SelectMultipleSchemaValidator implements DslValidator {
      * @throws ValidationException thrwon is graph is invalid
      */
     private void validateGraph(JsonNode dsl) throws ValidationException {
-
         boolean hasRoot = false;
         if (dsl.has(BuilderToken.GLOBAL.ROOTS.exactToken())) {
             JsonNode roots = dsl.get(BuilderToken.GLOBAL.ROOTS.exactToken());
@@ -151,18 +178,24 @@ public class SelectMultipleSchemaValidator implements DslValidator {
                 boolean firstQuery = true;
                 for (JsonNode query : queries) {
                     if (firstQuery && !hasRoot) {
-                        if (query.has(BuilderToken.QUERYARGS.DEPTH.exactToken()) ||
-                            query.has(BuilderToken.QUERYARGS.EXACTDEPTH.exactToken())) {
+                        if (
+                            query.has(BuilderToken.QUERYARGS.DEPTH.exactToken()) ||
+                            query.has(BuilderToken.QUERYARGS.EXACTDEPTH.exactToken())
+                        ) {
                             LOGGER.error(FORBIDDEN_DEPTH_MESSAGE);
                             throw new ValidationException(
-                                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, FORBIDDEN_DEPTH_MESSAGE));
+                                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, FORBIDDEN_DEPTH_MESSAGE)
+                            );
                         }
                     } else {
-                        if (!query.has(BuilderToken.QUERYARGS.DEPTH.exactToken()) &&
-                            !query.has(BuilderToken.QUERYARGS.EXACTDEPTH.exactToken())) {
+                        if (
+                            !query.has(BuilderToken.QUERYARGS.DEPTH.exactToken()) &&
+                            !query.has(BuilderToken.QUERYARGS.EXACTDEPTH.exactToken())
+                        ) {
                             LOGGER.error(MANDATORY_DEPTH_MESSAGE);
                             throw new ValidationException(
-                                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, MANDATORY_DEPTH_MESSAGE));
+                                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, MANDATORY_DEPTH_MESSAGE)
+                            );
                         }
                     }
                     firstQuery = false;

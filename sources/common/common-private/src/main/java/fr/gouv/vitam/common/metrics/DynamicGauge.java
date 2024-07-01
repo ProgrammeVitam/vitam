@@ -48,8 +48,12 @@ public class DynamicGauge extends Collector implements Collector.Describable {
      * @param labelNames label names
      * @param metricsSupplier a side-effect-free / non-blocking function returning the gauge value per label values
      */
-    public DynamicGauge(String name, String help, List<String> labelNames,
-        Supplier<Map<List<String>, Double>> metricsSupplier) {
+    public DynamicGauge(
+        String name,
+        String help,
+        List<String> labelNames,
+        Supplier<Map<List<String>, Double>> metricsSupplier
+    ) {
         this.name = name;
         this.help = help;
         this.labelNames = labelNames;
@@ -63,7 +67,6 @@ public class DynamicGauge extends Collector implements Collector.Describable {
 
     @Override
     public List<MetricFamilySamples> collect() {
-
         GaugeMetricFamily metricFamily = new GaugeMetricFamily(this.name, this.help, this.labelNames);
         Map<List<String>, Double> metricValuesByLabelValues = this.metricsProvider.get();
 

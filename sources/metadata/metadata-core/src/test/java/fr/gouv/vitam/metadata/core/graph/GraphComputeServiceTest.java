@@ -41,13 +41,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GraphComputeServiceTest {
 
-
-
     @Test
     @RunWithCustomExecutor
     public void testStreamDocumentsWithoutUp() {
-        List<String> uu = Lists
-            .newArrayList(new Document(Unit.UP, Lists.newArrayList("1", "2")), new Document("noUP", "noUp"))
+        List<String> uu = Lists.newArrayList(
+            new Document(Unit.UP, Lists.newArrayList("1", "2")),
+            new Document("noUP", "noUp")
+        )
             .stream()
             .map(o -> (List<String>) o.get(Unit.UP, List.class))
             .filter(CollectionUtils::isNotEmpty)

@@ -76,8 +76,9 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @InjectMocks
     private DeleteGotVersionsAccessionRegisterUpdatePlugin deleteGotVersionsAccessionRegisterUpdatePlugin;
@@ -109,8 +110,10 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(batchReportClientFactory.getClient()).thenReturn(batchReportClient);
-        deleteGotVersionsAccessionRegisterUpdatePlugin =
-            new DeleteGotVersionsAccessionRegisterUpdatePlugin(adminManagementClientFactory, batchReportClientFactory);
+        deleteGotVersionsAccessionRegisterUpdatePlugin = new DeleteGotVersionsAccessionRegisterUpdatePlugin(
+            adminManagementClientFactory,
+            batchReportClientFactory
+        );
     }
 
     @Test
@@ -118,11 +121,13 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
     public void givenOkResultsThenDeleteGotVersionsStorageOk() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(
-            getFromFile(deleteGotVersionsFile));
+            getFromFile(deleteGotVersionsFile)
+        );
         RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterResponse =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(ACCESSION_REGISTER_RESPONSE),
-                new TypeReference<>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(
+                PropertiesUtils.getResourceFile(ACCESSION_REGISTER_RESPONSE),
+                new TypeReference<>() {}
+            );
         when(adminManagementClient.getAccessionRegisterDetail(any())).thenReturn(accessionRegisterResponse);
 
         ItemStatus itemStatus = deleteGotVersionsAccessionRegisterUpdatePlugin.execute(params, handlerIO);
@@ -136,9 +141,10 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
     public void givenOkAndWarningResultsThenDeleteGotVersionsStorageWarning() throws Exception {
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(createObjectNode());
         RequestResponseOK<AccessionRegisterDetailModel> accessionRegisterResponse =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(ACCESSION_REGISTER_RESPONSE),
-                new TypeReference<>() {
-                });
+            JsonHandler.getFromFileAsTypeReference(
+                PropertiesUtils.getResourceFile(ACCESSION_REGISTER_RESPONSE),
+                new TypeReference<>() {}
+            );
         when(adminManagementClient.getAccessionRegisterDetail(any())).thenReturn(accessionRegisterResponse);
 
         ItemStatus itemStatus = deleteGotVersionsAccessionRegisterUpdatePlugin.execute(params, handlerIO);
@@ -152,10 +158,15 @@ public class DeleteGotVersionsAccessionRegisterUpdatePluginTest {
     public void givenErrorWhileRetreivingAcessionRegisterThenThrowException() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(
-            getFromFile(deleteGotVersionsFile));
+            getFromFile(deleteGotVersionsFile)
+        );
         final VitamError error = new VitamError("0");
-        Response response =
-            getOutboundResponse(Response.Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
+        Response response = getOutboundResponse(
+            Response.Status.BAD_REQUEST,
+            error.toString(),
+            MediaType.APPLICATION_JSON,
+            null
+        );
         RequestResponse requestResponse = RequestResponse.parseVitamError(response);
         when(adminManagementClient.getAccessionRegisterDetail(any())).thenReturn(requestResponse);
 

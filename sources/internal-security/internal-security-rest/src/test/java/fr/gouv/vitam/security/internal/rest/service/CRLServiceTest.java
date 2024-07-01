@@ -87,21 +87,20 @@ public class CRLServiceTest {
 
     private CRLService crlService;
 
-    private final static String EMPTY_CRL_FILE = "/signing-ca-no-revoked-cert-yet.crl";
+    private static final String EMPTY_CRL_FILE = "/signing-ca-no-revoked-cert-yet.crl";
 
-    private final static String CRL_SIA_REVOKED_FILE = "/signing-ca-with-revoked-cert.crl";
+    private static final String CRL_SIA_REVOKED_FILE = "/signing-ca-with-revoked-cert.crl";
 
-    private final static String IDENTITY_CERT_FILE = "/my-sia.crt";
+    private static final String IDENTITY_CERT_FILE = "/my-sia.crt";
 
-    private final static String PERSONAL_CERT_FILE = "/my-personal-certificate.crt";
+    private static final String PERSONAL_CERT_FILE = "/my-personal-certificate.crt";
 
-    private final static String IDENTITY_EXPIRED_CERT_FILE = "/my-expired-sia.crt";
+    private static final String IDENTITY_EXPIRED_CERT_FILE = "/my-expired-sia.crt";
 
-    private final static String PERSONAL_EXPIRED_CERT_FILE = "/my-expired-personal-certificate.crt";
+    private static final String PERSONAL_EXPIRED_CERT_FILE = "/my-expired-personal-certificate.crt";
 
-    private final static String ISSUER_NAME =
+    private static final String ISSUER_NAME =
         "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr";
-
 
     @Before
     public void setUp() {
@@ -114,11 +113,13 @@ public class CRLServiceTest {
         InputStream emptyCRL = getClass().getResourceAsStream(EMPTY_CRL_FILE);
 
         doReturn(constructList(constructCertificateDocument("01", IDENTITY_EXPIRED_CERT_FILE)))
-            .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+            .when(identityRepository)
+            .findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(IdentityModel.class).when(identityRepository).getEntityModelType();
 
         doReturn(constructList(constructCertificateDocument("02", PERSONAL_EXPIRED_CERT_FILE)))
-            .when(personalRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+            .when(personalRepository)
+            .findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(PersonalCertificateModel.class).when(personalRepository).getEntityModelType();
 
         crlService.checkIdentityWithCRL(toByteArray(emptyCRL));
@@ -141,13 +142,14 @@ public class CRLServiceTest {
         throws IOException, CertificateException, CRLException, InvalidParseOperationException {
         InputStream emptyCRL = getClass().getResourceAsStream(EMPTY_CRL_FILE);
 
-        doReturn(
-            constructList(constructCertificateDocument("01", IDENTITY_CERT_FILE)))
-            .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+        doReturn(constructList(constructCertificateDocument("01", IDENTITY_CERT_FILE)))
+            .when(identityRepository)
+            .findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(IdentityModel.class).when(identityRepository).getEntityModelType();
 
         doReturn(constructList(constructCertificateDocument("02", PERSONAL_CERT_FILE)))
-            .when(personalRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+            .when(personalRepository)
+            .findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(PersonalCertificateModel.class).when(personalRepository).getEntityModelType();
 
         crlService.checkIdentityWithCRL(toByteArray(emptyCRL));
@@ -161,39 +163,49 @@ public class CRLServiceTest {
         verify(personalRepository).getEntityModelType();
     }
 
-
     @Test
     @SuppressWarnings("unchecked")
     public void checkCertificatesWithNonEmptyCRLTest()
         throws IOException, CertificateException, CRLException, InvalidParseOperationException {
-
         //check with not empty CRL
         InputStream crlRevokingSIA = getClass().getResourceAsStream(CRL_SIA_REVOKED_FILE);
 
-        doNothing().when(identityRepository)
-            .updateCertificateState(any(), eq(CertificateStatus.REVOKED));
+        doNothing().when(identityRepository).updateCertificateState(any(), eq(CertificateStatus.REVOKED));
 
-        doReturn(constructList(constructCertificateDocument("01", IDENTITY_EXPIRED_CERT_FILE),
-            constructCertificateDocument("02", IDENTITY_CERT_FILE)))
-            .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+        doReturn(
+            constructList(
+                constructCertificateDocument("01", IDENTITY_EXPIRED_CERT_FILE),
+                constructCertificateDocument("02", IDENTITY_CERT_FILE)
+            )
+        )
+            .when(identityRepository)
+            .findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(IdentityModel.class).when(identityRepository).getEntityModelType();
 
-        doReturn(constructList(constructCertificateDocument("03", PERSONAL_EXPIRED_CERT_FILE),
-            constructCertificateDocument("04", PERSONAL_CERT_FILE)))
-            .when(personalRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);
+        doReturn(
+            constructList(
+                constructCertificateDocument("03", PERSONAL_EXPIRED_CERT_FILE),
+                constructCertificateDocument("04", PERSONAL_CERT_FILE)
+            )
+        )
+            .when(personalRepository)
+            .findCertificate(ISSUER_NAME, CertificateStatus.VALID);
         doReturn(PersonalCertificateModel.class).when(personalRepository).getEntityModelType();
 
         ArgumentCaptor<List<String>> identCertificatesToRevokeCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<List<String>> identCertificatesHasExpiredCaptor = ArgumentCaptor.forClass(List.class);
 
-
         crlService.checkIdentityWithCRL(toByteArray(crlRevokingSIA));
 
-        verify(identityRepository)
-            .updateCertificateState(identCertificatesToRevokeCaptor.capture(), eq(CertificateStatus.REVOKED));
+        verify(identityRepository).updateCertificateState(
+            identCertificatesToRevokeCaptor.capture(),
+            eq(CertificateStatus.REVOKED)
+        );
 
-        verify(identityRepository)
-            .updateCertificateState(identCertificatesHasExpiredCaptor.capture(), eq(CertificateStatus.EXPIRED));
+        verify(identityRepository).updateCertificateState(
+            identCertificatesHasExpiredCaptor.capture(),
+            eq(CertificateStatus.EXPIRED)
+        );
 
         verify(identityRepository).findCertificate(anyString(), eq(CertificateStatus.VALID));
         verify(identityRepository, times(2)).getEntityModelType();
@@ -211,13 +223,12 @@ public class CRLServiceTest {
         verify(alertService, times(2)).createAlert(eq(VitamLogLevel.WARN), ArgumentMatchers.endsWith("is expired"));
     }
 
-    private Document constructCertificateDocument(String certId, String certFile)
-        throws CertificateException {
-
+    private Document constructCertificateDocument(String certId, String certFile) throws CertificateException {
         CertificateBaseModel identityModel = new CertificateBaseModel();
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate cert =
-            (X509Certificate) certificateFactory.generateCertificate(getClass().getResourceAsStream(certFile));
+        X509Certificate cert = (X509Certificate) certificateFactory.generateCertificate(
+            getClass().getResourceAsStream(certFile)
+        );
 
         identityModel.setId(certId);
         identityModel.setIssuerDN(cert.getIssuerDN().getName());
@@ -238,7 +249,6 @@ public class CRLServiceTest {
             whenHasNext = whenHasNext.thenReturn(true);
         }
         whenHasNext.thenReturn(false);
-
 
         OngoingStubbing<Document> whenNext = when(cursor.next());
         for (Document document : documents) {

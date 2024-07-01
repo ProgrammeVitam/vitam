@@ -55,12 +55,14 @@ public final class LocalDateUtil {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LocalDateUtil.class);
 
-    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
+    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder()
+        .parseCaseInsensitive()
         .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         .appendPattern("[zz]")
         .toFormatter();
-    private static final DateTimeFormatter ZONED_DATE_TIME_FORMAT =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS][zz]");
+    private static final DateTimeFormatter ZONED_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(
+        "yyyy-MM-dd'T'HH:mm[:ss][.SSS][zz]"
+    );
     private static final DateTimeFormatter SLASHED_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter ISO_OFFSET_DATE_FORMATTER = new DateTimeFormatterBuilder()
         .append(DateTimeFormatter.ISO_OFFSET_DATE)
@@ -72,8 +74,7 @@ public final class LocalDateUtil {
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
     public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
 
-    private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT =
-        DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     public static final String LONG_SECOND_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
     private static Clock clock = Clock.systemUTC();
@@ -110,8 +111,7 @@ public final class LocalDateUtil {
      * @return the LocalDateTime now in UTC
      */
     public static LocalDateTime now() {
-        return LocalDateTime.now(clock)
-            .truncatedTo(ChronoUnit.MILLIS);
+        return LocalDateTime.now(clock).truncatedTo(ChronoUnit.MILLIS);
     }
 
     /**
@@ -127,7 +127,8 @@ public final class LocalDateUtil {
         }
         if (date.indexOf('T') == -1) {
             return Date.from(
-                LocalDate.parse(date, DateTimeFormatter.ISO_DATE).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                LocalDate.parse(date, DateTimeFormatter.ISO_DATE).atStartOfDay(ZoneId.systemDefault()).toInstant()
+            );
         }
         return getDate(LocalDateTime.parse(date, DATE_FORMATTER));
     }
@@ -140,8 +141,7 @@ public final class LocalDateUtil {
         if (millis < 0) {
             return now();
         }
-        return LocalDateTime.ofEpochSecond(millis / THOUSAND, (int) (millis % THOUSAND * THOUSAND),
-            ZoneOffset.UTC);
+        return LocalDateTime.ofEpochSecond(millis / THOUSAND, (int) ((millis % THOUSAND) * THOUSAND), ZoneOffset.UTC);
     }
 
     /**
@@ -221,7 +221,6 @@ public final class LocalDateUtil {
         return dateFormat.parse(date);
     }
 
-
     /**
      * @param date formatted date
      * @return the corresponding LocalDate
@@ -250,8 +249,9 @@ public final class LocalDateUtil {
             try {
                 ldt = LocalDateTime.parse(date, ZONED_DATE_TIME_FORMAT);
             } catch (DateTimeParseException ex) {
-                LOGGER.debug("Cannot use Zoned LOCAL_DATE_TIME formatter, try with ISO_DATE one and time to " +
-                    "00:00:00.000");
+                LOGGER.debug(
+                    "Cannot use Zoned LOCAL_DATE_TIME formatter, try with ISO_DATE one and time to " + "00:00:00.000"
+                );
                 try {
                     ldt = LocalDate.parse(date, DateTimeFormatter.ISO_DATE).atTime(0, 0, 0, 0);
                 } catch (DateTimeParseException exc) {
@@ -331,7 +331,6 @@ public final class LocalDateUtil {
     }
 
     public static LocalDate parseDate(String endDateStr) {
-
         if (endDateStr == null) {
             return null;
         }
@@ -344,7 +343,6 @@ public final class LocalDateUtil {
     }
 
     public static LocalDateTime max(LocalDateTime localDateTime1, LocalDateTime localDateTime2) {
-
         if (localDateTime1 == null) {
             return localDateTime2;
         }
@@ -377,5 +375,4 @@ public final class LocalDateUtil {
     public static void resetClock() {
         LocalDateUtil.clock = Clock.systemUTC();
     }
-
 }

@@ -117,5 +117,4 @@ public class FileInfoModel {
     public void setLastModified(String lastModified) {
         this.lastModified = lastModified;
     }
-
 }

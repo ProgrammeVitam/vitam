@@ -90,7 +90,6 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
-
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -100,7 +99,6 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
     }
 
     private boolean checkNoObjectInManifest(HandlerIO handlerIO) throws ProcessingException {
-
         final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
 
         InputStream xmlFile = null;
@@ -109,15 +107,23 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
-        final QName binaryDataObject = new QName(sedaUtils.getSedaIngestParams().getNamespaceURI(), SedaConstants.TAG_BINARY_DATA_OBJECT);
-        final QName physicalDataObject = new QName(sedaUtils.getSedaIngestParams().getNamespaceURI(), SedaConstants.TAG_PHYSICAL_DATA_OBJECT);
+        final QName binaryDataObject = new QName(
+            sedaUtils.getSedaIngestParams().getNamespaceURI(),
+            SedaConstants.TAG_BINARY_DATA_OBJECT
+        );
+        final QName physicalDataObject = new QName(
+            sedaUtils.getSedaIngestParams().getNamespaceURI(),
+            SedaConstants.TAG_PHYSICAL_DATA_OBJECT
+        );
         XMLEventReader eventReader = null;
         try {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
-                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                IOException e1) {
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                );
+            } catch (
+                ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e1
+            ) {
                 LOGGER.error("Workspace error: Can not get file", e1);
                 throw new ProcessingException(e1);
             }
@@ -134,7 +140,6 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
                     if (element.getName().equals(binaryDataObject) || element.getName().equals(physicalDataObject)) {
                         return false;
                     }
-
                 }
                 if (event.isEndDocument()) {
                     LOGGER.debug("data : " + event);
@@ -142,7 +147,6 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
                 }
             }
             LOGGER.debug("End of extracting  Uri from manifest");
-
         } catch (XMLStreamException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
@@ -163,5 +167,4 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Nothing
     }
-
 }

@@ -88,7 +88,6 @@ public class TapeCatalogServiceImplTest {
         tapeCatalogService.create(mock(TapeCatalog.class));
     }
 
-
     @Test
     public void test_replace_tape_ok() throws TapeCatalogException {
         when(tapeCatalogRepository.replaceTape(any())).thenReturn(true);
@@ -101,8 +100,6 @@ public class TapeCatalogServiceImplTest {
         doThrow(new TapeCatalogException("")).when(tapeCatalogRepository).replaceTape(any());
         tapeCatalogService.replace(mock(TapeCatalog.class));
     }
-
-
 
     @Test
     public void test_update_tape_ok() throws TapeCatalogException {
@@ -130,7 +127,6 @@ public class TapeCatalogServiceImplTest {
         tapeCatalogService.findById("fakeId");
     }
 
-
     @Test
     public void test_find_tape_ok() throws TapeCatalogException {
         when(tapeCatalogRepository.findTapes(anyList())).thenReturn(mock(List.class));
@@ -143,7 +139,6 @@ public class TapeCatalogServiceImplTest {
         doThrow(new TapeCatalogException("")).when(tapeCatalogRepository).findTapes(anyList());
         tapeCatalogService.find(Lists.newArrayList(mock(QueryCriteria.class)));
     }
-
 
     @Test
     public void test_init_ok() throws TapeCatalogException {
@@ -162,7 +157,6 @@ public class TapeCatalogServiceImplTest {
 
         when(tapeCatalogRepository.findTapeById(anyString())).thenReturn(newInsertedTape);
 
-
         List<TapeCatalog> tapeCatalogList = new ArrayList<>();
         List<TapeSlot> tapeSlotList = new ArrayList<>();
 
@@ -178,7 +172,6 @@ public class TapeCatalogServiceImplTest {
             }
 
             tapeCatalogList.add(tapeCatalog);
-
 
             // Slot should be returned by robot (mtx) status command
             TapeSlot tapeSlot = new TapeSlot();
@@ -209,7 +202,6 @@ public class TapeCatalogServiceImplTest {
         when(tapeCatalogRepository.findTapes(anyList())).thenReturn(tapeCatalogList);
         when(tapeCatalogRepository.updateTape(anyString(), anyMap())).thenReturn(true);
 
-
         TapeLibrarySpec tapeLibrarySpec = mock(TapeLibrarySpec.class);
 
         TapeDrive tapeDrive1 = mock(TapeDrive.class);
@@ -219,7 +211,6 @@ public class TapeCatalogServiceImplTest {
 
         when(tapeDrive1.getTape()).thenReturn(tapeCartridge1);
         when(tapeDrive1.getIndex()).thenReturn(0);
-
 
         TapeDrive tapeDrive2 = mock(TapeDrive.class);
         TapeCartridge tapeCartridge2 = new TapeCartridge();
@@ -240,5 +231,4 @@ public class TapeCatalogServiceImplTest {
         assertThat(tapeCatalogList.get(5).getCurrentLocation().getLocationType()).isEqualTo(TapeLocationType.OUTSIDE);
         assertThat(tapeCatalogList.get(5).getTapeState()).isEqualTo(TapeState.CONFLICT);
     }
-
 }

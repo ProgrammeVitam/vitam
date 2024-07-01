@@ -100,11 +100,11 @@ public class TapeLibraryIT {
     @ClassRule
     public static TempFolderRule tempFolderRule = new TempFolderRule();
 
-
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), OfferCollections.TAPE_CATALOG.getName());
-
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        OfferCollections.TAPE_CATALOG.getName()
+    );
 
     private static TapeLibraryFactory tapeLibraryFactory;
     private static TapeLibraryConfiguration configuration;
@@ -113,9 +113,10 @@ public class TapeLibraryIT {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        configuration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
-                TapeLibraryConfiguration.class);
+        configuration = PropertiesUtils.readYaml(
+            PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
+            TapeLibraryConfiguration.class
+        );
 
         VitamConfiguration.setTenants(Lists.newArrayList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
         String inputFileStorageFolder = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
@@ -131,7 +132,6 @@ public class TapeLibraryIT {
     }
 
     private static void eraseAllTapes() throws Exception {
-
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
         TapeRobotService tapeRobotService = null;
         try {
@@ -143,7 +143,6 @@ public class TapeLibraryIT {
 
             // Erase & unload tapes online in drives
             for (TapeDrive tapeDrive : status.getDrives()) {
-
                 if (tapeDrive.getTape() != null) {
                     TapeDriveService tapeDriveService = null;
                     try {
@@ -154,10 +153,9 @@ public class TapeLibraryIT {
 
                         eraseTape(driveCommandService, tapeDriveConf);
 
-                        assertThatCode(() ->
-                            loadUnloadService.unloadTape(tapeDrive.getTape().getSlotIndex(), tapeDrive.getIndex())
+                        assertThatCode(
+                            () -> loadUnloadService.unloadTape(tapeDrive.getTape().getSlotIndex(), tapeDrive.getIndex())
                         ).doesNotThrowAnyException();
-
                     } finally {
                         if (tapeDriveService != null) {
                             tapeLibraryPool.pushDriveService(tapeDriveService);
@@ -178,25 +176,22 @@ public class TapeLibraryIT {
 
                 for (TapeSlot slot : status.getSlots()) {
                     if (slot.getTape() != null) {
-
-                        assertThatCode(() ->
-                            loadUnloadService.loadTape(slot.getIndex(), firstTapeDrive.getIndex())
+                        assertThatCode(
+                            () -> loadUnloadService.loadTape(slot.getIndex(), firstTapeDrive.getIndex())
                         ).doesNotThrowAnyException();
 
                         eraseTape(driveCommandService, tapeDriveConf);
 
-                        assertThatCode(() ->
-                            loadUnloadService.unloadTape(slot.getIndex(), firstTapeDrive.getIndex())
+                        assertThatCode(
+                            () -> loadUnloadService.unloadTape(slot.getIndex(), firstTapeDrive.getIndex())
                         ).doesNotThrowAnyException();
                     }
                 }
-
             } finally {
                 if (tapeDriveService != null) {
                     tapeLibraryPool.pushDriveService(tapeDriveService);
                 }
             }
-
         } finally {
             if (tapeRobotService != null) {
                 tapeLibraryPool.pushRobotService(tapeRobotService);
@@ -205,13 +200,11 @@ public class TapeLibraryIT {
     }
 
     private static void eraseTape(TapeDriveCommandService driveCommandService, TapeDriveConf tapeDriveConf) {
-
         assertThatCode(driveCommandService::rewind).doesNotThrowAnyException();
 
         List<String> args = Lists.newArrayList("-f", tapeDriveConf.getDevice(), "erase");
-        Output output =
-            ProcessExecutor.getInstance().execute(tapeDriveConf.getMtPath(),
-                tapeDriveConf.getTimeoutInMilliseconds(), args);
+        Output output = ProcessExecutor.getInstance()
+            .execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
         assertThat(output.getExitCode()).isEqualTo(0);
     }
 
@@ -225,8 +218,6 @@ public class TapeLibraryIT {
         mongoRule.handleAfterClass();
     }
 
-
-
     @Test
     public void statusInitialization() {
         Assertions.assertThat(tapeLibraryFactory.getTapeLibraryPool()).hasSize(1);
@@ -236,8 +227,7 @@ public class TapeLibraryIT {
     public void statusRobotStatus() throws InterruptedException, TapeCommandException {
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
-        TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(5, TimeUnit.MILLISECONDS);
+        TapeRobotService tapeRobotService = tapeLibraryPool.checkoutRobotService(5, TimeUnit.MILLISECONDS);
         assertThat(tapeRobotService).isNotNull();
 
         try {
@@ -245,117 +235,99 @@ public class TapeLibraryIT {
             assertThat(state).isNotNull();
 
             // As only one robot exists, then should return null
-            TapeRobotService tapeRobotService1 =
-                tapeLibraryPool.checkoutRobotService(1, TimeUnit.MILLISECONDS);
+            TapeRobotService tapeRobotService1 = tapeLibraryPool.checkoutRobotService(1, TimeUnit.MILLISECONDS);
             assertThat(tapeRobotService1).isNull();
         } finally {
             tapeLibraryPool.pushRobotService(tapeRobotService);
-
         }
 
-
-        TapeRobotService tapeRobotService2 =
-            tapeLibraryPool.checkoutRobotService(5, TimeUnit.MILLISECONDS);
+        TapeRobotService tapeRobotService2 = tapeLibraryPool.checkoutRobotService(5, TimeUnit.MILLISECONDS);
         try {
             assertThat(tapeRobotService2).isNotNull();
         } finally {
             tapeLibraryPool.pushRobotService(tapeRobotService2);
-
         }
 
-
-        TapeDriveService tapeDriveService1 =
-            tapeLibraryPool.checkoutDriveService(0);
+        TapeDriveService tapeDriveService1 = tapeLibraryPool.checkoutDriveService(0);
 
         try {
-            TapeDriveSpec driveState1 =
-                tapeDriveService1.getDriveCommandService().status();
+            TapeDriveSpec driveState1 = tapeDriveService1.getDriveCommandService().status();
             assertThat(driveState1).isNotNull();
-
         } finally {
             tapeLibraryPool.pushDriveService(tapeDriveService1);
         }
 
-        TapeDriveService tapeDriveService2 =
-            tapeLibraryPool.checkoutDriveService(1);
+        TapeDriveService tapeDriveService2 = tapeLibraryPool.checkoutDriveService(1);
 
         try {
-            TapeDriveSpec driveState2 =
-                tapeDriveService2.getDriveCommandService().status();
+            TapeDriveSpec driveState2 = tapeDriveService2.getDriveCommandService().status();
             assertThat(driveState2).isNotNull();
-
         } finally {
             tapeLibraryPool.pushDriveService(tapeDriveService2);
         }
 
-
-        TapeDriveService tapeDriveService3 =
-            tapeLibraryPool.checkoutDriveService(2);
+        TapeDriveService tapeDriveService3 = tapeLibraryPool.checkoutDriveService(2);
         try {
-            TapeDriveSpec driveState3 =
-                tapeDriveService3.getDriveCommandService().status();
+            TapeDriveSpec driveState3 = tapeDriveService3.getDriveCommandService().status();
             assertThat(driveState3).isNotNull();
-
         } finally {
             tapeLibraryPool.pushDriveService(tapeDriveService3);
-
         }
 
-        TapeDriveService tapeDriveService4 =
-            tapeLibraryPool.checkoutDriveService(3);
+        TapeDriveService tapeDriveService4 = tapeLibraryPool.checkoutDriveService(3);
         try {
-            TapeDriveSpec driveState4 =
-                tapeDriveService4.getDriveCommandService().status();
+            TapeDriveSpec driveState4 = tapeDriveService4.getDriveCommandService().status();
             assertThat(driveState4).isNotNull();
-
         } finally {
             tapeLibraryPool.pushDriveService(tapeDriveService4);
         }
-
-
     }
 
     @Test
     public void testLoadUnloadTape() throws InterruptedException, TapeCommandException {
-
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
-        TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
+        TapeRobotService tapeRobotService = tapeLibraryPool.checkoutRobotService(
+            TIMEOUT_IN_MILLISECONDS,
+            TimeUnit.MILLISECONDS
+        );
         assertThat(tapeRobotService).isNotNull();
 
         try {
             TapeLibrarySpec state = tapeRobotService.getLoadUnloadService().status();
             assertThat(state).isNotNull();
 
-            assertThatCode(() -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
-                .doesNotThrowAnyException();
+            assertThatCode(
+                () -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX)
+            ).doesNotThrowAnyException();
 
             // Load already loaded tape KO
-            assertThatThrownBy(() -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
-                .isInstanceOf(TapeCommandException.class);
+            assertThatThrownBy(
+                () -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX)
+            ).isInstanceOf(TapeCommandException.class);
 
             // unload tape OK
-            assertThatCode(() -> tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX))
-                .doesNotThrowAnyException();
+            assertThatCode(
+                () -> tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX)
+            ).doesNotThrowAnyException();
 
             // unload already loaded tape KO
-            assertThatThrownBy(() -> tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX))
-                .isInstanceOf(TapeCommandException.class);
-
+            assertThatThrownBy(
+                () -> tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX)
+            ).isInstanceOf(TapeCommandException.class);
         } finally {
             tapeLibraryPool.pushRobotService(tapeRobotService);
-
         }
     }
 
     @Test
     public void test_load_rewind_write_read_rewind_then_unload_tape() throws Exception {
-
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
-        TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
+        TapeRobotService tapeRobotService = tapeLibraryPool.checkoutRobotService(
+            TIMEOUT_IN_MILLISECONDS,
+            TimeUnit.MILLISECONDS
+        );
         assertThat(tapeRobotService).isNotNull();
 
         TapeDriveService tapeDriveService = tapeLibraryPool.checkoutDriveService(DRIVE_INDEX);
@@ -366,42 +338,32 @@ public class TapeLibraryIT {
             assertThat(state).isNotNull();
 
             // 1 Load Tape
-            assertThatCode(() -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
-                .doesNotThrowAnyException();
+            assertThatCode(
+                () -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX)
+            ).doesNotThrowAnyException();
 
-            TapeReadWriteService ddReadWriteService =
-                tapeDriveService.getReadWriteService();
+            TapeReadWriteService ddReadWriteService = tapeDriveService.getReadWriteService();
 
             TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
 
-
             // 2 erase tape
-            assertThatCode(driveCommandService::rewind)
-                .doesNotThrowAnyException();
+            assertThatCode(driveCommandService::rewind).doesNotThrowAnyException();
 
             //3 Write file to tape
-            assertThatCode(() -> ddReadWriteService.writeToTape("testtar.tar"))
-                .doesNotThrowAnyException();
-
+            assertThatCode(() -> ddReadWriteService.writeToTape("testtar.tar")).doesNotThrowAnyException();
 
             //4 Rewind
-            assertThatCode(driveCommandService::rewind)
-                .doesNotThrowAnyException();
+            assertThatCode(driveCommandService::rewind).doesNotThrowAnyException();
 
             // 5 Read file from tape with dd command
-            assertThatCode(() -> ddReadWriteService.readFromTape("testtar.tar"))
-                .doesNotThrowAnyException();
+            assertThatCode(() -> ddReadWriteService.readFromTape("testtar.tar")).doesNotThrowAnyException();
             // TODO: 25/02/19 Check parse response
 
-
             //6 Rewind
-            assertThatCode(driveCommandService::rewind)
-                .doesNotThrowAnyException();
+            assertThatCode(driveCommandService::rewind).doesNotThrowAnyException();
 
             //8 Rewind
-            assertThatCode(driveCommandService::rewind)
-                .doesNotThrowAnyException();
-
+            assertThatCode(driveCommandService::rewind).doesNotThrowAnyException();
         } finally {
             try {
                 tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX);
@@ -414,11 +376,9 @@ public class TapeLibraryIT {
 
     @Test
     public void test_read_files_from_tape() throws Exception {
-
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
-        TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(10, TimeUnit.MILLISECONDS);
+        TapeRobotService tapeRobotService = tapeLibraryPool.checkoutRobotService(10, TimeUnit.MILLISECONDS);
         assertThat(tapeRobotService).isNotNull();
 
         TapeDriveService tapeDriveService = tapeLibraryPool.checkoutDriveService(DRIVE_INDEX);
@@ -429,51 +389,52 @@ public class TapeLibraryIT {
             assertThat(state).isNotNull();
 
             // 1 Load Tape
-            assertThatCode(() -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX))
-                .doesNotThrowAnyException();
+            assertThatCode(
+                () -> tapeRobotService.getLoadUnloadService().loadTape(SLOT_INDEX, DRIVE_INDEX)
+            ).doesNotThrowAnyException();
 
-            TapeReadWriteService ddReadWriteService =
-                tapeDriveService.getReadWriteService();
+            TapeReadWriteService ddReadWriteService = tapeDriveService.getReadWriteService();
 
             TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
 
             // 2 erase tape
-            assertThatCode(driveCommandService::rewind)
-                .doesNotThrowAnyException();
+            assertThatCode(driveCommandService::rewind).doesNotThrowAnyException();
 
             //3 Write files to tape
             // file 1
-            assertThatCode(() -> ddReadWriteService.writeToTape("testtar.tar"))
-                .doesNotThrowAnyException();
+            assertThatCode(() -> ddReadWriteService.writeToTape("testtar.tar")).doesNotThrowAnyException();
 
             // file 2
-            assertThatCode(() -> ddReadWriteService.writeToTape("testtar_2.tar"))
-                .doesNotThrowAnyException();
+            assertThatCode(() -> ddReadWriteService.writeToTape("testtar_2.tar")).doesNotThrowAnyException();
 
             // read file from tape with given position
-            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoRule.getMongoDatabase()
-                .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(
+                mongoRule.getMongoDatabase().getCollection(OfferCollections.TAPE_CATALOG.getName())
+            );
 
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
             String tapeCode = state.getSlots().get(SLOT_INDEX - 1).getTape().getVolumeTag();
-            TapeCatalog workerCurrentTape = tapeCatalogService.find(
-                List.of(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
+            TapeCatalog workerCurrentTape = tapeCatalogService
+                .find(List.of(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ)))
+                .get(0);
 
-            ReadTask readTask1 =
-                new ReadTask(
-                    new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
-                    workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD),
-                    tapeCatalogService,
-                    accessRequestManager, archiveCacheStorage);
+            ReadTask readTask1 = new ReadTask(
+                new ReadOrder(tapeCode, 0, "testtar.tar", "bucket", "test-objects", 10_240L),
+                workerCurrentTape,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD),
+                tapeCatalogService,
+                accessRequestManager,
+                archiveCacheStorage
+            );
 
-            ReadTask readTask2 =
-                new ReadTask(
-                    new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
-                    workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD),
-                    tapeCatalogService,
-                    accessRequestManager, archiveCacheStorage);
+            ReadTask readTask2 = new ReadTask(
+                new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket", "test-objects", 6_144L),
+                workerCurrentTape,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool, FULL_CARTRIDGE_THRESHOLD),
+                tapeCatalogService,
+                accessRequestManager,
+                archiveCacheStorage
+            );
 
             // Classical read
             ReadWriteResult result1 = readTask1.get();
@@ -485,8 +446,9 @@ public class TapeLibraryIT {
             Assertions.assertThat(outputTarFile).exists();
             Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240L);
 
-            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow())
-                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
+            assertThat(
+                archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow()
+            ).hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
 
             ReadWriteResult result2 = readTask2.get();
             assertThat(result2).isNotNull();
@@ -497,16 +459,19 @@ public class TapeLibraryIT {
             Assertions.assertThat(outputTarFile).exists();
             Assertions.assertThat(outputTarFile.length()).isEqualTo(6_144L);
 
-            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar_2.tar").orElseThrow())
-                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar_2.tar"));
+            assertThat(
+                archiveCacheStorage.tryReadArchive("test-objects", "testtar_2.tar").orElseThrow()
+            ).hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar_2.tar"));
 
             // Make entries expire
             archiveCacheStorage.reserveArchiveStorageSpace("test-objects", "testtar_3.tar", 999_999);
             archiveCacheStorage.reserveArchiveStorageSpace("test-objects", "testtar_4.tar", 999_999);
 
             StopWatch stopWatch = StopWatch.createStarted();
-            while (stopWatch.getTime(TimeUnit.SECONDS) < 5 &&
-                archiveCacheStorage.containsArchive("test-objects", "testtar_2.tar")) {
+            while (
+                stopWatch.getTime(TimeUnit.SECONDS) < 5 &&
+                archiveCacheStorage.containsArchive("test-objects", "testtar_2.tar")
+            ) {
                 Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
             }
             assertThat(archiveCacheStorage.containsArchive("test-objects", "testtar.tar")).isFalse();
@@ -525,8 +490,9 @@ public class TapeLibraryIT {
             Assertions.assertThat(outputTarFile).exists();
             Assertions.assertThat(outputTarFile.length()).isEqualTo(6_144L);
 
-            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar_2.tar").orElseThrow())
-                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar_2.tar"));
+            assertThat(
+                archiveCacheStorage.tryReadArchive("test-objects", "testtar_2.tar").orElseThrow()
+            ).hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar_2.tar"));
 
             // Test of move backward rewind : We are in position 2 try to re-read first file
             result1 = readTask1.get();
@@ -538,9 +504,9 @@ public class TapeLibraryIT {
             Assertions.assertThat(outputTarFile).exists();
             Assertions.assertThat(outputTarFile.length()).isEqualTo(10_240L);
 
-            assertThat(archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow())
-                .hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
-
+            assertThat(
+                archiveCacheStorage.tryReadArchive("test-objects", "testtar.tar").orElseThrow()
+            ).hasSameContentAs(PropertiesUtils.getResourceAsStream("tar/testtar.tar"));
         } finally {
             try {
                 tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX);

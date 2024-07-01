@@ -79,6 +79,5 @@ public class DescriptionStepTest {
             e.printStackTrace();
             fail("Should not have raised an exception");
         }
-
     }
 }

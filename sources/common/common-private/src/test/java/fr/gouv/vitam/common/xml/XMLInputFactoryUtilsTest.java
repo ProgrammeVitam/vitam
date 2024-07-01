@@ -54,8 +54,8 @@ public class XMLInputFactoryUtilsTest {
 
     @Test
     public final void shoulInjectExternalEntity() throws IOException, XMLStreamException {
-        XMLEventReader eventReader =
-            XMLInputFactory.newInstance().createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
+        XMLEventReader eventReader = XMLInputFactory.newInstance()
+            .createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
         while (eventReader.hasNext()) {
             final XMLEvent event = eventReader.nextEvent();
             if (event.isCharacters()) {
@@ -64,5 +64,4 @@ public class XMLInputFactoryUtilsTest {
             }
         }
     }
-
 }

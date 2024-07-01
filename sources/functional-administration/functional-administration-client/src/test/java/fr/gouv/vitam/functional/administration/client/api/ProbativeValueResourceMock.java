@@ -37,17 +37,16 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 /**
  * resource
  */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class ProbativeValueResourceMock {
+
     private final ResteasyTestApplication.ExpectedResults mock;
 
-    public ProbativeValueResourceMock(
-        ResteasyTestApplication.ExpectedResults mock) {
+    public ProbativeValueResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
     }
 

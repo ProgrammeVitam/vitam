@@ -73,6 +73,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class IngestExternalResourceTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResourceTest.class);
 
     private static final String RESOURCE_URI = "/ingest-external/v1";
@@ -95,8 +96,9 @@ public class IngestExternalResourceTest {
         when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
         IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
-        when(ingestInternalClient.getWorkflowDetails(anyString()))
-            .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
+        when(ingestInternalClient.getWorkflowDetails(anyString())).thenReturn(
+            new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW")
+        );
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         // TODO: 08/02/19 remove static (no time)
@@ -105,8 +107,10 @@ public class IngestExternalResourceTest {
 
         // Update configuration with full upload folder path
         File configurationFile = PropertiesUtils.getResourceFile(INGEST_EXTERNAL_CONF);
-        final IngestExternalConfiguration configuration =
-            PropertiesUtils.readYaml(configurationFile, IngestExternalConfiguration.class);
+        final IngestExternalConfiguration configuration = PropertiesUtils.readYaml(
+            configurationFile,
+            IngestExternalConfiguration.class
+        );
         configuration.setBaseUploadPath(configurationFile.getParentFile().getCanonicalPath());
         PropertiesUtils.writeYaml(configurationFile, configuration);
 
@@ -117,8 +121,7 @@ public class IngestExternalResourceTest {
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Ingest External Application Server", e);
+            throw new IllegalStateException("Cannot start the Ingest External Application Server", e);
         }
     }
 
@@ -149,169 +152,188 @@ public class IngestExternalResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(STATUS_URI)
-            .then().statusCode(Status.NO_CONTENT.getStatusCode());
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode());
 
         // test without header - no content must be obtained
-        given()
-            .when()
-            .get(STATUS_URI)
-            .then().statusCode(Status.NO_CONTENT.getStatusCode());
+        given().when().get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenRequestWithoutTenantIdThenReturnPreconditionFailed()
-        throws Exception {
+    public void givenRequestWithoutTenantIdThenReturnPreconditionFailed() throws Exception {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
             when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-            given().contentType(ContentType.BINARY).body(stream)
-                .when().post(INGEST_URI)
-                .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            given()
+                .contentType(ContentType.BINARY)
+                .body(stream)
+                .when()
+                .post(INGEST_URI)
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
             RestAssured.given()
-                .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
-                .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+                .when()
+                .get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
+                .then()
+                .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         }
     }
 
     @Test
-    public void givenRequestWithoutIncorrectTenantIdThenReturnUnauthorized()
-        throws Exception {
+    public void givenRequestWithoutIncorrectTenantIdThenReturnUnauthorized() throws Exception {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
             when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-            given().contentType(ContentType.BINARY).body(stream)
+            given()
+                .contentType(ContentType.BINARY)
+                .body(stream)
                 .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-                .when().post(INGEST_URI)
-                .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+                .when()
+                .post(INGEST_URI)
+                .then()
+                .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
             RestAssured.given()
                 .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-                .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
-                .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+                .when()
+                .get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
+                .then()
+                .statusCode(Status.UNAUTHORIZED.getStatusCode());
         }
     }
 
     @Test
-    public void givenAnInputstreamWhenUploadThenReturnOK()
-        throws Exception {
+    public void givenAnInputstreamWhenUploadThenReturnOK() throws Exception {
         try (InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
             when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-            given().contentType(ContentType.BINARY).body(stream)
+            given()
+                .contentType(ContentType.BINARY)
+                .body(stream)
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-                .when().post(INGEST_URI)
-                .then().statusCode(Status.ACCEPTED.getStatusCode());
+                .when()
+                .post(INGEST_URI)
+                .then()
+                .statusCode(Status.ACCEPTED.getStatusCode());
         }
     }
 
     @Test
-    public void givenALocalFilePathWhenUploadedThenReturnOK()
-        throws Exception {
+    public void givenALocalFilePathWhenUploadedThenReturnOK() throws Exception {
         LocalFile localFile = new LocalFile("no-virus.txt");
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.JSON).body(localFile)
+        given()
+            .contentType(ContentType.JSON)
+            .body(localFile)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.ACCEPTED.getStatusCode());
+            .when()
+            .post(INGEST_URI)
+            .then()
+            .statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test
-    public void givenAnIncorrectLocalFilePathWhenUploadedThenReturnBadRequest()
-        throws Exception {
+    public void givenAnIncorrectLocalFilePathWhenUploadedThenReturnBadRequest() throws Exception {
         // this is incorrect, this will be rejected
         LocalFile localFile = new LocalFile("../no-virus.txt");
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.JSON).body(localFile)
+        given()
+            .contentType(ContentType.JSON)
+            .body(localFile)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(INGEST_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
-    public void givenANonExistingPathWhenUploadedThenReturnInternalServerError()
-        throws Exception {
+    public void givenANonExistingPathWhenUploadedThenReturnInternalServerError() throws Exception {
         LocalFile localFileWithNonExistingPath = new LocalFile("NonExistingPath");
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.JSON).body(localFileWithNonExistingPath)
+        given()
+            .contentType(ContentType.JSON)
+            .body(localFileWithNonExistingPath)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .when()
+            .post(INGEST_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
         final List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("ZIP Format", "application/zip",
-            "x-fmt/263", "pronom"));
+        list.add(new FormatIdentifierResponse("ZIP Format", "application/zip", "x-fmt/263", "pronom"));
         return list;
     }
 
     @Test
-    public void downloadIngestManifestsAsStream()
-        throws Exception {
-
+    public void downloadIngestManifestsAsStream() throws Exception {
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
-            .then().statusCode(Status.OK.getStatusCode());
-
+            .when()
+            .get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
-    public void listResourceEndpoints()
-        throws Exception {
+    public void listResourceEndpoints() throws Exception {
         RestAssured.given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().options("/")
-            .then().statusCode(Status.OK.getStatusCode())
-            .body(new BaseMatcher<String>() {
-                @Override
-                public boolean matches(Object o) {
+            .when()
+            .options("/")
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .body(
+                new BaseMatcher<String>() {
+                    @Override
+                    public boolean matches(Object o) {
+                        try {
+                            // Deserialize json
+                            ObjectMapper mapper = new ObjectMapper();
+                            EndpointInfo[] endpoints = mapper.readValue((String) o, EndpointInfo[].class);
 
-                    try {
+                            // Find ingest post endpoint
+                            EndpointInfo postIngests = Arrays.stream(endpoints)
+                                .filter(ep -> ep.getPermission().equals("ingests:create"))
+                                .findFirst()
+                                .orElseThrow(RuntimeException::new);
 
-                        // Deserialize json
-                        ObjectMapper mapper = new ObjectMapper();
-                        EndpointInfo[] endpoints = mapper.readValue((String) o, EndpointInfo[].class);
+                            // Check...
+                            Assert.assertEquals("POST", postIngests.getVerb());
+                            Assert.assertEquals("/ingest-external/v1/ingests/", postIngests.getEndpoint());
 
-                        // Find ingest post endpoint
-                        EndpointInfo postIngests = Arrays.stream(endpoints)
-                            .filter(ep -> ep.getPermission().equals("ingests:create"))
-                            .findFirst()
-                            .orElseThrow(RuntimeException::new);
+                            Assert.assertEquals(1, postIngests.getConsumedMediaTypes().length);
+                            Assert.assertEquals("application/octet-stream", postIngests.getConsumedMediaTypes()[0]);
 
-                        // Check...
-                        Assert.assertEquals("POST", postIngests.getVerb());
-                        Assert.assertEquals("/ingest-external/v1/ingests/", postIngests.getEndpoint());
+                            Assert.assertEquals(0, postIngests.getProducedMediaTypes().length);
 
-                        Assert.assertEquals(1, postIngests.getConsumedMediaTypes().length);
-                        Assert.assertEquals("application/octet-stream", postIngests.getConsumedMediaTypes()[0]);
+                            Assert.assertEquals(
+                                "Envoyer un SIP à Vitam afin qu'il en réalise l'entrée",
+                                postIngests.getDescription()
+                            );
 
-                        Assert.assertEquals(0, postIngests.getProducedMediaTypes().length);
-
-                        Assert.assertEquals("Envoyer un SIP à Vitam afin qu'il en réalise l'entrée",
-                            postIngests.getDescription());
-
-                        return true;
-
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                            return true;
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                }
 
-                @Override
-                public void describeTo(Description description) {
+                    @Override
+                    public void describeTo(Description description) {}
                 }
-            });
+            );
     }
 }

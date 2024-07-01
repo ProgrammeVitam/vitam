@@ -75,12 +75,15 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private static final String OBJ = "obj";
 
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-            .newGUID().getId()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setWorkerGUID(GUIDFactory.newGUID().getId())
+        .setContainerName(OBJ)
+        .setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083")
         .setObjectNameList(Lists.newArrayList(OBJ))
         .setObjectName(OBJ)
-        .setCurrentStep("TEST").setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+        .setCurrentStep("TEST")
+        .setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
     @Before
     public void setUp() {
@@ -98,15 +101,23 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         final HandlerIOImpl action;
         final List<IOParameter> in;
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, OBJ, "workerId",
-            newArrayList(objectId));
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            OBJ,
+            "workerId",
+            newArrayList(objectId)
+        );
         action.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        in.add(
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"))
+        );
+        in.add(
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.MEMORY, "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"))
+        );
         action.reset();
         action.addOutIOParameters(in);
         final Map<String, Object> map = new HashMap<>();
@@ -121,8 +132,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(1);
+        assertThat(
+            response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel())
+        ).isEqualTo(1);
         action.close();
     }
 
@@ -132,8 +144,13 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         final HandlerIOImpl action;
         final List<IOParameter> in;
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, OBJ, "workerId",
-            newArrayList(objectId));
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            OBJ,
+            "workerId",
+            newArrayList(objectId)
+        );
         action.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();
@@ -142,8 +159,11 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action.reset();
         action.addOutIOParameters(in);
         action.addOutputResult(0, JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OG_AU)), false);
-        action.addOutputResult(1,
-            JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)), false);
+        action.addOutputResult(
+            1,
+            JsonHandler.getMapFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_ID_TO_GUID_MAP)),
+            false
+        );
         action.reset();
         action.addInIOParameters(in);
 
@@ -153,19 +173,22 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals("CHECK_CONSISTENCY_ORPHAN_OBJECT", response.getGlobalOutcomeDetailSubcode());
-        assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+        assertThat(
+            response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel())
+        ).isEqualTo(1);
         action.close();
     }
 
     @Test(expected = ProcessingException.class)
-    public void givenObjectUnitConsistencyWithEmptyHandlerIOThrowsException()
-        throws ProcessingException {
-
-        final HandlerIO action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "", "", newArrayList());
+    public void givenObjectUnitConsistencyWithEmptyHandlerIOThrowsException() throws ProcessingException {
+        final HandlerIO action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "",
+            "",
+            newArrayList()
+        );
         handler = new CheckObjectUnitConsistencyActionHandler();
         handler.execute(params, action);
     }
-
 }

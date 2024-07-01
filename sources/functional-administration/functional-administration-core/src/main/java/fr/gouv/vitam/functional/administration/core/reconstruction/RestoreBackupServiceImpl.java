@@ -72,6 +72,7 @@ import java.util.stream.StreamSupport;
  */
 
 public class RestoreBackupServiceImpl implements RestoreBackupService {
+
     /**
      * Vitam Logger.
      */
@@ -90,11 +91,15 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     }
 
     @Override
-    public Optional<String> getLatestSavedFileName(String strategy, String offerId, DataCategory type,
-        FunctionalAdminCollections collection) {
-        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            CloseableIterator<ObjectEntry> listing = storageClient.listContainer(strategy,
-                offerId, type)
+    public Optional<String> getLatestSavedFileName(
+        String strategy,
+        String offerId,
+        DataCategory type,
+        FunctionalAdminCollections collection
+    ) {
+        try (
+            final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            CloseableIterator<ObjectEntry> listing = storageClient.listContainer(strategy, offerId, type)
         ) {
             // recover an intact backup copy for the reconstruction.
             Iterable<ObjectEntry> iterable = () -> listing;
@@ -103,7 +108,8 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
             String regex = "\\d+_+(\\w+)_+(\\d+)?" + EXTENSION_JSON + "$";
             Pattern pattern = Pattern.compile(regex);
 
-            Optional<Integer> result = stream.map(ObjectEntry::getObjectId)
+            Optional<Integer> result = stream
+                .map(ObjectEntry::getObjectId)
                 .map(pattern::matcher)
                 .filter(Matcher::matches)
                 .filter(matcher -> collection.getName().equals(matcher.group(1)))
@@ -113,38 +119,50 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
             // get the last version of the json backup files.
             if (result.isPresent()) {
                 return Optional.of(
-                    FunctionalBackupService
-                        .getBackupFileName(collection, ParameterHelper.getTenantParameter(), result.get()));
+                    FunctionalBackupService.getBackupFileName(
+                        collection,
+                        ParameterHelper.getTenantParameter(),
+                        result.get()
+                    )
+                );
             }
-
         } catch (StorageServerClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
         } catch (StorageNotFoundClientException e) {
             return Optional.empty();
         }
         return Optional.empty();
-
     }
 
     @Override
-    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, String offerId,
-        FunctionalAdminCollections collection) {
-
+    public Optional<CollectionBackupModel> readLatestSavedFile(
+        String strategy,
+        String offerId,
+        FunctionalAdminCollections collection
+    ) {
         // get the last version of the json backup files.
         Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, offerId, DataCategory.BACKUP, collection);
 
         if (lastBackupVersion.isPresent()) {
             Response response = null;
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                response =
-                    storageClient.getContainerAsync(strategy, offerId, lastBackupVersion.get(), DataCategory.BACKUP,
-                        AccessLogUtils.getNoLogAccessLog());
-                final InputStream inputStream =
-                    response.readEntity(InputStream.class);
+                response = storageClient.getContainerAsync(
+                    strategy,
+                    offerId,
+                    lastBackupVersion.get(),
+                    DataCategory.BACKUP,
+                    AccessLogUtils.getNoLogAccessLog()
+                );
+                final InputStream inputStream = response.readEntity(InputStream.class);
 
                 // get backup collections to reconstruct.
                 return Optional.of(JsonHandler.getFromInputStream(inputStream, CollectionBackupModel.class));
-            } catch (StorageServerClientException | InvalidParseOperationException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
+            } catch (
+                StorageServerClientException
+                | InvalidParseOperationException
+                | StorageException
+                | StorageUnavailableDataFromAsyncOfferClientException e
+            ) {
                 LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
             } finally {
                 StreamUtils.consumeAnyEntityAndClose(response);
@@ -165,17 +183,33 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
      * @throws IllegalArgumentException input error
      */
     @Override
-    public Iterator<List<OfferLog>> getListing(String strategy, DataCategory dataCategory, Long offset, int limit,
-        Order order) throws StorageServerClientException, StorageNotFoundClientException {
-
-        LOGGER.info(String.format(
-            "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
-            dataCategory, strategy, offset, limit));
+    public Iterator<List<OfferLog>> getListing(
+        String strategy,
+        DataCategory dataCategory,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageServerClientException, StorageNotFoundClientException {
+        LOGGER.info(
+            String.format(
+                "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
+                dataCategory,
+                strategy,
+                offset,
+                limit
+            )
+        );
         return Iterators.partition(
             OfferLogHelper.getListing(
-                storageClientFactory, strategy, storageClientFactory.getClient().getReferentOffer(strategy),
-                dataCategory, offset, order, VitamConfiguration.getBatchSize(),
-                limit),
+                storageClientFactory,
+                strategy,
+                storageClientFactory.getClient().getReferentOffer(strategy),
+                dataCategory,
+                offset,
+                order,
+                VitamConfiguration.getBatchSize(),
+                limit
+            ),
             VitamConfiguration.getBatchSize()
         );
     }
@@ -191,13 +225,20 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public AccessionRegisterBackupModel loadData(String strategy, FunctionalAdminCollections collection,
+    public AccessionRegisterBackupModel loadData(
+        String strategy,
+        FunctionalAdminCollections collection,
         String filename,
-        long offset) {
-        LOGGER
-            .info(String.format(
+        long offset
+    ) {
+        LOGGER.info(
+            String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
-                filename, collection.name(), strategy));
+                filename,
+                collection.name(),
+                strategy
+            )
+        );
         Response response = null;
         InputStream inputStream = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
@@ -213,11 +254,15 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
             String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
-            response = storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, type,
-                AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(
+                strategy,
+                referentOfferForStrategy,
+                filename,
+                type,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             inputStream = response.readEntity(InputStream.class);
-            Document doc =
-                JsonHandler.getFromInputStream(inputStream, Document.class);
+            Document doc = JsonHandler.getFromInputStream(inputStream, Document.class);
             AccessionRegisterBackupModel accessionRegisterBackupModel = new AccessionRegisterBackupModel();
             if (type.equals(DataCategory.ACCESSION_REGISTER_DETAIL)) {
                 accessionRegisterBackupModel.setAccessionRegisterDetail(doc);
@@ -227,7 +272,13 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
 
             accessionRegisterBackupModel.setOffset(offset);
             return accessionRegisterBackupModel;
-        } catch (StorageServerClientException | InvalidParseOperationException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            StorageServerClientException
+            | InvalidParseOperationException
+            | StorageNotFoundClientException
+            | StorageException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);

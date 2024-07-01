@@ -28,7 +28,6 @@
 package fr.gouv.vitam.common.model.administration;
 
 public enum RuleType {
-
     AppraisalRule,
     AccessRule,
     StorageRule,

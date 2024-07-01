@@ -67,7 +67,6 @@ import java.util.Optional;
  * Storage Client interface
  */
 public interface StorageClient extends BasicClient {
-
     /**
      * Check if the storage of objects could be done, knowing a required size
      *
@@ -79,8 +78,6 @@ public interface StorageClient extends BasicClient {
     JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException;
 
-
-
     /**
      * get List of offers for a strategy
      *
@@ -89,8 +86,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException
      * @throws StorageServerClientException
      */
-    List<String> getOffers(String strategyId)
-        throws StorageNotFoundClientException, StorageServerClientException;
+    List<String> getOffers(String strategyId) throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Store an object available in workspace by its vitam guid
@@ -104,9 +100,12 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
-        ObjectDescription description)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+    StoredInfoResult storeFileFromWorkspace(
+        String strategyId,
+        DataCategory type,
+        String guid,
+        ObjectDescription description
+    ) throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Store objects available in workspace into offers
@@ -118,9 +117,10 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId,
-        BulkObjectStoreRequest bulkObjectStoreRequest)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(
+        String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest
+    ) throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Check the existence of an object in storage by its id and type {@link DataCategory}.
@@ -134,8 +134,6 @@ public interface StorageClient extends BasicClient {
     Map<String, Boolean> exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException;
 
-
-
     /**
      * Delete an object of given type in the storage offer strategy
      *
@@ -145,10 +143,7 @@ public interface StorageClient extends BasicClient {
      * @return true if deleted
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean delete(String strategyId, DataCategory type, String guid)
-        throws StorageServerClientException;
-
-
+    boolean delete(String strategyId, DataCategory type, String guid) throws StorageServerClientException;
 
     /**
      * Delete an object of given type in the storage offer strategy
@@ -176,8 +171,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageUnavailableDataFromAsyncOfferClientException if object is not available for immediate access from async offer
      */
     Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
-        throws StorageServerClientException, StorageNotFoundException,
-        StorageUnavailableDataFromAsyncOfferClientException;
+        throws StorageServerClientException, StorageNotFoundException, StorageUnavailableDataFromAsyncOfferClientException;
 
     /**
      * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy/offerId
@@ -191,10 +185,14 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      * @throws StorageNotFoundException
      */
-    Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
-        AccessLogInfoModel logInfo)
-        throws StorageServerClientException, StorageNotFoundException,
-        StorageUnavailableDataFromAsyncOfferClientException;
+    Response getContainerAsync(
+        String strategyId,
+        String offerId,
+        String objectName,
+        DataCategory type,
+        AccessLogInfoModel logInfo
+    )
+        throws StorageServerClientException, StorageNotFoundException, StorageUnavailableDataFromAsyncOfferClientException;
 
     /**
      * List object type in container
@@ -207,7 +205,6 @@ public interface StorageClient extends BasicClient {
      */
     CloseableIterator<ObjectEntry> listContainer(String strategyId, String offerId, DataCategory type)
         throws StorageServerClientException, StorageNotFoundClientException;
-
 
     /**
      * Call storage accesslog backup operation.
@@ -267,9 +264,12 @@ public interface StorageClient extends BasicClient {
      * @return informations
      * @throws StorageServerClientException StorageServerClientException
      */
-    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
-        Collection<String> offerIds, Collection<String> objectIds)
-        throws StorageServerClientException;
+    RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(
+        String strategyId,
+        DataCategory type,
+        Collection<String> offerIds,
+        Collection<String> objectIds
+    ) throws StorageServerClientException;
 
     /**
      * @param objectId objectId
@@ -281,10 +281,14 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException StorageServerClientException
      */
-    RequestResponseOK copyObjectFromOfferToOffer(String objectId, DataCategory category, String source,
-        String destination, String strategyId)
-        throws StorageServerClientException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException;
+    RequestResponseOK copyObjectFromOfferToOffer(
+        String objectId,
+        DataCategory category,
+        String source,
+        String destination,
+        String strategyId
+    )
+        throws StorageServerClientException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException;
 
     /**
      * @param strategyId strategyId
@@ -297,9 +301,14 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
-        Long inputStreamSize, List<String> offerIds)
-        throws StorageServerClientException, InvalidParseOperationException;
+    RequestResponseOK create(
+        String strategyId,
+        String objectId,
+        DataCategory category,
+        InputStream inputStream,
+        Long inputStreamSize,
+        List<String> offerIds
+    ) throws StorageServerClientException, InvalidParseOperationException;
 
     /**
      * Get offer log .
@@ -313,9 +322,14 @@ public interface StorageClient extends BasicClient {
      * @return list of offer log
      * @throws StorageServerClientException
      */
-    RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset, int limit,
-        Order order)
-        throws StorageServerClientException;
+    RequestResponse<OfferLog> getOfferLogs(
+        String strategyId,
+        String offerId,
+        DataCategory type,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageServerClientException;
 
     /**
      * Get strategies.
@@ -336,9 +350,12 @@ public interface StorageClient extends BasicClient {
      * @return an AccessRequestId if access request is required (async offer), otherwiser {@code Optional.empty()}
      * @throws StorageServerClientException if any problem occurs during request
      */
-    Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
-        List<String> objectNames)
-        throws StorageServerClientException;
+    Optional<String> createAccessRequestIfRequired(
+        String strategyId,
+        String offerId,
+        DataCategory dataCategory,
+        List<String> objectNames
+    ) throws StorageServerClientException;
 
     /**
      * Check access request statuses of asynchronous offer.
@@ -350,9 +367,12 @@ public interface StorageClient extends BasicClient {
      * @return the statuses of provided access request ids
      * @throws StorageServerClientException if any problem occurs during request
      */
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed)
-        throws StorageServerClientException, StorageIllegalOperationClientException;
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        String strategyId,
+        String offerId,
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageServerClientException, StorageIllegalOperationClientException;
 
     /**
      * Removes (cancel / delete) and access request for an asynchronous offer.
@@ -364,9 +384,12 @@ public interface StorageClient extends BasicClient {
      * @param adminCrossTenantAccessRequestAllowed when {@code true}, removing access requests of other tenants is allowed from Admin tenant
      * @throws StorageServerClientException if any problem occurs during request
      */
-    void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws StorageServerClientException, StorageIllegalOperationClientException;
+    void removeAccessRequest(
+        String strategyId,
+        String offerId,
+        String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageServerClientException, StorageIllegalOperationClientException;
 
     /**
      * Checks immediate object availability in storage offer.
@@ -379,9 +402,11 @@ public interface StorageClient extends BasicClient {
      * @return {@code true} if ALL objects are available, otherwise {@code false}.
      * @throws StorageServerClientException
      */
-    BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
-        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest)
-        throws StorageServerClientException;
+    BulkObjectAvailabilityResponse checkBulkObjectAvailability(
+        String strategyId,
+        String offerId,
+        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest
+    ) throws StorageServerClientException;
 
     /**
      * Get referent offer of strategy

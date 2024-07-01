@@ -58,8 +58,9 @@ import java.io.IOException;
  */
 public class EndpointPersonalCertificateAuthorizationFilter implements ContainerRequestFilter {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EndpointPersonalCertificateAuthorizationFilter.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EndpointPersonalCertificateAuthorizationFilter.class
+    );
 
     private final String permission;
 
@@ -82,8 +83,10 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
      * @param internalSecurityClient
      */
     @VisibleForTesting
-    public EndpointPersonalCertificateAuthorizationFilter(String permission,
-        InternalSecurityClient internalSecurityClient) {
+    public EndpointPersonalCertificateAuthorizationFilter(
+        String permission,
+        InternalSecurityClient internalSecurityClient
+    ) {
         this.permission = permission;
         this.internalSecurityClient = internalSecurityClient;
     }
@@ -96,9 +99,7 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
      */
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
         try {
-
             byte[] certificate = extractPersonalCertificate(requestContext);
 
             if (certificate != null) {
@@ -114,16 +115,21 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
             }
             LOGGER.debug("Personal certificate check required for permission {0}", permission);
             internalSecurityClient.checkPersonalCertificate(certificate, permission);
-
-        } catch (InternalSecurityException |
-            VitamClientInternalException |
-            VitamSecurityException | PersonalCertificateException e) {
+        } catch (
+            InternalSecurityException
+            | VitamClientInternalException
+            | VitamSecurityException
+            | PersonalCertificateException e
+        ) {
             LOGGER.error("An error occured during authorization filter check", e);
             final VitamError vitamError = generateVitamError(e);
 
             requestContext.abortWith(
-                Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                    .build());
+                Response.status(vitamError.getHttpCode())
+                    .entity(vitamError)
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .build()
+            );
             return;
         }
     }
@@ -133,9 +139,7 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
         return base64Certificate != null ? BaseXx.getFromBase64(base64Certificate) : null;
     }
 
-    private boolean getIsPersonalCertificateRequired()
-        throws VitamClientInternalException, InternalSecurityException {
-
+    private boolean getIsPersonalCertificateRequired() throws VitamClientInternalException, InternalSecurityException {
         // A cache may be used (later) for this call
         IsPersonalCertificateRequiredModel isPersonalCertificateRequired =
             internalSecurityClient.isPersonalCertificateRequiredByPermission(permission);
@@ -147,11 +151,12 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
                 return false;
             case ERROR_UNKNOWN_PERMISSION:
                 throw new IllegalStateException(
-                    "Unknown permission " + permission +
-                        ". Please add permission in security-internal personal certificate permission configuration.");
+                    "Unknown permission " +
+                    permission +
+                    ". Please add permission in security-internal personal certificate permission configuration."
+                );
             default:
-                throw new IllegalStateException(
-                    "Unexpected response " + isPersonalCertificateRequired);
+                throw new IllegalStateException("Unexpected response " + isPersonalCertificateRequired);
         }
     }
 
@@ -162,14 +167,14 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
      * @return
      */
     private VitamError generateVitamError(Exception e) {
-        final VitamError vitamError =
-            new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+        final VitamError vitamError = new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
 
         String description = e.getMessage();
         if (Strings.isNullOrEmpty(description)) {
             description = StringUtils.getClassName(e);
         }
-        vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+        vitamError
+            .setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
             .setDescription(description)
             .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())

@@ -139,8 +139,8 @@ import static org.junit.Assert.assertNotNull;
  * Ingest Internal integration test
  */
 public class IngestInternalTenantGroupIT extends VitamRuleRunner {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IngestInternalTenantGroupIT.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalTenantGroupIT.class);
 
     private static final Integer tenantId = 0;
     private static final long SLEEP_TIME = 20L;
@@ -159,26 +159,29 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
     private static final String XML = ".xml";
     public static final String TENANT_GROUP = "mygrp";
+
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(IngestInternalTenantGroupIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                BatchReportMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        IngestInternalTenantGroupIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            BatchReportMain.class
+        )
+    );
+
     private static String CONFIG_SIEGFRIED_PATH = "";
-    private static final String TEST_ELIMINATION_V2_SIP =
-        "elimination/TEST_ELIMINATION_V2.zip";
+    private static final String TEST_ELIMINATION_V2_SIP = "elimination/TEST_ELIMINATION_V2.zip";
     private final WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @Rule
@@ -187,8 +190,9 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath(
+            "integration-ingest-internal/format-identifiers.conf"
+        ).toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -196,27 +200,33 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
 
         // Update config
         MetadataIndexationConfiguration metadataIndexationConfiguration = new MetadataIndexationConfiguration()
-            .setDefaultCollectionConfiguration(new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(1, 0))
-                .setObjectgroup(new CollectionConfiguration(1, 0))
-            )
-            .setGroupedTenantConfiguration(Collections.singletonList(
-                new GroupedTenantConfiguration()
-                    .setName("mygrp")
-                    .setTenants("0-1")
+            .setDefaultCollectionConfiguration(
+                new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
                     .setUnit(new CollectionConfiguration(1, 0))
                     .setObjectgroup(new CollectionConfiguration(1, 0))
-            ));
+            )
+            .setGroupedTenantConfiguration(
+                Collections.singletonList(
+                    new GroupedTenantConfiguration()
+                        .setName("mygrp")
+                        .setTenants("0-1")
+                        .setUnit(new CollectionConfiguration(1, 0))
+                        .setObjectgroup(new CollectionConfiguration(1, 0))
+                )
+            );
 
         LogbookIndexationConfiguration logbookIndexationConfiguration = new LogbookIndexationConfiguration()
-            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                new CollectionConfiguration(1, 0)))
-            .setGroupedTenantConfiguration(Collections.singletonList(
-                new fr.gouv.vitam.logbook.common.server.config.GroupedTenantConfiguration()
-                    .setName(TENANT_GROUP)
-                    .setTenants("0-1")
-                    .setLogbookoperation(new CollectionConfiguration(1, 0))
-            ));
+            .setDefaultCollectionConfiguration(
+                new DefaultCollectionConfiguration().setLogbookoperation(new CollectionConfiguration(1, 0))
+            )
+            .setGroupedTenantConfiguration(
+                Collections.singletonList(
+                    new fr.gouv.vitam.logbook.common.server.config.GroupedTenantConfiguration()
+                        .setName(TENANT_GROUP)
+                        .setTenants("0-1")
+                        .setLogbookoperation(new CollectionConfiguration(1, 0))
+                )
+            );
 
         runner.setCustomMetadataIndexationConfiguration(metadataIndexationConfiguration);
         runner.setCustomLogbookIndexationConfiguration(logbookIndexationConfiguration);
@@ -233,33 +243,35 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId("Context_IT");
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
-        runAfterMongo(Sets.newHashSet(
-            MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-            LogbookCollections.OPERATION.getName(),
-            LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
-
-        ));
+        runAfterMongo(
+            Sets.newHashSet(
+                MetadataCollections.UNIT.getName(),
+                MetadataCollections.OBJECTGROUP.getName(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                LogbookCollections.OPERATION.getName(),
+                LogbookCollections.LIFECYCLE_UNIT.getName(),
+                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+                LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
+            )
+        );
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), TENANT_GROUP),
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), TENANT_GROUP),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), TENANT_GROUP),
             ElasticsearchIndexAlias.ofCrossTenantCollection(
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+            ),
             ElasticsearchIndexAlias.ofCrossTenantCollection(
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName()
+            )
         );
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws VitamApplicationServerException {
-
         // Stop running servers
         runner.stopServers();
 
@@ -282,8 +294,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     }
 
     @Before
-    public void setUpBefore() {
-    }
+    public void setUpBefore() {}
 
     @RunWithCustomExecutor
     @Test
@@ -332,14 +343,16 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testMasterdataTenantIdFilteringWithRightTenantId() throws Exception {
-
         // Given
         String accessContractIdentifier = RandomStringUtils.randomAlphabetic(10);
         prepareAccessContract(0, accessContractIdentifier);
 
         // Try find by Query
-        String foundAccessContractIdTenant0 =
-            searchAccessContract(0, AccessContract.IDENTIFIER, accessContractIdentifier);
+        String foundAccessContractIdTenant0 = searchAccessContract(
+            0,
+            AccessContract.IDENTIFIER,
+            accessContractIdentifier
+        );
         assertThat(foundAccessContractIdTenant0).isNotNull();
 
         // Try update
@@ -352,22 +365,27 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         }
 
         // Try find by Query
-        String updatedAccessContractIdTenant0 =
-            searchAccessContract(0, AccessContract.NAME, accessContractIdentifier + "UpdatedName");
+        String updatedAccessContractIdTenant0 = searchAccessContract(
+            0,
+            AccessContract.NAME,
+            accessContractIdentifier + "UpdatedName"
+        );
         assertThat(updatedAccessContractIdTenant0).isEqualTo(foundAccessContractIdTenant0);
     }
 
     @RunWithCustomExecutor
     @Test
     public void testMasterdataTenantIdFilteringWithWrongTenantId() throws Exception {
-
         // Given
         String accessContractIdentifier = RandomStringUtils.randomAlphabetic(10);
         prepareAccessContract(0, accessContractIdentifier);
 
         // Try find by Query
-        String foundAccessContractIdTenant1 =
-            searchAccessContract(1, AccessContract.IDENTIFIER, accessContractIdentifier);
+        String foundAccessContractIdTenant1 = searchAccessContract(
+            1,
+            AccessContract.IDENTIFIER,
+            accessContractIdentifier
+        );
         assertThat(foundAccessContractIdTenant1).isNull();
 
         // Try update
@@ -376,26 +394,32 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
             Update update = new Update();
             update.setQuery(QueryHelper.eq(AccessContract.IDENTIFIER, accessContractIdentifier));
             update.addActions(UpdateActionHelper.set(AccessContract.NAME, accessContractIdentifier + "UpdatedName"));
-            assertThatThrownBy(() -> client.updateAccessContract(accessContractIdentifier, update.getFinalUpdate()))
-                .isInstanceOf(ReferentialNotFoundException.class);
+            assertThatThrownBy(
+                () -> client.updateAccessContract(accessContractIdentifier, update.getFinalUpdate())
+            ).isInstanceOf(ReferentialNotFoundException.class);
         }
     }
 
     @RunWithCustomExecutor
     @Test
     public void testMasterdataTenantIdFilteringOnContractWithSameIdentifierInDifferentTenants() throws Exception {
-
         // Given
         String accessContractIdentifier = RandomStringUtils.randomAlphabetic(10);
         prepareAccessContract(0, accessContractIdentifier);
         prepareAccessContract(1, accessContractIdentifier);
 
         // Try find by Query
-        String foundAccessContractIdTenant0 =
-            searchAccessContract(0, AccessContract.IDENTIFIER, accessContractIdentifier);
+        String foundAccessContractIdTenant0 = searchAccessContract(
+            0,
+            AccessContract.IDENTIFIER,
+            accessContractIdentifier
+        );
         assertThat(foundAccessContractIdTenant0).isNotNull();
-        String foundAccessContractIdTenant1 =
-            searchAccessContract(1, AccessContract.IDENTIFIER, accessContractIdentifier);
+        String foundAccessContractIdTenant1 = searchAccessContract(
+            1,
+            AccessContract.IDENTIFIER,
+            accessContractIdentifier
+        );
         assertThat(foundAccessContractIdTenant1).isNotNull();
         assertThat(foundAccessContractIdTenant1).isNotEqualTo(foundAccessContractIdTenant0);
 
@@ -409,19 +433,24 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         }
 
         // Check that access contract of tenant 0 has been updated
-        String updatedAccessContractIdTenant0 =
-            searchAccessContract(0, AccessContract.NAME, accessContractIdentifier + "UpdatedName");
+        String updatedAccessContractIdTenant0 = searchAccessContract(
+            0,
+            AccessContract.NAME,
+            accessContractIdentifier + "UpdatedName"
+        );
         assertThat(updatedAccessContractIdTenant0).isEqualTo(foundAccessContractIdTenant0);
 
-        String updatedAccessContractIdTenant1 =
-            searchAccessContract(0, AccessContract.NAME, accessContractIdentifier + "UpdatedName");
+        String updatedAccessContractIdTenant1 = searchAccessContract(
+            0,
+            AccessContract.NAME,
+            accessContractIdentifier + "UpdatedName"
+        );
         assertThat(updatedAccessContractIdTenant0).isNotNull();
     }
 
     @RunWithCustomExecutor
     @Test
     public void testSimpleIngestWithTenantFiltering() throws Exception {
-
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
         prepareAccessContract(0, "TenantGroupAccessTest");
         prepareAccessContract(1, "TenantGroupAccessTest");
@@ -433,10 +462,16 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         // Check results for tenant 0
 
         // Query DSLs
-        final RequestResponseOK<JsonNode> ingestedUnitsTenant0 =
-            selectUnitsByOpi(0, ingestOperationGuidTenant0, accessInternalClient);
-        final RequestResponseOK<JsonNode> ingestedObjectGroupsTenant0 =
-            selectGotsByOpi(0, ingestOperationGuidTenant0, accessInternalClient);
+        final RequestResponseOK<JsonNode> ingestedUnitsTenant0 = selectUnitsByOpi(
+            0,
+            ingestOperationGuidTenant0,
+            accessInternalClient
+        );
+        final RequestResponseOK<JsonNode> ingestedObjectGroupsTenant0 = selectGotsByOpi(
+            0,
+            ingestOperationGuidTenant0,
+            accessInternalClient
+        );
 
         assertThat(ingestedUnitsTenant0.getResults()).hasSize(8);
         assertThat(ingestedObjectGroupsTenant0.getResults()).hasSize(3);
@@ -456,7 +491,6 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         assertThat(selectUnitsByOpi(1, ingestOperationGuidTenant0, accessInternalClient).getResults()).isEmpty();
         assertThat(selectGotsByOpi(1, ingestOperationGuidTenant0, accessInternalClient).getResults()).isEmpty();
         assertThat(getLogbookOperationByDsl(1, ingestOperationGuidTenant0)).isNull();
-
         // By Id
         // FIXME : Missing tenant filtering (#6732 & #6734)
         // assertThat(selectUnitById(1, unitIdTenant0)).isNull();
@@ -465,26 +499,26 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     }
 
     private JsonNode selectUnitById(int tenantId, String unitId)
-        throws AccessUnauthorizedException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws AccessUnauthorizedException, AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
         prepareVitamSession(tenantId);
 
         try (final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) accessInternalClient
-                .selectUnitbyId(new Select().getFinalSelectById(), unitId);
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<
+                    JsonNode
+                >) accessInternalClient.selectUnitbyId(new Select().getFinalSelectById(), unitId);
             assertThat(requestResponseOK.getResults().size()).isLessThanOrEqualTo(1);
             return (requestResponseOK.getResults().isEmpty()) ? null : requestResponseOK.getFirstResult();
         }
     }
 
     private JsonNode selectObjectGroupById(int tenantId, String unitId)
-        throws AccessUnauthorizedException, AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws AccessUnauthorizedException, AccessInternalClientServerException, AccessInternalClientNotFoundException, InvalidParseOperationException {
         prepareVitamSession(tenantId);
 
         try (final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) accessInternalClient
-                .selectUnitbyId(new Select().getFinalSelectById(), unitId);
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<
+                    JsonNode
+                >) accessInternalClient.selectUnitbyId(new Select().getFinalSelectById(), unitId);
             assertThat(requestResponseOK.getResults().size()).isLessThanOrEqualTo(1);
             return (requestResponseOK.getResults().isEmpty()) ? null : requestResponseOK.getFirstResult();
         }
@@ -494,13 +528,13 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         throws InvalidParseOperationException, AdminManagementClientServerException, InvalidCreateOperationException {
         prepareVitamSession(tenantId);
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-
             Select select = new Select();
             Query query = QueryHelper.eq(fieldName, value);
             select.setQuery(query);
             JsonNode queryDsl = select.getFinalSelect();
-            RequestResponseOK<AccessContractModel> accessContracts =
-                (RequestResponseOK<AccessContractModel>) adminManagementClient.findAccessContracts(queryDsl);
+            RequestResponseOK<AccessContractModel> accessContracts = (RequestResponseOK<
+                    AccessContractModel
+                >) adminManagementClient.findAccessContracts(queryDsl);
             assertThat(accessContracts.getResults().size()).isLessThanOrEqualTo(1);
             return accessContracts.getResults().isEmpty() ? null : accessContracts.getFirstResult().getId();
         }
@@ -520,61 +554,64 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     }
 
     private InputStream readStoredReport(String filename)
-        throws StorageServerClientException, StorageNotFoundException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             Response reportResponse = null;
 
             try {
-                reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                    filename, DataCategory.REPORT,
-                    AccessLogUtils.getNoLogAccessLog());
+                reportResponse = storageClient.getContainerAsync(
+                    VitamConfiguration.getDefaultStrategy(),
+                    filename,
+                    DataCategory.REPORT,
+                    AccessLogUtils.getNoLogAccessLog()
+                );
 
                 assertThat(reportResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
 
                 return new VitamAsyncInputStream(reportResponse);
-
-
-            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+            } catch (
+                RuntimeException
+                | StorageServerClientException
+                | StorageNotFoundException
+                | StorageUnavailableDataFromAsyncOfferClientException e
+            ) {
                 StreamUtils.consumeAnyEntityAndClose(reportResponse);
                 throw e;
             }
         }
     }
 
-    private RequestResponseOK<JsonNode> selectGotsByOpi(int tenantId, String ingestOperationGuid,
-        AccessInternalClient accessInternalClient)
-        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
+    private RequestResponseOK<JsonNode> selectGotsByOpi(
+        int tenantId,
+        String ingestOperationGuid,
+        AccessInternalClient accessInternalClient
+    )
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         prepareVitamSession(tenantId);
         SelectMultiQuery checkGotDslRequest = new SelectMultiQuery();
-        checkGotDslRequest.addQueries(
-            QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
+        checkGotDslRequest.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
 
-        return (RequestResponseOK<JsonNode>) accessInternalClient
-            .selectObjects(checkGotDslRequest.getFinalSelect());
+        return (RequestResponseOK<JsonNode>) accessInternalClient.selectObjects(checkGotDslRequest.getFinalSelect());
     }
 
-    private RequestResponseOK<JsonNode> selectUnitsByOpi(int tenantId, String ingestOperationGuid,
-        AccessInternalClient accessInternalClient)
-        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
+    private RequestResponseOK<JsonNode> selectUnitsByOpi(
+        int tenantId,
+        String ingestOperationGuid,
+        AccessInternalClient accessInternalClient
+    )
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException {
         prepareVitamSession(tenantId);
         SelectMultiQuery checkDslRequest = new SelectMultiQuery();
-        checkDslRequest.addQueries(
-            QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
+        checkDslRequest.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
 
-        return (RequestResponseOK<JsonNode>) accessInternalClient
-            .selectUnits(checkDslRequest.getFinalSelect());
+        return (RequestResponseOK<JsonNode>) accessInternalClient.selectUnits(checkDslRequest.getFinalSelect());
     }
 
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
-
         waitOperation(operationGuid);
 
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid, tenantId);
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(operationGuid, tenantId);
 
         try {
             assertNotNull(processWorkflow);
@@ -591,8 +628,9 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         throws LogbookClientException, InvalidParseOperationException {
         prepareVitamSession(tenantId);
         try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
-            RequestResponseOK<JsonNode> requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookClient.selectOperationById(operationId));
+            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
+                logbookClient.selectOperationById(operationId)
+            );
             assertThat(requestResponseOK.getResults().size()).isLessThanOrEqualTo(1);
             return requestResponseOK.getResults().isEmpty() ? null : requestResponseOK.getFirstResult();
         } catch (LogbookClientNotFoundException e) {
@@ -606,8 +644,9 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
         try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), operationId));
-            RequestResponseOK<JsonNode> requestResponseOK =
-                RequestResponseOK.getFromJsonNode(logbookClient.selectOperation(select.getFinalSelect()));
+            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
+                logbookClient.selectOperation(select.getFinalSelect())
+            );
             assertThat(requestResponseOK.getResults().size()).isLessThanOrEqualTo(1);
             return requestResponseOK.getResults().isEmpty() ? null : requestResponseOK.getFirstResult();
         } catch (LogbookClientNotFoundException e) {
@@ -627,8 +666,7 @@ public class IngestInternalTenantGroupIT extends VitamRuleRunner {
     private void tryLogATR(String operationId) {
         try (InputStream atr = readStoredReport(operationId + XML)) {
             LOGGER.error("Operation ATR : \n" + IOUtils.toString(atr, StandardCharsets.UTF_8) + "\n\n\n");
-        } catch (StorageNotFoundException ignored) {
-        } catch (Exception e) {
+        } catch (StorageNotFoundException ignored) {} catch (Exception e) {
             LOGGER.error("Could not retrieve ATR for operation " + operationId, e);
         }
     }

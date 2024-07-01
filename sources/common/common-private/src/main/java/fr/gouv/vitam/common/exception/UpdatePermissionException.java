@@ -62,5 +62,4 @@ public class UpdatePermissionException extends ProcessingException {
     public UpdatePermissionException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

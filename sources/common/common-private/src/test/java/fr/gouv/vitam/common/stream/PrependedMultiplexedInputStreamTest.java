@@ -39,7 +39,6 @@ public class PrependedMultiplexedInputStreamTest {
 
     @Test
     public void testPrependEmptyMultiplexedInputStream() throws IOException {
-
         // Given
         byte[] header = "header".getBytes();
 
@@ -54,7 +53,8 @@ public class PrependedMultiplexedInputStreamTest {
             headerInputStream,
             header.length,
             multiplexedInputStream,
-            multiplexedByteArrayOutputStream.size());
+            multiplexedByteArrayOutputStream.size()
+        );
 
         // Then
         MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(prependedMultiplexedInputStream);
@@ -64,7 +64,6 @@ public class PrependedMultiplexedInputStreamTest {
 
     @Test
     public void testPrepensNonEmptyMultiplexedInputStream() throws IOException {
-
         // Given
         byte[] entry1 = "entry1".getBytes();
         byte[] entry2 = "entry2".getBytes();
@@ -77,7 +76,6 @@ public class PrependedMultiplexedInputStreamTest {
         multiplexedStreamWriter.appendEndOfFile();
         InputStream multiplexedInputStream = multiplexedByteArrayOutputStream.toInputStream();
 
-
         ByteArrayInputStream headerInputStream = new ByteArrayInputStream(header);
 
         // When
@@ -85,7 +83,8 @@ public class PrependedMultiplexedInputStreamTest {
             headerInputStream,
             header.length,
             multiplexedInputStream,
-            multiplexedByteArrayOutputStream.size());
+            multiplexedByteArrayOutputStream.size()
+        );
 
         // Then
         MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(prependedMultiplexedInputStream);

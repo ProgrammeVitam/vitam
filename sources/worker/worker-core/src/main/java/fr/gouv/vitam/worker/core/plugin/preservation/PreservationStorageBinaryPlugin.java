@@ -59,6 +59,7 @@ import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPl
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 
 public class PreservationStorageBinaryPlugin extends ActionHandler {
+
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationStorageBinaryPlugin.class);
     public static final String ITEM_ID = "OBJECT_STORAGE_TASK";
 
@@ -86,7 +87,8 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
         List<WorkflowBatchResult> workflowBatchResults = new ArrayList<>();
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
-            List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
+            List<OutputExtra> outputExtras = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(OutputExtra::isOkAndGenerated)
                 .map(a -> getOutputExtra(outputFiles, a, workflowBatchResult.getSourceStrategy()))
@@ -102,13 +104,15 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
 
             itemStatuses.add(getItemStatus(outputExtras));
 
-            Stream<OutputExtra> otherActions = workflowBatchResult.getOutputExtras()
+            Stream<OutputExtra> otherActions = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(o -> !o.isOkAndGenerated());
 
-            List<OutputExtra> previousAndNewExtras =
-                Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError()))
-                    .collect(Collectors.toList());
+            List<OutputExtra> previousAndNewExtras = Stream.concat(
+                otherActions,
+                outputExtras.stream().filter(outputExtra -> !outputExtra.isInError())
+            ).collect(Collectors.toList());
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, previousAndNewExtras));
         }
 
@@ -118,7 +122,8 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
         Stream<String> subItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
-        String error = outputExtras.stream()
+        String error = outputExtras
+            .stream()
             .filter(o -> o.getError().isPresent())
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
@@ -127,14 +132,19 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode("SUBSTATUS_UNKNOWN");
         }
-        Map<String, BinaryEventData> digests = outputExtras.stream()
+        Map<String, BinaryEventData> digests = outputExtras
+            .stream()
             .filter(o -> o.getStoredInfo().isPresent())
             .collect(Collectors.toMap(OutputExtra::getBinaryGUID, o -> BinaryEventData.from(o.getStoredInfo().get())));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subItemIds, OK, digests);
         }
-        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING,
-            EventDetails.of(error, String.join(", ", digests.keySet())));
+        return buildItemStatusSubItems(
+            ITEM_ID,
+            subItemIds,
+            WARNING,
+            EventDetails.of(error, String.join(", ", digests.keySet()))
+        );
     }
 
     private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra, String strategyId) {
@@ -143,13 +153,22 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
         try (InputStream stream = Files.newInputStream(outputPath)) {
             StoredInfoResult storedInfo = backupService.backup(stream, OBJECT, extra.getBinaryGUID(), strategyId);
 
-            if (!extra.getBinaryHash().isPresent() ||
-                !storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())) {
-                logger.error("Error with stored digest {} and computed binary digest {}", storedInfo.getDigest(),
-                    extra.getBinaryHash());
+            if (
+                !extra.getBinaryHash().isPresent() ||
+                !storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())
+            ) {
+                logger.error(
+                    "Error with stored digest {} and computed binary digest {}",
+                    storedInfo.getDigest(),
+                    extra.getBinaryHash()
+                );
                 return OutputExtra.inError(
-                    String.format("Error with stored digest %s and computed binary digest %s", storedInfo.getDigest(),
-                        extra.getBinaryHash()));
+                    String.format(
+                        "Error with stored digest %s and computed binary digest %s",
+                        storedInfo.getDigest(),
+                        extra.getBinaryHash()
+                    )
+                );
             }
 
             return OutputExtra.withStoredInfo(extra, storedInfo);

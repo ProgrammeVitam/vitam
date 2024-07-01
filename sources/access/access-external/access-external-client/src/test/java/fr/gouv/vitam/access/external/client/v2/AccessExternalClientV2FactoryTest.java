@@ -39,11 +39,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AccessExternalClientV2FactoryTest {
+
     @BeforeClass
     public static void initFileConfiguration() {
-        AccessExternalClientV2Factory
-            .changeMode(AccessExternalClientV2Factory.changeConfigurationFile("access-external-client-test.conf"));
-
+        AccessExternalClientV2Factory.changeMode(
+            AccessExternalClientV2Factory.changeConfigurationFile("access-external-client-test.conf")
+        );
     }
 
     @AfterClass
@@ -56,39 +57,29 @@ public class AccessExternalClientV2FactoryTest {
         try {
             AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
             AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl("localhost", -10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl());
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         AccessExternalClientV2Factory.changeMode(null);
 
-        final AccessExternalClientV2 client =
-            AccessExternalClientV2Factory.getInstance().getClient();
+        final AccessExternalClientV2 client = AccessExternalClientV2Factory.getInstance().getClient();
         assertNotNull(client);
 
-        final AccessExternalClientV2 client2 =
-            AccessExternalClientV2Factory.getInstance().getClient();
+        final AccessExternalClientV2 client2 = AccessExternalClientV2Factory.getInstance().getClient();
         assertNotNull(client2);
         assertNotSame(client, client2);
 
         AccessExternalClientV2Factory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AccessExternalClientV2 client3 =
-            AccessExternalClientV2Factory.getInstance().getClient();
+        final AccessExternalClientV2 client3 = AccessExternalClientV2Factory.getInstance().getClient();
         assertTrue(client3 instanceof AccessExternalClientV2Rest);
-
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -100,8 +91,7 @@ public class AccessExternalClientV2FactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final AccessExternalClientV2 client =
-            AccessExternalClientV2Factory.getInstance().getClient();
+        final AccessExternalClientV2 client = AccessExternalClientV2Factory.getInstance().getClient();
         assertTrue(client instanceof AccessExternalClientV2Rest);
         assertEquals(VitamClientType.PRODUCTION, AccessExternalClientV2Factory.getInstance().getVitamClientType());
     }

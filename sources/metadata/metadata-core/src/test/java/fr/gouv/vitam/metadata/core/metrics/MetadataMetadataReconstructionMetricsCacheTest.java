@@ -40,11 +40,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataMetadataReconstructionMetricsCacheTest {
 
-    @Rule public LogicalClockRule logicalClock = new LogicalClockRule();
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     @Test
     public void getFreshlyReconstructedDocumentMetrics() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -59,7 +59,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getFreshlyReconstructedGraphMetrics() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -74,7 +73,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getDocumentMetricsAfterDelay() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -90,7 +88,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getGraphMetricsAfterDelay() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -106,7 +103,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getDocumentMetricsAfterExpiration() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -122,7 +118,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getGraphMetricsAfterExpiration() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -138,7 +133,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getUpdatedDocumentMetrics() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -156,7 +150,6 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void getUpdatedGraphMetrics() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -174,57 +167,75 @@ public class MetadataMetadataReconstructionMetricsCacheTest {
 
     @Test
     public void testMultipleDocumentMetrics() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
 
         // When
         cache.registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 0, "default", LocalDateUtil.now());
-        cache.registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 0, "custom",
-            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES));
+        cache.registerLastDocumentReconstructionDate(
+            MetadataCollections.UNIT,
+            0,
+            "custom",
+            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES)
+        );
 
         logicalClock.logicalSleep(9, ChronoUnit.MINUTES);
 
         cache.registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 0, "default", LocalDateUtil.now());
-        cache.registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 1, "default",
-            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES));
-        cache.registerLastDocumentReconstructionDate(MetadataCollections.OBJECTGROUP, 1, "default",
-            LocalDateUtil.now().minus(30, ChronoUnit.MINUTES));
+        cache.registerLastDocumentReconstructionDate(
+            MetadataCollections.UNIT,
+            1,
+            "default",
+            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES)
+        );
+        cache.registerLastDocumentReconstructionDate(
+            MetadataCollections.OBJECTGROUP,
+            1,
+            "default",
+            LocalDateUtil.now().minus(30, ChronoUnit.MINUTES)
+        );
 
         logicalClock.logicalSleep(2, ChronoUnit.MINUTES);
 
         // Then
         assertThat(cache.getDocumentReconstructionLatency(MetadataCollections.UNIT, 0, "default")).isEqualTo(
-            Duration.of(2, ChronoUnit.MINUTES));
+            Duration.of(2, ChronoUnit.MINUTES)
+        );
         assertThat(cache.getDocumentReconstructionLatency(MetadataCollections.UNIT, 0, "custom")).isNull();
         assertThat(cache.getDocumentReconstructionLatency(MetadataCollections.UNIT, 1, "default")).isEqualTo(
-            Duration.of(17, ChronoUnit.MINUTES));
+            Duration.of(17, ChronoUnit.MINUTES)
+        );
         assertThat(cache.getDocumentReconstructionLatency(MetadataCollections.OBJECTGROUP, 1, "default")).isEqualTo(
-            Duration.of(32, ChronoUnit.MINUTES));
+            Duration.of(32, ChronoUnit.MINUTES)
+        );
     }
 
     @Test
     public void testMultipleGraphMetrics() {
-
         // Given
         MetadataReconstructionMetricsCache cache = new MetadataReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
 
         // When
         cache.registerLastGraphReconstructionDate(MetadataCollections.UNIT, LocalDateUtil.now());
-        cache.registerLastGraphReconstructionDate(MetadataCollections.OBJECTGROUP,
-            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES));
+        cache.registerLastGraphReconstructionDate(
+            MetadataCollections.OBJECTGROUP,
+            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES)
+        );
 
         logicalClock.logicalSleep(9, ChronoUnit.MINUTES);
-        cache.registerLastGraphReconstructionDate(MetadataCollections.UNIT,
-            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES));
+        cache.registerLastGraphReconstructionDate(
+            MetadataCollections.UNIT,
+            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES)
+        );
 
         logicalClock.logicalSleep(2, ChronoUnit.MINUTES);
 
         // Then
         assertThat(cache.getGraphReconstructionLatency(MetadataCollections.UNIT)).isEqualTo(
-            Duration.of(17, ChronoUnit.MINUTES));
+            Duration.of(17, ChronoUnit.MINUTES)
+        );
         assertThat(cache.getGraphReconstructionLatency(MetadataCollections.OBJECTGROUP)).isNull();
     }
 }

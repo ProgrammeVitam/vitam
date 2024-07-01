@@ -37,16 +37,17 @@ public class ProcessPause {
 
     @JsonProperty("type")
     private String type;
+
     @JsonProperty("tenant")
     private Integer tenant;
+
     @JsonProperty("pauseAll")
     private Boolean pauseAll;
 
     /**
      * Constructor without fields use for jackson
      */
-    public ProcessPause() {
-    }
+    public ProcessPause() {}
 
     /**
      * @param type
@@ -76,7 +77,6 @@ public class ProcessPause {
         this.type = type;
     }
 
-
     /**
      * Gets the tenant
      *
@@ -94,7 +94,6 @@ public class ProcessPause {
     public void setTenant(Integer tenant) {
         this.tenant = tenant;
     }
-
 
     /**
      * Gets the pauseAll param

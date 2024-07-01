@@ -113,27 +113,31 @@ import static org.junit.Assert.assertNotEquals;
  */
 
 public class EvidenceAuditIT extends VitamRuleRunner {
+
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "contract";
     private static final String CONTEXT_ID = "Context_IT";
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(EvidenceAuditIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                BatchReportMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        EvidenceAuditIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            BatchReportMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            ProcessManagementMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class
+        )
+    );
+
     private static DataLoader dataLoader = new DataLoader("integration-ingest-internal");
 
     @Rule
@@ -142,8 +146,9 @@ public class EvidenceAuditIT extends VitamRuleRunner {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        String configurationPath = PropertiesUtils
-            .getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+        String configurationPath = PropertiesUtils.getResourcePath(
+            "integration-ingest-internal/format-identifiers.conf"
+        ).toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
         dataLoader.prepareData();
     }
@@ -168,7 +173,6 @@ public class EvidenceAuditIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void should_execute_evidence_audit_workflow_without_error() throws Exception {
-
         // Given
         String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
@@ -183,10 +187,14 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(evidenceAuditOperation).toJsonNode()
-                .get("$results").get(0).get("events");
+                .selectOperationById(evidenceAuditOperation)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
             // Then
-            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+            assertThat(jsonNode.iterator())
+                .extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             // Check report exists
@@ -197,11 +205,9 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         }
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void should_execute_evidence_audit_workflow_with_ko_report() throws Exception {
-
         // Given
         String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, "preservation/OG_with_3_parents.zip");
         logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
@@ -213,9 +219,10 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         assertNotEquals(deletedGotId, gotIdModified);
         assertNotEquals(gotIdOfUnitModified, gotIdModified);
 
-        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-
+        try (
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()
+        ) {
             // EVIDENCE AUDIT
 
             SelectMultiQuery query = new SelectMultiQuery();
@@ -224,24 +231,31 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
             // When
             ArrayNode evidenceAuditOperationEvents = (ArrayNode) accessClient
-                .selectOperationById(evidenceAuditOperation).toJsonNode()
-                .get("$results").get(0).get("events");
+                .selectOperationById(evidenceAuditOperation)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
             // Then
-            assertThat(evidenceAuditOperationEvents.iterator()).extracting(j -> j.get("outcome").asText())
+            assertThat(evidenceAuditOperationEvents.iterator())
+                .extracting(j -> j.get("outcome").asText())
                 .anyMatch(outcome -> outcome.equals(StatusCode.KO.name()));
 
             // Check report exists
             List<JsonNode> reportLines = VitamTestHelper.getReports(evidenceAuditOperation);
 
             assertThat(reportLines.size()).isEqualTo(6);
-            assertThat(reportLines.get(3).get("strategyId").asText())
-                .isEqualTo(VitamConfiguration.getDefaultStrategy());
+            assertThat(reportLines.get(3).get("strategyId").asText()).isEqualTo(
+                VitamConfiguration.getDefaultStrategy()
+            );
             assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
-            assertThat(reportLines.get(3).get("strategyId").asText())
-                .isEqualTo(VitamConfiguration.getDefaultStrategy());
+            assertThat(reportLines.get(3).get("strategyId").asText()).isEqualTo(
+                VitamConfiguration.getDefaultStrategy()
+            );
             assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(11);
-            assertThat(reportLines.get(3).get("strategyId").asText())
-                .isEqualTo(VitamConfiguration.getDefaultStrategy());
+            assertThat(reportLines.get(3).get("strategyId").asText()).isEqualTo(
+                VitamConfiguration.getDefaultStrategy()
+            );
             assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbArchiveUnits").asInt()).isEqualTo(7);
@@ -260,20 +274,27 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             ArrayNode rectificationAuditOperationEvents = (ArrayNode) accessClient
                 .selectOperationById(rectificationAuditOperationGUID.getId())
                 .toJsonNode()
-                .get("$results").get(0).get("events");
+                .get("$results")
+                .get(0)
+                .get("events");
             // Then
-            assertThat(rectificationAuditOperationEvents.iterator()).extracting(j -> j.get("outcome").asText())
+            assertThat(rectificationAuditOperationEvents.iterator())
+                .extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
-            assertThat(rectificationAuditOperationEvents.iterator()).extracting(j -> j.get("outDetail").asText())
+            assertThat(rectificationAuditOperationEvents.iterator())
+                .extracting(j -> j.get("outDetail").asText())
                 .contains(DataRectificationCheckResourceAvailability.PLUGIN_NAME + ".OK");
 
             // Check report exists
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
-                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                        rectificationAuditOperationGUID.toString() + ".json", DataCategory.REPORT,
-                        AccessLogUtils.getNoLogAccessLog());
+                    reportResponse = storageClient.getContainerAsync(
+                        VitamConfiguration.getDefaultStrategy(),
+                        rectificationAuditOperationGUID.toString() + ".json",
+                        DataCategory.REPORT,
+                        AccessLogUtils.getNoLogAccessLog()
+                    );
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                 } finally {
                     consumeAnyEntityAndClose(reportResponse);
@@ -298,10 +319,9 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(2);
         assertThat(reportLines.get(1).get("extendedInfo").get("nbArchiveUnits").asInt()).isEqualTo(3);
         assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(0);
-        assertThat(reportLines.get(3).get("message").asText())
-            .contains("No traceability operation found matching date");
-
-
+        assertThat(reportLines.get(3).get("message").asText()).contains(
+            "No traceability operation found matching date"
+        );
     }
 
     @Test
@@ -312,21 +332,22 @@ public class EvidenceAuditIT extends VitamRuleRunner {
 
         // Given
         try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
-
-
             JsonNode evidenceQuery = constructQuery(ingestOperationId2);
             // When
             String operationId = runEvidenceAudit(evidenceQuery);
             ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(operationId).toJsonNode()
-                .get("$results").get(0).get("events");
+                .selectOperationById(operationId)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
 
             //Then
-            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+            assertThat(jsonNode.iterator())
+                .extracting(j -> j.get("outcome").asText())
                 .anyMatch(outcome -> outcome.equals(StatusCode.FATAL.name()));
         }
     }
-
 
     private String runEvidenceAudit(JsonNode query) throws AdminManagementClientServerException {
         GUID evidenceAuditOperationGUID = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
@@ -338,17 +359,17 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         return evidenceAuditOperationGUID.toString();
     }
 
-    private String changeMetadataUnitInMongo(String ingestOperationId, String... deletedGotId)
-        throws Exception {
+    private String changeMetadataUnitInMongo(String ingestOperationId, String... deletedGotId) throws Exception {
         try (final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
             SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.and()
-                .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), ingestOperationId))
-                .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.object(), deletedGotId)))
-                .add(QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.object())))
+            select.addQueries(
+                QueryHelper.and()
+                    .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), ingestOperationId))
+                    .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.object(), deletedGotId)))
+                    .add(QueryHelper.not().add(QueryHelper.exists(VitamFieldsHelper.object())))
             );
             // Get AU and update it
             final JsonNode unitResult = metaDataClient.selectUnits(select.getFinalSelect());
@@ -370,44 +391,50 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         }
     }
 
-    private String changeMetadataGotInMongo(String initialOperationId, String... gotIdExcluded)
-        throws Exception {
+    private String changeMetadataGotInMongo(String initialOperationId, String... gotIdExcluded) throws Exception {
         try (final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-
             GUID accessGuid = GUIDFactory.newRequestIdGUID(TENANT_ID);
             VitamThreadUtils.getVitamSession().setRequestId(accessGuid);
 
             SelectMultiQuery selectQuery = new SelectMultiQuery();
-            selectQuery.setQuery(QueryHelper.and()
-                .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperationId))
-                .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.id(), gotIdExcluded)))
-                .add(QueryHelper.gte(VitamFieldsHelper.nbobjects(), 1)));
+            selectQuery.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperationId))
+                    .add(QueryHelper.not().add(QueryHelper.in(VitamFieldsHelper.id(), gotIdExcluded)))
+                    .add(QueryHelper.gte(VitamFieldsHelper.nbobjects(), 1))
+            );
             selectQuery.setLimitFilter(0, 1);
             JsonNode gotResult = metaDataClient.selectObjectGroups(selectQuery.getFinalSelect());
             JsonNode got = gotResult.get("$results").get(0);
             assertThat(got).isNotNull();
             final String gotId = got.get("#id").asText();
             Bson filterGot = Filters.eq("_id", gotId);
-            Bson updateGot = Updates.combine(Updates.set("FileInfo.FileName", "test_audit_wrong.pdf"),
+            Bson updateGot = Updates.combine(
+                Updates.set("FileInfo.FileName", "test_audit_wrong.pdf"),
                 Updates.set("FileInfo.Filename", "test_audit_wrong.pdf"),
-                Updates.set("_qualifiers.0.versions.0.FileInfo.Filename", "test_audit_wrong.pdf"));
-            UpdateResult updateGotResult =
-                MetadataCollections.OBJECTGROUP.getCollection().updateOne(filterGot, updateGot);
+                Updates.set("_qualifiers.0.versions.0.FileInfo.Filename", "test_audit_wrong.pdf")
+            );
+            UpdateResult updateGotResult = MetadataCollections.OBJECTGROUP.getCollection()
+                .updateOne(filterGot, updateGot);
             assertEquals(updateGotResult.getModifiedCount(), 1);
             FindIterable<Document> gots = MetadataCollections.OBJECTGROUP.getCollection().find(filterGot);
             JsonNode gotModified = JsonHandler.getFromString(gots.first().toJson());
             String fileNameGlobal = gotModified.get("FileInfo").get("FileName").asText();
-            String fileNameVersion =
-                gotModified.get("_qualifiers").get(0).get("versions").get(0).get("FileInfo").get("Filename").asText();
+            String fileNameVersion = gotModified
+                .get("_qualifiers")
+                .get(0)
+                .get("versions")
+                .get(0)
+                .get("FileInfo")
+                .get("Filename")
+                .asText();
             assertEquals("test_audit_wrong.pdf", fileNameGlobal);
             assertEquals("test_audit_wrong.pdf", fileNameVersion);
             return gotId;
         }
     }
 
-    private void setFakeStrategyInMetadatasUnit()
-        throws Exception {
-
+    private void setFakeStrategyInMetadatasUnit() throws Exception {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
 
@@ -436,21 +463,23 @@ public class EvidenceAuditIT extends VitamRuleRunner {
         return select.getFinalSelect();
     }
 
-
     private String doTraceabilityGots() throws VitamException {
-        try (LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
-            .getClient()) {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
             RequestResponseOK traceabilityObjectGroupResponse = logbookOperationsClient.traceabilityLfcObjectGroup();
-            String traceabilityGotOperationId =
-                traceabilityObjectGroupResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            String traceabilityGotOperationId = traceabilityObjectGroupResponse.getHeaderString(
+                GlobalDataRest.X_REQUEST_ID
+            );
             waitOperation(traceabilityGotOperationId);
             return traceabilityGotOperationId;
         }
     }
 
     private String doTraceabilityUnits() throws VitamException {
-        try (LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
-            .getClient()) {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
             RequestResponseOK traceabilityUnitResponse = logbookOperationsClient.traceabilityLfcUnit();
             String traceabilityUnitOperationId = traceabilityUnitResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             waitOperation(traceabilityUnitOperationId);
@@ -459,16 +488,19 @@ public class EvidenceAuditIT extends VitamRuleRunner {
     }
 
     private String deleteObjectInStorage(String initialOperationId) throws Exception {
-        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
+        try (
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()
+        ) {
             GUID accessGuid = GUIDFactory.newRequestIdGUID(TENANT_ID);
             VitamThreadUtils.getVitamSession().setRequestId(accessGuid);
             SelectMultiQuery selectQuery = new SelectMultiQuery();
 
-            selectQuery.setQuery(QueryHelper.and()
-                .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperationId))
-                .add(QueryHelper.gte(VitamFieldsHelper.nbobjects(), 1)));
+            selectQuery.setQuery(
+                QueryHelper.and()
+                    .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), initialOperationId))
+                    .add(QueryHelper.gte(VitamFieldsHelper.nbobjects(), 1))
+            );
             selectQuery.setLimitFilter(0, 1);
             RequestResponse<JsonNode> gots = accessClient.selectObjects(selectQuery.getFinalSelect());
             if (!gots.isOk()) {
@@ -482,8 +514,6 @@ public class EvidenceAuditIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(storageGuid);
             storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, objectId);
             return gotPojo.getId();
-
         }
     }
-
 }

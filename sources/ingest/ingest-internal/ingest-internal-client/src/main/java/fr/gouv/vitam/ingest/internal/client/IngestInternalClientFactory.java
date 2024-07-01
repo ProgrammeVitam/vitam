@@ -42,6 +42,7 @@ import java.io.IOException;
  */
 
 public class IngestInternalClientFactory extends VitamClientFactory<IngestInternalClient> {
+
     private static final String CONFIGURATION_FILENAME = "ingest-internal-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientFactory.class);
     private static final IngestInternalClientFactory INGEST_INTERNAL_CLIENT_FACTORY = new IngestInternalClientFactory();
@@ -60,17 +61,15 @@ public class IngestInternalClientFactory extends VitamClientFactory<IngestIntern
     static final IngestInternalClientConfiguration changeConfigurationFile(String configurationPath) {
         IngestInternalClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                IngestInternalClientConfiguration.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                IngestInternalClientConfiguration.class
+            );
         } catch (final IOException fnf) {
-            LOGGER
-                .debug("Error when retrieving configuration file {}, using mock",
-                    CONFIGURATION_FILENAME,
-                    fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
         }
         return configuration;
     }

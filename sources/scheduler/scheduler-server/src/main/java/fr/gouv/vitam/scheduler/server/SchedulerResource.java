@@ -65,6 +65,7 @@ import java.util.stream.Collectors;
 
 @Path("/scheduler/v1")
 public class SchedulerResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchedulerResource.class);
 
     private static final String REG_EXP_SEPARATOR = "\\.";
@@ -73,11 +74,14 @@ public class SchedulerResource extends ApplicationStatusResource {
     @Path("/current-jobs")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentJobs() throws SchedulerException {
-        final List<JobExecutionContext> jobs =
-            SchedulerListener.getInstance().getScheduler().getCurrentlyExecutingJobs();
+        final List<JobExecutionContext> jobs = SchedulerListener.getInstance()
+            .getScheduler()
+            .getCurrentlyExecutingJobs();
 
-        final List<VitamJobDetail> vitamJobs =
-            jobs.stream().map(job -> new VitamJobDetail(job.getJobDetail())).collect(Collectors.toList());
+        final List<VitamJobDetail> vitamJobs = jobs
+            .stream()
+            .map(job -> new VitamJobDetail(job.getJobDetail()))
+            .collect(Collectors.toList());
         try {
             final List<JsonNode> jsonNodes = JsonHandler.toArrayList((ArrayNode) JsonHandler.toJsonNode(vitamJobs));
             return Response.ok(new RequestResponseOK<JsonNode>().addAllResults(jsonNodes)).build();
@@ -135,27 +139,30 @@ public class SchedulerResource extends ApplicationStatusResource {
         return Response.accepted().build();
     }
 
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/job-state/{job-name}")
     public Response jobState(@PathParam("job-name") String jobName) throws SchedulerException {
         final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
         String[] jobKeyPath = jobName.split(REG_EXP_SEPARATOR);
-        JobKey jobKey =
-            (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
+        JobKey jobKey = (jobKeyPath.length > 1)
+            ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0])
+            : JobKey.jobKey(jobKeyPath[0]);
         List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
 
-        Optional<Trigger.TriggerState> reduce = triggers.stream()
+        Optional<Trigger.TriggerState> reduce = triggers
+            .stream()
             // In rare conditions quartz-mongodb library returns a null trigger !
             .filter(Objects::nonNull)
-            .map(Trigger::getKey).map(e -> {
+            .map(Trigger::getKey)
+            .map(e -> {
                 try {
                     return scheduler.getTriggerState(e);
                 } catch (SchedulerException ex) {
                     throw new RuntimeException(ex);
                 }
-            }).reduce(BinaryOperator.maxBy(Enum::compareTo));
+            })
+            .reduce(BinaryOperator.maxBy(Enum::compareTo));
 
         if (reduce.isPresent()) {
             return Response.ok(new RequestResponseOK<>().addResult(reduce.get())).build();
@@ -206,8 +213,9 @@ public class SchedulerResource extends ApplicationStatusResource {
         try {
             final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
             String[] jobKeyPath = jobName.split(REG_EXP_SEPARATOR);
-            JobKey jobKey =
-                (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
+            JobKey jobKey = (jobKeyPath.length > 1)
+                ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0])
+                : JobKey.jobKey(jobKeyPath[0]);
             if (jobDataJson != null) {
                 JobDataMap jobDataMap = JsonHandler.getFromJsonNode(jobDataJson, JobDataMap.class);
                 scheduler.triggerJob(jobKey, jobDataMap);

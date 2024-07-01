@@ -107,12 +107,13 @@ public class ReindexationResourceTest {
 
     private static int workspacePort = junitHelper.findAvailablePort();
 
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager
-        = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
@@ -125,11 +126,15 @@ public class ReindexationResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -141,35 +146,35 @@ public class ReindexationResourceTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
 
-
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.setMongoDbNodes(nodes);
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
-
 
         serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
-        adminConfigFile =
-            File.createTempFile(GUIDFactory.newGUID().getId(), ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
+        adminConfigFile = File.createTempFile(
+            GUIDFactory.newGUID().getId(),
+            ADMIN_MANAGEMENT_CONF,
+            adminConfig.getParentFile()
+        );
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
         try {
-
             application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
-
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
     }
 
@@ -189,12 +194,16 @@ public class ReindexationResourceTest {
 
     @Before
     public void setUp() {
-        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(
+            WireMock.post(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        instanceRule.stubFor(
+            WireMock.delete(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
     }
 
     @After
@@ -205,13 +214,16 @@ public class ReindexationResourceTest {
     @Test
     @RunWithCustomExecutor
     public void launchReindexationMetadataLogbookTest() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (InputStream stream = PropertiesUtils.getResourceAsStream("reindex_order.json")) {
             final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
-            given().contentType(ContentType.JSON).body(reindexOrder)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-                .when().post(REINDEX_URI)
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(REINDEX_URI)
                 .then()
                 .statusCode(Status.CREATED.getStatusCode());
         }
@@ -220,13 +232,16 @@ public class ReindexationResourceTest {
     @Test
     @RunWithCustomExecutor
     public void launchReindexationFuncAdminTest() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (InputStream stream = PropertiesUtils.getResourceAsStream("reindex_order_func_adm.json")) {
             final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
-            given().contentType(ContentType.JSON).body(reindexOrder)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-                .when().post(REINDEX_URI)
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(REINDEX_URI)
                 .then()
                 .statusCode(Status.CREATED.getStatusCode());
         }
@@ -235,13 +250,16 @@ public class ReindexationResourceTest {
     @Test
     @RunWithCustomExecutor
     public void launchReindexationWithUnknownCollectionTest() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (InputStream stream = PropertiesUtils.getResourceAsStream("reindex_order_unknown_collection.json")) {
             final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
-            given().contentType(ContentType.JSON).body(reindexOrder)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-                .when().post(REINDEX_URI)
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(REINDEX_URI)
                 .then()
                 .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
@@ -250,13 +268,16 @@ public class ReindexationResourceTest {
     @Test
     @RunWithCustomExecutor
     public void launchReindexationOfOneCorrectAndOneIncorrectCollectionTest() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (InputStream stream = PropertiesUtils.getResourceAsStream("reindex_order_one_correct_one_incorrect.json")) {
             final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
-            given().contentType(ContentType.JSON).body(reindexOrder)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-                .when().post(REINDEX_URI)
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(REINDEX_URI)
                 .then()
                 .statusCode(Status.ACCEPTED.getStatusCode());
         }
@@ -265,12 +286,21 @@ public class ReindexationResourceTest {
     @Test
     @RunWithCustomExecutor
     public void switchIndexesTest() throws Exception {
-        FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexAndAliasIfAliasNotExists(
-            indexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.CONTEXT).resolveIndexName(null),
-            indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.CONTEXT));
-        String newIndex = FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient().createIndexWithoutAlias(
-            indexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.CONTEXT).resolveIndexName(null),
-            indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.CONTEXT)).getName();
+        FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient()
+            .createIndexAndAliasIfAliasNotExists(
+                indexManager
+                    .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.CONTEXT)
+                    .resolveIndexName(null),
+                indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.CONTEXT)
+            );
+        String newIndex = FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient()
+            .createIndexWithoutAlias(
+                indexManager
+                    .getElasticsearchIndexAliasResolver(FunctionalAdminCollections.CONTEXT)
+                    .resolveIndexName(null),
+                indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.CONTEXT)
+            )
+            .getName();
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -281,10 +311,15 @@ public class ReindexationResourceTest {
         switchParams.setIndexName(newIndex);
         listSwitches.add(switchParams);
 
-        given().contentType(ContentType.JSON).body(listSwitches)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-            .when().post(ALIASES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+        given()
+            .contentType(ContentType.JSON)
+            .body(listSwitches)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .accept(ContentType.JSON)
+            .when()
+            .post(ALIASES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         listSwitches = new ArrayList<>();
         switchParams = new SwitchIndexParameters();
@@ -292,10 +327,15 @@ public class ReindexationResourceTest {
         switchParams.setIndexName("unknown_index");
         listSwitches.add(switchParams);
 
-        given().contentType(ContentType.JSON).body(listSwitches)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-            .when().post(ALIASES_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        given()
+            .contentType(ContentType.JSON)
+            .body(listSwitches)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .accept(ContentType.JSON)
+            .when()
+            .post(ALIASES_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -304,11 +344,15 @@ public class ReindexationResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (InputStream stream = PropertiesUtils.getResourceAsStream("switch_indexes_unknown_collection.json")) {
             final JsonNode reindexOrder = JsonHandler.getFromInputStream(stream);
-            given().contentType(ContentType.JSON).body(reindexOrder)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).accept(ContentType.JSON)
-                .when().post(ALIASES_URI)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            given()
+                .contentType(ContentType.JSON)
+                .body(reindexOrder)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .accept(ContentType.JSON)
+                .when()
+                .post(ALIASES_URI)
+                .then()
+                .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
-
 }

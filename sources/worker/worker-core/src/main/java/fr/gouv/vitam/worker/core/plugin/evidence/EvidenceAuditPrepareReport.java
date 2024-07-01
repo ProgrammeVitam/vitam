@@ -68,7 +68,6 @@ import java.util.List;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 public class EvidenceAuditPrepareReport extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditPrepareReport.class);
@@ -79,8 +78,10 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @VisibleForTesting
-    EvidenceAuditPrepareReport(EvidenceAuditReportService evidenceAuditReportService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    EvidenceAuditPrepareReport(
+        EvidenceAuditReportService evidenceAuditReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.evidenceAuditReportService = evidenceAuditReportService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
@@ -90,8 +91,7 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_PREPARE_REPORT);
         Report evidenceReport;
         try {
@@ -102,20 +102,24 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
         }
 
         try {
-
-            List<URI> uriListObjectsWorkspace =
-                handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
+            List<URI> uriListObjectsWorkspace = handlerIO.getUriList(
+                handlerIO.getContainerName(),
+                param.getObjectName()
+            );
 
             for (URI uri : uriListObjectsWorkspace) {
-
                 File file = handlerIO.getFileFromWorkspace(param.getObjectName() + File.separator + uri.getPath());
 
                 EvidenceAuditReportLine reportLine = JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
 
                 itemStatus.increment(getStatusCode(reportLine));
             }
-
-        } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException | ContentAddressableStorageServerException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException
+            | IOException
+            | InvalidParseOperationException
+            | ContentAddressableStorageServerException e
+        ) {
             throw new ProcessingException(e);
         }
 
@@ -189,8 +193,10 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
 
             List<LogbookEventOperation> events = logbookOperation.getEvents();
             if (events.size() <= 2) {
-                throw new EvidenceAuditException(EvidenceStatus.FATAL,
-                    "Could not generate report summary : not enougth events");
+                throw new EvidenceAuditException(
+                    EvidenceStatus.FATAL,
+                    "Could not generate report summary : not enougth events"
+                );
             }
             LogbookEventOperation lastEvent = events.get(events.size() - 3);
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -204,9 +210,16 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
                 JsonHandler.getFromString(lastEvent.getEvDetData());
             }
             JsonNode rSI = JsonHandler.getFromString(logbookOperation.getRightsStatementIdentifier());
-            OperationSummary operationSummary =
-                new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
-                    evDetData);
+            OperationSummary operationSummary = new OperationSummary(
+                tenantId,
+                evId,
+                evType,
+                outcome,
+                outDetail,
+                outMsg,
+                rSI,
+                evDetData
+            );
             return operationSummary;
         } catch (InvalidParseOperationException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL, "Could not generate report", e);
@@ -230,5 +243,4 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
             return JsonHandler.getFromJsonNode(logbookResponse.getFirstResult(), LogbookOperation.class);
         }
     }
-
 }

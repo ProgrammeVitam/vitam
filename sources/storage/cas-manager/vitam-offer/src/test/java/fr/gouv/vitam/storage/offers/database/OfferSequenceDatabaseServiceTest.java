@@ -55,6 +55,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class OfferSequenceDatabaseServiceTest {
+
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
@@ -74,8 +75,9 @@ public class OfferSequenceDatabaseServiceTest {
     @Before
     public void before() {
         cleanDatabase();
-        service =
-            new OfferSequenceDatabaseService(mongoRule.getMongoDatabase().getCollection(OFFER_SEQUENCE.getName()));
+        service = new OfferSequenceDatabaseService(
+            mongoRule.getMongoDatabase().getCollection(OFFER_SEQUENCE.getName())
+        );
     }
 
     @Test
@@ -100,8 +102,9 @@ public class OfferSequenceDatabaseServiceTest {
     public void should_throw_error_when_no_sequence() throws Exception {
         // Given
         MongoCollection<Document> collection = mock(MongoCollection.class);
-        when(collection.findOneAndUpdate(any(Bson.class), any(Bson.class),
-            any(FindOneAndUpdateOptions.class))).thenReturn(null);
+        when(
+            collection.findOneAndUpdate(any(Bson.class), any(Bson.class), any(FindOneAndUpdateOptions.class))
+        ).thenReturn(null);
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(collection);
 
         // When
@@ -115,8 +118,9 @@ public class OfferSequenceDatabaseServiceTest {
     public void should_throw_error_when_mongo_exception() throws Exception {
         // Given
         MongoCollection<Document> collection = mock(MongoCollection.class);
-        when(collection.findOneAndUpdate(any(Bson.class), any(Bson.class),
-            any(FindOneAndUpdateOptions.class))).thenThrow(MongoWriteException.class);
+        when(
+            collection.findOneAndUpdate(any(Bson.class), any(Bson.class), any(FindOneAndUpdateOptions.class))
+        ).thenThrow(MongoWriteException.class);
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(collection);
 
         // When
@@ -128,46 +132,52 @@ public class OfferSequenceDatabaseServiceTest {
 
     @Test
     public void should_increment_for_bulk() throws ContentAddressableStorageDatabaseException {
-        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
-            .hasSize(0);
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find()).hasSize(0);
 
         long nextSequence1 = service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 5L);
         assertThat(nextSequence1).isEqualTo(1L);
         assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(1)
-            .extracting("Counter").containsExactly(5L);
+            .extracting("Counter")
+            .containsExactly(5L);
 
         long nextSequence2 = service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 3L);
         assertThat(nextSequence2).isEqualTo(6L);
         assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(1)
-            .extracting("Counter").containsExactly(8L);
+            .extracting("Counter")
+            .containsExactly(8L);
     }
 
     @Test
     public void should_test_sequence() throws ContentAddressableStorageDatabaseException {
-        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
-            .hasSize(0);
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find()).hasSize(0);
 
         service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
         assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(1)
-            .extracting("Counter").containsExactly(1L);
+            .extracting("Counter")
+            .containsExactly(1L);
 
         assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(1)
-            .extracting("Counter").containsExactly(1L);
+            .extracting("Counter")
+            .containsExactly(1L);
     }
 
     public Long getFirstSequenceInDb() {
-        return mongoRule.getMongoDatabase().getCollection(OFFER_SEQUENCE.getName())
+        return mongoRule
+            .getMongoDatabase()
+            .getCollection(OFFER_SEQUENCE.getName())
             .find()
             .map(d -> d.getLong(COUNTER_FIELD))
             .first();
     }
 
     private static void cleanDatabase() {
-        mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_SEQUENCE.getName())
+        mongoRule
+            .getMongoDatabase()
+            .getCollection(OfferCollections.OFFER_SEQUENCE.getName())
             .deleteMany(new Document());
         OfferCollections collectionPrefixed = OfferCollections.OFFER_SEQUENCE;
         collectionPrefixed.setPrefix(PREFIX);

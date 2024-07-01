@@ -106,8 +106,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void facetsParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void facetsParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -124,10 +123,8 @@ public class SelectParserMultiple extends RequestParserMultiple {
                 FACET facetCommand = getFacetCommand(facet);
                 ((SelectMultiQuery) request).addFacets(analyzeOneFacet(facet, facetCommand));
             }
-
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Field: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Field: " + rootNode, e);
         }
     }
 
@@ -138,8 +135,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
      * @return FACET command
      * @throws InvalidParseOperationException when valid command could not be found
      */
-    public static final FACET getFacetCommand(final JsonNode facet)
-        throws InvalidParseOperationException {
+    public static final FACET getFacetCommand(final JsonNode facet) throws InvalidParseOperationException {
         for (FACET facetCommand : FACET.values()) {
             if (facet.has(facetCommand.exactToken())) {
                 return facetCommand;
@@ -159,7 +155,6 @@ public class SelectParserMultiple extends RequestParserMultiple {
      */
     protected Facet analyzeOneFacet(final JsonNode facet, FACET facetCommand)
         throws InvalidCreateOperationException, InvalidParseOperationException {
-
         switch (facetCommand) {
             case TERMS:
                 return FacetParserHelper.terms(facet, adapter);
@@ -169,11 +164,10 @@ public class SelectParserMultiple extends RequestParserMultiple {
                 return FacetParserHelper.filters(facet, adapter);
             default:
                 throw new InvalidParseOperationException(
-                    "Invalid parse: command not a facet " + facetCommand.exactToken());
+                    "Invalid parse: command not a facet " + facetCommand.exactToken()
+                );
         }
-
     }
-
 
     /**
      * $fields : {name1 : 0/1, name2 : 0/1, ...}, $usage : contractId
@@ -181,8 +175,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void projectionParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void projectionParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -196,8 +189,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
             }
             ((SelectMultiQuery) request).setProjection(rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Projection: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Projection: " + rootNode, e);
         }
     }
 
@@ -207,8 +199,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void thresholdParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void thresholdParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -216,13 +207,11 @@ public class SelectParserMultiple extends RequestParserMultiple {
         try {
             ((SelectMultiQuery) request).setThreshold(rootNode.asLong());
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Action: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Action: " + rootNode, e);
         }
     }
 
     protected void parseTrackTotalHits(JsonNode rootNode) throws InvalidParseOperationException {
-
         if (!rootNode.has(GLOBAL.FILTER.exactToken())) {
             return;
         }

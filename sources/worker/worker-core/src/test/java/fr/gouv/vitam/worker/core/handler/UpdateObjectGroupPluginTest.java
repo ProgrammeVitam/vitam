@@ -78,25 +78,28 @@ public class UpdateObjectGroupPluginTest {
 
     private HandlerIOImpl handlerIO;
     private static final Integer TENANT_ID = 0;
-    private final WorkerParameters params_guid1 =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("guid1.json"))
-            .setObjectName("guid1.json").setCurrentStep("currentStep")
-            .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
-            .setContainerName("UpdateObjectGroupPluginTest");
+    private final WorkerParameters params_guid1 = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectNameList(Lists.newArrayList("guid1.json"))
+        .setObjectName("guid1.json")
+        .setCurrentStep("currentStep")
+        .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
+        .setContainerName("UpdateObjectGroupPluginTest");
 
-    private final WorkerParameters params_guid2 =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("guid2.json"))
-            .setObjectName("guid2.json").setCurrentStep("currentStep")
-            .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
-            .setContainerName("UpdateObjectGroupPluginTest");
+    private final WorkerParameters params_guid2 = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectNameList(Lists.newArrayList("guid2.json"))
+        .setObjectName("guid2.json")
+        .setCurrentStep("currentStep")
+        .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
+        .setContainerName("UpdateObjectGroupPluginTest");
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -109,6 +112,7 @@ public class UpdateObjectGroupPluginTest {
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
+
     @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
@@ -117,7 +121,6 @@ public class UpdateObjectGroupPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
@@ -130,19 +133,22 @@ public class UpdateObjectGroupPluginTest {
 
         handler = new UpdateObjectGroupPlugin();
 
-        handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "UpdateObjectGroupPluginTest",
-                "workerId", com.google.common.collect.Lists.newArrayList());
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "UpdateObjectGroupPluginTest",
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
 
-        final InputStream guid1 =
-            PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_GUID_1);
-        when(workspaceClient
-            .getObject(any(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid1.json")))
-            .thenReturn(Response.status(Response.Status.OK).entity(guid1).build());
+        final InputStream guid1 = PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_GUID_1);
+        when(
+            workspaceClient.getObject(any(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid1.json"))
+        ).thenReturn(Response.status(Response.Status.OK).entity(guid1).build());
 
-        when(workspaceClient
-            .getObject(any(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid2.json")))
-            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        when(
+            workspaceClient.getObject(any(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid2.json"))
+        ).thenThrow(new ContentAddressableStorageNotFoundException(""));
     }
 
     @After
@@ -152,8 +158,7 @@ public class UpdateObjectGroupPluginTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenExistingGuidInWorkspaceThenOK()
-        throws ProcessingException {
+    public void givenExistingGuidInWorkspaceThenOK() throws ProcessingException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final ItemStatus response = handler.execute(params_guid1, handlerIO);
@@ -164,8 +169,7 @@ public class UpdateObjectGroupPluginTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenNotExistingGuidInWorkspaceThenKO()
-        throws ProcessingException {
+    public void givenNotExistingGuidInWorkspaceThenKO() throws ProcessingException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final ItemStatus response = handler.execute(params_guid2, handlerIO);

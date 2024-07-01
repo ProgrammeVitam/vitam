@@ -107,5 +107,4 @@ class SiegfriedClientMock extends AbstractMockClient implements SiegfriedClient 
             throw new IllegalArgumentException(e);
         }
     }
-
 }

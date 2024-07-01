@@ -60,7 +60,6 @@ public class LogbookAdminResource {
 
     private final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
-
     /**
      * logbookCoherenceCheck service.
      */
@@ -83,16 +82,14 @@ public class LogbookAdminResource {
     public Response checkLogbookCoherence() {
         LOGGER.debug("Starting Check logbook coherence service :");
         try {
-            LogbookCheckResult response =
-                checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());
+            LogbookCheckResult response = checkLogbookService.logbookCoherenceCheckByTenant(
+                VitamThreadUtils.getVitamSession().getTenantId()
+            );
             return Response.ok().entity(response).build();
-
         } catch (VitamException exc) {
             Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;
-            VitamError error = VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
-                exc.getMessage());
+            VitamError error = VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR, exc.getMessage());
             return Response.status(status).entity(error).build();
         }
     }
-
 }

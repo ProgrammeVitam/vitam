@@ -35,6 +35,7 @@ import java.io.File;
  * Simple object holding data used to retrieve an Object from the workspace
  */
 public class ObjectDescription {
+
     private String workspaceContainerGUID;
     private String workspaceObjectURI;
     private String objectName;
@@ -55,8 +56,12 @@ public class ObjectDescription {
      * @param objectName the object name
      * @param workspaceObjectUri the workspace uri of the object
      */
-    public ObjectDescription(DataCategory type, String workspaceContainerGUID, String objectName,
-        String workspaceObjectUri) {
+    public ObjectDescription(
+        DataCategory type,
+        String workspaceContainerGUID,
+        String objectName,
+        String workspaceObjectUri
+    ) {
         this.type = type;
         this.workspaceContainerGUID = workspaceContainerGUID;
         this.objectName = objectName;
@@ -129,5 +134,4 @@ public class ObjectDescription {
         this.type = type;
         return this;
     }
-
 }

@@ -47,8 +47,9 @@ import java.util.concurrent.Callable;
 
 public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<ObjectInfo>> {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MultiplexedStreamObjectInfoListenerThread.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        MultiplexedStreamObjectInfoListenerThread.class
+    );
 
     private final int tenantId;
     private final String requestId;
@@ -56,8 +57,13 @@ public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<
     private final DigestType digestType;
     private final List<String> objectIds;
 
-    public MultiplexedStreamObjectInfoListenerThread(int tenantId, String requestId, InputStream inputStream,
-        DigestType digestType, List<String> objectIds) {
+    public MultiplexedStreamObjectInfoListenerThread(
+        int tenantId,
+        String requestId,
+        InputStream inputStream,
+        DigestType digestType,
+        List<String> objectIds
+    ) {
         this.tenantId = tenantId;
         this.requestId = requestId;
         this.inputStream = inputStream;
@@ -83,9 +89,7 @@ public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<
     }
 
     private List<ObjectInfo> computeDigests() throws IOException, InvalidParseOperationException {
-
         try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(inputStream)) {
-
             Optional<ExactSizeInputStream> headerEntry = multiplexedStreamReader.readNextEntry();
             if (!headerEntry.isPresent()) {
                 throw new IllegalStateException("Header entry not found");

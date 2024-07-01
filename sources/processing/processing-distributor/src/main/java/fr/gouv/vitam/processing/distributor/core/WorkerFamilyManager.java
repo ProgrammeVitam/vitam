@@ -43,7 +43,6 @@ public class WorkerFamilyManager {
 
     private final Map<String, WorkerExecutor> workers = new ConcurrentHashMap<>();
 
-
     public WorkerFamilyManager(String family, int queueSize) {
         if (queueSize < 2) {
             throw new IllegalArgumentException("queue size must be greater than 2");
@@ -53,7 +52,7 @@ public class WorkerFamilyManager {
     }
 
     public void registerWorker(WorkerBean workerBean) {
-        workers.computeIfAbsent(workerBean.getWorkerId(), (key) -> {
+        workers.computeIfAbsent(workerBean.getWorkerId(), key -> {
             WorkerExecutor executor = new WorkerExecutor(queue, workerBean);
             for (int i = 0; i < workerBean.getCapacity(); i++) {
                 final Thread thread = VitamThreadFactory.getInstance().newThread(executor);
@@ -71,7 +70,6 @@ public class WorkerFamilyManager {
      * @param workerId the id of worker to unregister
      */
     public void unregisterWorker(String workerId) {
-
         final WorkerExecutor workerExecutor = workers.get(workerId);
         if (workerExecutor != null) {
             workerExecutor.stop();

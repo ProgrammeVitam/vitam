@@ -39,14 +39,12 @@ public class DslParserHelper {
 
     public static JsonNode getValueForUpdateDsl(JsonNode query, String fieldName)
         throws InvalidParseOperationException {
-
         UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
         updateParserMultiple.parse(query);
         List<Action> actions = updateParserMultiple.getRequest().getActions();
 
         JsonNode result = null;
         for (Action action : actions) {
-
             ObjectNode currentAction = action.getCurrentAction();
             JsonNode setAction = currentAction.get(BuilderToken.UPDATEACTION.SET.exactToken());
 
@@ -60,14 +58,12 @@ public class DslParserHelper {
     }
 
     private static JsonNode getValueForSetAction(JsonNode setAction, String key) {
-
         if (setAction == null) {
             return null;
         }
 
         String[] keyParts = key.split("\\.");
         for (int i = 0; i < keyParts.length; i++) {
-
             String partialKey = getPartialKeys(keyParts, i);
 
             JsonNode value = setAction.get(partialKey);
@@ -95,5 +91,4 @@ public class DslParserHelper {
         }
         return partialFieldName.toString();
     }
-
 }

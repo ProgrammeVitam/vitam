@@ -93,16 +93,35 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public Iterator<OfferLog> getListing(String strategy, String offerId, DataCategory category, Long offset,
-        Integer limit, Order order,
-        int batchSize) throws StorageServerClientException, StorageNotFoundClientException {
-        LOGGER.info(String.format(
-            "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
-            category, strategy, offset, limit));
+    public Iterator<OfferLog> getListing(
+        String strategy,
+        String offerId,
+        DataCategory category,
+        Long offset,
+        Integer limit,
+        Order order,
+        int batchSize
+    ) throws StorageServerClientException, StorageNotFoundClientException {
+        LOGGER.info(
+            String.format(
+                "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
+                category,
+                strategy,
+                offset,
+                limit
+            )
+        );
 
         return OfferLogHelper.getListing(
-            storageClientFactory, strategy, offerId, category,
-            offset, order, batchSize, limit);
+            storageClientFactory,
+            strategy,
+            offerId,
+            category,
+            offset,
+            order,
+            batchSize,
+            limit
+        );
     }
 
     /**
@@ -116,12 +135,21 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public MetadataBackupModel loadData(String strategy, String referentOffer, MetadataCollections collection,
-        String filename, long offset) throws StorageNotFoundException {
-        LOGGER
-            .info(String.format(
+    public MetadataBackupModel loadData(
+        String strategy,
+        String referentOffer,
+        MetadataCollections collection,
+        String filename,
+        long offset
+    ) throws StorageNotFoundException {
+        LOGGER.info(
+            String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
-                filename, collection.name(), strategy));
+                filename,
+                collection.name(),
+                strategy
+            )
+        );
         InputStream inputStream = null;
         try {
             DataCategory type;
@@ -136,8 +164,10 @@ public class RestoreBackupService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
             inputStream = loadData(strategy, referentOffer, type, filename);
-            MetadataBackupModel metadataBackupModel =
-                JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
+            MetadataBackupModel metadataBackupModel = JsonHandler.getFromInputStream(
+                inputStream,
+                MetadataBackupModel.class
+            );
             if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
                 metadataBackupModel.setOffset(offset);
                 return metadataBackupModel;
@@ -151,24 +181,32 @@ public class RestoreBackupService {
         return null;
     }
 
-
     public InputStream loadData(String strategy, String referentOffer, DataCategory category, String filename)
         throws StorageNotFoundException {
-
-        LOGGER
-            .info(String.format(
+        LOGGER.info(
+            String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
-                filename, category.name(), strategy));
+                filename,
+                category.name(),
+                strategy
+            )
+        );
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             return new VitamAsyncInputStream(
-                storageClient.getContainerAsync(strategy, referentOffer, filename, category,
-                    AccessLogUtils.getNoLogAccessLog()));
-
+                storageClient.getContainerAsync(
+                    strategy,
+                    referentOffer,
+                    filename,
+                    category,
+                    AccessLogUtils.getNoLogAccessLog()
+                )
+            );
         } catch (StorageNotFoundException e) {
             throw e;
-        } catch (StorageServerClientException | StorageException |
-                 StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            StorageServerClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }
     }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.storage.tapelibrary;
 import java.util.List;
 
 public class TapeLibraryConf {
+
     private List<TapeRobotConf> robots;
     private List<TapeDriveConf> drives;
     private Integer fullCartridgeDetectionThresholdInMB;

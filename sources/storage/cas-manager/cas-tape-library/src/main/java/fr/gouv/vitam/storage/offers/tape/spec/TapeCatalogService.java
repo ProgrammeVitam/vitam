@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface TapeCatalogService {
-
     void create(TapeCatalog tapeCatalog) throws TapeCatalogException;
 
     boolean replace(TapeCatalog tapeCatalog) throws TapeCatalogException;

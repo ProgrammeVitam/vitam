@@ -58,5 +58,4 @@ public class UpdateWorkflowConstants {
     private UpdateWorkflowConstants() {
         // Do nothing
     }
-
 }

@@ -36,6 +36,7 @@ import java.util.Objects;
  * OfferLog.
  */
 public class OfferLog implements Comparable<OfferLog> {
+
     public static final String SEQUENCE = "Sequence";
     public static final String TIME = "Time";
     public static final String CONTAINER = "Container";
@@ -81,8 +82,7 @@ public class OfferLog implements Comparable<OfferLog> {
     /**
      * Constructor,jackson usage only
      */
-    public OfferLog() {
-    }
+    public OfferLog() {}
 
     /**
      * Constructor
@@ -99,8 +99,7 @@ public class OfferLog implements Comparable<OfferLog> {
         this.formatVersion = OfferLogFormatVersion.V2;
     }
 
-    public OfferLog(long sequence, LocalDateTime time, String container, String fileName,
-        OfferLogAction action) {
+    public OfferLog(long sequence, LocalDateTime time, String container, String fileName, OfferLogAction action) {
         this.sequence = sequence;
         this.time = time;
         this.container = container;
@@ -200,17 +199,17 @@ public class OfferLog implements Comparable<OfferLog> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         OfferLog offerLog = (OfferLog) o;
-        return sequence == offerLog.sequence &&
+        return (
+            sequence == offerLog.sequence &&
             Objects.equals(time, offerLog.time) &&
             Objects.equals(container, offerLog.container) &&
             Objects.equals(fileName, offerLog.fileName) &&
             action == offerLog.action &&
-            formatVersion == offerLog.formatVersion;
+            formatVersion == offerLog.formatVersion
+        );
     }
 
     @Override
@@ -232,13 +231,23 @@ public class OfferLog implements Comparable<OfferLog> {
 
     @Override
     public String toString() {
-        return "OfferLog{" +
-            "sequence=" + sequence +
-            ", time=" + time +
-            ", container='" + container + '\'' +
-            ", fileName='" + fileName + '\'' +
-            ", action=" + action +
-            ", formatVersion=" + formatVersion +
-            '}';
+        return (
+            "OfferLog{" +
+            "sequence=" +
+            sequence +
+            ", time=" +
+            time +
+            ", container='" +
+            container +
+            '\'' +
+            ", fileName='" +
+            fileName +
+            '\'' +
+            ", action=" +
+            action +
+            ", formatVersion=" +
+            formatVersion +
+            '}'
+        );
     }
 }

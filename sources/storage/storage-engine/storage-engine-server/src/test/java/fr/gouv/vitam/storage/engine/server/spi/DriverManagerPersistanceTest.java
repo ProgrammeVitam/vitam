@@ -86,5 +86,4 @@ public class DriverManagerPersistanceTest {
         assertNotNull(driver4);
         assertEquals(THE_DRIVER_THE_DRIVER, driver4.getClass().getName());
     }
-
 }

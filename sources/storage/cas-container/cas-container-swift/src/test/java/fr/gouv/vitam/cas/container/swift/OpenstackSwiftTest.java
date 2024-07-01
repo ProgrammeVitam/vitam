@@ -67,7 +67,6 @@ public class OpenstackSwiftTest {
     ContainerApi containerApi = mock(ContainerApi.class);
     AccountApi accountApi = mock(AccountApi.class);
 
-
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
     }
@@ -75,8 +74,11 @@ public class OpenstackSwiftTest {
     @Before
     public void setup() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
-        configuration.setProvider("openstack-swift").setSwiftPassword("vitam-cdh_password")
-            .setSwiftDomain("vitam-cdh").setSwiftUser("swift")
+        configuration
+            .setProvider("openstack-swift")
+            .setSwiftPassword("vitam-cdh_password")
+            .setSwiftDomain("vitam-cdh")
+            .setSwiftUser("swift")
             .setSwiftKeystoneAuthUrl("http://143.126.93.21:8080/auth/v1.0");
 
         storage = new OpenstackSwift(configuration, swiftApi, containerApi, accountApi);
@@ -104,7 +106,8 @@ public class OpenstackSwiftTest {
         assertEquals(TYPE, result.getType());
         assertEquals(
             "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
-            result.getDigest());
+            result.getDigest()
+        );
         assertEquals(6906, result.getFileSize());
         assertNotNull(result.getLastModifiedDate());
 
@@ -131,9 +134,8 @@ public class OpenstackSwiftTest {
         when(objectApi.get(OBJECT_ID)).thenReturn(null);
 
         //WHEN and THEN
-        assertThatThrownBy(() -> storage.getObjectMetadata(containerName, OBJECT_ID, false))
-            .isInstanceOf(ContentAddressableStorageException.class);
-
+        assertThatThrownBy(() -> storage.getObjectMetadata(containerName, OBJECT_ID, false)).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
     }
-
 }

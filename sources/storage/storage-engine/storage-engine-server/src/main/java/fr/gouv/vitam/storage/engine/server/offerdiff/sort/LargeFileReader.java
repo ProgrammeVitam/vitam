@@ -29,5 +29,4 @@ package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
 
 import fr.gouv.vitam.common.collection.CloseableIterator;
 
-public interface LargeFileReader<T> extends CloseableIterator<T> {
-}
+public interface LargeFileReader<T> extends CloseableIterator<T> {}

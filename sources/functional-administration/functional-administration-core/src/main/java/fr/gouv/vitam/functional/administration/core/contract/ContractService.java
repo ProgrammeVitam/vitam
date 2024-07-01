@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.contract;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -44,8 +43,6 @@ import java.util.List;
  * @param <T> AccessContractModel or IngestContractModel
  */
 public interface ContractService<T extends AbstractContractModel> extends VitamAutoCloseable {
-
-
     /**
      * Create a collections of contracts After passing the validation steps. If all the contracts are valid, they are
      * stored in the collection and indexed. </BR>
@@ -78,7 +75,6 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      */
     RequestResponse<T> updateContract(String id, JsonNode queryDsl) throws VitamException;
 
-
     /**
      * Find contract by identifier
      *
@@ -89,7 +85,6 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      */
     T findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
-
     /**
      * find contract by QueryDsl
      *
@@ -98,9 +93,5 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * @throws ReferentialException thrown if the query could not be executed
      * @throws InvalidParseOperationException thrown is the query is incorrect
      */
-    RequestResponseOK<T> findContracts(JsonNode queryDsl)
-        throws ReferentialException, InvalidParseOperationException;
-
-
-
+    RequestResponseOK<T> findContracts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
 }

@@ -46,16 +46,14 @@ public final class SedaIngestParams {
     public String sedaValidatorXSD;
     public String vitamValidatorXSD;
 
-    public SedaIngestParams() {
-    }
+    public SedaIngestParams() {}
 
     public SedaIngestParams(String version, String namespaceURI) throws ProcessingException {
         this.version = version;
         this.namespaceURI = namespaceURI;
-        Optional<SupportedSedaVersions> sedaSupportedVersionModel =
-            Arrays.stream(SupportedSedaVersions.values())
-                .filter(elmt -> elmt.getVersion().equals(version))
-                .findFirst();
+        Optional<SupportedSedaVersions> sedaSupportedVersionModel = Arrays.stream(SupportedSedaVersions.values())
+            .filter(elmt -> elmt.getVersion().equals(version))
+            .findFirst();
         if (sedaSupportedVersionModel.isEmpty()) {
             throw new ProcessingException(SedaUtils.CheckSedaValidationStatus.UNSUPPORTED_SEDA_VERSION.name());
         }

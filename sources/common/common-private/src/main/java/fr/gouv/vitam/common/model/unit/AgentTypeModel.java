@@ -37,6 +37,4 @@ import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AgentType", namespace = UNIFIED_NAMESPACE)
-public class AgentTypeModel extends PersonOrEntityAndBusinessType {
-
-}
+public class AgentTypeModel extends PersonOrEntityAndBusinessType {}

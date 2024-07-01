@@ -49,19 +49,26 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class PreservationStorageMetadataAndLfc extends StoreMetaDataObjectGroupActionPlugin {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStorageMetadataAndLfc.class);
 
     private static final String PRESERVATION_STORAGE_METADATA_LFC = "PRESERVATION_STORAGE_METADATA_LFC";
     private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
 
     public PreservationStorageMetadataAndLfc() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+        this(
+            MetaDataClientFactory.getInstance(),
+            LogbookLifeCyclesClientFactory.getInstance(),
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    PreservationStorageMetadataAndLfc(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory) {
+    PreservationStorageMetadataAndLfc(
+        MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        StorageClientFactory storageClientFactory
+    ) {
         super(metaDataClientFactory, logbookLifeCyclesClientFactory, storageClientFactory);
     }
 
@@ -73,9 +80,16 @@ public class PreservationStorageMetadataAndLfc extends StoreMetaDataObjectGroupA
         for (WorkflowBatchResult result : workflowBatchResults) {
             List<String> objectGroupIdList = Collections.singletonList(result.getGotId());
             try {
-                List<WorkflowBatchResult.OutputExtra> outputExtras = result.getOutputExtras().stream()
-                    .filter(o -> o.isOkAndGenerated() || o.isOkAndExtractedGot() || o.isOkAndIdentify() ||
-                        o.isOkAndExtractedAu())
+                List<WorkflowBatchResult.OutputExtra> outputExtras = result
+                    .getOutputExtras()
+                    .stream()
+                    .filter(
+                        o ->
+                            o.isOkAndGenerated() ||
+                            o.isOkAndExtractedGot() ||
+                            o.isOkAndIdentify() ||
+                            o.isOkAndExtractedAu()
+                    )
                     .collect(Collectors.toList());
 
                 if (outputExtras.isEmpty()) {
@@ -85,7 +99,6 @@ public class PreservationStorageMetadataAndLfc extends StoreMetaDataObjectGroupA
 
                 storeDocumentsWithLfc(params, handlerIO, objectGroupIdList);
                 itemStatuses.addAll(this.getItemStatuses(objectGroupIdList, StatusCode.OK));
-
             } catch (VitamException e) {
                 LOGGER.error("An error occurred during object group storage", e);
                 itemStatuses.addAll(this.getItemStatuses(objectGroupIdList, StatusCode.FATAL));

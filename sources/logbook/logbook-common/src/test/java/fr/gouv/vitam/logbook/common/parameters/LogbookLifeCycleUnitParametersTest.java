@@ -56,8 +56,10 @@ public class LogbookLifeCycleUnitParametersTest {
         }
         assertEquals(params.getMapParameters().size(), LogbookParameterName.values().length);
 
-        assertEquals(params.getMapParameters().get(LogbookParameterName.eventType),
-            LogbookParameterName.eventType.name());
+        assertEquals(
+            params.getMapParameters().get(LogbookParameterName.eventType),
+            LogbookParameterName.eventType.name()
+        );
         final LogbookLifeCycleUnitParameters params2 = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         params2.setFromParameters(params);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
@@ -120,37 +122,76 @@ public class LogbookLifeCycleUnitParametersTest {
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
         final GUID aa = GUIDFactory.newEventGUID(0);
         final GUID cc = GUIDFactory.newEventGUID(0);
-        LogbookParameterHelper.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+        LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+            aa,
+            "aa",
+            aa,
+            LogbookTypeProcess.AUDIT,
+            StatusCode.OK,
+            "CheckDigest",
+            "Informative Message",
+            cc
+        );
         try {
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+                aa,
+                "",
+                aa,
+                LogbookTypeProcess.AUDIT,
+                StatusCode.OK,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+                aa,
+                "aa",
+                null,
+                LogbookTypeProcess.AUDIT,
+                StatusCode.OK,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-                LogbookTypeProcess.AUDIT, null, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+                aa,
+                "aa",
+                aa,
+                LogbookTypeProcess.AUDIT,
+                null,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-                null, StatusCode.OK, "CheckDigest", "Informative Message", cc);
+            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+                aa,
+                "aa",
+                aa,
+                null,
+                StatusCode.OK,
+                "CheckDigest",
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-
     }
 
     @Test
@@ -168,7 +209,6 @@ public class LogbookLifeCycleUnitParametersTest {
         assertEquals(true, llcup.getMapParameters().isEmpty());
     }
 
-
     @Test
     public void testConstructorAndFinalMessage() {
         final LogbookLifeCycleUnitParameters lunit = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
@@ -181,5 +221,4 @@ public class LogbookLifeCycleUnitParametersTest {
         lunit.setFinalStatus("handler", null, StatusCode.FATAL, " Detail=", "test");
         assertEquals(StatusCode.FATAL, lunit.getStatus());
     }
-
 }

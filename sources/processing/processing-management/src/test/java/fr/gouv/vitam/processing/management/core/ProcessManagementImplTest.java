@@ -82,7 +82,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,18 +109,25 @@ public class ProcessManagementImplTest {
 
     @Mock
     private ProcessDataAccessImpl processDataAccess;
+
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
+
     @Mock
     private WorkspaceClient workspaceClient;
+
     @Mock
     private MetaDataClient metaDataClient;
+
     @Mock
     private WorkspaceProcessDataManagement processDataManagement;
+
     @Mock
     private OperationContextMonitor operationContextMonitor;
+
     @Mock
     private AsyncResourceCleaner asyncResourceCleaner;
+
     @Mock
     private AsyncResourcesMonitor asyncResourcesMonitor;
 
@@ -129,8 +135,9 @@ public class ProcessManagementImplTest {
     private ProcessDistributor processDistributor = null;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Before
     public void setup() {
@@ -143,10 +150,16 @@ public class ProcessManagementImplTest {
         workerManager = new WorkerManager(workerClientFactory);
         ServerConfiguration configuration = new ServerConfiguration();
         when(processDataAccess.getWorkFlowList()).thenReturn(new ConcurrentHashMap<>());
-        processDistributor =
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner,
-                configuration, processDataManagement, workspaceClientFactory, metaDataClientFactory,
-                workerClientFactory);
+        processDistributor = new ProcessDistributorImpl(
+            workerManager,
+            asyncResourcesMonitor,
+            asyncResourceCleaner,
+            configuration,
+            processDataManagement,
+            workspaceClientFactory,
+            metaDataClientFactory,
+            workerClientFactory
+        );
     }
 
     @Test(expected = StateNotAllowedException.class)
@@ -154,16 +167,27 @@ public class ProcessManagementImplTest {
     public void testResumeNotInitiatedWorkflow() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
-            .thenReturn(new HashMap<>());
-        processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement, operationContextMonitor);
+        when(processDataManagement.getProcessWorkflowFor(eq(1), anyString())).thenReturn(new HashMap<>());
+        processManagementImpl = new ProcessManagementImpl(
+            new ServerConfiguration(),
+            processDistributor,
+            processDataAccess,
+            processDataManagement,
+            operationContextMonitor
+        );
         processManagementImpl.resume(
-            WorkerParametersFactory.newWorkerParameters(ID, ID, "NotExistsContainer", ID, Lists.newArrayList(ID),
+            WorkerParametersFactory.newWorkerParameters(
+                ID,
+                ID,
+                "NotExistsContainer",
+                ID,
+                Lists.newArrayList(ID),
                 "http://localhost:8083",
-                "http://localhost:8083"),
-            1, false);
+                "http://localhost:8083"
+            ),
+            1,
+            false
+        );
     }
 
     @RunWithCustomExecutor
@@ -172,11 +196,14 @@ public class ProcessManagementImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(2);
         // No persisted Workflow
         verifyNoMoreInteractions(processDataManagement);
-        when(processDataManagement.getProcessWorkflowFor(eq(2), anyString()))
-            .thenReturn(new HashMap<>());
-        processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement, operationContextMonitor);
+        when(processDataManagement.getProcessWorkflowFor(eq(2), anyString())).thenReturn(new HashMap<>());
+        processManagementImpl = new ProcessManagementImpl(
+            new ServerConfiguration(),
+            processDistributor,
+            processDataAccess,
+            processDataManagement,
+            operationContextMonitor
+        );
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(2);
         Assert.assertNotNull(processWorkflowList);
@@ -191,16 +218,29 @@ public class ProcessManagementImplTest {
         verifyNoMoreInteractions(processDataManagement);
 
         doThrow(OperationContextException.class).when(operationContextMonitor).backup(anyString(), anyString(), any());
-        when(processDataAccess.initProcessWorkflow(any(), anyString()))
-            .thenReturn(getPausedWorkflowList(1).iterator().next());
-        processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement, operationContextMonitor);
+        when(processDataAccess.initProcessWorkflow(any(), anyString())).thenReturn(
+            getPausedWorkflowList(1).iterator().next()
+        );
+        processManagementImpl = new ProcessManagementImpl(
+            new ServerConfiguration(),
+            processDistributor,
+            processDataAccess,
+            processDataManagement,
+            operationContextMonitor
+        );
         Assert.assertNotNull(processManagementImpl);
-        ProcessWorkflow wf = processManagementImpl
-            .init(WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
+        ProcessWorkflow wf = processManagementImpl.init(
+            WorkerParametersFactory.newWorkerParameters(
+                ID,
+                ID,
+                CONTAINER_NAME,
+                ID,
+                Lists.newArrayList(ID),
                 "http://localhost:8083",
-                "http://localhost:8083"), DEFAULT_WORKFLOW.name());
+                "http://localhost:8083"
+            ),
+            DEFAULT_WORKFLOW.name()
+        );
         assertThat(wf).isNotNull();
     }
 
@@ -209,14 +249,18 @@ public class ProcessManagementImplTest {
     public void loadPersistedPausedWorkflowTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(3);
 
-        when(processDataAccess.findAllProcessWorkflow(eq(3)))
-            .thenReturn(getPausedWorkflowList(3));
+        when(processDataAccess.findAllProcessWorkflow(eq(3))).thenReturn(getPausedWorkflowList(3));
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor, processDataAccess,
-            processDataManagement, operationContextMonitor);
+        processManagementImpl = new ProcessManagementImpl(
+            serverConfiguration,
+            processDistributor,
+            processDataAccess,
+            processDataManagement,
+            operationContextMonitor
+        );
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);
@@ -225,15 +269,20 @@ public class ProcessManagementImplTest {
         Assert.assertNotNull(workflowDefinitions);
         Assert.assertNotNull(workflowDefinitions.get("FILING_SCHEME"));
         Assert.assertNotNull(workflowDefinitions.get("DEFAULT_WORKFLOW"));
-        Assert.assertEquals("FILINGSCHEME",
-            workflowDefinitions.get("FILING_SCHEME").getIdentifier());
-        Assert.assertEquals(13,
-            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().size());
-        Assert.assertEquals(4,
-            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(4).getActions().size());
-        Assert.assertEquals("CHECK_UNIT_SCHEMA",
-            workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(4).getActions().get(0).getActionDefinition()
-                .getActionKey());
+        Assert.assertEquals("FILINGSCHEME", workflowDefinitions.get("FILING_SCHEME").getIdentifier());
+        Assert.assertEquals(13, workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().size());
+        Assert.assertEquals(4, workflowDefinitions.get("DEFAULT_WORKFLOW").getSteps().get(4).getActions().size());
+        Assert.assertEquals(
+            "CHECK_UNIT_SCHEMA",
+            workflowDefinitions
+                .get("DEFAULT_WORKFLOW")
+                .getSteps()
+                .get(4)
+                .getActions()
+                .get(0)
+                .getActionDefinition()
+                .getActionKey()
+        );
     }
 
     @Test
@@ -244,8 +293,13 @@ public class ProcessManagementImplTest {
 
         when(processDataAccess.findAllProcessWorkflow(eq(0))).thenReturn(getPausedWorkflowList(5));
 
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor, processDataAccess,
-            processDataManagement, operationContextMonitor);
+        processManagementImpl = new ProcessManagementImpl(
+            serverConfiguration,
+            processDistributor,
+            processDataAccess,
+            processDataManagement,
+            operationContextMonitor
+        );
         Assert.assertNotNull(processManagementImpl);
 
         ProcessQuery pq = new ProcessQuery();
@@ -334,7 +388,8 @@ public class ProcessManagementImplTest {
             processWorkflow.setMessageIdentifier("MessageIdentifier");
             processWorkflow.setOperationId("operationId" + j);
             for (int i = 0; i < 20; i++) {
-                processWorkflow.getSteps()
+                processWorkflow
+                    .getSteps()
                     .add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
             }
             date = date.plusDays(j == 0 ? 0 : 1);

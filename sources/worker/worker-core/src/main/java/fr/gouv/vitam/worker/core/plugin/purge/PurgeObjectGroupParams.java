@@ -66,19 +66,20 @@ public class PurgeObjectGroupParams {
         return objects;
     }
 
-    public PurgeObjectGroupParams setObjects(
-        List<PurgeObjectParams> objects) {
+    public PurgeObjectGroupParams setObjects(List<PurgeObjectParams> objects) {
         this.objects = objects;
         return this;
     }
 
     public static PurgeObjectGroupParams fromObjectGroup(ObjectGroupResponse objectGroup) {
-
-        List<PurgeObjectParams> objectParams = ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+        List<PurgeObjectParams> objectParams = ListUtils.emptyIfNull(objectGroup.getQualifiers())
+            .stream()
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
             .filter(version -> version.getPhysicalId() == null)
-            .map(version -> new PurgeObjectParams()
-                .setId(version.getId()).setStrategyId(version.getStorage().getStrategyId()))
+            .map(
+                version ->
+                    new PurgeObjectParams().setId(version.getId()).setStrategyId(version.getStorage().getStrategyId())
+            )
             .collect(Collectors.toList());
 
         return new PurgeObjectGroupParams()

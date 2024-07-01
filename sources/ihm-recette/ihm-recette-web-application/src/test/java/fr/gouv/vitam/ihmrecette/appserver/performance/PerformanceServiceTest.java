@@ -75,9 +75,13 @@ public class PerformanceServiceTest {
         // Given
         Path sipDirectory = generateThreeZipFileSipWithSubDirectory();
         Path reportDirectory = temporaryFolder.newFolder().toPath();
-        PerformanceService performanceService =
-            new PerformanceService(ingestClientFactory, adminClientFactory, sipDirectory, reportDirectory,
-                UserInterfaceTransactionManager.getInstance());
+        PerformanceService performanceService = new PerformanceService(
+            ingestClientFactory,
+            adminClientFactory,
+            sipDirectory,
+            reportDirectory,
+            UserInterfaceTransactionManager.getInstance()
+        );
 
         // When
         List<Path> files = performanceService.listSipDirectory();
@@ -90,9 +94,13 @@ public class PerformanceServiceTest {
     public void should_list_file_in_report_directory() throws IOException {
         // Given
         Path reportDirectory = generateFileReport();
-        PerformanceService performanceService =
-            new PerformanceService(ingestClientFactory, adminClientFactory, null, reportDirectory,
-                UserInterfaceTransactionManager.getInstance());
+        PerformanceService performanceService = new PerformanceService(
+            ingestClientFactory,
+            adminClientFactory,
+            null,
+            reportDirectory,
+            UserInterfaceTransactionManager.getInstance()
+        );
 
         // When
         List<Path> files = performanceService.listReportDirectory();
@@ -107,9 +115,13 @@ public class PerformanceServiceTest {
         Path reportDirectory = temporaryFolder.newFolder().toPath();
         String reportName = "1.txt";
         Files.write(reportDirectory.resolve(reportName), "test".getBytes());
-        PerformanceService performanceService =
-            new PerformanceService(ingestClientFactory, adminClientFactory, null, reportDirectory,
-                UserInterfaceTransactionManager.getInstance());
+        PerformanceService performanceService = new PerformanceService(
+            ingestClientFactory,
+            adminClientFactory,
+            null,
+            reportDirectory,
+            UserInterfaceTransactionManager.getInstance()
+        );
 
         // When
         InputStream inputStream = performanceService.readReport(reportName);
@@ -136,9 +148,13 @@ public class PerformanceServiceTest {
         given(adminExternalClient.getOperationProcessStatus(any(), anyString())).willReturn(adminClientResponse);
         given(adminClientFactory.getClient()).willReturn(adminExternalClient);
 
-        PerformanceService performanceService =
-            new PerformanceService(ingestClientFactory, adminClientFactory, sipDirectory, reportDirectory,
-                UserInterfaceTransactionManager.getInstance());
+        PerformanceService performanceService = new PerformanceService(
+            ingestClientFactory,
+            adminClientFactory,
+            sipDirectory,
+            reportDirectory,
+            UserInterfaceTransactionManager.getInstance()
+        );
         IngestExternalClient ingestExternalClient = mock(IngestExternalClient.class);
         given(ingestClientFactory.getClient()).willReturn(ingestExternalClient);
         RequestResponseOK<Void> requestResponseOK = new RequestResponseOK<>();
@@ -176,6 +192,4 @@ public class PerformanceServiceTest {
 
         return sipDirectory;
     }
-
-
 }

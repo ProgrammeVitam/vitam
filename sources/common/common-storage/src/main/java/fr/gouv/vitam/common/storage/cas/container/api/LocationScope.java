@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.storage.cas.container.api;
  * The scope of the location
  */
 public enum LocationScope {
-
     PROVIDER,
     REGION,
     ZONE,
@@ -42,6 +41,5 @@ public enum LocationScope {
      * E.g. the DMZ segment, secure segment.
      */
     NETWORK,
-    HOST;
-
+    HOST,
 }

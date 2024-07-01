@@ -37,14 +37,12 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testAddRelations_duplicatesOk() {
-
         // Given
         GraphCycleDetector instance = new GraphCycleDetector();
 
         // When
         instance.addRelations("1", Arrays.asList("2", "3"));
         instance.addRelations("1", Arrays.asList("2", "4"));
-
 
         // Then
         assertThat(instance.getChildToParents().keySet()).hasSize(1);
@@ -58,7 +56,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testAddAndRemoveRelations() {
-
         // Given
         GraphCycleDetector instance = new GraphCycleDetector();
 
@@ -66,7 +63,6 @@ public class GraphCycleDetectorTest {
         instance.addRelations("1", Arrays.asList("2", "3"));
         instance.addRelations("2", Arrays.asList("4", "5"));
         instance.removeRelations("2", Arrays.asList("5"));
-
 
         // Then
         assertThat(instance.getChildToParents().keySet()).hasSize(2);
@@ -81,7 +77,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testRemoveRelations() {
-
         // Given
         GraphCycleDetector instance = new GraphCycleDetector();
 
@@ -89,7 +84,6 @@ public class GraphCycleDetectorTest {
         instance.addRelations("1", Arrays.asList("2", "3", "4"));
         instance.removeRelations("1", Arrays.asList("3"));
         instance.removeRelations("1", Arrays.asList("3"));
-
 
         // Then
         assertThat(instance.getChildToParents().keySet()).hasSize(1);
@@ -102,7 +96,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testCheckCycles_Empty() {
-
         // Given : empty graph
         GraphCycleDetector instance = new GraphCycleDetector();
 
@@ -115,7 +108,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testCheckCycles_GraphWithoutCycles() {
-
         // Given : Graph without cycles
         /*
          *      1       6     8
@@ -144,7 +136,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testCheckCycles_SingletonGraphWithCycles() {
-
         // Given : A graph with self-referencing node
         GraphCycleDetector instance = new GraphCycleDetector();
         instance.addRelations("1", Arrays.asList("1"));
@@ -156,10 +147,8 @@ public class GraphCycleDetectorTest {
         assertThat(cycles).containsExactlyInAnyOrder("1");
     }
 
-
     @Test
     public void testCheckCycles_BasicGraphWithCycles() {
-
         // Given : Basic cycle
         /*
          *     1
@@ -180,7 +169,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testCheckCycles_GraphWithOneCycle() {
-
         // Given : Graph with one cycle
         /*
          *   1  4   5
@@ -212,7 +200,6 @@ public class GraphCycleDetectorTest {
 
     @Test
     public void testCheckCycles_GraphWithMultipleCycles() {
-
         // Given : Graph with multiple cycles
         /*
          *    1   4   5
@@ -243,5 +230,4 @@ public class GraphCycleDetectorTest {
         // Then
         assertThat(cycles).containsExactlyInAnyOrder("2", "6", "3", "9", "10", "11");
     }
-
 }

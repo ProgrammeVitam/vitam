@@ -115,7 +115,6 @@ public class AuditPreparePlugin extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
-
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             boolean isInternalAudit = handler.isExistingFileInWorkspace("scheduler_audit");
             JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
@@ -123,7 +122,6 @@ public class AuditPreparePlugin extends ActionHandler {
             computePreparation(query, handler, metaDataClient);
             JsonNode evDetData = (isInternalAudit) ? computeEventData(initialQuery) : JsonHandler.createObjectNode();
             return buildItemStatus(AUDIT_PREPARATION, StatusCode.OK, evDetData);
-
         } catch (InvalidParseOperationException | IOException | ProcessingException e) {
             LOGGER.error(String.format("Audit action failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
@@ -148,60 +146,67 @@ public class AuditPreparePlugin extends ActionHandler {
                 String date = lastUnit.get(VitamFieldsHelper.approximateUpdateDate()).asText();
                 return JsonHandler.createObjectNode().put("Last_Update_Date", date);
             }
-        } catch (MetaDataExecutionException | MetaDataClientServerException | InvalidParseOperationException |
-                 MetaDataDocumentSizeException e) {
+        } catch (
+            MetaDataExecutionException
+            | MetaDataClientServerException
+            | InvalidParseOperationException
+            | MetaDataDocumentSizeException e
+        ) {
             throw new RuntimeException(e);
         }
     }
 
-    private void computePreparation(SelectMultiQuery selectMultiQuery, HandlerIO handler, MetaDataClient metaDataClient)
-        throws IOException, InvalidParseOperationException, ProcessingException {
-
+    private void computePreparation(
+        SelectMultiQuery selectMultiQuery,
+        HandlerIO handler,
+        MetaDataClient metaDataClient
+    ) throws IOException, InvalidParseOperationException, ProcessingException {
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
         Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
         Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
 
-        Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator =
-            new GroupByObjectIterator(gotIdUnitIdIterator);
+        Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator = new GroupByObjectIterator(
+            gotIdUnitIdIterator
+        );
 
-        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator =
-            Iterators.partition(unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
+        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator = Iterators.partition(
+            unitsByObjectGroupIterator,
+            VitamConfiguration.getBatchSize()
+        );
 
         File objectGroupsToAudit = handler.getNewLocalFile(OBJECT_GROUPS_TO_AUDIT_JSONL);
-        try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsToAudit);
-            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+        try (
+            final FileOutputStream outputStream = new FileOutputStream(objectGroupsToAudit);
+            JsonLineWriter writer = new JsonLineWriter(outputStream)
+        ) {
             while (unitsByObjectGroupBulkIterator.hasNext()) {
                 List<Pair<String, List<String>>> bulkToProcess = unitsByObjectGroupBulkIterator.next();
                 processBulk(bulkToProcess, writer);
             }
         }
         handler.transferFileToWorkspace(OBJECT_GROUPS_TO_AUDIT_JSONL, objectGroupsToAudit, true, false);
-
     }
 
     private void processBulk(List<Pair<String, List<String>>> unitsByObjectGroupBulkIterator, JsonLineWriter writer)
         throws InvalidParseOperationException, IOException {
-
         Map<String, List<String>> tempUnitsByObjectGroupMap = new HashMap<>();
         unitsByObjectGroupBulkIterator.forEach(item -> tempUnitsByObjectGroupMap.put(item.getKey(), item.getValue()));
 
-        List<ObjectGroupResponse> objectModelsForUnitResults =
-            getObjectModelsForUnitResults(tempUnitsByObjectGroupMap.keySet());
+        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(
+            tempUnitsByObjectGroupMap.keySet()
+        );
 
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
-
             List<String> unitIds = tempUnitsByObjectGroupMap.get(objectGroup.getId());
             AuditObjectGroup auditDistributionLine = createAuditDistributionLine(unitIds, objectGroup);
             writer.addEntry(
-                new JsonLineModel(auditDistributionLine.getId(), null, JsonHandler.toJsonNode(auditDistributionLine)));
-
+                new JsonLineModel(auditDistributionLine.getId(), null, JsonHandler.toJsonNode(auditDistributionLine))
+            );
         }
-
     }
 
     private SelectMultiQuery generateAuditQuery(JsonNode initialQuery) {
-
         try {
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(initialQuery);
@@ -217,10 +222,8 @@ public class AuditPreparePlugin extends ActionHandler {
             List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
 
             if (queryList.isEmpty()) {
-
                 selectMultiQuery.addQueries(and().add(exists(OBJECT.exactToken())).setDepthLimit(0));
                 return selectMultiQuery;
-
             }
 
             for (int i = 0; i < queryList.size(); i++) {
@@ -229,7 +232,6 @@ public class AuditPreparePlugin extends ActionHandler {
                 Query restrictedQuery = and().add(exists(OBJECT.exactToken()), query);
 
                 parser.getRequest().getQueries().set(i, restrictedQuery);
-
             }
             return selectMultiQuery;
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -238,8 +240,10 @@ public class AuditPreparePlugin extends ActionHandler {
     }
 
     private Iterator<Pair<String, String>> getGotIdUnitIdIterator(Iterator<JsonNode> iterator) {
-        return IteratorUtils.transformedIterator(iterator,
-            item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(), item.get(ID.exactToken()).asText()));
+        return IteratorUtils.transformedIterator(
+            iterator,
+            item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(), item.get(ID.exactToken()).asText())
+        );
     }
 
     private ObjectNode getQueryProjectionToApply() {
@@ -255,7 +259,6 @@ public class AuditPreparePlugin extends ActionHandler {
 
     private List<ObjectGroupResponse> getObjectModelsForUnitResults(Collection<String> objectGroupIds) {
         try {
-
             Select select = new Select();
             String[] ids = objectGroupIds.toArray(new String[0]);
             select.setQuery(in("#id", ids));
@@ -264,16 +267,13 @@ public class AuditPreparePlugin extends ActionHandler {
             JsonNode response = metaDataClientFactory.getClient().selectObjectGroups(finalSelect);
 
             JsonNode results = response.get("$results");
-            return getFromStringAsTypeReference(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {
-            });
-
+            return getFromStringAsTypeReference(results.toString(), new TypeReference<List<ObjectGroupResponse>>() {});
         } catch (VitamException | InvalidFormatException | InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }
     }
 
     private AuditObjectGroup createAuditDistributionLine(List<String> unitUps, ObjectGroupResponse objectGroup) {
-
         AuditObjectGroup auditDistributionLine = new AuditObjectGroup();
         auditDistributionLine.setId(objectGroup.getId());
         auditDistributionLine.setOpi(objectGroup.getOpi());
@@ -294,9 +294,7 @@ public class AuditPreparePlugin extends ActionHandler {
                 binaryObject.setStorage(version.getStorage());
                 auditDistributionLine.getObjects().add(binaryObject);
             }
-
         }
         return auditDistributionLine;
     }
-
 }

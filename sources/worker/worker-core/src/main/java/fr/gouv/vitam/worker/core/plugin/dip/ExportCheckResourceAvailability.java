@@ -57,6 +57,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.stream.Collectors.toList;
 
 public class ExportCheckResourceAvailability extends CheckResourceAvailability {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExportCheckResourceAvailability.class);
     public static final String PLUGIN_NAME = "EXPORT_CHECK_RESOURCE_AVAILABILITY";
 
@@ -74,15 +75,20 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-
         try {
             Map<AccessRequestContext, List<String>> entries = extractResources(workerParameters, handler);
 
             checkResourcesAvailability(entries, DataCategory.OBJECT);
 
-            return IntStream.range(0, workerParameters.getObjectNameList().size()).
-                mapToObj(index -> buildItemStatus(PLUGIN_NAME, StatusCode.OK,
-                    PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
+            return IntStream.range(0, workerParameters.getObjectNameList().size())
+                .mapToObj(
+                    index ->
+                        buildItemStatus(
+                            PLUGIN_NAME,
+                            StatusCode.OK,
+                            PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))
+                        )
+                )
                 .collect(toList());
         } catch (ProcessingRetryAsyncException prae) {
             LOGGER.info("Some resources where not available");
@@ -92,8 +98,10 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
         }
     }
 
-    private Map<AccessRequestContext, List<String>> extractResources(WorkerParameters workerParameters,
-        HandlerIO handler) throws IOException, InvalidParseOperationException {
+    private Map<AccessRequestContext, List<String>> extractResources(
+        WorkerParameters workerParameters,
+        HandlerIO handler
+    ) throws IOException, InvalidParseOperationException {
         handler.setCurrentObjectId(workerParameters.getObjectNameList().get(0));
         try (InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_INFO_RANK))) {
             Map<String, Object> guidToInfo = JsonHandler.getMapFromInputStream(inputStream);
@@ -101,11 +109,11 @@ public class ExportCheckResourceAvailability extends CheckResourceAvailability {
             for (String objectId : workerParameters.getObjectNameList()) {
                 Map objectInfo = (Map) guidToInfo.get(objectId);
                 String strategyId = (String) objectInfo.get("strategyId");
-                entries.computeIfAbsent(new AccessRequestContext(strategyId, null), (x -> new ArrayList<>()))
+                entries
+                    .computeIfAbsent(new AccessRequestContext(strategyId, null), (x -> new ArrayList<>()))
                     .add(objectId);
             }
             return entries;
         }
     }
-
 }

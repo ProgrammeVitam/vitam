@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -51,7 +50,6 @@ public class OfferLogCompactionJob implements Job {
 
     private final StorageClientFactory storageClientFactory;
 
-
     public OfferLogCompactionJob() {
         this(StorageClientFactory.getInstance());
     }
@@ -61,7 +59,6 @@ public class OfferLogCompactionJob implements Job {
         this.storageClientFactory = storageClientFactory;
     }
 
-
     public void execute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
         try (StorageClient client = this.storageClientFactory.getClient()) {
@@ -69,11 +66,9 @@ public class OfferLogCompactionJob implements Job {
             LOGGER.info("Process of OfferLogCompaction in progress for offer " + offerId);
             VitamContext vitamContext = new VitamContext(TENANT_ID);
             client.launchOfferLogCompaction(vitamContext, offerId);
-            LOGGER.info("End of Process OfferLogCompaction for offer "+ offerId);
+            LOGGER.info("End of Process OfferLogCompaction for offer " + offerId);
         } catch (StorageServerClientException e) {
             throw new JobExecutionException(e);
         }
-
     }
-
 }

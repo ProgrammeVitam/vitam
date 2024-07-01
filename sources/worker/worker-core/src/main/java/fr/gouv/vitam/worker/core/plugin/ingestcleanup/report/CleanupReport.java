@@ -35,8 +35,10 @@ public class CleanupReport {
 
     @JsonProperty("ingestOperationId")
     private String ingestOperationId;
+
     @JsonProperty("units")
     private Map<String, IngestCleanupUnitReportEntry> units = new HashMap<>();
+
     @JsonProperty("objectGroups")
     private Map<String, IngestCleanupObjectGroupReportEntry> objectGroups = new HashMap<>();
 
@@ -53,8 +55,7 @@ public class CleanupReport {
         return units;
     }
 
-    public CleanupReport setUnits(
-        Map<String, IngestCleanupUnitReportEntry> units) {
+    public CleanupReport setUnits(Map<String, IngestCleanupUnitReportEntry> units) {
         this.units = units;
         return this;
     }
@@ -63,8 +64,7 @@ public class CleanupReport {
         return objectGroups;
     }
 
-    public CleanupReport setObjectGroups(
-        Map<String, IngestCleanupObjectGroupReportEntry> objectGroups) {
+    public CleanupReport setObjectGroups(Map<String, IngestCleanupObjectGroupReportEntry> objectGroups) {
         this.objectGroups = objectGroups;
         return this;
     }

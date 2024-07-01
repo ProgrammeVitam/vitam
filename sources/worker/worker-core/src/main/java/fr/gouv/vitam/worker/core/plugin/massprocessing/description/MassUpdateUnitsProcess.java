@@ -102,6 +102,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
@@ -122,9 +123,12 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     }
 
     @VisibleForTesting
-    public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory,
+    public MassUpdateUnitsProcess(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory lfcClientFactory,
-        StorageClientFactory storageClientFactory, BatchReportClientFactory batchReportClientFactory) {
+        StorageClientFactory storageClientFactory,
+        BatchReportClientFactory batchReportClientFactory
+    ) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
@@ -133,19 +137,19 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new IllegalStateException("UnsupportedOperation");
     }
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        try (MetaDataClient mdClient = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
+            BatchReportClient batchReportClient = batchReportClientFactory.getClient()
+        ) {
             // get initial query string
             JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
 
@@ -154,8 +158,14 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             parser.parse(queryNode);
 
             // Add operationID to #operations
-            parser.getRequest().addActions(UpdateActionHelper.push(
-                VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
+            parser
+                .getRequest()
+                .addActions(
+                    UpdateActionHelper.push(
+                        VitamFieldsHelper.operations(),
+                        VitamThreadUtils.getVitamSession().getRequestId()
+                    )
+                );
 
             UpdateMultiQuery multiQuery = parser.getRequest();
 
@@ -172,11 +182,22 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             // Prepare rapport
             List<UpdateUnitMetadataReportEntry> failingEntries = new ArrayList<>();
             if (requestResponse != null && requestResponse.isOk()) {
-                List<ItemStatus> itemStatuses = ((RequestResponseOK<JsonNode>) requestResponse).getResults()
-                    .stream()
-                    .map(result -> postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient,
-                        failingEntries, result))
-                    .collect(Collectors.toList());
+                List<ItemStatus> itemStatuses =
+                    ((RequestResponseOK<JsonNode>) requestResponse).getResults()
+                        .stream()
+                        .map(
+                            result ->
+                                postUpdate(
+                                    workerParameters,
+                                    handler,
+                                    mdClient,
+                                    lfcClient,
+                                    storageClient,
+                                    failingEntries,
+                                    result
+                                )
+                        )
+                        .collect(Collectors.toList());
 
                 ReportBody<UpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
                 reportBody.setProcessId(workerParameters.getProcessId());
@@ -196,9 +217,15 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         }
     }
 
-    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
-        LogbookLifeCyclesClient lfcClient, StorageClient storageClient,
-        List<UpdateUnitMetadataReportEntry> failingEntries, JsonNode unitNode) {
+    private ItemStatus postUpdate(
+        WorkerParameters workerParameters,
+        HandlerIO handler,
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        List<UpdateUnitMetadataReportEntry> failingEntries,
+        JsonNode unitNode
+    ) {
         String unitId = unitNode.get(ID).asText();
         String key = unitNode.get(KEY).asText();
         String statusAsString = unitNode.get(STATUS).asText();
@@ -229,54 +256,89 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         if (UNIT_METADATA_NO_CHANGES.name().equals(key)) {
             try {
                 if (lfcAlreadyWrittenInMongo(lfcClient, unitId, workerParameters.getContainerName())) {
-                    LOGGER.warn(String.format(
-                        "There is no changes on the unit '%s', and LFC already written in mongo, this unit will be save in offer.",
-                        unitId));
-                    storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
-                        unitId + ".json");
+                    LOGGER.warn(
+                        String.format(
+                            "There is no changes on the unit '%s', and LFC already written in mongo, this unit will be save in offer.",
+                            unitId
+                        )
+                    );
+                    storeUnitAndLfcToOffer(
+                        mdClient,
+                        lfcClient,
+                        storageClient,
+                        handler,
+                        workerParameters,
+                        unitId,
+                        unitId + ".json"
+                    );
                     return buildItemStatus(MASS_UPDATE_UNITS, OK, EventDetails.of("Mass update OK"));
                 }
             } catch (VitamException e) {
                 LOGGER.error(e);
-                return buildItemStatus(MASS_UPDATE_UNITS, FATAL,
-                    EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+                return buildItemStatus(
+                    MASS_UPDATE_UNITS,
+                    FATAL,
+                    EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage()))
+                );
             }
         }
 
         try {
             writeLfcToMongo(lfcClient, workerParameters, unitId, diff);
-        } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
+        } catch (
+            LogbookClientServerException
+            | LogbookClientNotFoundException
+            | InvalidParseOperationException
+            | InvalidGuidOperationException e
+        ) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_UNITS, FATAL,
-                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(
+                MASS_UPDATE_UNITS,
+                FATAL,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+            );
         } catch (LogbookClientBadRequestException e) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_UNITS, KO,
-                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            return buildItemStatus(
+                MASS_UPDATE_UNITS,
+                KO,
+                EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+            );
         }
 
         try {
-            storeUnitAndLfcToOffer(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
-                unitId + ".json");
+            storeUnitAndLfcToOffer(
+                mdClient,
+                lfcClient,
+                storageClient,
+                handler,
+                workerParameters,
+                unitId,
+                unitId + ".json"
+            );
         } catch (VitamException e) {
             LOGGER.error(e);
-            return buildItemStatus(MASS_UPDATE_UNITS, FATAL,
-                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage())));
+            return buildItemStatus(
+                MASS_UPDATE_UNITS,
+                FATAL,
+                EventDetails.of(String.format("Error while storing UNIT with LFC '%s'.", e.getMessage()))
+            );
         }
         return buildItemStatus(MASS_UPDATE_UNITS, OK, EventDetails.of("Mass update OK"));
     }
 
-    private boolean lfcAlreadyWrittenInMongo(LogbookLifeCyclesClient lfcClient, String unitId,
-        String currentOperationId) throws VitamException {
+    private boolean lfcAlreadyWrittenInMongo(
+        LogbookLifeCyclesClient lfcClient,
+        String unitId,
+        String currentOperationId
+    ) throws VitamException {
         JsonNode lfc = lfcClient.getRawUnitLifeCycleById(unitId);
         LogbookLifecycle unitLFC = JsonHandler.getFromJsonNode(lfc, LogbookLifecycle.class);
         return unitLFC.getEvents().stream().anyMatch(e -> e.getEvIdProc().equals(currentOperationId));
     }
 
     private void writeLfcToMongo(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId, String diff)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        InvalidParseOperationException, InvalidGuidOperationException {
-
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidParseOperationException, InvalidGuidOperationException {
         LogbookLifeCycleParameters logbookLfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
             VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
@@ -303,9 +365,15 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         return JsonHandler.writeAsString(diffObject);
     }
 
-    private void storeUnitAndLfcToOffer(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
-        throws VitamException {
+    private void storeUnitAndLfcToOffer(
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        HandlerIO handler,
+        WorkerParameters params,
+        String guid,
+        String fileName
+    ) throws VitamException {
         // get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
@@ -332,7 +400,11 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         ObjectDescription description = new ObjectDescription(UNIT, params.getContainerName(), fileName, uri);
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
-            description);
+        storageClient.storeFileFromWorkspace(
+            strategyId,
+            description.getType(),
+            description.getObjectName(),
+            description
+        );
     }
 }

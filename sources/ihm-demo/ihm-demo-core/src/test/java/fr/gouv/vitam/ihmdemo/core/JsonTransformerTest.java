@@ -45,35 +45,35 @@ public class JsonTransformerTest {
 
     private static final String VALID_ALL_PARENTS =
         "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
-            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
-            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
-            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
+        "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+        "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+        "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_MISSING_ID =
         "[{Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
-            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
-            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
-            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
+        "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+        "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+        "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_MISSING_UP =
         "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
-            "{#id:'ID028',Title:'ID028',_tenant:0}," +
-            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
-            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
-            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
+        "{#id:'ID028',Title:'ID028',_tenant:0}," +
+        "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
+        "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+        "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static final String INVALID_ALL_PARENTS_WITH_INVALID_UP =
         "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
-            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID027',Title:'ID027',#unitups:'WRONG_up',_tenant:0}," +
-            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
-            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
+        "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
+        "{#id:'ID027',Title:'ID027',#unitups:'WRONG_up',_tenant:0}," +
+        "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
+        "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     private static JsonNode validParents;
     private static JsonNode invalidParentsWithMissingId;
@@ -93,15 +93,17 @@ public class JsonTransformerTest {
 
     @Test
     public void testTransformerObjectGroupSuccess() throws Exception {
-        final JsonNode sampleObjectGroup =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
+        final JsonNode sampleObjectGroup = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("sample_objectGroup_document.json")
+        );
         assertNotNull(JsonTransformer.transformResultObjects(sampleObjectGroup));
     }
 
     @Test
     public void testTransformerObjectGroupPhysicalSuccess() throws Exception {
-        final JsonNode sampleObjectGroup =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_physical.json"));
+        final JsonNode sampleObjectGroup = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("sample_objectGroup_physical.json")
+        );
         assertNotNull(JsonTransformer.transformResultObjects(sampleObjectGroup));
     }
 

@@ -35,12 +35,11 @@ public class AuditFullStatusCount {
 
     @JsonProperty("objectGroupsCount")
     private AuditStatusCount objectGroupsCount;
+
     @JsonProperty("objectsCount")
     private AuditStatusCount objectsCount;
 
-    public AuditFullStatusCount() {
-
-    }
+    public AuditFullStatusCount() {}
 
     public AuditFullStatusCount(AuditStatusCount objectGroupsCount, AuditStatusCount objectsCount) {
         super();
@@ -63,5 +62,4 @@ public class AuditFullStatusCount {
     public void setObjectsCount(AuditStatusCount objectsCount) {
         this.objectsCount = objectsCount;
     }
-
 }

@@ -47,11 +47,11 @@ import java.util.List;
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class SecurityProfileResourceMock {
+
     private final ResteasyTestApplication.ExpectedResults mock;
     public static final String SECURITY_PROFILE_URI = "/securityprofiles";
 
-    public SecurityProfileResourceMock(
-        ResteasyTestApplication.ExpectedResults mock) {
+    public SecurityProfileResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
     }
 

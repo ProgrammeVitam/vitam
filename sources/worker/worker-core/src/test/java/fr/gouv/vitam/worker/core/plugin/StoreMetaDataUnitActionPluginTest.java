@@ -119,7 +119,6 @@ public class StoreMetaDataUnitActionPluginTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     public StoreMetaDataUnitActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
-
         rawUnit1 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD));
         rawUnit2 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNIT_MD_2));
 
@@ -149,16 +148,23 @@ public class StoreMetaDataUnitActionPluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String container = args.getArgument(0);
             String filename = args.getArgument(1);
             InputStream is = args.getArgument(2);
             FileUtils.copyToFile(is, new File(temporaryFolder.getRoot(), container + "/" + filename));
             return null;
-        }).when(workspaceClient).putObject(any(), any(), any());
+        })
+            .when(workspaceClient)
+            .putObject(any(), any(), any());
 
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, CONTAINER_NAME, "workerId",
-            com.google.common.collect.Lists.newArrayList());
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            CONTAINER_NAME,
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
     }
 
     @After
@@ -168,18 +174,22 @@ public class StoreMetaDataUnitActionPluginTest {
 
     @Test
     public void givenMetadataClientWhenSearchUnitThenReturnNotFound() throws Exception {
-
         // Given
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
-        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2))))
-            .thenReturn(VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, "not found"));
-        plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))).thenReturn(
+            VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, "not found")
+        );
+        plugin = new StoreMetaDataUnitActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);
@@ -191,33 +201,39 @@ public class StoreMetaDataUnitActionPluginTest {
     @Test
     public void givenMetadataClientAndLogbookLifeCycleClientAndWorkspaceResponsesWhenSearchUnitThenReturnOK()
         throws Exception {
-
         // Given
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
-        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2))))
-            .thenReturn(new RequestResponseOK<JsonNode>()
-                .addResult(rawUnit1)
-                .addResult(rawUnit2));
+        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(rawUnit1).addResult(rawUnit2)
+        );
 
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))
-            .thenReturn(Arrays.asList(lfcUnit1, lfcUnit2));
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2))).thenReturn(
+            Arrays.asList(lfcUnit1, lfcUnit2)
+        );
 
-        when(storageClient.bulkStoreFilesFromWorkspace(eq("default-unit-fake"), any()))
-            .thenReturn(new BulkObjectStoreResponse(
-                Arrays.asList("offer1", "offer2"), DigestType.SHA512.getName(),
+        when(storageClient.bulkStoreFilesFromWorkspace(eq("default-unit-fake"), any())).thenReturn(
+            new BulkObjectStoreResponse(
+                Arrays.asList("offer1", "offer2"),
+                DigestType.SHA512.getName(),
                 ImmutableMap.of(UNIT_GUID + ".json", "digest1", UNIT_GUID_2, "digest2")
-            ));
+            )
+        );
 
-        when(storageClient.bulkStoreFilesFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), any()))
-            .thenThrow(new StorageServerClientException("wrong strategy"));
+        when(storageClient.bulkStoreFilesFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), any())).thenThrow(
+            new StorageServerClientException("wrong strategy")
+        );
 
-        plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         List<ItemStatus> response = plugin.executeList(params, action);
@@ -226,10 +242,12 @@ public class StoreMetaDataUnitActionPluginTest {
         checkItemStatus(response, StatusCode.OK);
 
         JsonNode unitWithLfc1CreatedFile = JsonHandler.getFromFile(
-            getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID + ".json"));
+            getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID + ".json")
+        );
         JsonNode unitWithLfc1MockFile = JsonHandler.getFromFile(unitWithLfc1);
         JsonNode unitWithLfc2CreatedFile = JsonHandler.getFromFile(
-            getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID_2 + ".json"));
+            getSavedFile(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + UNIT_GUID_2 + ".json")
+        );
         JsonNode unitWithLfc2MockFile = JsonHandler.getFromFile(unitWithLfc2);
         assertThat(unitWithLfc1CreatedFile).isEqualTo(unitWithLfc1MockFile);
         assertThat(unitWithLfc2CreatedFile).isEqualTo(unitWithLfc2MockFile);
@@ -241,20 +259,26 @@ public class StoreMetaDataUnitActionPluginTest {
 
     @Test
     public void givenMetadataClientWhensearchUnitThenThrowsException() throws Exception {
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
         doThrow(new VitamClientException("Error Metadata"))
-            .when(metaDataClient).getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2)));
+            .when(metaDataClient)
+            .getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2)));
 
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))
-            .thenReturn(Arrays.asList(lfcUnit1, lfcUnit2));
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2))).thenReturn(
+            Arrays.asList(lfcUnit1, lfcUnit2)
+        );
 
-        plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);
@@ -265,22 +289,26 @@ public class StoreMetaDataUnitActionPluginTest {
 
     @Test
     public void givenLogbookLifeCycleClientWhenSearchLfcThenThrowsException() throws Exception {
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
-        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2))))
-            .thenReturn(new RequestResponseOK<JsonNode>()
-                .addResult(rawUnit1)
-                .addResult(rawUnit2));
+        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(rawUnit1).addResult(rawUnit2)
+        );
 
         doThrow(new LogbookClientException("Error Logbook"))
-            .when(logbookLifeCyclesClient).getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2));
+            .when(logbookLifeCyclesClient)
+            .getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2));
 
-        plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);
@@ -292,27 +320,31 @@ public class StoreMetaDataUnitActionPluginTest {
     @Test
     public void givenStorageClientWhenStoreFromWorkspaceThenThrowStorageNotFoundClientExceptionThenFATAL()
         throws Exception {
-
         // Given
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Arrays.asList(UNIT_GUID + ".json", UNIT_GUID_2 + ".json"));
 
-        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2))))
-            .thenReturn(new RequestResponseOK<JsonNode>()
-                .addResult(rawUnit1)
-                .addResult(rawUnit2));
+        when(metaDataClient.getUnitsByIdsRaw(eq(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(rawUnit1).addResult(rawUnit2)
+        );
 
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2)))
-            .thenReturn(Arrays.asList(lfcUnit1, lfcUnit2));
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(Arrays.asList(UNIT_GUID, UNIT_GUID_2))).thenReturn(
+            Arrays.asList(lfcUnit1, lfcUnit2)
+        );
 
         doThrow(new StorageAlreadyExistsClientException("Error Metadata"))
-            .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
+            .when(storageClient)
+            .bulkStoreFilesFromWorkspace(any(), any());
 
-        plugin = new StoreMetaDataUnitActionPlugin(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         // When
         final List<ItemStatus> response = plugin.executeList(params, action);

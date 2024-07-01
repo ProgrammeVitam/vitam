@@ -145,7 +145,6 @@ public class Report {
         return tags;
     }
 
-
     public void setTags(List<String> tags) {
         this.tags = tags;
     }
@@ -198,7 +197,4 @@ public class Report {
     public void setEnd(LocalDateTime end) {
         this.end = end;
     }
-
-
-
 }

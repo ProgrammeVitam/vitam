@@ -38,6 +38,5 @@ public enum AuthenticationLevel {
     /**
      * default constructor. <br/>
      */
-    AuthenticationLevel() {
-    }
+    AuthenticationLevel() {}
 }

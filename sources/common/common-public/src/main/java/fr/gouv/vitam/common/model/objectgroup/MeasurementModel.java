@@ -30,14 +30,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 
-
-
 /**
  * Measurement POJO for physical Object
  */
 public class MeasurementModel {
+
     @JsonProperty("dValue")
     private BigDecimal dValue;
+
     @JsonProperty("unit")
     private String unit;
 
@@ -56,6 +56,4 @@ public class MeasurementModel {
     public void setUnit(String unit) {
         this.unit = unit;
     }
-
-
 }

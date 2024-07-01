@@ -38,8 +38,10 @@ public class UnitGraphInfo {
 
     @JsonProperty("#id")
     private String id;
+
     @JsonProperty("#unitType")
     private UnitType unitType;
+
     @JsonProperty("#unitups")
     private Set<String> up;
 

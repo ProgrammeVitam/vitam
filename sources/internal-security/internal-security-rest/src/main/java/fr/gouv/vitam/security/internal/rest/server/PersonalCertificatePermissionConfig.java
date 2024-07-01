@@ -40,8 +40,7 @@ public class PersonalCertificatePermissionConfig {
         return permissionsRequiringPersonalCertificate;
     }
 
-    public void setPermissionsRequiringPersonalCertificate(
-        Set<String> permissionsRequiringPersonalCertificate) {
+    public void setPermissionsRequiringPersonalCertificate(Set<String> permissionsRequiringPersonalCertificate) {
         this.permissionsRequiringPersonalCertificate = permissionsRequiringPersonalCertificate;
     }
 

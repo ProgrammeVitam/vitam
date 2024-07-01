@@ -111,6 +111,7 @@ import static fr.gouv.vitam.metadata.api.model.UpdateUnit.STATUS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
     private static final String MASS_UPDATE_UNITS_RULES = "MASS_UPDATE_UNITS_RULES";
@@ -125,15 +126,23 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     private final BatchReportClientFactory batchReportClientFactory;
 
     public MassUpdateUnitsRulesProcess() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance(),
-            BatchReportClientFactory.getInstance());
+        this(
+            MetaDataClientFactory.getInstance(),
+            LogbookLifeCyclesClientFactory.getInstance(),
+            StorageClientFactory.getInstance(),
+            AdminManagementClientFactory.getInstance(),
+            BatchReportClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    public MassUpdateUnitsRulesProcess(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory lfcClientFactory, StorageClientFactory storageClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory, BatchReportClientFactory batchReportClientFactory) {
+    public MassUpdateUnitsRulesProcess(
+        MetaDataClientFactory metaDataClientFactory,
+        LogbookLifeCyclesClientFactory lfcClientFactory,
+        StorageClientFactory storageClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory,
+        BatchReportClientFactory batchReportClientFactory
+    ) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
@@ -152,8 +161,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new IllegalStateException("UnsupportedOperation");
     }
 
@@ -168,32 +176,48 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-
         // Bulk update units && local reports generation
-        try (MetaDataClient mdClient = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();
-            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
+            BatchReportClient batchReportClient = batchReportClientFactory.getClient()
+        ) {
             RuleActions ruleActions = JsonHandler.getFromJsonNode(
-                handler.getJsonFromWorkspace("actions.json"), RuleActions.class);
+                handler.getJsonFromWorkspace("actions.json"),
+                RuleActions.class
+            );
 
             List<String> units = workerParameters.getObjectNameList();
 
             Map<String, DurationData> bindRulesToDuration = checkAndComputeRuleDurationData(ruleActions);
 
             // call update BULK service
-            RequestResponse<JsonNode> requestResponse =
-                mdClient.updateUnitsRulesBulk(units, ruleActions, bindRulesToDuration);
+            RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(
+                units,
+                ruleActions,
+                bindRulesToDuration
+            );
 
             // Prepare rapport
             List<UpdateUnitMetadataReportEntry> entries = new ArrayList<>();
             if (requestResponse != null && requestResponse.isOk()) {
-                List<ItemStatus> itemStatuses = ((RequestResponseOK<JsonNode>) requestResponse).getResults()
-                    .stream()
-                    .map(result -> postUpdate(workerParameters, handler, mdClient, lfcClient, storageClient, entries,
-                        result))
-                    .collect(Collectors.toList());
+                List<ItemStatus> itemStatuses =
+                    ((RequestResponseOK<JsonNode>) requestResponse).getResults()
+                        .stream()
+                        .map(
+                            result ->
+                                postUpdate(
+                                    workerParameters,
+                                    handler,
+                                    mdClient,
+                                    lfcClient,
+                                    storageClient,
+                                    entries,
+                                    result
+                                )
+                        )
+                        .collect(Collectors.toList());
 
                 ReportBody<UpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
                 reportBody.setProcessId(workerParameters.getProcessId());
@@ -213,9 +237,15 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         }
     }
 
-    private ItemStatus postUpdate(WorkerParameters workerParameters, HandlerIO handler, MetaDataClient mdClient,
-        LogbookLifeCyclesClient lfcClient, StorageClient storageClient, List<UpdateUnitMetadataReportEntry> entries,
-        JsonNode result) {
+    private ItemStatus postUpdate(
+        WorkerParameters workerParameters,
+        HandlerIO handler,
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        List<UpdateUnitMetadataReportEntry> entries,
+        JsonNode result
+    ) {
         String unitId = result.get(ID).asText();
         String key = result.get(KEY).asText();
         String statusAsString = result.get(STATUS).asText();
@@ -227,12 +257,23 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         if ((!"null".equals(diff) || !StringUtils.isBlank(diff)) && (status.equals(OK) || status.equals(WARNING))) {
             try {
                 writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
-            } catch (LogbookClientServerException | LogbookClientNotFoundException | InvalidParseOperationException | InvalidGuidOperationException e) {
-                return buildItemStatus(MASS_UPDATE_UNITS_RULES, FATAL, EventDetails
-                    .of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+            } catch (
+                LogbookClientServerException
+                | LogbookClientNotFoundException
+                | InvalidParseOperationException
+                | InvalidGuidOperationException e
+            ) {
+                return buildItemStatus(
+                    MASS_UPDATE_UNITS_RULES,
+                    FATAL,
+                    EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+                );
             } catch (LogbookClientBadRequestException e) {
-                return buildItemStatus(MASS_UPDATE_UNITS_RULES, KO, EventDetails
-                    .of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage())));
+                return buildItemStatus(
+                    MASS_UPDATE_UNITS_RULES,
+                    KO,
+                    EventDetails.of(String.format("Error '%s' while updating UNIT LFC.", e.getMessage()))
+                );
             }
 
             try {
@@ -241,10 +282,15 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 // rollback LFC
                 try {
                     lfcClient.rollBackUnitsByOperation(workerParameters.getContainerName());
-                } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e1) {
+                } catch (
+                    LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException e1
+                ) {
                     LOGGER.error(String.format("Error while storing UNIT with LFC %s.", e));
-                    return buildItemStatus(MASS_UPDATE_UNITS_RULES, FATAL, EventDetails
-                        .of(String.format("Error while storing UNIT with LFC %s.", e)));
+                    return buildItemStatus(
+                        MASS_UPDATE_UNITS_RULES,
+                        FATAL,
+                        EventDetails.of(String.format("Error while storing UNIT with LFC %s.", e))
+                    );
                 }
             }
         }
@@ -269,19 +315,20 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
     private Map<String, DurationData> checkAndComputeRuleDurationData(RuleActions ruleActions)
         throws IllegalStateException {
-
         Map<String, DurationData> bindRulesToDuration = new HashMap<>();
 
         List<Map<String, RuleCategoryAction>> ruleAddition = ruleActions.getAdd();
         if (ruleAddition != null) {
-            ruleAddition.stream()
+            ruleAddition
+                .stream()
                 .flatMap(x -> x.entrySet().stream())
                 .forEach(x -> computeRuleDurationData(x.getKey(), x.getValue(), bindRulesToDuration, false));
         }
 
         List<Map<String, RuleCategoryAction>> ruleUpdates = ruleActions.getUpdate();
         if (ruleUpdates != null) {
-            ruleUpdates.stream()
+            ruleUpdates
+                .stream()
                 .flatMap(x -> x.entrySet().stream())
                 .forEach(x -> computeRuleDurationData(x.getKey(), x.getValue(), bindRulesToDuration, true));
         }
@@ -289,9 +336,12 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         return bindRulesToDuration;
     }
 
-    private void computeRuleDurationData(String ruleType, RuleCategoryAction category,
-        Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
-
+    private void computeRuleDurationData(
+        String ruleType,
+        RuleCategoryAction category,
+        Map<String, DurationData> bindRuleDuration,
+        Boolean isUpdate
+    ) {
         for (RuleAction rule : category.getRules()) {
             String ruleId = rule.getRule();
 
@@ -315,15 +365,16 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 // Hold rule may have undefined (null) duration
                 bindRuleDuration.put(ruleId, new DurationData(null, null));
             } else {
-
                 final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
                 final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
 
                 // save duration and measurement for usage in MongoDbInMemory if needed
                 final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
                 if (bindRuleDuration.get(ruleId) == null && !UNLIMITED_RULE_DURATION.equalsIgnoreCase(duration)) {
-                    bindRuleDuration.put(ruleId,
-                        new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
+                    bindRuleDuration.put(
+                        ruleId,
+                        new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit())
+                    );
                 }
             }
         }
@@ -342,25 +393,26 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      * @throws InvalidParseOperationException
      * @throws InvalidGuidOperationException
      */
-    private void writeLfcForUpdateUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId,
-        String diff)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        InvalidParseOperationException, InvalidGuidOperationException {
-
-        LogbookLifeCycleParameters logbookLfcParam =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
-                GUIDReader.getGUID(param.getContainerName()),
-                param.getLogbookTypeProcess(),
-                OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, OK),
-                VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, OK),
-                GUIDReader.getGUID(unitId));
+    private void writeLfcForUpdateUnit(
+        LogbookLifeCyclesClient lfcClient,
+        WorkerParameters param,
+        String unitId,
+        String diff
+    )
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidParseOperationException, InvalidGuidOperationException {
+        LogbookLifeCycleParameters logbookLfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+            VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
+            GUIDReader.getGUID(param.getContainerName()),
+            param.getLogbookTypeProcess(),
+            OK,
+            VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, OK),
+            VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, OK),
+            GUIDReader.getGUID(unitId)
+        );
         logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData, getEvDetDataForDiff(diff));
 
         lfcClient.update(logbookLfcParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
     }
 
     /**
@@ -381,7 +433,6 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         return JsonHandler.writeAsString(diffObject);
     }
 
-
     /**
      * Store Unit with LFC by storing UNIT+LFC in workspace then storing in offers.
      *
@@ -394,10 +445,15 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      * @param fileName stored unit file name
      * @throws VitamException when an error occurs
      */
-    protected void saveUnitWithLfc(MetaDataClient mdClient, LogbookLifeCyclesClient lfcClient,
-        StorageClient storageClient, HandlerIO handler, WorkerParameters params, String guid, String fileName)
-        throws VitamException {
-
+    protected void saveUnitWithLfc(
+        MetaDataClient mdClient,
+        LogbookLifeCyclesClient lfcClient,
+        StorageClient storageClient,
+        HandlerIO handler,
+        WorkerParameters params,
+        String guid,
+        String fileName
+    ) throws VitamException {
         //// get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, mdClient);
         String strategyId = MetadataDocumentHelper.getStrategyIdFromRawUnitOrGot(unit);
@@ -413,8 +469,12 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         // transfer json to workspace
         try {
             InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
-            handler.transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
-                null, false);
+            handler.transferInputStreamToWorkspace(
+                IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName,
+                is,
+                null,
+                false
+            );
         } catch (ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
             throw new WorkspaceClientServerException(e);
@@ -422,11 +482,19 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
         // call storage (save in offers)
         // object Description
-        final ObjectDescription description = new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
-            fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
+        final ObjectDescription description = new ObjectDescription(
+            DataCategory.UNIT,
+            params.getContainerName(),
+            fileName,
+            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName
+        );
 
         // store metadata object from workspace and set itemStatus
-        storageClient.storeFileFromWorkspace(strategyId, description.getType(), description.getObjectName(),
-            description);
+        storageClient.storeFileFromWorkspace(
+            strategyId,
+            description.getType(),
+            description.getObjectName(),
+            description
+        );
     }
 }

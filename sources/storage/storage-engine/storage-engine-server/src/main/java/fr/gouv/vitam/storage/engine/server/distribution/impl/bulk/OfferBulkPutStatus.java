@@ -27,8 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl.bulk;
 
 enum OfferBulkPutStatus {
-
     OK,
     KO,
-    BLOCKER
+    BLOCKER,
 }

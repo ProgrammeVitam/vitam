@@ -69,6 +69,6 @@ public class VersionUsageModel {
     public enum IntermediaryVersionEnum {
         ALL,
         LAST,
-        NONE
+        NONE,
     }
 }

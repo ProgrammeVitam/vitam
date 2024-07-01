@@ -48,14 +48,13 @@ public class HoldRuleUtilsTest {
 
     @Test
     public void testParseHoldRuleCategory() throws Exception {
-
         // Given
-        JsonNode unit = JsonHandler
-            .getFromInputStream(PropertiesUtils.getResourceAsStream("InheritedRules/unitWithInheritedHoldRules2.json"));
+        JsonNode unit = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("InheritedRules/unitWithInheritedHoldRules2.json")
+        );
 
         // When
-        InheritedRuleCategoryResponseModel holdRuleCategory =
-            HoldRuleUtils.parseHoldRuleCategory(unit);
+        InheritedRuleCategoryResponseModel holdRuleCategory = HoldRuleUtils.parseHoldRuleCategory(unit);
 
         // Then
         assertThat(holdRuleCategory.getProperties()).isEmpty();
@@ -66,8 +65,9 @@ public class HoldRuleUtilsTest {
 
         assertThat(holdRuleCategory.getRules().get(1).getRuleId()).isEqualTo("HOL-00002");
         assertThat(holdRuleCategory.getRules().get(1).getEndDate()).isEqualTo("2051-01-01");
-        assertThat(holdRuleCategory.getRules().get(1).getExtendedRuleAttributes()
-            .get(SedaConstants.TAG_RULE_HOLD_END_DATE)).isEqualTo("2051-01-01");
+        assertThat(
+            holdRuleCategory.getRules().get(1).getExtendedRuleAttributes().get(SedaConstants.TAG_RULE_HOLD_END_DATE)
+        ).isEqualTo("2051-01-01");
 
         assertThat(holdRuleCategory.getRules().get(2).getRuleId()).isEqualTo("HOL-00004");
         assertThat(holdRuleCategory.getRules().get(2).getEndDate()).isNull();
@@ -75,15 +75,18 @@ public class HoldRuleUtilsTest {
 
     @Test
     public void testListActiveHoldRulesWithEmptyHoldRuleListThenEmptyResult() throws Exception {
-
         // Given
-        InheritedRuleCategoryResponseModel holdRuleCategory =
-            loadHoldRuleTestSet("InheritedRules/unitWithInheritedHoldRules1.json");
+        InheritedRuleCategoryResponseModel holdRuleCategory = loadHoldRuleTestSet(
+            "InheritedRules/unitWithInheritedHoldRules1.json"
+        );
         LocalDate expirationDate = LocalDate.parse("2001-01-01", DateTimeFormatter.ISO_LOCAL_DATE);
 
         // When
-        Set<InheritedRuleResponseModel> activeHoldRules =
-            HoldRuleUtils.listActiveHoldRules("unit4", holdRuleCategory.getRules(), expirationDate);
+        Set<InheritedRuleResponseModel> activeHoldRules = HoldRuleUtils.listActiveHoldRules(
+            "unit4",
+            holdRuleCategory.getRules(),
+            expirationDate
+        );
 
         // Then
         assertThat(activeHoldRules).isEmpty();
@@ -91,45 +94,54 @@ public class HoldRuleUtilsTest {
 
     @Test
     public void testListActiveHoldRules() throws Exception {
-
         // Given
-        InheritedRuleCategoryResponseModel holdRuleCategory =
-            loadHoldRuleTestSet("InheritedRules/unitWithInheritedHoldRules2.json");
+        InheritedRuleCategoryResponseModel holdRuleCategory = loadHoldRuleTestSet(
+            "InheritedRules/unitWithInheritedHoldRules2.json"
+        );
         LocalDate expirationDate = LocalDate.parse("2000-12-31", DateTimeFormatter.ISO_LOCAL_DATE);
 
         // When
-        Set<InheritedRuleResponseModel> activeHoldRules =
-            HoldRuleUtils.listActiveHoldRules("unit4", holdRuleCategory.getRules(), expirationDate);
+        Set<InheritedRuleResponseModel> activeHoldRules = HoldRuleUtils.listActiveHoldRules(
+            "unit4",
+            holdRuleCategory.getRules(),
+            expirationDate
+        );
 
         // Then
         assertThat(activeHoldRules).hasSize(3);
-        assertThat(activeHoldRules.stream().map(InheritedRuleResponseModel::getRuleId))
-            .containsExactlyInAnyOrder("HOL-00001", "HOL-00002", "HOL-00004");
+        assertThat(activeHoldRules.stream().map(InheritedRuleResponseModel::getRuleId)).containsExactlyInAnyOrder(
+            "HOL-00001",
+            "HOL-00002",
+            "HOL-00004"
+        );
     }
 
     @Test
     public void testListActiveHoldRulesWithExpiredRule() throws Exception {
-
         // Given
-        InheritedRuleCategoryResponseModel holdRuleCategory =
-            loadHoldRuleTestSet("InheritedRules/unitWithInheritedHoldRules2.json");
+        InheritedRuleCategoryResponseModel holdRuleCategory = loadHoldRuleTestSet(
+            "InheritedRules/unitWithInheritedHoldRules2.json"
+        );
         LocalDate expirationDate = LocalDate.parse("2001-01-01", DateTimeFormatter.ISO_LOCAL_DATE);
 
         // When
-        Set<InheritedRuleResponseModel> activeHoldRules =
-            HoldRuleUtils.listActiveHoldRules("unit4", holdRuleCategory.getRules(), expirationDate);
+        Set<InheritedRuleResponseModel> activeHoldRules = HoldRuleUtils.listActiveHoldRules(
+            "unit4",
+            holdRuleCategory.getRules(),
+            expirationDate
+        );
 
         // Then
         assertThat(activeHoldRules).hasSize(2);
-        assertThat(activeHoldRules.stream().map(InheritedRuleResponseModel::getRuleId))
-            .containsExactlyInAnyOrder("HOL-00002", "HOL-00004");
+        assertThat(activeHoldRules.stream().map(InheritedRuleResponseModel::getRuleId)).containsExactlyInAnyOrder(
+            "HOL-00002",
+            "HOL-00004"
+        );
     }
 
     private InheritedRuleCategoryResponseModel loadHoldRuleTestSet(String resourceFile)
         throws InvalidParseOperationException, FileNotFoundException, ProcessingStatusException {
-        JsonNode unit = JsonHandler
-            .getFromInputStream(PropertiesUtils.getResourceAsStream(resourceFile));
+        JsonNode unit = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourceFile));
         return HoldRuleUtils.parseHoldRuleCategory(unit);
     }
-
 }

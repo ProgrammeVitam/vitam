@@ -60,18 +60,27 @@ public class LargeFileSorter<T> {
         Function<File, LargeFileReader<T>> fileReaderFactory,
         Function<File, LargeFileWriter<T>> fileWriterFactory,
         Comparator<T> entryComparator,
-        Supplier<File> tempFileCreator) {
-        this(INITIAL_FILE_CHUNK_SIZE_TO_SORT_IN_MEMORY, NB_FILES_TO_MERGE_SORT,
-            fileReaderFactory, fileWriterFactory, entryComparator, tempFileCreator);
+        Supplier<File> tempFileCreator
+    ) {
+        this(
+            INITIAL_FILE_CHUNK_SIZE_TO_SORT_IN_MEMORY,
+            NB_FILES_TO_MERGE_SORT,
+            fileReaderFactory,
+            fileWriterFactory,
+            entryComparator,
+            tempFileCreator
+        );
     }
 
     @VisibleForTesting
     LargeFileSorter(
-        int initialFileChunkSizeToSortInMemory, int nbFilesToMergeSort,
+        int initialFileChunkSizeToSortInMemory,
+        int nbFilesToMergeSort,
         Function<File, LargeFileReader<T>> fileReaderFactory,
         Function<File, LargeFileWriter<T>> fileWriterFactory,
         Comparator<T> entryComparator,
-        Supplier<File> tempFileCreator) {
+        Supplier<File> tempFileCreator
+    ) {
         this.initialFileChunkSizeToSortInMemory = initialFileChunkSizeToSortInMemory;
         this.nbFilesToMergeSort = nbFilesToMergeSort;
         this.fileReaderFactory = fileReaderFactory;
@@ -86,7 +95,6 @@ public class LargeFileSorter<T> {
      * @param inputFile the input stream to sort
      */
     public File sortLargeFile(File inputFile) throws IOException {
-
         try (LargeFileReader<T> reader = this.fileReaderFactory.apply(inputFile)) {
             List<File> filesToMerge = splitIntoInitialSortedChunkFiles(reader);
             return mergeSortFiles(filesToMerge);
@@ -94,20 +102,14 @@ public class LargeFileSorter<T> {
     }
 
     private List<File> splitIntoInitialSortedChunkFiles(LargeFileReader<T> reader) throws IOException {
-
         List<File> filesToMerge = new ArrayList<>();
 
-        Iterator<List<T>> bulkIterator = Iterators.partition(reader,
-            initialFileChunkSizeToSortInMemory);
+        Iterator<List<T>> bulkIterator = Iterators.partition(reader, initialFileChunkSizeToSortInMemory);
 
         while (bulkIterator.hasNext()) {
-
             List<T> entries = bulkIterator.next();
 
-            Iterator<T> entryIterator = entries
-                .stream()
-                .sorted(this.entryComparator)
-                .iterator();
+            Iterator<T> entryIterator = entries.stream().sorted(this.entryComparator).iterator();
 
             File tempFile = writeToTempFile(entryIterator);
             filesToMerge.add(tempFile);
@@ -117,7 +119,6 @@ public class LargeFileSorter<T> {
     }
 
     private File mergeSortFiles(List<File> filesToMerge) throws IOException {
-
         if (filesToMerge.isEmpty()) {
             return writeEmptyFile();
         }
@@ -125,7 +126,6 @@ public class LargeFileSorter<T> {
         Queue<File> remainingFilesToMerge = new LinkedList<>(filesToMerge);
 
         while (remainingFilesToMerge.size() > 1) {
-
             List<File> currentFilesToMerge = new ArrayList<>();
             while (currentFilesToMerge.size() < nbFilesToMergeSort && !remainingFilesToMerge.isEmpty()) {
                 currentFilesToMerge.add(remainingFilesToMerge.poll());
@@ -133,17 +133,17 @@ public class LargeFileSorter<T> {
 
             List<LargeFileReader<T>> fileReadersToMerge = new ArrayList<>();
             try {
-
                 for (File file : currentFilesToMerge) {
                     fileReadersToMerge.add(this.fileReaderFactory.apply(file));
                 }
 
                 Iterator<T> sortedLinesIterator = Iterators.mergeSorted(
-                    IteratorUtils.asIterable(fileReadersToMerge.iterator()), this.entryComparator);
+                    IteratorUtils.asIterable(fileReadersToMerge.iterator()),
+                    this.entryComparator
+                );
 
                 File tempFile = writeToTempFile(sortedLinesIterator);
                 remainingFilesToMerge.add(tempFile);
-
             } finally {
                 for (LargeFileReader<T> reader : fileReadersToMerge) {
                     reader.close();
@@ -160,7 +160,6 @@ public class LargeFileSorter<T> {
     private File writeToTempFile(Iterator<T> entryIterator) throws IOException {
         File tempFile = this.tempFileCreator.get();
         try (LargeFileWriter<T> writer = this.fileWriterFactory.apply(tempFile)) {
-
             while (entryIterator.hasNext()) {
                 writer.writeEntry(entryIterator.next());
             }

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.collect.external.external.rest;
 
-
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Unsecured;
@@ -40,7 +39,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Path("/collect-external/v1")
 @Tag(name = "Collect")
@@ -52,7 +50,6 @@ public class CollectExternalResource extends ApplicationStatusResource {
         this.secureEndpointRegistry = secureEndpointRegistry;
     }
 
-
     /**
      * Get all Endpoints
      *
@@ -61,17 +58,17 @@ public class CollectExternalResource extends ApplicationStatusResource {
     @Path("/")
     @OPTIONS
     @Produces(MediaType.APPLICATION_JSON)
-    @Unsecured()
+    @Unsecured
     public Response listResourceEndpoints() {
         final Set<EndpointInfo> securedEndpointSet = Arrays.asList(
-                ProjectExternalResource.class.getAnnotation(Path.class).value(),
-                TransactionExternalResource.class.getAnnotation(Path.class).value(),
-                CollectMetadataExternalResource.class.getAnnotation(Path.class).value()
+            ProjectExternalResource.class.getAnnotation(Path.class).value(),
+            TransactionExternalResource.class.getAnnotation(Path.class).value(),
+            CollectMetadataExternalResource.class.getAnnotation(Path.class).value()
         )
-                .stream()
-                .map(this.secureEndpointRegistry::getEndPointsByResourcePath)
-                .flatMap(List::stream)
-                .collect(Collectors.toSet());
+            .stream()
+            .map(this.secureEndpointRegistry::getEndPointsByResourcePath)
+            .flatMap(List::stream)
+            .collect(Collectors.toSet());
 
         return Response.status(Response.Status.OK).entity(new ArrayList<>(securedEndpointSet)).build();
     }

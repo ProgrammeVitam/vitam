@@ -95,7 +95,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
-
 /**
  * Web Application Resource class for delete features
  */
@@ -144,71 +143,99 @@ public class WebApplicationResourceDelete {
      * @param webApplicationConfig application configuration
      * @param ontologyLoader
      */
-    public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig, OntologyLoader ontologyLoader,
+    public WebApplicationResourceDelete(
+        WebApplicationConfig webApplicationConfig,
+        OntologyLoader ontologyLoader,
         FunctionalAdminIndexationConfiguration functionalAdminFunctionalAdminIndexationConfiguration,
         MetadataIndexationConfiguration metadataMetadataIndexationConfiguration,
-        LogbookIndexationConfiguration logbookLogbookIndexationConfiguration) {
+        LogbookIndexationConfiguration logbookLogbookIndexationConfiguration
+    ) {
         AdminManagementConfiguration adminConfiguration;
         LogbookConfiguration logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
         MappingLoader mappingLoader;
         if (webApplicationConfig.isDbAuthentication()) {
-            adminConfiguration =
-                new AdminManagementConfiguration(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getMasterdataDbName(),
-                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword(),
-                    functionalAdminFunctionalAdminIndexationConfiguration);
-            logbookConfiguration =
-                new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                    .getElasticsearchNodes(),
-                    true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword())
-                    .setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
+            adminConfiguration = new AdminManagementConfiguration(
+                webApplicationConfig.getMongoDbNodes(),
+                webApplicationConfig.getMasterdataDbName(),
+                true,
+                webApplicationConfig.getDbUserName(),
+                webApplicationConfig.getDbPassword(),
+                functionalAdminFunctionalAdminIndexationConfiguration
+            );
+            logbookConfiguration = new LogbookConfiguration(
+                webApplicationConfig.getMongoDbNodes(),
+                webApplicationConfig.getLogbookDbName(),
+                webApplicationConfig.getClusterName(),
+                webApplicationConfig.getElasticsearchNodes(),
+                true,
+                webApplicationConfig.getDbUserName(),
+                webApplicationConfig.getDbPassword()
+            ).setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
             mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
-            metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
-                webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                .getElasticsearchNodes(),
-                true, webApplicationConfig.getDbUserName(), webApplicationConfig
-                .getDbPassword(), mappingLoader)
-                .setIndexationConfiguration(metadataMetadataIndexationConfiguration);
+            metaDataConfiguration = new MetaDataConfiguration(
+                webApplicationConfig.getMongoDbNodes(),
+                webApplicationConfig.getMetadataDbName(),
+                webApplicationConfig.getClusterName(),
+                webApplicationConfig.getElasticsearchNodes(),
+                true,
+                webApplicationConfig.getDbUserName(),
+                webApplicationConfig.getDbPassword(),
+                mappingLoader
+            ).setIndexationConfiguration(metadataMetadataIndexationConfiguration);
         } else {
-            adminConfiguration =
-                new AdminManagementConfiguration(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getMasterdataDbName(), functionalAdminFunctionalAdminIndexationConfiguration);
-            logbookConfiguration =
-                new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(),
-                    webApplicationConfig
-                        .getElasticsearchNodes())
-                    .setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
+            adminConfiguration = new AdminManagementConfiguration(
+                webApplicationConfig.getMongoDbNodes(),
+                webApplicationConfig.getMasterdataDbName(),
+                functionalAdminFunctionalAdminIndexationConfiguration
+            );
+            logbookConfiguration = new LogbookConfiguration(
+                webApplicationConfig.getMongoDbNodes(),
+                webApplicationConfig.getLogbookDbName(),
+                webApplicationConfig.getClusterName(),
+                webApplicationConfig.getElasticsearchNodes()
+            ).setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
             mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
-            metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
-                webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
-                .getElasticsearchNodes(), mappingLoader)
-                .setIndexationConfiguration(metadataMetadataIndexationConfiguration);
+            metaDataConfiguration = new MetaDataConfiguration(
+                webApplicationConfig.getMongoDbNodes(),
+                webApplicationConfig.getMetadataDbName(),
+                webApplicationConfig.getClusterName(),
+                webApplicationConfig.getElasticsearchNodes(),
+                mappingLoader
+            ).setIndexationConfiguration(metadataMetadataIndexationConfiguration);
         }
-
 
         // Validate configuration
         AdminManagementConfigurationValidator.validateConfiguration(adminConfiguration);
         MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
         LogbookConfigurationValidator.validateConfiguration(logbookConfiguration);
 
-        ElasticsearchMetadataIndexManager metadataIndexManager =
-            new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
-                mappingLoader);
-        ElasticsearchLogbookIndexManager logbookIndexManager =
-            new ElasticsearchLogbookIndexManager(logbookConfiguration, VitamConfiguration.getTenants());
-        ElasticsearchFunctionalAdminIndexManager indexManager =
-            new ElasticsearchFunctionalAdminIndexManager(adminConfiguration);
+        ElasticsearchMetadataIndexManager metadataIndexManager = new ElasticsearchMetadataIndexManager(
+            metaDataConfiguration,
+            VitamConfiguration.getTenants(),
+            mappingLoader
+        );
+        ElasticsearchLogbookIndexManager logbookIndexManager = new ElasticsearchLogbookIndexManager(
+            logbookConfiguration,
+            VitamConfiguration.getTenants()
+        );
+        ElasticsearchFunctionalAdminIndexManager indexManager = new ElasticsearchFunctionalAdminIndexManager(
+            adminConfiguration
+        );
 
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(),
-            webApplicationConfig.getElasticsearchNodes(), ontologyLoader,
-            indexManager);
-        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader,
-            logbookIndexManager);
-        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration,
-            metadataIndexManager);
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(
+            adminConfiguration,
+            webApplicationConfig.getClusterName(),
+            webApplicationConfig.getElasticsearchNodes(),
+            ontologyLoader,
+            indexManager
+        );
+        mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(
+            logbookConfiguration,
+            ontologyLoader,
+            logbookIndexManager
+        );
+        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration, metadataIndexManager);
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -242,28 +269,47 @@ public class WebApplicationResourceDelete {
         }
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_FORMAT, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_FORMAT,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
             mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.FORMATS).close();
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_FORMAT).setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_FORMAT, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.OK));
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_FORMAT)
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_FORMAT, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_FORMAT).setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_FORMAT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.KO));
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_FORMAT)
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_FORMAT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -289,28 +335,47 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_RULES, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_RULES,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
             mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.RULES).close();
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES).setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK));
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES)
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES).setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.KO));
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES)
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -336,41 +401,58 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_ACCESSION_REGISTER_SUMMARY, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_ACCESSION_REGISTER_SUMMARY,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
         try {
-            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC)
+            mongoDbAccessAdmin
+                .deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC)
                 .close();
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(e.getMessage())
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)
+            mongoDbAccessAdmin
+                .deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)
                 .close();
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
                 .setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
         } catch (final Exception exc) {
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
                 .setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO));
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -381,29 +463,46 @@ public class WebApplicationResourceDelete {
         // Details
         final GUID eipDetail = GUIDFactory.newGUID();
         parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eipDetail, STP_DELETE_ACCESSION_REGISTER_DETAIL, eipDetail,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.STARTED), eipDetail);
+            eipDetail,
+            STP_DELETE_ACCESSION_REGISTER_DETAIL,
+            eipDetail,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.STARTED),
+            eipDetail
+        );
         try {
             helper.createDelegate(parameters);
             mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
                 .setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eipDetail.getId(),
-                helper.removeCreateDelegate(eipDetail.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eipDetail.getId(),
+                helper.removeCreateDelegate(eipDetail.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
+            parameters
+                .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
                 .setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO));
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -429,9 +528,14 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_LOGBOOK_OPERATION, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_LOGBOOK_OPERATION,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
@@ -441,25 +545,38 @@ public class WebApplicationResourceDelete {
         try {
             mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.OPERATION);
             parameters
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK))
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK)
+                )
                 .setStatus(StatusCode.OK);
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
-                mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                    helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+                mongoDbAccessLogbook.createLogbookOperation(
+                    eip.getId(),
+                    helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+                );
             } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
                 LOGGER.error(e);
             } catch (final LogbookClientNotFoundException e) {
@@ -487,28 +604,45 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_LOGBOOK_LIFECYCLE_OG, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_LOGBOOK_LIFECYCLE_OG,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
             mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_OBJECTGROUP);
-            parameters.setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK));
+            parameters
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -534,28 +668,45 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_LOGBOOK_LIFECYCLE_UNIT,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
             mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_UNIT);
-            parameters.setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK));
+            parameters
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -581,28 +732,45 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_METADATA_OG, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_METADATA_OG,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
             mongoDbAccessMetadata.deleteObjectGroupByTenant(tenantId);
-            parameters.setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK));
+            parameters
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -628,28 +796,45 @@ public class WebApplicationResourceDelete {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_METADATA_UNIT, eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_METADATA_UNIT,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
             mongoDbAccessMetadata.deleteUnitByTenant(tenantId);
-            parameters.setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_UNIT, StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK));
+            parameters
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_UNIT, StatusCode.OK)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_UNIT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_UNIT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -669,7 +854,6 @@ public class WebApplicationResourceDelete {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaAccessContract() {
         return deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
-
     }
 
     /**
@@ -682,7 +866,6 @@ public class WebApplicationResourceDelete {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaIngestContract() {
         return deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT);
-
     }
 
     /**
@@ -695,7 +878,6 @@ public class WebApplicationResourceDelete {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdaManagementContract() {
         return deleteMasterDataCollection(FunctionalAdminCollections.MANAGEMENT_CONTRACT);
-
     }
 
     /**
@@ -708,7 +890,6 @@ public class WebApplicationResourceDelete {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdataProfile() {
         return deleteMasterDataCollection(FunctionalAdminCollections.PROFILE);
-
     }
 
     /**
@@ -734,7 +915,6 @@ public class WebApplicationResourceDelete {
     public Response deleteMasterdataAgencies() {
         return deleteMasterDataCollection(FunctionalAdminCollections.AGENCIES);
     }
-
 
     /**
      * Delete all entries for the context collection except the "admin" context
@@ -768,7 +948,6 @@ public class WebApplicationResourceDelete {
         } catch (InvalidCreateOperationException | DatabaseException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
-
     }
 
     /**
@@ -780,18 +959,15 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAndImportOntologies(@Context HttpServletRequest request) throws IOException {
-
         //Delete the EXTERNAL ontologies
         Response response = deleteMasterDataCollection(FunctionalAdminCollections.ONTOLOGY);
 
         //recreate the internals ontologies
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-
             InputStream input = this.getClass().getResourceAsStream("/VitamOntology.json");
             VitamContext context = userInterfaceTransactionManager.getVitamContext(request);
             context.setTenantId(1);
-            RequestResponse requestResponse =
-                adminClient.importOntologies(true, context, input);
+            RequestResponse requestResponse = adminClient.importOntologies(true, context, input);
             if (requestResponse.isOk()) {
                 return Response.status(Status.OK).build();
             }
@@ -800,7 +976,6 @@ public class WebApplicationResourceDelete {
                 return Response.status(error.getHttpCode()).entity(requestResponse).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
         } catch (final Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -810,7 +985,6 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteGriffins(@Context HttpServletRequest request) throws IOException {
-
         deleteMasterDataCollection(FunctionalAdminCollections.GRIFFIN);
 
         return Response.status(Status.OK).build();
@@ -826,17 +1000,19 @@ public class WebApplicationResourceDelete {
     }
 
     private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {
-        if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
-            collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
-            collection.equals(FunctionalAdminCollections.MANAGEMENT_CONTRACT) ||
-            collection.equals(FunctionalAdminCollections.PROFILE) ||
-            collection.equals(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE) ||
-            collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC) ||
-            collection.equals(FunctionalAdminCollections.ONTOLOGY) ||
-            collection.equals(FunctionalAdminCollections.AGENCIES) ||
-            collection.equals(FunctionalAdminCollections.GRIFFIN) ||
-            collection.equals(FunctionalAdminCollections.PRESERVATION_SCENARIO) ||
-            collection.equals(FunctionalAdminCollections.CONTEXT))) {
+        if (
+            !(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
+                collection.equals(FunctionalAdminCollections.INGEST_CONTRACT) ||
+                collection.equals(FunctionalAdminCollections.MANAGEMENT_CONTRACT) ||
+                collection.equals(FunctionalAdminCollections.PROFILE) ||
+                collection.equals(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE) ||
+                collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC) ||
+                collection.equals(FunctionalAdminCollections.ONTOLOGY) ||
+                collection.equals(FunctionalAdminCollections.AGENCIES) ||
+                collection.equals(FunctionalAdminCollections.GRIFFIN) ||
+                collection.equals(FunctionalAdminCollections.PRESERVATION_SCENARIO) ||
+                collection.equals(FunctionalAdminCollections.CONTEXT))
+        ) {
             throw new IllegalArgumentException("unsupported collection");
         }
         boolean fakeTenant = false;
@@ -851,9 +1027,14 @@ public class WebApplicationResourceDelete {
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_MASTERDATA + "_" + collection.name(), eip,
-            LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_MASTERDATA + "_" + collection.name(),
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
@@ -865,23 +1046,39 @@ public class WebApplicationResourceDelete {
             } else {
                 mongoDbAccessAdmin.deleteCollectionForTesting(collection).close();
             }
-            parameters.setStatus(StatusCode.OK)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages
-                        .getOutcomeDetail(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK));
+            parameters
+                .setStatus(StatusCode.OK)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(
+                        STP_DELETE_MASTERDATA + "_" + collection.name(),
+                        StatusCode.OK
+                    )
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK)
+                );
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2])
+            );
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages
-                        .getOutcomeDetail(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(
+                        STP_DELETE_MASTERDATA + "_" + collection.name(),
+                        StatusCode.KO
+                    )
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException e) {
@@ -894,7 +1091,6 @@ public class WebApplicationResourceDelete {
                 VitamThreadUtils.getVitamSession().setTenantId(null);
             }
         }
-
     }
 
     /**
@@ -904,7 +1100,6 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response purgeDataForTnr() {
-
         deleteLogBook().close();
 
         deleteMasterDataCollection(FunctionalAdminCollections.AGENCIES).close();
@@ -942,7 +1137,6 @@ public class WebApplicationResourceDelete {
         return Response.status(Status.OK).build();
     }
 
-
     /**
      * Delete all collection in database
      *
@@ -955,8 +1149,14 @@ public class WebApplicationResourceDelete {
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final List<String> collectionKO = new ArrayList<>();
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, STP_DELETE_ALL, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(STP_DELETE_ALL, StatusCode.STARTED), eip);
+            eip,
+            STP_DELETE_ALL,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_ALL, StatusCode.STARTED),
+            eip
+        );
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
@@ -994,11 +1194,17 @@ public class WebApplicationResourceDelete {
 
         deleteContext(collectionKO, parameters, helper);
 
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ALL).setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ALL, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_ALL, StatusCode.OK));
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ALL)
+            .setStatus(StatusCode.OK)
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ALL, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_ALL, StatusCode.OK)
+            );
         try {
             helper.updateDelegate(parameters);
         } catch (final LogbookClientNotFoundException exc) {
@@ -1006,9 +1212,10 @@ public class WebApplicationResourceDelete {
         }
         try {
             final Queue<LogbookOperationParameters> createQueue = helper.removeCreateDelegate(eip.getId());
-            mongoDbAccessLogbook
-                .createLogbookOperation(eip.getId(),
-                    createQueue.toArray(new LogbookOperationParameters[createQueue.size()]));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                createQueue.toArray(new LogbookOperationParameters[createQueue.size()])
+            );
         } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
             LOGGER.error("Error when logging", e);
         }
@@ -1019,22 +1226,37 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteMetadaOg(Integer tenantId, List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_METADATA_OG).setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK));
+    public void deleteMetadaOg(
+        Integer tenantId,
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_METADATA_OG)
+            .setStatus(StatusCode.OK)
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK)
+            );
         try {
             mongoDbAccessMetadata.deleteObjectGroupByTenant(tenantId);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_METADATA_OG, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1045,17 +1267,29 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteMetadaUnit(Integer tenantId, List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_METADATA_UNIT).setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK));
+    public void deleteMetadaUnit(
+        Integer tenantId,
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_METADATA_UNIT)
+            .setStatus(StatusCode.OK)
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK)
+            );
         try {
             mongoDbAccessMetadata.deleteUnitByTenant(tenantId);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1066,21 +1300,35 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteRules(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES).setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK));
+    public void deleteRules(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES)
+            .setStatus(StatusCode.OK)
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK)
+            );
         try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.RULES)) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_RULES, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1091,23 +1339,39 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteAccessionRegisterSummary(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
+    public void deleteAccessionRegisterSummary(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
-        try (DbRequestResult result =
-            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY
+            )
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1118,23 +1382,39 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteAccessionRegister(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
+    public void deleteAccessionRegister(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_DETAIL)
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
-        try (DbRequestResult result =
-            mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL
+            )
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1145,23 +1425,36 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteLogbookoperations(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_OPERATION)
+    public void deleteLogbookoperations(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_OPERATION)
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK));
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK)
+            );
         try {
             mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.OPERATION);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1172,23 +1465,36 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteLogbookLifeCyleOg(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_LIFECYCLE_OG)
+    private void deleteLogbookLifeCyleOg(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_LIFECYCLE_OG)
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK));
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK)
+            );
         try {
             mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1199,23 +1505,36 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteLogbookLifeCycles(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT)
+    private void deleteLogbookLifeCycles(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT)
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK));
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK)
+            );
         try {
             mongoDbAccessLogbook.deleteCollectionForTesting(LogbookCollections.LIFECYCLE_UNIT);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1226,24 +1545,40 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteProfils(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK))
+    private void deleteProfils(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
-            FunctionalAdminCollections.PROFILE)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.PROFILE)
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_PROFILE, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_PROFILE, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1254,24 +1589,42 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteArchiveUnitProfils(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK))
+    private void deleteArchiveUnitProfils(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin
-            .deleteCollectionForTesting(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
+                FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE
+            )
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ARCHIVE_UNIT_PROFILE, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1282,24 +1635,40 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteAgencies(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK))
+    private void deleteAgencies(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
-            FunctionalAdminCollections.AGENCIES)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.AGENCIES)
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1310,24 +1679,42 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteIngestContracts(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK))
+    private void deleteIngestContracts(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
-            FunctionalAdminCollections.INGEST_CONTRACT)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
+                FunctionalAdminCollections.INGEST_CONTRACT
+            )
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_INGEST_CONTRACT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1338,24 +1725,42 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteAccessContracts(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK))
+    private void deleteAccessContracts(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
-            FunctionalAdminCollections.ACCESS_CONTRACT)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
+                FunctionalAdminCollections.ACCESS_CONTRACT
+            )
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_ACCESS_CONTRACT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1366,24 +1771,42 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteManagementContracts(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK))
+    private void deleteManagementContracts(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK));
-        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
-            FunctionalAdminCollections.ACCESS_CONTRACT)) {
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.OK)
+            );
+        try (
+            DbRequestResult result = mongoDbAccessAdmin.deleteCollectionForTesting(
+                FunctionalAdminCollections.ACCESS_CONTRACT
+            )
+        ) {
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.KO));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_MANAGEMENT_CONTRACT, StatusCode.KO)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1394,25 +1817,40 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    private void deleteContext(List<String> collectionKO, LogbookOperationParameters parameters,
-        LogbookOperationsClientHelper helper) {
-        parameters.putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK))
+    private void deleteContext(
+        List<String> collectionKO,
+        LogbookOperationParameters parameters,
+        LogbookOperationsClientHelper helper
+    ) {
+        parameters
+            .putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK)
+            )
             .setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK))
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK));
+            .putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK)
+            )
+            .putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK)
+            );
         try {
             Delete delete = queryDeleteContext();
             mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.CONTEXT, delete);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO)
-                .putParameterValue(LogbookParameterName.outcomeDetail,
-                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.KO))
-                .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK));
+            parameters
+                .setStatus(StatusCode.KO)
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.KO)
+                )
+                .putParameterValue(
+                    LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_CONTEXT, StatusCode.OK)
+                );
             try {
                 helper.updateDelegate(parameters);
             } catch (final LogbookClientNotFoundException exc) {
@@ -1424,7 +1862,6 @@ public class WebApplicationResourceDelete {
     }
 
     private Delete queryDeleteContext() throws InvalidCreateOperationException {
-
         final Delete delete = new Delete();
         final Query query = QueryHelper.not().add(QueryHelper.eq(CONTEXT_NAME, CONTEXT_TO_SAVE));
         delete.setQuery(query);
@@ -1432,13 +1869,11 @@ public class WebApplicationResourceDelete {
     }
 
     private Delete queryDeleteSecurityProfil() throws InvalidCreateOperationException {
-
         final Delete delete = new Delete();
         final Query query = QueryHelper.not().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         delete.setQuery(query);
         return delete;
     }
-
 
     private Delete queryDeleteExternalOntology() throws InvalidCreateOperationException {
         final Delete delete = new Delete();
@@ -1450,8 +1885,10 @@ public class WebApplicationResourceDelete {
     private Response updateLogbookAndGetErrorResponse(LogbookOperationsClientHelper helper, GUID eip, Exception exc) {
         try {
             final Queue<LogbookOperationParameters> parameters = helper.removeCreateDelegate(eip.getId());
-            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
-                parameters.toArray(LogbookOperationParameters[]::new));
+            mongoDbAccessLogbook.createLogbookOperation(
+                eip.getId(),
+                parameters.toArray(LogbookOperationParameters[]::new)
+            );
         } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
             LOGGER.error(e);
         }
@@ -1459,5 +1896,4 @@ public class WebApplicationResourceDelete {
         final Status status = Status.INTERNAL_SERVER_ERROR;
         return Response.status(status).entity(exc.getMessage()).build();
     }
-
 }

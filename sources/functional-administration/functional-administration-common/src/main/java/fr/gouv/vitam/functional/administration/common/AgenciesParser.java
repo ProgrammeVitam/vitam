@@ -40,17 +40,19 @@ import java.util.List;
  * Agencies Parser
  */
 public class AgenciesParser {
+
     /*
      *
      */
     public static List<AgenciesModel> readFromCsv(InputStream input) throws IOException {
-
         ArrayList<AgenciesModel> list = new ArrayList<>();
 
         final CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
         final CsvMapper csvMapper = new CsvMapper();
-        final MappingIterator<AgenciesModel> mappingIterator =
-            csvMapper.readerFor(AgenciesModel.class).with(bootstrap).readValues(input);
+        final MappingIterator<AgenciesModel> mappingIterator = csvMapper
+            .readerFor(AgenciesModel.class)
+            .with(bootstrap)
+            .readValues(input);
         while (mappingIterator.hasNext()) {
             AgenciesModel model = mappingIterator.next();
             list.add(model);

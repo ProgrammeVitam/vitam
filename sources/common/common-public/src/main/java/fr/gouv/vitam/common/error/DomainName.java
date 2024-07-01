@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Enum of Vitam domains
  */
 public enum DomainName {
-
     /**
      * ONLY FOR TEST PURPOSE (do not remove)
      */
@@ -115,5 +114,4 @@ public enum DomainName {
         }
         throw new IllegalArgumentException("Code {" + code + "} does not exist");
     }
-
 }

@@ -39,7 +39,6 @@ public class ObjectEntryReaderTest {
 
     @Test
     public void testEmptyWithEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
         try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
@@ -54,7 +53,6 @@ public class ObjectEntryReaderTest {
 
     @Test
     public void testEmptyWithoutEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
         try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
@@ -63,21 +61,16 @@ public class ObjectEntryReaderTest {
 
         // When // Then
         try (ObjectEntryReader reader = new ObjectEntryReader(innerStream.toInputStream())) {
-
             assertThatThrownBy(reader::hasNext)
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Premature EOF");
 
-            assertThatThrownBy(reader::next)
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Premature EOF");
+            assertThatThrownBy(reader::next).isInstanceOf(RuntimeException.class).hasMessageContaining("Premature EOF");
         }
-
     }
 
     @Test
     public void testEntriesWithEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
         try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
@@ -89,10 +82,12 @@ public class ObjectEntryReaderTest {
         // When / Then
         try (ObjectEntryReader reader = new ObjectEntryReader(innerStream.toInputStream())) {
             assertThat(reader.hasNext()).isTrue();
-            assertThat(reader.next()).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            assertThat(reader.next())
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
                 .isEqualTo(asList("file1", 10L));
             assertThat(reader.hasNext()).isTrue();
-            assertThat(reader.next()).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            assertThat(reader.next())
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
                 .isEqualTo(asList("file2", 20L));
             assertThat(reader.hasNext()).isFalse();
         }
@@ -100,7 +95,6 @@ public class ObjectEntryReaderTest {
 
     @Test
     public void testEntriesWithoutEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
         try (ObjectEntryWriter writer = new ObjectEntryWriter(innerStream)) {
@@ -112,19 +106,19 @@ public class ObjectEntryReaderTest {
         // When / Then
         try (ObjectEntryReader reader = new ObjectEntryReader(innerStream.toInputStream())) {
             assertThat(reader.hasNext()).isTrue();
-            assertThat(reader.next()).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            assertThat(reader.next())
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
                 .isEqualTo(asList("file1", 10L));
             assertThat(reader.hasNext()).isTrue();
-            assertThat(reader.next()).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            assertThat(reader.next())
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
                 .isEqualTo(asList("file2", 20L));
 
             assertThatThrownBy(reader::hasNext)
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Premature EOF");
 
-            assertThatThrownBy(reader::next)
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Premature EOF");
+            assertThatThrownBy(reader::next).isInstanceOf(RuntimeException.class).hasMessageContaining("Premature EOF");
         }
     }
 }

@@ -56,6 +56,7 @@ import java.util.List;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRulesDeletePlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesDeletePlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_DELETE";
@@ -77,8 +78,10 @@ public class ComputeInheritedRulesDeletePlugin extends ActionHandler {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
-            InQuery query =
-                QueryHelper.in(VitamFieldsHelper.id(), workerParameters.getObjectNameList().toArray(new String[0]));
+            InQuery query = QueryHelper.in(
+                VitamFieldsHelper.id(),
+                workerParameters.getObjectNameList().toArray(new String[0])
+            );
             select.setQuery(query);
 
             JsonNode response = metaDataClient.selectUnitsWithInheritedRules(select.getFinalSelect());
@@ -102,7 +105,6 @@ public class ComputeInheritedRulesDeletePlugin extends ActionHandler {
     }
 
     private ObjectNode getUpdateQuery() throws InvalidCreateOperationException {
-
         UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
         updateMultiQuery.addActions(new UnsetAction(VitamFieldsHelper.computedInheritedRules()));
         updateMultiQuery.addActions(new UnsetAction(VitamFieldsHelper.validComputedInheritedRules()));
@@ -114,5 +116,4 @@ public class ComputeInheritedRulesDeletePlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
         throw new VitamRuntimeException("Not implemented");
     }
-
 }

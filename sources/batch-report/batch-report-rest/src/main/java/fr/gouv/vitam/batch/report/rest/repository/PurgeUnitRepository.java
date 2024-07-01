@@ -73,22 +73,22 @@ public class PurgeUnitRepository extends ReportCommonRepository {
 
     public void bulkAppendReport(List<PurgeUnitModel> reports) {
         Set<PurgeUnitModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> eliminationUnitDocument =
-            reportsWithoutDuplicate.stream()
-                .map(ReportCommonRepository::pojoToDocument)
-                .collect(Collectors.toList());
+        List<Document> eliminationUnitDocument = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(eliminationUnitDocument, purgeUnitReportCollection);
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-
-        return purgeUnitReportCollection.aggregate(
+        return purgeUnitReportCollection
+            .aggregate(
                 Arrays.asList(
-                    Aggregates.match(and(
-                        eq(PurgeUnitModel.PROCESS_ID, processId),
-                        eq(PurgeUnitModel.TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
+                    Aggregates.match(
+                        and(eq(PurgeUnitModel.PROCESS_ID, processId), eq(PurgeUnitModel.TENANT, tenantId))
+                    ),
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document("id", "$_metadata.id"),
                             new Document("distribGroup", null),
@@ -101,7 +101,8 @@ public class PurgeUnitRepository extends ReportCommonRepository {
                             new Document("params.persistentIdentifier", "$_metadata.persistentIdentifier"),
                             new Document("params.extraInfo", "$_metadata.extraInfo")
                         )
-                    ))
+                    )
+                )
             )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
@@ -120,10 +121,15 @@ public class PurgeUnitRepository extends ReportCommonRepository {
      * @return cursor over distinct objectGroupId
      */
     public MongoCursor<String> distinctObjectGroupOfDeletedUnits(String processId, int tenantId) {
-        DistinctIterable<String> distinctObjectGroup =
-            purgeUnitReportCollection
-                .distinct(METADATA_OBJECT_GROUP_ID, and(eq(PurgeUnitModel.PROCESS_ID, processId),
-                    eq("_metadata.status", "DELETED"), eq(PurgeUnitModel.TENANT, tenantId)), String.class);
+        DistinctIterable<String> distinctObjectGroup = purgeUnitReportCollection.distinct(
+            METADATA_OBJECT_GROUP_ID,
+            and(
+                eq(PurgeUnitModel.PROCESS_ID, processId),
+                eq("_metadata.status", "DELETED"),
+                eq(PurgeUnitModel.TENANT, tenantId)
+            ),
+            String.class
+        );
         return distinctObjectGroup.iterator();
     }
 
@@ -131,23 +137,28 @@ public class PurgeUnitRepository extends ReportCommonRepository {
      * Compute Own AccessionRegisterDetails
      */
     public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
-        return purgeUnitReportCollection.aggregate(
+        return purgeUnitReportCollection
+            .aggregate(
                 Arrays.asList(
                     // Filter
-                    Aggregates.match(and(
-                        eq(PurgeObjectGroupModel.PROCESS_ID, processId),
-                        eq(PurgeObjectGroupModel.TENANT, tenantId),
-                        eq("_metadata.status", "DELETED"),
-                        ne("_metadata.type", HOLDING_UNIT.name())
-                        // skip holding unit when computing Accession Register Details
-                    )),
+                    Aggregates.match(
+                        and(
+                            eq(PurgeObjectGroupModel.PROCESS_ID, processId),
+                            eq(PurgeObjectGroupModel.TENANT, tenantId),
+                            eq("_metadata.status", "DELETED"),
+                            ne("_metadata.type", HOLDING_UNIT.name())
+                            // skip holding unit when computing Accession Register Details
+                        )
+                    ),
                     // Group By
-                    Aggregates.group("$_metadata." + OPI,
+                    Aggregates.group(
+                        "$_metadata." + OPI,
                         Accumulators.first(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
                         Accumulators.sum(TOTAL_UNITS, 1)
                     ),
                     // Projection
-                    Aggregates.project(Projections.fields(
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document(OPI, "$_id"),
                             new Document(ORIGINATING_AGENCY, 1),

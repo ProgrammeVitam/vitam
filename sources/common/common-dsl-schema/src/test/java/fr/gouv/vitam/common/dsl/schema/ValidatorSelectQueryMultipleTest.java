@@ -50,6 +50,7 @@ import static org.junit.Assert.fail;
  * Tests of multi select query schema for Metadata DSL query
  */
 public class ValidatorSelectQueryMultipleTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ValidatorSelectQueryMultipleTest.class);
     private static final String SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON = "select-query-multiple-dsl-schema.json";
 
@@ -74,10 +75,11 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -89,10 +91,13 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_not_retrieve_errors_when_select_multiple_empty_root_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_empty_root.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_empty_root.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -104,10 +109,11 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_not_retrieve_errors_when_select_multiple_no_root_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_root.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_root.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -119,10 +125,13 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_not_retrieve_errors_when_select_multiple_empty_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_root_empty_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_root_empty_query.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -134,32 +143,41 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_retrieve_errors_when_select_multiple_no_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageMatching(".*Validating \\$query: .*\\[\\] ~ MANDATORY.*");
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_query.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageMatching(
+            ".*Validating \\$query: .*\\[\\] ~ MANDATORY.*"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_wrong_root_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_wrong_root.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("$roots: guid[] ~ INVALID_VALUE: STRING");
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_wrong_root.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "$roots: guid[] ~ INVALID_VALUE: STRING"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_wrong_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_query_not_array.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_query_not_array.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$query:")
             .hasMessageContaining("...} & {$depth: ...}[] ~ WRONG_JSON_TYPE: OBJECT")
@@ -170,10 +188,13 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_not_retrieve_errors_when_select_empty_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_empty_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_empty_query.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -184,31 +205,41 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_retrieve_errors_when_select_multiple_unknown_key_in_query_dsl() throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_unknown_key.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_unknown_key.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("INVALID_JSON_FIELD: unknown ~ found json: \\\"no_validation\\\" ~ path: []\\n\"");
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "INVALID_JSON_FIELD: unknown ~ found json: \\\"no_validation\\\" ~ path: []\\n\""
+        );
     }
 
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_facet()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_no_name_dsl() throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_name.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_name.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$facets")
@@ -218,11 +249,13 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_no_facet_spec_dsl() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_facet_spec.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_facet_spec.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$facets")
@@ -231,22 +264,26 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_facet_empty() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_not_an_array() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_not_an_array.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_not_an_array.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$facets")
@@ -256,11 +293,13 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_no_From_no_To()
         throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_from_no_To.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_no_from_no_To.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$ranges")
             .hasMessageContaining("ELEMENT_TOO_SHORT");
@@ -268,60 +307,68 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_empty_ranges() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty_ranges.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_empty_ranges.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$ranges")
             .hasMessageContaining("ELEMENT_TOO_SHORT");
-
     }
 
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_facet_date_Ranges() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
     }
 
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_facet_date_Ranges_one_from() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range_one_from.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_ok_Date_range_one_from.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_terms_no_size() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_no_size.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_no_size.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("$size: posinteger ~ MANDATORY");
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "$size: posinteger ~ MANDATORY"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_terms_no_order() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_no_order.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_no_order.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $order")
@@ -331,12 +378,13 @@ public class ValidatorSelectQueryMultipleTest {
     // FIXME : remove ignore when fixing bug #4353
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_terms_invalid_order() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_invalid_order.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_invalid_order.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $order")
@@ -345,25 +393,26 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_not_retrieve_errors_when_select_multiple_complete_facet_terms_valid_order() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_valid_order.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_terms_valid_order.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatCode(() -> Validator.validate(schema, "DSL", test1Json)).doesNotThrowAnyException();
-
     }
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_filters_empty_filters() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_empty_filters.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_empty_filters.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $query_filters")
@@ -373,13 +422,13 @@ public class ValidatorSelectQueryMultipleTest {
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_filters_empty_filters_filters()
         throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile(
-                        "select_multiple_complete_facet_filters_empty_filters_filters.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_empty_filters_filters.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $query_filters")
@@ -388,12 +437,13 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_filters_query_no_name() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_query_no_name.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_query_no_name.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $name")
@@ -402,12 +452,13 @@ public class ValidatorSelectQueryMultipleTest {
 
     @Test
     public void should_retrieve_errors_when_select_multiple_complete_facet_filters_query_no_query() throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(
-                    PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_query_no_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_multiple_complete_facet_filters_query_no_query.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON)
+        );
 
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("Validating $query")

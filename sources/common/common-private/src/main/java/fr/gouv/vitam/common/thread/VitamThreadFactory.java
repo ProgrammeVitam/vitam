@@ -87,6 +87,5 @@ public class VitamThreadFactory implements ThreadFactory {
         public VitamSession getVitamSession() {
             return vitamSession.get();
         }
-
     }
 }

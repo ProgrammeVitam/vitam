@@ -59,11 +59,12 @@ import static fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEnt
 import static fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry.TENANT_ID;
 
 public class UpdateUnitReportRepository extends ReportCommonRepository {
+
     private static final String UPDATE_UNIT_REPORT = "UpdateUnitReport";
 
     private final MongoCollection<Document> collection;
 
-    private final static Bson PROJECTION = Aggregates.project(
+    private static final Bson PROJECTION = Aggregates.project(
         Projections.fields(
             new Document(RESULT_KEY, "$resultKey"),
             new Document(PROCESS_ID, "$processId"),
@@ -73,7 +74,8 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
             new Document(OUTCOME, "$outcome"),
             new Document(DETAIL_TYPE, "$detailType"),
             new Document(DETAIL_ID, "$id")
-        ));
+        )
+    );
 
     @VisibleForTesting
     public UpdateUnitReportRepository(MongoDbAccess mongoDbAccess, String collectionName) {
@@ -87,11 +89,15 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
     private static WriteModel<Document> modelToWriteDocument(UpdateUnitMetadataReportEntry model) {
         try {
             return new UpdateOneModel<>(
-                and(eq(PROCESS_ID, model.getProcessId()),
+                and(
+                    eq(PROCESS_ID, model.getProcessId()),
                     eq(TENANT_ID, model.getTenantId()),
-                    eq(DETAIL_ID, model.getDetailId())),
-                new Document("$set", Document.parse(JsonHandler.writeAsString(model)))
-                    .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
+                    eq(DETAIL_ID, model.getDetailId())
+                ),
+                new Document("$set", Document.parse(JsonHandler.writeAsString(model))).append(
+                    "$setOnInsert",
+                    new Document("_id", GUIDFactory.newGUID().toString())
+                ),
                 new UpdateOptions().upsert(true)
             );
         } catch (InvalidParseOperationException e) {
@@ -100,7 +106,8 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
     }
 
     public void bulkAppendReport(List<UpdateUnitMetadataReportEntry> reports) {
-        List<WriteModel<Document>> preservationDocument = reports.stream()
+        List<WriteModel<Document>> preservationDocument = reports
+            .stream()
             .distinct()
             .map(UpdateUnitReportRepository::modelToWriteDocument)
             .collect(Collectors.toList());
@@ -109,8 +116,8 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-        return collection.aggregate(
-                Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
+        return collection
+            .aggregate(Arrays.asList(match(and(eq(PROCESS_ID, processId), eq(TENANT_ID, tenantId))), PROJECTION))
             .allowDiskUse(true)
             .iterator();
     }

@@ -54,7 +54,6 @@ public class AgenciesTest extends VitamDocument<AgenciesTest> {
     @Override
     public VitamDocument<AgenciesTest> newInstance(JsonNode content) {
         return new AgenciesTest(content);
-
     }
 
     public String getID() {

@@ -118,7 +118,9 @@ public class VitamSession {
         if (Thread.currentThread() != owningThread) {
             throw new IllegalStateException(
                 "VitamSession should only be called by the thread that owns it ; here, caller was " +
-                    Thread.currentThread() + ", and owner was ");
+                Thread.currentThread() +
+                ", and owner was "
+            );
         }
     }
 
@@ -143,7 +145,9 @@ public class VitamSession {
             // KWA TODO: replace the check by thing like StringUtils.checkNullOrEmpty(toto)
             LOGGER.warn(
                 "Caution : inconsistency detected between content of the VitamSession (requestId:{}) and the Logging MDC (requestId:{})",
-                oldRequestId, requestId);
+                oldRequestId,
+                requestId
+            );
         }
         requestId = newRequestId;
         MDC.put(GlobalDataRest.X_REQUEST_ID, newRequestId);
@@ -155,7 +159,6 @@ public class VitamSession {
      * @param newRequestId the request id
      */
     public void setInternalRequestId(String newRequestId) {
-
         internalRequestId = newRequestId;
     }
 
@@ -174,7 +177,6 @@ public class VitamSession {
     public Integer getTenantId() {
         return tenantId;
     }
-
 
     /**
      * Sets the tenantId
@@ -338,30 +340,34 @@ public class VitamSession {
         ParametersChecker.checkParameter("Request-Id should be defined !", requestId);
     }
 
-
     public void initIfAbsent(Integer tenantId) {
         if (null == VitamThreadUtils.getVitamSession().getTenantId()) {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         }
 
         if (Strings.isNullOrEmpty(VitamThreadUtils.getVitamSession().getRequestId())) {
-            VitamThreadUtils
-                .getVitamSession()
-                .setRequestId(GUIDFactory
-                    .newRequestIdGUID(VitamThreadUtils
-                        .getVitamSession()
-                        .getTenantId()
-                    )
-                    .getId()
-                );
+            VitamThreadUtils.getVitamSession()
+                .setRequestId(GUIDFactory.newRequestIdGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId());
         }
     }
 
     @Override
     public String toString() {
-        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId +
-            "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
-            applicationSessionId + "', personalCertificate:'" +
-            personalCertificate + "'}";
+        return (
+            Integer.toHexString(hashCode()) +
+            "{requestId='" +
+            requestId +
+            "', tenantId:'" +
+            tenantId +
+            "', contractId:'" +
+            contractId +
+            "', contextId:'" +
+            contextId +
+            "', applicationSessionId:'" +
+            applicationSessionId +
+            "', personalCertificate:'" +
+            personalCertificate +
+            "'}"
+        );
     }
 }

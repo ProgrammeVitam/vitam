@@ -80,51 +80,50 @@ public class MessageFormatterTest {
         final StringBuilder sbuild = new StringBuilder();
         final Map<Object[], Void> seenMap = new HashMap<>();
 
-        final boolean[] ob = new boolean[] {true};
+        final boolean[] ob = new boolean[] { true };
         MessageFormatter.deeplyAppendParameter(sbuild, ob, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final byte[] ob2 = new byte[] {(byte) 1};
+        final byte[] ob2 = new byte[] { (byte) 1 };
         MessageFormatter.deeplyAppendParameter(sbuild, ob2, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final char[] oc = new char[] {'a'};
+        final char[] oc = new char[] { 'a' };
         MessageFormatter.deeplyAppendParameter(sbuild, oc, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final short[] os = new short[] {(short) 1};
+        final short[] os = new short[] { (short) 1 };
         MessageFormatter.deeplyAppendParameter(sbuild, os, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final int[] oi = new int[] {1};
+        final int[] oi = new int[] { 1 };
         MessageFormatter.deeplyAppendParameter(sbuild, oi, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final long[] ol = new long[] {1L};
+        final long[] ol = new long[] { 1L };
         MessageFormatter.deeplyAppendParameter(sbuild, ol, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final float[] of = new float[] {(float) 1.5};
+        final float[] of = new float[] { (float) 1.5 };
         MessageFormatter.deeplyAppendParameter(sbuild, of, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final double[] od = new double[] {2.5};
+        final double[] od = new double[] { 2.5 };
         MessageFormatter.deeplyAppendParameter(sbuild, od, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
 
-        final Object[] ob3 = new Object[] {new Object()};
+        final Object[] ob3 = new Object[] { new Object() };
         MessageFormatter.deeplyAppendParameter(sbuild, ob3, seenMap);
         assertTrue(sbuild.length() > 0);
         sbuild.setLength(0);
-
     }
 
     @Test
@@ -132,12 +131,10 @@ public class MessageFormatterTest {
         try {
             MessageFormatter.isEscapedDelimeter((String) null, -1);
             fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             MessageFormatter.isDoubleEscaped((String) null, 163);
             fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
     }
 }

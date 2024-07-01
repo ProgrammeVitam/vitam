@@ -51,9 +51,11 @@ public class CustodialHistoryMapper {
             return null;
         }
         CustodialHistoryModel custodialHistoryModel = new CustodialHistoryModel();
-        List<String> collect = custodialHistory.getCustodialHistoryItem().stream()
-            .map(TextType::getValue).collect(
-                Collectors.toList());
+        List<String> collect = custodialHistory
+            .getCustodialHistoryItem()
+            .stream()
+            .map(TextType::getValue)
+            .collect(Collectors.toList());
 
         custodialHistoryModel.getCustodialHistoryItem().addAll(collect);
 

@@ -49,6 +49,4 @@ public class IhmRecetteClientConfiguration extends ClientConfigurationImpl {
     public IhmRecetteClientConfiguration(String serverHost, int serverPort) {
         super(serverHost, serverPort);
     }
-
-
 }

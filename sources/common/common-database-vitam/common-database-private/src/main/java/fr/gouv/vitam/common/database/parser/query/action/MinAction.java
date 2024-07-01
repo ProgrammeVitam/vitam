@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Min Action
  */
 public class MinAction extends fr.gouv.vitam.common.database.builder.query.action.IncAction {
+
     /**
      * For Parsing
      *

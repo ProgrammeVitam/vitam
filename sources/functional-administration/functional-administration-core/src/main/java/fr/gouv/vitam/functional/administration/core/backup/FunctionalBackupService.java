@@ -85,16 +85,18 @@ public class FunctionalBackupService {
     private final VitamCounterService vitamCounterService;
     private final BackupLogbookManager backupLogbookManager;
 
-    public FunctionalBackupService(
-        VitamCounterService vitamCounterService) {
+    public FunctionalBackupService(VitamCounterService vitamCounterService) {
         this.vitamCounterService = vitamCounterService;
         this.backupService = new BackupService();
         this.backupLogbookManager = new BackupLogbookManager();
     }
 
     @VisibleForTesting
-    public FunctionalBackupService(BackupService backupService,
-        VitamCounterService vitamCounterService, BackupLogbookManager backupLogbookManager) {
+    public FunctionalBackupService(
+        BackupService backupService,
+        VitamCounterService vitamCounterService,
+        BackupLogbookManager backupLogbookManager
+    ) {
         this.backupService = backupService;
         this.vitamCounterService = vitamCounterService;
         this.backupLogbookManager = backupLogbookManager;
@@ -107,35 +109,36 @@ public class FunctionalBackupService {
      * @param collection collection
      * @throws VitamException vitamException
      */
-    public void saveCollectionAndSequence(GUID eipMaster, String eventCode,
-        FunctionalAdminCollections collection, String objectIdentifier)
-        throws VitamException {
+    public void saveCollectionAndSequence(
+        GUID eipMaster,
+        String eventCode,
+        FunctionalAdminCollections collection,
+        String objectIdentifier
+    ) throws VitamException {
         try {
-
             // FIXME : Cross-tenant collections should only be updated using admin tenant (1).
             // There would be no need for hacking tenant here
 
             int initialTenant = ParameterHelper.getTenantParameter();
             int storageTenant = getStorageTenant(collection, initialTenant);
 
-            VitamSequence backupSequence = vitamCounterService
-                .getNextBackupSequenceDocument(storageTenant, fromFunctionalAdminCollections(collection));
+            VitamSequence backupSequence = vitamCounterService.getNextBackupSequenceDocument(
+                storageTenant,
+                fromFunctionalAdminCollections(collection)
+            );
 
             String fileName = getBackupFileName(collection, storageTenant, backupSequence.getCounter());
 
             String digestStr;
             File file = null;
             try {
-
                 // Force storage tenant to 1 for cross-tenant collections (impersonate admin tenant)
                 VitamThreadUtils.getVitamSession().setTenantId(storageTenant);
 
                 file = saveFunctionalCollectionToTempFile(collection, storageTenant, backupSequence);
 
                 digestStr = storeBackupFileInStorage(fileName, file);
-
             } finally {
-
                 // Restore initial tenant before logbook update (success or ko)
                 VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
 
@@ -143,7 +146,6 @@ public class FunctionalBackupService {
             }
 
             backupLogbookManager.logEventSuccess(eipMaster, eventCode, digestStr, fileName, objectIdentifier);
-
         } catch (ReferentialException | IOException | BackupServiceException e) {
             try {
                 backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
@@ -160,8 +162,7 @@ public class FunctionalBackupService {
             int initialTenant = ParameterHelper.getTenantParameter();
             Integer storageTenant = document.getInteger("_tenant");
 
-            String fileName = String.format("%d_%s.%s",
-                storageTenant, document.get("_id"), DEFAULT_EXTENSION);
+            String fileName = String.format("%d_%s.%s", storageTenant, document.get("_id"), DEFAULT_EXTENSION);
 
             InputStream is = null;
 
@@ -180,14 +181,11 @@ public class FunctionalBackupService {
                         storeBackupFileInStorage(fileName, is, DataCategory.BACKUP);
                         break;
                 }
-
-
             } finally {
                 // Restore initial tenant before logbook update (success or ko)
                 VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
                 StreamUtils.closeSilently(is);
             }
-
         } catch (BackupServiceException e) {
             throw new FunctionalBackupServiceException("Could not backup document " + document.get("_id"), e);
         } catch (Exception e) {
@@ -211,16 +209,16 @@ public class FunctionalBackupService {
      * @return
      */
     private int getStorageTenant(FunctionalAdminCollections collection, int sessionTenant) {
-        if (collection.isMultitenant())
-            return sessionTenant;
-        else
-            return DEFAULT_ADMIN_TENANT;
+        if (collection.isMultitenant()) return sessionTenant;
+        else return DEFAULT_ADMIN_TENANT;
     }
 
-    public static String getBackupFileName(FunctionalAdminCollections functionalAdminCollections, int tenant,
-        Integer sequence) {
-        return String.format("%d_%s_%d.%s",
-            tenant, functionalAdminCollections.getName(), sequence, DEFAULT_EXTENSION);
+    public static String getBackupFileName(
+        FunctionalAdminCollections functionalAdminCollections,
+        int tenant,
+        Integer sequence
+    ) {
+        return String.format("%d_%s_%d.%s", tenant, functionalAdminCollections.getName(), sequence, DEFAULT_EXTENSION);
     }
 
     /**
@@ -233,9 +231,13 @@ public class FunctionalBackupService {
      * @param fileName
      * @throws VitamException
      */
-    public void saveFile(InputStream inputStream, GUID eipMaster, String eventCode,
-        DataCategory dataCategory, String fileName)
-        throws VitamException {
+    public void saveFile(
+        InputStream inputStream,
+        GUID eipMaster,
+        String eventCode,
+        DataCategory dataCategory,
+        String fileName
+    ) throws VitamException {
         final DigestType digestType = VitamConfiguration.getDefaultDigestType();
         final Digest digest = new Digest(digestType);
         InputStream digestInputStream = digest.getDigestInputStream(inputStream);
@@ -251,17 +253,19 @@ public class FunctionalBackupService {
         }
     }
 
-    private File saveFunctionalCollectionToTempFile(FunctionalAdminCollections collectionToSave, int tenant,
-        VitamSequence backupSequence) throws ReferentialException, IOException {
-
+    private File saveFunctionalCollectionToTempFile(
+        FunctionalAdminCollections collectionToSave,
+        int tenant,
+        VitamSequence backupSequence
+    ) throws ReferentialException, IOException {
         String uniqueFileId = GUIDFactory.newGUID().getId();
         File file = PropertiesUtils.fileFromTmpFolder(uniqueFileId);
 
         try (
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
-            JsonGenerator jsonGenerator = createJsonGenerator(buffOut)) {
-
+            JsonGenerator jsonGenerator = createJsonGenerator(buffOut)
+        ) {
             /**
              * Backup format:
              * {
@@ -289,8 +293,10 @@ public class FunctionalBackupService {
             jsonGenerator.writeEndArray();
 
             jsonGenerator.writeFieldName(FIELD_SEQUENCE);
-            VitamSequence sequence = vitamCounterService
-                .getSequenceDocument(tenant, fromFunctionalAdminCollections(collectionToSave));
+            VitamSequence sequence = vitamCounterService.getSequenceDocument(
+                tenant,
+                fromFunctionalAdminCollections(collectionToSave)
+            );
             jsonGenerator.writeRawValue(BsonHelper.stringify(sequence));
 
             jsonGenerator.writeFieldName(FIELD_BACKUP_SEQUENCE);
@@ -312,7 +318,8 @@ public class FunctionalBackupService {
      * @return MongoCursor
      */
     private MongoCursor<Document> getCurrentCollection(FunctionalAdminCollections collections, int tenant) {
-        return collections.getCollection()
+        return collections
+            .getCollection()
             .find(getMangoFilter(collections, tenant))
             .sort(Sorts.ascending(VitamDocument.ID))
             .iterator();
@@ -349,18 +356,14 @@ public class FunctionalBackupService {
         }
     }
 
-    private String storeBackupFileInStorage(String fileName, File file)
-        throws IOException, BackupServiceException {
-
+    private String storeBackupFileInStorage(String fileName, File file) throws IOException, BackupServiceException {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
-
             return storeBackupFileInStorage(fileName, fileInputStream, DataCategory.BACKUP);
         }
     }
 
     private String storeBackupFileInStorage(String fileName, InputStream is, DataCategory dataCategory)
         throws BackupServiceException {
-
         if (null == dataCategory) {
             dataCategory = DataCategory.BACKUP;
         }

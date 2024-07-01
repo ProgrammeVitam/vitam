@@ -39,5 +39,4 @@ public class IngestInternalExceptionTest {
         assertEquals("test", new IngestInternalException("test").getMessage());
         assertNotNull(new IngestInternalException(new Exception()).getCause());
     }
-
 }

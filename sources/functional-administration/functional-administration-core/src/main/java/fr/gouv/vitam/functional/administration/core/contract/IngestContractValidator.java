@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.contract;
 
-
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 
 import java.util.Optional;
@@ -58,9 +57,6 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface IngestContractValidator extends GenericContractValidator<IngestContractModel> {
-
-
-
     /**
      * Validate a contract object
      *

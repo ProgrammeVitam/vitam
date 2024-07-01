@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CollectJsonMetadataSelector {
+
     private final Map<String, ValueNode> entries = new HashMap<>();
 
     @JsonAnyGetter
@@ -45,13 +46,15 @@ public class CollectJsonMetadataSelector {
     @JsonAnySetter
     public void setSelector(String key, ValueNode value) {
         ParametersChecker.checkParameter("Null value", value);
-        if (!value.isLong() &&
+        if (
+            !value.isLong() &&
             !value.isInt() &&
             !value.isShort() &&
             !value.isDouble() &&
             !value.isFloat() &&
             !value.isBoolean() &&
-            !value.isTextual()) {
+            !value.isTextual()
+        ) {
             throw new IllegalArgumentException("Invalid value type " + value);
         }
         entries.put(key, value);

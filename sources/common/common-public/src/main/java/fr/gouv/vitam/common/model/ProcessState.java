@@ -36,7 +36,6 @@ import javax.ws.rs.core.Response;
  * For each state (PAUSE, RUNNING, COMPLETED) we can send an number of events.
  */
 public enum ProcessState {
-
     /**
      * Represent the current pause state Accept all Pause =&gt; do nothing Resume =&gt; change the state to running then run
      * all steps at the end change step to completed Next =&gt; Change the state to running then run the next step only. If
@@ -92,7 +91,8 @@ public enum ProcessState {
      */
     public void eval(ProcessState targetState) throws StateNotAllowedException {
         throw new StateNotAllowedException(
-            "The processState " + targetState.name() + " is not allowed for the current state " + this.name());
+            "The processState " + targetState.name() + " is not allowed for the current state " + this.name()
+        );
     }
 
     /**
@@ -108,6 +108,4 @@ public enum ProcessState {
                 return Response.Status.ACCEPTED;
         }
     }
-
 }
-

@@ -48,7 +48,8 @@ public class DslDynamicFeatureTest {
 
     @Test
     public void checkEndpointAuthorizationFilterRegistrationForSecuredMethod() throws Exception {
-        JsonNode fromString = JsonHandler.getFromString("{\n" +
+        JsonNode fromString = JsonHandler.getFromString(
+            "{\n" +
             "  \"$roots\": [],\n" +
             "  \"$query\": [\n" +
             "    {\n" +
@@ -68,12 +69,14 @@ public class DslDynamicFeatureTest {
             "      \"TransactedDate\": 1\n" +
             "    }\n" +
             "  }\n" +
-            "}");
+            "}"
+        );
         ResourceInfo resourceInfo = mock(ResourceInfo.class);
         List<JsonNode> methodeArgsQueryDsl = new ArrayList<>();
         methodeArgsQueryDsl.add(fromString);
-        when(resourceInfo.getResourceMethod())
-            .thenReturn(DslDynamicFeatureTest.class.getMethod("myDslQueryMethod", JsonNode.class));
+        when(resourceInfo.getResourceMethod()).thenReturn(
+            DslDynamicFeatureTest.class.getMethod("myDslQueryMethod", JsonNode.class)
+        );
         when(resourceInfo.getResourceClass()).thenReturn((Class) DslDynamicFeatureTest.class);
 
         FeatureContext context = mock(FeatureContext.class);
@@ -81,10 +84,10 @@ public class DslDynamicFeatureTest {
         DslDynamicFeature instance = new DslDynamicFeature();
         instance.configure(resourceInfo, context);
 
-        ArgumentCaptor<DslScannerFilter> dslScannerFilterArgumentCaptor =
-            ArgumentCaptor.forClass(DslScannerFilter.class);
-        verify(context, only())
-            .register(dslScannerFilterArgumentCaptor.capture());
+        ArgumentCaptor<DslScannerFilter> dslScannerFilterArgumentCaptor = ArgumentCaptor.forClass(
+            DslScannerFilter.class
+        );
+        verify(context, only()).register(dslScannerFilterArgumentCaptor.capture());
     }
 
     public void myDslQueryMethod(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode queryDsl) {

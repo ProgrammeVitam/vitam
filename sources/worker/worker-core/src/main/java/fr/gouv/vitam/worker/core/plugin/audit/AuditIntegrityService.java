@@ -79,33 +79,44 @@ public class AuditIntegrityService {
      * @return result of integrity check
      * @throws ProcessingStatusException exception
      */
-    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws
-        ProcessingStatusException {
+    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies)
+        throws ProcessingStatusException {
         AuditCheckObjectGroupResult result = new AuditCheckObjectGroupResult();
         result.setIdObjectGroup(gotDetail.getId());
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             for (AuditObject object : gotDetail.getObjects()) {
                 if (PHYSICAL_MASTER.equals(object.getQualifier())) {
-                    LOGGER.info(String.format("Skip checking object %s due to its Physical Master type.",
-                        object.getId()));
+                    LOGGER.info(
+                        String.format("Skip checking object %s due to its Physical Master type.", object.getId())
+                    );
                     continue;
                 }
 
                 AuditCheckObjectResult auditCheckObjectResult = new AuditCheckObjectResult();
                 auditCheckObjectResult.setIdObject(object.getId());
                 StorageJson storageInformation = object.getStorage();
-                List<String> offerIds =
-                    StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
-                JsonNode offerToMetadata = storageClient.getInformation(storageInformation.getStrategyId(),
-                    DataCategory.OBJECT, object.getId(), offerIds, true);
+                List<String> offerIds = StorageStrategyUtils.loadOfferIds(
+                    storageInformation.getStrategyId(),
+                    storageStrategies
+                );
+                JsonNode offerToMetadata = storageClient.getInformation(
+                    storageInformation.getStrategyId(),
+                    DataCategory.OBJECT,
+                    object.getId(),
+                    offerIds,
+                    true
+                );
                 for (String offerId : offerIds) {
                     JsonNode metadata = offerToMetadata.findValue(offerId);
                     if (object.getMessageDigest() == null || metadata == null || !metadata.has(DIGEST)) {
                         LOGGER.warn(
                             String.format(
                                 PROBLEM_OCCURED_MSG + "Object Digest is %s and metadata size is  %s",
-                                object.getMessageDigest(), metadata == null ? 0 : metadata.size()));
+                                object.getMessageDigest(),
+                                metadata == null ? 0 : metadata.size()
+                            )
+                        );
                         auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.KO);
                     } else {
                         String digest = metadata.get(DIGEST).asText();
@@ -113,9 +124,13 @@ public class AuditIntegrityService {
                             auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.OK);
                         } else {
                             LOGGER.warn(
-                                String.format(PROBLEM_OCCURED_MSG +
-                                        "Object Digest %s is different then object metadata digest %s",
-                                    object.getMessageDigest(), digest));
+                                String.format(
+                                    PROBLEM_OCCURED_MSG +
+                                    "Object Digest %s is different then object metadata digest %s",
+                                    object.getMessageDigest(),
+                                    digest
+                                )
+                            );
                             auditCheckObjectResult.getOfferStatuses().put(offerId, StatusCode.KO);
                         }
                     }
@@ -134,5 +149,4 @@ public class AuditIntegrityService {
 
         return result;
     }
-
 }

@@ -65,8 +65,7 @@ public class ArchiveUnitProfileResource {
 
     private static final String ARCHIVE_UNIT_PROFILE_JSON_IS_MANDATORY_PATAMETER =
         "The json input of archvie unit profile type is mandatory";
-    private static final String DSL_QUERY_IS_MANDATORY_PATAMETER =
-        "The dsl query is mandatory";
+    private static final String DSL_QUERY_IS_MANDATORY_PATAMETER = "The dsl query is mandatory";
 
     private final ArchiveUnitProfileService archiveUnitProfileService;
 
@@ -110,15 +109,16 @@ public class ArchiveUnitProfileResource {
             }
 
             return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -148,18 +148,19 @@ public class ArchiveUnitProfileResource {
                 ((VitamError<ArchiveUnitProfileModel>) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
         } catch (VitamException e) {
             // FIXME : Proper error management
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } catch (Exception e) {
             LOGGER.error("Unexpected server error {}", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -174,20 +175,17 @@ public class ArchiveUnitProfileResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProfiles(JsonNode queryDsl) {
-
         try {
+            final RequestResponseOK<ArchiveUnitProfileModel> profileModelList = archiveUnitProfileService
+                .findArchiveUnitProfiles(queryDsl)
+                .setQuery(queryDsl);
 
-            final RequestResponseOK<ArchiveUnitProfileModel> profileModelList =
-                archiveUnitProfileService.findArchiveUnitProfiles(queryDsl).setQuery(queryDsl);
-
-            return Response.status(Status.OK)
-                .entity(profileModelList)
-                .build();
-
+            return Response.status(Status.OK).entity(profileModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -200,13 +198,15 @@ public class ArchiveUnitProfileResource {
      * @return
      */
     private VitamError<ArchiveUnitProfileModel> getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError<ArchiveUnitProfileModel>(aCode).setHttpCode(status.getStatusCode())
+        return new VitamError<ArchiveUnitProfileModel>(aCode)
+            .setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-            .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState("ko")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
-
 }

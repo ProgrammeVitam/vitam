@@ -60,12 +60,13 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(VitamContext vitamContext,
-        JsonNode selectQuery, String persistentIdentifier) throws VitamClientException {
+    public RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String persistentIdentifier
+    ) throws VitamClientException {
         throw new IllegalStateException("Not implemented");
     }
-
-
 
     @Override
     public JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
@@ -86,76 +87,92 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
-        String unitId)
+    public RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery, String unitId)
         throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
     }
 
     @Override
-    public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext, JsonNode selectQuery,
-        String unitId)
-        throws VitamClientException {
+    public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String unitId
+    ) throws VitamClientException {
         return ClientMockResultHelper.getGotSimpleResult(selectQuery);
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext,
-        JsonNode select)
+    public RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getLogbookOperationsRequestResponse();
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String processId, JsonNode select)
-        throws VitamClientException {
+    public RequestResponse<LogbookOperation> selectOperationbyId(
+        VitamContext vitamContext,
+        String processId,
+        JsonNode select
+    ) throws VitamClientException {
         return ClientMockResultHelper.getLogbookOperationRequestResponse();
     }
 
     @Override
     public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(
-        VitamContext vitamContext, String idUnit, JsonNode select)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        String idUnit,
+        JsonNode select
+    ) throws VitamClientException {
         return ClientMockResultHelper.getLogbookLifecycleRequestResponse();
     }
 
     @Override
     public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String idObject, JsonNode select)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        String idObject,
+        JsonNode select
+    ) throws VitamClientException {
         return ClientMockResultHelper.getLogbookLifecycleRequestResponse();
     }
 
     @Override
-    public Response getObjectStreamByUnitId(VitamContext vitamContext,
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version) {
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
+    }
+
+    @Override
+    public RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(
+        VitamContext vitamContext,
         String unitId,
-        String usage, int version) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-    }
-
-    @Override
-    public RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(VitamContext vitamContext,
-        String unitId, String usage, int version) {
+        String usage,
+        int version
+    ) {
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
-    public RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(VitamContext vitamContext,
-        Collection<AccessRequestReference> accessRequestReferences) {
+    public RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(
+        VitamContext vitamContext,
+        Collection<AccessRequestReference> accessRequestReferences
+    ) {
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
-    public RequestResponse<Void> removeAccessRequest(VitamContext vitamContext,
-        AccessRequestReference accessRequestReference) {
+    public RequestResponse<Void> removeAccessRequest(
+        VitamContext vitamContext,
+        AccessRequestReference accessRequestReference
+    ) {
         throw new IllegalStateException("Not implemented");
     }
 
     @Override
-    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-        JsonNode dslRequest) throws VitamClientException {
+    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, JsonNode dslRequest)
+        throws VitamClientException {
         return ClientMockResultHelper.getDIPSimpleResult(dslRequest);
     }
 
@@ -172,8 +189,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public Response getDIPById(VitamContext vitamContext, String dipId) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
@@ -209,15 +230,21 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public Response getObjectByUnitPersistentIdentifier(VitamContext vitamContext, String persistentIdentifier,
-        String qualifier, String version) throws VitamClientException {
+    public Response getObjectByUnitPersistentIdentifier(
+        VitamContext vitamContext,
+        String persistentIdentifier,
+        String qualifier,
+        String version
+    ) throws VitamClientException {
         throw new IllegalStateException("Will not be implemented");
     }
 
     @Override
-    public Response getObjectByObjectPersistentIdentifier(VitamContext vitamContext, JsonNode selectQuery,
-        String persistentIdentifier)
-        throws VitamClientException {
+    public Response getObjectByObjectPersistentIdentifier(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String persistentIdentifier
+    ) throws VitamClientException {
         throw new IllegalStateException("Will not be implemented");
     }
 
@@ -234,9 +261,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public Response getAccessLog(VitamContext vitamContext, JsonNode params) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK,
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
             new ByteArrayInputStream("accessLogTest".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
@@ -246,26 +276,34 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
-        JsonNode deleteComputedInheritedRulesQuery) {
+    public RequestResponse<JsonNode> deleteComputedInheritedRules(
+        VitamContext vitamContext,
+        JsonNode deleteComputedInheritedRulesQuery
+    ) {
         throw new UnsupportedOperationException("Will not be implemented");
     }
 
     @Override
-    public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
-        PreservationRequest preservationRequest) {
+    public RequestResponse<JsonNode> launchPreservation(
+        VitamContext vitamContext,
+        PreservationRequest preservationRequest
+    ) {
         throw new UnsupportedOperationException("Will not be implemented");
     }
 
     @Override
-    public RequestResponse<JsonNode> startEliminationAnalysis(VitamContext vitamContext,
-        EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+    public RequestResponse<JsonNode> startEliminationAnalysis(
+        VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody
+    ) throws VitamClientException {
         throw new UnsupportedOperationException("Will not be implemented");
     }
 
     @Override
-    public RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
-        EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+    public RequestResponse<JsonNode> startEliminationAction(
+        VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody
+    ) throws VitamClientException {
         throw new UnsupportedOperationException("Will not be implemented");
     }
 

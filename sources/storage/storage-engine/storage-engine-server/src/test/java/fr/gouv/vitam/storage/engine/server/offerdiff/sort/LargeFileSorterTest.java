@@ -64,7 +64,6 @@ public class LargeFileSorterTest {
 
     @Before
     public void initialize() throws IOException {
-
         tempFolder.create();
 
         fileReaderFactory = ObjectEntryLargeFileReader::new;
@@ -96,11 +95,9 @@ public class LargeFileSorterTest {
 
     @Test
     public void testEmpty() throws IOException {
-
         // Given input file with 0 entries
         File inputFile = tempFolder.newFile();
-        try (LargeFileWriter<ObjectEntry> writer = fileWriterFactory.apply(inputFile)) {
-        }
+        try (LargeFileWriter<ObjectEntry> writer = fileWriterFactory.apply(inputFile)) {}
 
         // When
         File sortedFile = instance.sortLargeFile(inputFile);
@@ -115,7 +112,6 @@ public class LargeFileSorterTest {
 
     @Test
     public void testSingleEntry() throws IOException {
-
         // Given input file with 0 entries
         File inputFile = tempFolder.newFile();
         try (LargeFileWriter<ObjectEntry> writer = fileWriterFactory.apply(inputFile)) {
@@ -138,7 +134,6 @@ public class LargeFileSorterTest {
 
     @Test
     public void testSortAlreadySortedLargeFiles() throws IOException {
-
         // Given input file with 1000 sorted entries
         File inputFile = tempFolder.newFile();
 
@@ -148,7 +143,6 @@ public class LargeFileSorterTest {
             .collect(Collectors.toList());
 
         try (LargeFileWriter<ObjectEntry> writer = fileWriterFactory.apply(inputFile)) {
-
             // Append
             for (ObjectEntry objectEntry : sortedDataSet) {
                 writer.writeEntry(objectEntry);
@@ -170,7 +164,6 @@ public class LargeFileSorterTest {
 
     @Test
     public void testSortShuffledLargeFiles() throws IOException {
-
         // Given input file with 1000 shuffled entries
         File inputFile = tempFolder.newFile();
 
@@ -179,7 +172,6 @@ public class LargeFileSorterTest {
             .collect(Collectors.toList());
 
         try (LargeFileWriter<ObjectEntry> writer = fileWriterFactory.apply(inputFile)) {
-
             // Shuffle
             List<ObjectEntry> shuffled = new ArrayList<>(dataSet);
             Collections.shuffle(shuffled);
@@ -208,12 +200,13 @@ public class LargeFileSorterTest {
     }
 
     private void ensureAllTempFileCleaned(File remainingInputFile, File remainingFinalSortedFile) {
-        assertThat(Arrays.stream(Objects.requireNonNull(tempFolder.getRoot().listFiles()))
-            .map(file -> file.getAbsoluteFile().toString())
-            .collect(Collectors.toList())
-        )
-            .containsExactlyInAnyOrder(
-                remainingInputFile.getAbsoluteFile().toString(),
-                remainingFinalSortedFile.getAbsoluteFile().toString());
+        assertThat(
+            Arrays.stream(Objects.requireNonNull(tempFolder.getRoot().listFiles()))
+                .map(file -> file.getAbsoluteFile().toString())
+                .collect(Collectors.toList())
+        ).containsExactlyInAnyOrder(
+            remainingInputFile.getAbsoluteFile().toString(),
+            remainingFinalSortedFile.getAbsoluteFile().toString()
+        );
     }
 }

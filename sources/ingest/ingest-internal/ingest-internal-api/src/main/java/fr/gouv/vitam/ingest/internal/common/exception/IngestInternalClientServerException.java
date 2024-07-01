@@ -30,6 +30,7 @@ package fr.gouv.vitam.ingest.internal.common.exception;
  * Exception indicating a resource requested by a client has an error on the server.
  */
 public class IngestInternalClientServerException extends IngestInternalClientException {
+
     private static final long serialVersionUID = 5975407813463215537L;
 
     /**
@@ -68,8 +69,12 @@ public class IngestInternalClientServerException extends IngestInternalClientExc
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public IngestInternalClientServerException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public IngestInternalClientServerException(
+        String message,
+        Throwable cause,
+        boolean enableSuppression,
+        boolean writableStackTrace
+    ) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

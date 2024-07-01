@@ -61,4 +61,3 @@ public class FormatIdentifierFactoryException extends VitamException {
         super(messsage, cause);
     }
 }
-

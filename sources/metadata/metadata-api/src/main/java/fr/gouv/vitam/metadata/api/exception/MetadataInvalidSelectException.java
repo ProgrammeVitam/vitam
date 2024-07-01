@@ -45,7 +45,6 @@ public class MetadataInvalidSelectException extends MetaDataException {
         super(message);
     }
 
-
     /**
      * Constructor
      *

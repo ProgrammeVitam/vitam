@@ -33,6 +33,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class MongoDbHelperTest {
+
     private static final String test = "{\"data\": 1}";
 
     @Test

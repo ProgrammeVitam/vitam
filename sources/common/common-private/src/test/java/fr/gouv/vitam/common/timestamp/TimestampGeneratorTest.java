@@ -64,8 +64,9 @@ public class TimestampGeneratorTest {
         // Given
         byte[] hash = new byte[20];
         final TimeStampResponse timeStampResponse = mock(TimeStampResponse.class);
-        final ArgumentCaptor<TimeStampRequest> timeStampRequestArgumentCaptor =
-            ArgumentCaptor.forClass(TimeStampRequest.class);
+        final ArgumentCaptor<TimeStampRequest> timeStampRequestArgumentCaptor = ArgumentCaptor.forClass(
+            TimeStampRequest.class
+        );
         given(timeStampSignature.sign(timeStampRequestArgumentCaptor.capture())).willReturn(timeStampResponse);
 
         // When
@@ -76,5 +77,4 @@ public class TimestampGeneratorTest {
         assertThat(capture.getNonce()).isEqualTo(BigInteger.TEN);
         assertThat(capture.getMessageImprintDigest()).isEqualTo(hash);
     }
-
 }

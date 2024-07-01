@@ -41,8 +41,6 @@ import java.util.List;
  * This service manages CRUD on Ontologies
  */
 public interface OntologyService {
-
-
     /**
      * Import a collections of ontologies After passing the validation steps. If all the ontologies are valid, they are
      * stored in the collection and indexed. </BR>
@@ -104,7 +102,5 @@ public interface OntologyService {
      * @return Response the response of check
      * @throws VitamException if in error occurs while validating ontologies
      */
-    RequestResponse<OntologyModel> checkUpgradeOntologies(List<OntologyModel> ontologyList)
-        throws VitamException;
-
+    RequestResponse<OntologyModel> checkUpgradeOntologies(List<OntologyModel> ontologyList) throws VitamException;
 }

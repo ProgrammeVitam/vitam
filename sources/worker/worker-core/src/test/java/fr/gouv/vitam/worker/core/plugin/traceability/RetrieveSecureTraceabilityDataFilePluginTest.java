@@ -72,13 +72,23 @@ import static org.mockito.Mockito.when;
 
 public class RetrieveSecureTraceabilityDataFilePluginTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private StorageClientFactory storageClientFactory;
-    @Mock private StorageClient storageClient;
-    @Mock private WorkerParameters param;
-    @Mock private HandlerIO handler;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Mock
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
+
+    @Mock
+    private WorkerParameters param;
+
+    @Mock
+    private HandlerIO handler;
 
     private RetrieveSecureTraceabilityDataFilePlugin retrieveSecureTraceabilityDataFilePlugin;
     private File reportTempFile;
@@ -86,7 +96,6 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     private static final String DEFAULT_OFFER_ID = "default";
     private static final String SECONDARY_OFFER_ID = "secondary";
     private static final List<String> OFFER_IDS = List.of(DEFAULT_OFFER_ID, SECONDARY_OFFER_ID);
-
 
     private static final String FILE_NAME = "file.zip";
     private static final String REPORT_FILENAME = "report";
@@ -96,14 +105,28 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
         "5a95a72c714bc8c7d5b6855cf205c7dd33cac566302ab1fc3e41e2534a446746a63d5259db93138b2c9f66881fdcbbde0e38e92d78df1280ba690cf3ee8ffc37";
     private static final String DIGEST = "digest";
 
-
     @Before
     public void setUp() throws Exception {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         retrieveSecureTraceabilityDataFilePlugin = new RetrieveSecureTraceabilityDataFilePlugin(storageClientFactory);
 
-        TraceabilityEvent traceabilityEvent = new TraceabilityEvent(TraceabilityType.OPERATION,
-            "", "", HASH, null, "", "", "", 1L, FILE_NAME, 30L, DigestType.SHA512, false, "", null);
+        TraceabilityEvent traceabilityEvent = new TraceabilityEvent(
+            TraceabilityType.OPERATION,
+            "",
+            "",
+            HASH,
+            null,
+            "",
+            "",
+            "",
+            1L,
+            FILE_NAME,
+            30L,
+            DigestType.SHA512,
+            false,
+            "",
+            null
+        );
         when(param.getObjectMetadata()).thenReturn(JsonHandler.toJsonNode(traceabilityEvent));
 
         when(storageClient.getOffers(VitamConfiguration.getDefaultStrategy())).thenReturn(OFFER_IDS);
@@ -118,10 +141,14 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     @Test
     public void test_when_security_file_doesnt_exists() throws Exception {
         // Given
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, false));
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, false));
         // When
         ItemStatus itemStatus = retrieveSecureTraceabilityDataFilePlugin.execute(param, handler);
 
@@ -140,15 +167,23 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     @Test
     public void test_when_hashes_are_empty() throws Exception {
         // Given
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, true));
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS), anyBoolean())).thenReturn(
-            createObjectNode()
-        );
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, true));
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS),
+                anyBoolean()
+            )
+        ).thenReturn(createObjectNode());
         // When
         ItemStatus itemStatus = retrieveSecureTraceabilityDataFilePlugin.execute(param, handler);
 
@@ -166,22 +201,34 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
 
     @Test
     public void test_when_hashes_are_not_similar() throws Exception {
-
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
         String fakeHash = "HASH";
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(DEFAULT_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    SECONDARY_OFFER_ID,
-                    createObjectNode().put(DIGEST, fakeHash)
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        DEFAULT_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        SECONDARY_OFFER_ID,
+                        createObjectNode().put(DIGEST, fakeHash)
+                    )
                 )
-            ));
+        );
 
         // When
         ItemStatus itemStatus = retrieveSecureTraceabilityDataFilePlugin.execute(param, handler);
@@ -204,21 +251,33 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
 
     @Test
     public void test_when_multi_offer_without_error() throws Exception {
-
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(DEFAULT_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    SECONDARY_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH)
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        DEFAULT_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        SECONDARY_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH)
+                    )
                 )
-            ));
+        );
 
         when(handler.getOutput(anyInt())).thenReturn(mock(ProcessingUri.class));
 
@@ -246,20 +305,33 @@ public class RetrieveSecureTraceabilityDataFilePluginTest {
     @Test
     public void should_extract_digest_without_error() throws Exception {
         // Given
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, true));
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.LOGBOOK), eq(FILE_NAME),
-                eq(OFFER_IDS), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(DEFAULT_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    SECONDARY_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH)
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Collections.singletonMap(DEFAULT_OFFER_ID, true));
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.LOGBOOK),
+                eq(FILE_NAME),
+                eq(OFFER_IDS),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        DEFAULT_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        SECONDARY_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH)
+                    )
                 )
-            ));
+        );
         when(handler.getOutput(anyInt())).thenReturn(mock(ProcessingUri.class));
 
         final File handlerTempFile = temporaryFolder.newFile(HANDLER_OUTPUT_FILE_NAME);

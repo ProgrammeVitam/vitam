@@ -65,9 +65,7 @@ public class TimestampGenerator {
      * @return timestamp token
      * @throws TimeStampException
      */
-    public byte[] generateToken(byte[] hash, DigestType digestType, BigInteger nonce)
-        throws TimeStampException {
-
+    public byte[] generateToken(byte[] hash, DigestType digestType, BigInteger nonce) throws TimeStampException {
         final TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
         reqGen.setCertReq(true);
         final TimeStampRequest request = reqGen.generate(digestToOid(digestType), hash, nonce);
@@ -98,5 +96,4 @@ public class TimestampGenerator {
                 throw new IllegalArgumentException(String.format("digestType: %s has no oid value", digestType));
         }
     }
-
 }

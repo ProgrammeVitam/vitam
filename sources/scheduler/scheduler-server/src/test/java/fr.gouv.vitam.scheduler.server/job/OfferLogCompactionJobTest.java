@@ -48,7 +48,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-
 public class OfferLogCompactionJobTest {
 
     @Rule
@@ -90,6 +89,5 @@ public class OfferLogCompactionJobTest {
         verify(storageClient, times(1)).launchOfferLogCompaction(any(), any());
         verify(storageClient).close();
         verifyNoMoreInteractions(storageClient);
-
     }
 }

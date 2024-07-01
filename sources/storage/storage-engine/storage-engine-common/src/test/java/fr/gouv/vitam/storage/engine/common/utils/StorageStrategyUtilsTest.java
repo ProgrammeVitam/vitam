@@ -45,9 +45,10 @@ public class StorageStrategyUtilsTest {
     public void checkReferentOfferUsageInStrategiesValidOnComplexStrategiesValid()
         throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-complex-valid.json");
-        List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-            new TypeReference<>() {
-            });
+        List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(
+            staticStrategies,
+            new TypeReference<>() {}
+        );
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isTrue();
     }
@@ -56,9 +57,10 @@ public class StorageStrategyUtilsTest {
     public void checkReferentOfferUsageInStrategiesValidOnComplexStrategiesInvalid()
         throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-complex-invalid.json");
-        List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-            new TypeReference<List<StorageStrategy>>() {
-            });
+        List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(
+            staticStrategies,
+            new TypeReference<List<StorageStrategy>>() {}
+        );
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isFalse();
     }
@@ -67,11 +69,11 @@ public class StorageStrategyUtilsTest {
     public void checkReferentOfferUsageInStrategiesValidOnStrategiesNoReferent()
         throws FileNotFoundException, InvalidParseOperationException {
         File staticStrategies = PropertiesUtils.getResourceFile("static-strategy-no-referent.json");
-        List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(staticStrategies,
-            new TypeReference<List<StorageStrategy>>() {
-            });
+        List<StorageStrategy> storageStrategies = JsonHandler.getFromFileAsTypeReference(
+            staticStrategies,
+            new TypeReference<List<StorageStrategy>>() {}
+        );
         boolean isValid = StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies);
         assertThat(isValid).isTrue();
     }
-
 }

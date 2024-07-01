@@ -44,46 +44,47 @@ public class DataCategoryTest {
 
     @Test
     public void checkContainerListDoc() throws Exception {
-
         // Doc containers are case-insensitive DataCategory enum names mapped by "DataCategory.getByCollectionName()"
-        File docListContainersFile =
-            new File("../../../../doc/fr/exploitation/topics/data/container_list.txt");
+        File docListContainersFile = new File("../../../../doc/fr/exploitation/topics/data/container_list.txt");
         List<String> containers = FileUtils.readLines(docListContainersFile, StandardCharsets.UTF_8);
 
         Set<DataCategory> dataCategorySet = new HashSet<>();
         for (String container : containers) {
             assertThat(container).startsWith("\"");
             assertThat(container).endsWith("\"");
-            DataCategory dataCategory =
-                DataCategory.getByCollectionName(container.substring(1, container.length() - 1));
+            DataCategory dataCategory = DataCategory.getByCollectionName(
+                container.substring(1, container.length() - 1)
+            );
             assertThat(dataCategory).isNotNull();
             assertThat(dataCategorySet.add(dataCategory)).isTrue();
         }
 
         // For historical (bad) reasons DataCategory entries contain duplicate mappings to a "folder" property.
         // Since the folder is used to build actual offer container name, check matching against data category folder.
-        Set<String> docContainerFolders =
-            dataCategorySet.stream().map(DataCategory::getFolder).collect(Collectors.toSet());
-        Set<String> actualContainerFolders =
-            Arrays.stream(DataCategory.values()).map(DataCategory::getFolder).collect(Collectors.toSet());
+        Set<String> docContainerFolders = dataCategorySet
+            .stream()
+            .map(DataCategory::getFolder)
+            .collect(Collectors.toSet());
+        Set<String> actualContainerFolders = Arrays.stream(DataCategory.values())
+            .map(DataCategory::getFolder)
+            .collect(Collectors.toSet());
 
         assertThat(docContainerFolders).containsExactlyInAnyOrderElementsOf(actualContainerFolders);
     }
 
     @Test
     public void checkOfferResynchronizationContainerListDoc() throws Exception {
-
-        File docOfferSyncContainerListFile =
-            new File("../../../../doc/fr/exploitation/topics/40-resynchronisation.rst");
-        File docContainerListFile =
-            new File("../../../../doc/fr/exploitation/topics/data/container_list.txt");
+        File docOfferSyncContainerListFile = new File(
+            "../../../../doc/fr/exploitation/topics/40-resynchronisation.rst"
+        );
+        File docContainerListFile = new File("../../../../doc/fr/exploitation/topics/data/container_list.txt");
 
         String doc = FileUtils.readFileToString(docOfferSyncContainerListFile, StandardCharsets.UTF_8);
-        String[] offerSyncContainers =
-            StringUtils.substringBetween(doc, "declare -a containers=\"", "\"").split(" ");
+        String[] offerSyncContainers = StringUtils.substringBetween(doc, "declare -a containers=\"", "\"").split(" ");
 
         List<String> containers = FileUtils.readLines(docContainerListFile, StandardCharsets.UTF_8)
-            .stream().map(container -> container.substring(1, container.length() - 1))
+            .stream()
+            .map(container -> container.substring(1, container.length() - 1))
             .collect(Collectors.toList());
 
         assertThat(offerSyncContainers).containsExactlyInAnyOrderElementsOf(containers);

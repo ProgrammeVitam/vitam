@@ -67,5 +67,4 @@ public class XMLGregorianCalendarSerializer extends StdSerializer<XMLGregorianCa
         throws IOException {
         jgen.writeString(calendar.toString());
     }
-
 }

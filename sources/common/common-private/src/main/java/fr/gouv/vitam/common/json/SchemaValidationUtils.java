@@ -68,9 +68,12 @@ public class SchemaValidationUtils {
      * if jsonNodeValue is object, get theses type of technical nodes: properties, patternProperties or items
      * More advanced schema directives like "anyOf", "allOf", "oneOf" and "not" are NOT SUPPORTED
      */
-    private static void extractFromJsonSchemaType(String businessKey, JsonNode jsonNodeValue,
-        Set<String> propertySet, boolean isPatternPropertiesParent) {
-
+    private static void extractFromJsonSchemaType(
+        String businessKey,
+        JsonNode jsonNodeValue,
+        Set<String> propertySet,
+        boolean isPatternPropertiesParent
+    ) {
         if (jsonNodeValue.has(PROPERTIES)) {
             extractFromFieldNames(jsonNodeValue.get(PROPERTIES), propertySet, false);
             return;
@@ -94,8 +97,11 @@ public class SchemaValidationUtils {
     /**
      * Iterate over the sub-fields (properties or patternProperties entries)
      */
-    private static void extractFromFieldNames(JsonNode jsonNode, Set<String> propertySet,
-        boolean isPatternPropertiesParent) {
+    private static void extractFromFieldNames(
+        JsonNode jsonNode,
+        Set<String> propertySet,
+        boolean isPatternPropertiesParent
+    ) {
         final Iterator<Map.Entry<String, JsonNode>> iterator = jsonNode.fields();
         while (iterator.hasNext()) {
             final Map.Entry<String, JsonNode> entry = iterator.next();

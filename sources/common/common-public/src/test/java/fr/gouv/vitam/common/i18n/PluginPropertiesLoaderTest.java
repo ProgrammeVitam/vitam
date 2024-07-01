@@ -38,5 +38,4 @@ public class PluginPropertiesLoaderTest {
         assertEquals("Test", PluginPropertiesLoader.getString("handlerId"));
         assertEquals("KO {0} on {1} !", PluginPropertiesLoader.getString("HelloWorld.KO"));
     }
-
 }

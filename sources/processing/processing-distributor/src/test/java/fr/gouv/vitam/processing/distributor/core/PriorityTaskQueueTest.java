@@ -47,37 +47,30 @@ public class PriorityTaskQueueTest {
 
     @Test
     public void givenBadQueueSizeThanKO() {
-        assertThatThrownBy(() -> new PriorityTaskQueue<String>(0))
-            .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new PriorityTaskQueue<String>(-10))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new PriorityTaskQueue<String>(0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new PriorityTaskQueue<String>(-10)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void givenNullEntryWhenAddingRegularEntryThenKO() {
-
         // Given
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
 
         // When / Then
-        assertThatThrownBy(() -> instance.addRegularEntry(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.addRegularEntry(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void givenNullEntryWhenAddingHighPriorityEntryThenKO() {
-
         // Given
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
 
         // When / Then
-        assertThatThrownBy(() -> instance.addHighPriorityEntry(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.addHighPriorityEntry(null)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void givenEmptyQueueWhenAddingRegularEntryThenOK() throws InterruptedException {
-
         // Given
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
 
@@ -91,7 +84,6 @@ public class PriorityTaskQueueTest {
 
     @Test
     public void givenEmptyQueueWhenAddingPriorityEntryThenOK() throws InterruptedException {
-
         // Given
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
 
@@ -105,7 +97,6 @@ public class PriorityTaskQueueTest {
 
     @Test
     public void givenEmptyQueueWhenTryTakingElementBlockingUntilRegularEntryAdded() throws Exception {
-
         // Given
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
 
@@ -135,7 +126,6 @@ public class PriorityTaskQueueTest {
     @Test
     public void givenRegularAndHighPriorityEntriesWhenTakeEntriesThenHighPriorityEntriesSelectedFirst()
         throws Exception {
-
         // Given
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
         instance.addRegularEntry("entry1");
@@ -155,9 +145,7 @@ public class PriorityTaskQueueTest {
     }
 
     @Test
-    public void givenMultipleThreadsAddingEntriesToQueueThenOK()
-        throws Exception {
-
+    public void givenMultipleThreadsAddingEntriesToQueueThenOK() throws Exception {
         // Given
         ExecutorService executor = Executors.newFixedThreadPool(10);
         PriorityTaskQueue<String> instance = new PriorityTaskQueue<>(10);
@@ -166,34 +154,44 @@ public class PriorityTaskQueueTest {
         List<CompletableFuture<Void>> regularCompletableFutures = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             String writerId = "regular-" + i;
-            regularCompletableFutures.add(CompletableFuture.runAsync(() -> {
-                for (int j = 0; j < 10; j++) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(0, 200));
-                        instance.addRegularEntry(writerId + "-" + j);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
-                    }
-                }
-            }, executor));
+            regularCompletableFutures.add(
+                CompletableFuture.runAsync(
+                    () -> {
+                        for (int j = 0; j < 10; j++) {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(0, 200));
+                                instance.addRegularEntry(writerId + "-" + j);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    },
+                    executor
+                )
+            );
         }
 
         // 5 "priority" writers
         List<CompletableFuture<Void>> highPriorityCompletableFutures = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             String writerId = "high-priority-" + i;
-            highPriorityCompletableFutures.add(CompletableFuture.runAsync(() -> {
-                for (int j = 0; j < 10; j++) {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(0, 200));
-                        instance.addHighPriorityEntry(writerId + "-" + j);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
-                    }
-                }
-            }, executor));
+            highPriorityCompletableFutures.add(
+                CompletableFuture.runAsync(
+                    () -> {
+                        for (int j = 0; j < 10; j++) {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(ThreadLocalRandom.current().nextInt(0, 200));
+                                instance.addHighPriorityEntry(writerId + "-" + j);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    },
+                    executor
+                )
+            );
         }
 
         // Then
@@ -229,13 +227,17 @@ public class PriorityTaskQueueTest {
 
         // Check entry order : ensure entry order per writer
         ArrayListValuedHashMap<String, Integer> entriesByWriter = new ArrayListValuedHashMap<>();
-        results.forEach(entry -> entriesByWriter.put(
-            StringUtils.substringBeforeLast(entry, "-"),
-            Integer.parseInt(StringUtils.substringAfterLast(entry, "-"))
-        ));
+        results.forEach(
+            entry ->
+                entriesByWriter.put(
+                    StringUtils.substringBeforeLast(entry, "-"),
+                    Integer.parseInt(StringUtils.substringAfterLast(entry, "-"))
+                )
+        );
         for (String writerId : entriesByWriter.keySet()) {
             assertThat(entriesByWriter.get(writerId)).containsExactlyInAnyOrderElementsOf(
-                IntStream.range(0, 10).boxed().collect(Collectors.toList()));
+                IntStream.range(0, 10).boxed().collect(Collectors.toList())
+            );
         }
 
         // Cleanup

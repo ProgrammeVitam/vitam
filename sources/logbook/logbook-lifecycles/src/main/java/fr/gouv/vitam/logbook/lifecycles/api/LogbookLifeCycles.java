@@ -50,7 +50,6 @@ import java.util.List;
  * Core API for LifeCycles
  */
 public interface LogbookLifeCycles {
-
     /**
      * Create and insert logbook LifeCycle entries
      *
@@ -77,7 +76,6 @@ public interface LogbookLifeCycles {
     void createObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
         throws LogbookAlreadyExistsException, LogbookDatabaseException;
 
-
     /**
      * Update logbook LifeCycle entries
      *
@@ -90,7 +88,6 @@ public interface LogbookLifeCycles {
      */
     void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
         throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
-
 
     /**
      * Update logbook LifeCycle entries committed or in progress
@@ -117,8 +114,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookAlreadyExistsException if the entry already exists
      */
     void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
-        throws LogbookNotFoundException, LogbookDatabaseException,
-        LogbookAlreadyExistsException;
+        throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
      * Update logbook LifeCycle entries
@@ -131,10 +127,12 @@ public interface LogbookLifeCycles {
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookAlreadyExistsException if the entry already exists
      */
-    void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters,
-        boolean commit)
-        throws LogbookNotFoundException, LogbookDatabaseException,
-        LogbookAlreadyExistsException;
+    void updateObjectGroup(
+        String idOperation,
+        String idLc,
+        LogbookLifeCycleObjectGroupParameters parameters,
+        boolean commit
+    ) throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
      * Selects life cycle entries
@@ -167,10 +165,13 @@ public interface LogbookLifeCycles {
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    LogbookLifeCycle<?> selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException,
-        InvalidCreateOperationException;
+    LogbookLifeCycle<?> selectLifeCycleById(
+        String lifecycleId,
+        JsonNode queryDsl,
+        boolean sliced,
+        LogbookCollections collection
+    )
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException;
 
     /**
      * Rollback logbook LifeCycle entries
@@ -259,8 +260,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if LifeCycle cannot be found
      */
-    void rollBackObjectGroupsByOperation(String idOperation)
-        throws LogbookNotFoundException, LogbookDatabaseException;
+    void rollBackObjectGroupsByOperation(String idOperation) throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
      * Returns the LifeCycle Status for a given unit Id
@@ -291,9 +291,11 @@ public interface LogbookLifeCycles {
      * @param logbookLifeCycleModels lifecycles to be created
      * @throws DatabaseException if database could not be reached
      */
-    void bulk(LogbookCollections collections, String idOp,
-        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
-        throws DatabaseException;
+    void bulk(
+        LogbookCollections collections,
+        String idOp,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels
+    ) throws DatabaseException;
 
     /**
      * Gets a list of raw unit life cycles by request
@@ -311,8 +313,11 @@ public interface LogbookLifeCycles {
      * @param endDate the selection end date
      * @param limit the max limit
      */
-    CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate,
-        int limit);
+    CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(
+        String startDate,
+        String endDate,
+        int limit
+    );
 
     /**
      * Checks existence of new unit life cycles
@@ -336,8 +341,7 @@ public interface LogbookLifeCycles {
      * @param id the id to retrieve
      * @return the unit life cycle
      */
-    JsonNode getRawUnitLifeCycleById(String id)
-        throws LogbookNotFoundException, InvalidParseOperationException;
+    JsonNode getRawUnitLifeCycleById(String id) throws LogbookNotFoundException, InvalidParseOperationException;
 
     /**
      * returns the raw version of unit life cycle
@@ -354,8 +358,7 @@ public interface LogbookLifeCycles {
      * @param id the id to retrieve
      * @return the object group life cycle
      */
-    JsonNode getRawObjectGroupLifeCycleById(String id)
-        throws LogbookNotFoundException, InvalidParseOperationException;
+    JsonNode getRawObjectGroupLifeCycleById(String id) throws LogbookNotFoundException, InvalidParseOperationException;
 
     /**
      * returns the raw version of object group life cycle
@@ -372,8 +375,10 @@ public interface LogbookLifeCycles {
      * @param lifecycleUnitInProcess lifecycleUnitInProcess
      * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
      */
-    void updateLogbookLifeCycleBulk(LogbookCollections lifecycleUnitInProcess,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
+    void updateLogbookLifeCycleBulk(
+        LogbookCollections lifecycleUnitInProcess,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    );
 
     /**
      * delete LifeCycle ObjectGroups

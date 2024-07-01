@@ -48,13 +48,14 @@ public class ProjectRepositoryTest {
     private final Integer tenant = 1;
 
     private ProjectRepository repository;
+
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PROJECT_TEST_COLLECTION);
-    private final static String PROJECT_1_ID = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
-    private final static String PROJECT_2_ID = "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq";
-    private final static String PROJECT_3_ID = "aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq";
-    private final static String PROJECT_4_ID = "aeaaaaaaaaaltpovaa2zgamd5kdsesiaaaaq";
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PROJECT_TEST_COLLECTION);
+
+    private static final String PROJECT_1_ID = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
+    private static final String PROJECT_2_ID = "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq";
+    private static final String PROJECT_3_ID = "aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq";
+    private static final String PROJECT_4_ID = "aeaaaaaaaaaltpovaa2zgamd5kdsesiaaaaq";
 
     @Before
     public void setUp() {
@@ -120,8 +121,8 @@ public class ProjectRepositoryTest {
         }
     }
 
-
     class TestDummyData {
+
         List<ProjectModel> getProjects() {
             return List.of(
                 createProject(PROJECT_1_ID, "Test"),

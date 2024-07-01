@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -52,7 +51,6 @@ import static org.assertj.core.api.Assertions.fail;
  */
 public class ExternalLogbookStep extends CommonStep {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExternalLogbookStep.class);
 
     public ExternalLogbookStep(World world) {
@@ -68,8 +66,6 @@ public class ExternalLogbookStep extends CommonStep {
         return model;
     }
 
-
-
     public void setModel(JsonNode model) {
         this.model = model;
     }
@@ -78,8 +74,6 @@ public class ExternalLogbookStep extends CommonStep {
      * generic model result
      */
     private JsonNode model;
-
-
 
     /**
      * define a sip
@@ -91,7 +85,6 @@ public class ExternalLogbookStep extends CommonStep {
         this.fileName = fileName;
     }
 
-
     @Then("^j'importe un journal d'opération correct$")
     public void createExternalLogbook() {
         callAdminExternal("CREATED");
@@ -101,7 +94,6 @@ public class ExternalLogbookStep extends CommonStep {
     public void createExternalLogbookKO() {
         callAdminExternal("BAD_REQUEST");
     }
-
 
     private void callAdminExternal(String expectedStatus) {
         Path logbookFile = Paths.get(world.getBaseDirectory(), fileName);
@@ -114,12 +106,14 @@ public class ExternalLogbookStep extends CommonStep {
 
             logbookString = logbookString.replace("REPLACE_ME", operationGuid.getId());
 
-            LogbookOperationParameters logbookOperationParams =
-                JsonHandler.getFromString(logbookString, LogbookOperationParameters.class);
+            LogbookOperationParameters logbookOperationParams = JsonHandler.getFromString(
+                logbookString,
+                LogbookOperationParameters.class
+            );
 
-            RequestResponse response =
-                world.getAdminClient().createExternalOperation(new VitamContext(world.getTenantId()),
-                    logbookOperationParams);
+            RequestResponse response = world
+                .getAdminClient()
+                .createExternalOperation(new VitamContext(world.getTenantId()), logbookOperationParams);
             Status statusExpected = Status.CREATED;
             switch (expectedStatus) {
                 case "CREATED":
@@ -135,5 +129,4 @@ public class ExternalLogbookStep extends CommonStep {
             fail("should not produce this exception", e);
         }
     }
-
 }

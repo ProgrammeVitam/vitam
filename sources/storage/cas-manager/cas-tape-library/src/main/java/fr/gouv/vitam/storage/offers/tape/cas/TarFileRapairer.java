@@ -63,8 +63,7 @@ public class TarFileRapairer {
     }
 
     @VisibleForTesting
-    TarFileRapairer(
-        Supplier<TarFileDigestVerifier> tarFileDigestVerifierSupplier) {
+    TarFileRapairer(Supplier<TarFileDigestVerifier> tarFileDigestVerifierSupplier) {
         this.tarFileDigestVerifierSupplier = tarFileDigestVerifierSupplier;
     }
 
@@ -72,22 +71,20 @@ public class TarFileRapairer {
         throws IOException, ObjectReferentialException {
         TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
 
-
         Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
-        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
+        try (
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
             TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream);
             CountingOutputStream countingOutputStream = new CountingOutputStream(outputStream);
-            OutputStream digestOutputStream = tarDigest.getDigestOutputStream(countingOutputStream)) {
-
+            OutputStream digestOutputStream = tarDigest.getDigestOutputStream(countingOutputStream)
+        ) {
             try (TarAppender tarAppender = new TarAppender(digestOutputStream, tarId, Long.MAX_VALUE)) {
-
                 while (true) {
-
                     long readBytes = tarArchiveInputStream.getBytesRead();
                     // Last entry position is padded to tar record size
                     long inputTarEntryPos =
-                        (readBytes + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE *
-                            TarConstants.DEFAULT_RCDSIZE;
+                        ((readBytes + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE) *
+                        TarConstants.DEFAULT_RCDSIZE;
 
                     TarArchiveEntry inputTarEntry;
                     try {
@@ -104,10 +101,11 @@ public class TarFileRapairer {
 
                     Path tempEntryFile = null;
                     try {
-
                         // Write entry to temporary file (to ensure the entry is available & not corrupted)
-                        tempEntryFile =
-                            Files.createTempFile(GUIDFactory.newGUID().toString(), LocalFileUtils.TMP_EXTENSION);
+                        tempEntryFile = Files.createTempFile(
+                            GUIDFactory.newGUID().toString(),
+                            LocalFileUtils.TMP_EXTENSION
+                        );
 
                         try {
                             InputStream entryInputStream = CloseShieldInputStream.wrap(taggedEntryInputStream);
@@ -120,26 +118,35 @@ public class TarFileRapairer {
                         }
 
                         // Recopy to new tar
-                        try (InputStream temptFileInputStream = Files
-                            .newInputStream(tempEntryFile, StandardOpenOption.READ)) {
-
+                        try (
+                            InputStream temptFileInputStream = Files.newInputStream(
+                                tempEntryFile,
+                                StandardOpenOption.READ
+                            )
+                        ) {
                             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
                             InputStream entryInputStream = digest.getDigestInputStream(
-                                CloseShieldInputStream.wrap(temptFileInputStream));
+                                CloseShieldInputStream.wrap(temptFileInputStream)
+                            );
 
-                            TarEntryDescription tarEntryDescription =
-                                tarAppender.append(inputTarEntry.getName(), entryInputStream, inputTarEntry.getSize());
+                            TarEntryDescription tarEntryDescription = tarAppender.append(
+                                inputTarEntry.getName(),
+                                entryInputStream,
+                                inputTarEntry.getSize()
+                            );
 
                             if (tarEntryDescription.getStartPos() != inputTarEntryPos) {
                                 throw new IllegalStateException(
-                                    "Entry position mismatch. Expected=" + inputTarEntryPos
-                                        + ", actual=" + tarEntryDescription.getStartPos());
+                                    "Entry position mismatch. Expected=" +
+                                    inputTarEntryPos +
+                                    ", actual=" +
+                                    tarEntryDescription.getStartPos()
+                                );
                             }
 
                             String entryDigest = digest.digestHex();
                             tarFileDigestVerifier.addDigestToCheck(tarEntryDescription.getEntryName(), entryDigest);
                         }
-
                     } finally {
                         if (tempEntryFile != null) {
                             FileUtils.deleteQuietly(tempEntryFile.toFile());
@@ -149,25 +156,21 @@ public class TarFileRapairer {
             }
             tarFileDigestVerifier.finalizeChecks();
 
-            return new DigestWithSize(
-                countingOutputStream.getByteCount(),
-                tarDigest.digestHex());
+            return new DigestWithSize(countingOutputStream.getByteCount(), tarDigest.digestHex());
         }
     }
 
     public DigestWithSize verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
-
         TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
 
         Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
         try (
             CountingInputStream countingInputStream = new CountingInputStream(inputStream);
             InputStream digestInputStream = tarDigest.getDigestInputStream(countingInputStream);
-            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(digestInputStream)) {
-
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(digestInputStream)
+        ) {
             TarArchiveEntry tarEntry;
             while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
-
                 String tarEntryName = tarEntry.getName();
                 Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
                 InputStream entryInputStream = CloseShieldInputStream.wrap(tarArchiveInputStream);
@@ -178,9 +181,7 @@ public class TarFileRapairer {
             }
             tarFileDigestVerifier.finalizeChecks();
 
-            return new DigestWithSize(
-                countingInputStream.getByteCount(),
-                tarDigest.digestHex());
+            return new DigestWithSize(countingInputStream.getByteCount(), tarDigest.digestHex());
         }
     }
 

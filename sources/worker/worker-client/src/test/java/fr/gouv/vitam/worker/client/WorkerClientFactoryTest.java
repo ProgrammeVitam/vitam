@@ -57,11 +57,12 @@ public class WorkerClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-
         final WorkerClient client = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         assertTrue(client instanceof WorkerClientRest);
-        assertEquals(VitamClientType.PRODUCTION,
-            WorkerClientFactory.getInstance(workerClientConfiguration).getVitamClientType());
+        assertEquals(
+            VitamClientType.PRODUCTION,
+            WorkerClientFactory.getInstance(workerClientConfiguration).getVitamClientType()
+        );
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -74,7 +75,6 @@ public class WorkerClientFactoryTest {
         WorkerClientConfiguration configuration1 = new WorkerClientConfiguration("localhost", 8076);
         WorkerClientConfiguration configuration2 = new WorkerClientConfiguration("localhost", 8176);
         WorkerClientConfiguration configuration3 = new WorkerClientConfiguration("localhost", 8176);
-
 
         assertTrue(configuration3.equals(configuration2));
         assertNotEquals(configuration3, configuration1);
@@ -89,11 +89,10 @@ public class WorkerClientFactoryTest {
         assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(configuration1).getVitamClientType());
         assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(configuration2).getVitamClientType());
 
-        assertNotEquals(WorkerClientFactory.getInstance(configuration2),
-            WorkerClientFactory.getInstance(configuration1));
+        assertNotEquals(
+            WorkerClientFactory.getInstance(configuration2),
+            WorkerClientFactory.getInstance(configuration1)
+        );
         assertEquals(WorkerClientFactory.getInstance(configuration2), WorkerClientFactory.getInstance(configuration3));
-
-
     }
-
 }

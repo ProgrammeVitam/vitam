@@ -45,5 +45,4 @@ public class EntryTest {
     public void testEntryWithNullName() {
         new Entry(null);
     }
-
 }

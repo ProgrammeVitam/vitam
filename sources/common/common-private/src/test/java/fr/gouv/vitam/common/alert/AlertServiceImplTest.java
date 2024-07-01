@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verify;
 
 public class AlertServiceImplTest {
 
-
     private static AlertService alertService;
     static VitamLogger logger = mock(VitamLogger.class);
     private String message = "message";
@@ -48,8 +47,7 @@ public class AlertServiceImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
-    }
+    public static void tearDownAfterClass() {}
 
     @Test
     public void testCreateDebugAlert() {
@@ -62,5 +60,4 @@ public class AlertServiceImplTest {
         alertService.createAlert(message);
         verify(logger).log(VitamLogLevel.INFO, message);
     }
-
 }

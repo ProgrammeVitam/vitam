@@ -106,11 +106,8 @@ public class CompactionIT extends VitamRuleRunner {
         CompactionIT.class,
         mongoRule.getMongoDatabase().getName(),
         ElasticsearchRule.getClusterName(),
-        Sets.newHashSet(
-            WorkspaceMain.class,
-            StorageMain.class,
-            DefaultOfferMain.class
-        ));
+        Sets.newHashSet(WorkspaceMain.class, StorageMain.class, DefaultOfferMain.class)
+    );
 
     private static CompactionRestService compactionRestService;
 
@@ -127,9 +124,11 @@ public class CompactionIT extends VitamRuleRunner {
 
         final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
-        Retrofit retrofit =
-            new Retrofit.Builder().client(okHttpClient).baseUrl(OFFER_URL)
-                .addConverterFactory(JacksonConverterFactory.create()).build();
+        Retrofit retrofit = new Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(OFFER_URL)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
 
         compactionRestService = retrofit.create(CompactionRestService.class);
     }
@@ -156,11 +155,7 @@ public class CompactionIT extends VitamRuleRunner {
     }
 
     private void clearOfferLogs() {
-        runAfterMongo(Sets.newHashSet(
-            OFFER_LOG.getName(),
-            COMPACTED_OFFER_LOG.getName(),
-            OFFER_SEQUENCE.getName()
-        ));
+        runAfterMongo(Sets.newHashSet(OFFER_LOG.getName(), COMPACTED_OFFER_LOG.getName(), OFFER_SEQUENCE.getName()));
     }
 
     @RunWithCustomExecutor
@@ -170,14 +165,30 @@ public class CompactionIT extends VitamRuleRunner {
             prepareVitamSession(tenantId, "aName3", "Context_IT");
 
             for (int i = 1; i <= 6; i++) {
-                storageClient.create(STRATEGY, "unit" + i,
-                    UNIT, new NullInputStream(i), (long) i, Collections.singletonList(OFFER_ID));
+                storageClient.create(
+                    STRATEGY,
+                    "unit" + i,
+                    UNIT,
+                    new NullInputStream(i),
+                    (long) i,
+                    Collections.singletonList(OFFER_ID)
+                );
             }
 
-            List<OfferLog> offerLogsDescResponseBeforeCompaction =
-                getOfferLogsFromStorage(storageClient, UNIT, null, 6, DESC);
-            List<OfferLog> offerLogsAscResponseBeforeCompaction =
-                getOfferLogsFromStorage(storageClient, UNIT, null, 6, ASC);
+            List<OfferLog> offerLogsDescResponseBeforeCompaction = getOfferLogsFromStorage(
+                storageClient,
+                UNIT,
+                null,
+                6,
+                DESC
+            );
+            List<OfferLog> offerLogsAscResponseBeforeCompaction = getOfferLogsFromStorage(
+                storageClient,
+                UNIT,
+                null,
+                6,
+                ASC
+            );
 
             logicalClock.logicalSleep(22, ChronoUnit.DAYS);
 
@@ -189,10 +200,8 @@ public class CompactionIT extends VitamRuleRunner {
             assertThat(offerLogsCompaction).as("check offer logs compaction collection is not empty").isNotEmpty();
             assertThat(offerLogs).as("check offer logs compaction collection is empty").isEmpty();
 
-            List<OfferLog> offerLogsDesc =
-                getOfferLogsFromStorage(storageClient, UNIT, null, 6, DESC);
-            List<OfferLog> offerLogsAsc =
-                getOfferLogsFromStorage(storageClient, UNIT, null, 6, ASC);
+            List<OfferLog> offerLogsDesc = getOfferLogsFromStorage(storageClient, UNIT, null, 6, DESC);
+            List<OfferLog> offerLogsAsc = getOfferLogsFromStorage(storageClient, UNIT, null, 6, ASC);
 
             assertThat(offerLogsDesc).as("check offer logs retrieve by descending query is not empty").isNotEmpty();
             assertThat(offerLogsAsc).as("check offer logs retrieve by ascending query is not empty").isNotEmpty();
@@ -203,25 +212,27 @@ public class CompactionIT extends VitamRuleRunner {
             assertThat(offerLogsFromCompaction).containsExactlyInAnyOrderElementsOf(offerLogsAsc);
             assertThat(offerLogsFromCompaction).containsExactlyInAnyOrderElementsOf(offerLogsDesc);
 
-            assertThat(offerLogsDesc).containsExactlyElementsOf(
-                offerLogsDescResponseBeforeCompaction);
-            assertThat(offerLogsAsc).containsExactlyElementsOf(
-                offerLogsAscResponseBeforeCompaction);
+            assertThat(offerLogsDesc).containsExactlyElementsOf(offerLogsDescResponseBeforeCompaction);
+            assertThat(offerLogsAsc).containsExactlyElementsOf(offerLogsAscResponseBeforeCompaction);
         }
     }
 
     @RunWithCustomExecutor
     @Test
     public void should_retrieve_complex_offer_log_from_OfferLog_and_CompactedOfferLog() throws Exception {
-
         prepareVitamSession(tenantId, "aName3", "Context_IT");
 
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // When
             for (int i = 1; i <= 20; i++) {
-                storageClient.create(STRATEGY, "unit" + i,
-                    UNIT, new NullInputStream(i), (long) i, Collections.singletonList(OFFER_ID));
+                storageClient.create(
+                    STRATEGY,
+                    "unit" + i,
+                    UNIT,
+                    new NullInputStream(i),
+                    (long) i,
+                    Collections.singletonList(OFFER_ID)
+                );
             }
 
             logicalClock.logicalSleep(25, ChronoUnit.DAYS);
@@ -229,16 +240,34 @@ public class CompactionIT extends VitamRuleRunner {
             compactOfferLogs();
 
             for (int i = 21; i <= 40; i++) {
-                storageClient.create(STRATEGY, "unit" + i,
-                    UNIT, new NullInputStream(i), (long) i, Collections.singletonList(OFFER_ID));
+                storageClient.create(
+                    STRATEGY,
+                    "unit" + i,
+                    UNIT,
+                    new NullInputStream(i),
+                    (long) i,
+                    Collections.singletonList(OFFER_ID)
+                );
             }
             for (int i = 41; i <= 60; i++) {
-                storageClient.create(STRATEGY, "object" + i,
-                    OBJECT, new NullInputStream(i), (long) i, Collections.singletonList(OFFER_ID));
+                storageClient.create(
+                    STRATEGY,
+                    "object" + i,
+                    OBJECT,
+                    new NullInputStream(i),
+                    (long) i,
+                    Collections.singletonList(OFFER_ID)
+                );
             }
             for (int i = 61; i <= 80; i++) {
-                storageClient.create(STRATEGY, "unit" + i,
-                    UNIT, new NullInputStream(i), (long) i, Collections.singletonList(OFFER_ID));
+                storageClient.create(
+                    STRATEGY,
+                    "unit" + i,
+                    UNIT,
+                    new NullInputStream(i),
+                    (long) i,
+                    Collections.singletonList(OFFER_ID)
+                );
             }
 
             logicalClock.logicalSleep(15, ChronoUnit.DAYS);
@@ -256,8 +285,10 @@ public class CompactionIT extends VitamRuleRunner {
 
             // Then
             // Technical checks
-            List<CompactedOfferLog> offerLogsCompaction =
-                getDbCompactedOfferLogs(tenantId + "_unit", tenantId + "_object");
+            List<CompactedOfferLog> offerLogsCompaction = getDbCompactedOfferLogs(
+                tenantId + "_unit",
+                tenantId + "_object"
+            );
             assertThat(offerLogsCompaction).hasSize(3);
 
             assertThat(offerLogsCompaction.get(0).getContainer()).isEqualTo(tenantId + "_unit");
@@ -308,13 +339,18 @@ public class CompactionIT extends VitamRuleRunner {
             }
 
             // Functional checks
-            List<OfferLog> expectedUnitOfferLogs = Stream.concat(Stream.concat(
+            List<OfferLog> expectedUnitOfferLogs = Stream.concat(
+                Stream.concat(
                     IntStream.rangeClosed(1, 40).mapToObj(
-                        i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE)),
+                        i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE)
+                    ),
                     IntStream.rangeClosed(61, 80).mapToObj(
-                        i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE))),
+                        i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.WRITE)
+                    )
+                ),
                 IntStream.rangeClosed(81, 90).mapToObj(
-                    i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.DELETE))
+                    i -> new OfferLog(i, null, tenantId + "_unit", "unit" + i, OfferLogAction.DELETE)
+                )
             ).collect(Collectors.toList());
 
             checkOfferLogs(storageClient, expectedUnitOfferLogs, null, 1000, Order.ASC);
@@ -338,26 +374,35 @@ public class CompactionIT extends VitamRuleRunner {
             checkOfferLogs(storageClient, expectedUnitOfferLogs, 90L, 13, Order.DESC);
             checkOfferLogs(storageClient, expectedUnitOfferLogs, 101L, 1000, Order.DESC);
             checkOfferLogs(storageClient, expectedUnitOfferLogs, 101L, 13, Order.DESC);
-
         }
     }
 
     private void compactOfferLogs() throws java.io.IOException {
-        retrofit2.Response<Void> response = compactionRestService.launchOfferLogCompaction()
-            .execute();
+        retrofit2.Response<Void> response = compactionRestService.launchOfferLogCompaction().execute();
 
-        assertThat(response.isSuccessful()).as("check request compaction successfully execute")
-            .isTrue();
+        assertThat(response.isSuccessful()).as("check request compaction successfully execute").isTrue();
     }
 
-    private void checkOfferLogs(StorageClient storageClient, List<OfferLog> unitOfferLogs,
-        Long offset, int limit, Order order)
-        throws StorageServerClientException {
-        List<OfferLog> computedOfferLogs =
-            getOfferLogsFromStorage(storageClient, DataCategory.UNIT, offset, limit, order);
-        List<OfferLog> expectedOfferLogs = unitOfferLogs.stream()
-            .filter(log -> offset == null ||
-                (order == Order.ASC ? offset <= log.getSequence() : offset >= log.getSequence()))
+    private void checkOfferLogs(
+        StorageClient storageClient,
+        List<OfferLog> unitOfferLogs,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageServerClientException {
+        List<OfferLog> computedOfferLogs = getOfferLogsFromStorage(
+            storageClient,
+            DataCategory.UNIT,
+            offset,
+            limit,
+            order
+        );
+        List<OfferLog> expectedOfferLogs = unitOfferLogs
+            .stream()
+            .filter(
+                log ->
+                    offset == null || (order == Order.ASC ? offset <= log.getSequence() : offset >= log.getSequence())
+            )
             .sorted(order == Order.ASC ? Comparator.naturalOrder() : Comparator.reverseOrder())
             .limit(limit)
             .collect(Collectors.toList());
@@ -368,10 +413,21 @@ public class CompactionIT extends VitamRuleRunner {
             .containsExactlyElementsOf(expectedOfferLogs);
     }
 
-    private List<OfferLog> getOfferLogsFromStorage(StorageClient storageClient, DataCategory dataCategory, Long offset,
-        int limit, Order order) throws StorageServerClientException {
-        RequestResponse<OfferLog> response =
-            storageClient.getOfferLogs(STRATEGY, null, dataCategory, offset, limit, order);
+    private List<OfferLog> getOfferLogsFromStorage(
+        StorageClient storageClient,
+        DataCategory dataCategory,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageServerClientException {
+        RequestResponse<OfferLog> response = storageClient.getOfferLogs(
+            STRATEGY,
+            null,
+            dataCategory,
+            offset,
+            limit,
+            order
+        );
         if (!response.isOk()) {
             throw new VitamRuntimeException("Could not list offer log");
         }
@@ -380,7 +436,8 @@ public class CompactionIT extends VitamRuleRunner {
 
     private List<OfferLog> getDbOfferLogs(String... containers) {
         return IteratorUtils.toList(
-            mongoRule.getMongoDatabase()
+            mongoRule
+                .getMongoDatabase()
                 .getCollection(OFFER_LOG.getName())
                 .find(in(CONTAINER, containers))
                 .sort(Sorts.ascending(CompactedOfferLog.SEQUENCE_START))
@@ -399,7 +456,8 @@ public class CompactionIT extends VitamRuleRunner {
 
     public List<CompactedOfferLog> getDbCompactedOfferLogs(String... containers) {
         return IteratorUtils.toList(
-            mongoRule.getMongoDatabase()
+            mongoRule
+                .getMongoDatabase()
                 .getCollection(COMPACTED_OFFER_LOG.getName())
                 .find(in(CONTAINER, containers))
                 .sort(Sorts.ascending(CompactedOfferLog.SEQUENCE_START))
@@ -418,9 +476,7 @@ public class CompactionIT extends VitamRuleRunner {
 
     public interface CompactionRestService {
         @POST("/offer/v1/compaction")
-        @Headers({
-            "Accept: application/json"
-        })
+        @Headers({ "Accept: application/json" })
         Call<Void> launchOfferLogCompaction();
     }
 }

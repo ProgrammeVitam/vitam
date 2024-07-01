@@ -53,25 +53,28 @@ public class RuleImportDiff {
         this.rulesWithDurationModeUpdate = new ArrayList<>();
     }
 
-    RuleImportDiff(List<FileRulesModel> rulesFromFileIds,
-        List<FileRulesModel> rulesInDatabaseIds) {
+    RuleImportDiff(List<FileRulesModel> rulesFromFileIds, List<FileRulesModel> rulesInDatabaseIds) {
         this();
-        getDiff(Optional.ofNullable(rulesFromFileIds).orElse(Collections.emptyList()),
-            Optional.ofNullable(rulesInDatabaseIds).orElse(Collections.emptyList()));
+        getDiff(
+            Optional.ofNullable(rulesFromFileIds).orElse(Collections.emptyList()),
+            Optional.ofNullable(rulesInDatabaseIds).orElse(Collections.emptyList())
+        );
     }
 
-    RuleImportDiff(Map<String, FileRulesModel> rulesFromFile,
-        Map<String, FileRulesModel> rulesInDatabase) {
+    RuleImportDiff(Map<String, FileRulesModel> rulesFromFile, Map<String, FileRulesModel> rulesInDatabase) {
         this();
-        getDiff(Optional.ofNullable(rulesFromFile).orElse(Collections.emptyMap()),
-            Optional.ofNullable(rulesInDatabase).orElse(Collections.emptyMap()));
+        getDiff(
+            Optional.ofNullable(rulesFromFile).orElse(Collections.emptyMap()),
+            Optional.ofNullable(rulesInDatabase).orElse(Collections.emptyMap())
+        );
     }
 
-    private void getDiff(List<FileRulesModel> rulesFromFileIds,
-        List<FileRulesModel> rulesInDatabaseIds) {
-        Map<String, FileRulesModel> rulesInDatabase = rulesInDatabaseIds.stream()
+    private void getDiff(List<FileRulesModel> rulesFromFileIds, List<FileRulesModel> rulesInDatabaseIds) {
+        Map<String, FileRulesModel> rulesInDatabase = rulesInDatabaseIds
+            .stream()
             .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
-        Map<String, FileRulesModel> rulesFromFile = rulesFromFileIds.stream()
+        Map<String, FileRulesModel> rulesFromFile = rulesFromFileIds
+            .stream()
             .collect(Collectors.toMap(FileRulesModel::getRuleId, Function.identity()));
         getDiff(rulesFromFile, rulesInDatabase);
     }
@@ -87,8 +90,10 @@ public class RuleImportDiff {
                         addRuleToUpdateUnsafely(rule);
                     }
 
-                    if (isUpdateOfOldRuleWithoutDurationToNewRuleWithDuration(ruleInDatabase, rule) ||
-                        isUpdateOfOldRuleWithDurationToNewRuleWithoutDuration(ruleInDatabase, rule)) {
+                    if (
+                        isUpdateOfOldRuleWithoutDurationToNewRuleWithDuration(ruleInDatabase, rule) ||
+                        isUpdateOfOldRuleWithDurationToNewRuleWithoutDuration(ruleInDatabase, rule)
+                    ) {
                         addRuleToUpdateWithDurationModeSwitch(rule);
                     }
                 }
@@ -110,13 +115,17 @@ public class RuleImportDiff {
         return !sameRuleDuration || !sameRuleMeasurement;
     }
 
-    private boolean isUpdateOfOldRuleWithoutDurationToNewRuleWithDuration(FileRulesModel oldRule,
-        FileRulesModel newRule) {
+    private boolean isUpdateOfOldRuleWithoutDurationToNewRuleWithDuration(
+        FileRulesModel oldRule,
+        FileRulesModel newRule
+    ) {
         return !hasRuleDuration(oldRule) && hasRuleDuration(newRule);
     }
 
-    private boolean isUpdateOfOldRuleWithDurationToNewRuleWithoutDuration(FileRulesModel oldRule,
-        FileRulesModel newRule) {
+    private boolean isUpdateOfOldRuleWithDurationToNewRuleWithoutDuration(
+        FileRulesModel oldRule,
+        FileRulesModel newRule
+    ) {
         return hasRuleDuration(oldRule) && !hasRuleDuration(newRule);
     }
 

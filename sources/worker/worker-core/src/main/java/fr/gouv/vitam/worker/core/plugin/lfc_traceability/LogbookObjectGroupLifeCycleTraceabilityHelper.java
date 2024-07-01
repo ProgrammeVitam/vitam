@@ -67,25 +67,32 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelper extends LogbookLifeCy
      * @param traceabilityEventFileName
      * @param traceabilityZipFileName
      */
-    public LogbookObjectGroupLifeCycleTraceabilityHelper(HandlerIO handlerIO,
-        LogbookOperationsClient logbookOperationsClient, ItemStatus itemStatus, String operationID,
+    public LogbookObjectGroupLifeCycleTraceabilityHelper(
+        HandlerIO handlerIO,
+        LogbookOperationsClient logbookOperationsClient,
+        ItemStatus itemStatus,
+        String operationID,
         WorkspaceClientFactory workspaceClientFactory,
-        CloseableIterator<JsonNode> traceabilityDataIterator, String traceabilityEventFileName,
-        String traceabilityZipFileName) {
-        super(handlerIO, logbookOperationsClient, itemStatus, operationID, traceabilityEventFileName,
-            traceabilityZipFileName);
-
+        CloseableIterator<JsonNode> traceabilityDataIterator,
+        String traceabilityEventFileName,
+        String traceabilityZipFileName
+    ) {
+        super(
+            handlerIO,
+            logbookOperationsClient,
+            itemStatus,
+            operationID,
+            traceabilityEventFileName,
+            traceabilityZipFileName
+        );
         this.traceabilityDataIterator = traceabilityDataIterator;
     }
 
     @Override
     public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException {
-
         file.initStoreLog();
         try {
-
             extractAppendToFinalFile(traceabilityDataIterator, file, algo);
-
         } finally {
             file.closeStoreLog();
         }
@@ -106,12 +113,14 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelper extends LogbookLifeCy
         final Select select = new Select();
         final Query query = QueryHelper.gt(eventDateTime.getDbname(), date.toString());
         final Query type = QueryHelper.eq(eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name());
-        final Query eventStatus = QueryHelper
-            .in(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
-                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".OK",
-                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".WARNING");
+        final Query eventStatus = QueryHelper.in(
+            String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".OK",
+            Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType() + ".WARNING"
+        );
         final Query hasTraceabilityFile = QueryHelper.exists(
-            String.format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName"));
+            String.format("%s.%s.%s", LogbookDocument.EVENTS, eventDetailData.getDbname(), "FileName")
+        );
         select.setQuery(QueryHelper.and().add(query, type, eventStatus, hasTraceabilityFile));
         select.setLimitFilter(0, 1);
         return select;

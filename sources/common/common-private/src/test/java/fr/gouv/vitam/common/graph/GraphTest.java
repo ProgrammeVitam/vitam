@@ -40,23 +40,20 @@ import static org.junit.Assert.assertTrue;
 
 public class GraphTest {
 
-
-
     @Test
     public void test_graph() throws Exception {
-
         final File file = PropertiesUtils.getResourceFile("ingest_tree.json");
         final JsonNode json = JsonHandler.getFromFile(file);
         final Graph g = new Graph(json);
         assertNotNull(g.getGraphWithLongestPaths());
-        assertEquals(g.getGraphWithLongestPaths().toString(),
-            "{0=[ID027], 1=[ID030, ID031, ID028], 2=[ID029], 3=[ID032]}");
+        assertEquals(
+            g.getGraphWithLongestPaths().toString(),
+            "{0=[ID027], 1=[ID030, ID031, ID028], 2=[ID029], 3=[ID032]}"
+        );
     }
-
 
     @Test
     public void test_graph_DAG() throws Exception {
-
         final File file = PropertiesUtils.getResourceFile("ingest_acyc_2.json");
         final JsonNode json = JsonHandler.getFromFile(file);
         final Graph g = new Graph(json);
@@ -86,7 +83,6 @@ public class GraphTest {
 
     @Test
     public void test_graph_Acyc_multi_roots() throws Exception {
-
         final File file = PropertiesUtils.getResourceFile("ingest_tree_multi_roots.json");
         final JsonNode json = JsonHandler.getFromFile(file);
         final Graph g = new Graph(json);

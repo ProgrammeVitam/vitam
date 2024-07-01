@@ -76,9 +76,15 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testAddWriteOrder() throws QueueException {
-
-        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteBackupOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteBackupOrder
+        );
         queueRepositoryImpl.add(entity);
 
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteBackupOrder);
@@ -97,7 +103,6 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testAddReadOrder() throws QueueException {
-
         ReadOrder entity = new ReadOrder("VIT0001", 3, "tarId.tar", "myBucket", "myFileBucketId", 1_234_567_890_123L);
 
         queueRepositoryImpl.add(entity);
@@ -118,35 +123,53 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testRemoveOk() throws QueueException {
-        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.remove(entity.getId());
 
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
-
     }
-
 
     @Test
     public void testCompleteOk() throws QueueException {
-        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
 
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
-
     }
 
     @Test
     public void testPutOk() throws QueueException {
-        WriteOrder entity = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
@@ -164,22 +187,33 @@ public class QueueRepositoryImplTest {
 
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
-
-
-
     }
 
     @Test
     public void testPeekWithPriority() throws QueueException {
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1",
-            1_234_567_890_123L, "digest1", "myArchiveId1", QueueMessageType.WriteOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket1",
+            "myFileBucketId1",
+            "myArchiveId1",
+            1_234_567_890_123L,
+            "digest1",
+            "myArchiveId1",
+            QueueMessageType.WriteOrder
+        );
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L,
-            "digest2", "myArchiveId2", QueueMessageType.WriteOrder);
+        entity = new WriteOrder(
+            "myBucket2",
+            "myFileBucketId2",
+            "myArchiveId2",
+            10L,
+            "digest2",
+            "myArchiveId2",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
@@ -199,16 +233,29 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testPeekWithoutPriority() throws QueueException {
-
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L,
-            "digest1", "myArchiveId1", QueueMessageType.WriteOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket1",
+            "myFileBucketId1",
+            "myArchiveId1",
+            1_234_567_890_123L,
+            "digest1",
+            "myArchiveId1",
+            QueueMessageType.WriteOrder
+        );
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L,
-            "digest2", "myArchiveId2", QueueMessageType.WriteOrder);
+        entity = new WriteOrder(
+            "myBucket2",
+            "myFileBucketId2",
+            "myArchiveId2",
+            10L,
+            "digest2",
+            "myArchiveId2",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
 
         // Then get the first inserted document
@@ -228,25 +275,43 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testPeekWithQueryAndPriority() throws QueueException {
-
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L,
-            "digest1", "myArchiveId1", QueueMessageType.WriteBackupOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket1",
+            "myFileBucketId1",
+            "myArchiveId1",
+            1_234_567_890_123L,
+            "digest1",
+            "myArchiveId1",
+            QueueMessageType.WriteBackupOrder
+        );
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L, "digest2", "myArchiveId2",
-            QueueMessageType.WriteOrder);
+        entity = new WriteOrder(
+            "myBucket2",
+            "myFileBucketId2",
+            "myArchiveId2",
+            10L,
+            "digest2",
+            "myArchiveId2",
+            QueueMessageType.WriteOrder
+        );
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder("myBucket2", "myFileBucketId3", "myArchiveId3", 1_234L, "digest3", "myArchiveId3",
-            QueueMessageType.WriteOrder);
+        entity = new WriteOrder(
+            "myBucket2",
+            "myFileBucketId3",
+            "myArchiveId3",
+            1_234L,
+            "digest3",
+            "myArchiveId3",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
-
-
 
         Bson query = Filters.eq(WriteOrder.BUCKET, "myBucket2");
 
@@ -256,30 +321,47 @@ public class QueueRepositoryImplTest {
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("myBucket2");
         assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId3");
-
     }
 
     @Test
     public void testPeekWithQueryAndWithoutPriority() throws QueueException {
-
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder("myBucket1", "myFileBucketId1", "myArchiveId1", 1_234_567_890_123L,
-            "digest1", "myArchiveId1", QueueMessageType.WriteOrder);
+        WriteOrder entity = new WriteOrder(
+            "myBucket1",
+            "myFileBucketId1",
+            "myArchiveId1",
+            1_234_567_890_123L,
+            "digest1",
+            "myArchiveId1",
+            QueueMessageType.WriteOrder
+        );
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder("myBucket2", "myFileBucketId2", "myArchiveId2", 10L, "digest2", "myArchiveId2",
-            QueueMessageType.WriteOrder);
+        entity = new WriteOrder(
+            "myBucket2",
+            "myFileBucketId2",
+            "myArchiveId2",
+            10L,
+            "digest2",
+            "myArchiveId2",
+            QueueMessageType.WriteOrder
+        );
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder("myBucket2", "myFileBucketId3", "myArchiveId3", 1_234L, "digest3", "myArchiveId3",
-            QueueMessageType.WriteOrder);
+        entity = new WriteOrder(
+            "myBucket2",
+            "myFileBucketId3",
+            "myArchiveId3",
+            1_234L,
+            "digest3",
+            "myArchiveId3",
+            QueueMessageType.WriteOrder
+        );
         queueRepositoryImpl.add(entity);
-
-
 
         Bson query = Filters.eq(WriteOrder.BUCKET, "myBucket2");
 
@@ -289,35 +371,67 @@ public class QueueRepositoryImplTest {
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("myBucket2");
         assertThat(found.get().getArchiveId()).isEqualTo("myArchiveId2");
-
     }
 
     @Test
     public void testCountByStateAndType() throws QueueException {
-
         // Given
-        WriteOrder writeOrder1 = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        WriteOrder writeOrder1 = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteOrder
+        );
         writeOrder1.setState(QueueState.READY);
         queueRepositoryImpl.add(writeOrder1);
 
-        WriteOrder writeOrder2 = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        WriteOrder writeOrder2 = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteOrder
+        );
         writeOrder2.setState(QueueState.READY);
         queueRepositoryImpl.add(writeOrder2);
 
-        WriteOrder writeOrder3 = new WriteOrder("myBucket", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteOrder);
+        WriteOrder writeOrder3 = new WriteOrder(
+            "myBucket",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteOrder
+        );
         writeOrder3.setState(QueueState.ERROR);
         queueRepositoryImpl.add(writeOrder3);
 
-        WriteOrder backupWriteOrder1 = new WriteOrder("backup", "myFileBucketId", "myArchiveId", 1_234_567_890_123L,
-            "digest", "myArchiveId", QueueMessageType.WriteBackupOrder);
+        WriteOrder backupWriteOrder1 = new WriteOrder(
+            "backup",
+            "myFileBucketId",
+            "myArchiveId",
+            1_234_567_890_123L,
+            "digest",
+            "myArchiveId",
+            QueueMessageType.WriteBackupOrder
+        );
         backupWriteOrder1.setState(QueueState.READY);
         queueRepositoryImpl.add(backupWriteOrder1);
 
-        ReadOrder readOrder1 =
-            new ReadOrder("VIT0001", 3, "tarId.tar", "myBucket", "myFileBucketId", 1_234_567_890_123L);
+        ReadOrder readOrder1 = new ReadOrder(
+            "VIT0001",
+            3,
+            "tarId.tar",
+            "myBucket",
+            "myFileBucketId",
+            1_234_567_890_123L
+        );
         readOrder1.setState(QueueState.RUNNING);
         queueRepositoryImpl.add(readOrder1);
 
@@ -325,11 +439,17 @@ public class QueueRepositoryImplTest {
         Map<Pair<QueueState, QueueMessageType>, Integer> stats = queueRepositoryImpl.countByStateAndType();
 
         // Then
-        assertThat(stats).isEqualTo(Map.of(
-            new ImmutablePair<>(QueueState.READY, QueueMessageType.WriteOrder), 2,
-            new ImmutablePair<>(QueueState.ERROR, QueueMessageType.WriteOrder), 1,
-            new ImmutablePair<>(QueueState.READY, QueueMessageType.WriteBackupOrder), 1,
-            new ImmutablePair<>(QueueState.RUNNING, QueueMessageType.ReadOrder), 1
-        ));
+        assertThat(stats).isEqualTo(
+            Map.of(
+                new ImmutablePair<>(QueueState.READY, QueueMessageType.WriteOrder),
+                2,
+                new ImmutablePair<>(QueueState.ERROR, QueueMessageType.WriteOrder),
+                1,
+                new ImmutablePair<>(QueueState.READY, QueueMessageType.WriteBackupOrder),
+                1,
+                new ImmutablePair<>(QueueState.RUNNING, QueueMessageType.ReadOrder),
+                1
+            )
+        );
     }
 }

@@ -49,8 +49,8 @@ import static org.junit.Assert.fail;
  *
  */
 public class GUIDImplTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GUIDImplTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDImplTest.class);
 
     private static final String WRONG_ARK3 = "ark:/1a/aeasppnwoyafrlybkt3kfuyaaaaac";
 
@@ -60,9 +60,7 @@ public class GUIDImplTest {
 
     private static final String WRONG_BYTES =
         "[2, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]";
-    private static final String WRONG_STRING_ID =
-        "02010000000127bdb6760058af0154f6a2d300000001";
-
+    private static final String WRONG_STRING_ID = "02010000000127bdb6760058af0154f6a2d300000001";
 
     private enum FIELDS {
         BASE16,
@@ -83,9 +81,8 @@ public class GUIDImplTest {
         BASE16B,
         BASE32B,
         BASE64B,
-        BASEARKB
+        BASEARKB,
     }
-
 
     private static Properties properties;
 
@@ -109,8 +106,10 @@ public class GUIDImplTest {
             properties.setProperty(FIELDS.HASHCODE.name(), "-2034847754");
             properties.setProperty(FIELDS.ARKNAME.name(), "aeasppnwoyafrlybkt3kfuyaaaaac");
             properties.setProperty(FIELDS.MACFRAGMENT.name(), "[0, 0, 39, -67, -74, 118]");
-            properties.setProperty(FIELDS.BYTES.name(),
-                "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]");
+            properties.setProperty(
+                FIELDS.BYTES.name(),
+                "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]"
+            );
             properties.setProperty(FIELDS.BASE16B.name(), "010100000000a7bdb6760058af0154f6a2d368000001");
             properties.setProperty(FIELDS.BASE32B.name(), "aeaqaaaaact33ntwabmk6aku62rng2aaaaaq");
             properties.setProperty(FIELDS.BASE64B.name(), "AQEAAAAAp722dgBYrwFU9qLTaAAAAQ");
@@ -134,29 +133,18 @@ public class GUIDImplTest {
             fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
             return;
         }
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.COUNTER.name())),
-            guid.getCounter());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.OBJECTID.name())),
-            guid.getObjectId());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.PROCESSID.name())),
-            guid.getProcessId());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.PLATFORMID.name())),
-            guid.getPlatformId());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.TENANTID.name())),
-            guid.getTenantId());
-        assertEquals(Long.parseLong(properties.getProperty(FIELDS.TIMESTAMP.name())),
-            guid.getTimestamp());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.VERSION.name())),
-            guid.getVersion());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.HASHCODE.name())),
-            guid.hashCode());
-        assertEquals(properties.getProperty(FIELDS.ARKNAME.name()),
-            guid.toArkName());
-        byte[] bytes = StringUtils.getBytesFromArraysToString(
-            properties.getProperty(FIELDS.MACFRAGMENT.name()));
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.COUNTER.name())), guid.getCounter());
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.OBJECTID.name())), guid.getObjectId());
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.PROCESSID.name())), guid.getProcessId());
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.PLATFORMID.name())), guid.getPlatformId());
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.TENANTID.name())), guid.getTenantId());
+        assertEquals(Long.parseLong(properties.getProperty(FIELDS.TIMESTAMP.name())), guid.getTimestamp());
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.VERSION.name())), guid.getVersion());
+        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.HASHCODE.name())), guid.hashCode());
+        assertEquals(properties.getProperty(FIELDS.ARKNAME.name()), guid.toArkName());
+        byte[] bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.MACFRAGMENT.name()));
         assertTrue(Arrays.equals(bytes, guid.getMacFragment()));
-        bytes = StringUtils.getBytesFromArraysToString(
-            properties.getProperty(FIELDS.BYTES.name()));
+        bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.BYTES.name()));
         assertTrue(Arrays.equals(bytes, guid.getBytes()));
     }
 
@@ -170,8 +158,7 @@ public class GUIDImplTest {
             final GUIDImpl parsed2 = new GUIDImpl(properties.getProperty(FIELDS.BASE64.name()));
             final GUIDImpl parsed3 = new GUIDImpl(properties.getProperty(FIELDS.BASE16.name()));
             final GUIDImpl parsed4 = new GUIDImpl(properties.getProperty(FIELDS.BASEARK.name()));
-            final byte[] bytes = StringUtils.getBytesFromArraysToString(
-                properties.getProperty(FIELDS.BYTES.name()));
+            final byte[] bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.BYTES.name()));
             final GUIDImpl parsed5 = new GUIDImpl(bytes);
             assertTrue(parsed1.equals(parsed2));
             assertTrue(parsed1.equals(parsed3));

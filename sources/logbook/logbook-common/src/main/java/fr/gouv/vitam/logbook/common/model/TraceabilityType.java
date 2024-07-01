@@ -33,5 +33,5 @@ public enum TraceabilityType {
     OPERATION,
     UNIT_LIFECYCLE,
     OBJECTGROUP_LIFECYCLE,
-    STORAGE
+    STORAGE,
 }

@@ -43,14 +43,13 @@ public final class FunctionalAdministrationReconstructionMetrics {
 
     private static final String TENANT_LABEL = "tenant";
     private static final String COLLECTION_LABEL = "collection";
-    private final static AtomicBoolean isInitialized = new AtomicBoolean(false);
+    private static final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
-    private FunctionalAdministrationReconstructionMetrics() {
-    }
+    private FunctionalAdministrationReconstructionMetrics() {}
 
     public static synchronized void initialize(
-        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache) {
-
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         if (isInitialized.get()) {
             return;
         }
@@ -66,34 +65,31 @@ public final class FunctionalAdministrationReconstructionMetrics {
     }
 
     private static Map<List<String>, Double> collectReconstructionMetrics(
-        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache) {
-
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         Map<List<String>, Double> metricsByLabelValues = new HashMap<>();
 
-        List<FunctionalAdminCollections> supportedCollections =
-            List.of(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC);
+        List<FunctionalAdminCollections> supportedCollections = List.of(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC
+        );
 
         for (FunctionalAdminCollections collection : supportedCollections) {
             for (Integer tenant : VitamConfiguration.getTenants()) {
-
-                Duration durationSinceLastReconstruction = reconstructionMetricsCache.
-                    getReconstructionLatency(collection, tenant);
-
-                List<String> labelValues = List.of(
-                    Integer.toString(tenant),
-                    collection.getName().toLowerCase()
+                Duration durationSinceLastReconstruction = reconstructionMetricsCache.getReconstructionLatency(
+                    collection,
+                    tenant
                 );
+
+                List<String> labelValues = List.of(Integer.toString(tenant), collection.getName().toLowerCase());
 
                 metricsByLabelValues.put(labelValues, getReconstructionLatency(durationSinceLastReconstruction));
             }
-
         }
         return metricsByLabelValues;
     }
 
     private static double getReconstructionLatency(Duration durationSinceLastReconstruction) {
-
         // Returns :
         //   - Actual latency (in seconds) when available (eg. 100 seconds)
         //   - +∞ (positive infinity) when no latency information is available for current functional-admin instance (reconstruction is KO, server just restarted, reconstruction happened on other instances...)
@@ -103,8 +99,8 @@ public final class FunctionalAdministrationReconstructionMetrics {
         //   - `min by (tenant) (vitam_functional_administration_reconstruction_latency_seconds{labels})`: Tenant aggregated reconstruction latency (across functional-admin instances)
         //   - `max (min by (tenant) (vitam_functional_administration_reconstruction_latency_seconds{labels}))`: Global aggregated reconstruction latency
 
-        return durationSinceLastReconstruction == null ?
-            Double.POSITIVE_INFINITY :
-            Math.max(0.0, durationSinceLastReconstruction.toSeconds());
+        return durationSinceLastReconstruction == null
+            ? Double.POSITIVE_INFINITY
+            : Math.max(0.0, durationSinceLastReconstruction.toSeconds());
     }
 }

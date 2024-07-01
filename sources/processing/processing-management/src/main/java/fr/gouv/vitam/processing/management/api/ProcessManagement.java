@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.processing.management.api;
 
-
-
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -45,17 +43,12 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import java.util.List;
 import java.util.Map;
 
-
-
 /**
  * ProcessManagement interface
  *
  * This service will be invoked by Ingest Module
  */
 public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable {
-
-
-
     /**
      * Init a new process workflow
      *
@@ -75,8 +68,8 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * @throws ProcessingException if next could not be applied
      * @throws StateNotAllowedException if the process state is incorrect
      */
-    ItemStatus next(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
-        StateNotAllowedException;
+    ItemStatus next(WorkerParameters workerParameters, Integer tenantId)
+        throws ProcessingException, StateNotAllowedException;
 
     /**
      * Handle a replay action for the corresponding process workflow
@@ -87,8 +80,8 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * @throws ProcessingException if replay could not be applied
      * @throws StateNotAllowedException if the process state is incorrect
      */
-    ItemStatus replay(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
-        StateNotAllowedException;
+    ItemStatus replay(WorkerParameters workerParameters, Integer tenantId)
+        throws ProcessingException, StateNotAllowedException;
 
     /**
      * Handle a resume action for the corresponding process workflow
@@ -143,7 +136,6 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      */
     ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId);
 
-
     /**
      * Retrieve the loaded workflow definitions
      *
@@ -191,13 +183,10 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      */
     void removeForcePause(ProcessPause pause) throws ProcessingException;
 
-
-
     /**
      * Add a forced pause on the tenant and/or the type of process
      *
      * @param pause
      */
     void forcePause(ProcessPause pause) throws ProcessingException;
-
 }

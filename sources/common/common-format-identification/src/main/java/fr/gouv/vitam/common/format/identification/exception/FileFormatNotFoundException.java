@@ -60,4 +60,3 @@ public class FileFormatNotFoundException extends VitamException {
         super(messsage, cause);
     }
 }
-

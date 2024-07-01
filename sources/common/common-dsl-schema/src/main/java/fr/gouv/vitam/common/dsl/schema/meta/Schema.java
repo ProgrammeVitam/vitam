@@ -32,6 +32,7 @@ import java.util.Map;
  * DSL Schema Class
  */
 public class Schema {
+
     private Map<String, Format> definitions;
 
     protected Schema(Map<String, Format> definitions) {

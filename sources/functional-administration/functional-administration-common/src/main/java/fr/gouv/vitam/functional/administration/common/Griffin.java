@@ -35,8 +35,7 @@ import org.bson.Document;
  */
 public class Griffin extends VitamDocument<Griffin> {
 
-    public Griffin() {
-    }
+    public Griffin() {}
 
     public Griffin(JsonNode content) {
         super(content);

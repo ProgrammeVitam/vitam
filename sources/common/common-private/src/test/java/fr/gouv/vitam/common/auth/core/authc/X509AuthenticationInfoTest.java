@@ -41,9 +41,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class X509AuthenticationInfoTest {
+
     private X509Certificate cert;
 
-    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
+    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
     BigInteger serial = new BigInteger("1000000000000000");
     Principal value = null;
 

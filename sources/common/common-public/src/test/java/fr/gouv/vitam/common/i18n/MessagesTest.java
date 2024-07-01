@@ -77,5 +77,4 @@ public class MessagesTest {
         assertEquals("OK avec des accentués et d'apostrophe éèàùôî !", mesg3);
         assertNotNull(messages.getAllMessages());
     }
-
 }

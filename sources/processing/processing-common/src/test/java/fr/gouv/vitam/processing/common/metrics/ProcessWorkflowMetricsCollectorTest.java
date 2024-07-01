@@ -45,7 +45,6 @@ public class ProcessWorkflowMetricsCollectorTest {
 
     @Test
     public void test_collect_metrics_from_empty_map() {
-
         ProcessWorkflowMetricsCollector processWorkflowMetricsCollector = ProcessWorkflowMetricsCollector.getInstance();
         processWorkflowMetricsCollector.initialize(new ConcurrentHashMap<>());
         assertThat(processWorkflowMetricsCollector.collect().iterator().hasNext()).isTrue();
@@ -54,7 +53,6 @@ public class ProcessWorkflowMetricsCollectorTest {
 
     @Test
     public void test_collect_metrics_from_not_map() {
-
         ConcurrentHashMap<Integer, Map<String, ProcessWorkflow>> workflowMap = new ConcurrentHashMap<>();
 
         HashMap<String, ProcessWorkflow> tenant_0_workflow = new HashMap<>();
@@ -62,39 +60,66 @@ public class ProcessWorkflowMetricsCollectorTest {
         workflowMap.put(0, tenant_0_workflow);
         workflowMap.put(1, tenant_1_workflow);
 
-        tenant_0_workflow
-            .put("op_0_1", new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.WARNING, ProcessState.RUNNING));
-        tenant_0_workflow
-            .put("op_0_2", new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.FATAL, ProcessState.PAUSE));
-        tenant_0_workflow
-            .put("op_0_3", new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.OK, ProcessState.COMPLETED));
-        tenant_0_workflow
-            .put("op_0_4", new ProcessWorkflow(LogbookTypeProcess.AUDIT, StatusCode.WARNING, ProcessState.RUNNING));
-        tenant_0_workflow
-            .put("op_0_5", new ProcessWorkflow(LogbookTypeProcess.TRACEABILITY, StatusCode.FATAL, ProcessState.PAUSE));
-        tenant_0_workflow
-            .put("op_0_6", new ProcessWorkflow(LogbookTypeProcess.ELIMINATION, StatusCode.OK, ProcessState.COMPLETED));
+        tenant_0_workflow.put(
+            "op_0_1",
+            new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.WARNING, ProcessState.RUNNING)
+        );
+        tenant_0_workflow.put(
+            "op_0_2",
+            new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.FATAL, ProcessState.PAUSE)
+        );
+        tenant_0_workflow.put(
+            "op_0_3",
+            new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.OK, ProcessState.COMPLETED)
+        );
+        tenant_0_workflow.put(
+            "op_0_4",
+            new ProcessWorkflow(LogbookTypeProcess.AUDIT, StatusCode.WARNING, ProcessState.RUNNING)
+        );
+        tenant_0_workflow.put(
+            "op_0_5",
+            new ProcessWorkflow(LogbookTypeProcess.TRACEABILITY, StatusCode.FATAL, ProcessState.PAUSE)
+        );
+        tenant_0_workflow.put(
+            "op_0_6",
+            new ProcessWorkflow(LogbookTypeProcess.ELIMINATION, StatusCode.OK, ProcessState.COMPLETED)
+        );
 
-        tenant_1_workflow
-            .put("op_1_1", new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.OK, ProcessState.RUNNING));
-        tenant_1_workflow
-            .put("op_1_2", new ProcessWorkflow(LogbookTypeProcess.CHECK, StatusCode.FATAL, ProcessState.PAUSE));
-        tenant_1_workflow
-            .put("op_1_3", new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.OK, ProcessState.COMPLETED));
-        tenant_1_workflow
-            .put("op_1_4", new ProcessWorkflow(LogbookTypeProcess.AUDIT, StatusCode.WARNING, ProcessState.RUNNING));
-        tenant_1_workflow
-            .put("op_1_5", new ProcessWorkflow(LogbookTypeProcess.TRACEABILITY, StatusCode.FATAL, ProcessState.PAUSE));
-        tenant_1_workflow
-            .put("op_1_6", new ProcessWorkflow(LogbookTypeProcess.ELIMINATION, StatusCode.OK, ProcessState.COMPLETED));
+        tenant_1_workflow.put(
+            "op_1_1",
+            new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.OK, ProcessState.RUNNING)
+        );
+        tenant_1_workflow.put(
+            "op_1_2",
+            new ProcessWorkflow(LogbookTypeProcess.CHECK, StatusCode.FATAL, ProcessState.PAUSE)
+        );
+        tenant_1_workflow.put(
+            "op_1_3",
+            new ProcessWorkflow(LogbookTypeProcess.INGEST, StatusCode.OK, ProcessState.COMPLETED)
+        );
+        tenant_1_workflow.put(
+            "op_1_4",
+            new ProcessWorkflow(LogbookTypeProcess.AUDIT, StatusCode.WARNING, ProcessState.RUNNING)
+        );
+        tenant_1_workflow.put(
+            "op_1_5",
+            new ProcessWorkflow(LogbookTypeProcess.TRACEABILITY, StatusCode.FATAL, ProcessState.PAUSE)
+        );
+        tenant_1_workflow.put(
+            "op_1_6",
+            new ProcessWorkflow(LogbookTypeProcess.ELIMINATION, StatusCode.OK, ProcessState.COMPLETED)
+        );
 
         ProcessWorkflowMetricsCollector processWorkflowMetricsCollector = ProcessWorkflowMetricsCollector.getInstance();
         processWorkflowMetricsCollector.initialize(workflowMap);
 
         assertThat(processWorkflowMetricsCollector.collect()).hasSize(1);
         assertThat(processWorkflowMetricsCollector.collect().iterator().hasNext()).isTrue();
-        List<Collector.MetricFamilySamples.Sample> samples =
-            processWorkflowMetricsCollector.collect().iterator().next().samples;
+        List<Collector.MetricFamilySamples.Sample> samples = processWorkflowMetricsCollector
+            .collect()
+            .iterator()
+            .next()
+            .samples;
         assertThat(samples).hasSize(8);
 
         assertThat(samples.get(0).labelValues).contains("INGEST", "PAUSE", "FATAL");

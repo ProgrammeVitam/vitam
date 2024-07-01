@@ -44,8 +44,7 @@ public class FunctionalAdminIndexationConfiguration {
     private CollectionConfiguration defaultConfiguration;
 
     @JsonIgnore
-    private final Map<FunctionalAdminCollections, CollectionConfiguration> collectionConfigurationMap
-        = new HashMap<>();
+    private final Map<FunctionalAdminCollections, CollectionConfiguration> collectionConfigurationMap = new HashMap<>();
 
     public FunctionalAdminIndexationConfiguration() {
         // Default constructor for deserialization
@@ -53,11 +52,9 @@ public class FunctionalAdminIndexationConfiguration {
 
     @JsonAnyGetter
     public Map<String, CollectionConfiguration> getCollectionConfigurationMap() {
-        return this.collectionConfigurationMap.entrySet().stream()
-            .collect(Collectors.toMap(
-                entry -> entry.getKey().getName().toLowerCase(),
-                Map.Entry::getValue
-            ));
+        return this.collectionConfigurationMap.entrySet()
+            .stream()
+            .collect(Collectors.toMap(entry -> entry.getKey().getName().toLowerCase(), Map.Entry::getValue));
     }
 
     @JsonAnySetter
@@ -73,7 +70,9 @@ public class FunctionalAdminIndexationConfiguration {
 
     @JsonIgnore
     public FunctionalAdminIndexationConfiguration setCollectionConfiguration(
-        FunctionalAdminCollections functionalAdminCollection, CollectionConfiguration propertyValue) {
+        FunctionalAdminCollections functionalAdminCollection,
+        CollectionConfiguration propertyValue
+    ) {
         this.collectionConfigurationMap.put(functionalAdminCollection, propertyValue);
         return this;
     }
@@ -88,16 +87,21 @@ public class FunctionalAdminIndexationConfiguration {
     }
 
     public FunctionalAdminIndexationConfiguration setDefaultConfiguration(
-        CollectionConfiguration defaultConfiguration) {
+        CollectionConfiguration defaultConfiguration
+    ) {
         this.defaultConfiguration = defaultConfiguration;
         return this;
     }
 
     @Override
     public String toString() {
-        return "FunctionalAdminIndexationConfiguration{" +
-            "defaultConfiguration=" + defaultConfiguration +
-            ", collectionConfigurationMap=" + collectionConfigurationMap +
-            '}';
+        return (
+            "FunctionalAdminIndexationConfiguration{" +
+            "defaultConfiguration=" +
+            defaultConfiguration +
+            ", collectionConfigurationMap=" +
+            collectionConfigurationMap +
+            '}'
+        );
     }
 }

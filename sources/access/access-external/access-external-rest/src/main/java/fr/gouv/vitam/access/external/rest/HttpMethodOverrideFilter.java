@@ -39,6 +39,7 @@ import java.io.IOException;
 @PreMatching
 @Priority(Priorities.HEADER_DECORATOR + 50) // must go after UriConnegFilter (if present)
 public class HttpMethodOverrideFilter implements ContainerRequestFilter {
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         String header = requestContext.getHeaderString(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);

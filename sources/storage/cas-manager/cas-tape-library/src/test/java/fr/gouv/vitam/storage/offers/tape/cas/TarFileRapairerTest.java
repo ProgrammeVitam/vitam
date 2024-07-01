@@ -77,7 +77,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateEmptyTarFileWithoutFooter() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -89,8 +88,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             assertThat(tarFilePath.toFile().length()).isEqualTo(0);
@@ -100,19 +102,20 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateEmptyTarFile() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-
             tarAppender.close();
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             assertThat(tarFilePath.toFile().length()).isEqualTo(FOOTER_PADDING_SIZE);
@@ -122,7 +125,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateSingleEntryTarFile() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -131,14 +133,16 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
@@ -147,7 +151,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateSingleMultipleEntries() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -158,14 +161,16 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
@@ -174,7 +179,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateSingleEntryWithoutFooter() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -183,16 +187,18 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.flush();
             // No close
             // tarAppender.close();
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
@@ -201,7 +207,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateIncompleteFirstEntryHeader() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -218,8 +223,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap(), digestWithSize);
@@ -228,7 +236,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateIncompleteFirstEntryContent() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -237,8 +244,7 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // Truncate entry content
@@ -246,8 +252,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap(), digestWithSize);
@@ -256,7 +265,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateIncompleteFirstEntryContentPadding() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -265,8 +273,7 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // Truncate entry content
@@ -274,8 +281,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
@@ -284,7 +294,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateMultipleEntriesWithoutFooter() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -295,16 +304,18 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.flush();
             // No close
             // tarAppender.close();
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
@@ -313,7 +324,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateIncompleteLastEntryHeader() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -324,8 +334,7 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // Truncate last entry header
@@ -333,8 +342,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
@@ -350,7 +362,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateIncompleteLastEntryContent() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -361,8 +372,7 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // Truncate last entry content
@@ -370,8 +380,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
@@ -387,7 +400,6 @@ public class TarFileRapairerTest {
 
     @Test
     public void repairAndValidateIncompleteLastEntryContentPadding() throws Exception {
-
         // Given
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
@@ -398,8 +410,7 @@ public class TarFileRapairerTest {
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-            Map<String, TarEntryDescription> entryDescriptions =
-                appendEntries(entries, tarAppender);
+            Map<String, TarEntryDescription> entryDescriptions = appendEntries(entries, tarAppender);
             tarAppender.close();
 
             // Truncate last entry content padding
@@ -407,8 +418,11 @@ public class TarFileRapairerTest {
 
             // When
             Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-            TarFileRapairer.DigestWithSize digestWithSize =
-                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
+            TarFileRapairer.DigestWithSize digestWithSize = repairAndVerify(
+                tarFilePath,
+                tarFileRapairer,
+                repairedTarFilePath
+            );
 
             // Then
             verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
@@ -420,32 +434,41 @@ public class TarFileRapairerTest {
         Map<String, TarEntryDescription> entryDescriptions = new HashMap<>();
         for (String entryName : entries.keySet()) {
             TarEntryDescription entryDescription = tarAppender.append(
-                entryName, new ByteArrayInputStream(entries.get(entryName)), entries.get(entryName).length);
+                entryName,
+                new ByteArrayInputStream(entries.get(entryName)),
+                entries.get(entryName).length
+            );
             entryDescriptions.put(entryName, entryDescription);
         }
         return entryDescriptions;
     }
 
-    private TarFileRapairer.DigestWithSize repairAndVerify(Path tarFilePath, TarFileRapairer tarFileRapairer,
-        Path repairedTarFilePath)
-        throws IOException, ObjectReferentialException {
+    private TarFileRapairer.DigestWithSize repairAndVerify(
+        Path tarFilePath,
+        TarFileRapairer tarFileRapairer,
+        Path repairedTarFilePath
+    ) throws IOException, ObjectReferentialException {
         TarFileRapairer.DigestWithSize digestWithSize;
-        try (InputStream inputStream = Files.newInputStream(tarFilePath);
-            OutputStream outputStream = Files.newOutputStream(repairedTarFilePath)) {
+        try (
+            InputStream inputStream = Files.newInputStream(tarFilePath);
+            OutputStream outputStream = Files.newOutputStream(repairedTarFilePath)
+        ) {
             digestWithSize = tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, TAR_FILE_ID);
             outputStream.flush();
         }
         return digestWithSize;
     }
 
-
-    private void verifyTarContent(Path repairedTarFilePath, Map<String, byte[]> entries,
+    private void verifyTarContent(
+        Path repairedTarFilePath,
+        Map<String, byte[]> entries,
         Map<String, TarEntryDescription> entryDescriptions,
-        TarFileRapairer.DigestWithSize digestWithSize) throws IOException, ObjectReferentialException {
-
+        TarFileRapairer.DigestWithSize digestWithSize
+    ) throws IOException, ObjectReferentialException {
         assertThat(digestWithSize.getSize()).isEqualTo(repairedTarFilePath.toFile().length());
-        assertThat(digestWithSize.getDigestValue())
-            .isEqualTo(new Digest(DigestType.SHA512).update(repairedTarFilePath.toFile()).digestHex());
+        assertThat(digestWithSize.getDigestValue()).isEqualTo(
+            new Digest(DigestType.SHA512).update(repairedTarFilePath.toFile()).digestHex()
+        );
 
         verifyTarContent(repairedTarFilePath, entries);
 
@@ -464,21 +487,22 @@ public class TarFileRapairerTest {
         int expectedSize = 0;
         for (byte[] entryContent : entries.values()) {
             // Add header record + content records padded to record size
-            expectedSize += TarConstants.DEFAULT_RCDSIZE +
-                (entryContent.length + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE *
-                    TarConstants.DEFAULT_RCDSIZE;
+            expectedSize +=
+            TarConstants.DEFAULT_RCDSIZE +
+            ((entryContent.length + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE) *
+                TarConstants.DEFAULT_RCDSIZE;
         }
         // Add footer records (2 0-filled records)
         expectedSize += FOOTER_PADDING_SIZE;
         assertThat(repairedTarFilePath.toFile().length()).isEqualTo(expectedSize);
     }
 
-    private void verifyTarContent(Path repairedTarFilePath, Map<String, byte[]> entries)
-        throws IOException {
-
-        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
-            Files.newInputStream(repairedTarFilePath))) {
-
+    private void verifyTarContent(Path repairedTarFilePath, Map<String, byte[]> entries) throws IOException {
+        try (
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
+                Files.newInputStream(repairedTarFilePath)
+            )
+        ) {
             for (String entryName : entries.keySet()) {
                 InputStream expectedContent = new ByteArrayInputStream(entries.get(entryName));
 

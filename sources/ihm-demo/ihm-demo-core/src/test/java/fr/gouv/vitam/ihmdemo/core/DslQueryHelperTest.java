@@ -59,6 +59,7 @@ import static org.junit.Assert.assertTrue;
  * DslQueryHelper junit test
  */
 public class DslQueryHelperTest {
+
     private static final String ACCESSION_REGISTER = "ACCESSIONREGISTER";
     public static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String RULES = "RULES";
@@ -66,23 +67,25 @@ public class DslQueryHelperTest {
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
 
     private static final String result =
-        "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
-            "{\"$match\":{\"Name\":\"Name\"}},{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
-            "{\"$exists\":\"PUID\"},{\"$or\":[{\"$eq\":{\"evTypeProc\":\"INGEST\"}},{\"$eq\":{\"evTypeProc\":\"INGEST_TEST\"}}]}," +
-            "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" +
-            "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
-            "\tProjection: {}";
+        "QUERY: Requests: " +
+        "{\"$and\":[" +
+        "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
+        "{\"$match\":{\"Name\":\"Name\"}},{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
+        "{\"$exists\":\"PUID\"},{\"$or\":[{\"$eq\":{\"evTypeProc\":\"INGEST\"}},{\"$eq\":{\"evTypeProc\":\"INGEST_TEST\"}}]}," +
+        "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" +
+        "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
+        "\tProjection: {}";
 
     private static final String result2 =
-        "QUERY: Requests: " + "{\"$and\":[{\"$exists\":\"evTypeProc\"},{\"$exists\":\"evIdProc\"}]}\n" +
-            "\tFilter: {\"$limit\":10000}\n" +
-            "\tProjection: {}";
+        "QUERY: Requests: " +
+        "{\"$and\":[{\"$exists\":\"evTypeProc\"},{\"$exists\":\"evIdProc\"}]}\n" +
+        "\tFilter: {\"$limit\":10000}\n" +
+        "\tProjection: {}";
 
     private DslQueryHelper dslQueryHelper = DslQueryHelper.getInstance();
 
     @BeforeClass
-    public static void setup() throws Exception {
-    }
+    public static void setup() throws Exception {}
 
     /**
      * Tests createLogBookSelectDSLQuery method : main scenario
@@ -91,13 +94,10 @@ public class DslQueryHelperTest {
      * @throws InvalidParseOperationException
      */
     @Test
-    public void testCreateSingleQueryDSL()
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-
+    public void testCreateSingleQueryDSL() throws InvalidCreateOperationException, InvalidParseOperationException {
         final HashMap<String, Object> myHashMap = new HashMap();
         myHashMap.put("title", "Archive2");
         myHashMap.put("date", "2006-03-05");
-
 
         final HashMap<String, String> sortSetting = new HashMap();
         sortSetting.put("field", "evDateTime");
@@ -121,8 +121,7 @@ public class DslQueryHelperTest {
      * @throws InvalidCreateOperationException
      */
     @Test
-    public void testCreateSingleQueryDSLEvent()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testCreateSingleQueryDSLEvent() throws InvalidParseOperationException, InvalidCreateOperationException {
         final HashMap<String, Object> myHashMap = new HashMap();
 
         myHashMap.put("EventID", "all");
@@ -133,7 +132,6 @@ public class DslQueryHelperTest {
         request2.parse(request);
         assertEquals(result2, request2.toString());
         System.out.println(request2.toString());
-
     }
 
     @Test
@@ -164,56 +162,129 @@ public class DslQueryHelperTest {
     }
 
     @Test
-    public void testCreateFacetDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testCreateFacetDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         List<FacetDateRangeItem> ranges = Arrays.asList(new FacetDateRangeItem("800", "2018"));
         queryMap.put("titleAndDescription", "Arch");
 
         // Title filters
-        List<FacetFiltersItem> titlesfilters =
-            Arrays.asList(new FacetFiltersItem("title_fr", QueryHelper.exists("Title_.fr").getCurrentObject()),
-                new FacetFiltersItem("title_en", QueryHelper.exists("Title_.en").getCurrentObject())
-            );
+        List<FacetFiltersItem> titlesfilters = Arrays.asList(
+            new FacetFiltersItem("title_fr", QueryHelper.exists("Title_.fr").getCurrentObject()),
+            new FacetFiltersItem("title_en", QueryHelper.exists("Title_.en").getCurrentObject())
+        );
 
         // Description filters
-        List<FacetFiltersItem> descriptionfilters = Arrays
-            .asList(new FacetFiltersItem("Description_fr", QueryHelper.exists("Description_.fr").getCurrentObject()),
-                new FacetFiltersItem("Description_en", QueryHelper.exists("Description_.en").getCurrentObject())
-            );
+        List<FacetFiltersItem> descriptionfilters = Arrays.asList(
+            new FacetFiltersItem("Description_fr", QueryHelper.exists("Description_.fr").getCurrentObject()),
+            new FacetFiltersItem("Description_en", QueryHelper.exists("Description_.en").getCurrentObject())
+        );
 
         // object filters
-        List<FacetFiltersItem> objectfilters = Arrays
-            .asList(new FacetFiltersItem("ExistsObject", QueryHelper.exists("#object").getCurrentObject()),
-                new FacetFiltersItem("MissingObject", QueryHelper.missing("#object").getCurrentObject())
-            );
+        List<FacetFiltersItem> objectfilters = Arrays.asList(
+            new FacetFiltersItem("ExistsObject", QueryHelper.exists("#object").getCurrentObject()),
+            new FacetFiltersItem("MissingObject", QueryHelper.missing("#object").getCurrentObject())
+        );
 
         List<FacetItem> facetItems = Arrays.asList(
-            new FacetItem("NestedFacet", FacetType.TERMS, "#qualifiers.versions.FormatIdentification.FormatLitteral",
-                100, FacetOrder.ASC, null,
-                null, null, Optional.empty()),
-            new FacetItem("DescriptionLevelFacet", FacetType.TERMS, "DescriptionLevel", 100, FacetOrder.ASC, null,
-                null, null, Optional.empty()),
-            new FacetItem("OriginatingAgencyFacet", FacetType.TERMS, "#originating_agency", 100, FacetOrder.ASC, null,
-                null, null, Optional.empty()),
-
-            new FacetItem("StartDateFacet", FacetType.DATE_RANGE, "StartDate", null, null, "yyyy", ranges, null,
-                Optional.empty()),
-            new FacetItem("endDateFacet", FacetType.DATE_RANGE, "EndDate", null, null, "yyyy", ranges, null,
-                Optional.empty()),
-
-            new FacetItem("LanguageTitleFacet", FacetType.FILTERS, null, null, null, null, null, titlesfilters,
-                Optional.empty()),
-
-            new FacetItem("LanguageFacet", FacetType.TERMS, "Language", 100, FacetOrder.ASC, null,
-                null, null, Optional.empty()),
-
-            new FacetItem("LanguageDescFacet", FacetType.FILTERS, null, null, null, null, null, descriptionfilters,
-                Optional.empty()),
-
-            new FacetItem("ObjectFacet", FacetType.FILTERS, null, null, null, null, null, objectfilters,
-                Optional.empty())
-
+            new FacetItem(
+                "NestedFacet",
+                FacetType.TERMS,
+                "#qualifiers.versions.FormatIdentification.FormatLitteral",
+                100,
+                FacetOrder.ASC,
+                null,
+                null,
+                null,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "DescriptionLevelFacet",
+                FacetType.TERMS,
+                "DescriptionLevel",
+                100,
+                FacetOrder.ASC,
+                null,
+                null,
+                null,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "OriginatingAgencyFacet",
+                FacetType.TERMS,
+                "#originating_agency",
+                100,
+                FacetOrder.ASC,
+                null,
+                null,
+                null,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "StartDateFacet",
+                FacetType.DATE_RANGE,
+                "StartDate",
+                null,
+                null,
+                "yyyy",
+                ranges,
+                null,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "endDateFacet",
+                FacetType.DATE_RANGE,
+                "EndDate",
+                null,
+                null,
+                "yyyy",
+                ranges,
+                null,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "LanguageTitleFacet",
+                FacetType.FILTERS,
+                null,
+                null,
+                null,
+                null,
+                null,
+                titlesfilters,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "LanguageFacet",
+                FacetType.TERMS,
+                "Language",
+                100,
+                FacetOrder.ASC,
+                null,
+                null,
+                null,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "LanguageDescFacet",
+                FacetType.FILTERS,
+                null,
+                null,
+                null,
+                null,
+                null,
+                descriptionfilters,
+                Optional.empty()
+            ),
+            new FacetItem(
+                "ObjectFacet",
+                FacetType.FILTERS,
+                null,
+                null,
+                null,
+                null,
+                null,
+                objectfilters,
+                Optional.empty()
+            )
         );
 
         queryMap.put("facets", facetItems);
@@ -237,33 +308,104 @@ public class DslQueryHelperTest {
 
         assertTrue(selectParser.getRequest().getFacets().size() == 9);
 
-        assertTrue(selectParser.getRequest().getFacets().get(0).toString().contains(
-            "{\"$name\":\"NestedFacet\",\"$terms\":{\"$field\":\"#qualifiers.versions.FormatIdentification.FormatLitteral\",\"$subobject\":\"#qualifiers.versions\",\"$size\":100,\"$order\":\"ASC\"}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(0)
+                .toString()
+                .contains(
+                    "{\"$name\":\"NestedFacet\",\"$terms\":{\"$field\":\"#qualifiers.versions.FormatIdentification.FormatLitteral\",\"$subobject\":\"#qualifiers.versions\",\"$size\":100,\"$order\":\"ASC\"}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(1).toString().contains(
-            "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(1)
+                .toString()
+                .contains(
+                    "{\"$name\":\"DescriptionLevelFacet\",\"$terms\":{\"$field\":\"DescriptionLevel\",\"$size\":100,\"$order\":\"ASC\"}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(2).toString().contains(
-            "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(2)
+                .toString()
+                .contains(
+                    "{\"$name\":\"OriginatingAgencyFacet\",\"$terms\":{\"$field\":\"#originating_agency\",\"$size\":100,\"$order\":\"ASC\"}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(3).toString().contains(
-            "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(3)
+                .toString()
+                .contains(
+                    "{\"$name\":\"StartDateFacet\",\"$date_range\":{\"$field\":\"StartDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(4).toString().contains(
-            "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(4)
+                .toString()
+                .contains(
+                    "{\"$name\":\"endDateFacet\",\"$date_range\":{\"$field\":\"EndDate\",\"$format\":\"yyyy\",\"$ranges\":[{\"$from\":\"800\",\"$to\":\"2018\"}]}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(5).toString().contains(
-            "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(5)
+                .toString()
+                .contains(
+                    "{\"$name\":\"LanguageTitleFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"title_fr\",\"$query\":{\"$exists\":\"Title_.fr\"}},{\"$name\":\"title_en\",\"$query\":{\"$exists\":\"Title_.en\"}}]}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(6).toString().contains(
-            "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(6)
+                .toString()
+                .contains(
+                    "{\"$name\":\"LanguageFacet\",\"$terms\":{\"$field\":\"Language\",\"$size\":100,\"$order\":\"ASC\"}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(7).toString().contains(
-            "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"));
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(7)
+                .toString()
+                .contains(
+                    "{\"$name\":\"LanguageDescFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"Description_fr\",\"$query\":{\"$exists\":\"Description_.fr\"}},{\"$name\":\"Description_en\",\"$query\":{\"$exists\":\"Description_.en\"}}]}}"
+                )
+        );
 
-        assertTrue(selectParser.getRequest().getFacets().get(8).toString().contains(
-            "{\"$name\":\"ObjectFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"ExistsObject\",\"$query\":{\"$exists\":\"#object\"}},{\"$name\":\"MissingObject\",\"$query\":{\"$missing\":\"#object\"}}]}}"));
-
+        assertTrue(
+            selectParser
+                .getRequest()
+                .getFacets()
+                .get(8)
+                .toString()
+                .contains(
+                    "{\"$name\":\"ObjectFacet\",\"$filters\":{\"$query_filters\":[{\"$name\":\"ExistsObject\",\"$query\":{\"$exists\":\"#object\"}},{\"$name\":\"MissingObject\",\"$query\":{\"$missing\":\"#object\"}}]}}"
+                )
+        );
     }
 
     @Test
@@ -362,7 +504,6 @@ public class DslQueryHelperTest {
         assertTrue(updateParser.getRequest().getActions().size() == 2);
         assertTrue(updateParser.getRequest().getQueries().isEmpty());
         assertTrue(updateParser.getRequest().getRoots().isEmpty());
-
     }
 
     /**
@@ -407,8 +548,7 @@ public class DslQueryHelperTest {
      * @throws InvalidCreateOperationException
      */
     @Test
-    public void testFundsRegisterDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testFundsRegisterDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(ACCESSION_REGISTER, "");
 
@@ -434,7 +574,6 @@ public class DslQueryHelperTest {
         assertTrue(selectParser2.getRequest().getFilter().get("$orderby") == null);
     }
 
-
     /**
      * Tests testRulesDSLQuery: method : main scenario
      *
@@ -442,8 +581,7 @@ public class DslQueryHelperTest {
      * @throws InvalidCreateOperationException
      */
     @Test
-    public void testRulesDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testRulesDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(RULES, "");
 
@@ -488,8 +626,7 @@ public class DslQueryHelperTest {
      * @throws InvalidCreateOperationException
      */
     @Test
-    public void testTraceabilityDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testTraceabilityDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "traceability");
 
@@ -540,8 +677,7 @@ public class DslQueryHelperTest {
      * @throws InvalidCreateOperationException
      */
     @Test
-    public void testIngestDateDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public void testIngestDateDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "INGEST");
 
@@ -596,6 +732,7 @@ public class DslQueryHelperTest {
 
         // Then
         assertThat(query.get("$query").toString()).isEqualTo(
-            "{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"RATP\"}},{\"$range\":{\"CreationDate\":{\"$gte\":\"2018-10-02T15:38:29.900\",\"$lte\":\"2018-10-02T15:38:42.547\"}}}]}");
+            "{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"RATP\"}},{\"$range\":{\"CreationDate\":{\"$gte\":\"2018-10-02T15:38:29.900\",\"$lte\":\"2018-10-02T15:38:42.547\"}}}]}"
+        );
     }
 }

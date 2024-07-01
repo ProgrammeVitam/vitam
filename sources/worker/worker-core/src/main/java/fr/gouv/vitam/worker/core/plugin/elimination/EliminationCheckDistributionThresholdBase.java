@@ -64,7 +64,6 @@ public abstract class EliminationCheckDistributionThresholdBase extends ActionHa
     }
 
     protected ItemStatus checkThreshold(HandlerIO handler, long defaultThreshold, String action) {
-
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
             // get initial query string
             EliminationRequestBody eliminationRequestBody = loadRequestJsonFromWorkspace(handler);
@@ -99,14 +98,22 @@ public abstract class EliminationCheckDistributionThresholdBase extends ActionHa
                 return buildItemStatus(action, StatusCode.KO, eventDetails);
             } else if (total > defaultThreshold) {
                 EliminationEventDetails eventDetails = new EliminationEventDetails()
-                    .setWarning("Unit count exceeds default threshold. Default threshold=" + defaultThreshold
-                        + ", found=" + total);
+                    .setWarning(
+                        "Unit count exceeds default threshold. Default threshold=" +
+                        defaultThreshold +
+                        ", found=" +
+                        total
+                    );
                 return buildItemStatus(action, StatusCode.WARNING, eventDetails);
             } else {
                 return buildItemStatus(action, StatusCode.OK, null);
             }
-
-        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+        } catch (
+            InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException e
+        ) {
             LOGGER.error(e);
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError("An error occurred during elimination distribution check");

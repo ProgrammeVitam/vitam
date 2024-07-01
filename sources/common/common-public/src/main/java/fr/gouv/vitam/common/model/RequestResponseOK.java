@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * Access RequestResponseOK class contains list of results<br>
  * default results : is an empty list (immutable)
@@ -70,10 +69,13 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     @JsonProperty(TAG_HITS)
     private DatabaseCursor hits;
+
     @JsonProperty(TAG_RESULTS)
     private final List<T> results;
+
     @JsonProperty(TAG_FACET_RESULTS)
     private final List<FacetResult> facetResults;
+
     @JsonProperty(TAG_CONTEXT)
     private JsonNode query;
 
@@ -184,7 +186,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         return this;
     }
 
-
     /**
      * @return the hits of RequestResponseOK object
      */
@@ -214,7 +215,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         return this;
     }
 
-
     /**
      * @param total of units inserted/modified as integer
      * @param offset of unit in database as integer
@@ -239,7 +239,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         hits = new DatabaseCursor(total, offset, limit, size);
         return this;
     }
-
 
     /**
      * Should be used only with hints of elasticsearch
@@ -280,7 +279,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     public List<T> getResults() {
         return results;
     }
-
 
     /**
      * @return the query as JsonNode of Response

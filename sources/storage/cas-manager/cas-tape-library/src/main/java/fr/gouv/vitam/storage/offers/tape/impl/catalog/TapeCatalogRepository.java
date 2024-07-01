@@ -97,8 +97,10 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
             ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
             tapeCatalog.setVersion(tapeCatalog.getVersion() + 1);
             String json = JsonHandler.unprettyPrint(tapeCatalog);
-            final UpdateResult result =
-                collection.replaceOne(eq(TapeCatalog.ID, tapeCatalog.getId()), Document.parse(json));
+            final UpdateResult result = collection.replaceOne(
+                eq(TapeCatalog.ID, tapeCatalog.getId()),
+                Document.parse(json)
+            );
 
             return result.getMatchedCount() == 1;
         } catch (Exception e) {
@@ -123,8 +125,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
             Document update = new Document();
             fields.forEach((key, value) -> update.append(key, value));
 
-            Document data = new Document($_SET, toBson(update))
-                .append($_INC, new Document(TapeCatalog.VERSION, 1));
+            Document data = new Document($_SET, toBson(update)).append($_INC, new Document(TapeCatalog.VERSION, 1));
 
             UpdateResult result = collection.updateOne(eq(TapeCatalog.ID, tapeId), data);
 
@@ -141,7 +142,6 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @return
      */
     public List<TapeCatalog> findTapes(List<QueryCriteria> criteria) throws TapeCatalogException {
-
         if (criteria == null || criteria.isEmpty()) {
             throw new TapeCatalogException(ALL_PARAMS_REQUIRED);
         }
@@ -167,19 +167,14 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @return number of tapes by state
      */
     public Map<TapeState, Integer> countByState() throws TapeCatalogException {
-
         try {
-            AggregateIterable<Document> aggregate = collection.aggregate(List.of(
-                    Aggregates.group("$" + TapeCatalog.TAPE_STATE,
-                        Accumulators.sum("count", 1)
-                    )
-                )
+            AggregateIterable<Document> aggregate = collection.aggregate(
+                List.of(Aggregates.group("$" + TapeCatalog.TAPE_STATE, Accumulators.sum("count", 1)))
             );
 
             Map<TapeState, Integer> results = new HashMap<>();
             try (MongoCursor<Document> iterator = aggregate.iterator()) {
                 while (iterator.hasNext()) {
-
                     Document doc = iterator.next();
                     String stateStr = doc.getString("_id");
                     TapeState tapeState = TapeState.valueOf(stateStr);
@@ -191,7 +186,6 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
             }
 
             return results;
-
         } catch (Exception e) {
             throw new TapeCatalogException(e);
         }
@@ -205,8 +199,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      */
     public TapeCatalog findTapeById(String tapeId) throws TapeCatalogException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId);
-        FindIterable<Document> models =
-            collection.find(eq(TapeCatalog.ID, tapeId));
+        FindIterable<Document> models = collection.find(eq(TapeCatalog.ID, tapeId));
         Document first = models.first();
         if (first == null) {
             return null;

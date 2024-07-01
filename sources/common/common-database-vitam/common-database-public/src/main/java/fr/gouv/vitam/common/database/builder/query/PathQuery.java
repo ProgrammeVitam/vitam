@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Path Query
  */
 public class PathQuery extends Query {
+
     protected PathQuery() {
         super();
     }
@@ -75,11 +76,11 @@ public class PathQuery extends Query {
      * @return this PathQuery
      * @throws InvalidCreateOperationException when query is not valid
      */
-    public final PathQuery add(final String... pathes)
-        throws InvalidCreateOperationException {
+    public final PathQuery add(final String... pathes) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.PATH) {
             throw new InvalidCreateOperationException(
-                "Path cannot be added since this is not a path request: " + currentTokenQUERY);
+                "Path cannot be added since this is not a path request: " + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         for (final String elt : pathes) {

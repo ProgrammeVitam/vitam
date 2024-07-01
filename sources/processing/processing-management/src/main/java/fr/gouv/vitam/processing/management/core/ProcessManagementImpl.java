@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -70,11 +69,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -83,12 +80,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-
 /**
  * ProcessManagementImpl implementation of ProcessManagement API
  */
 public class ProcessManagementImpl implements ProcessManagement {
-
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementImpl.class);
     // FIXME WHY SO STATIC ?
@@ -105,18 +100,25 @@ public class ProcessManagementImpl implements ProcessManagement {
     private final List<LogbookTypeProcess> pausedTypeProcesses;
     private Boolean pauseAll;
 
-
     public ProcessManagementImpl(ServerConfiguration config, ProcessDistributor processDistributor)
         throws ProcessingStorageWorkspaceException {
-        this(config, processDistributor, ProcessDataAccessImpl.getInstance(),
-            processDistributor.getProcessDataManagement(), new OperationContextMonitor());
+        this(
+            config,
+            processDistributor,
+            ProcessDataAccessImpl.getInstance(),
+            processDistributor.getProcessDataManagement(),
+            new OperationContextMonitor()
+        );
     }
 
     @VisibleForTesting
-    public ProcessManagementImpl(ServerConfiguration config,
-        ProcessDistributor processDistributor, ProcessDataAccess processDataAccess,
-        ProcessDataManagement processDataManagement, OperationContextMonitor operationContextMonitor)
-        throws ProcessingStorageWorkspaceException {
+    public ProcessManagementImpl(
+        ServerConfiguration config,
+        ProcessDistributor processDistributor,
+        ProcessDataAccess processDataAccess,
+        ProcessDataManagement processDataManagement,
+        OperationContextMonitor operationContextMonitor
+    ) throws ProcessingStorageWorkspaceException {
         this.operationContextMonitor = operationContextMonitor;
 
         ParametersChecker.checkParameter("Server config cannot be null", config);
@@ -138,13 +140,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         // load all workflow
         ProcessPopulator.loadWorkflow(poolWorkflow);
 
-
         loadProcessFromWorkSpace(config.getUrlMetadata(), config.getUrlWorkspace());
     }
 
     @Override
     public void startProcess() {
-
         /**
          * Do not start process in test mode Before test you should add SystemPropertyUtil.set("vitam.test.junit",
          * "true");
@@ -160,20 +160,18 @@ public class ProcessManagementImpl implements ProcessManagement {
             }
 
             try {
-
                 VitamThreadUtils.getVitamSession().setTenantId(stateMachine.getTenant());
                 VitamThreadUtils.getVitamSession().setRequestId(operationId);
                 VitamThreadUtils.getVitamSession().setContextId(stateMachine.getContextId());
 
-                final WorkerParameters workerParameters =
-                    WorkerParametersFactory.newWorkerParameters()
-                        .setMap(stateMachine.getWorkflowParameters())
-                        .setUrlMetadata(config.getUrlMetadata())
-                        .setUrlWorkspace(config.getUrlWorkspace())
-                        .setLogbookTypeProcess(stateMachine.getLogbookTypeProcess())
-                        .setContainerName(operationId)
-                        .setRequestId(operationId)
-                        .setWorkflowIdentifier(stateMachine.getWorkflowId());
+                final WorkerParameters workerParameters = WorkerParametersFactory.newWorkerParameters()
+                    .setMap(stateMachine.getWorkflowParameters())
+                    .setUrlMetadata(config.getUrlMetadata())
+                    .setUrlWorkspace(config.getUrlWorkspace())
+                    .setLogbookTypeProcess(stateMachine.getLogbookTypeProcess())
+                    .setContainerName(operationId)
+                    .setRequestId(operationId)
+                    .setWorkflowIdentifier(stateMachine.getWorkflowId());
 
                 if (stateMachine.isStepByStep()) {
                     stateMachine.next(workerParameters);
@@ -202,14 +200,14 @@ public class ProcessManagementImpl implements ProcessManagement {
                 continue;
             }
 
-            VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
-                try {
-                    stateMachine.shutdown();
-                } finally {
-                    countDownLatch.countDown();
-                }
-            });
-
+            VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> {
+                    try {
+                        stateMachine.shutdown();
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
         }
         try {
             countDownLatch.await(1, TimeUnit.MINUTES);
@@ -222,14 +220,13 @@ public class ProcessManagementImpl implements ProcessManagement {
     }
 
     @Override
-    public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId)
-        throws ProcessingException {
-
+    public ProcessWorkflow init(WorkerParameters workerParameters, String workflowId) throws ProcessingException {
         // check data container and folder
         workspaceProcessDataManagement.createProcessContainer();
         workspaceProcessDataManagement.createFolder(VitamConfiguration.getWorkspaceWorkflowsFolder());
 
-        Optional<WorkFlow> workFlow = poolWorkflow.values()
+        Optional<WorkFlow> workFlow = poolWorkflow
+            .values()
             .stream()
             .filter(w -> StringUtils.equals(w.getId(), workflowId))
             .findFirst();
@@ -238,18 +235,23 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
 
         String workflowIdentifier = workFlow.get().getIdentifier();
-        final ProcessWorkflow processWorkflow = processDataAccess
-            .initProcessWorkflow(workFlow.get(), workerParameters.getContainerName());
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            workFlow.get(),
+            workerParameters.getContainerName()
+        );
         processWorkflow.setWorkflowId(workflowIdentifier);
 
         for (WorkerParameterName workerParameterName : workerParameters.getMapParameters().keySet()) {
-            processWorkflow.getParameters()
+            processWorkflow
+                .getParameters()
                 .put(workerParameterName.name(), workerParameters.getParameterValue(workerParameterName));
         }
 
         try {
-            workspaceProcessDataManagement
-                .persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(), processWorkflow);
+            workspaceProcessDataManagement.persistProcessWorkflow(
+                VitamConfiguration.getWorkspaceWorkflowsFolder(),
+                processWorkflow
+            );
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
@@ -263,7 +265,6 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         PROCESS_MONITORS.put(workerParameters.getContainerName(), stateMachine);
 
-
         // Try to backup operation context in the offer.
         try {
             switch (processWorkflow.getLogbookTypeProcess()) {
@@ -273,13 +274,17 @@ public class ProcessManagementImpl implements ProcessManagement {
                 case INGEST_TEST:
                 case AUDIT:
                 case DATA_MIGRATION:
-                    LOGGER.debug("Backup operation context. No operation context for the process type " +
-                        processWorkflow.getLogbookTypeProcess());
+                    LOGGER.debug(
+                        "Backup operation context. No operation context for the process type " +
+                        processWorkflow.getLogbookTypeProcess()
+                    );
                     break;
                 default:
-                    operationContextMonitor
-                        .backup(VitamConfiguration.getDefaultStrategy(), workerParameters.getContainerName(),
-                            processWorkflow.getLogbookTypeProcess());
+                    operationContextMonitor.backup(
+                        VitamConfiguration.getDefaultStrategy(),
+                        workerParameters.getContainerName(),
+                        processWorkflow.getLogbookTypeProcess()
+                    );
             }
         } catch (OperationContextException e) {
             LOGGER.error("Unable to backup operation context from the workspace", e);
@@ -290,33 +295,31 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     @Override
     public ItemStatus next(WorkerParameters workerParameters, Integer tenantId)
-        throws ProcessingException,
-        StateNotAllowedException {
-
+        throws ProcessingException, StateNotAllowedException {
         return execute(workerParameters.getContainerName(), tenantId, workerParameters, null, ProcessAction.NEXT);
-
     }
 
     @Override
     public ItemStatus resume(WorkerParameters workerParameters, Integer tenantId, boolean useForcedPause)
         throws ProcessingException, StateNotAllowedException {
-        return execute(workerParameters.getContainerName(), tenantId, workerParameters, useForcedPause,
-            ProcessAction.RESUME);
+        return execute(
+            workerParameters.getContainerName(),
+            tenantId,
+            workerParameters,
+            useForcedPause,
+            ProcessAction.RESUME
+        );
     }
 
     @Override
     public ItemStatus replay(WorkerParameters workerParameters, Integer tenantId)
-        throws ProcessingException,
-        StateNotAllowedException {
-
+        throws ProcessingException, StateNotAllowedException {
         return execute(workerParameters.getContainerName(), tenantId, workerParameters, null, ProcessAction.REPLAY);
     }
 
     @Override
-    public ItemStatus pause(String operationId, Integer tenantId)
-        throws ProcessingException, StateNotAllowedException {
+    public ItemStatus pause(String operationId, Integer tenantId) throws ProcessingException, StateNotAllowedException {
         return execute(operationId, tenantId, null, null, ProcessAction.PAUSE);
-
     }
 
     @Override
@@ -325,15 +328,17 @@ public class ProcessManagementImpl implements ProcessManagement {
         return execute(operationId, tenantId, null, null, null);
     }
 
-    public ItemStatus execute(String operationId, Integer tenantId, WorkerParameters workerParameters,
+    public ItemStatus execute(
+        String operationId,
+        Integer tenantId,
+        WorkerParameters workerParameters,
         Boolean useForcedPause,
-        ProcessAction action)
-        throws ProcessingException, StateNotAllowedException {
+        ProcessAction action
+    ) throws ProcessingException, StateNotAllowedException {
         final IEventsState stateMachine = PROCESS_MONITORS.get(operationId);
 
         if (null == stateMachine) {
-            throw new StateNotAllowedException(
-                "Operation " + operationId + "does not exists or already completed");
+            throw new StateNotAllowedException("Operation " + operationId + "does not exists or already completed");
         }
 
         final ProcessWorkflow processWorkflow = findOneProcessWorkflow(operationId, tenantId);
@@ -368,7 +373,6 @@ public class ProcessManagementImpl implements ProcessManagement {
                 throw new IllegalArgumentException("Action not managed :" + action);
         }
 
-
         return new ItemStatus(operationId)
             .increment(processWorkflow.getStatus())
             .setGlobalState(processWorkflow.getState())
@@ -383,7 +387,6 @@ public class ProcessManagementImpl implements ProcessManagement {
      * @return
      */
     private boolean isPauseForced(ProcessWorkflow processWorkflow, Integer tenantId) {
-
         //Check the pauseAll param, if true all the processes for all the tenants are paused
         if (Boolean.TRUE.equals(pauseAll)) {
             return true;
@@ -393,7 +396,6 @@ public class ProcessManagementImpl implements ProcessManagement {
         if (pausedTenants.contains(tenantId)) {
             return true;
         }
-
 
         //Get the logbookTypeProcess of the workflow
         LogbookTypeProcess logbookTypeProcess = processWorkflow.getLogbookTypeProcess();
@@ -412,18 +414,14 @@ public class ProcessManagementImpl implements ProcessManagement {
         return false;
     }
 
-
     @Override
-    public void forcePause(ProcessPause pause)
-        throws ProcessingException {
+    public void forcePause(ProcessPause pause) throws ProcessingException {
         String type = pause.getType();
         Integer tenantId = pause.getTenant();
         Boolean pauseAll = pause.getPauseAll();
 
-
         if (type == null && tenantId == null && pauseAll == null) {
-            throw new ProcessingException(
-                "Type, tenant and pauseAll param cannot all be null");
+            throw new ProcessingException("Type, tenant and pauseAll param cannot all be null");
         }
 
         this.pauseAll = pause.getPauseAll();
@@ -433,8 +431,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             try {
                 processType = LogbookTypeProcess.getLogbookTypeProcess(type);
             } catch (IllegalArgumentException e) {
-                throw new ProcessingException(
-                    "Type " + type + " is not a valid process type");
+                throw new ProcessingException("Type " + type + " is not a valid process type");
             }
         }
 
@@ -457,35 +454,28 @@ public class ProcessManagementImpl implements ProcessManagement {
                 pausedTypeProcesses.add(processType);
             }
         }
-
     }
 
-
     @Override
-    public void removeForcePause(ProcessPause pause)
-        throws ProcessingException {
-
+    public void removeForcePause(ProcessPause pause) throws ProcessingException {
         String type = pause.getType();
         Integer tenantId = pause.getTenant();
         Boolean pauseAll = pause.getPauseAll();
 
         if (type == null && tenantId == null && pauseAll == null) {
-            throw new ProcessingException(
-                "Type, tenant and pauseAll param cannot all be null");
+            throw new ProcessingException("Type, tenant and pauseAll param cannot all be null");
         }
         //Remove the pauseAll
         if (Boolean.FALSE.equals(pauseAll)) {
             this.pauseAll = pauseAll;
         }
 
-
         LogbookTypeProcess processType = null;
         if (type != null && !type.isEmpty()) {
             try {
                 processType = LogbookTypeProcess.getLogbookTypeProcess(type);
             } catch (IllegalArgumentException e) {
-                throw new ProcessingException(
-                    "Type " + type + "is not a valid process type");
+                throw new ProcessingException("Type " + type + "is not a valid process type");
             }
         }
 
@@ -513,11 +503,8 @@ public class ProcessManagementImpl implements ProcessManagement {
                 if (v != null && !v.isEmpty()) {
                     v.remove(pr);
                 }
-
             });
         }
-
-
     }
 
     @Override
@@ -563,9 +550,10 @@ public class ProcessManagementImpl implements ProcessManagement {
             return PROCESS_MONITORS;
         }
 
-        Map<String, ProcessWorkflow> map =
-            workspaceProcessDataManagement
-                .getProcessWorkflowFor(null, VitamConfiguration.getWorkspaceWorkflowsFolder());
+        Map<String, ProcessWorkflow> map = workspaceProcessDataManagement.getProcessWorkflowFor(
+            null,
+            VitamConfiguration.getWorkspaceWorkflowsFolder()
+        );
 
         // Nothing to load
         if (map == null) {
@@ -576,18 +564,16 @@ public class ProcessManagementImpl implements ProcessManagement {
             ProcessWorkflow processWorkflow = map.get(operationId);
             if (processWorkflow.getState().equals(ProcessState.PAUSE)) {
                 // Create StateMachine & ProcessEngine
-                WorkerParameters workerParameters = WorkerParametersFactory
-                    .newWorkerParameters()
-                    .setMap(
-                        processWorkflow.getParameters()) // Start with inject original process workflow parameters
+                WorkerParameters workerParameters = WorkerParametersFactory.newWorkerParameters()
+                    .setMap(processWorkflow.getParameters()) // Start with inject original process workflow parameters
                     .setUrlMetadata(urlMetadata)
                     .setUrlWorkspace(urlWorkspace)
                     .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess())
                     .setContainerName(operationId)
                     .setWorkflowIdentifier(processWorkflow.getWorkflowId());
 
-                final ProcessEngine processEngine =
-                    ProcessEngineFactory.get().create(workerParameters, this.processDistributor);
+                final ProcessEngine processEngine = ProcessEngineFactory.get()
+                    .create(workerParameters, this.processDistributor);
                 final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
                 processEngine.setStateMachineCallback(stateMachine);
 
@@ -611,16 +597,25 @@ public class ProcessManagementImpl implements ProcessManagement {
             if (query.getId() != null && !query.getId().equals(processWorkflow.getOperationId())) {
                 continue;
             }
-            if (query.getStates() != null && !query.getStates().isEmpty() &&
-                !query.getStates().contains(processWorkflow.getState().name())) {
+            if (
+                query.getStates() != null &&
+                !query.getStates().isEmpty() &&
+                !query.getStates().contains(processWorkflow.getState().name())
+            ) {
                 continue;
             }
-            if (query.getStatuses() != null && !query.getStatuses().isEmpty() &&
-                !query.getStatuses().contains(processWorkflow.getStatus().name())) {
+            if (
+                query.getStatuses() != null &&
+                !query.getStatuses().isEmpty() &&
+                !query.getStatuses().contains(processWorkflow.getStatus().name())
+            ) {
                 continue;
             }
-            if (query.getWorkflows() != null && !query.getWorkflows().isEmpty() &&
-                !query.getWorkflows().contains(processWorkflow.getWorkflowId())) {
+            if (
+                query.getWorkflows() != null &&
+                !query.getWorkflows().isEmpty() &&
+                !query.getWorkflows().contains(processWorkflow.getWorkflowId())
+            ) {
                 continue;
             }
             if (query.getListSteps() != null && !query.getListSteps().isEmpty()) {
@@ -628,8 +623,11 @@ public class ProcessManagementImpl implements ProcessManagement {
                     continue;
                 }
             }
-            if (query.getListProcessTypes() != null && !query.getListProcessTypes().isEmpty() &&
-                !query.getListProcessTypes().contains(processWorkflow.getLogbookTypeProcess().toString())) {
+            if (
+                query.getListProcessTypes() != null &&
+                !query.getListProcessTypes().isEmpty() &&
+                !query.getListProcessTypes().contains(processWorkflow.getLogbookTypeProcess().toString())
+            ) {
                 continue;
             }
             if (query.getStartDateMin() != null && query.getStartDateMax() != null) {
@@ -660,8 +658,10 @@ public class ProcessManagementImpl implements ProcessManagement {
         LocalDate ldt = LocalDateTime.parse(date).toLocalDate();
         LocalDate startDateTimeMin = LocalDate.parse(startDateMin, formatter);
         LocalDate startDateTimeMax = LocalDate.parse(startDateMax, formatter);
-        return ((ldt.isBefore(startDateTimeMax) || ldt.isEqual(startDateTimeMax)) &&
-            (ldt.isAfter(startDateTimeMin) || ldt.isEqual(startDateTimeMin)));
+        return (
+            (ldt.isBefore(startDateTimeMax) || ldt.isEqual(startDateTimeMax)) &&
+            (ldt.isAfter(startDateTimeMin) || ldt.isEqual(startDateTimeMin))
+        );
     }
 
     // TODO: 03/04/2020 double check if this method return the correct result
@@ -673,7 +673,6 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         Iterator<ProcessStep> pwIterator = processWorkflow.getSteps().iterator();
         while (pwIterator.hasNext() && !currentStepFound) {
-
             final ProcessStep processStep = pwIterator.next();
 
             switch (processWorkflow.getState()) {
@@ -693,8 +692,10 @@ public class ProcessManagementImpl implements ProcessManagement {
                     }
                     break;
                 case COMPLETED:
-                    if (processStep.getStepStatusCode() == StatusCode.KO ||
-                        processStep.getStepStatusCode() == StatusCode.STARTED) {
+                    if (
+                        processStep.getStepStatusCode() == StatusCode.KO ||
+                        processStep.getStepStatusCode() == StatusCode.STARTED
+                    ) {
                         previousStep = processStep.getStepName();
                         workflow.setStepStatus(StatusCode.KO.toString());
                         currentStepFound = true;
@@ -719,6 +720,5 @@ public class ProcessManagementImpl implements ProcessManagement {
     @Override
     public ServerConfiguration getConfiguration() {
         return config;
-
     }
 }

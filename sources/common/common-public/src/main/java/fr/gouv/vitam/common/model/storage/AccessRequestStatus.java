@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.model.storage;
 
 public enum AccessRequestStatus {
-
     /**
      * Access request objects are READY for access.
      */
@@ -46,5 +45,5 @@ public enum AccessRequestStatus {
     /**
      * Access Request not found (expired then purged, non-existing, removed OR could not be found in current tenant context)
      */
-    NOT_FOUND
+    NOT_FOUND,
 }

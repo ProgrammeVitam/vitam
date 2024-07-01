@@ -34,7 +34,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.common.CheckDistributionThresholdBase;
 
-
 public class ComputedInheritedRulesCheckDistributionThreshold extends CheckDistributionThresholdBase {
 
     private static final String COMPUTED_INHERITED_RULES_CHECK_DISTRIBUTION_THRESHOLD =
@@ -44,16 +43,17 @@ public class ComputedInheritedRulesCheckDistributionThreshold extends CheckDistr
         super(MetaDataClientFactory.getInstance());
     }
 
-    public ComputedInheritedRulesCheckDistributionThreshold(
-        MetaDataClientFactory metaDataClientFactory) {
+    public ComputedInheritedRulesCheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
         super(metaDataClientFactory);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-        return checkThreshold(handler, VitamConfiguration.getComputedInheritedRulesThreshold(),
-            COMPUTED_INHERITED_RULES_CHECK_DISTRIBUTION_THRESHOLD);
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
+        return checkThreshold(
+            handler,
+            VitamConfiguration.getComputedInheritedRulesThreshold(),
+            COMPUTED_INHERITED_RULES_CHECK_DISTRIBUTION_THRESHOLD
+        );
     }
 
     public static String getId() {

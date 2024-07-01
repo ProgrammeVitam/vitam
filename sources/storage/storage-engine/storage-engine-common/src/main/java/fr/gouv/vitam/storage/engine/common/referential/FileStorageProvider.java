@@ -87,7 +87,8 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
      * thi provider
      */
     private enum ReferentialType {
-        STRATEGY, OFFER
+        STRATEGY,
+        OFFER,
     }
 
     @Override
@@ -105,21 +106,19 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
         } else {
             throw new StorageTechnicalException("Storage strategy '" + idStrategy + "' invalid");
         }
-
     }
 
     @Override
     public StorageOffer getStorageOffer(String idOffer) throws StorageException {
-        return getFilteredStorageOffer(idOffer, false);//get only active one
+        return getFilteredStorageOffer(idOffer, false); //get only active one
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public StorageOffer getStorageOffer(String idOffer, boolean includeDisabled)
-        throws StorageException {
-        return getFilteredStorageOffer(idOffer, includeDisabled);//get all (active and inactive)
+    public StorageOffer getStorageOffer(String idOffer, boolean includeDisabled) throws StorageException {
+        return getFilteredStorageOffer(idOffer, includeDisabled); //get all (active and inactive)
     }
 
     private StorageOffer getFilteredStorageOffer(String idOffer, boolean includeAllOfferState) throws StorageException {
@@ -133,13 +132,12 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
         StorageOffer offer = storageOffers.get(idOffer);
         if (offer == null || (!includeAllOfferState && !offer.isEnabled())) {
             throw new StorageNotFoundException(
-                String.format("Storage offer with id %s is not found, disabled or not defined in strategy", idOffer));
+                String.format("Storage offer with id %s is not found, disabled or not defined in strategy", idOffer)
+            );
         }
 
         return offer;
     }
-
-
 
     @Override
     public Map<String, StorageStrategy> getStorageStrategies() throws StorageTechnicalException {
@@ -161,7 +159,6 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
         } catch (final InvalidParseOperationException exc) {
             LOGGER.warn("Couldn't parse " + OFFER_FILENAME + " file", exc);
         }
-
     }
 
     private void loadReferential(ReferentialType type) throws IOException, InvalidParseOperationException {
@@ -178,15 +175,18 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
     }
 
     private void loadStrategies() throws InvalidParseOperationException, FileNotFoundException {
-        StorageStrategy[] storageStrategiesArray = JsonHandler
-            .getFromFileLowerCamelCase(PropertiesUtils.findFile(STRATEGY_FILENAME), StorageStrategy[].class);
+        StorageStrategy[] storageStrategiesArray = JsonHandler.getFromFileLowerCamelCase(
+            PropertiesUtils.findFile(STRATEGY_FILENAME),
+            StorageStrategy[].class
+        );
         if (storageStrategiesArray == null || storageStrategiesArray.length < 1) {
             throw new IllegalArgumentException(NO_STRATEGY_MSG);
         }
         List<StorageStrategy> storageStrategiesList = Arrays.asList(storageStrategiesArray);
 
         // validate that 'default' strategy is present
-        List<StorageStrategy> defaultStrategies = storageStrategiesList.stream()
+        List<StorageStrategy> defaultStrategies = storageStrategiesList
+            .stream()
             .filter(strategy -> VitamConfiguration.getDefaultStrategy().equals(strategy.getId()))
             .collect(Collectors.toList());
         if (defaultStrategies.isEmpty()) {
@@ -196,7 +196,10 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
         }
 
         // check if an active 'referent' offer is present in default strategy
-        List<OfferReference> referentOffers = defaultStrategies.get(0).getOffers().stream()
+        List<OfferReference> referentOffers = defaultStrategies
+            .get(0)
+            .getOffers()
+            .stream()
             .filter(OfferReference::isReferent)
             .filter(OfferReference::isEnabled)
             .collect(Collectors.toList());
@@ -208,16 +211,24 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
         }
 
         // check if any strategy has more than one 'referent' offer
-        Set<String> invalidStrategies = storageStrategiesList.stream()
-            .filter(storageStrategy -> storageStrategy.getOffers().stream()
-                .filter(OfferReference::isReferent)
-                .filter(OfferReference::isEnabled)
-                .count() > 1)
+        Set<String> invalidStrategies = storageStrategiesList
+            .stream()
+            .filter(
+                storageStrategy ->
+                    storageStrategy
+                        .getOffers()
+                        .stream()
+                        .filter(OfferReference::isReferent)
+                        .filter(OfferReference::isEnabled)
+                        .count() >
+                    1
+            )
             .map(StorageStrategy::getId)
             .collect(Collectors.toSet());
         if (!invalidStrategies.isEmpty()) {
             throw new IllegalArgumentException(
-                String.format(OTHER_STRATEGY_TOO_MANY_REFERENT_OFFER_MSG, String.join(",", invalidStrategies)));
+                String.format(OTHER_STRATEGY_TOO_MANY_REFERENT_OFFER_MSG, String.join(",", invalidStrategies))
+            );
         }
 
         // check if a referent offer is not used in more than one strategies
@@ -225,33 +236,33 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
             LOGGER.warn("One or more offers are referents in more than one strategy.");
         }
 
-        storageStrategies = storageStrategiesList.stream()
+        storageStrategies = storageStrategiesList
+            .stream()
             .collect(Collectors.toMap(StorageStrategy::getId, storageStrategy -> storageStrategy));
         storageStrategies.values().forEach(StorageStrategy::postInit);
-
     }
-
 
     private void loadOffers() throws InvalidParseOperationException, FileNotFoundException {
         if (storageStrategies == null || storageStrategies.isEmpty()) {
             throw new InvalidParseOperationException("storageStrategies is null when loading storage offer");
         }
-        StorageOffer[] storageOffersArray = JsonHandler
-            .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
+        StorageOffer[] storageOffersArray = JsonHandler.getFromFileLowerCamelCase(
+            PropertiesUtils.findFile(OFFER_FILENAME),
+            StorageOffer[].class
+        );
         storageOffers = new HashMap<>();
 
         for (StorageOffer offer : storageOffersArray) {
-
-            boolean isEnabled =
-                storageStrategies.values().stream().anyMatch(strategy -> strategy.isStorageOfferEnabled(offer.getId()));
+            boolean isEnabled = storageStrategies
+                .values()
+                .stream()
+                .anyMatch(strategy -> strategy.isStorageOfferEnabled(offer.getId()));
 
             offer.setEnabled(isEnabled);
             storageOffers.put(offer.getId(), offer);
             storageStrategies.values().forEach(StorageStrategy::postInit);
         }
-
     }
-
 
     /**
      * For Junit only

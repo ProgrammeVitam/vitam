@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
-
 /**
  * Dsl schema validator for multiple update DSL queries.
  */
@@ -54,10 +53,10 @@ public class UpdateMultipleSchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public UpdateMultipleSchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.MASS_UPDATE.name(),
-            DslSchema.MASS_UPDATE.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.MASS_UPDATE.getFilename())) {
+        LOGGER.debug("Loading schema {} from {}", DslSchema.MASS_UPDATE.name(), DslSchema.MASS_UPDATE.getFilename());
+        try (
+            final InputStream schemaSource = PropertiesUtils.getResourceAsStream(DslSchema.MASS_UPDATE.getFilename())
+        ) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }

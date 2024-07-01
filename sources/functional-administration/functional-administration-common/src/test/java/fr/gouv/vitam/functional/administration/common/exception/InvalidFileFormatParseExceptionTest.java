@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class InvalidFileFormatParseExceptionTest {
+
     @Test
     public final void testFileFormatException() {
         assertEquals("", new InvalidFileFormatParseException("").getMessage());

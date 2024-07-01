@@ -47,13 +47,12 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
  * Mock client implementation for IngestExternal
  */
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
+
     private static final String FAKE_X_REQUEST_ID = "aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq";
     public static final String ID = "identifier1";
 
     @Override
-    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
-        String contextId,
-        String action)
+    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream, String contextId, String action)
         throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
@@ -68,24 +67,32 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
-        IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
-        return this.ingest(vitamContext, stream, ingestRequestParameters.getContextId(),
-            ingestRequestParameters.getAction());
+    public RequestResponse<Void> ingest(
+        VitamContext vitamContext,
+        InputStream stream,
+        IngestRequestParameters ingestRequestParameters
+    ) throws IngestExternalException {
+        return this.ingest(
+                vitamContext,
+                stream,
+                ingestRequestParameters.getContextId(),
+                ingestRequestParameters.getAction()
+            );
     }
 
     @Override
-    public Response downloadObjectAsync(VitamContext vitamContext, String objectId,
-        IngestCollection type)
+    public Response downloadObjectAsync(VitamContext vitamContext, String objectId, IngestCollection type)
         throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 
     @Override
-    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile, String contextId,
-        String action)
-        throws IngestExternalException {
-
+    public RequestResponse<Void> ingestLocal(
+        VitamContext vitamContext,
+        LocalFile localFile,
+        String contextId,
+        String action
+    ) throws IngestExternalException {
         RequestResponseOK r = new RequestResponseOK<>();
         r.setHttpCode(Status.ACCEPTED.getStatusCode());
         r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
@@ -94,10 +101,16 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
-        IngestRequestParameters ingestRequestParameters)
-        throws IngestExternalException {
-        return ingestLocal(vitamContext, localFile, ingestRequestParameters.getContextId(),
-            ingestRequestParameters.getAction());
+    public RequestResponse<Void> ingestLocal(
+        VitamContext vitamContext,
+        LocalFile localFile,
+        IngestRequestParameters ingestRequestParameters
+    ) throws IngestExternalException {
+        return ingestLocal(
+            vitamContext,
+            localFile,
+            ingestRequestParameters.getContextId(),
+            ingestRequestParameters.getAction()
+        );
     }
 }

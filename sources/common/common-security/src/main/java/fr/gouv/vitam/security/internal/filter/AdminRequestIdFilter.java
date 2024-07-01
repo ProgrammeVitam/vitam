@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 @PreMatching
 @Priority(Priorities.AUTHENTICATION - 10)
 public class AdminRequestIdFilter implements ContainerRequestFilter {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminRequestIdFilter.class);
 
     @Override
@@ -54,7 +55,8 @@ public class AdminRequestIdFilter implements ContainerRequestFilter {
             // FIXME: throw what kind of exception ?
             // TODO: Add .entity()
             requestContext.abortWith(
-                Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).build());
+                Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON_TYPE).build()
+            );
             return;
         }
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();

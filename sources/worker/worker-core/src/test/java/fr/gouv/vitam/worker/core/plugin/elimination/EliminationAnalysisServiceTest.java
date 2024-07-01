@@ -55,7 +55,6 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_EmptyRulesAndProperties() {
-
         // Given : No appraisal rules & properties & no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.emptyList();
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.emptyList();
@@ -65,9 +64,16 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -79,21 +85,27 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_FinalActionWithoutAppraisalRules() {
-
         // Given : No appraisal rules + a Destroy appraisal property + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.emptyList();
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths(), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths(), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -105,23 +117,35 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_NonExpiredAppraisalRule() {
-
         // Given : Destroy appraisal final action + Non expired appraisal rule + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2020-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -133,23 +157,29 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_AppraisalRuleWithoutEndDate() {
-
         // Given : Destroy appraisal final action + appraisal rule without end date + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes(null, null)));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1", ruleAttributes(null, null))
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -161,23 +191,35 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_ExpiredAppraisalRule() {
-
         // Given : Destroy appraisal final action + expired appraisal rule + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -189,31 +231,45 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_MultiplePropertiesKeepAndDestroy() {
-
         // Given : Multiple Keep / Destroy appraisal final actions + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
             new InheritedPropertyResponseModel("unit2", "sp1", paths("unit2"), "FinalAction", "Keep"),
-            new InheritedPropertyResponseModel("unit3", "sp1", paths("unit3"), "FinalAction", "Keep"));
+            new InheritedPropertyResponseModel("unit3", "sp1", paths("unit3"), "FinalAction", "Keep")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).isEmpty();
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
-            .isInstanceOf(EliminationExtendedInfoFinalActionInconsistency.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoFinalActionInconsistency.class
+        );
 
         EliminationExtendedInfoFinalActionInconsistency conflict =
             (EliminationExtendedInfoFinalActionInconsistency) eliminationAnalysisResult.getExtendedInfo().get(0);
@@ -222,23 +278,36 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_MultiplePropertiesDestroy() {
-
         // Given : Multiple Destroy final actions + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit2", "sp1", paths("unit2"), "FinalAction", "Destroy"));
+            new InheritedPropertyResponseModel("unit2", "sp1", paths("unit2"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -250,30 +319,50 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_MultipleDestroyableOriginatingAgencies() {
-
         // Given : Multiple Destroyable SP (Destroy final action & expired rule for SP1 + SP2) + no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")),
-            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2",
-                ruleAttributes("2010-01-01", "2012-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            ),
+            new InheritedRuleResponseModel(
+                "unit2",
+                "sp2",
+                paths("unit2"),
+                "R2",
+                ruleAttributes("2010-01-01", "2012-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
+            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
-        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies())
-            .containsExactlyInAnyOrder("sp1", "sp2");
+        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder(
+            "sp1",
+            "sp2"
+        );
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.DESTROY);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
@@ -281,54 +370,87 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_MultipleNonDestroyableOriginatingAgencies() {
-
         // Given : Multiple non destroyable SP (Keep + expired rule for SP1 : Destroy final action for SP2)
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Keep"),
-            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
+            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).isEmpty();
-        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies())
-            .containsExactlyInAnyOrder("sp1", "sp2");
+        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder(
+            "sp1",
+            "sp2"
+        );
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.KEEP);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
     }
 
     @Test
     public void analyzeElimination_MultipleDestroyableAndNonDestroyableOriginatingAgencies() {
-
         // Given : Destroy final action + non expired rule for SP1 : Destroy final action + expired rule for SP2
         List<InheritedRuleResponseModel> appraisalRules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2020-01-01")),
-            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            ),
+            new InheritedRuleResponseModel(
+                "unit2",
+                "sp2",
+                paths("unit2"),
+                "R2",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
+            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -340,25 +462,43 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_MultipleDestroyableAndNonDestroyableOriginatingAgencies_KeepAccessSP() {
-
         // Given : Destroy final action + expired rule for SP1 : Destroy final action + non expired rule for SP2 ==> keep access to SP1
         List<InheritedRuleResponseModel> appraisalRules = Arrays.asList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")),
-            new InheritedRuleResponseModel("unit2", "sp2", paths("unit2"), "R2",
-                ruleAttributes("2010-01-01", "2020-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            ),
+            new InheritedRuleResponseModel(
+                "unit2",
+                "sp2",
+                paths("unit2"),
+                "R2",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy"));
+            new InheritedPropertyResponseModel("unit2", "sp2", paths("unit2"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -366,33 +506,62 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
-            .isInstanceOf(EliminationExtendedInfoKeepAccessSp.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoKeepAccessSp.class
+        );
     }
 
     @Test
     public void analyzeElimination_AccessLinkInconsistency() {
-
         // Given : Parent unit2 brings 2 SP : non destroyable SP1 & destroyable SP2
         List<InheritedRuleResponseModel> appraisalRules = Arrays.asList(
-            new InheritedRuleResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "R2",
-                ruleAttributes("2010-01-01", "2020-01-01")),
-            new InheritedRuleResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "R3",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit2",
+                "sp1",
+                paths("unit1", "unit2", "unit3"),
+                "R2",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            ),
+            new InheritedRuleResponseModel(
+                "unit3",
+                "sp2",
+                paths("unit1", "unit2", "unit4"),
+                "R3",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
-            new InheritedPropertyResponseModel("unit2", "sp1", paths("unit1", "unit2", "unit3"), "FinalAction",
-                "Destroy"),
-            new InheritedPropertyResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit4"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel(
+                "unit2",
+                "sp1",
+                paths("unit1", "unit2", "unit3"),
+                "FinalAction",
+                "Destroy"
+            ),
+            new InheritedPropertyResponseModel(
+                "unit3",
+                "sp2",
+                paths("unit1", "unit2", "unit4"),
+                "FinalAction",
+                "Destroy"
+            )
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.emptyList();
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -400,39 +569,60 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
-            .isInstanceOf(EliminationExtendedInfoAccessLinkInconsistency.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoAccessLinkInconsistency.class
+        );
         EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistencyDetails =
-            ((EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult.getExtendedInfo().get(0))
-                .getDetails();
+            ((EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult
+                    .getExtendedInfo()
+                    .get(0)).getDetails();
 
         assertThat(accessLinkInconsistencyDetails.getParentUnitId()).isEqualTo("unit2");
         assertThat(accessLinkInconsistencyDetails.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
-        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies())
-            .containsExactlyInAnyOrder("sp1");
+        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder(
+            "sp1"
+        );
     }
 
     @Test
     public void analyzeElimination_DestroyableUnitWithActiveHoldRule() {
-
         // Given : Destroyable unit (expired appraisal rule + Destroy appraisal FinalAction) + non expired HoldRule
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "H1",
-                ruleAttributes("2010-01-01", "2020-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "H1",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            )
+        );
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -440,36 +630,47 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
-            .isInstanceOf(EliminationExtendedInfoHoldRule.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoHoldRule.class
+        );
         EliminationExtendedInfoHoldRuleDetails extendedInfoHoldRuleDetails =
-            ((EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(0))
-                .getDetails();
-        assertThat(extendedInfoHoldRuleDetails.getHoldRuleIds())
-            .containsExactlyInAnyOrder("H1");
+            ((EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(0)).getDetails();
+        assertThat(extendedInfoHoldRuleDetails.getHoldRuleIds()).containsExactlyInAnyOrder("H1");
     }
 
     @Test
     public void analyzeElimination_DestroyableUnitWithHoldRuleWithoutEndDate() {
-
         // Given : Destroyable unit (expired appraisal rule + Destroy appraisal FinalAction) + HoldRule without EndDate
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "H1",
-                ruleAttributes("2010-01-01", null)));
+            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "H1", ruleAttributes("2010-01-01", null))
+        );
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -477,36 +678,53 @@ public class EliminationAnalysisServiceTest {
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).isEmpty();
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(1);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
-            .isInstanceOf(EliminationExtendedInfoHoldRule.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoHoldRule.class
+        );
         EliminationExtendedInfoHoldRuleDetails extendedInfoHoldRuleDetails =
-            ((EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(0))
-                .getDetails();
-        assertThat(extendedInfoHoldRuleDetails.getHoldRuleIds())
-            .containsExactlyInAnyOrder("H1");
+            ((EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(0)).getDetails();
+        assertThat(extendedInfoHoldRuleDetails.getHoldRuleIds()).containsExactlyInAnyOrder("H1");
     }
 
     @Test
     public void analyzeElimination_DestroyableUnitWithExpiredHoldRule() {
-
         // Given : Destroyable unit (expired appraisal rule + Destroy appraisal FinalAction) + expired HoldRule
         List<InheritedRuleResponseModel> appraisalRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.singletonList(
-            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction",
-                "Destroy"));
+            new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "H1",
-                ruleAttributes("2010-01-01", "2011-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "H1",
+                ruleAttributes("2010-01-01", "2011-01-01")
+            )
+        );
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -518,21 +736,33 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_NonDestroyableUnitWithHoldRule() {
-
         // Given : No Appraisal rule & properties + active HoldRule ==> KEEP (KEEP wins over hold rule conflicts)
         List<InheritedRuleResponseModel> appraisalRules = Collections.emptyList();
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.emptyList();
         List<InheritedRuleResponseModel> holdRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "H1",
-                ruleAttributes("2010-01-01", "2020-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "H1",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            )
+        );
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
@@ -544,7 +774,6 @@ public class EliminationAnalysisServiceTest {
 
     @Test
     public void analyzeElimination_ComplexTest() {
-
         // Given :
         //  - SP1 destroyable
         //  - SP2 destroyable
@@ -553,63 +782,102 @@ public class EliminationAnalysisServiceTest {
         //  - Active Hold
 
         List<InheritedRuleResponseModel> appraisalRules = Arrays.asList(
-            new InheritedRuleResponseModel("unit5", "sp1", paths("unit1", "unit2", "unit5"), "R1",
-                ruleAttributes("2010-01-01", "2015-01-01")),
-            new InheritedRuleResponseModel("unit4", "sp2", paths("unit1", "unit2", "unit4"), "R2",
-                ruleAttributes("2010-01-01", "2015-01-01")),
-            new InheritedRuleResponseModel("unit7", "sp1", paths("unit7"), "R3",
-                ruleAttributes("2010-01-01", "2015-01-01")));
+            new InheritedRuleResponseModel(
+                "unit5",
+                "sp1",
+                paths("unit1", "unit2", "unit5"),
+                "R1",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            ),
+            new InheritedRuleResponseModel(
+                "unit4",
+                "sp2",
+                paths("unit1", "unit2", "unit4"),
+                "R2",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            ),
+            new InheritedRuleResponseModel(
+                "unit7",
+                "sp1",
+                paths("unit7"),
+                "R3",
+                ruleAttributes("2010-01-01", "2015-01-01")
+            )
+        );
 
         List<InheritedPropertyResponseModel> appraisalProperties = Arrays.asList(
             new InheritedPropertyResponseModel("unit1", "sp1", paths("unit1"), "FinalAction", "Destroy"),
-            new InheritedPropertyResponseModel("unit3", "sp2", paths("unit1", "unit2", "unit3"), "FinalAction",
-                "Destroy"),
-            new InheritedPropertyResponseModel("unit6", "sp3", paths("unit6"), "FinalAction", "Keep"));
+            new InheritedPropertyResponseModel(
+                "unit3",
+                "sp2",
+                paths("unit1", "unit2", "unit3"),
+                "FinalAction",
+                "Destroy"
+            ),
+            new InheritedPropertyResponseModel("unit6", "sp3", paths("unit6"), "FinalAction", "Keep")
+        );
         List<InheritedRuleResponseModel> holdRules = Collections.singletonList(
-            new InheritedRuleResponseModel("unit1", "sp1", paths("unit1"), "H1",
-                ruleAttributes("2010-01-01", "2020-01-01")));
+            new InheritedRuleResponseModel(
+                "unit1",
+                "sp1",
+                paths("unit1"),
+                "H1",
+                ruleAttributes("2010-01-01", "2020-01-01")
+            )
+        );
 
         LocalDate expirationDate = LocalDate.parse("2018-01-01");
         String sp1 = "sp1";
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.INGEST, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.INGEST,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
-        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies())
-            .containsExactlyInAnyOrder("sp1", "sp2");
+        assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder(
+            "sp1",
+            "sp2"
+        );
         assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp3");
         assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
         assertThat(eliminationAnalysisResult.getExtendedInfo()).hasSize(3);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
-            .isInstanceOf(EliminationExtendedInfoKeepAccessSp.class);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(1))
-            .isInstanceOf(EliminationExtendedInfoAccessLinkInconsistency.class);
-        assertThat(eliminationAnalysisResult.getExtendedInfo().get(2))
-            .isInstanceOf(EliminationExtendedInfoHoldRule.class);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0)).isInstanceOf(
+            EliminationExtendedInfoKeepAccessSp.class
+        );
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(1)).isInstanceOf(
+            EliminationExtendedInfoAccessLinkInconsistency.class
+        );
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(2)).isInstanceOf(
+            EliminationExtendedInfoHoldRule.class
+        );
 
         EliminationExtendedInfoAccessLinkInconsistencyDetails accessLinkInconsistencyDetails =
-            ((EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult.getExtendedInfo().get(1))
-                .getDetails();
+            ((EliminationExtendedInfoAccessLinkInconsistency) eliminationAnalysisResult
+                    .getExtendedInfo()
+                    .get(1)).getDetails();
         assertThat(accessLinkInconsistencyDetails.getParentUnitId()).isEqualTo("unit2");
         assertThat(accessLinkInconsistencyDetails.getDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp2");
-        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies())
-            .containsExactlyInAnyOrder("sp1");
+        assertThat(accessLinkInconsistencyDetails.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder(
+            "sp1"
+        );
 
         EliminationExtendedInfoHoldRuleDetails holdExtendedInfoHoldRuleDetails =
-            ((EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(2))
-                .getDetails();
-        assertThat(holdExtendedInfoHoldRuleDetails.getHoldRuleIds())
-            .containsExactlyInAnyOrder("H1");
+            ((EliminationExtendedInfoHoldRule) eliminationAnalysisResult.getExtendedInfo().get(2)).getDetails();
+        assertThat(holdExtendedInfoHoldRuleDetails.getHoldRuleIds()).containsExactlyInAnyOrder("H1");
     }
 
     @Test
     public void analyzeElimination_HoldingTreeUnit() {
-
         // Given : No appraisal rules & properties & no hold rules
         List<InheritedRuleResponseModel> appraisalRules = Collections.emptyList();
         List<InheritedPropertyResponseModel> appraisalProperties = Collections.emptyList();
@@ -619,9 +887,16 @@ public class EliminationAnalysisServiceTest {
 
         // When
         EliminationAnalysisService instance = new EliminationAnalysisService();
-        EliminationAnalysisResult eliminationAnalysisResult =
-            instance.analyzeElimination("unit1", UnitType.HOLDING_UNIT, OPERATION_ID,
-                appraisalRules, appraisalProperties, holdRules, expirationDate, sp1);
+        EliminationAnalysisResult eliminationAnalysisResult = instance.analyzeElimination(
+            "unit1",
+            UnitType.HOLDING_UNIT,
+            OPERATION_ID,
+            appraisalRules,
+            appraisalProperties,
+            holdRules,
+            expirationDate,
+            sp1
+        );
 
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);

@@ -77,21 +77,22 @@ import static org.mockito.Mockito.when;
 public class RunningIngestsUpdateActionPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final MetaDataClient metaDataClient = mock(MetaDataClient.class);
     private static final MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
     private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
     private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
-
     private static final StorageClient storageClient = mock(StorageClient.class);
     private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
 
     private static final ProcessingManagementClient processManagementClient = mock(ProcessingManagementClient.class);
-    private static final ProcessingManagementClientFactory processingManagementClientFactory =
-        mock(ProcessingManagementClientFactory.class);
+    private static final ProcessingManagementClientFactory processingManagementClientFactory = mock(
+        ProcessingManagementClientFactory.class
+    );
 
     private GUID guid = GUIDFactory.newGUID();
 
@@ -100,20 +101,26 @@ public class RunningIngestsUpdateActionPluginTest {
 
     private static final String AU_DETAIL = "RunningIngestsUpdateActionPlugin/archiveUnits.json";
     private static final String UPDATED_AU = "RunningIngestsUpdateActionPlugin/updatedAu.json";
-    private static final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin =
-        mock(StoreMetaDataUnitActionPlugin.class);
+    private static final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin = mock(
+        StoreMetaDataUnitActionPlugin.class
+    );
 
-    RunningIngestsUpdateActionPlugin plugin = new RunningIngestsUpdateActionPlugin(processingManagementClientFactory,
-        metaDataClientFactory, storeMetaDataUnitActionPlugin);
+    RunningIngestsUpdateActionPlugin plugin = new RunningIngestsUpdateActionPlugin(
+        processingManagementClientFactory,
+        metaDataClientFactory,
+        storeMetaDataUnitActionPlugin
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectName("archiveUnit.json")
+        .setCurrentStep("currentStep")
+        .setContainerName(guid.getId())
+        .setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
 
@@ -136,7 +143,6 @@ public class RunningIngestsUpdateActionPluginTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(processingManagementClientFactory.getClient()).thenReturn(processManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
     }
 
     @RunWithCustomExecutor
@@ -146,31 +152,36 @@ public class RunningIngestsUpdateActionPluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final File runningIngests = PropertiesUtils.getResourceFile(RUNNING_INGESTS);
 
-        final JsonNode archiveUnitToBeUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
-        final JsonNode archiveUnitUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
+        final JsonNode archiveUnitToBeUpdated = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(AU_DETAIL)
+        );
+        final JsonNode archiveUnitUpdated = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(UPDATED_AU)
+        );
 
         params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
 
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-            .then(o -> PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)
+            )
+        ).then(o -> PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON));
         when(handlerIO.getInput(0)).thenReturn(runningIngests);
         when(handlerIO.getLifecyclesClient()).thenReturn(mock(LogbookLifeCyclesClient.class));
-        when(processManagementClient.getOperationProcessStatus(any()))
-            .thenReturn(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
+        when(processManagementClient.getOperationProcessStatus(any())).thenReturn(
+            new ItemStatus().setGlobalState(ProcessState.COMPLETED)
+        );
 
         when(metaDataClient.selectUnits(any())).thenReturn(archiveUnitToBeUpdated);
         when(metaDataClient.updateUnitById(any(), any())).thenReturn(archiveUnitUpdated);
 
-        doNothing()
-            .when(storeMetaDataUnitActionPlugin).storeDocumentsWithLfc(any(), any(), anyList());
+        doNothing().when(storeMetaDataUnitActionPlugin).storeDocumentsWithLfc(any(), any(), anyList());
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         doThrow(VitamException.class)
-            .when(storeMetaDataUnitActionPlugin).storeDocumentsWithLfc(any(), any(), anyList());
+            .when(storeMetaDataUnitActionPlugin)
+            .storeDocumentsWithLfc(any(), any(), anyList());
         response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -183,15 +194,16 @@ public class RunningIngestsUpdateActionPluginTest {
 
         try {
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
-            when(handlerIO.getInputStreamFromWorkspace(
-                eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-                .thenReturn(rulesUpdated);
+            when(
+                handlerIO.getInputStreamFromWorkspace(
+                    eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)
+                )
+            ).thenReturn(rulesUpdated);
             final ItemStatus response = plugin.execute(params, handlerIO);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
         } finally {
             rulesUpdated.close();
         }
-
     }
 
     @RunWithCustomExecutor
@@ -203,15 +215,16 @@ public class RunningIngestsUpdateActionPluginTest {
         try {
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
 
-            when(handlerIO.getInputStreamFromWorkspace(
-                eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-                .thenReturn(rulesUpdated);
+            when(
+                handlerIO.getInputStreamFromWorkspace(
+                    eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)
+                )
+            ).thenReturn(rulesUpdated);
             final ItemStatus response = plugin.execute(params, handlerIO);
             assertEquals(StatusCode.KO, response.getGlobalStatus());
         } finally {
             rulesUpdated.close();
         }
-
     }
 
     @RunWithCustomExecutor
@@ -219,15 +232,12 @@ public class RunningIngestsUpdateActionPluginTest {
     public void givenFileNotFoundWhenExecuteThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
-            .thenThrow(
-                new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)
+            )
+        ).thenThrow(new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-
     }
-
-
-
 }

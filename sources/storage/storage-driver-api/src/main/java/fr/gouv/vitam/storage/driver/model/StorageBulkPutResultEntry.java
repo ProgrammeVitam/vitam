@@ -78,10 +78,17 @@ public class StorageBulkPutResultEntry {
 
     @Override
     public String toString() {
-        return "StorageBulkPutResultEntry{" +
-            "objectId='" + objectId + '\'' +
-            ", digest='" + digest + '\'' +
-            ", size=" + size +
-            '}';
+        return (
+            "StorageBulkPutResultEntry{" +
+            "objectId='" +
+            objectId +
+            '\'' +
+            ", digest='" +
+            digest +
+            '\'' +
+            ", size=" +
+            size +
+            '}'
+        );
     }
 }

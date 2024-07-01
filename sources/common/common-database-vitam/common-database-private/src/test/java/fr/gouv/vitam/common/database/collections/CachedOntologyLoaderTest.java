@@ -56,13 +56,13 @@ public class CachedOntologyLoaderTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     @RunWithCustomExecutor
     public void testLoading() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -85,7 +85,6 @@ public class CachedOntologyLoaderTest {
     @Test
     @RunWithCustomExecutor
     public void testReLoadingFromCache() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -110,13 +109,11 @@ public class CachedOntologyLoaderTest {
         // Then
         assertThat(result).isEqualTo(ontologyModels);
         verify(loader, times(1)).loadOntologies();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void testCacheTimeout() throws InterruptedException {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);

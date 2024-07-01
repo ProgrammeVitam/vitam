@@ -192,10 +192,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param webApplicationConfigonfig configuration
      */
-    public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig,
+    public WebApplicationResource(
+        WebApplicationConfig webApplicationConfigonfig,
         UserInterfaceTransactionManager userInterfaceTransactionManager,
-        PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper,
-        StorageService storageService) {
+        PaginationHelper paginationHelper,
+        DslQueryHelper dslQueryHelper,
+        StorageService storageService
+    ) {
         super(new BasicVitamStatusServiceImpl());
         this.secureMode = webApplicationConfigonfig.getSecureMode();
         this.userInterfaceTransactionManager = userInterfaceTransactionManager;
@@ -232,11 +235,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/replaceObject/{dataType}/{strategyId}/{offerId}/{uid}/{size}")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("uid") String uid, @PathParam("dataType") String dataType,
-        @PathParam("strategyId") String strategyId, @PathParam("offerId") String offerId, @PathParam("size") Long size,
-        InputStream input) {
-
+    public Response uploadObject(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType,
+        @PathParam("strategyId") String strategyId,
+        @PathParam("offerId") String offerId,
+        @PathParam("size") Long size,
+        InputStream input
+    ) {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
@@ -263,14 +270,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/strategies")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStrategies(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-
-        try (final StorageClient storageClient =
-            StorageClientFactory.getInstance().getClient()) {
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
             RequestResponse<StorageStrategy> requestResponse = storageClient.getStorageStrategies();
             if (requestResponse.isOk()) {
                 return Response.status(Status.OK)
-                    .entity(((RequestResponseOK<StorageStrategy>) requestResponse).getResults()).build();
+                    .entity(((RequestResponseOK<StorageStrategy>) requestResponse).getResults())
+                    .build();
             } else if (requestResponse instanceof VitamError) {
                 LOGGER.error(requestResponse.toString());
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(requestResponse).build();
@@ -291,10 +297,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @DELETE
     @Path("/deleteObject/{dataType}/{strategyId}/{offerId}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("uid") String uid, @PathParam("dataType") String dataType,
-        @PathParam("strategyId") String strategyId, @PathParam("offerId") String offerId) {
-
+    public Response deleteObject(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType,
+        @PathParam("strategyId") String strategyId,
+        @PathParam("offerId") String offerId
+    ) {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
@@ -308,7 +317,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
 
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
         } catch (StorageServerClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -327,10 +335,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
-    public Response launchAudit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response launchAudit(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
-        @PathParam("operationId") String operationId) {
-
+        @PathParam("operationId") String operationId
+    ) {
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
             VitamContext context = new VitamContext(Integer.parseInt(xTenantId));
             context.setAccessContract(xAccessContratId).setApplicationSessionId(getAppSessionId());
@@ -345,11 +354,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(requestResponse).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-
         }
     }
 
@@ -357,25 +364,34 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/ingestcleanup/{operationId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response launchIngestCleanup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response launchIngestCleanup(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
-        @PathParam("operationId") String operationId) {
+        @PathParam("operationId") String operationId
+    ) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         // Hack to invoke the admin port of functional admin
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(String.format
-            ("http://%s:%s/adminmanagement/v1/invalidIngestCleanup/%s",
+        WebTarget target = client.target(
+            String.format(
+                "http://%s:%s/adminmanagement/v1/invalidIngestCleanup/%s",
                 this.functionalAdminAdmin.getFunctionalAdminServerHost(),
                 this.functionalAdminAdmin.getFunctionalAdminServerPort(),
-                operationId)
+                operationId
+            )
         );
-        String basicAuth = "Basic " + BaseXx.getBase64(
-            (this.functionalAdminAdmin.getAdminBasicAuth().getUserName() + ":" +
-                this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes());
+        String basicAuth =
+            "Basic " +
+            BaseXx.getBase64(
+                (this.functionalAdminAdmin.getAdminBasicAuth().getUserName() +
+                    ":" +
+                    this.functionalAdminAdmin.getAdminBasicAuth().getPassword()).getBytes()
+            );
 
         Invocation.Builder builder = target.request();
-        Response response = builder.header("Content-Type", MediaType.APPLICATION_JSON)
+        Response response = builder
+            .header("Content-Type", MediaType.APPLICATION_JSON)
             .header("Accept", MediaType.APPLICATION_JSON)
             .header("X-Tenant-Id", xTenantId)
             .header("Authorization", basicAuth)
@@ -395,18 +411,23 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/download/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectAsInputStreamAsync(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response getObjectAsInputStreamAsync(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("uid") String uid,
         @PathParam("dataType") String dataType,
         @PathParam("strategyId") String strategyId,
-        @PathParam("offerId") String offerId) {
-
+        @PathParam("offerId") String offerId
+    ) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         try {
-            return storageService
-                .download(VitamThreadUtils.getVitamSession().getTenantId(), DataCategory.valueOf(dataType), strategyId,
-                    offerId, uid);
+            return storageService.download(
+                VitamThreadUtils.getVitamSession().getTenantId(),
+                DataCategory.valueOf(dataType),
+                strategyId,
+                offerId,
+                uid
+            );
         } catch (StorageTechnicalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
@@ -420,7 +441,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.warn("Not found", e);
             return buildError(VitamCode.STORAGE_NOT_FOUND, e.getMessage()).toResponse();
         }
-
     }
 
     private VitamError<JsonNode> buildError(VitamCode vitamCode, String message) {
@@ -434,13 +454,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private Response buildCustomError(CustomVitamHttpStatusCode customStatusCode, String message) {
         return Response.status(customStatusCode.getStatusCode())
-            .entity(new RequestResponseError().setError(
-                    new VitamError(customStatusCode.toString())
-                        .setContext(IHM_RECETTE)
-                        .setHttpCode(customStatusCode.getStatusCode())
-                        .setMessage(customStatusCode.getMessage())
-                        .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message))
-                .toString()).build();
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError(customStatusCode.toString())
+                            .setContext(IHM_RECETTE)
+                            .setHttpCode(customStatusCode.getStatusCode())
+                            .setMessage(customStatusCode.getMessage())
+                            .setDescription(Strings.isNullOrEmpty(message) ? customStatusCode.getMessage() : message)
+                    )
+                    .toString()
+            )
+            .build();
     }
 
     /**
@@ -449,16 +474,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/access-request/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createAccessRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response createAccessRequest(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("strategyId") String strategyId,
         @PathParam("offerId") String offerId,
         @PathParam("dataType") String dataType,
-        @PathParam("uid") String uid) {
+        @PathParam("uid") String uid
+    ) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         try {
-            return storageService.createAccessRequest(Integer.parseInt(xTenantId), strategyId, offerId, uid,
-                    DataCategory.valueOf(dataType))
+            return storageService
+                .createAccessRequest(
+                    Integer.parseInt(xTenantId),
+                    strategyId,
+                    offerId,
+                    uid,
+                    DataCategory.valueOf(dataType)
+                )
                 .toResponse();
         } catch (StorageTechnicalException | StorageNotFoundException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -472,17 +505,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/access-request/{strategyId}/{offerId}/{accessRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkAccessRequestStatus(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response checkAccessRequestStatus(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("strategyId") String strategyId,
         @PathParam("offerId") String offerId,
-        @PathParam("accessRequestId") String accessRequestId) {
+        @PathParam("accessRequestId") String accessRequestId
+    ) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
         try {
-            return storageService.checkAccessRequestStatus(Integer.parseInt(xTenantId), strategyId, offerId,
-                    accessRequestId)
+            return storageService
+                .checkAccessRequestStatus(Integer.parseInt(xTenantId), strategyId, offerId, accessRequestId)
                 .toResponse();
-
         } catch (StorageTechnicalException | StorageNotFoundException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
@@ -495,17 +529,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @DELETE
     @Path("/access-request/{strategyId}/{offerId}/{accessRequestId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response removeAccessRequest(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+    public Response removeAccessRequest(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("strategyId") String strategyId,
         @PathParam("offerId") String offerId,
-        @PathParam("accessRequestId") String accessRequestId) {
+        @PathParam("accessRequestId") String accessRequestId
+    ) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
         try {
-            RequestResponse<AccessRequestStatus> readOrderRequest =
-                storageService.removeAccessRequest(Integer.parseInt(xTenantId), strategyId, offerId,
-                    accessRequestId);
+            RequestResponse<AccessRequestStatus> readOrderRequest = storageService.removeAccessRequest(
+                Integer.parseInt(xTenantId),
+                strategyId,
+                offerId,
+                accessRequestId
+            );
             return readOrderRequest.toResponse();
-
         } catch (StorageTechnicalException | StorageNotFoundException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return buildError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, e.getMessage()).toResponse();
@@ -548,7 +586,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         final String tokenCSRF = XSRFHelper.generateCSRFToken();
         XSRFFilter.addToken(httpRequest.getSession().getId(), tokenCSRF);
 
-
         try {
             subject.login(token);
             // TODO P1 add access log
@@ -576,8 +613,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             VitamContext context = new VitamContext(TENANT_ID);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
 
-            final RequestResponse<LogbookOperation> logbookOperationResult = userInterfaceTransactionManager
-                .selectOperationbyId(operationId, context);
+            final RequestResponse<LogbookOperation> logbookOperationResult =
+                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
                 // Create csv file
@@ -622,17 +659,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
         throws LogbookClientServerException {
-
-        try (final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (
+            final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+                .getClient()
+        ) {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-            RequestResponseOK<TenantLogbookOperationTraceabilityResult> result
-                = logbookOperationsClient.traceability(Collections.singletonList(Integer.parseInt(xTenantId)));
+            RequestResponseOK<TenantLogbookOperationTraceabilityResult> result = logbookOperationsClient.traceability(
+                Collections.singletonList(Integer.parseInt(xTenantId))
+            );
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("The reporting json can't be created", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -648,17 +686,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceabilityLfcUnit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
         throws LogbookClientServerException {
-
-        try (final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (
+            final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+                .getClient()
+        ) {
             RequestResponseOK<String> result;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
                 result = logbookOperationsClient.traceabilityLfcUnit();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("The reporting json can't be created", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
         }
@@ -676,17 +714,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceabilityLfcObjectGroup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
         throws LogbookClientServerException {
-
-        try (final LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (
+            final LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+                .getClient()
+        ) {
             RequestResponseOK result;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
                 result = logbookOperationsClient.traceabilityLfcObjectGroup();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("The reporting json can't be created", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
         }
@@ -703,17 +741,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/storages/traceability")
     @Produces(MediaType.APPLICATION_JSON)
     public Response traceabilityStorage(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-
-        try (final StorageClient storageClient =
-            StorageClientFactory.getInstance().getClient()) {
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             RequestResponseOK<StorageLogTraceabilityResult> result;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 result = storageClient.storageLogTraceability(Collections.singletonList(Integer.parseInt(xTenantId)));
             } catch (final InvalidParseOperationException | StorageServerClientException e) {
                 LOGGER.error("The reporting json can't be created", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
         }
@@ -730,19 +765,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("storages/storagelogbackup")
     @Produces(MediaType.APPLICATION_JSON)
     public Response storageLogBackup(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-
         // /!\ Storage log backup will be done on a single instance.
         //     If you need de backup on all instances, you need to retry multiple times since eventually all storage nodes are reached
-        try (final StorageClient storageClient =
-            StorageClientFactory.getInstance().getClient()) {
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             RequestResponseOK<StorageLogBackupResult> result;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 result = storageClient.storageLogBackup(VitamConfiguration.getTenants());
             } catch (final InvalidParseOperationException | StorageServerClientException e) {
                 LOGGER.error("The reporting json can't be created", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
             return Response.status(Status.OK).entity(result).build();
         }
@@ -760,15 +792,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultByBrowser(@Context HttpServletRequest request,
+    public Response getLogbookResultByBrowser(
+        @Context HttpServletRequest request,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @CookieParam("JSESSIONID") String sessionId,
-        String options) {
+        String options
+    ) {
         if (!"GET".equalsIgnoreCase(xhttpOverride)) {
             final Status status = Status.PRECONDITION_FAILED;
-            VitamError<JsonNode> vitamError =
-                new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode()).setContext(
-                    IHM_RECETTE).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+            VitamError<JsonNode> vitamError = new VitamError<JsonNode>(status.name())
+                .setHttpCode(status.getStatusCode())
+                .setContext(IHM_RECETTE)
+                .setMessage(status.getReasonPhrase())
+                .setDescription(status.getReasonPhrase());
             return Response.status(status).entity(vitamError).build();
         }
 
@@ -790,13 +826,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             final JsonNode query = dslQueryHelper.createSelectAndUpdateDSLQuery(optionsMap);
 
-            try (final AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance()
-                .getClient()) {
-                RequestResponse<JsonNode> response =
-                    accessExternalClient.reclassification(getVitamContext(request), query);
+            try (
+                final AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance().getClient()
+            ) {
+                RequestResponse<JsonNode> response = accessExternalClient.reclassification(
+                    getVitamContext(request),
+                    query
+                );
                 if (response instanceof RequestResponseOK) {
-                    return Response.status(Status.OK).entity(response)
-                        .header(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID)).build();
+                    return Response.status(Status.OK)
+                        .entity(response)
+                        .header(X_REQUEST_ID, response.getHeaderString(X_REQUEST_ID))
+                        .build();
                 }
                 if (response instanceof VitamError) {
                     LOGGER.error(response.toString());
@@ -821,13 +862,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(@Context HttpServletRequest request, @CookieParam("JSESSIONID") String sessionId,
-        String options) {
+    public Response getLogbookResult(
+        @Context HttpServletRequest request,
+        @CookieParam("JSESSIONID") String sessionId,
+        String options
+    ) {
         return findLogbookBy(request, sessionId, options);
     }
 
-    private Response findLogbookBy(@Context HttpServletRequest request, @CookieParam("JSESSIONID") String sessionId,
-        String options) {
+    private Response findLogbookBy(
+        @Context HttpServletRequest request,
+        @CookieParam("JSESSIONID") String sessionId,
+        String options
+    ) {
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
         final String xTenantId = request.getHeader(GlobalDataRest.X_TENANT_ID);
         if (Strings.isNullOrEmpty(xTenantId)) {
@@ -855,12 +902,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination),
-                    LogbookOperation.class);
+                result = RequestResponseOK.getFromJsonNode(
+                    paginationHelper.getResult(sessionId, pagination),
+                    LogbookOperation.class
+                );
 
-                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                return Response.status(Status.OK)
+                    .entity(result)
+                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
+                    .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                    .build();
             } catch (final VitamException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
@@ -875,16 +927,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = userInterfaceTransactionManager.selectOperation(query,
-                    userInterfaceTransactionManager.getVitamContext(request));
+                result = userInterfaceTransactionManager.selectOperation(
+                    query,
+                    userInterfaceTransactionManager.getVitamContext(request)
+                );
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
                 paginationHelper.setResult(sessionId, result.toJsonNode());
                 // pagination
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(result.toJsonNode(), pagination),
-                    LogbookOperation.class);
-
+                result = RequestResponseOK.getFromJsonNode(
+                    paginationHelper.getResult(result.toJsonNode(), pagination),
+                    LogbookOperation.class
+                );
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
@@ -893,12 +948,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             } catch (final Exception e) {
                 LOGGER.error("Internal server error", e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .build();
             }
-            return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
+            return Response.status(Status.OK)
+                .entity(result)
+                .header(GlobalDataRest.X_REQUEST_ID, requestId)
                 .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
+                .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                .build();
         }
     }
 
@@ -910,8 +969,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response getLogbookResultById(
+        @PathParam("idOperation") String operationId,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId
+    ) {
         try {
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
@@ -920,8 +981,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             int tenantId = Integer.parseInt(xTenantId);
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-            final RequestResponse<LogbookOperation> result =
-                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+            final RequestResponse<LogbookOperation> result = userInterfaceTransactionManager.selectOperationbyId(
+                operationId,
+                context
+            );
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -944,12 +1007,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks/{idOperation}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadObjectAsStream(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public void downloadObjectAsStream(
+        @PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse,
+        @QueryParam(GlobalDataRest.X_TENANT_ID) String xTenantId
+    ) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
         }
         threadPoolExecutor.execute(() -> downloadObjectAsync(asyncResponse, operationId, Integer.parseInt(xTenantId)));
     }
@@ -964,8 +1029,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadObjectAsStreamForBrowser(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) Integer tenantId) {
+    public void downloadObjectAsStreamForBrowser(
+        @PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse,
+        @QueryParam(GlobalDataRest.X_TENANT_ID) Integer tenantId
+    ) {
         threadPoolExecutor.execute(() -> downloadObjectAsync(asyncResponse, operationId, tenantId));
     }
 
@@ -978,11 +1046,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId, int tenantId) {
         Response response = null;
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-            final RequestResponse<LogbookOperation> result =
-                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+            final RequestResponse<LogbookOperation> result = userInterfaceTransactionManager.selectOperationbyId(
+                operationId,
+                context
+            );
 
             RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
             LogbookOperation operation = responseOK.getFirstResult();
@@ -992,15 +1061,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
             DataCategory documentType = DataCategory.LOGBOOK;
-            response =
-                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, documentType,
-                    AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                documentType,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                helper.writeResponse(Response
-                    .ok()
-                    .header("Content-Disposition", "filename=" + fileName)
-                    .header("Content-Type", "application/octet-stream"));
+                helper.writeResponse(
+                    Response.ok()
+                        .header("Content-Disposition", "filename=" + fileName)
+                        .header("Content-Type", "application/octet-stream")
+                );
             } else {
                 helper.writeResponse(Response.status(response.getStatus()));
             }
@@ -1012,19 +1085,25 @@ public class WebApplicationResource extends ApplicationStatusResource {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
         } catch (StorageServerClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            AsyncInputStreamHelper.asyncResponseResume(
+                asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build()
+            );
         } catch (StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error("No active access request found", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                buildCustomError(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER, e.getMessage()));
+            AsyncInputStreamHelper.asyncResponseResume(
+                asyncResponse,
+                buildCustomError(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER, e.getMessage())
+            );
         } catch (VitamClientException e) {
             LOGGER.error("Vitam Client NOT FOUND Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            AsyncInputStreamHelper.asyncResponseResume(
+                asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build()
+            );
         } finally {
             StreamUtils.consumeAnyEntityAndClose(response);
         }
@@ -1048,8 +1127,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                RequestResponse<AccessContractModel> response =
-                    adminClient.findAccessContracts(getVitamContext(request), query);
+                RequestResponse<AccessContractModel> response = adminClient.findAccessContracts(
+                    getVitamContext(request),
+                    query
+                );
                 if (response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -1068,9 +1149,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/dslQueryTest")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAndExecuteTestRequest(@Context HttpServletRequest request,
+    public Response getAndExecuteTestRequest(
+        @Context HttpServletRequest request,
         @CookieParam("JSESSIONID") String sessionId,
-        JsonNode criteria) {
+        JsonNode criteria
+    ) {
         String requestId;
 
         RequestResponse<?> result;
@@ -1098,9 +1181,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination));
 
-                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
+                return Response.status(Status.OK)
+                    .entity(result)
+                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
+                    .header(IhmDataRest.X_LIMIT, pagination.getLimit())
+                    .build();
             } catch (final VitamException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
@@ -1109,26 +1195,31 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 AdminCollections requestedAdminCollection = existsInAdminCollections(requestedCollection);
                 if (requestedCollection != null && requestedAdminCollection == null) {
-                    if (!(requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS) ||
-                        requestedCollection.equalsIgnoreCase(WORKFLOWS))) {
+                    if (
+                        !(requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS) ||
+                            requestedCollection.equalsIgnoreCase(WORKFLOWS))
+                    ) {
                         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
                             if (requestedCollection.equalsIgnoreCase(UNIT_COLLECTION)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            result = client
-                                                .selectUnits(getVitamContext(request), criteria);
+                                            result = client.selectUnits(getVitamContext(request), criteria);
                                         } else {
-                                            result = client
-                                                .selectUnitbyId(getVitamContext(request),
-                                                    criteria, objectID);
+                                            result = client.selectUnitbyId(
+                                                getVitamContext(request),
+                                                criteria,
+                                                objectID
+                                            );
                                         }
                                         break;
                                     case HTTP_PUT:
                                         if (StringUtils.isNotBlank(objectID)) {
-                                            result = client
-                                                .updateUnitbyId(getVitamContext(request),
-                                                    criteria, objectID);
+                                            result = client.updateUnitbyId(
+                                                getVitamContext(request),
+                                                criteria,
+                                                objectID
+                                            );
                                         } else if (criteria.get(RULE_ACTIONS) != null) {
                                             result = client.massUpdateUnitsRules(getVitamContext(request), criteria);
                                         } else {
@@ -1137,24 +1228,26 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(LOGBOOK_COLLECTION)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            result = client.selectOperations(
-                                                getVitamContext(request),
-                                                criteria);
+                                            result = client.selectOperations(getVitamContext(request), criteria);
                                         } else {
                                             result = client.selectOperationbyId(
                                                 getVitamContext(request),
-                                                objectID, criteria);
+                                                objectID,
+                                                criteria
+                                            );
                                         }
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(OBJECT_GROUP_COLLECTION)) {
                                 switch (requestMethod) {
@@ -1164,45 +1257,56 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         } else {
                                             result = client.selectObjectMetadatasByUnitId(
                                                 getVitamContext(request),
-                                                criteria, objectID);
+                                                criteria,
+                                                objectID
+                                            );
                                             if (result != null) {
-                                                return Response.status(Status.OK)
-                                                    .entity(result.toJsonNode()).build();
+                                                return Response.status(Status.OK).entity(result.toJsonNode()).build();
                                             }
                                         }
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(UNIT_LIFECYCLES)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
-                                        result = client.selectUnitLifeCycleById(getVitamContext(request),
-                                            objectID, criteria);
+                                        result = client.selectUnitLifeCycleById(
+                                            getVitamContext(request),
+                                            objectID,
+                                            criteria
+                                        );
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(OBJECT_GROUP_LIFECYCLES)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         result = client.selectObjectGroupLifeCycleById(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             } else {
                                 throw new UnsupportedOperationException("Collection unrecognized");
                             }
                         }
                     } else {
-                        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance()
-                            .getClient()) {
+                        try (
+                            AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance()
+                                .getClient()
+                        ) {
                             if (requestedCollection.equalsIgnoreCase(WORKFLOW_OPERATIONS)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
@@ -1211,68 +1315,75 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                 LOGGER.error("criteria not null");
                                                 result = adminExternalClient.listOperationsDetails(
                                                     getVitamContext(request),
-                                                    JsonHandler.getFromJsonNode(criteria, ProcessQuery.class));
+                                                    JsonHandler.getFromJsonNode(criteria, ProcessQuery.class)
+                                                );
                                             } else {
                                                 LOGGER.error("criteria null");
                                                 result = adminExternalClient.listOperationsDetails(
                                                     getVitamContext(request),
-                                                    null);
+                                                    null
+                                                );
                                             }
 
                                             return Response.status(Status.OK).entity(result).build();
                                         } else {
-                                            result =
-                                                adminExternalClient
-                                                    .getOperationProcessExecutionDetails(getVitamContext(request),
-                                                        objectID);
+                                            result = adminExternalClient.getOperationProcessExecutionDetails(
+                                                getVitamContext(request),
+                                                objectID
+                                            );
                                             return result.toResponse();
                                         }
                                     case HTTP_PUT:
                                         if (!StringUtils.isBlank(objectID)) {
                                             adminExternalClient.updateOperationActionProcess(
                                                 getVitamContext(request),
-                                                xAction, objectID);
+                                                xAction,
+                                                objectID
+                                            );
                                             result = adminExternalClient.getOperationProcessExecutionDetails(
                                                 getVitamContext(request),
-                                                objectID);
+                                                objectID
+                                            );
                                             return result.toResponse();
                                         } else {
-                                            throw new InvalidParseOperationException(
-                                                "Operation ID should be filled");
+                                            throw new InvalidParseOperationException("Operation ID should be filled");
                                         }
                                     case HTTP_DELETE:
                                         if (!StringUtils.isBlank(objectID)) {
                                             result = adminExternalClient.cancelOperationProcessExecution(
                                                 getVitamContext(request),
-                                                objectID);
+                                                objectID
+                                            );
                                             return result.toResponse();
                                         } else {
-                                            throw new InvalidParseOperationException(
-                                                "Operation ID should be filled");
+                                            throw new InvalidParseOperationException("Operation ID should be filled");
                                         }
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             } else if (requestedCollection.equalsIgnoreCase(WORKFLOWS)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
-                                        result = adminExternalClient.getWorkflowDefinitions(
-                                            getVitamContext(request));
+                                        result = adminExternalClient.getWorkflowDefinitions(getVitamContext(request));
                                         return Response.status(Status.OK).entity(result).build();
                                     default:
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                 }
                             }
                             throw new UnsupportedOperationException(
-                                "No implementation found for collection " + requestedCollection);
+                                "No implementation found for collection " + requestedCollection
+                            );
                         }
                     }
                 } else {
                     requestedAdminCollection = AdminCollections.valueOf(requestedCollection);
-                    try (AdminExternalClient adminExternalClient =
-                        AdminExternalClientFactory.getInstance().getClient()) {
+                    try (
+                        AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()
+                    ) {
                         switch (requestMethod) {
                             case HTTP_GET:
                                 if (StringUtils.isBlank(objectID)) {
@@ -1280,109 +1391,120 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         case FORMATS:
                                             result = adminExternalClient.findFormats(
                                                 getVitamContext(request),
-                                                criteria);
+                                                criteria
+                                            );
                                             break;
                                         case RULES:
-                                            result = adminExternalClient.findRules(
-                                                getVitamContext(request),
-                                                criteria);
+                                            result = adminExternalClient.findRules(getVitamContext(request), criteria);
                                             break;
                                         case ACCESS_CONTRACTS:
-                                            result =
-                                                adminExternalClient.findAccessContracts(
-                                                    getVitamContext(request),
-                                                    criteria);
+                                            result = adminExternalClient.findAccessContracts(
+                                                getVitamContext(request),
+                                                criteria
+                                            );
                                             break;
                                         case INGEST_CONTRACTS:
-                                            result =
-                                                adminExternalClient.findIngestContracts(
-                                                    getVitamContext(request),
-                                                    criteria);
+                                            result = adminExternalClient.findIngestContracts(
+                                                getVitamContext(request),
+                                                criteria
+                                            );
                                             break;
                                         case MANAGEMENT_CONTRACTS:
-                                            result =
-                                                adminExternalClient.findManagementContracts(
-                                                    getVitamContext(request),
-                                                    criteria);
+                                            result = adminExternalClient.findManagementContracts(
+                                                getVitamContext(request),
+                                                criteria
+                                            );
                                             break;
                                         case CONTEXTS:
                                             result = adminExternalClient.findContexts(
                                                 getVitamContext(request),
-                                                criteria);
+                                                criteria
+                                            );
                                             break;
                                         case PROFILE:
                                             result = adminExternalClient.findProfiles(
                                                 getVitamContext(request),
-                                                criteria);
+                                                criteria
+                                            );
                                             break;
                                         case ACCESSION_REGISTERS:
                                             result = adminExternalClient.findAccessionRegister(
                                                 getVitamContext(request),
-                                                criteria);
+                                                criteria
+                                            );
                                             break;
                                         case AGENCIES:
                                             result = adminExternalClient.findAgencies(
                                                 getVitamContext(request),
-                                                criteria);
+                                                criteria
+                                            );
                                             break;
                                         default:
                                             throw new UnsupportedOperationException(
-                                                "No implementation found for collection " + requestedCollection);
+                                                "No implementation found for collection " + requestedCollection
+                                            );
                                     }
-
                                 } else {
                                     if (AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.getAccessionRegisterDetail(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else {
                                         switch (requestedAdminCollection) {
                                             case FORMATS:
                                                 result = adminExternalClient.findFormatById(
                                                     getVitamContext(request),
-                                                    objectID);
+                                                    objectID
+                                                );
                                                 break;
                                             case RULES:
                                                 result = adminExternalClient.findRuleById(
                                                     getVitamContext(request),
-                                                    objectID);
+                                                    objectID
+                                                );
                                                 break;
                                             case ACCESS_CONTRACTS:
-                                                result =
-                                                    adminExternalClient.findAccessContractById(
-                                                        getVitamContext(request),
-                                                        objectID);
+                                                result = adminExternalClient.findAccessContractById(
+                                                    getVitamContext(request),
+                                                    objectID
+                                                );
                                                 break;
                                             case INGEST_CONTRACTS:
-                                                result =
-                                                    adminExternalClient.findIngestContractById(
-                                                        getVitamContext(request),
-                                                        objectID);
+                                                result = adminExternalClient.findIngestContractById(
+                                                    getVitamContext(request),
+                                                    objectID
+                                                );
                                                 break;
                                             case MANAGEMENT_CONTRACTS:
-                                                result =
-                                                    adminExternalClient.findManagementContractById(
-                                                        getVitamContext(request),
-                                                        objectID);
+                                                result = adminExternalClient.findManagementContractById(
+                                                    getVitamContext(request),
+                                                    objectID
+                                                );
                                                 break;
                                             case CONTEXTS:
                                                 result = adminExternalClient.findContextById(
                                                     getVitamContext(request),
-                                                    objectID);
+                                                    objectID
+                                                );
                                                 break;
                                             case PROFILE:
                                                 result = adminExternalClient.findProfileById(
                                                     getVitamContext(request),
-                                                    objectID);
+                                                    objectID
+                                                );
                                                 break;
                                             case AGENCIES:
                                                 result = adminExternalClient.findAgencyByID(
                                                     getVitamContext(request),
-                                                    objectID);
+                                                    objectID
+                                                );
                                                 break;
                                             default:
                                                 throw new UnsupportedOperationException(
-                                                    "No implementation found for collection " + requestedCollection);
+                                                    "No implementation found for collection " + requestedCollection
+                                                );
                                         }
                                     }
                                 }
@@ -1392,39 +1514,52 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     if (AdminCollections.CONTEXTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateContext(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else if (AdminCollections.ACCESS_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateAccessContract(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else if (AdminCollections.INGEST_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateIngestContract(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else if (AdminCollections.MANAGEMENT_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateManagementContract(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else if (AdminCollections.PROFILE.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateProfile(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else if (AdminCollections.SECURITY_PROFILES.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateSecurityProfile(
                                             getVitamContext(request),
-                                            objectID, criteria);
+                                            objectID,
+                                            criteria
+                                        );
                                     } else {
                                         throw new UnsupportedOperationException(
-                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                            REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                        );
                                     }
                                 } else {
-                                    throw new InvalidParseOperationException(
-                                        "Unit ID should be filled.");
+                                    throw new InvalidParseOperationException("Unit ID should be filled.");
                                 }
                                 break;
                             default:
                                 throw new UnsupportedOperationException(
-                                    REQUEST_METHOD_UNDEFINED + " " + requestedCollection);
+                                    REQUEST_METHOD_UNDEFINED + " " + requestedCollection
+                                );
                         }
                     }
                 }
@@ -1434,40 +1569,54 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
                 VitamError<JsonNode> vitamError = new VitamError<JsonNode>(VitamCode.GLOBAL_EMPTY_QUERY.getItem())
                     .setHttpCode(Status.BAD_REQUEST.getStatusCode())
-                    .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
-                    .setMessage(Status.BAD_REQUEST.getReasonPhrase()).setDescription(e.getMessage());
+                    .setContext(IHM_RECETTE)
+                    .setState(StatusCode.KO.name())
+                    .setMessage(Status.BAD_REQUEST.getReasonPhrase())
+                    .setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessExternalClientServerException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError =
-                    new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem())
-                        .setHttpCode(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getStatus().getStatusCode())
-                        .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getMessage()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(
+                    VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getItem()
+                )
+                    .setHttpCode(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getStatus().getStatusCode())
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setState(StatusCode.KO.name())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_SERVER_ERROR.getMessage())
+                    .setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError =
-                    new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
-                        .setHttpCode(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getStatus().getStatusCode())
-                        .setContext(ACCESS_EXTERNAL_MODULE).setState(StatusCode.KO.name())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getMessage()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(
+                    VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem()
+                )
+                    .setHttpCode(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getStatus().getStatusCode())
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setState(StatusCode.KO.name())
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getMessage())
+                    .setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final AccessUnauthorizedException e) {
                 LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-                VitamError<JsonNode> vitamError =
-                    new VitamError<JsonNode>(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem())
-                        .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setContext(ACCESS_EXTERNAL_MODULE).setState(Status.UNAUTHORIZED.name())
-                        .setMessage(Status.UNAUTHORIZED.getReasonPhrase()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(
+                    VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR.getItem()
+                )
+                    .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setState(Status.UNAUTHORIZED.name())
+                    .setMessage(Status.UNAUTHORIZED.getReasonPhrase())
+                    .setDescription(e.getMessage());
                 return vitamError.toResponse();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                VitamError<JsonNode> vitamError =
-                    new VitamError<JsonNode>(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
-                        .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-                        .setContext(IHM_RECETTE).setState(StatusCode.KO.name())
-                        .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase()).setDescription(e.getMessage());
+                VitamError<JsonNode> vitamError = new VitamError<JsonNode>(
+                    VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()
+                )
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                    .setContext(IHM_RECETTE)
+                    .setState(StatusCode.KO.name())
+                    .setMessage(Status.INTERNAL_SERVER_ERROR.getReasonPhrase())
+                    .setDescription(e.getMessage());
                 return vitamError.toResponse();
             }
         }
@@ -1512,4 +1661,3 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return (String) request.getAttribute(REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE);
     }
 }
-

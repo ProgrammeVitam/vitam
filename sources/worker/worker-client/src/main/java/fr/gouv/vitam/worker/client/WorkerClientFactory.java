@@ -62,6 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "worker-client.conf";
 
@@ -126,17 +127,15 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     public static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
         WorkerClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                WorkerClientConfiguration.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                WorkerClientConfiguration.class
+            );
         } catch (final IOException fnf) {
-            LOGGER
-                .debug("Error when retrieving configuration file {}, using mock",
-                    CONFIGURATION_FILENAME,
-                    fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
         }
         return configuration;
     }

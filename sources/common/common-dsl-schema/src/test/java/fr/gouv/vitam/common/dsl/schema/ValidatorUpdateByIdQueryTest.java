@@ -47,6 +47,7 @@ import static org.junit.Assert.fail;
  * Tests of update by id schema for Metadata, Masterdata and logbook DSL query
  */
 public class ValidatorUpdateByIdQueryTest {
+
     private static final String UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON = "update-by-id-query-dsl-schema.json";
 
     private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
@@ -64,10 +65,11 @@ public class ValidatorUpdateByIdQueryTest {
     @Test
     public void should_not_retrieve_errors_when_update_by_id_complete_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_complete.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_complete.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -79,10 +81,11 @@ public class ValidatorUpdateByIdQueryTest {
     @Test
     public void should_not_retrieve_errors_when_update_by_id_set_action_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_set_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_set_action.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -94,66 +97,84 @@ public class ValidatorUpdateByIdQueryTest {
     @Test
     public void should_retrieve_errors_when_update_by_id_empty_action_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_empty_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("$action: {$set: ..., $unset: ...}[] ~ ELEMENT_TOO_SHORT: 0 < 1");
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_empty_action.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "$action: {$set: ..., $unset: ...}[] ~ ELEMENT_TOO_SHORT: 0 < 1"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_update_by_id_empty_set_action_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_empty_set_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("$set: {[key]: any} ~ ELEMENT_TOO_SHORT: 0 < 1");
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("update_by_id_empty_set_action.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "$set: {[key]: any} ~ ELEMENT_TOO_SHORT: 0 < 1"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_update_by_id_empty_unset_action_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_empty_unset_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("$unset: string[] ~ ELEMENT_TOO_SHORT: 0 < 1");
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("update_by_id_empty_unset_action.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "$unset: string[] ~ ELEMENT_TOO_SHORT: 0 < 1"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_update_by_id_wrong_unset_action_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_wrong_unset_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("$unset: string[] ~ INVALID_VALUE: NUMBER");
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("update_by_id_wrong_unset_action.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "$unset: string[] ~ INVALID_VALUE: NUMBER"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_update_by_id_projection_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_projection.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("Validating DSL: {$action: ...} ~ INVALID_JSON_FIELD: $projection");
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_projection.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "Validating DSL: {$action: ...} ~ INVALID_JSON_FIELD: $projection"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_update_by_id_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("DSL: {$action: ...} ~ INVALID_JSON_FIELD: $query");
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("update_by_id_query.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(UPDATE_BY_ID_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "DSL: {$action: ...} ~ INVALID_JSON_FIELD: $query"
+        );
     }
 }

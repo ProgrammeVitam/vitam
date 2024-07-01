@@ -63,35 +63,54 @@ public class ArchiveUnitLifecycleUpdateUtils {
      * @param evDetData
      * @param logbookLifeCycleClient
      */
-    public void logLifecycle(WorkerParameters params, String auGuid, StatusCode code,
-        String evDetData, LogbookLifeCyclesClient logbookLifeCycleClient) {
+    public void logLifecycle(
+        WorkerParameters params,
+        String auGuid,
+        StatusCode code,
+        String evDetData,
+        LogbookLifeCyclesClient logbookLifeCycleClient
+    ) {
         try {
-            LogbookLifeCycleUnitParameters logbookLCParam =
-                getLogbookLifeCycleUpdateUnitParameters(GUIDReader.getGUID(params.getContainerName()), code,
-                    GUIDReader.getGUID(auGuid), UNIT_METADATA_UPDATE);
+            LogbookLifeCycleUnitParameters logbookLCParam = getLogbookLifeCycleUpdateUnitParameters(
+                GUIDReader.getGUID(params.getContainerName()),
+                code,
+                GUIDReader.getGUID(auGuid),
+                UNIT_METADATA_UPDATE
+            );
             if (evDetData != null) {
                 logbookLCParam.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
             }
             logbookLifeCycleClient.update(logbookLCParam);
-        } catch (LogbookClientNotFoundException | LogbookClientBadRequestException | LogbookClientServerException |
-            InvalidGuidOperationException e) {
+        } catch (
+            LogbookClientNotFoundException
+            | LogbookClientBadRequestException
+            | LogbookClientServerException
+            | InvalidGuidOperationException e
+        ) {
             // Ignore since could be during first insert step
             LOGGER.error("Should be in First Insert step so not alreday commited", e);
         }
     }
 
-    private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess,
-        StatusCode logbookOutcome, GUID objectIdentifier, String action) {
+    private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(
+        GUID eventIdentifierProcess,
+        StatusCode logbookOutcome,
+        GUID objectIdentifier,
+        String action
+    ) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        return LogbookParameterHelper.newLogbookLifeCycleUnitParameters(updateGuid,
+        return LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+            updateGuid,
             VitamLogbookMessages.getEventTypeLfc(action),
             eventIdentifierProcess,
-            eventTypeProcess, logbookOutcome,
+            eventTypeProcess,
+            logbookOutcome,
             VitamLogbookMessages.getOutcomeDetailLfc(action, logbookOutcome),
-            VitamLogbookMessages.getCodeLfc(action, logbookOutcome), objectIdentifier);
+            VitamLogbookMessages.getCodeLfc(action, logbookOutcome),
+            objectIdentifier
+        );
     }
-
 
     /**
      * Method used to commit lifecycle
@@ -100,12 +119,14 @@ public class ArchiveUnitLifecycleUpdateUtils {
      * @param archiveUnitId
      * @param logbookLifeCycleClient
      */
-    public void commitLifecycle(String processId, String archiveUnitId,
-        LogbookLifeCyclesClient logbookLifeCycleClient) {
+    public void commitLifecycle(
+        String processId,
+        String archiveUnitId,
+        LogbookLifeCyclesClient logbookLifeCycleClient
+    ) {
         try {
             logbookLifeCycleClient.commitUnit(processId, archiveUnitId);
-        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-            LogbookClientServerException e) {
+        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException | LogbookClientServerException e) {
             LOGGER.error("Couldn't commit lifecycles", e);
         }
     }

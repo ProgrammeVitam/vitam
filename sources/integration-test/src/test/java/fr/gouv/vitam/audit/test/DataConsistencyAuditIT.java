@@ -99,6 +99,7 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
 
     public static final String INCOHERANT_DATA_SIZE = "IncoherantDataSize";
     public static final String REQUEST_ID = "requestId";
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -108,15 +109,12 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     private static final String OBJECTGROUP_RESOURCE_FILE = "database/got.json";
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(DataConsistencyAuditIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        DataConsistencyAuditIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(MetadataMain.class, AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class)
+    );
 
     private static MetadataAuditResource metadataAuditResource;
 
@@ -128,9 +126,10 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     private static final int PORT_SERVICE_METADATA_ADMIN = 28098;
     private static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA_ADMIN;
 
-
     private enum PopulateMode {
-        FULL, ES_ONLY, MONGO_ONLY
+        FULL,
+        ES_ONLY,
+        MONGO_ONLY,
     }
 
     @BeforeClass
@@ -142,9 +141,11 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
             .readTimeout(600, TimeUnit.SECONDS)
             .connectTimeout(600, TimeUnit.SECONDS)
             .build();
-        Retrofit retrofit =
-            new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
-                .addConverterFactory(JacksonConverterFactory.create()).build();
+        Retrofit retrofit = new Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(METADATA_URL)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
         metadataAuditResource = retrofit.create(DataConsistencyAuditIT.MetadataAuditResource.class);
     }
 
@@ -173,11 +174,17 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
             if (!workspaceClient.isExistingContainer(AUDIT_CONTAINER_NAME)) {
                 workspaceClient.createContainer(AUDIT_CONTAINER_NAME);
             }
-            if (!workspaceClient.isExistingObject(AUDIT_CONTAINER_NAME,
-                TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION)) {
+            if (
+                !workspaceClient.isExistingObject(
+                    AUDIT_CONTAINER_NAME,
+                    TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION
+                )
+            ) {
                 File file = folder.newFile();
-                Map<String, BsonTimestamp> stringBsonTimestampMap =
-                    Map.of(SHARD_KEY, new BsonTimestamp((int) (new Date().getTime() / 1000L), 1));
+                Map<String, BsonTimestamp> stringBsonTimestampMap = Map.of(
+                    SHARD_KEY,
+                    new BsonTimestamp((int) (new Date().getTime() / 1000L), 1)
+                );
                 JsonHandler.writeAsFile(JsonHandler.toJsonNode(stringBsonTimestampMap), file);
                 workspaceClient.putObject(AUDIT_CONTAINER_NAME, TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION, file);
             }
@@ -196,13 +203,13 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
 
         VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
-        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
-            new TypeReference<>() {
-            });
+        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result, new TypeReference<>() {});
         assertEquals(0, responseResults.get(INCOHERANT_DATA_SIZE).asInt());
         JsonNode logbookJsonNode = VitamTestHelper.findLogbook(responseResults.get(REQUEST_ID).asText());
-        LogbookOperation logbookOperation =
-            JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+        LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(
+            logbookJsonNode.get(RequestResponseOK.TAG_RESULTS),
+            LogbookOperation.class
+        );
         assertEquals(StatusCode.OK.name(), Iterables.getLast(logbookOperation.getEvents()).getOutcome());
     }
 
@@ -214,16 +221,15 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
 
         VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
-        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
-            new TypeReference<>() {
-            });
+        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result, new TypeReference<>() {});
         assertEquals(5, responseResults.get(INCOHERANT_DATA_SIZE).asInt());
         JsonNode logbookJsonNode = VitamTestHelper.findLogbook(responseResults.get(REQUEST_ID).asText());
-        LogbookOperation logbookOperation =
-            JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+        LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(
+            logbookJsonNode.get(RequestResponseOK.TAG_RESULTS),
+            LogbookOperation.class
+        );
         assertEquals(StatusCode.WARNING.name(), Iterables.getLast(logbookOperation.getEvents()).getOutcome());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -236,22 +242,20 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
         MetadataCollections.OBJECTGROUP.getCollection().deleteMany(Filters.eq(MetadataDocument.OPI, OPI));
 
         JsonNode result = metadataAuditResource.tryRunAuditDataConsistencyMongoEs().execute().body();
-        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result,
-            new TypeReference<>() {
-            });
+        LinkedHashMap<String, JsonNode> responseResults = JsonHandler.getFromJsonNode(result, new TypeReference<>() {});
         assertEquals(5, responseResults.get(INCOHERANT_DATA_SIZE).asInt());
         JsonNode logbookJsonNode = VitamTestHelper.findLogbook(responseResults.get(REQUEST_ID).asText());
-        LogbookOperation logbookOperation =
-            JsonHandler.getFromJsonNode(logbookJsonNode.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+        LogbookOperation logbookOperation = JsonHandler.getFromJsonNode(
+            logbookJsonNode.get(RequestResponseOK.TAG_RESULTS),
+            LogbookOperation.class
+        );
         assertEquals(StatusCode.WARNING.name(), Iterables.getLast(logbookOperation.getEvents()).getOutcome());
     }
 
     private void populateData(PopulateMode mode) {
         try {
-            List<Unit> units = getMetadatas(UNIT_RESOURCE_FILE, new TypeReference<>() {
-            });
-            List<ObjectGroup> objectGroups = getMetadatas(OBJECTGROUP_RESOURCE_FILE, new TypeReference<>() {
-            });
+            List<Unit> units = getMetadatas(UNIT_RESOURCE_FILE, new TypeReference<>() {});
+            List<ObjectGroup> objectGroups = getMetadatas(OBJECTGROUP_RESOURCE_FILE, new TypeReference<>() {});
 
             if (mode.equals(PopulateMode.FULL) || mode.equals(PopulateMode.MONGO_ONLY)) {
                 MetadataCollections.UNIT.getCollection().insertMany(units);
@@ -259,21 +263,22 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
             }
 
             if (mode.equals(PopulateMode.FULL) || mode.equals(PopulateMode.ES_ONLY)) {
-                MetadataCollections.UNIT.getEsClient()
-                    .insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
+                MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
                 MetadataCollections.OBJECTGROUP.getEsClient()
                     .insertFullDocuments(MetadataCollections.OBJECTGROUP, TENANT_ID, objectGroups);
             }
-
-        } catch (InvalidParseOperationException | InvalidFormatException | FileNotFoundException | MetaDataExecutionException e) {
+        } catch (
+            InvalidParseOperationException
+            | InvalidFormatException
+            | FileNotFoundException
+            | MetaDataExecutionException e
+        ) {
             fail("Cannot populate data");
         }
     }
 
     private <T extends MetadataDocument<T>> List<T> getMetadatas(String resourcesFile, TypeReference<List<T>> type)
-        throws InvalidParseOperationException,
-        InvalidFormatException, FileNotFoundException {
-
+        throws InvalidParseOperationException, InvalidFormatException, FileNotFoundException {
         InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(resourcesFile);
         List<T> metadataDocuments = JsonHandler.getFromInputStreamAsTypeReference(resourceAsStream, type);
 
@@ -282,12 +287,8 @@ public class DataConsistencyAuditIT extends VitamRuleRunner {
     }
 
     public interface MetadataAuditResource {
-
         @GET("/v1/auditDataConsistency")
-        @Headers({
-            "Accept: application/json",
-            "Content-Type: application/json"
-        })
+        @Headers({ "Accept: application/json", "Content-Type: application/json" })
         Call<JsonNode> tryRunAuditDataConsistencyMongoEs();
     }
 }

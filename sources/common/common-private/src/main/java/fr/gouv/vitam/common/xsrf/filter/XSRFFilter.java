@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class XSRFFilter implements Filter {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(XSRFFilter.class);
 
     private static final String CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED =
@@ -77,8 +78,7 @@ public class XSRFFilter implements Filter {
             deleteTokenWhenLogout(req, sessionId);
             LOGGER.error(CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED);
             final HttpServletResponse newResponse = (HttpServletResponse) response;
-            newResponse.sendError(Status.FORBIDDEN.getStatusCode(),
-                CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED);
+            newResponse.sendError(Status.FORBIDDEN.getStatusCode(), CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED);
             StreamUtils.closeSilently(request.getInputStream());
         }
     }
@@ -99,7 +99,8 @@ public class XSRFFilter implements Filter {
     }
 
     private boolean isUriNotProtected(String requestURI) {
-        return requestURI.contains(VitamConfiguration.LOGIN_URL) ||
+        return (
+            requestURI.contains(VitamConfiguration.LOGIN_URL) ||
             requestURI.contains(VitamConfiguration.LOGOUT_URL) ||
             requestURI.contains(VitamConfiguration.TENANTS_URL) ||
             requestURI.contains(VitamConfiguration.MESSAGES_LOGBOOK_URL) ||
@@ -107,6 +108,7 @@ public class XSRFFilter implements Filter {
             requestURI.contains(VitamConfiguration.DIP_EXPORT_URL) ||
             requestURI.contains(VitamConfiguration.SECURE_MODE_URL) ||
             requestURI.contains(VitamConfiguration.ADMIN_TENANT_URL) ||
-            requestURI.contains(VitamConfiguration.PERMISSIONS_URL);
+            requestURI.contains(VitamConfiguration.PERMISSIONS_URL)
+        );
     }
 }

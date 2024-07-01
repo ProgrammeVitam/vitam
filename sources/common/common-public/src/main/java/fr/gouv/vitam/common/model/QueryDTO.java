@@ -35,6 +35,7 @@ import java.util.List;
  * Query DTO class
  */
 public class QueryDTO {
+
     @JsonProperty("$roots")
     private List<String> roots;
 

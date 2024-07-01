@@ -42,6 +42,4 @@ public class FormatIdentifierFactoryExceptionTest {
         assertNotNull(new FormatIdentifierFactoryException(exception));
         assertNotNull(new FormatIdentifierFactoryException(MESSAGE, exception));
     }
-
 }
-

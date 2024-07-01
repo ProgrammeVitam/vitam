@@ -56,6 +56,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class IngestExternalSslResourceTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalSslResourceTest.class);
 
     private static final String RESOURCE_URI = "/ingest-external/v1";
@@ -80,8 +81,9 @@ public class IngestExternalSslResourceTest {
         when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
         IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
-        when(ingestInternalClient.getWorkflowDetails(anyString()))
-            .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
+        when(ingestInternalClient.getWorkflowDetails(anyString())).thenReturn(
+            new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW")
+        );
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -98,16 +100,13 @@ public class IngestExternalSslResourceTest {
         BusinessApplicationTest.formatIdentifierFactory = formatIdentifierFactory;
         BusinessApplicationTest.ingestInternalClientFactory = ingestInternalClientFactory;
 
-
         try {
             application = new IngestExternalMain(INGEST_EXTERNAL_CONF, BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Ingest External Application Server", e);
+            throw new IllegalStateException("Cannot start the Ingest External Application Server", e);
         }
-
     }
 
     @AfterClass
@@ -134,5 +133,4 @@ public class IngestExternalSslResourceTest {
             .then()
             .statusCode(Status.NO_CONTENT.getStatusCode());
     }
-
 }

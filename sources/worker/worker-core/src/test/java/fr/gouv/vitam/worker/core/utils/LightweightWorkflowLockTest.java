@@ -65,7 +65,6 @@ public class LightweightWorkflowLockTest {
 
     private LightweightWorkflowLock lightweightWorkflowLock;
 
-
     @Before
     public void init() {
         doReturn(processingManagementClient).when(processingManagementClientFactory).getClient();
@@ -74,7 +73,6 @@ public class LightweightWorkflowLockTest {
 
     @Test
     public void listConcurrentWorkflows_ResponseOK() throws Exception {
-
         // Given
         String workflowId = "workflow";
         String currentProcessId = "1234";
@@ -90,11 +88,14 @@ public class LightweightWorkflowLockTest {
         processDetail2.setStepStatus("OK");
 
         doReturn(new RequestResponseOK<>().addAllResults(Arrays.asList(processDetail1, processDetail2)))
-            .when(processingManagementClient).listOperationsDetails(any());
+            .when(processingManagementClient)
+            .listOperationsDetails(any());
 
         // When
-        List<ProcessDetail> processDetails =
-            lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList(workflowId), currentProcessId);
+        List<ProcessDetail> processDetails = lightweightWorkflowLock.listConcurrentWorkflows(
+            Collections.singletonList(workflowId),
+            currentProcessId
+        );
 
         // Then
         ArgumentCaptor<ProcessQuery> processQueryArgumentCaptor = ArgumentCaptor.forClass(ProcessQuery.class);
@@ -105,15 +106,12 @@ public class LightweightWorkflowLockTest {
 
     @Test
     public void listConcurrentWorkflows_VitamError() throws Exception {
-
         // Given
-        doReturn(new VitamError("KO"))
-            .when(processingManagementClient).listOperationsDetails(any());
-
+        doReturn(new VitamError("KO")).when(processingManagementClient).listOperationsDetails(any());
 
         // When / Then
         assertThatThrownBy(
-            () -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any"))
-            .isInstanceOf(VitamClientException.class);
+            () -> lightweightWorkflowLock.listConcurrentWorkflows(Collections.singletonList("any"), "any")
+        ).isInstanceOf(VitamClientException.class);
     }
 }

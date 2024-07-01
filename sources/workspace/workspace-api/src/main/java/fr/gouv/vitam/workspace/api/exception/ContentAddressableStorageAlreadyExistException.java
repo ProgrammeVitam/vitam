@@ -60,5 +60,4 @@ public class ContentAddressableStorageAlreadyExistException extends ContentAddre
     public ContentAddressableStorageAlreadyExistException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

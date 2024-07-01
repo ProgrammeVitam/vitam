@@ -33,8 +33,7 @@ public class PojoModel {
     private final boolean isArray;
     private final PojoModelType modelType;
 
-    public PojoModel(String localPath, String fullPath, boolean isArray,
-        PojoModelType modelType) {
+    public PojoModel(String localPath, String fullPath, boolean isArray, PojoModelType modelType) {
         this.localPath = localPath;
         this.fullPath = fullPath;
         this.isArray = isArray;

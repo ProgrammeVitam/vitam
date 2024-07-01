@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -115,15 +114,19 @@ public class ReadOnlyStorageIT {
     private static final String DB_OFFER1 = "vitamoffer1";
     private static final String DB_OFFER2 = "vitamoffer2";
 
-    @ClassRule public static TempFolderRule tempFolder = new TempFolderRule();
+    @ClassRule
+    public static TempFolderRule tempFolder = new TempFolderRule();
 
-    @ClassRule public static MongoRule mongoRuleOffer1 =
-        new MongoRule(DB_OFFER1, MongoDbAccess.getMongoClientSettingsBuilder());
-    @ClassRule public static MongoRule mongoRuleOffer2 =
-        new MongoRule(DB_OFFER2, MongoDbAccess.getMongoClientSettingsBuilder());
+    @ClassRule
+    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, MongoDbAccess.getMongoClientSettingsBuilder());
 
-    @Rule public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    @ClassRule
+    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, MongoDbAccess.getMongoClientSettingsBuilder());
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static SetupStorageAndOffers setupStorageAndOffers;
 
@@ -139,8 +142,14 @@ public class ReadOnlyStorageIT {
         VitamConfiguration.setRestoreBulkSize(15);
 
         setupStorageAndOffers = new SetupStorageAndOffers();
-        setupStorageAndOffers.setupStorageAndTwoOffer(StorageTwoOffersIT.tempFolder, DEFAULT_STORAGE_CONF_FILE_NAME,
-            WORKSPACE_CONF, STORAGE_CONF, DEFAULT_OFFER_CONF, DEFAULT_SECOND_CONF);
+        setupStorageAndOffers.setupStorageAndTwoOffer(
+            StorageTwoOffersIT.tempFolder,
+            DEFAULT_STORAGE_CONF_FILE_NAME,
+            WORKSPACE_CONF,
+            STORAGE_CONF,
+            DEFAULT_OFFER_CONF,
+            DEFAULT_SECOND_CONF
+        );
     }
 
     @AfterClass
@@ -172,8 +181,9 @@ public class ReadOnlyStorageIT {
     }
 
     private void postTestControls() throws Exception {
-        Stream<Path> accessAndStorageLogsListing =
-            Files.list(Paths.get(setupStorageAndOffers.getStorageLogDirectory()));
+        Stream<Path> accessAndStorageLogsListing = Files.list(
+            Paths.get(setupStorageAndOffers.getStorageLogDirectory())
+        );
         assertThat(accessAndStorageLogsListing).isEmpty();
     }
 
@@ -205,8 +215,12 @@ public class ReadOnlyStorageIT {
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            Map<String, Boolean> existsByOffer =
-                storageClient.exists(STRATEGY_ID, DataCategory.OBJECT, OBJ_3, List.of(OFFER_ID_1, OFFER_ID_2));
+            Map<String, Boolean> existsByOffer = storageClient.exists(
+                STRATEGY_ID,
+                DataCategory.OBJECT,
+                OBJ_3,
+                List.of(OFFER_ID_1, OFFER_ID_2)
+            );
             assertThat(existsByOffer).isEqualTo(ImmutableMap.of(OFFER_ID_1, true, OFFER_ID_2, false));
         }
     }
@@ -214,17 +228,21 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testGetInformation() throws Exception {
-
         // Given
         givenObjectWrittenToOffer(DataCategory.OBJECT, OBJ_3, "data3", OFFER_ID_1);
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            JsonNode objectInformation =
-                storageClient.getInformation(STRATEGY_ID, DataCategory.OBJECT, OBJ_3, List.of(OFFER_ID_1, OFFER_ID_2),
-                    true);
+            JsonNode objectInformation = storageClient.getInformation(
+                STRATEGY_ID,
+                DataCategory.OBJECT,
+                OBJ_3,
+                List.of(OFFER_ID_1, OFFER_ID_2),
+                true
+            );
             assertThat(objectInformation.get(OFFER_ID_1).get(DIGEST).asText()).isEqualTo(
-                "7914d7f6e7cd09aabeb3a2f9fb484d11bf30216a691427e2a8ae59b5a1fb276d2558f2520c5beb8c814808af4c2e74a28bb7fde11eaffeef12daf4ded26018a7");
+                "7914d7f6e7cd09aabeb3a2f9fb484d11bf30216a691427e2a8ae59b5a1fb276d2558f2520c5beb8c814808af4c2e74a28bb7fde11eaffeef12daf4ded26018a7"
+            );
             assertThat(objectInformation.get(OFFER_ID_2)).isNull();
         }
     }
@@ -232,7 +250,6 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testBatchObjectInformation() throws Exception {
-
         // Given
         givenObjectWrittenToOffer(DataCategory.OBJECT, OBJ_1, "data1", OFFER_ID_2);
         givenObjectWrittenToOffer(DataCategory.OBJECT, OBJ_3, "data3", OFFER_ID_1);
@@ -240,23 +257,34 @@ public class ReadOnlyStorageIT {
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             RequestResponse<BatchObjectInformationResponse> batchObjectInformation =
-                storageClient.getBatchObjectInformation(STRATEGY_ID, DataCategory.OBJECT,
-                    List.of(OFFER_ID_1, OFFER_ID_2), List.of(OBJ_1, OBJ_3));
+                storageClient.getBatchObjectInformation(
+                    STRATEGY_ID,
+                    DataCategory.OBJECT,
+                    List.of(OFFER_ID_1, OFFER_ID_2),
+                    List.of(OBJ_1, OBJ_3)
+                );
 
             assertThat(batchObjectInformation.isOk()).isTrue();
 
             Map<String, Map<String, String>> offerDigestsByObjectId =
-                ((RequestResponseOK<BatchObjectInformationResponse>) batchObjectInformation).getResults().stream()
-                    .collect(Collectors.toMap(BatchObjectInformationResponse::getObjectId,
-                        BatchObjectInformationResponse::getOfferDigests));
+                ((RequestResponseOK<BatchObjectInformationResponse>) batchObjectInformation).getResults()
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            BatchObjectInformationResponse::getObjectId,
+                            BatchObjectInformationResponse::getOfferDigests
+                        )
+                    );
             assertThat(offerDigestsByObjectId).containsOnlyKeys(OBJ_1, OBJ_3);
             assertThat(offerDigestsByObjectId.get(OBJ_1)).containsOnlyKeys(OFFER_ID_1, OFFER_ID_2);
             assertThat(offerDigestsByObjectId.get(OBJ_1).get(OFFER_ID_1)).isNull();
             assertThat(offerDigestsByObjectId.get(OBJ_1).get(OFFER_ID_2)).isEqualTo(
-                "9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01");
+                "9731b541b22c1d7042646ab2ee17685bbb664bced666d8ecf3593f3ef46493deef651b0f31b6cff8c4df8dcb425a1035e86ddb9877a8685647f39847be0d7c01"
+            );
             assertThat(offerDigestsByObjectId.get(OBJ_3)).containsOnlyKeys(OFFER_ID_1, OFFER_ID_2);
             assertThat(offerDigestsByObjectId.get(OBJ_3).get(OFFER_ID_1)).isEqualTo(
-                "7914d7f6e7cd09aabeb3a2f9fb484d11bf30216a691427e2a8ae59b5a1fb276d2558f2520c5beb8c814808af4c2e74a28bb7fde11eaffeef12daf4ded26018a7");
+                "7914d7f6e7cd09aabeb3a2f9fb484d11bf30216a691427e2a8ae59b5a1fb276d2558f2520c5beb8c814808af4c2e74a28bb7fde11eaffeef12daf4ded26018a7"
+            );
             assertThat(offerDigestsByObjectId.get(OBJ_3).get(OFFER_ID_2)).isNull();
         }
     }
@@ -264,13 +292,11 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testGetReferentOffer() throws Exception {
-
         // Given
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            String referentOffer =
-                storageClient.getReferentOffer(STRATEGY_ID);
+            String referentOffer = storageClient.getReferentOffer(STRATEGY_ID);
 
             assertThat(referentOffer).isEqualTo(OFFER_ID_1);
         }
@@ -284,11 +310,12 @@ public class ReadOnlyStorageIT {
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             assertThatThrownBy(() -> storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, OBJ_1)).isInstanceOf(
-                StorageServerClientException.class);
+                StorageServerClientException.class
+            );
 
             assertThatThrownBy(
-                () -> storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, OBJ_1, List.of(OFFER_ID_1))).isInstanceOf(
-                StorageServerClientException.class);
+                () -> storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, OBJ_1, List.of(OFFER_ID_1))
+            ).isInstanceOf(StorageServerClientException.class);
         }
     }
 
@@ -301,14 +328,19 @@ public class ReadOnlyStorageIT {
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             assertThatThrownBy(() -> storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, OBJ_3)).isInstanceOf(
-                StorageServerClientException.class);
+                StorageServerClientException.class
+            );
 
             assertThatThrownBy(
-                () -> storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, OBJ_3, List.of(OFFER_ID_1))).isInstanceOf(
-                StorageServerClientException.class);
+                () -> storageClient.delete(STRATEGY_ID, DataCategory.OBJECT, OBJ_3, List.of(OFFER_ID_1))
+            ).isInstanceOf(StorageServerClientException.class);
 
-            Map<String, Boolean> existsByOffer =
-                storageClient.exists(STRATEGY_ID, DataCategory.OBJECT, OBJ_3, List.of(OFFER_ID_1));
+            Map<String, Boolean> existsByOffer = storageClient.exists(
+                STRATEGY_ID,
+                DataCategory.OBJECT,
+                OBJ_3,
+                List.of(OFFER_ID_1)
+            );
             assertThat(existsByOffer).isEqualTo(Map.of(OFFER_ID_1, true));
         }
     }
@@ -316,12 +348,14 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testStoreFileFromWorkspace() throws Exception {
-
         // Given
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.createContainer(CONTAINER_NAME);
-            workspaceClient.putObject(CONTAINER_NAME, OBJ_1,
-                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8)));
+            workspaceClient.putObject(
+                CONTAINER_NAME,
+                OBJ_1,
+                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8))
+            );
         }
 
         // When / Then
@@ -330,11 +364,16 @@ public class ReadOnlyStorageIT {
             objectDescription.setWorkspaceContainerGUID(CONTAINER_NAME);
             objectDescription.setWorkspaceObjectURI(OBJ_1);
 
-            assertThatThrownBy(() -> storageClient.storeFileFromWorkspace(STRATEGY_ID, DataCategory.OBJECT, OBJ_1,
-                objectDescription)).isInstanceOf(StorageServerClientException.class);
+            assertThatThrownBy(
+                () -> storageClient.storeFileFromWorkspace(STRATEGY_ID, DataCategory.OBJECT, OBJ_1, objectDescription)
+            ).isInstanceOf(StorageServerClientException.class);
 
-            Map<String, Boolean> existsByOffer =
-                storageClient.exists(STRATEGY_ID, DataCategory.OBJECT, OBJ_1, List.of(OFFER_ID_1, OFFER_ID_2));
+            Map<String, Boolean> existsByOffer = storageClient.exists(
+                STRATEGY_ID,
+                DataCategory.OBJECT,
+                OBJ_1,
+                List.of(OFFER_ID_1, OFFER_ID_2)
+            );
             assertThat(existsByOffer).isEqualTo(Map.of(OFFER_ID_1, false, OFFER_ID_2, false));
         }
     }
@@ -342,23 +381,36 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testCreate() throws Exception {
-
         // Given
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.createContainer(CONTAINER_NAME);
-            workspaceClient.putObject(CONTAINER_NAME, OBJ_1,
-                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8)));
+            workspaceClient.putObject(
+                CONTAINER_NAME,
+                OBJ_1,
+                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8))
+            );
         }
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            assertThatThrownBy(
+                () ->
+                    storageClient.create(
+                        STRATEGY_ID,
+                        OBJ_1,
+                        DataCategory.OBJECT,
+                        new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8)),
+                        5L,
+                        List.of(OFFER_ID_1, OFFER_ID_2)
+                    )
+            ).isInstanceOf(StorageServerClientException.class);
 
-            assertThatThrownBy(() -> storageClient.create(STRATEGY_ID, OBJ_1, DataCategory.OBJECT,
-                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8)), 5L,
-                List.of(OFFER_ID_1, OFFER_ID_2))).isInstanceOf(StorageServerClientException.class);
-
-            Map<String, Boolean> existsByOffer =
-                storageClient.exists(STRATEGY_ID, DataCategory.OBJECT, OBJ_1, List.of(OFFER_ID_1, OFFER_ID_2));
+            Map<String, Boolean> existsByOffer = storageClient.exists(
+                STRATEGY_ID,
+                DataCategory.OBJECT,
+                OBJ_1,
+                List.of(OFFER_ID_1, OFFER_ID_2)
+            );
             assertThat(existsByOffer).isEqualTo(Map.of(OFFER_ID_1, false, OFFER_ID_2, false));
         }
     }
@@ -369,23 +421,36 @@ public class ReadOnlyStorageIT {
         // Given
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.createContainer(CONTAINER_NAME);
-            workspaceClient.putObject(CONTAINER_NAME, OBJ_1,
-                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8)));
-            workspaceClient.putObject(CONTAINER_NAME, OBJ_2,
-                new ByteArrayInputStream("data2".getBytes(StandardCharsets.UTF_8)));
+            workspaceClient.putObject(
+                CONTAINER_NAME,
+                OBJ_1,
+                new ByteArrayInputStream("data1".getBytes(StandardCharsets.UTF_8))
+            );
+            workspaceClient.putObject(
+                CONTAINER_NAME,
+                OBJ_2,
+                new ByteArrayInputStream("data2".getBytes(StandardCharsets.UTF_8))
+            );
         }
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            BulkObjectStoreRequest bulkObjectStoreRequest =
-                new BulkObjectStoreRequest(CONTAINER_NAME, List.of(OBJ_1, OBJ_2), DataCategory.OBJECT,
-                    List.of(OBJ_1, OBJ_2));
+            BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
+                CONTAINER_NAME,
+                List.of(OBJ_1, OBJ_2),
+                DataCategory.OBJECT,
+                List.of(OBJ_1, OBJ_2)
+            );
             assertThatThrownBy(
-                () -> storageClient.bulkStoreFilesFromWorkspace(STRATEGY_ID, bulkObjectStoreRequest)).isInstanceOf(
-                StorageServerClientException.class);
+                () -> storageClient.bulkStoreFilesFromWorkspace(STRATEGY_ID, bulkObjectStoreRequest)
+            ).isInstanceOf(StorageServerClientException.class);
 
-            Map<String, Boolean> existsByOffer =
-                storageClient.exists(STRATEGY_ID, DataCategory.OBJECT, OBJ_1, List.of(OFFER_ID_1, OFFER_ID_2));
+            Map<String, Boolean> existsByOffer = storageClient.exists(
+                STRATEGY_ID,
+                DataCategory.OBJECT,
+                OBJ_1,
+                List.of(OFFER_ID_1, OFFER_ID_2)
+            );
             assertThat(existsByOffer).isEqualTo(Map.of(OFFER_ID_1, false, OFFER_ID_2, false));
         }
     }
@@ -393,21 +458,30 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testGetContainerAsyncWithoutAccessLog() throws Exception {
-
         // Given
         givenObjectWrittenToOffer(DataCategory.OBJECT, OBJ_3, "data3", OFFER_ID_1);
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Non-existing object
-            assertThatThrownBy(() -> storageClient.getContainerAsync(STRATEGY_ID, OBJ_1, DataCategory.OBJECT,
-                AccessLogUtils.getNoLogAccessLog())).isInstanceOf(StorageNotFoundException.class);
+            assertThatThrownBy(
+                () ->
+                    storageClient.getContainerAsync(
+                        STRATEGY_ID,
+                        OBJ_1,
+                        DataCategory.OBJECT,
+                        AccessLogUtils.getNoLogAccessLog()
+                    )
+            ).isInstanceOf(StorageNotFoundException.class);
 
             // Existing object
-            Response obj3ContainerAsync =
-                storageClient.getContainerAsync(STRATEGY_ID, OFFER_ID_1, OBJ_3, DataCategory.OBJECT,
-                    AccessLogUtils.getNoLogAccessLog());
+            Response obj3ContainerAsync = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                OFFER_ID_1,
+                OBJ_3,
+                DataCategory.OBJECT,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             assertThat(obj3ContainerAsync.getStatusInfo().getStatusCode()).isEqualTo(200);
             try (InputStream inputStream = obj3ContainerAsync.readEntity(InputStream.class)) {
                 assertThat(IOUtils.toString(inputStream, StandardCharsets.UTF_8)).isEqualTo("data3");
@@ -418,7 +492,6 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testGetContainerAsyncWithAccessLog() throws Exception {
-
         // Given
         AccessContractModel loggedAccessContract = new AccessContractModel().setAccessLog(ActivationStatus.ACTIVE);
         VitamThreadUtils.getVitamSession().setContract(loggedAccessContract);
@@ -427,17 +500,27 @@ public class ReadOnlyStorageIT {
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            assertThatThrownBy(() -> storageClient.getContainerAsync(STRATEGY_ID, OBJ_3, DataCategory.OBJECT,
-                AccessLogUtils.getInfoForAccessLog("qualifier", 0, VitamThreadUtils.getVitamSession(), 5L,
-                    "unit"))).isExactlyInstanceOf(StorageServerClientException.class);
+            assertThatThrownBy(
+                () ->
+                    storageClient.getContainerAsync(
+                        STRATEGY_ID,
+                        OBJ_3,
+                        DataCategory.OBJECT,
+                        AccessLogUtils.getInfoForAccessLog(
+                            "qualifier",
+                            0,
+                            VitamThreadUtils.getVitamSession(),
+                            5L,
+                            "unit"
+                        )
+                    )
+            ).isExactlyInstanceOf(StorageServerClientException.class);
         }
     }
 
     @RunWithCustomExecutor
     @Test
     public void testListContainer() throws Exception {
-
         AccessContractModel loggedAccessContract = new AccessContractModel().setAccessLog(ActivationStatus.ACTIVE);
         VitamThreadUtils.getVitamSession().setContract(loggedAccessContract);
 
@@ -449,11 +532,14 @@ public class ReadOnlyStorageIT {
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            CloseableIterator<ObjectEntry> objectEntryCloseableIterator = storageClient.listContainer(
+                STRATEGY_ID,
+                OFFER_ID_1,
+                DataCategory.UNIT
+            );
 
-            CloseableIterator<ObjectEntry> objectEntryCloseableIterator =
-                storageClient.listContainer(STRATEGY_ID, OFFER_ID_1, DataCategory.UNIT);
-
-            assertThat(objectEntryCloseableIterator).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            assertThat(objectEntryCloseableIterator)
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
                 .containsExactlyInAnyOrder(tuple(OBJ_1, 5L), tuple(OBJ_3, 5L));
         }
     }
@@ -461,7 +547,6 @@ public class ReadOnlyStorageIT {
     @RunWithCustomExecutor
     @Test
     public void testGetOfferLogs() throws Exception {
-
         AccessContractModel loggedAccessContract = new AccessContractModel().setAccessLog(ActivationStatus.ACTIVE);
         VitamThreadUtils.getVitamSession().setContract(loggedAccessContract);
 
@@ -472,35 +557,51 @@ public class ReadOnlyStorageIT {
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            RequestResponse<OfferLog> offerLogs =
-                storageClient.getOfferLogs(STRATEGY_ID, OFFER_ID_1, DataCategory.OBJECTGROUP, 0L, 100, Order.ASC);
+            RequestResponse<OfferLog> offerLogs = storageClient.getOfferLogs(
+                STRATEGY_ID,
+                OFFER_ID_1,
+                DataCategory.OBJECTGROUP,
+                0L,
+                100,
+                Order.ASC
+            );
 
             assertThat(offerLogs.isOk()).isTrue();
-            assertThat(((RequestResponseOK<OfferLog>) offerLogs).getResults()).extracting(OfferLog::getFileName,
-                    OfferLog::getAction)
-                .containsExactlyInAnyOrder(tuple(OBJ_1, OfferLogAction.WRITE), tuple(OBJ_2, OfferLogAction.WRITE),
-                    tuple(OBJ_3, OfferLogAction.DELETE));
+            assertThat(((RequestResponseOK<OfferLog>) offerLogs).getResults())
+                .extracting(OfferLog::getFileName, OfferLog::getAction)
+                .containsExactlyInAnyOrder(
+                    tuple(OBJ_1, OfferLogAction.WRITE),
+                    tuple(OBJ_2, OfferLogAction.WRITE),
+                    tuple(OBJ_3, OfferLogAction.DELETE)
+                );
         }
     }
 
     @Test
     @RunWithCustomExecutor
     public void testCopyObjectFromOfferToOffer() throws Exception {
-
         // Given
         givenObjectWrittenToOffer(DataCategory.MANIFEST, OBJ_3, "data3", OFFER_ID_1);
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             assertThatThrownBy(
-                () -> storageClient.copyObjectFromOfferToOffer(OBJ_3, DataCategory.MANIFEST, OFFER_ID_1, OFFER_ID_2,
-                    STRATEGY_ID)).isExactlyInstanceOf(StorageServerClientException.class);
+                () ->
+                    storageClient.copyObjectFromOfferToOffer(
+                        OBJ_3,
+                        DataCategory.MANIFEST,
+                        OFFER_ID_1,
+                        OFFER_ID_2,
+                        STRATEGY_ID
+                    )
+            ).isExactlyInstanceOf(StorageServerClientException.class);
 
-
-            Map<String, Boolean> existsByOffer =
-                storageClient.exists(STRATEGY_ID, DataCategory.MANIFEST, OBJ_3, List.of(OFFER_ID_1, OFFER_ID_2));
+            Map<String, Boolean> existsByOffer = storageClient.exists(
+                STRATEGY_ID,
+                DataCategory.MANIFEST,
+                OBJ_3,
+                List.of(OFFER_ID_1, OFFER_ID_2)
+            );
             assertThat(existsByOffer).isEqualTo(Map.of(OFFER_ID_1, true, OFFER_ID_2, false));
         }
     }
@@ -508,18 +609,20 @@ public class ReadOnlyStorageIT {
     @Test
     @RunWithCustomExecutor
     public void testStorageAccessLogBackup() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             assertThatThrownBy(() -> storageClient.storageAccessLogBackup(List.of(TENANT_0))).isExactlyInstanceOf(
-                StorageServerClientException.class);
+                StorageServerClientException.class
+            );
 
-            CloseableIterator<ObjectEntry> storageAccessLogEntries =
-                storageClient.listContainer(STRATEGY_ID, OFFER_ID_1, DataCategory.STORAGEACCESSLOG);
+            CloseableIterator<ObjectEntry> storageAccessLogEntries = storageClient.listContainer(
+                STRATEGY_ID,
+                OFFER_ID_1,
+                DataCategory.STORAGEACCESSLOG
+            );
             assertThat(storageAccessLogEntries).isEmpty();
         }
     }
@@ -527,18 +630,20 @@ public class ReadOnlyStorageIT {
     @Test
     @RunWithCustomExecutor
     public void testStorageLogBackup() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             assertThatThrownBy(() -> storageClient.storageLogBackup(List.of(TENANT_0))).isExactlyInstanceOf(
-                StorageServerClientException.class);
+                StorageServerClientException.class
+            );
 
-            CloseableIterator<ObjectEntry> storageAccessLogEntries =
-                storageClient.listContainer(STRATEGY_ID, OFFER_ID_1, DataCategory.STORAGELOG);
+            CloseableIterator<ObjectEntry> storageAccessLogEntries = storageClient.listContainer(
+                STRATEGY_ID,
+                OFFER_ID_1,
+                DataCategory.STORAGELOG
+            );
             assertThat(storageAccessLogEntries).isEmpty();
         }
     }
@@ -546,18 +651,20 @@ public class ReadOnlyStorageIT {
     @Test
     @RunWithCustomExecutor
     public void testStorageLogTraceability() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
 
         // When / Then
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             assertThatThrownBy(() -> storageClient.storageLogTraceability(List.of(TENANT_0))).isExactlyInstanceOf(
-                StorageServerClientException.class);
+                StorageServerClientException.class
+            );
 
-            CloseableIterator<ObjectEntry> storageAccessLogEntries =
-                storageClient.listContainer(STRATEGY_ID, OFFER_ID_1, DataCategory.STORAGETRACEABILITY);
+            CloseableIterator<ObjectEntry> storageAccessLogEntries = storageClient.listContainer(
+                STRATEGY_ID,
+                OFFER_ID_1,
+                DataCategory.STORAGETRACEABILITY
+            );
             assertThat(storageAccessLogEntries).isEmpty();
         }
     }
@@ -567,12 +674,21 @@ public class ReadOnlyStorageIT {
         return DriverManager.getDriverFor(offerId).connect(offerId);
     }
 
-    private void givenObjectWrittenToOffer(DataCategory dataCategory, String objectName, String content, String offerId)
-        throws StorageDriverException, StorageDriverNotFoundException {
+    private void givenObjectWrittenToOffer(
+        DataCategory dataCategory,
+        String objectName,
+        String content,
+        String offerId
+    ) throws StorageDriverException, StorageDriverNotFoundException {
         try (Connection connect = createDirectOfferConnection(offerId)) {
             byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-            StoragePutRequest storagePutRequest = new StoragePutRequest(0, dataCategory.getFolder(), objectName,
-                VitamConfiguration.getDefaultDigestType().getName(), new ByteArrayInputStream(bytes));
+            StoragePutRequest storagePutRequest = new StoragePutRequest(
+                0,
+                dataCategory.getFolder(),
+                objectName,
+                VitamConfiguration.getDefaultDigestType().getName(),
+                new ByteArrayInputStream(bytes)
+            );
             storagePutRequest.setSize(bytes.length);
             connect.putObject(storagePutRequest);
         }
@@ -581,8 +697,11 @@ public class ReadOnlyStorageIT {
     private void givenObjectDeletedFromOffer(DataCategory dataCategory, String objectName, String offerId)
         throws StorageDriverException, StorageDriverNotFoundException {
         try (Connection connect = createDirectOfferConnection(offerId)) {
-            StorageRemoveRequest storageRemoveRequest =
-                new StorageRemoveRequest(0, dataCategory.getFolder(), objectName);
+            StorageRemoveRequest storageRemoveRequest = new StorageRemoveRequest(
+                0,
+                dataCategory.getFolder(),
+                objectName
+            );
             connect.removeObject(storageRemoveRequest);
         } catch (fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException ignored) {
             // NOP

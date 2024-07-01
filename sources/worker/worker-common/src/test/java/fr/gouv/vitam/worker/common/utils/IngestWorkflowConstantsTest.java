@@ -35,15 +35,23 @@ public class IngestWorkflowConstantsTest {
 
     @Test
     public void testConstant() throws Exception {
-        assertEquals(IngestWorkflowConstants.OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX,
-            "OBJECT_GROUP_ID_TO_GUID_MAP_");
+        assertEquals(
+            IngestWorkflowConstants.OBJECT_GROUP_ID_TO_GUID_MAP_FILE_NAME_PREFIX,
+            "OBJECT_GROUP_ID_TO_GUID_MAP_"
+        );
         assertEquals(IngestWorkflowConstants.ARCHIVE_ID_TO_GUID_MAP_FILE_NAME_PREFIX, "ARCHIVE_ID_TO_GUID_MAP_");
-        assertEquals(IngestWorkflowConstants.DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX,
-            "DATA_OBJECT_ID_TO_GUID_MAP_");
-        assertEquals(IngestWorkflowConstants.DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX,
-            "DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_");
-        assertEquals(IngestWorkflowConstants.OBJECT_GROUP_ID_TO_ARCHIVE_UNIT_ID_MAP_FILE_NAME_PREFIX,
-            "OG_TO_ARCHIVE_ID_MAP_");
+        assertEquals(
+            IngestWorkflowConstants.DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX,
+            "DATA_OBJECT_ID_TO_GUID_MAP_"
+        );
+        assertEquals(
+            IngestWorkflowConstants.DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX,
+            "DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_"
+        );
+        assertEquals(
+            IngestWorkflowConstants.OBJECT_GROUP_ID_TO_ARCHIVE_UNIT_ID_MAP_FILE_NAME_PREFIX,
+            "OG_TO_ARCHIVE_ID_MAP_"
+        );
         assertEquals(IngestWorkflowConstants.ARCHIVE_TREE_TMP_FILE_NAME_PREFIX, "INGEST_TREE_");
         assertEquals(IngestWorkflowConstants.SEDA_FOLDER, "SIP");
         assertEquals(IngestWorkflowConstants.SEDA_FILE, "manifest.xml");
@@ -52,5 +60,4 @@ public class IngestWorkflowConstantsTest {
         assertEquals(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, "Units");
         assertEquals(IngestWorkflowConstants.EXEC_FOLDER, "Exec");
     }
-
 }

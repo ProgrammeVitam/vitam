@@ -42,20 +42,22 @@ import java.util.Set;
 @Path("/home2")
 public class AdvancedJerseyMetricsResource {
 
-    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
-        "/home2//users:GET:*:*:timer",
-        "/home2//users/{id}:DELETE:*:*:timer",
-        "/home2//options:OPTIONS:*:*:timer",
-        "/home2//users/{id}:PUT:*:*:meter",
-        "/home2//users/{id}:DELETE:*:*:meter",
-        "/home2//head:HEAD:*:*:meter",
-        "/home2//users/{id}:POST:*:*:timer",
-        "/home2//users:GET:*:*:meter",
-        "/home2//head:HEAD:*:*:timer",
-        "/home2//options:OPTIONS:*:*:meter",
-        "/home2//users/{id}:PUT:*:*:timer",
-        "/home2//users/{id}:POST:*:*:meter"
-    ));
+    public static final Set<String> expectedNames = new HashSet<>(
+        Arrays.asList(
+            "/home2//users:GET:*:*:timer",
+            "/home2//users/{id}:DELETE:*:*:timer",
+            "/home2//options:OPTIONS:*:*:timer",
+            "/home2//users/{id}:PUT:*:*:meter",
+            "/home2//users/{id}:DELETE:*:*:meter",
+            "/home2//head:HEAD:*:*:meter",
+            "/home2//users/{id}:POST:*:*:timer",
+            "/home2//users:GET:*:*:meter",
+            "/home2//head:HEAD:*:*:timer",
+            "/home2//options:OPTIONS:*:*:meter",
+            "/home2//users/{id}:PUT:*:*:timer",
+            "/home2//users/{id}:POST:*:*:meter"
+        )
+    );
 
     @GET
     @Path("/users")

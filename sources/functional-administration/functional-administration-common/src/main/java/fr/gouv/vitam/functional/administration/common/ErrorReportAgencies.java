@@ -53,7 +53,6 @@ public class ErrorReportAgencies {
      */
     private String missingInformations;
 
-
     public ErrorReportAgencies() {
         super();
     }
@@ -64,8 +63,6 @@ public class ErrorReportAgencies {
         this.line = line;
         this.fileAgenciesModel = agenciesModel;
     }
-
-
 
     public ErrorReportAgencies(FileAgenciesErrorCode code, int line, String missingInformations) {
         super();

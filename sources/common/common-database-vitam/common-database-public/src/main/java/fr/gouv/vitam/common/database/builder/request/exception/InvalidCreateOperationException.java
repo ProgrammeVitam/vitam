@@ -61,9 +61,12 @@ public class InvalidCreateOperationException extends Exception {
      * @param arg2 enough suppression
      * @param arg3 enough write track
      */
-    public InvalidCreateOperationException(final String arg0, final Throwable arg1,
-        final boolean arg2, final boolean arg3) {
+    public InvalidCreateOperationException(
+        final String arg0,
+        final Throwable arg1,
+        final boolean arg2,
+        final boolean arg3
+    ) {
         super(arg0, arg1, arg2, arg3);
     }
-
 }

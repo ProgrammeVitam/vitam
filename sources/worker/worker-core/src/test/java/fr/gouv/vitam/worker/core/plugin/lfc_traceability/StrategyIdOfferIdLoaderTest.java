@@ -51,6 +51,7 @@ public class StrategyIdOfferIdLoaderTest {
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -61,7 +62,6 @@ public class StrategyIdOfferIdLoaderTest {
 
     @Test
     public void getOfferIdsFirstInvocation() throws Exception {
-
         // Given
         doReturn(Arrays.asList("offer1", "offer2")).when(storageClient).getOffers("strategy1");
         StrategyIdOfferIdLoader instance = new StrategyIdOfferIdLoader(storageClientFactory);
@@ -74,10 +74,8 @@ public class StrategyIdOfferIdLoaderTest {
         verify(storageClient).getOffers(anyString());
     }
 
-
     @Test
     public void getOfferIdsMultipleInvocations() throws Exception {
-
         // Given
         doReturn(Arrays.asList("offer1", "offer2")).when(storageClient).getOffers("strategy1");
         StrategyIdOfferIdLoader instance = new StrategyIdOfferIdLoader(storageClientFactory);
@@ -96,7 +94,6 @@ public class StrategyIdOfferIdLoaderTest {
 
     @Test
     public void getOfferIdsMultipleInvocationsMultipleStrategies() throws Exception {
-
         // Given
         doReturn(Arrays.asList("offer1", "offer2")).when(storageClient).getOffers("strategy1");
         doReturn(Arrays.asList("offer3")).when(storageClient).getOffers("strategy2");

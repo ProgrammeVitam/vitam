@@ -63,19 +63,28 @@ public class AsyncResourceCleaner {
     private final Map<String, AccessRequestContext> asyncResourcesToRemove;
 
     public AsyncResourceCleaner(ServerConfiguration serverConfiguration) {
-        this(serverConfiguration, StorageClientFactory.getInstance(),
-            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()));
+        this(
+            serverConfiguration,
+            StorageClientFactory.getInstance(),
+            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
+        );
     }
 
     @VisibleForTesting
-    public AsyncResourceCleaner(ServerConfiguration serverConfiguration, StorageClientFactory storageClientFactory,
-        ScheduledExecutorService scheduledExecutorService) {
+    public AsyncResourceCleaner(
+        ServerConfiguration serverConfiguration,
+        StorageClientFactory storageClientFactory,
+        ScheduledExecutorService scheduledExecutorService
+    ) {
         this.storageClientFactory = storageClientFactory;
         this.asyncResourcesToRemove = new HashMap<>();
 
-        scheduledExecutorService.scheduleWithFixedDelay(this::cleanupAsyncResources,
+        scheduledExecutorService.scheduleWithFixedDelay(
+            this::cleanupAsyncResources,
             serverConfiguration.getDelayAsyncResourceCleaner(),
-            serverConfiguration.getDelayAsyncResourceCleaner(), TimeUnit.SECONDS);
+            serverConfiguration.getDelayAsyncResourceCleaner(),
+            TimeUnit.SECONDS
+        );
     }
 
     /**
@@ -106,20 +115,36 @@ public class AsyncResourceCleaner {
                 for (String accessRequestId : currentAsyncResourcesToRemove.keySet()) {
                     AccessRequestContext accessRequestContext = currentAsyncResourcesToRemove.get(accessRequestId);
 
-                    LOGGER.info("Removing access request {} for strategyId: {} / offerId: {}",
-                        accessRequestId, accessRequestContext.getStrategyId(), accessRequestContext.getOfferId());
+                    LOGGER.info(
+                        "Removing access request {} for strategyId: {} / offerId: {}",
+                        accessRequestId,
+                        accessRequestContext.getStrategyId(),
+                        accessRequestContext.getOfferId()
+                    );
                     try {
-                        storageClient.removeAccessRequest(accessRequestContext.getStrategyId(),
-                            accessRequestContext.getOfferId(), accessRequestId, true);
+                        storageClient.removeAccessRequest(
+                            accessRequestContext.getStrategyId(),
+                            accessRequestContext.getOfferId(),
+                            accessRequestId,
+                            true
+                        );
 
-                        LOGGER.info("Access request {} removed successfully for strategyId: {} / offerId: {}",
-                            accessRequestId, accessRequestContext.getStrategyId(), accessRequestContext.getOfferId());
+                        LOGGER.info(
+                            "Access request {} removed successfully for strategyId: {} / offerId: {}",
+                            accessRequestId,
+                            accessRequestContext.getStrategyId(),
+                            accessRequestContext.getOfferId()
+                        );
 
                         removedAccessRequestIds.add(accessRequestId);
                     } catch (StorageServerClientException | StorageIllegalOperationClientException e) {
-                        LOGGER.error("Could not remove access request {} for strategyId: {} / offerId: {}",
-                            accessRequestId, accessRequestContext.getStrategyId(), accessRequestContext.getOfferId(),
-                            e);
+                        LOGGER.error(
+                            "Could not remove access request {} for strategyId: {} / offerId: {}",
+                            accessRequestId,
+                            accessRequestContext.getStrategyId(),
+                            accessRequestContext.getOfferId(),
+                            e
+                        );
                         // We will retry next time...
                     }
                 }
@@ -130,7 +155,6 @@ public class AsyncResourceCleaner {
                     this.asyncResourcesToRemove.remove(removedAccessRequestId);
                 }
             }
-
         } finally {
             Thread.currentThread().setName(originalThreadName);
         }
@@ -143,14 +167,16 @@ public class AsyncResourceCleaner {
      */
     public void markAsyncResourcesForRemoval(Map<String, AccessRequestContext> asyncResources) {
         synchronized (this.asyncResourcesToRemove) {
-
-            Optional<String> existingAccessRequestId = asyncResources.keySet().stream()
+            Optional<String> existingAccessRequestId = asyncResources
+                .keySet()
+                .stream()
                 .filter(this.asyncResourcesToRemove::containsKey)
                 .findFirst();
 
             if (existingAccessRequestId.isPresent()) {
                 throw new IllegalArgumentException(
-                    "Duplicate access request id: '" + existingAccessRequestId.get() + "'");
+                    "Duplicate access request id: '" + existingAccessRequestId.get() + "'"
+                );
             }
 
             this.asyncResourcesToRemove.putAll(asyncResources);

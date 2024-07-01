@@ -48,13 +48,16 @@ public class MassUpdateFinalize extends UpdateUnitFinalize {
         this(
             BatchReportClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    private MassUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
+    private MassUpdateFinalize(
+        BatchReportClientFactory batchReportClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(batchReportClientFactory, logbookOperationsClientFactory, storageClientFactory);
     }
 

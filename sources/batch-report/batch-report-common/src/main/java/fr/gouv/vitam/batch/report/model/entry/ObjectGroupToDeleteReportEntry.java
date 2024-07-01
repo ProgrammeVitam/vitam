@@ -51,7 +51,8 @@ public class ObjectGroupToDeleteReportEntry {
     public ObjectGroupToDeleteReportEntry(
         @JsonProperty(STATUS) StatusCode status,
         @JsonProperty(OUTCOME) String outcome,
-        @JsonProperty(DELETED_VERSIONS) List<VersionsModelCustomized> deletedVersions) {
+        @JsonProperty(DELETED_VERSIONS) List<VersionsModelCustomized> deletedVersions
+    ) {
         this.deletedVersions = deletedVersions;
         this.status = status;
         this.outcome = outcome;
@@ -71,5 +72,4 @@ public class ObjectGroupToDeleteReportEntry {
     public String getOutcome() {
         return outcome;
     }
-
 }

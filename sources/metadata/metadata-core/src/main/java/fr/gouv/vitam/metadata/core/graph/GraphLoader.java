@@ -60,11 +60,10 @@ public class GraphLoader implements AutoCloseable {
 
     private final MongoDbMetadataRepository<Unit> mongoDbMetadataRepository;
 
-    static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION =
-        new BasicDBObject(UP, 1)
-            .append(ORIGINATING_AGENCY, 1)
-            .append(ID, 1)
-            .append(OG, 1);
+    static final BasicDBObject UNIT_VITAM_GRAPH_PROJECTION = new BasicDBObject(UP, 1)
+        .append(ORIGINATING_AGENCY, 1)
+        .append(ID, 1)
+        .append(OG, 1);
 
     private LoadingCache<String, UnitGraphModel> unitLoadingCache = CacheBuilder.newBuilder()
         .build(
@@ -78,7 +77,6 @@ public class GraphLoader implements AutoCloseable {
                 }
             }
         );
-
 
     public GraphLoader(MongoDbMetadataRepository<Unit> mongoDbMetadataRepository) {
         this.mongoDbMetadataRepository = mongoDbMetadataRepository;
@@ -111,26 +109,27 @@ public class GraphLoader implements AutoCloseable {
     private Map<String, UnitGraphModel> computeGraphByIds(Iterable<? extends String> ids) throws ExecutionException {
         Collection<Unit> units = mongoDbMetadataRepository.selectByIds(ids, UNIT_VITAM_GRAPH_PROJECTION);
 
-        Set<String> collectParent = units
-            .stream()
-            .flatMap(unit -> unit.getUp().stream())
-            .collect(Collectors.toSet());
+        Set<String> collectParent = units.stream().flatMap(unit -> unit.getUp().stream()).collect(Collectors.toSet());
 
         if (collectParent.isEmpty()) {
-            return units.stream().map(UnitGraphModel::new)
+            return units
+                .stream()
+                .map(UnitGraphModel::new)
                 .collect(Collectors.toMap(UnitGraphModel::id, Function.identity()));
         }
 
         Map<String, UnitGraphModel> parents = unitLoadingCache.getAll(collectParent);
 
-        return units.stream().map(unit -> {
-            UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
-            for (String up : unit.getUp()) {
-                UnitGraphModel graphParent = parents.get(up);
-                unitGraphModel.addParent(graphParent);
-            }
-            return unitGraphModel;
-        }).collect(Collectors.toMap(UnitGraphModel::id, Function.identity()));
+        return units
+            .stream()
+            .map(unit -> {
+                UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
+                for (String up : unit.getUp()) {
+                    UnitGraphModel graphParent = parents.get(up);
+                    unitGraphModel.addParent(graphParent);
+                }
+                return unitGraphModel;
+            })
+            .collect(Collectors.toMap(UnitGraphModel::id, Function.identity()));
     }
-
 }

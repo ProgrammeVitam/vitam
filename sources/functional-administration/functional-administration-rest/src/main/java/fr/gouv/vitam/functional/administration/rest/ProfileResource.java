@@ -75,14 +75,10 @@ public class ProfileResource {
 
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileResource.class);
-    private static final String PROFILE_JSON_IS_MANDATORY_PATAMETER =
-        "The json input of profile is mandatory";
-    private static final String PROFILE_FILE_IS_MANDATORY_PATAMETER =
-        "The profile file is mandatory";
-    private static final String PROFILE_ID_IS_MANDATORY_PATAMETER =
-        "The profile id is mandatory";
-    private static final String DSL_QUERY_IS_MANDATORY_PATAMETER =
-        "The dsl query is mandatory";
+    private static final String PROFILE_JSON_IS_MANDATORY_PATAMETER = "The json input of profile is mandatory";
+    private static final String PROFILE_FILE_IS_MANDATORY_PATAMETER = "The profile file is mandatory";
+    private static final String PROFILE_ID_IS_MANDATORY_PATAMETER = "The profile id is mandatory";
+    private static final String DSL_QUERY_IS_MANDATORY_PATAMETER = "The dsl query is mandatory";
     public static final String PROFILE_URI = "/profiles";
     public static final String UPDATE_PROFIL_URI = "/profiles";
 
@@ -91,14 +87,17 @@ public class ProfileResource {
     private final VitamCounterService vitamCounterService;
     private final FunctionalBackupService functionalBackupService;
 
-
     /**
      * @param configuration
      * @param mongoAccess
      * @param vitamCounterService
      */
-    public ProfileResource(AdminManagementConfiguration configuration, MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+    public ProfileResource(
+        AdminManagementConfiguration configuration,
+        MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService,
+        FunctionalBackupService functionalBackupService
+    ) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
@@ -107,10 +106,13 @@ public class ProfileResource {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-
     @VisibleForTesting
-    public ProfileResource(WorkspaceClientFactory workspaceClientFactory, MongoDbAccessAdminImpl mongoAccess,
-        VitamCounterService vitamCounterService, FunctionalBackupService functionalBackupService) {
+    public ProfileResource(
+        WorkspaceClientFactory workspaceClientFactory,
+        MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService,
+        FunctionalBackupService functionalBackupService
+    ) {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
         this.vitamCounterService = vitamCounterService;
@@ -118,8 +120,6 @@ public class ProfileResource {
 
         LOGGER.debug("init Admin Management Resource server");
     }
-
-
 
     /**
      * Import a set of profiles. If all the profiles are valid, they will be stored in the collection and indexed. </BR>
@@ -143,8 +143,13 @@ public class ProfileResource {
     public Response createProfiles(List<ProfileModel> profileModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(PROFILE_JSON_IS_MANDATORY_PATAMETER, profileModelList);
 
-        try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+        try (
+            ProfileService profileService = new ProfileServiceImpl(
+                mongoAccess,
+                vitamCounterService,
+                functionalBackupService
+            )
+        ) {
             RequestResponse requestResponse = profileService.createProfiles(profileModelList);
 
             if (!requestResponse.isOk()) {
@@ -152,19 +157,18 @@ public class ProfileResource {
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
-
 
     /**
      * Import a Profile file document (xsd or rng, ...)
@@ -178,34 +182,43 @@ public class ProfileResource {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importProfileFile(@Context UriInfo uri, @PathParam("id") String profileMetadataId,
-        InputStream profileFile) {
+    public Response importProfileFile(
+        @Context UriInfo uri,
+        @PathParam("id") String profileMetadataId,
+        InputStream profileFile
+    ) {
         ParametersChecker.checkParameter(PROFILE_FILE_IS_MANDATORY_PATAMETER, profileFile);
         ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
 
-        try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+        try (
+            ProfileService profileService = new ProfileServiceImpl(
+                mongoAccess,
+                vitamCounterService,
+                functionalBackupService
+            )
+        ) {
             SanityChecker.checkParameter(profileMetadataId);
-            RequestResponse<ProfileModel> requestResponse =
-                profileService.importProfileFile(profileMetadataId, profileFile);
+            RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(
+                profileMetadataId,
+                profileFile
+            );
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
             } else {
-
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
-
         } catch (VitamException exp) {
             // FIXME : Use proper exception handling
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         } finally {
             StreamUtils.closeSilently(profileFile);
         }
@@ -226,8 +239,13 @@ public class ProfileResource {
         ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
         ParametersChecker.checkParameter(DSL_QUERY_IS_MANDATORY_PATAMETER, queryDsl);
 
-        try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
+        try (
+            ProfileService profileService = new ProfileServiceImpl(
+                mongoAccess,
+                vitamCounterService,
+                functionalBackupService
+            )
+        ) {
             SanityChecker.checkParameter(profileMetadataId);
             RequestResponse requestResponse = profileService.updateProfile(profileMetadataId, queryDsl);
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
@@ -237,50 +255,53 @@ public class ProfileResource {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
         } catch (VitamException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } catch (Exception e) {
             LOGGER.error("Unexpected server error {}", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
-
 
     @GET
     @Path(PROFILE_URI + "/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadProfileFile(@PathParam("id") String profileMetadataId) {
-
         try {
             ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
-        try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
-
+        try (
+            ProfileService profileService = new ProfileServiceImpl(
+                mongoAccess,
+                vitamCounterService,
+                functionalBackupService
+            )
+        ) {
             return profileService.downloadProfileFile(profileMetadataId);
-
         } catch (final ProfileNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build();
+                .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString())
+                .build();
         } catch (Exception exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()).build();
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
+                .build();
         }
     }
-
 
     /**
      * Find profiles by queryDsl
@@ -293,21 +314,23 @@ public class ProfileResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProfiles(JsonNode queryDsl) {
+        try (
+            ProfileService profileService = new ProfileServiceImpl(
+                mongoAccess,
+                vitamCounterService,
+                functionalBackupService
+            )
+        ) {
+            final RequestResponseOK<ProfileModel> profileModelList = profileService
+                .findProfiles(queryDsl)
+                .setQuery(queryDsl);
 
-        try (ProfileService profileService =
-            new ProfileServiceImpl(mongoAccess, vitamCounterService, functionalBackupService)) {
-
-            final RequestResponseOK<ProfileModel> profileModelList =
-                profileService.findProfiles(queryDsl).setQuery(queryDsl);
-
-            return Response.status(Status.OK)
-                .entity(profileModelList)
-                .build();
-
+            return Response.status(Status.OK).entity(profileModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -320,28 +343,34 @@ public class ProfileResource {
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+        return new VitamError(aCode)
+            .setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-            .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState("ko")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
     private InputStream getErrorStream(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         try {
-            return JsonHandler.writeToInpustream(new VitamError(aCode)
-                .setHttpCode(status.getStatusCode()).setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-                .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage));
+            return JsonHandler.writeToInpustream(
+                new VitamError(aCode)
+                    .setHttpCode(status.getStatusCode())
+                    .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+                    .setState("ko")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(aMessage)
+            );
         } catch (InvalidParseOperationException e) {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
     }
-
-
 }

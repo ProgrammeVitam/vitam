@@ -65,6 +65,7 @@ import java.net.URI;
  * change the client type.
  */
 public class StorageClientFactory extends VitamClientFactory<StorageClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "storage-client.conf";
     private static final StorageClientFactory STORAGE_CLIENT_FACTORY = new StorageClientFactory();
@@ -116,8 +117,10 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration =
-                PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath), ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
             LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }

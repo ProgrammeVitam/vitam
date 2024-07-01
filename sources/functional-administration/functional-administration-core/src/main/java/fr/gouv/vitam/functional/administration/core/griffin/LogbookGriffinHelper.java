@@ -55,16 +55,23 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.MASTERD
  * LogbookGriffinHelper class
  */
 class LogbookGriffinHelper {
+
     LogbookGriffinHelper() {
         throw new IllegalStateException("Utility class");
     }
 
     static void createLogbook(LogbookOperationsClientFactory factory, GUID guid, String stepName)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
         String codeOp = getCodeOp(stepName, STARTED);
-        LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(guid, stepName, guid, MASTERDATA, STARTED, codeOp, guid);
+        LogbookOperationParameters logbookParameters = newLogbookOperationParameters(
+            guid,
+            stepName,
+            guid,
+            MASTERDATA,
+            STARTED,
+            codeOp,
+            guid
+        );
 
         String parameterValue = stepName + "." + STARTED;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
@@ -75,14 +82,19 @@ class LogbookGriffinHelper {
     }
 
     static void createLogbookEventSuccess(LogbookOperationsClientFactory factory, GUID guid, String stepName)
-        throws LogbookClientBadRequestException, LogbookClientServerException,
-        LogbookClientNotFoundException {
-
+        throws LogbookClientBadRequestException, LogbookClientServerException, LogbookClientNotFoundException {
         GUID guiEvent = newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         String codeOp = getCodeOp(stepName, OK);
 
-        LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(guiEvent, stepName, guid, MASTERDATA, OK, codeOp, guid);
+        LogbookOperationParameters logbookParameters = newLogbookOperationParameters(
+            guiEvent,
+            stepName,
+            guid,
+            MASTERDATA,
+            OK,
+            codeOp,
+            guid
+        );
 
         String parameterValue = stepName + "." + OK;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
@@ -92,16 +104,24 @@ class LogbookGriffinHelper {
         }
     }
 
-    static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName,
-        GriffinReport warnings)
-        throws LogbookClientBadRequestException, LogbookClientServerException,
-        LogbookClientNotFoundException {
-
+    static void createLogbookEventWarning(
+        LogbookOperationsClientFactory factory,
+        GUID guid,
+        String stepName,
+        GriffinReport warnings
+    ) throws LogbookClientBadRequestException, LogbookClientServerException, LogbookClientNotFoundException {
         GUID guiEvent = newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         String codeOp = getCodeOp(stepName, WARNING);
 
-        LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(guiEvent, stepName, guid, MASTERDATA, WARNING, codeOp, guid);
+        LogbookOperationParameters logbookParameters = newLogbookOperationParameters(
+            guiEvent,
+            stepName,
+            guid,
+            MASTERDATA,
+            WARNING,
+            codeOp,
+            guid
+        );
 
         String parameterValue = stepName + "." + WARNING;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
@@ -113,14 +133,19 @@ class LogbookGriffinHelper {
     }
 
     static void createLogbookEventKo(LogbookOperationsClientFactory factory, GUID guid, String stepName, String error)
-        throws LogbookClientBadRequestException, LogbookClientServerException,
-        LogbookClientNotFoundException, InvalidParseOperationException {
-
+        throws LogbookClientBadRequestException, LogbookClientServerException, LogbookClientNotFoundException, InvalidParseOperationException {
         GUID guiEvent = newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         String codeOp = getCodeOp(stepName, KO);
 
-        LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(guiEvent, stepName, guid, MASTERDATA, KO, codeOp, guid);
+        LogbookOperationParameters logbookParameters = newLogbookOperationParameters(
+            guiEvent,
+            stepName,
+            guid,
+            MASTERDATA,
+            KO,
+            codeOp,
+            guid
+        );
 
         String parameterValue = stepName + "." + KO;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);

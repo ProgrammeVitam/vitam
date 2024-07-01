@@ -59,8 +59,7 @@ public class PersistentIdentifierUsage {
         return intermediaryVersion;
     }
 
-    public void setIntermediaryVersion(
-        VersionUsageModel.IntermediaryVersionEnum intermediaryVersion) {
+    public void setIntermediaryVersion(VersionUsageModel.IntermediaryVersionEnum intermediaryVersion) {
         this.intermediaryVersion = intermediaryVersion;
     }
 }

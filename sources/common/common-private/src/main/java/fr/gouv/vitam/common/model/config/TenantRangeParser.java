@@ -36,9 +36,7 @@ public final class TenantRangeParser {
         // Private constructor for static class
     }
 
-    public static List<TenantRange> parseTenantRanges(String tenantRanges)
-        throws IllegalStateException {
-
+    public static List<TenantRange> parseTenantRanges(String tenantRanges) throws IllegalStateException {
         if (tenantRanges == null) {
             throw new IllegalStateException("Invalid configuration. Null tenants");
         }
@@ -50,9 +48,7 @@ public final class TenantRangeParser {
         return parsedTenantRanges;
     }
 
-    private static TenantRange parseTenantRange(String tenantRange)
-        throws IllegalStateException {
-
+    private static TenantRange parseTenantRange(String tenantRange) throws IllegalStateException {
         int hyphenSeparatorPos = tenantRange.indexOf("-");
         if (hyphenSeparatorPos != -1) {
             String minRangeStr = tenantRange.substring(0, hyphenSeparatorPos);
@@ -69,9 +65,7 @@ public final class TenantRangeParser {
         }
     }
 
-    private static int parseTenant(String minRangeStr)
-        throws IllegalStateException {
-
+    private static int parseTenant(String minRangeStr) throws IllegalStateException {
         try {
             int result = Integer.parseInt(minRangeStr.trim());
             if (result < 0) {
@@ -84,10 +78,11 @@ public final class TenantRangeParser {
     }
 
     public static boolean doRangesIntersect(TenantRange tenantRange1, TenantRange tenantRange2) {
-        return
+        return (
             tenantRange1.isInRange(tenantRange2.getMinValue()) ||
-                tenantRange1.isInRange(tenantRange2.getMaxValue()) ||
-                tenantRange2.isInRange(tenantRange1.getMinValue()) ||
-                tenantRange2.isInRange(tenantRange1.getMaxValue());
+            tenantRange1.isInRange(tenantRange2.getMaxValue()) ||
+            tenantRange2.isInRange(tenantRange1.getMinValue()) ||
+            tenantRange2.isInRange(tenantRange1.getMaxValue())
+        );
     }
 }

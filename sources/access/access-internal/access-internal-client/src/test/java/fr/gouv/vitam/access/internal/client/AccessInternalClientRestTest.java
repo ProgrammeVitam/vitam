@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.access.internal.client;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
@@ -97,12 +96,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AccessInternalClientRestTest extends ResteasyTestApplication {
+
     private static final String DUMMY_REQUEST_ID = "reqId";
     private static AccessInternalClientRest client;
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
 
-    public static VitamServerTestRunner vitamServerTestRunner =
-        new VitamServerTestRunner(AccessInternalClientRestTest.class, AccessInternalClientFactory.getInstance());
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        AccessInternalClientRestTest.class,
+        AccessInternalClientFactory.getInstance()
+    );
 
     @BeforeClass
     public static void init() throws Throwable {
@@ -120,30 +122,30 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         return Sets.newHashSet(new MockResource(mock));
     }
 
-
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     final String queryDsl =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
-            " \"$filter\": { \"$orderby\": \"#id\" }, " +
-            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-            " }";
+        " \"$filter\": { \"$orderby\": \"#id\" }, " +
+        " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+        " }";
     final String emptyQueryDsl =
         "{ \"$query\" : \"\", " +
-            " \"$filter\": { \"$orderby\": \"#id\" }, " +
-            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-            " }";
+        " \"$filter\": { \"$orderby\": \"#id\" }, " +
+        " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+        " }";
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
     final String UNIT_ID = "unitId";
 
-
     @Path("/access-internal/v1")
     @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource implements AccessInternalResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -220,8 +222,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnitById(JsonNode queryDsl,
-            @PathParam("id_unit") String id_unit) {
+        public Response getUnitById(JsonNode queryDsl, @PathParam("id_unit") String id_unit) {
             return expectedResponse.post();
         }
 
@@ -230,8 +231,11 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitById(JsonNode queryDsl, @PathParam("id_unit") String id_unit,
-            @HeaderParam(GlobalDataRest.X_REQUEST_ID) String requestId) {
+        public Response updateUnitById(
+            JsonNode queryDsl,
+            @PathParam("id_unit") String id_unit,
+            @HeaderParam(GlobalDataRest.X_REQUEST_ID) String requestId
+        ) {
             return expectedResponse.put();
         }
 
@@ -247,9 +251,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroup(
-            @PathParam("id_object_group") String idObjectGroup,
-            JsonNode query) {
+        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, JsonNode query) {
             return expectedResponse.get();
         }
 
@@ -258,9 +260,11 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/objects/{id_object_group}/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectStreamAsync(@Context HttpHeaders headers,
+        public Response getObjectStreamAsync(
+            @Context HttpHeaders headers,
             @PathParam("id_object_group") String idObjectGroup,
-            @PathParam("id_unit") String idUnit) {
+            @PathParam("id_unit") String idUnit
+        ) {
             return expectedResponse.get();
         }
 
@@ -269,13 +273,12 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/objects/{id_object_group}/accessRequest")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response createObjectAccessRequestIfRequired(@Context HttpHeaders headers,
-            @PathParam("id_object_group") String idObjectGroup) {
-
-            assertThat(headers.getHeaderString(VitamHttpHeader.QUALIFIER.getName()))
-                .isEqualTo("MyUsage");
-            assertThat(headers.getHeaderString(VitamHttpHeader.VERSION.getName()))
-                .isEqualTo("1");
+        public Response createObjectAccessRequestIfRequired(
+            @Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup
+        ) {
+            assertThat(headers.getHeaderString(VitamHttpHeader.QUALIFIER.getName())).isEqualTo("MyUsage");
+            assertThat(headers.getHeaderString(VitamHttpHeader.VERSION.getName())).isEqualTo("1");
 
             switch (idObjectGroup) {
                 case "MyGotId1":
@@ -301,17 +304,22 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/accessRequests/")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response checkAccessRequestStatuses(@Context HttpHeaders headers,
-            List<AccessRequestReference> accessRequestReferences) {
-
+        public Response checkAccessRequestStatuses(
+            @Context HttpHeaders headers,
+            List<AccessRequestReference> accessRequestReferences
+        ) {
             assertThat(accessRequestReferences).isNotEmpty();
             switch (accessRequestReferences.get(0).getStorageStrategyId()) {
-
                 case "async_strategy1":
                     return new RequestResponseOK<StatusByAccessRequest>()
-                        .addAllResults(accessRequestReferences.stream().map(accessRequest ->
-                                new StatusByAccessRequest(accessRequest, AccessRequestStatus.READY))
-                            .collect(Collectors.toList()))
+                        .addAllResults(
+                            accessRequestReferences
+                                .stream()
+                                .map(
+                                    accessRequest -> new StatusByAccessRequest(accessRequest, AccessRequestStatus.READY)
+                                )
+                                .collect(Collectors.toList())
+                        )
                         .setHttpCode(Response.Status.OK.getStatusCode())
                         .toResponse();
                 case "sync_strategy":
@@ -326,8 +334,10 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Path("/accessRequests/")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response removeAccessRequest(@Context HttpHeaders headers,
-            AccessRequestReference accessRequestReference) {
+        public Response removeAccessRequest(
+            @Context HttpHeaders headers,
+            AccessRequestReference accessRequestReference
+        ) {
             switch (accessRequestReference.getStorageStrategyId()) {
                 case "async_strategy1":
                     return Response.status(Status.ACCEPTED).build();
@@ -441,30 +451,27 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.FORBIDDEN).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(emptyQueryDsl);
-        assertThatThrownBy(() -> client.selectUnits(queryJson))
-            .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> client.selectUnits(queryJson)).isInstanceOf(BadRequestException.class);
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenResourceNotFound_whenSelectUnit_ThenRaiseAnException()
-        throws Exception {
+    public void givenResourceNotFound_whenSelectUnit_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnits(queryJson))
-            .isInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.selectUnits(queryJson)).isInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenBadRequest_whenSelectUnit_ThenRaiseAnException()
-        throws Exception {
+    public void givenBadRequest_whenSelectUnit_ThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnits(queryJson))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnits(queryJson)).isInstanceOf(InvalidParseOperationException.class);
     }
 
     // Select Unit By Id
@@ -475,91 +482,87 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenResourceNotFound_whenSelectUnitById_ThenRaiseAnException()
-        throws Exception {
+    public void givenResourceNotFound_whenSelectUnitById_ThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID))
-            .isInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID)).isInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
-        throws Exception {
+    public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenBlankID_whenSelectUnitById_ThenRaiseAnException()
-        throws Exception {
+    public void givenBlankID_whenSelectUnitById_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ""))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.selectUnitbyId(queryJson, "")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
-        throws Exception {
+    public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
-        throws Exception {
+    public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ""))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, "")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
-        throws Exception {
+    public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void given500_whenUpdateUnit_ThenRaiseAnException()
-        throws Exception {
+    public void given500_whenUpdateUnit_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnIllegalArgumentException() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        assertThatThrownBy(() -> client.selectObjectbyId(null, ID))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.selectObjectbyId(null, ID)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
@@ -568,8 +571,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -578,8 +582,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -588,8 +593,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
@@ -598,8 +602,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID))
-            .isInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID)).isInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -616,8 +621,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -625,8 +631,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -634,8 +641,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -643,8 +651,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
-            .isInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID)).isInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -652,9 +661,11 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenUnavailableDataFromAsyncOfferException() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(
-            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
-        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID))
-            .isInstanceOf(AccessInternalClientUnavailableDataFromAsyncOfferException.class);
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build()
+        );
+        assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID)).isInstanceOf(
+            AccessInternalClientUnavailableDataFromAsyncOfferException.class
+        );
     }
 
     @RunWithCustomExecutor
@@ -677,7 +688,6 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     @Test
     public void givenOperationIdWhenDownloadTraceabilityOperationThenOK() throws Exception {
-
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
@@ -691,30 +701,31 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Status.FORBIDDEN).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(emptyQueryDsl);
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
-            .isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson)).isInstanceOf(
+            BadRequestException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenResourceNotFound_whenSelectUnitsWithInheritedRules_ThenRaiseAnException()
-        throws Exception {
+    public void givenResourceNotFound_whenSelectUnitsWithInheritedRules_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
-            .isInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson)).isInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @RunWithCustomExecutor
     @Test
-    public void givenBadRequest_whenSelectUnitsWithInheritedRules_ThenRaiseAnException()
-        throws Exception {
+    public void givenBadRequest_whenSelectUnitsWithInheritedRules_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 
     /*
@@ -723,16 +734,16 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void startEliminationAnalysisWhenSuccessThenReturnVitamResponseOK()
-        throws Exception {
-
+    public void startEliminationAnalysisWhenSuccessThenReturnVitamResponseOK() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         RequestResponseOK responseOK = new RequestResponseOK();
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When
         RequestResponse<JsonNode> requestResponse = client.startEliminationAnalysis(eliminationRequestBody);
@@ -744,51 +755,55 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void startEliminationAnalysisWhenServerErrorThenReturnInternalServerErrorVitamResponse() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When / Then
-        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startEliminationAnalysisWhenResourceNotFoundThenReturnNotFoundVitamResponse()
-        throws Exception {
-
+    public void startEliminationAnalysisWhenResourceNotFoundThenReturnNotFoundVitamResponse() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When / Then
-        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody))
-            .hasCauseInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody)).hasCauseInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startEliminationAnalysisWhenBadRequestThenReturnBadRequestVitamResponse()
-        throws Exception {
-
+    public void startEliminationAnalysisWhenBadRequestThenReturnBadRequestVitamResponse() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When / Then
-        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.startEliminationAnalysis(eliminationRequestBody)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     /*
@@ -797,16 +812,16 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void startEliminationActionWhenSuccessThenReturnVitamResponseOK()
-        throws Exception {
-
+    public void startEliminationActionWhenSuccessThenReturnVitamResponseOK() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         RequestResponseOK responseOK = new RequestResponseOK();
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When
         RequestResponse<JsonNode> requestResponse = client.startEliminationAction(eliminationRequestBody);
@@ -818,63 +833,66 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void startEliminationActionWhenServerErrorThenReturnInternalServerErrorVitamResponse() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When / Then
-        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startEliminationActionWhenResourceNotFoundThenReturnNotFoundVitamResponse()
-        throws Exception {
-
+    public void startEliminationActionWhenResourceNotFoundThenReturnNotFoundVitamResponse() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When / Then
-        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody))
-            .hasCauseInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody)).hasCauseInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startEliminationActionWhenBadRequestThenReturnBadRequestVitamResponse()
-        throws Exception {
-
+    public void startEliminationActionWhenBadRequestThenReturnBadRequestVitamResponse() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2000-01-02", JsonHandler.getFromString(queryDsl));
+            "2000-01-02",
+            JsonHandler.getFromString(queryDsl)
+        );
 
         // When / Then
-        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody))
-            .hasCauseInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> client.startEliminationAction(eliminationRequestBody)).hasCauseInstanceOf(
+            BadRequestException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startAtomicBulkUpdateWhenSuccessThenOK()
-        throws Exception {
-
+    public void startAtomicBulkUpdateWhenSuccessThenOK() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
 
-        JsonNode responseNode = JsonHandler
-            .getFromInputStream(PropertiesUtils.getResourceAsStream("processing_response_ok.json"));
+        JsonNode responseNode = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("processing_response_ok.json")
+        );
         RequestResponseOK<ItemStatus> responseOK = RequestResponseOK.getFromJsonNode(responseNode, ItemStatus.class);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(responseOK).build());
 
@@ -890,20 +908,19 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenNoBodyThenException() {
-
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         JsonNode requestBody = null;
 
         // When + then
-        assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void startAtomicBulkUpdateWhenPreconditionFailedThenException() {
-
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
 
@@ -912,15 +929,14 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         JsonNode requestBody = JsonHandler.createObjectNode();
 
         // When + then
-        assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.bulkAtomicUpdateUnits(requestBody)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startAtomicBulkUpdateWhenBadRequestFailedThenVitamError()
-        throws Exception {
-
+    public void startAtomicBulkUpdateWhenBadRequestFailedThenVitamError() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
 
@@ -941,12 +957,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void createObjectAccessRequestWhenAsyncOffer()
-        throws Exception {
-
+    public void createObjectAccessRequestWhenAsyncOffer() throws Exception {
         // When
-        Optional<AccessRequestReference> requestResponse = client.createObjectAccessRequest(
-            "MyGotId1", "MyUsage", 1);
+        Optional<AccessRequestReference> requestResponse = client.createObjectAccessRequest("MyGotId1", "MyUsage", 1);
 
         // Then
         assertThat(requestResponse).isPresent();
@@ -956,11 +969,9 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void createObjectAccessRequestWhenSyncOffer()
-        throws Exception {
+    public void createObjectAccessRequestWhenSyncOffer() throws Exception {
         // When
-        Optional<AccessRequestReference> requestResponse = client.createObjectAccessRequest(
-            "MyGotId2", "MyUsage", 1);
+        Optional<AccessRequestReference> requestResponse = client.createObjectAccessRequest("MyGotId2", "MyUsage", 1);
 
         // Then
         assertThat(requestResponse).isEmpty();
@@ -970,31 +981,32 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void createObjectAccessRequestWhenNotFound() {
         // When / Then
-        assertThatThrownBy(() -> client.createObjectAccessRequest("NotFound", "MyUsage", 1))
-            .isInstanceOf(AccessInternalClientNotFoundException.class);
+        assertThatThrownBy(() -> client.createObjectAccessRequest("NotFound", "MyUsage", 1)).isInstanceOf(
+            AccessInternalClientNotFoundException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWhenUnauthorized() {
         // When / Then
-        assertThatThrownBy(() -> client.createObjectAccessRequest("Unauthorized", "MyUsage", 1))
-            .isInstanceOf(AccessUnauthorizedException.class);
+        assertThatThrownBy(() -> client.createObjectAccessRequest("Unauthorized", "MyUsage", 1)).isInstanceOf(
+            AccessUnauthorizedException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWhenInternalServerError() {
         // When / Then
-        assertThatThrownBy(() -> client.createObjectAccessRequest("Error", "MyUsage", 1))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.createObjectAccessRequest("Error", "MyUsage", 1)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
-    public void checkAccessRequestStatusesWhenAsyncOffer()
-        throws Exception {
-
+    public void checkAccessRequestStatusesWhenAsyncOffer() throws Exception {
         // Given
         AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "async_strategy1");
         AccessRequestReference accessRequest2 = new AccessRequestReference("accessRequestId2", "async_strategy2");
@@ -1007,84 +1019,85 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // Then
         assertThat(requestResponse).hasSize(2);
         assertThat(requestResponse.get(0).getObjectAccessRequest().getAccessRequestId()).isEqualTo(
-            accessRequest1.getAccessRequestId());
+            accessRequest1.getAccessRequestId()
+        );
         assertThat(requestResponse.get(0).getObjectAccessRequest().getStorageStrategyId()).isEqualTo(
-            accessRequest1.getStorageStrategyId());
+            accessRequest1.getStorageStrategyId()
+        );
         assertThat(requestResponse.get(0).getAccessRequestStatus()).isEqualTo(AccessRequestStatus.READY);
         assertThat(requestResponse.get(1).getObjectAccessRequest().getAccessRequestId()).isEqualTo(
-            accessRequest2.getAccessRequestId());
+            accessRequest2.getAccessRequestId()
+        );
         assertThat(requestResponse.get(1).getObjectAccessRequest().getStorageStrategyId()).isEqualTo(
-            accessRequest2.getStorageStrategyId());
+            accessRequest2.getStorageStrategyId()
+        );
         assertThat(requestResponse.get(1).getAccessRequestStatus()).isEqualTo(AccessRequestStatus.READY);
     }
 
     @Test
     @RunWithCustomExecutor
     public void checkAccessRequestStatusesWhenSyncOffer() {
-
         // Given
         AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "sync_strategy");
         List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1);
 
         // When / Then
-        assertThatThrownBy(() -> client.checkAccessRequestStatuses(accessRequestReferences))
-            .isInstanceOf(AccessInternalClientIllegalOperationException.class);
+        assertThatThrownBy(() -> client.checkAccessRequestStatuses(accessRequestReferences)).isInstanceOf(
+            AccessInternalClientIllegalOperationException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void checkAccessRequestStatusesWhenInternalServerError() {
-
         // Given
         AccessRequestReference accessRequest1 = new AccessRequestReference("accessRequestId1", "error");
         List<AccessRequestReference> accessRequestReferences = List.of(accessRequest1);
 
         // When / Then
-        assertThatThrownBy(() -> client.checkAccessRequestStatuses(accessRequestReferences))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.checkAccessRequestStatuses(accessRequestReferences)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWhenAsyncOffer() {
-
         // Given
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "async_strategy1");
 
         // When / Then
-        assertThatCode(() -> client.removeAccessRequest(accessRequest))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> client.removeAccessRequest(accessRequest)).doesNotThrowAnyException();
     }
 
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWhenSyncOffer() {
-
         // Given
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "sync_strategy");
 
         // When / Then
-        assertThatThrownBy(() -> client.removeAccessRequest(accessRequest))
-            .isInstanceOf(AccessInternalClientIllegalOperationException.class);
+        assertThatThrownBy(() -> client.removeAccessRequest(accessRequest)).isInstanceOf(
+            AccessInternalClientIllegalOperationException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWhenInternalServerError() {
-
         // Given
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId1", "error");
 
         // When / Then
-        assertThatThrownBy(() -> client.removeAccessRequest(accessRequest))
-            .isInstanceOf(AccessInternalClientServerException.class);
+        assertThatThrownBy(() -> client.removeAccessRequest(accessRequest)).isInstanceOf(
+            AccessInternalClientServerException.class
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void streamObjects()
-        throws InvalidParseOperationException, ExpectationFailedClientException, AccessInternalClientServerException,
-        AccessUnauthorizedException {
+        throws InvalidParseOperationException, ExpectationFailedClientException, AccessInternalClientServerException, AccessUnauthorizedException {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.get()).thenReturn(Response.status(202).build());

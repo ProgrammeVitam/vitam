@@ -40,13 +40,13 @@ import java.util.stream.Stream;
 
 public class IncompleteWriteOrderBootstrapRecovery {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IncompleteWriteOrderBootstrapRecovery.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        IncompleteWriteOrderBootstrapRecovery.class
+    );
 
     private final String tmpTarOutputStorageFolder;
 
-    public IncompleteWriteOrderBootstrapRecovery(
-        String tmpTarOutputStorageFolder) {
+    public IncompleteWriteOrderBootstrapRecovery(String tmpTarOutputStorageFolder) {
         this.tmpTarOutputStorageFolder = tmpTarOutputStorageFolder;
     }
 
@@ -63,7 +63,6 @@ public class IncompleteWriteOrderBootstrapRecovery {
     }
 
     private void emptyDirectoryContent(Path path) throws IOException {
-
         try (Stream<Path> fileStream = Files.list(path)) {
             fileStream.forEach(subPath -> {
                 try {

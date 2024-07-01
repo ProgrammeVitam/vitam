@@ -232,5 +232,4 @@ public class AccessionRegisterSummaryModel {
         this.creationDate = creationDate;
         return this;
     }
-
 }

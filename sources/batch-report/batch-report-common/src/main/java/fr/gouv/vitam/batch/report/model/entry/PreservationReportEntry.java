@@ -78,7 +78,8 @@ public class PreservationReportEntry extends ReportEntry {
         @JsonProperty(OUTPUT_OBJECT_ID) String outputObjectId,
         @JsonProperty(OUTCOME) String outcome,
         @JsonProperty(GRIFFIN_ID) String griffinId,
-        @JsonProperty(SCENARIO_ID) String preservationScenarioId) {
+        @JsonProperty(SCENARIO_ID) String preservationScenarioId
+    ) {
         super(outcome, "preservation", detailId);
         this.processId = processId;
         this.tenant = tenant;

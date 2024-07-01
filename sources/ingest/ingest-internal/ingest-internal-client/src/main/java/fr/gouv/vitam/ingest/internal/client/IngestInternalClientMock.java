@@ -68,7 +68,6 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     public void upload(InputStream inputStream, MediaType archiveType, WorkFlow workflowIdentifier, String action) {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, inputStream, archiveType);
         StreamUtils.closeSilently(inputStream);
-
     }
 
     @Override
@@ -94,28 +93,35 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) {
         final List<Integer> status = new ArrayList<>();
         status.add(Status.OK.getStatusCode());
-        final ItemStatus itemStatus =
-            new ItemStatus(id, "FakeMessage - The operation has been canceled", StatusCode.OK, status,
-                Collections.emptyMap(), null, null);
-        return new RequestResponseOK<ItemStatus>().addResult(itemStatus)
-            .addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
-                FAKE_EXECUTION_STATUS).setHttpCode(Status.ACCEPTED.getStatusCode());
+        final ItemStatus itemStatus = new ItemStatus(
+            id,
+            "FakeMessage - The operation has been canceled",
+            StatusCode.OK,
+            status,
+            Collections.emptyMap(),
+            null,
+            null
+        );
+        return new RequestResponseOK<ItemStatus>()
+            .addResult(itemStatus)
+            .addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, FAKE_EXECUTION_STATUS)
+            .setHttpCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId) {
-        return new RequestResponseOK<ItemStatus>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE,
-            FAKE_EXECUTION_STATUS).setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<ItemStatus>()
+            .addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, FAKE_EXECUTION_STATUS)
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public void initWorkflow(WorkFlow contextId) {
-    }
-
+    public void initWorkflow(WorkFlow contextId) {}
 
     @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) {
-        return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
+        return new RequestResponseOK<ProcessDetail>()
+            .addResult(new ProcessDetail())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -131,6 +137,5 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
 
     @Override
     public void saveObjectToWorkspace(String id, String objectName, InputStream inputStream)
-        throws VitamClientException {
-    }
+        throws VitamClientException {}
 }

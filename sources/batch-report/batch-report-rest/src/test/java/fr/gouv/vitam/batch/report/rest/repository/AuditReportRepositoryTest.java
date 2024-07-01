@@ -82,45 +82,127 @@ public class AuditReportRepositoryTest {
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
 
         List<AuditObjectVersion> objectVersions1 = new ArrayList<AuditObjectVersion>();
-        objectVersions1
-            .add(generateVersion("objectId1", "objectOpi1", "objectQualifier1", "objectVersion1", "strategyId1",
-                ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
-        objectVersions1
-            .add(generateVersion("objectId2", "objectOpi2", "objectQualifier2", "objectVersion2", "strategyId2",
-                ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
-        AuditObjectGroupReportEntry auditObjectGroupEntry1 = new AuditObjectGroupReportEntry("objectGroupId1",
-            Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions1, ReportStatus.KO,
-            "outcome");
-        auditReportEntryKO = new AuditObjectGroupModel(processId,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry1, TENANT_ID);
+        objectVersions1.add(
+            generateVersion(
+                "objectId1",
+                "objectOpi1",
+                "objectQualifier1",
+                "objectVersion1",
+                "strategyId1",
+                ReportStatus.OK,
+                ReportStatus.KO,
+                ReportStatus.KO
+            )
+        );
+        objectVersions1.add(
+            generateVersion(
+                "objectId2",
+                "objectOpi2",
+                "objectQualifier2",
+                "objectVersion2",
+                "strategyId2",
+                ReportStatus.OK,
+                ReportStatus.KO,
+                ReportStatus.KO
+            )
+        );
+        AuditObjectGroupReportEntry auditObjectGroupEntry1 = new AuditObjectGroupReportEntry(
+            "objectGroupId1",
+            Collections.singletonList("unitId"),
+            "originatingAgency1",
+            "opi",
+            objectVersions1,
+            ReportStatus.KO,
+            "outcome"
+        );
+        auditReportEntryKO = new AuditObjectGroupModel(
+            processId,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            auditObjectGroupEntry1,
+            TENANT_ID
+        );
 
         List<AuditObjectVersion> objectVersions2 = new ArrayList<AuditObjectVersion>();
-        objectVersions2
-            .add(generateVersion("objectId3", "objectOpi1", "objectQualifier1", "objectVersion1", "strategyId1",
-                ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
-        objectVersions2
-            .add(generateVersion("objectId4", "objectOpi2", "objectQualifier2", "objectVersion2", "strategyId2",
-                ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
-        AuditObjectGroupReportEntry auditObjectGroupEntry2 = new AuditObjectGroupReportEntry("objectGroupId2",
-            Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions2, ReportStatus.OK,
-            "outcome");
-        auditReportEntryOK = new AuditObjectGroupModel(processId,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry2, TENANT_ID);
+        objectVersions2.add(
+            generateVersion(
+                "objectId3",
+                "objectOpi1",
+                "objectQualifier1",
+                "objectVersion1",
+                "strategyId1",
+                ReportStatus.OK,
+                ReportStatus.OK,
+                ReportStatus.OK
+            )
+        );
+        objectVersions2.add(
+            generateVersion(
+                "objectId4",
+                "objectOpi2",
+                "objectQualifier2",
+                "objectVersion2",
+                "strategyId2",
+                ReportStatus.OK,
+                ReportStatus.OK,
+                ReportStatus.OK
+            )
+        );
+        AuditObjectGroupReportEntry auditObjectGroupEntry2 = new AuditObjectGroupReportEntry(
+            "objectGroupId2",
+            Collections.singletonList("unitId"),
+            "originatingAgency1",
+            "opi",
+            objectVersions2,
+            ReportStatus.OK,
+            "outcome"
+        );
+        auditReportEntryOK = new AuditObjectGroupModel(
+            processId,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            auditObjectGroupEntry2,
+            TENANT_ID
+        );
 
         List<AuditObjectVersion> objectVersions3 = new ArrayList<AuditObjectVersion>();
-        objectVersions3
-            .add(generateVersion("objectId5", "objectOpi1", "objectQualifier1", "objectVersion1", "strategyId1",
-                ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
         objectVersions3.add(
-            generateVersion("objectId6", "objectOpi3", "objectQualifier2", "objectVersion2", "strategyId2",
+            generateVersion(
+                "objectId5",
+                "objectOpi1",
+                "objectQualifier1",
+                "objectVersion1",
+                "strategyId1",
                 ReportStatus.OK,
-                ReportStatus.WARNING, ReportStatus.WARNING));
-        AuditObjectGroupReportEntry auditObjectGroupEntry3 = new AuditObjectGroupReportEntry("objectGroupId3",
-            Collections.singletonList("unitId"), "originatingAgency2", "opi", objectVersions3, ReportStatus.WARNING,
-            "outcome");
-        auditReportEntryWARNING = new AuditObjectGroupModel(processId,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry3, TENANT_ID);
-
+                ReportStatus.OK,
+                ReportStatus.OK
+            )
+        );
+        objectVersions3.add(
+            generateVersion(
+                "objectId6",
+                "objectOpi3",
+                "objectQualifier2",
+                "objectVersion2",
+                "strategyId2",
+                ReportStatus.OK,
+                ReportStatus.WARNING,
+                ReportStatus.WARNING
+            )
+        );
+        AuditObjectGroupReportEntry auditObjectGroupEntry3 = new AuditObjectGroupReportEntry(
+            "objectGroupId3",
+            Collections.singletonList("unitId"),
+            "originatingAgency2",
+            "opi",
+            objectVersions3,
+            ReportStatus.WARNING,
+            "outcome"
+        );
+        auditReportEntryWARNING = new AuditObjectGroupModel(
+            processId,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            auditObjectGroupEntry3,
+            TENANT_ID
+        );
     }
 
     @Test
@@ -162,8 +244,12 @@ public class AuditReportRepositoryTest {
         // Given
         populateDatabase(auditReportEntryKO, auditReportEntryOK, auditReportEntryWARNING);
         // When
-        MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,
-            "WARNING", "KO");
+        MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenantAndStatus(
+            processId,
+            TENANT_ID,
+            "WARNING",
+            "KO"
+        );
 
         // Then
         List<Document> documents = new ArrayList<>();
@@ -205,12 +291,15 @@ public class AuditReportRepositoryTest {
         assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbWARNING()).isEqualTo(0);
         assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbKO()).isEqualTo(1);
         assertThat(stats.getOriginatingAgencyResults().entrySet().size()).isEqualTo(1);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbOK())
-            .isEqualTo(0);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbWARNING())
-            .isEqualTo(0);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbKO())
-            .isEqualTo(1);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbOK()
+        ).isEqualTo(0);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbWARNING()
+        ).isEqualTo(0);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbKO()
+        ).isEqualTo(1);
         assertThat(stats.getOriginatingAgencyResults().get("FakeoriginatingAgency")).isNull();
     }
 
@@ -231,30 +320,42 @@ public class AuditReportRepositoryTest {
         assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbWARNING()).isEqualTo(1);
         assertThat(stats.getGlobalResults().getObjectGroupsCount().getNbKO()).isEqualTo(1);
         assertThat(stats.getOriginatingAgencyResults().entrySet().size()).isEqualTo(2);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbOK())
-            .isEqualTo(1);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbWARNING())
-            .isEqualTo(0);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbKO())
-            .isEqualTo(1);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectsCount().getNbOK())
-            .isEqualTo(2);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectsCount().getNbWARNING())
-            .isEqualTo(0);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectsCount().getNbKO())
-            .isEqualTo(2);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectGroupsCount().getNbOK())
-            .isEqualTo(0);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectGroupsCount().getNbWARNING())
-            .isEqualTo(1);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectGroupsCount().getNbKO())
-            .isEqualTo(0);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectsCount().getNbOK())
-            .isEqualTo(1);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectsCount().getNbWARNING())
-            .isEqualTo(1);
-        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectsCount().getNbKO())
-            .isEqualTo(0);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbOK()
+        ).isEqualTo(1);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbWARNING()
+        ).isEqualTo(0);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectGroupsCount().getNbKO()
+        ).isEqualTo(1);
+        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectsCount().getNbOK()).isEqualTo(
+            2
+        );
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectsCount().getNbWARNING()
+        ).isEqualTo(0);
+        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency1").getObjectsCount().getNbKO()).isEqualTo(
+            2
+        );
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectGroupsCount().getNbOK()
+        ).isEqualTo(0);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectGroupsCount().getNbWARNING()
+        ).isEqualTo(1);
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectGroupsCount().getNbKO()
+        ).isEqualTo(0);
+        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectsCount().getNbOK()).isEqualTo(
+            1
+        );
+        assertThat(
+            stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectsCount().getNbWARNING()
+        ).isEqualTo(1);
+        assertThat(stats.getOriginatingAgencyResults().get("originatingAgency2").getObjectsCount().getNbKO()).isEqualTo(
+            0
+        );
         assertThat(stats.getOriginatingAgencyResults().get("FakeoriginatingAgency")).isNull();
     }
 
@@ -265,8 +366,9 @@ public class AuditReportRepositoryTest {
         // When
         repository.deleteReportByIdAndTenant(processId, TENANT_ID);
         // Then
-        FindIterable<Document> iterable = auditReportCollection
-            .find(and(eq("processId", processId), eq("tenantId", TENANT_ID)));
+        FindIterable<Document> iterable = auditReportCollection.find(
+            and(eq("processId", processId), eq("tenantId", TENANT_ID))
+        );
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -282,16 +384,29 @@ public class AuditReportRepositoryTest {
         repository.bulkAppendReport(reports);
     }
 
-    private AuditObjectVersion generateVersion(String objectId, String objectOpi, String objectQualifier,
-        String objectVersion, String objectStrategy, ReportStatus offer1Status, ReportStatus offer2Status,
-        ReportStatus objectStatus) {
-        return new AuditObjectVersion(objectId, objectOpi, objectQualifier, objectVersion, objectStrategy,
+    private AuditObjectVersion generateVersion(
+        String objectId,
+        String objectOpi,
+        String objectQualifier,
+        String objectVersion,
+        String objectStrategy,
+        ReportStatus offer1Status,
+        ReportStatus offer2Status,
+        ReportStatus objectStatus
+    ) {
+        return new AuditObjectVersion(
+            objectId,
+            objectOpi,
+            objectQualifier,
+            objectVersion,
+            objectStrategy,
             new ArrayList<ReportItemStatus>() {
                 {
                     add(new ReportItemStatus("offerId1", offer1Status));
                     add(new ReportItemStatus("offerId2", offer2Status));
                 }
-            }, objectStatus);
+            },
+            objectStatus
+        );
     }
-
 }

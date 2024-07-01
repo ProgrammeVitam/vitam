@@ -63,5 +63,4 @@ public class StorageObjectRequest extends StorageRequest {
     public String toString() {
         return "GUID: " + guid + " " + super.toString();
     }
-
 }

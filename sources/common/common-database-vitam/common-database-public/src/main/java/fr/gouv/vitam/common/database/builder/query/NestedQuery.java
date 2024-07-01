@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Search Query
  */
 public class NestedQuery extends Query {
+
     protected NestedQuery() {
         super();
     }
@@ -46,8 +47,7 @@ public class NestedQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public NestedQuery(final QUERY searchQuery, final String variableName,
-        final JsonNode value)
+    public NestedQuery(final QUERY searchQuery, final String variableName, final JsonNode value)
         throws InvalidCreateOperationException {
         super();
         switch (searchQuery) {
@@ -57,8 +57,7 @@ public class NestedQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    "Query " + searchQuery + " is not an Nested Search Query");
+                throw new InvalidCreateOperationException("Query " + searchQuery + " is not an Nested Search Query");
         }
     }
 }

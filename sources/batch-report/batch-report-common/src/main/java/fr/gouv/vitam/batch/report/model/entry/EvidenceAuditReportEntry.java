@@ -40,6 +40,7 @@ public class EvidenceAuditReportEntry extends ReportEntry {
 
     @JsonProperty("identifier")
     private String identifier;
+
     @JsonProperty("status")
     private String evidenceStatus;
 
@@ -61,7 +62,6 @@ public class EvidenceAuditReportEntry extends ReportEntry {
     @JsonProperty("offersHashes")
     private Map<String, String> offersHashes;
 
-
     @JsonCreator
     public EvidenceAuditReportEntry(
         @JsonProperty("identifier") String identifier,
@@ -72,7 +72,8 @@ public class EvidenceAuditReportEntry extends ReportEntry {
         @JsonProperty("securedHash") String securedHash,
         @JsonProperty("strategyId") String strategyId,
         @JsonProperty("offersHashes") Map<String, String> offersHashes,
-        @JsonProperty(OUTCOME) String outcome) {
+        @JsonProperty(OUTCOME) String outcome
+    ) {
         super(evidenceStatus, "evidenceAudit", identifier);
         this.identifier = identifier;
         this.evidenceStatus = evidenceStatus;
@@ -83,7 +84,6 @@ public class EvidenceAuditReportEntry extends ReportEntry {
         this.strategyId = strategyId;
         this.offersHashes = offersHashes;
     }
-
 
     /**
      * getter for identifier
@@ -151,8 +151,7 @@ public class EvidenceAuditReportEntry extends ReportEntry {
     /**
      * setter for objectsReports
      **/
-    public void setObjectsReports(
-        ArrayList<EvidenceAuditReportObject> objectsReports) {
+    public void setObjectsReports(ArrayList<EvidenceAuditReportObject> objectsReports) {
         this.objectsReports = objectsReports;
     }
 

@@ -74,8 +74,7 @@ public class SelectToMongodb extends RequestToMongodb {
      * @return the orderBy MongoDB command
      */
     public Bson getFinalOrderBy() {
-        final JsonNode orderby = requestParser.getRequest().getFilter()
-            .get(SELECTFILTER.ORDERBY.exactToken());
+        final JsonNode orderby = requestParser.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken());
         if (orderby == null || orderby.size() == 0 || orderby.fields().hasNext() == false) {
             return null;
         }
@@ -106,8 +105,7 @@ public class SelectToMongodb extends RequestToMongodb {
         if (requestParser.getRequest().getAllProjection()) {
             return true;
         }
-        final JsonNode node = requestParser.getRequest().getProjection()
-            .get(PROJECTION.FIELDS.exactToken());
+        final JsonNode node = requestParser.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
         if (!node.fieldNames().hasNext()) {
             return true;
         }
@@ -132,8 +130,7 @@ public class SelectToMongodb extends RequestToMongodb {
         if (requestParser.getRequest().getAllProjection()) {
             return true;
         }
-        final JsonNode node = requestParser.getRequest().getProjection()
-            .get(PROJECTION.FIELDS.exactToken());
+        final JsonNode node = requestParser.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
         JsonNode score = node.get(VitamDocument.SCORE);
         return (score == null || score.asInt() > 0);
     }
@@ -148,8 +145,7 @@ public class SelectToMongodb extends RequestToMongodb {
         if (requestParser.getRequest().getAllProjection()) {
             return null;
         }
-        final JsonNode node = requestParser.getRequest().getProjection()
-            .get(PROJECTION.FIELDS.exactToken());
+        final JsonNode node = requestParser.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
         final List<String> incl = new ArrayList<>();
         final List<String> excl = new ArrayList<>();
         final Map<String, ObjectNode> sliceProjections = new HashMap<>();
@@ -173,8 +169,9 @@ public class SelectToMongodb extends RequestToMongodb {
             } else if (value instanceof ObjectNode && value.has(SLICE_KEYWORD)) {
                 sliceProjections.put(entry.getKey(), (ObjectNode) value);
             } else {
-                throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
-                    .writeAsString(value)));
+                throw new InvalidParseOperationException(
+                    String.format(UNSUPPORTED_PROJECTION, JsonHandler.writeAsString(value))
+                );
             }
         }
 
@@ -193,7 +190,6 @@ public class SelectToMongodb extends RequestToMongodb {
 
     private Bson computeBsonProjection(List<String> incl, List<String> excl, Map<String, ObjectNode> sliceProjections)
         throws InvalidParseOperationException {
-
         tempFixProjectionPathCollision(incl);
         tempFixProjectionPathCollision(excl);
 
@@ -214,7 +210,8 @@ public class SelectToMongodb extends RequestToMongodb {
                 final JsonNode sliceValueNode = sliceNode.get(SLICE_KEYWORD);
                 if (sliceValueNode instanceof ArrayNode) {
                     projections.add(
-                        Projections.slice(fieldName, sliceValueNode.get(0).asInt(), sliceValueNode.get(1).asInt()));
+                        Projections.slice(fieldName, sliceValueNode.get(0).asInt(), sliceValueNode.get(1).asInt())
+                    );
                 } else {
                     projections.add(Projections.slice(fieldName, sliceValueNode.asInt()));
                 }
@@ -239,12 +236,20 @@ public class SelectToMongodb extends RequestToMongodb {
                     continue;
                 }
                 if (nextKey.length() == key.length()) {
-                    LOGGER.warn("INVALID PROJECTION. IGNORING DUPLICATE KEY '" + key +
-                        "'. THIS WILL BE NO MORE SUPPORTED IS FUTURE RELEASES.");
+                    LOGGER.warn(
+                        "INVALID PROJECTION. IGNORING DUPLICATE KEY '" +
+                        key +
+                        "'. THIS WILL BE NO MORE SUPPORTED IS FUTURE RELEASES."
+                    );
                     incl.remove(nextKey);
                 } else if (nextKey.charAt(key.length()) == '.') {
-                    LOGGER.warn("INVALID PROJECTION. IGNORING KEY PATH COLLISION '" + key + "' VS '" + nextKey +
-                        "'. THIS WILL BE NO MORE SUPPORTED IS FUTURE RELEASES.");
+                    LOGGER.warn(
+                        "INVALID PROJECTION. IGNORING KEY PATH COLLISION '" +
+                        key +
+                        "' VS '" +
+                        nextKey +
+                        "'. THIS WILL BE NO MORE SUPPORTED IS FUTURE RELEASES."
+                    );
                     incl.remove(nextKey);
                 }
             }
@@ -256,12 +261,14 @@ public class SelectToMongodb extends RequestToMongodb {
         if (sliceValueNode instanceof ArrayNode) {
             final ArrayNode sliceValueArray = (ArrayNode) sliceValueNode;
             if (!isLegalSliceArray(sliceValueArray)) {
-                throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
-                    .writeAsString(sliceNode)));
+                throw new InvalidParseOperationException(
+                    String.format(UNSUPPORTED_PROJECTION, JsonHandler.writeAsString(sliceNode))
+                );
             }
         } else if (!(sliceValueNode instanceof NumericNode)) {
-            throw new InvalidParseOperationException(String.format(UNSUPPORTED_PROJECTION, JsonHandler
-                .writeAsString(sliceNode)));
+            throw new InvalidParseOperationException(
+                String.format(UNSUPPORTED_PROJECTION, JsonHandler.writeAsString(sliceNode))
+            );
         }
     }
 

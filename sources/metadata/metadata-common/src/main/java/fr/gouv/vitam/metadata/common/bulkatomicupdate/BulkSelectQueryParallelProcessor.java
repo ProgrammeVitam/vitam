@@ -65,6 +65,7 @@ import java.util.stream.Collectors;
  * This class is stateful, and supports concurrent access to public methods.
  */
 public class BulkSelectQueryParallelProcessor {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BulkSelectQueryParallelProcessor.class);
 
     private final MetaDataClient metadataClient;
@@ -79,13 +80,17 @@ public class BulkSelectQueryParallelProcessor {
     private final AtomicInteger nbOKs = new AtomicInteger(0);
     private final boolean allowInternalFieldsUpdate;
 
-    public BulkSelectQueryParallelProcessor(MetaDataClient metadataClient,
+    public BulkSelectQueryParallelProcessor(
+        MetaDataClient metadataClient,
         InternalActionKeysRetriever internalActionKeysRetriever,
-        int threadPoolSize, int threadPoolQueueSize, int batchSize,
+        int threadPoolSize,
+        int threadPoolQueueSize,
+        int batchSize,
         Consumer<BulkSelectQueryResultOK> successReporter,
         Consumer<BulkSelectQueryResultFailure> failureReporter,
         QueryRestrictionConverter queryRestrictionConverter,
-        boolean allowInternalFieldsUpdate) {
+        boolean allowInternalFieldsUpdate
+    ) {
         this.metadataClient = metadataClient;
         this.internalActionKeysRetriever = internalActionKeysRetriever;
         this.queryRestrictionConverter = queryRestrictionConverter;
@@ -102,52 +107,61 @@ public class BulkSelectQueryParallelProcessor {
         String processId = VitamThreadUtils.getVitamSession().getRequestId();
 
         // Associate every query entry with its index position
-        Iterator<CountingIterator.EntryWithIndex<JsonNode>> queryWithIndexIterator
-            = new CountingIterator<>(queryIterator);
+        Iterator<CountingIterator.EntryWithIndex<JsonNode>> queryWithIndexIterator = new CountingIterator<>(
+            queryIterator
+        );
 
         // Group entries for bulk processing
-        Iterator<List<CountingIterator.EntryWithIndex<JsonNode>>> queriesBulkIterator =
-            Iterators.partition(queryWithIndexIterator, batchSize);
+        Iterator<List<CountingIterator.EntryWithIndex<JsonNode>>> queriesBulkIterator = Iterators.partition(
+            queryWithIndexIterator,
+            batchSize
+        );
 
         // Process in thread pool. Any exception aborts execution
         AtomicBoolean fatalErrorOccurred = new AtomicBoolean(false);
         AtomicBoolean koErrorOccurred = new AtomicBoolean(false);
-        ThreadPoolExecutor executor =
-            ExecutorUtils.createScalableBatchExecutorService(threadPoolSize, threadPoolQueueSize);
+        ThreadPoolExecutor executor = ExecutorUtils.createScalableBatchExecutorService(
+            threadPoolSize,
+            threadPoolQueueSize
+        );
         try {
-
             while (queriesBulkIterator.hasNext() && !fatalErrorOccurred.get()) {
-
                 final List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess = queriesBulkIterator.next();
-                executor.submit(() -> {
+                executor.submit(
+                    () -> {
+                        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                        VitamThreadUtils.getVitamSession().setRequestId(processId);
 
-                    VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-                    VitamThreadUtils.getVitamSession().setRequestId(processId);
+                        if (fatalErrorOccurred.get() || koErrorOccurred.get()) {
+                            throw new CancellationException("Job cancelled");
+                        }
 
-                    if (fatalErrorOccurred.get() || koErrorOccurred.get()) {
-                        throw new CancellationException("Job cancelled");
-                    }
-
-                    try {
-                        processBulkQueries(bulkQueriesToProcess);
-                    } catch (InvalidParseOperationException | IllegalArgumentException | MetaDataDocumentSizeException |
-                             InvalidCreateOperationException e) {
-                        koErrorOccurred.set(true);
-                        LOGGER.error("An error occurred during bulk select query execution", e);
-                    } catch (Exception e) {
-                        fatalErrorOccurred.set(true);
-                        LOGGER.error("An unexpected error occurred during bulk select query execution", e);
-                    }
-                }, executor);
+                        try {
+                            processBulkQueries(bulkQueriesToProcess);
+                        } catch (
+                            InvalidParseOperationException
+                            | IllegalArgumentException
+                            | MetaDataDocumentSizeException
+                            | InvalidCreateOperationException e
+                        ) {
+                            koErrorOccurred.set(true);
+                            LOGGER.error("An error occurred during bulk select query execution", e);
+                        } catch (Exception e) {
+                            fatalErrorOccurred.set(true);
+                            LOGGER.error("An unexpected error occurred during bulk select query execution", e);
+                        }
+                    },
+                    executor
+                );
             }
-
         } finally {
             awaitExecutorTermination(executor);
         }
 
         if (koErrorOccurred.get()) {
             throw new InvalidParseOperationException(
-                "One or more KO errors occurred during bulk select query execution");
+                "One or more KO errors occurred during bulk select query execution"
+            );
         }
 
         if (fatalErrorOccurred.get()) {
@@ -156,11 +170,10 @@ public class BulkSelectQueryParallelProcessor {
     }
 
     private void processBulkQueries(List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException, InvalidCreateOperationException {
-
-        List<CountingIterator.EntryWithIndex<JsonNode>> validQueries =
-            reportAndFilterInvalidQueries(bulkQueriesToProcess);
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, InvalidCreateOperationException {
+        List<CountingIterator.EntryWithIndex<JsonNode>> validQueries = reportAndFilterInvalidQueries(
+            bulkQueriesToProcess
+        );
 
         List<JsonNode> executableQueries = transformQueries(validQueries);
 
@@ -170,8 +183,8 @@ public class BulkSelectQueryParallelProcessor {
     }
 
     private List<CountingIterator.EntryWithIndex<JsonNode>> reportAndFilterInvalidQueries(
-        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess) {
-
+        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess
+    ) {
         if (this.allowInternalFieldsUpdate) {
             return bulkQueriesToProcess;
         }
@@ -179,10 +192,13 @@ public class BulkSelectQueryParallelProcessor {
         List<CountingIterator.EntryWithIndex<JsonNode>> validQueries = new ArrayList<>();
         for (CountingIterator.EntryWithIndex<JsonNode> queryToProcess : bulkQueriesToProcess) {
             List<String> internalKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(
-                queryToProcess.getValue());
+                queryToProcess.getValue()
+            );
             if (!internalKeyFields.isEmpty()) {
-                String message = String.format(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage() + " : '%s'",
-                    String.join(", ", internalKeyFields));
+                String message = String.format(
+                    BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage() + " : '%s'",
+                    String.join(", ", internalKeyFields)
+                );
                 reportQueryError(queryToProcess, BulkUpdateUnitReportKey.INVALID_DSL_QUERY, message);
             } else {
                 validQueries.add(queryToProcess);
@@ -191,28 +207,32 @@ public class BulkSelectQueryParallelProcessor {
         return validQueries;
     }
 
-    private List<List<String>> bulkExecuteSelectQueries(MetaDataClient metadataClient,
-        List<JsonNode> executableQueries)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
-
+    private List<List<String>> bulkExecuteSelectQueries(
+        MetaDataClient metadataClient,
+        List<JsonNode> executableQueries
+    )
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         if (executableQueries.isEmpty()) {
             return Collections.emptyList();
         }
 
         // Submit queries
-        List<RequestResponseOK<JsonNode>> queriesResponses =
-            metadataClient.selectUnitsBulk(executableQueries);
+        List<RequestResponseOK<JsonNode>> queriesResponses = metadataClient.selectUnitsBulk(executableQueries);
 
         // Check result size
         if (queriesResponses.size() != executableQueries.size()) {
-            throw new IllegalStateException(String.format(
-                "Partial response for selectUnitsBulk. Expected %d. Got %d",
-                executableQueries.size(), queriesResponses.size()));
+            throw new IllegalStateException(
+                String.format(
+                    "Partial response for selectUnitsBulk. Expected %d. Got %d",
+                    executableQueries.size(),
+                    queriesResponses.size()
+                )
+            );
         }
 
         // Parse ids
-        return queriesResponses.stream()
+        return queriesResponses
+            .stream()
             .map(RequestResponseOK::getResults)
             .map(resultSet -> resultSet.stream().map(this::parseUnitId).collect(Collectors.toList()))
             .collect(Collectors.toList());
@@ -256,19 +276,27 @@ public class BulkSelectQueryParallelProcessor {
         return unitJson.get(VitamFieldsHelper.id()).textValue();
     }
 
-    private void handleResults(List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess,
-        List<List<String>> queriesResultUnitIds) {
+    private void handleResults(
+        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess,
+        List<List<String>> queriesResultUnitIds
+    ) {
         for (int i = 0; i < bulkQueriesToProcess.size(); i++) {
             CountingIterator.EntryWithIndex<JsonNode> queryToProcess = bulkQueriesToProcess.get(i);
             List<String> unitIds = queriesResultUnitIds.get(i);
 
             int numberResults = unitIds.size();
             if (numberResults == 0) {
-                reportQueryError(queryToProcess, BulkUpdateUnitReportKey.UNIT_NOT_FOUND,
-                    BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage());
+                reportQueryError(
+                    queryToProcess,
+                    BulkUpdateUnitReportKey.UNIT_NOT_FOUND,
+                    BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage()
+                );
             } else if (numberResults >= 2) {
-                reportQueryError(queryToProcess, BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND,
-                    BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage());
+                reportQueryError(
+                    queryToProcess,
+                    BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND,
+                    BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage()
+                );
             } else {
                 String unitId = unitIds.get(0);
                 reportQueryOK(unitId, queryToProcess.getValue(), queryToProcess.getIndex());
@@ -288,10 +316,19 @@ public class BulkSelectQueryParallelProcessor {
      * synchronized for thread safety
      */
     private synchronized void reportQueryError(
-        CountingIterator.EntryWithIndex<JsonNode> queryToProcess, BulkUpdateUnitReportKey reportKey, String message) {
+        CountingIterator.EntryWithIndex<JsonNode> queryToProcess,
+        BulkUpdateUnitReportKey reportKey,
+        String message
+    ) {
         nbWarnings.incrementAndGet();
         this.failureReporter.accept(
-            new BulkSelectQueryResultFailure(queryToProcess.getIndex(), queryToProcess.getValue(), reportKey, message));
+                new BulkSelectQueryResultFailure(
+                    queryToProcess.getIndex(),
+                    queryToProcess.getValue(),
+                    reportKey,
+                    message
+                )
+            );
     }
 
     public int getNbWarnings() {

@@ -80,13 +80,10 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
      */
     public static final String CONTROLSCHEMA = "ControlSchema";
 
-
-
     /**
      * Empty Constructor
      */
-    public ArchiveUnitProfile() {
-    }
+    public ArchiveUnitProfile() {}
 
     /**
      * Constructor
@@ -131,7 +128,6 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
         append(VitamDocument.ID, id);
         return this;
     }
-
 
     /**
      * The profile id
@@ -192,7 +188,6 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
         append(DESCRIPTION, description);
         return this;
     }
-
 
     /**
      * Get the profile status If toJson called without MongoClient configuration this will thow codec exception
@@ -278,7 +273,6 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
         return this;
     }
 
-
     /**
      * @return the ControlSchema of the profile
      */
@@ -294,7 +288,4 @@ public class ArchiveUnitProfile extends VitamDocument<ArchiveUnitProfile> {
         append(CONTROLSCHEMA, ControlSchema);
         return this;
     }
-
-
-
 }

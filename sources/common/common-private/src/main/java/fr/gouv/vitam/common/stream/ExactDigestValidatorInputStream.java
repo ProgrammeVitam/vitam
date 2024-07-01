@@ -45,7 +45,6 @@ public class ExactDigestValidatorInputStream extends ProxyInputStream {
 
     public ExactDigestValidatorInputStream(final InputStream in, DigestType digestType, String expectedDigest) {
         super(null);
-
         this.digest = new Digest(digestType);
         super.in = this.digest.getDigestInputStream(in);
         this.expectedDigest = expectedDigest;
@@ -53,7 +52,6 @@ public class ExactDigestValidatorInputStream extends ProxyInputStream {
 
     @Override
     protected void afterRead(int n) throws IOException {
-
         if (n == EOF) {
             String digestHex = this.digest.digestHex();
             if (!digestHex.equals(expectedDigest)) {

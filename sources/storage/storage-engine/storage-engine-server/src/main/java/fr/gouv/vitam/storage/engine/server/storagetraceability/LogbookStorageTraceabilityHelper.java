@@ -125,9 +125,14 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
      * @param operationID guid of the traceability operation
      * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
-    public LogbookStorageTraceabilityHelper(LogbookOperationsClient logbookOperations, WorkspaceClient workspaceClient,
-        TraceabilityStorageService traceabilityLogbookService, StorageDistribution distribution, GUID operationID,
-        int overlapDelayInSeconds) {
+    public LogbookStorageTraceabilityHelper(
+        LogbookOperationsClient logbookOperations,
+        WorkspaceClient workspaceClient,
+        TraceabilityStorageService traceabilityLogbookService,
+        StorageDistribution distribution,
+        GUID operationID,
+        int overlapDelayInSeconds
+    ) {
         this.logbookOperationsClient = logbookOperations;
         this.workspaceClient = workspaceClient;
         this.traceabilityLogbookService = traceabilityLogbookService;
@@ -147,13 +152,16 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
         Response response = null;
         try {
-            response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName,
-                DataCategory.STORAGETRACEABILITY);
+            response = traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                DataCategory.STORAGETRACEABILITY
+            );
             try (
                 InputStream stream = response.readEntity(InputStream.class);
                 ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                    .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
-
+                    .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)
+            ) {
                 ArchiveEntry entry = null;
                 while (entry == null || !"token.tsp".equals(entry.getName())) {
                     entry = archiveInputStream.getNextEntry();
@@ -163,8 +171,10 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 }
 
                 LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
-                lastTraceabilityData =
-                    new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
+                lastTraceabilityData = new StorageTraceabilityData(
+                    IOUtils.toByteArray(archiveInputStream),
+                    date.minusSeconds(delay)
+                );
                 this.traceabilityStartDate = lastTraceabilityData.startDate;
             }
         } catch (IOException e) {
@@ -172,10 +182,13 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         } catch (ArchiveException e) {
             throw new TraceabilityException("Unable to create Archive Stream", e);
         } catch (StorageNotFoundException e) {
-            alertService.createAlert(VitamLogLevel.ERROR, "Traceability ZIP file not found '" + fileName +
-                "'. File may be corrupted OR have been DELETED?");
-            throw new TraceabilityException("Traceability ZIP file not found '" + fileName +
-                "'. File may be corrupted OR have been DELETED?");
+            alertService.createAlert(
+                VitamLogLevel.ERROR,
+                "Traceability ZIP file not found '" + fileName + "'. File may be corrupted OR have been DELETED?"
+            );
+            throw new TraceabilityException(
+                "Traceability ZIP file not found '" + fileName + "'. File may be corrupted OR have been DELETED?"
+            );
         } catch (StorageException e) {
             throw new TraceabilityException("Unable to get last traceability information", e);
         } finally {
@@ -184,11 +197,10 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file)
-        throws IOException, TraceabilityException {
-
-        Iterator<OfferLog> traceabilityIterator =
-            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy());
+    public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException {
+        Iterator<OfferLog> traceabilityIterator = traceabilityLogbookService.getLastSavedStorageLogIterator(
+            VitamConfiguration.getDefaultStrategy()
+        );
 
         file.initStoreLog();
         while (traceabilityIterator.hasNext()) {
@@ -203,8 +215,11 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             Response response = null;
             InputStream stream = null;
             try {
-                response = traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), fileName,
-                    DataCategory.STORAGELOG);
+                response = traceabilityLogbookService.getObject(
+                    VitamConfiguration.getDefaultStrategy(),
+                    fileName,
+                    DataCategory.STORAGELOG
+                );
                 stream = response.readEntity(InputStream.class);
                 byte[] hash = digest.update(stream).digest();
 
@@ -216,12 +231,15 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 file.storeLog(bytes);
                 algo.addLeaf(bytes);
                 fileCount++;
-
             } catch (StorageNotFoundException e) {
-                alertService.createAlert(VitamLogLevel.ERROR, "Traceability LOG file not found '" + fileName +
-                    "'. File may be corrupted OR have been DELETED?");
-                throw new TraceabilityException("Traceability LOG file not found '" + fileName +
-                    "'. File may be corrupted OR have been DELETED?", e);
+                alertService.createAlert(
+                    VitamLogLevel.ERROR,
+                    "Traceability LOG file not found '" + fileName + "'. File may be corrupted OR have been DELETED?"
+                );
+                throw new TraceabilityException(
+                    "Traceability LOG file not found '" + fileName + "'. File may be corrupted OR have been DELETED?",
+                    e
+                );
             } catch (StorageException e) {
                 throw new TraceabilityException("Unable to get the given object " + fileName, e);
             } finally {
@@ -275,16 +293,23 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
     @Override
     public void startTraceability() throws TraceabilityException {
-        final LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(operationID, STP_STORAGE_SECURISATION, operationID, TRACEABILITY, STARTED,
-                null,
-                null, operationID);
+        final LogbookOperationParameters logbookParameters = newLogbookOperationParameters(
+            operationID,
+            STP_STORAGE_SECURISATION,
+            operationID,
+            TRACEABILITY,
+            STARTED,
+            null,
+            null,
+            operationID
+        );
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
         try {
             logbookOperationsClient.create(logbookParameters);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-                 LogbookClientServerException e) {
+        } catch (
+            LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException e
+        ) {
             throw new TraceabilityException("unable to create traceability logbook", e);
         }
 
@@ -292,24 +317,36 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void createLogbookOperationEvent(Integer tenantId, String eventType, StatusCode status,
-        TraceabilityEvent event) throws TraceabilityException {
+    public void createLogbookOperationEvent(
+        Integer tenantId,
+        String eventType,
+        StatusCode status,
+        TraceabilityEvent event
+    ) throws TraceabilityException {
         final GUID eventId = GUIDFactory.newEventGUID(tenantId);
-        final LogbookOperationParameters logbookOperationParameters =
-            newLogbookOperationParameters(eventId, eventType, operationID, TRACEABILITY, status, null, null,
-                operationID);
+        final LogbookOperationParameters logbookOperationParameters = newLogbookOperationParameters(
+            eventId,
+            eventType,
+            operationID,
+            TRACEABILITY,
+            status,
+            null,
+            null,
+            operationID
+        );
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
 
         if (event != null) {
             String eventData = unprettyPrint(event);
-            logbookOperationParameters
-                .putParameterValue(LogbookParameterName.eventDetailData, eventData);
+            logbookOperationParameters.putParameterValue(LogbookParameterName.eventDetailData, eventData);
 
             ObjectNode masterData = JsonHandler.createObjectNode();
             masterData.put("eventDetailData", eventData);
-            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData,
-                JsonHandler.unprettyPrint(masterData));
+            logbookOperationParameters.putParameterValue(
+                LogbookParameterName.masterData,
+                JsonHandler.unprettyPrint(masterData)
+            );
         }
         try {
             logbookOperationsClient.update(logbookOperationParameters);
@@ -324,31 +361,34 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName,
-        TraceabilityEvent event)
-        throws TraceabilityException {
+    public void storeAndDeleteZip(
+        Integer tenant,
+        String strategyId,
+        File zipFile,
+        String fileName,
+        TraceabilityEvent event
+    ) throws TraceabilityException {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile))) {
-
             String containerName = VitamThreadUtils.getVitamSession().getRequestId();
             workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, fileName, inputStream);
-
 
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(fileName);
 
             try {
-
-
-                distribution.storeDataInAllOffers(strategyId, fileName, description, DataCategory.STORAGETRACEABILITY,
-                    null);
+                distribution.storeDataInAllOffers(
+                    strategyId,
+                    fileName,
+                    description,
+                    DataCategory.STORAGETRACEABILITY,
+                    null
+                );
 
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, OK, event);
-
-
             } catch (StorageException | ContentAddressableStorageNotFoundException e) {
                 LOGGER.error("unable to store zip file", e);
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, StatusCode.FATAL, event);

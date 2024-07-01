@@ -38,12 +38,12 @@ public class JsonSorterTest {
 
     @Test
     public void testSortJsonEntriesByKeys() throws Exception {
-
         JsonNode data = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("json_sorter/input.json"));
         JsonSorter.sortJsonEntriesByKeys(data, Arrays.asList("field1", "field2"));
 
-        JsonNode expected =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("json_sorter/expected.json"));
+        JsonNode expected = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("json_sorter/expected.json")
+        );
 
         JsonAssert.assertJsonEquals(JsonHandler.unprettyPrint(data), JsonHandler.unprettyPrint(expected));
     }

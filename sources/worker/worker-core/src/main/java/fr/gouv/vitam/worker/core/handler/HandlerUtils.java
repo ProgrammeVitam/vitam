@@ -54,8 +54,7 @@ public class HandlerUtils {
      * @throws IOException if cannot write file in json format
      * @throws ProcessingException if processing exception occurred
      */
-    public static void save(HandlerIO handlerIO, Object object, int rank)
-        throws IOException, ProcessingException {
+    public static void save(HandlerIO handlerIO, Object object, int rank) throws IOException, ProcessingException {
         final String tmpFilePath = handlerIO.getOutput(rank).getPath();
         final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
         try {
@@ -96,9 +95,13 @@ public class HandlerUtils {
      * @throws IOException if cannot write file in json format
      * @throws ProcessingException if processing exception occurred
      */
-    public static void saveMap(HandlerIO handlerIO, Map<String, ?> map, int rank, boolean removeTmpFile,
-        boolean asyncIO)
-        throws IOException, ProcessingException {
+    public static void saveMap(
+        HandlerIO handlerIO,
+        Map<String, ?> map,
+        int rank,
+        boolean removeTmpFile,
+        boolean asyncIO
+    ) throws IOException, ProcessingException {
         final String tmpFilePath = handlerIO.getOutput(rank).getPath();
         final File firstMapTmpFile = handlerIO.getNewLocalFile(tmpFilePath);
         try {
@@ -132,5 +135,4 @@ public class HandlerUtils {
 
         handlerIO.addOutputResult(rank, firstMapTmpFile, removeTmpFile, asyncIO);
     }
-
 }

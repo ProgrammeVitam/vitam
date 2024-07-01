@@ -57,22 +57,23 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
+
     protected static AccessExternalClientV2Rest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    final String queryDsql =
-        "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], \"$projection\" : {} }";
+    final String queryDsql = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], \"$projection\" : {} }";
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
 
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(AccessExternalClientV2RestTest.class, AccessExternalClientV2Factory.getInstance());
-
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        AccessExternalClientV2RestTest.class,
+        AccessExternalClientV2Factory.getInstance()
+    );
 
     @BeforeClass
     public static void init() throws Throwable {
@@ -92,12 +93,12 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
 
     @Path("/access-external/v2")
     public static class MockResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
             this.expectedResponse = expectedResponse;
         }
-
 
         @POST
         @Path("/dipexport")
@@ -108,7 +109,6 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
         }
     }
 
-
     /***
      *
      * DIP export
@@ -117,12 +117,13 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void exportDIP() throws Exception {
-        when(mock.post())
-            .thenReturn(
-                Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build()
+        );
         DipRequest exportRequest = new DipRequest(JsonHandler.getFromString(queryDsql));
-        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-            exportRequest)).isNotNull();
+        assertThat(
+            client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), exportRequest)
+        ).isNotNull();
     }
 
     @Test
@@ -131,8 +132,7 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         DipRequest exportRequest = new DipRequest(JsonHandler.getFromString(queryDsql));
         assertThatExceptionOfType(VitamClientException.class)
-            .isThrownBy(() -> client
-                .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), exportRequest))
+            .isThrownBy(() -> client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), exportRequest))
             .withMessage("Error with the response, get status: '404' and reason 'Not Found'.");
     }
 
@@ -142,7 +142,8 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
         assertThatExceptionOfType(IllegalArgumentException.class)
             .isThrownBy(
-                () -> client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), (DipRequest) null))
+                () -> client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), (DipRequest) null)
+            )
             .withMessage("DipRequest cannot be null.");
     }
 
@@ -152,8 +153,7 @@ public class AccessExternalClientV2RestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         DipRequest exportRequest = new DipRequest(JsonHandler.getFromString(queryDsql));
         assertThatExceptionOfType(VitamClientException.class)
-            .isThrownBy(() -> client
-                .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), exportRequest))
+            .isThrownBy(() -> client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), exportRequest))
             .withMessage("Error with the response, get status: '412' and reason 'Precondition Failed'.");
     }
 }

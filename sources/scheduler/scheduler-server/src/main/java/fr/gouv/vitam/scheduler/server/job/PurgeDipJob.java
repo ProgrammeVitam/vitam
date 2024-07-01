@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -50,7 +49,6 @@ public class PurgeDipJob implements Job {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeDipJob.class);
 
     private final MetaDataClientFactory metaDataClientFactory;
-
 
     public PurgeDipJob() {
         this.metaDataClientFactory = MetaDataClientFactory.getInstance();

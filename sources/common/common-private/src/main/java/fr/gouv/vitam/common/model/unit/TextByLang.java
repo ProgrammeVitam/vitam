@@ -64,5 +64,4 @@ public class TextByLang {
     public boolean isNotEmpty() {
         return !textTypes.isEmpty();
     }
-
 }

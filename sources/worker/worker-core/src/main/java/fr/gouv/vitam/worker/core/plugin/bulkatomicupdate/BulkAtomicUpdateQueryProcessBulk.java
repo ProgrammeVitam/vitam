@@ -51,19 +51,26 @@ public class BulkAtomicUpdateQueryProcessBulk {
     }
 
     public List<BulkUpdateUnitMetadataReportEntry> getReportEntries() {
-        return items.stream().filter(item -> item.getReportEntry() != null)
+        return items
+            .stream()
+            .filter(item -> item.getReportEntry() != null)
             .map(BulkAtomicUpdateQueryProcessItem::getReportEntry)
             .collect(Collectors.toList());
     }
 
     public List<JsonNode> getItemsFinalQuery() {
-        return items.stream().filter(item -> item.getFinalQuery() != null).map(item -> item.getFinalQuery())
+        return items
+            .stream()
+            .filter(item -> item.getFinalQuery() != null)
+            .map(item -> item.getFinalQuery())
             .collect(Collectors.toList());
     }
 
     public List<ItemStatus> getItemsStatus() {
-        return items.stream().filter(item -> item.getStatus() != null).map(item -> item.getStatus())
+        return items
+            .stream()
+            .filter(item -> item.getStatus() != null)
+            .map(item -> item.getStatus())
             .collect(Collectors.toList());
     }
-
 }

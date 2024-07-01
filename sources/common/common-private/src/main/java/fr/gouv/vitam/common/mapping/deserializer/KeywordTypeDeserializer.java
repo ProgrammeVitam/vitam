@@ -40,6 +40,7 @@ import java.io.IOException;
  * To be registered in jackson objectMapper
  */
 public class KeywordTypeDeserializer extends JsonDeserializer<KeyType> {
+
     /**
      * @param jp (json, xml, string) representation
      * @param ctxt
@@ -53,5 +54,4 @@ public class KeywordTypeDeserializer extends JsonDeserializer<KeyType> {
         keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
         return keywordType;
     }
-
 }

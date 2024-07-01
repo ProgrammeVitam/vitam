@@ -60,6 +60,7 @@ import java.util.concurrent.ExecutorService;
  * Business class for Storage Traceability Administration
  */
 public class StorageTraceabilityAdministration {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTraceabilityAdministration.class);
     private static final int MIN_THREAD_POOL_SIZE = 1;
 
@@ -73,16 +74,22 @@ public class StorageTraceabilityAdministration {
     private final int storageLogTraceabilityThreadPoolSize;
     private final File tmpFolder;
 
-    public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
-        StorageDistribution distribution, String tmpFolder, TimestampGenerator timestampGenerator,
-        Integer operationTraceabilityOverlapDelay, int storageLogTraceabilityThreadPoolSize) {
+    public StorageTraceabilityAdministration(
+        TraceabilityStorageService traceabilityLogbookService,
+        StorageDistribution distribution,
+        String tmpFolder,
+        TimestampGenerator timestampGenerator,
+        Integer operationTraceabilityOverlapDelay,
+        int storageLogTraceabilityThreadPoolSize
+    ) {
         this.traceabilityLogbookService = traceabilityLogbookService;
         this.distribution = distribution;
         this.timestampGenerator = timestampGenerator;
         this.workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         this.logbookOperations = LogbookOperationsClientFactory.getInstance().getClient();
-        this.operationTraceabilityOverlapDelayInSeconds =
-            validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
+        this.operationTraceabilityOverlapDelayInSeconds = validateAndGetTraceabilityOverlapDelay(
+            operationTraceabilityOverlapDelay
+        );
         this.storageLogTraceabilityThreadPoolSize = storageLogTraceabilityThreadPoolSize;
         this.tmpFolder = new File(tmpFolder);
         if (!this.tmpFolder.exists() && !this.tmpFolder.mkdirs()) {
@@ -91,19 +98,29 @@ public class StorageTraceabilityAdministration {
     }
 
     @VisibleForTesting
-    public StorageTraceabilityAdministration(TraceabilityStorageService traceabilityLogbookService,
-        StorageDistribution distribution, LogbookOperationsClient mockedLogbookOperations, File tmpFolder,
-        WorkspaceClient mockedWorkspaceClient, TimestampGenerator timestampGenerator,
-        Integer operationTraceabilityOverlapDelay, int storageLogTraceabilityThreadPoolSize) {
+    public StorageTraceabilityAdministration(
+        TraceabilityStorageService traceabilityLogbookService,
+        StorageDistribution distribution,
+        LogbookOperationsClient mockedLogbookOperations,
+        File tmpFolder,
+        WorkspaceClient mockedWorkspaceClient,
+        TimestampGenerator timestampGenerator,
+        Integer operationTraceabilityOverlapDelay,
+        int storageLogTraceabilityThreadPoolSize
+    ) {
         this.traceabilityLogbookService = traceabilityLogbookService;
         this.distribution = distribution;
         this.logbookOperations = mockedLogbookOperations;
         this.timestampGenerator = timestampGenerator;
         this.workspaceClient = mockedWorkspaceClient;
-        this.operationTraceabilityOverlapDelayInSeconds =
-            validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
-        ParametersChecker.checkValue("Traceability thread pool size", storageLogTraceabilityThreadPoolSize,
-            MIN_THREAD_POOL_SIZE);
+        this.operationTraceabilityOverlapDelayInSeconds = validateAndGetTraceabilityOverlapDelay(
+            operationTraceabilityOverlapDelay
+        );
+        ParametersChecker.checkValue(
+            "Traceability thread pool size",
+            storageLogTraceabilityThreadPoolSize,
+            MIN_THREAD_POOL_SIZE
+        );
         this.storageLogTraceabilityThreadPoolSize = storageLogTraceabilityThreadPoolSize;
         this.tmpFolder = tmpFolder;
     }
@@ -118,8 +135,10 @@ public class StorageTraceabilityAdministration {
         return operationTraceabilityOverlapDelay;
     }
 
-    public List<StorageLogTraceabilityResult> generateStorageLogTraceabilityOperations(String strategyId,
-        List<Integer> tenants) throws TraceabilityException {
+    public List<StorageLogTraceabilityResult> generateStorageLogTraceabilityOperations(
+        String strategyId,
+        List<Integer> tenants
+    ) throws TraceabilityException {
         int threadPoolSize = Math.min(this.storageLogTraceabilityThreadPoolSize, tenants.size());
         ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
 
@@ -129,7 +148,9 @@ public class StorageTraceabilityAdministration {
             for (Integer tenantId : tenants) {
                 CompletableFuture<StorageLogTraceabilityResult> traceabilityCompletableFuture =
                     CompletableFuture.supplyAsync(
-                        () -> generateTraceabilityStorageLogbook(strategyId, tenantId), executorService);
+                        () -> generateTraceabilityStorageLogbook(strategyId, tenantId),
+                        executorService
+                    );
                 completableFutures.add(traceabilityCompletableFuture);
             }
 
@@ -152,7 +173,6 @@ public class StorageTraceabilityAdministration {
             }
 
             return results;
-
         } finally {
             executorService.shutdown();
         }
@@ -165,32 +185,36 @@ public class StorageTraceabilityAdministration {
      * @param strategyId strategy ID
      */
     private StorageLogTraceabilityResult generateTraceabilityStorageLogbook(String strategyId, Integer tenantId) {
-
         Thread.currentThread().setName("StorageLogTraceability-" + tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         GUID requestId = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
         try {
+            LogbookTraceabilityHelper traceabilityHelper = new LogbookStorageTraceabilityHelper(
+                logbookOperations,
+                workspaceClient,
+                traceabilityLogbookService,
+                distribution,
+                requestId,
+                operationTraceabilityOverlapDelayInSeconds
+            );
 
-            LogbookTraceabilityHelper traceabilityHelper =
-                new LogbookStorageTraceabilityHelper(logbookOperations, workspaceClient, traceabilityLogbookService,
-                    distribution, requestId, operationTraceabilityOverlapDelayInSeconds);
-
-            TraceabilityService service =
-                new TraceabilityService(timestampGenerator, traceabilityHelper, tenantId, tmpFolder);
+            TraceabilityService service = new TraceabilityService(
+                timestampGenerator,
+                traceabilityHelper,
+                tenantId,
+                tmpFolder
+            );
 
             service.secureData(strategyId);
 
-            return new StorageLogTraceabilityResult()
-                .setTenantId(tenantId)
-                .setOperationId(requestId.getId());
+            return new StorageLogTraceabilityResult().setTenantId(tenantId).setOperationId(requestId.getId());
         } catch (Exception e) {
-            alertService.createAlert(VitamLogLevel.ERROR,
-                "An error occurred during storage log traceability for tenant " + tenantId);
-            throw new RuntimeException(
-                "An error occurred during storage log traceability for tenant " + tenantId, e);
+            alertService.createAlert(
+                VitamLogLevel.ERROR,
+                "An error occurred during storage log traceability for tenant " + tenantId
+            );
+            throw new RuntimeException("An error occurred during storage log traceability for tenant " + tenantId, e);
         }
     }
 }
-
-

@@ -69,7 +69,6 @@ public class ProfileStep extends CommonStep {
      */
     private String fileName;
 
-
     /**
      * generic model result
      */
@@ -92,7 +91,6 @@ public class ProfileStep extends CommonStep {
      */
     @When("^j'importe le profile d'archivage$")
     public void create_profile() throws AccessExternalClientException, IOException, InvalidParseOperationException {
-
         create_profile(true);
     }
 
@@ -104,25 +102,24 @@ public class ProfileStep extends CommonStep {
     @When("^j'importe le profile d'archivage sans échec$")
     public void create_profile_ignoring_failure()
         throws AccessExternalClientException, IOException, InvalidParseOperationException {
-
         create_profile(null);
     }
 
     @When("^j'importe le profile d'archivage incorrect$")
     public void create_profile_with_expected_failure()
         throws AccessExternalClientException, IOException, InvalidParseOperationException {
-
         create_profile(false);
     }
 
     private void create_profile(Boolean expectedSuccessStatus)
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
-        final RequestResponse response =
-            world.getAdminClient()
-                .createProfiles(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    Files.newInputStream(profil, StandardOpenOption.READ));
+        final RequestResponse response = world
+            .getAdminClient()
+            .createProfiles(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                Files.newInputStream(profil, StandardOpenOption.READ)
+            );
 
         String httpCode = String.valueOf(response.getHttpCode());
         ObjectNode responseCode = JsonHandler.createObjectNode();
@@ -145,10 +142,8 @@ public class ProfileStep extends CommonStep {
         }
     }
 
-
     @When("^je rattache un ficher à ce profil d'archivage$")
-    public void import_profile()
-        throws InvalidParseOperationException, IOException, AccessExternalClientException {
+    public void import_profile() throws InvalidParseOperationException, IOException, AccessExternalClientException {
         import_profile(true);
     }
 
@@ -169,11 +164,13 @@ public class ProfileStep extends CommonStep {
         Path profile = Paths.get(world.getBaseDirectory(), fileName);
         RequestResponse response = null;
         if (this.model != null && this.model.get("Identifier") != null) {
-            response =
-                world.getAdminClient().createProfileFile(
+            response = world
+                .getAdminClient()
+                .createProfileFile(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     this.model.get("Identifier").asText(),
-                    Files.newInputStream(profile, StandardOpenOption.READ));
+                    Files.newInputStream(profile, StandardOpenOption.READ)
+                );
         }
         if (expectedSuccessStatus != null) {
             assertThat(response).isNotNull();
@@ -183,17 +180,19 @@ public class ProfileStep extends CommonStep {
 
     @When("^je cherche un profil nommé (.*)")
     public void search_profiles(String name)
-        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
-        VitamClientException {
+        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException, VitamClientException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         select.setQuery(match("Name", name));
         final JsonNode query = select.getFinalSelect();
-        RequestResponse<ProfileModel> requestResponse =
-            world.getAdminClient().findProfiles(
-                new VitamContext(world.getTenantId()).setAccessContract(null)
+        RequestResponse<ProfileModel> requestResponse = world
+            .getAdminClient()
+            .findProfiles(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(null)
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                query);
+                query
+            );
         if (requestResponse.isOk()) {
             this.model = ((RequestResponseOK<ProfileModel>) requestResponse).getResultsAsJsonNodes().get(0);
         }
@@ -218,5 +217,4 @@ public class ProfileStep extends CommonStep {
             assertThat(this.model.get(index).asText()).contains(value);
         }
     }
-
 }

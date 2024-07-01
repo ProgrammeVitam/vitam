@@ -36,7 +36,6 @@ import java.util.Map;
  * Logbook details check service.<br>
  */
 public interface LogbookDetailsCheckService {
-
     /**
      * Logbook events check.
      *
@@ -52,6 +51,8 @@ public interface LogbookDetailsCheckService {
      * @param mapLfcEvents the map of lfc event models
      * @return the list of results after check
      */
-    List<LogbookCheckError> checkLFCandOperation(final Map<String, EventModel> mapOpEvents,
-        final Map<String, EventModel> mapLfcEvents);
+    List<LogbookCheckError> checkLFCandOperation(
+        final Map<String, EventModel> mapOpEvents,
+        final Map<String, EventModel> mapLfcEvents
+    );
 }

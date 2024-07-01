@@ -48,9 +48,10 @@ import java.util.stream.Collectors;
  * This task is responsible of sending files to the workspace
  */
 public class WorkspaceBatchRunner implements Runnable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceBatchRunner.class);
 
-    final private static int BATCH_SIZE = 10;
+    private static final int BATCH_SIZE = 10;
 
     private BlockingQueue<WorkspaceQueue> queue;
     private HandlerIO handlerIO;
@@ -76,7 +77,6 @@ public class WorkspaceBatchRunner implements Runnable {
      * Will complete when exception occurs or when all element of the queue are treated
      */
     private CompletableFuture<Boolean> waitMonitor;
-
 
     /**
      * Save the last occurred exception
@@ -107,24 +107,28 @@ public class WorkspaceBatchRunner implements Runnable {
                     while (realBatchSize > 0) {
                         WorkspaceQueue element = queue.poll();
                         if (element != null) {
-                            completableFutures.add(CompletableFuture
-                                .supplyAsync(new WorkspaceTransferTask(handlerIO, element), executor)
-                                .exceptionally(e -> {
+                            completableFutures.add(
+                                CompletableFuture.supplyAsync(
+                                    new WorkspaceTransferTask(handlerIO, element),
+                                    executor
+                                ).exceptionally(e -> {
                                     exceptionOccurred = e;
                                     return Boolean.FALSE;
-                                }));
+                                })
+                            );
                         }
 
                         realBatchSize--;
                     }
 
                     if (completableFutures.size() > 0) {
-                        sequence(completableFutures).exceptionally(e -> {
-                            exceptionOccurred = e;
-                            return Lists.newArrayList();
-                        }).join();
+                        sequence(completableFutures)
+                            .exceptionally(e -> {
+                                exceptionOccurred = e;
+                                return Lists.newArrayList();
+                            })
+                            .join();
                         completableFutures.clear();
-
                     }
                 }
             } catch (Exception e) {
@@ -137,7 +141,6 @@ public class WorkspaceBatchRunner implements Runnable {
         }
         waitMonitor.complete(Boolean.TRUE);
     }
-
 
     /**
      * Enqueue element to be transferred to the workspace
@@ -156,7 +159,6 @@ public class WorkspaceBatchRunner implements Runnable {
         } catch (InterruptedException e) {
             LOGGER.error(e);
             throw new WorkerspaceQueueException(e);
-
         }
     }
 
@@ -201,9 +203,9 @@ public class WorkspaceBatchRunner implements Runnable {
     }
 
     private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
-        CompletableFuture<Void> allDoneFuture =
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
-        return allDoneFuture
-            .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(
+            futures.toArray(new CompletableFuture[futures.size()])
+        );
+        return allDoneFuture.thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
     }
 }

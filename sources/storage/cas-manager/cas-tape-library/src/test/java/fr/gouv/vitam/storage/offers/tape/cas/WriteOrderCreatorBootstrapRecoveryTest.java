@@ -97,15 +97,18 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
     @Before
     public void initialize() throws Exception {
-
         inputTarStorageFolder = temporaryFolder.newFolder("inputTar").toPath();
 
         writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
-            inputTarStorageFolder.toString(), archiveReferentialRepository,
-            bucketTopologyHelper, writeOrderCreator, tarFileRapairer, archiveCacheStorage);
+            inputTarStorageFolder.toString(),
+            archiveReferentialRepository,
+            bucketTopologyHelper,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
 
-        doReturn(ImmutableSet.of(FILE_BUCKET_1, FILE_BUCKET_2))
-            .when(bucketTopologyHelper).listFileBuckets();
+        doReturn(ImmutableSet.of(FILE_BUCKET_1, FILE_BUCKET_2)).when(bucketTopologyHelper).listFileBuckets();
 
         doReturn(BUCKED_ID).when(bucketTopologyHelper).getBucketFromFileBucket(FILE_BUCKET_1);
         doReturn(BUCKED_ID).when(bucketTopologyHelper).getBucketFromFileBucket(FILE_BUCKET_2);
@@ -113,24 +116,26 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
     @Test
     public void initializeEmptyFileBucketDirectories() throws Exception {
-
         // Given
         Files.createDirectories(inputTarStorageFolder.resolve(FILE_BUCKET_1));
         Files.createDirectories(inputTarStorageFolder.resolve(FILE_BUCKET_2));
 
-
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 
     @Test
     public void initializeNonExistingFileBucketDirectories() {
-
         // Given
 
         // When
@@ -138,13 +143,17 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         // Then
         verify(bucketTopologyHelper).listFileBuckets();
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 
     @Test
     public void initializeRecoverTmpTarFiles() throws Exception {
-
         /*
          * fileBucket1 :
          *  - tar1.tar.tmp  : Tmp file (to be repaired & rescheduled)
@@ -181,14 +190,32 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(bucketTopologyHelper, times(2)).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator, times(2)).sendMessageToQueue(writeOrderArgCaptor.capture());
-        assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getFileBucketId, WriteOrder::getDigest,
-                WriteOrder::getSize, WriteOrder::getFilePath)
+        assertThat(writeOrderArgCaptor.getAllValues())
+            .extracting(
+                WriteOrder::getArchiveId,
+                WriteOrder::getBucket,
+                WriteOrder::getFileBucketId,
+                WriteOrder::getDigest,
+                WriteOrder::getSize,
+                WriteOrder::getFilePath
+            )
             .containsExactly(
-                tuple(tarId1, BUCKED_ID, FILE_BUCKET_1, "digest1", 10L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId1)),
-                tuple(tarId2, BUCKED_ID, FILE_BUCKET_2, "digest2", 12L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId2))
+                tuple(
+                    tarId1,
+                    BUCKED_ID,
+                    FILE_BUCKET_1,
+                    "digest1",
+                    10L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId1)
+                ),
+                tuple(
+                    tarId2,
+                    BUCKED_ID,
+                    FILE_BUCKET_2,
+                    "digest2",
+                    12L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId2)
+                )
             );
 
         Path targetFile1 = fileBucketFolder1.resolve(tarId1);
@@ -199,13 +226,17 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         assertThat(targetFile1).exists();
         assertThat(targetFile2).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 
     @Test
     public void initializeRecoverTarAlreadyOnTapeAndNotInCache() throws Exception {
-
         /*
          * fileBucket1 :
          *  - tar1.tar      : Complete tar file already marked as on tape (to be deleted)
@@ -224,9 +255,19 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder1.resolve(tarId);
         Files.copy(new NullInputStream(10L), tarFile);
 
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
-            new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13), 10L, "digest1", null))
-        ).when(archiveReferentialRepository).find(tarId);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId,
+                    new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13),
+                    10L,
+                    "digest1",
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId);
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, tarId);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(anyString(), anyString(), anyLong());
@@ -235,7 +276,9 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
             assertThat(filePath).exists();
             Files.delete(filePath);
             return null;
-        }).when(archiveCacheStorage).moveArchiveToCache(any(), anyString(), anyString());
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), anyString(), anyString());
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
@@ -249,13 +292,17 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FILE_BUCKET_1, tarId, 10);
         verify(archiveCacheStorage).moveArchiveToCache(eq(tarFile), eq(FILE_BUCKET_1), eq(tarId));
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 
     @Test
     public void initializeRecoverTarAlreadyOnTapeAndInCache() throws Exception {
-
         /*
          * fileBucket1 :
          *  - tar1.tar      : Complete tar file already marked as on tape (to be deleted)
@@ -274,9 +321,19 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder1.resolve(tarId);
         Files.copy(new NullInputStream(10L), tarFile);
 
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
-            new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13), 10L, "digest1", null))
-        ).when(archiveReferentialRepository).find(tarId);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId,
+                    new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13),
+                    10L,
+                    "digest1",
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId);
 
         doReturn(true).when(archiveCacheStorage).containsArchive(FILE_BUCKET_1, tarId);
 
@@ -290,13 +347,17 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         verify(archiveCacheStorage).containsArchive(FILE_BUCKET_1, tarId);
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 
     @Test
     public void initializeRecoverTarBuildingOnDisk() throws Exception {
-
         /*
          * fileBucket1 :
          *  - tar1.tar      : Complete tar marked as building on disk (to be verified & rescheduled)
@@ -315,12 +376,21 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder1.resolve(tarId);
         Files.copy(new NullInputStream(10L), tarFile);
 
-        doReturn(new TarFileRapairer.DigestWithSize(10L, "digest1"))
-            .when(tarFileRapairer).verifyTarArchive(any());
+        doReturn(new TarFileRapairer.DigestWithSize(10L, "digest1")).when(tarFileRapairer).verifyTarArchive(any());
 
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
-            new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, null))
-        ).when(archiveReferentialRepository).find(tarId);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId,
+                    new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                    null,
+                    null,
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId);
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
@@ -333,22 +403,38 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(bucketTopologyHelper).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
-        assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getFileBucketId, WriteOrder::getDigest,
-                WriteOrder::getSize, WriteOrder::getFilePath)
+        assertThat(writeOrderArgCaptor.getAllValues())
+            .extracting(
+                WriteOrder::getArchiveId,
+                WriteOrder::getBucket,
+                WriteOrder::getFileBucketId,
+                WriteOrder::getDigest,
+                WriteOrder::getSize,
+                WriteOrder::getFilePath
+            )
             .containsExactly(
-                tuple(tarId, BUCKED_ID, FILE_BUCKET_1, "digest1", 10L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId))
+                tuple(
+                    tarId,
+                    BUCKED_ID,
+                    FILE_BUCKET_1,
+                    "digest1",
+                    10L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId)
+                )
             );
         assertThat(tarFile).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 
     @Test
     public void initializeRecoverReadyTar() throws Exception {
-
         /*
          * fileBucket1 :
          *  -
@@ -367,9 +453,19 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder2.resolve(tarId);
         Files.copy(new NullInputStream(10L), tarFile);
 
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId,
-            new TapeLibraryReadyOnDiskArchiveStorageLocation(), 10L, "digest1", null))
-        ).when(archiveReferentialRepository).find(tarId);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId,
+                    new TapeLibraryReadyOnDiskArchiveStorageLocation(),
+                    10L,
+                    "digest1",
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId);
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
@@ -382,24 +478,39 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(bucketTopologyHelper).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
-        assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getFileBucketId, WriteOrder::getDigest,
-                WriteOrder::getSize, WriteOrder::getFilePath)
+        assertThat(writeOrderArgCaptor.getAllValues())
+            .extracting(
+                WriteOrder::getArchiveId,
+                WriteOrder::getBucket,
+                WriteOrder::getFileBucketId,
+                WriteOrder::getDigest,
+                WriteOrder::getSize,
+                WriteOrder::getFilePath
+            )
             .containsExactly(
-                tuple(tarId, BUCKED_ID, FILE_BUCKET_2, "digest1", 10L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId))
+                tuple(
+                    tarId,
+                    BUCKED_ID,
+                    FILE_BUCKET_2,
+                    "digest1",
+                    10L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId)
+                )
             );
 
         assertThat(tarFile).exists();
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
-
 
     @Test
     public void initializeRecoverUnknownTarFile() throws Exception {
-
         /*
          * fileBucket1 :
          *  - tar1.tar      : Unknown complete tar file
@@ -418,18 +529,16 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile = fileBucketFolder2.resolve(tarId);
         Files.copy(new NullInputStream(10L), tarFile);
 
-        doReturn(Optional.empty())
-            .when(archiveReferentialRepository).find(tarId);
+        doReturn(Optional.empty()).when(archiveReferentialRepository).find(tarId);
 
         // When / Then
-        assertThatThrownBy(() -> writeOrderCreatorBootstrapRecovery.initializeOnBootstrap())
-            .isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> writeOrderCreatorBootstrapRecovery.initializeOnBootstrap()).isInstanceOf(
+            Exception.class
+        );
     }
-
 
     @Test
     public void initializeRecoverMultipleFiles() throws Exception {
-
         /*
          * fileBucket1 :
          *  - tar1.tar      : Complete tar file already marked as on tape (to be moved to cache)
@@ -471,21 +580,50 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         doReturn(digestWithSize3).when(tarFileRapairer).repairAndVerifyTarArchive(any(), any(), eq(tarId3));
         doReturn(digestWithSize5).when(tarFileRapairer).repairAndVerifyTarArchive(any(), any(), eq(tarId5));
 
-
         // Tar 1 has already been proceeded
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId1,
-            new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13), 10L, "digest1", null))
-        ).when(archiveReferentialRepository).find(tarId1);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId1,
+                    new TapeLibraryOnTapeArchiveStorageLocation("tape code", 13),
+                    10L,
+                    "digest1",
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId1);
 
         // Tar 2 needs to be verified
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId2,
-            new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, null))
-        ).when(archiveReferentialRepository).find(tarId2);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId2,
+                    new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                    null,
+                    null,
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId2);
 
         // Tar 4 is already OK
-        doReturn(Optional.of(new TapeArchiveReferentialEntity(tarId4,
-            new TapeLibraryReadyOnDiskArchiveStorageLocation(), 13L, "digest4", null))
-        ).when(archiveReferentialRepository).find(tarId4);
+        doReturn(
+            Optional.of(
+                new TapeArchiveReferentialEntity(
+                    tarId4,
+                    new TapeLibraryReadyOnDiskArchiveStorageLocation(),
+                    13L,
+                    "digest4",
+                    null
+                )
+            )
+        )
+            .when(archiveReferentialRepository)
+            .find(tarId4);
 
         doReturn(false).when(archiveCacheStorage).containsArchive(anyString(), anyString());
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(anyString(), anyString(), anyLong());
@@ -494,7 +632,9 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
             assertThat(filePath).exists();
             Files.delete(filePath);
             return null;
-        }).when(archiveCacheStorage).moveArchiveToCache(any(), anyString(), anyString());
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), anyString(), anyString());
 
         // When
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
@@ -513,18 +653,48 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(bucketTopologyHelper, times(4)).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator, times(4)).sendMessageToQueue(writeOrderArgCaptor.capture());
-        assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-                WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getFileBucketId, WriteOrder::getDigest,
-                WriteOrder::getSize, WriteOrder::getFilePath)
+        assertThat(writeOrderArgCaptor.getAllValues())
+            .extracting(
+                WriteOrder::getArchiveId,
+                WriteOrder::getBucket,
+                WriteOrder::getFileBucketId,
+                WriteOrder::getDigest,
+                WriteOrder::getSize,
+                WriteOrder::getFilePath
+            )
             .containsExactly(
-                tuple(tarId2, BUCKED_ID, FILE_BUCKET_1, "digest2", 11L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId2)),
-                tuple(tarId3, BUCKED_ID, FILE_BUCKET_1, "digest3", 12L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId3)),
-                tuple(tarId4, BUCKED_ID, FILE_BUCKET_2, "digest4", 13L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId4)),
-                tuple(tarId5, BUCKED_ID, FILE_BUCKET_2, "digest5", 14L,
-                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId5))
+                tuple(
+                    tarId2,
+                    BUCKED_ID,
+                    FILE_BUCKET_1,
+                    "digest2",
+                    11L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId2)
+                ),
+                tuple(
+                    tarId3,
+                    BUCKED_ID,
+                    FILE_BUCKET_1,
+                    "digest3",
+                    12L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId3)
+                ),
+                tuple(
+                    tarId4,
+                    BUCKED_ID,
+                    FILE_BUCKET_2,
+                    "digest4",
+                    13L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId4)
+                ),
+                tuple(
+                    tarId5,
+                    BUCKED_ID,
+                    FILE_BUCKET_2,
+                    "digest5",
+                    14L,
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId5)
+                )
             );
 
         assertThat(tarFile1).doesNotExist();
@@ -541,7 +711,12 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(archiveCacheStorage).reserveArchiveStorageSpace(FILE_BUCKET_1, tarId1, 10L);
         verify(archiveCacheStorage).moveArchiveToCache(eq(tarFile1), eq(FILE_BUCKET_1), eq(tarId1));
 
-        verifyNoMoreInteractions(bucketTopologyHelper, archiveReferentialRepository, writeOrderCreator,
-            tarFileRapairer, archiveCacheStorage);
+        verifyNoMoreInteractions(
+            bucketTopologyHelper,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
     }
 }

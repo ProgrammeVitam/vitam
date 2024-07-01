@@ -60,8 +60,9 @@ public class DbVersionsModelBuilderTest {
         int version = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbVersionsModelBuilder().build(versionId, fileName, null, version))
-            .hasMessage("Usage can't be null");
+        assertThatThrownBy(() -> new DbVersionsModelBuilder().build(versionId, fileName, null, version)).hasMessage(
+            "Usage can't be null"
+        );
     }
 
     @Test
@@ -72,8 +73,9 @@ public class DbVersionsModelBuilderTest {
         int version = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbVersionsModelBuilder().build(versionId, null, usage, version))
-            .hasMessage("FileName can't be null");
+        assertThatThrownBy(() -> new DbVersionsModelBuilder().build(versionId, null, usage, version)).hasMessage(
+            "FileName can't be null"
+        );
     }
 
     @Test
@@ -84,8 +86,8 @@ public class DbVersionsModelBuilderTest {
         int version = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbVersionsModelBuilder().build(null, fileName, usage, version))
-            .hasMessage("VersionId can't be null");
+        assertThatThrownBy(() -> new DbVersionsModelBuilder().build(null, fileName, usage, version)).hasMessage(
+            "VersionId can't be null"
+        );
     }
-
 }

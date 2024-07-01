@@ -33,13 +33,11 @@ import java.util.Map;
 
 public class JsonHelper {
 
-    private JsonHelper() {
-    }
+    private JsonHelper() {}
 
     public static Map<String, JsonNode> jsonToMap(JsonNode unit) {
         Map<String, JsonNode> map = new HashMap<>();
         unit.fieldNames().forEachRemaining(key -> map.put(key, unit.get(key)));
         return map;
     }
-
 }

@@ -49,9 +49,13 @@ public class AccessLogUtils {
     public static final String SIZE = "objectSize";
     public static final String FILE_NAME = "FILE_NAME";
 
-
-    public static JsonNode getWorkerInfo(String qualifier, Integer version, Long size, String archiveUnitId,
-        String fileName) {
+    public static JsonNode getWorkerInfo(
+        String qualifier,
+        Integer version,
+        Long size,
+        String archiveUnitId,
+        String fileName
+    ) {
         ObjectNode logInfo = JsonHandler.createObjectNode();
 
         logInfo.set(QUALIFIER, new TextNode(qualifier));
@@ -63,8 +67,11 @@ public class AccessLogUtils {
         return logInfo;
     }
 
-    public static AccessLogInfoModel getInfoFromWorkerInfo(Map<String, Object> objectInfo, VitamSession session,
-        Boolean mustLog) {
+    public static AccessLogInfoModel getInfoFromWorkerInfo(
+        Map<String, Object> objectInfo,
+        VitamSession session,
+        Boolean mustLog
+    ) {
         AccessLogInfoModel logInfo = new AccessLogInfoModel();
 
         logInfo.setMustLog(mustLog);
@@ -84,8 +91,13 @@ public class AccessLogUtils {
         return logInfo;
     }
 
-    public static AccessLogInfoModel getInfoForAccessLog(String qualifier, Integer version, VitamSession session,
-        Long size, String archiveUnitId) {
+    public static AccessLogInfoModel getInfoForAccessLog(
+        String qualifier,
+        Integer version,
+        VitamSession session,
+        Long size,
+        String archiveUnitId
+    ) {
         AccessLogInfoModel logInfo = new AccessLogInfoModel();
 
         boolean mustLog = ActivationStatus.ACTIVE.equals(session.getContract().getAccessLog());

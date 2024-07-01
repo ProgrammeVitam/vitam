@@ -51,18 +51,24 @@ public class CollectInternalMain {
     private final VitamStarter vitamStarter;
 
     public CollectInternalMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(CollectInternalConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            CollectInternalConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class
+        );
     }
 
     public static void main(String[] args) {
-
         if (args == null || args.length == 0) {
             LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-            throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                CONF_FILE_NAME));
+            throw new IllegalArgumentException(
+                String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+            );
         }
 
         CollectInternalMain collectInternalMain = new CollectInternalMain(args[0]);
@@ -72,8 +78,11 @@ public class CollectInternalMain {
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
             collectInternalMain.startAndJoin();
         } catch (VitamApplicationServerException | InterruptedException e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
             try {
                 collectInternalMain.stop();
             } catch (VitamApplicationServerException ex) {
@@ -95,5 +104,4 @@ public class CollectInternalMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-
 }

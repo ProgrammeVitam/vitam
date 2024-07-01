@@ -70,20 +70,25 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class WorkerClientRestTest extends ResteasyTestApplication {
+
     private static final String DUMMY_REQUEST_ID = "reqId";
     protected static int serverPort;
     protected static WorkerClientRest client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+    protected static final ExpectedResults mock = mock(ExpectedResults.class);
 
-    private static WorkerClientFactory factory =
-        WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
-    private static VitamServerTestRunner vitamServerTestRunner =
-        new VitamServerTestRunner(WorkerClientRestTest.class, factory);
+    private static WorkerClientFactory factory = WorkerClientFactory.getInstance(
+        WorkerClientFactory.changeConfigurationFile("worker-client.conf")
+    );
+    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        WorkerClientRestTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -103,6 +108,7 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
 
     @Path("/worker/v1")
     public static class MockResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -137,8 +143,9 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
         result.setItemsStatus("CheckVersion", itemStatus2);
 
         when(mock.post()).thenReturn(Response.status(Response.Status.OK).entity(result).build());
-        final ItemStatus responses =
-            client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()));
+        final ItemStatus responses = client.submitStep(
+            new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())
+        );
         assertNotNull(responses);
         assertEquals(StatusCode.OK, responses.getItemsStatus().get("checkSeda").getGlobalStatus());
         assertEquals(StatusCode.OK, responses.getItemsStatus().get("CheckVersion").getGlobalStatus());
@@ -165,27 +172,33 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
     @Test
     public void submitAsyncDataRetryException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        List<WorkerAccessRequest> entity =
-            List.of(new WorkerAccessRequest("accessRequestId1", "strategyId1", "offerId"),
-                new WorkerAccessRequest("accessRequestId2", "strategyId1", "offerId"),
-                new WorkerAccessRequest("accessRequestId3", "strategyId2", null));
+        List<WorkerAccessRequest> entity = List.of(
+            new WorkerAccessRequest("accessRequestId1", "strategyId1", "offerId"),
+            new WorkerAccessRequest("accessRequestId2", "strategyId1", "offerId"),
+            new WorkerAccessRequest("accessRequestId3", "strategyId2", null)
+        );
 
         when(mock.post()).thenReturn(
             Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
                 .entity(entity)
-                .build());
+                .build()
+        );
         Throwable thrown = catchThrowable(
-            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())));
+            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()))
+        );
         assertThat(thrown)
             .isInstanceOf(ProcessingRetryAsyncException.class)
             .hasFieldOrProperty("accessRequestIdByContext");
         ProcessingRetryAsyncException exc = (ProcessingRetryAsyncException) thrown;
         assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("strategyId1", "offerId"));
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("strategyId1", "offerId"))).contains(
-            "accessRequestId1", "accessRequestId2");
+            "accessRequestId1",
+            "accessRequestId2"
+        );
         assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("strategyId2", null));
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("strategyId2", null))).contains(
-            "accessRequestId3");
+            "accessRequestId3"
+        );
     }
 
     @RunWithCustomExecutor
@@ -197,11 +210,12 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(
             Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
                 .entity(entity)
-                .build());
+                .build()
+        );
         Throwable thrown = catchThrowable(
-            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())));
-        assertThat(thrown)
-            .isInstanceOf(ProcessingException.class);
+            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()))
+        );
+        assertThat(thrown).isInstanceOf(ProcessingException.class);
     }
 
     @RunWithCustomExecutor
@@ -210,12 +224,11 @@ public class WorkerClientRestTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
 
         when(mock.post()).thenReturn(
-            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
-                .build());
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode()).build()
+        );
         Throwable thrown = catchThrowable(
-            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters())));
-        assertThat(thrown)
-            .isInstanceOf(ProcessingException.class);
+            () -> client.submitStep(new DescriptionStep(new Step(), WorkerParametersFactory.newWorkerParameters()))
+        );
+        assertThat(thrown).isInstanceOf(ProcessingException.class);
     }
-
 }

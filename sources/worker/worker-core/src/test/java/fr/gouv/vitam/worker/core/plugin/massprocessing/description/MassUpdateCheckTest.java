@@ -48,6 +48,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 public class MassUpdateCheckTest {
+
     private final TestWorkerParameter EMPTY_WORKER_PARAMETER = workerParameterBuilder().build();
     private final TestHandlerIO handlerIO = new TestHandlerIO();
 
@@ -65,7 +66,8 @@ public class MassUpdateCheckTest {
         // Given
         handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode());
         given(internalActionKeysRetriever.getInternalActionKeyFields(any())).willReturn(
-            Collections.singletonList("_INTERNAL_FIELD"));
+            Collections.singletonList("_INTERNAL_FIELD")
+        );
 
         // When
         ItemStatus itemStatus = massUpdateCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);

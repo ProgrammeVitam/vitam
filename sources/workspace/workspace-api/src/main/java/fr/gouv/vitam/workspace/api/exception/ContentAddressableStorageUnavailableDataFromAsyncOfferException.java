@@ -28,6 +28,7 @@ package fr.gouv.vitam.workspace.api.exception;
 
 public class ContentAddressableStorageUnavailableDataFromAsyncOfferException
     extends ContentAddressableStorageException {
+
     public ContentAddressableStorageUnavailableDataFromAsyncOfferException(String message) {
         super(message);
     }

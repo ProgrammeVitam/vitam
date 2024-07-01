@@ -47,10 +47,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@SuppressWarnings({"javadoc"})
+@SuppressWarnings({ "javadoc" })
 public class GUIDTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GUIDTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDTest.class);
 
     private static final String WRONG_ARK3 = "ark:/1a/aeasppnwoyafrlybkt3kfuyaaaaac";
 
@@ -60,9 +60,7 @@ public class GUIDTest {
 
     private static final String WRONG_BYTES =
         "[2, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]";
-    private static final String WRONG_STRING_ID =
-        "02010000000127bdb6760058af0154f6a2d300000001";
-
+    private static final String WRONG_STRING_ID = "02010000000127bdb6760058af0154f6a2d300000001";
 
     private enum FIELDS {
         BASE16,
@@ -83,9 +81,8 @@ public class GUIDTest {
         BASE16B,
         BASE32B,
         BASE64B,
-        BASEARKB
+        BASEARKB,
     }
-
 
     private static final int VERSION = 1 & 0x1F;
     private static final int HEXLENGTH = GUIDImpl.KEYSIZE * 2;
@@ -101,8 +98,10 @@ public class GUIDTest {
             properties.setProperty(FIELDS.BASE32.name(), "aeaqaaaaaet33ntwabmk6aku62rngaaaaaaq");
             properties.setProperty(FIELDS.BASE64.name(), "AQEAAAABJ722dgBYrwFU9qLTAAAAAQ");
             properties.setProperty(FIELDS.BASEARK.name(), "ark:/1/aeasppnwoyafrlybkt3kfuyaaaaac");
-            properties.setProperty(FIELDS.BYTES.name(),
-                "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]");
+            properties.setProperty(
+                FIELDS.BYTES.name(),
+                "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]"
+            );
         } else {
             properties = PropertiesUtils.readProperties(file);
         }
@@ -201,8 +200,7 @@ public class GUIDTest {
             final GUIDImpl parsed2 = new GUIDImpl(properties.getProperty(FIELDS.BASE64.name()));
             final GUIDImpl parsed0 = new GUIDImpl(properties.getProperty(FIELDS.BASE16.name()));
             final GUIDImpl parsed8 = new GUIDImpl(properties.getProperty(FIELDS.BASEARK.name()));
-            final byte[] bytes = StringUtils.getBytesFromArraysToString(
-                properties.getProperty(FIELDS.BYTES.name()));
+            final byte[] bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.BYTES.name()));
             final GUIDImpl parsed9 = new GUIDImpl(bytes);
             assertTrue(parsed1.equals(parsed2));
             assertTrue(parsed1.equals(parsed0));
@@ -304,5 +302,4 @@ public class GUIDTest {
         assertTrue(guid.equals(guid));
         assertTrue(guid.equals(guid2));
     }
-
 }

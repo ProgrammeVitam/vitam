@@ -27,10 +27,10 @@
 package fr.gouv.vitam.collect.internal.core.service;
 
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectStatus;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ProjectService {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProjectService.class);
     private final ProjectRepository projectRepository;
 
@@ -57,9 +58,17 @@ public class ProjectService {
         // Set project initials
         final String creationDate = LocalDateUtil.now().toString();
 
-        ProjectModel projectModel = new ProjectModel(projectDto.getId(), projectDto.getName(),
-            CollectHelper.mapProjectDtoToManifestContext(projectDto), ProjectStatus.OPEN,
-            creationDate, creationDate, projectDto.getUnitUp(), projectDto.getUnitUps(), projectDto.getTenant());
+        ProjectModel projectModel = new ProjectModel(
+            projectDto.getId(),
+            projectDto.getName(),
+            CollectHelper.mapProjectDtoToManifestContext(projectDto),
+            ProjectStatus.OPEN,
+            creationDate,
+            creationDate,
+            projectDto.getUnitUp(),
+            projectDto.getUnitUps(),
+            projectDto.getTenant()
+        );
 
         projectRepository.createProject(projectModel);
     }
@@ -74,16 +83,22 @@ public class ProjectService {
         return projectRepository.findProjectById(id).map(CollectHelper::convertProjectModeltoProjectDto);
     }
 
-
     public void updateProject(ProjectDto projectDto) throws CollectInternalException {
         // Update project initials
         projectDto.setStatus(projectDto.getStatus() != null ? projectDto.getStatus() : TransactionStatus.OPEN.name());
         final String lastUpdate = LocalDateUtil.now().toString();
 
-        ProjectModel projectModel = new ProjectModel(projectDto.getId(), projectDto.getName(),
-            CollectHelper.mapProjectDtoToManifestContext(projectDto), ProjectStatus.valueOf(projectDto.getStatus()),
-            projectDto.getCreationDate(), lastUpdate, projectDto.getUnitUp(), projectDto.getUnitUps(),
-            projectDto.getTenant());
+        ProjectModel projectModel = new ProjectModel(
+            projectDto.getId(),
+            projectDto.getName(),
+            CollectHelper.mapProjectDtoToManifestContext(projectDto),
+            ProjectStatus.valueOf(projectDto.getStatus()),
+            projectDto.getCreationDate(),
+            lastUpdate,
+            projectDto.getUnitUp(),
+            projectDto.getUnitUps(),
+            projectDto.getTenant()
+        );
 
         projectRepository.updateProject(projectModel);
     }
@@ -94,8 +109,10 @@ public class ProjectService {
     }
 
     public List<ProjectDto> searchProject(String searchValue) throws CollectInternalException {
-        List<ProjectModel> listProjects =
-            projectRepository.searchProject(searchValue, ParameterHelper.getTenantParameter());
+        List<ProjectModel> listProjects = projectRepository.searchProject(
+            searchValue,
+            ParameterHelper.getTenantParameter()
+        );
         return listProjects.stream().map(CollectHelper::convertProjectModeltoProjectDto).collect(Collectors.toList());
     }
 

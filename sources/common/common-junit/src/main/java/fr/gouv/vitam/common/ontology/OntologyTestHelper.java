@@ -36,10 +36,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class OntologyTestHelper {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyTestHelper.class);
 
-    public static final String ANSIBLE_PATH_TO_ONTOLOGY =
-        "/deployment/environments/ontology/VitamOntology.json";
+    public static final String ANSIBLE_PATH_TO_ONTOLOGY = "/deployment/environments/ontology/VitamOntology.json";
 
     public static InputStream loadOntologies() throws IOException {
         String dir = Paths.get("").toAbsolutePath().toString();

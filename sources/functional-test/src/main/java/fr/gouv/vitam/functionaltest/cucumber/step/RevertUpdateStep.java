@@ -45,7 +45,6 @@ import static org.assertj.core.api.Java6Assertions.fail;
 
 public class RevertUpdateStep extends CommonStep {
 
-
     public RevertUpdateStep(World world) {
         super(world);
     }
@@ -58,8 +57,9 @@ public class RevertUpdateStep extends CommonStep {
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        final RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().revertUpdateUnits(vitamContext, queryString);
+        final RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .revertUpdateUnits(vitamContext, queryString);
 
         assertThat(requestResponse.isOk()).isTrue();
 
@@ -67,8 +67,14 @@ public class RevertUpdateStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("units update  processing not finished. Timeout exceeded.");

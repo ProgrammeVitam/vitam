@@ -58,14 +58,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 /**
  * PrepareObjectGroupLfcTraceabilityActionPlugin.
  */
 public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTraceabilityActionPlugin {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PrepareObjectGroupLfcTraceabilityActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        PrepareObjectGroupLfcTraceabilityActionPlugin.class
+    );
 
     private static final String ACTION_HANDLER_ID = "PREPARE_OG_LFC_TRACEABILITY";
     private static final String STP_OG_LFC_TRACEABILITY = "STP_OG_LFC_TRACEABILITY";
@@ -75,31 +75,34 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
     }
 
     @VisibleForTesting
-    PrepareObjectGroupLfcTraceabilityActionPlugin(MetaDataClientFactory metaDataClientFactory,
+    PrepareObjectGroupLfcTraceabilityActionPlugin(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        int batchSize) {
+        int batchSize
+    ) {
         super(metaDataClientFactory, logbookLifeCyclesClientFactory, batchSize);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler)
-        throws ProcessingException {
-
-        String temporizationDelayInSecondsStr =
-            params.getMapParameters().get(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds);
-        String lifecycleTraceabilityMaxEntriesStr =
-            params.getMapParameters().get(WorkerParameterName.lifecycleTraceabilityMaxEntries);
-        int temporizationDelayInSeconds =
-            Integer.parseInt(temporizationDelayInSecondsStr);
-        int lifecycleTraceabilityMaxEntries =
-            Integer.parseInt(lifecycleTraceabilityMaxEntriesStr);
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+        String temporizationDelayInSecondsStr = params
+            .getMapParameters()
+            .get(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds);
+        String lifecycleTraceabilityMaxEntriesStr = params
+            .getMapParameters()
+            .get(WorkerParameterName.lifecycleTraceabilityMaxEntries);
+        int temporizationDelayInSeconds = Integer.parseInt(temporizationDelayInSecondsStr);
+        int lifecycleTraceabilityMaxEntries = Integer.parseInt(lifecycleTraceabilityMaxEntriesStr);
 
         final ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
         try {
-            selectAndExportLifecyclesWithMetadata(temporizationDelayInSeconds, lifecycleTraceabilityMaxEntries,
-                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), handler);
+            selectAndExportLifecyclesWithMetadata(
+                temporizationDelayInSeconds,
+                lifecycleTraceabilityMaxEntries,
+                Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+                handler
+            );
             itemStatus.increment(StatusCode.OK);
-
         } catch (ProcessingException | LogbookClientException | VitamFatalRuntimeException e) {
             LOGGER.error("Logbook exception", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -107,38 +110,48 @@ public class PrepareObjectGroupLfcTraceabilityActionPlugin extends PrepareLfcTra
             LOGGER.error("Processing exception", e);
             itemStatus.increment(StatusCode.KO);
         }
-        return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID,
-            itemStatus);
+        return new ItemStatus(ACTION_HANDLER_ID).setItemsStatus(ACTION_HANDLER_ID, itemStatus);
     }
 
     protected InputStream exportRawLifecyclesByLastPersistedDate(
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LocalDateTime startDate, LocalDateTime endDate, int maxEntries)
-        throws LogbookClientException, InvalidParseOperationException, IOException {
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        int maxEntries
+    ) throws LogbookClientException, InvalidParseOperationException, IOException {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
             return logbookLifeCyclesClient.exportRawObjectGroupLifecyclesByLastPersistedDate(
-                startDate, endDate, maxEntries);
+                startDate,
+                endDate,
+                maxEntries
+            );
         }
     }
 
     @Override
     protected Map<String, JsonNode> getRawMetadata(Set<String> ids, MetaDataClientFactory metaDataClientFactory)
         throws ProcessingException {
-
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             RequestResponse<JsonNode> rawMetadataResponse = metaDataClient.getObjectGroupsByIdsRaw(ids);
 
             if (!rawMetadataResponse.isOk()) {
-                throw new ProcessingException("Could not retrieve raw metadata "
-                    + rawMetadataResponse.getStatus() + " " + ((VitamError) rawMetadataResponse).getDescription());
+                throw new ProcessingException(
+                    "Could not retrieve raw metadata " +
+                    rawMetadataResponse.getStatus() +
+                    " " +
+                    ((VitamError) rawMetadataResponse).getDescription()
+                );
             }
 
             // Return raw metadata mapped by id
             return ((RequestResponseOK<JsonNode>) rawMetadataResponse).getResults()
                 .stream()
-                .collect(Collectors
-                    .toMap(rawMetadata -> rawMetadata.get(VitamDocument.ID).textValue(), rawMetadata -> rawMetadata));
-
+                .collect(
+                    Collectors.toMap(
+                        rawMetadata -> rawMetadata.get(VitamDocument.ID).textValue(),
+                        rawMetadata -> rawMetadata
+                    )
+                );
         } catch (VitamClientException e) {
             throw new ProcessingException("Could not retrieve raw metadata", e);
         }

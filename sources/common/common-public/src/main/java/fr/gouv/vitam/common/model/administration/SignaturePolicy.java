@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model.administration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class SignaturePolicy {
+
     @JsonProperty("SignedDocument")
     private SignedDocumentPolicyEnum signedDocument;
 
@@ -63,7 +64,6 @@ public class SignaturePolicy {
 
     public void setDeclaredTimestamp(Boolean declaredTimestamp) {
         this.declaredTimestamp = declaredTimestamp;
-
     }
 
     public Boolean isDeclaredAdditionalProof() {
@@ -77,6 +77,6 @@ public class SignaturePolicy {
     public enum SignedDocumentPolicyEnum {
         ALLOWED,
         MANDATORY,
-        FORBIDDEN
+        FORBIDDEN,
     }
 }

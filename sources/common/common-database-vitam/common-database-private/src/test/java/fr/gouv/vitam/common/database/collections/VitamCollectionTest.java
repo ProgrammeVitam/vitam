@@ -60,20 +60,22 @@ import static org.junit.Assert.assertTrue;
 public class VitamCollectionTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
-            PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(
-            ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
+        PREFIX + CollectionSample.class.getSimpleName()
+    );
 
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(
+        ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -88,7 +90,8 @@ public class VitamCollectionTest {
         esClient = new ElasticsearchAccess(elasticsearchRule.getClusterName(), nodes);
         esClient.createIndexAndAliasIfAliasNotExists(
             ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()),
-            new ElasticsearchIndexSettings(2, 2, () -> "{}"));
+            new ElasticsearchIndexSettings(2, 2, () -> "{}")
+        );
     }
 
     @AfterClass
@@ -104,10 +107,13 @@ public class VitamCollectionTest {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
         VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(Collections.emptyList());
-        final VitamCollection vitamCollection =
-            VitamCollectionHelper
-                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName(),
-                    vitamDescriptionResolver);
+        final VitamCollection vitamCollection = VitamCollectionHelper.getCollection(
+            CollectionSample.class,
+            true,
+            false,
+            PREFIX + CollectionSample.class.getSimpleName(),
+            vitamDescriptionResolver
+        );
 
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         vitamCollection.initialize(esClient);
@@ -116,8 +122,9 @@ public class VitamCollectionTest {
         assertEquals("majority", mongoRule.getMongoDatabase().getWriteConcern().getWString());
         assertEquals(null, mongoRule.getMongoDatabase().getWriteConcern().getJournal());
         assertEquals(ReadConcern.MAJORITY, mongoRule.getMongoDatabase().getReadConcern());
-        final MongoCollection<CollectionSample> collection =
-            (MongoCollection<CollectionSample>) vitamCollection.getCollection();
+        final MongoCollection<CollectionSample> collection = (MongoCollection<
+                CollectionSample
+            >) vitamCollection.getCollection();
         String guid = GUIDFactory.newGUID().toString();
         final CollectionSample test = new CollectionSample(new Document("_id", guid));
         collection.insertOne(test);
@@ -127,5 +134,4 @@ public class VitamCollectionTest {
         CollectionSample sample = iterable.next();
         assertEquals(guid, sample.getId());
     }
-
 }

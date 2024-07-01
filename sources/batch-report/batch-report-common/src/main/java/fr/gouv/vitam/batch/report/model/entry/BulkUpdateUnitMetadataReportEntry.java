@@ -35,6 +35,7 @@ import java.util.Objects;
 import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 
 public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
+
     public static final String RESULT_KEY = "resultKey";
     public static final String PROCESS_ID = "processId";
     public static final String TENANT_ID = "_tenant";
@@ -63,8 +64,8 @@ public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
         @JsonProperty(RESULT_KEY) String resultKey,
         @JsonProperty(STATUS) StatusCode status,
         @JsonProperty(OUTCOME) String outcome,
-        @JsonProperty(MESSAGE) String message) {
-
+        @JsonProperty(MESSAGE) String message
+    ) {
         super(outcome, BULK_UPDATE_UNIT.name(), detailId);
         this.processId = processId;
         this.tenantId = tenantId;
@@ -118,24 +119,23 @@ public class BulkUpdateUnitMetadataReportEntry extends ReportEntry {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         BulkUpdateUnitMetadataReportEntry that = (BulkUpdateUnitMetadataReportEntry) o;
-        return processId.equals(that.processId) &&
+        return (
+            processId.equals(that.processId) &&
             tenantId.equals(that.tenantId) &&
             getDetailId().equals(that.getDetailId()) &&
             query.equals(that.query) &&
             unitId.equals(that.unitId) &&
             resultKey.equals(that.resultKey) &&
             status == that.status &&
-            message.equals(that.message);
+            message.equals(that.message)
+        );
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(processId, tenantId, getDetailId(), query, unitId, resultKey, status, message);
     }
-
 }

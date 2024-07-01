@@ -48,7 +48,6 @@ public class OfferLogRequest {
      */
     private Order order;
 
-
     /**
      * Constructor for jackson
      */
@@ -84,7 +83,6 @@ public class OfferLogRequest {
         this.offset = offset;
     }
 
-
     /**
      * @return limit.
      */
@@ -112,6 +110,4 @@ public class OfferLogRequest {
     public void setOrder(Order order) {
         this.order = order;
     }
-
-
 }

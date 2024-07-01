@@ -30,7 +30,6 @@ package fr.gouv.vitam.metadata.client;
  * Error Message for Metadata
  */
 public enum ErrorMessage {
-
     /**
      * message when select units query is null
      */

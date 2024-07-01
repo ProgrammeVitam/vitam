@@ -92,16 +92,14 @@ public abstract class ContentAddressableStorageTestAbstract {
     }
 
     @Test
-    public void givenContainerNotFoundWhenCreateContainerThenOK()
-        throws ContentAddressableStorageServerException {
+    public void givenContainerNotFoundWhenCreateContainerThenOK() throws ContentAddressableStorageServerException {
         storage.createContainer(CONTAINER_NAME);
         assertTrue(storage.isExistingContainer(CONTAINER_NAME));
     }
 
     // Object
     @Test
-    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse()
-        throws ContentAddressableStorageException {
+    public void givenObjectNotFoundWhenCheckObjectExistenceThenReturnFalse() throws ContentAddressableStorageException {
         assertFalse(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
@@ -121,15 +119,15 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, 6906L);
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"), DigestType.SHA512, 6937L);
-        assertEquals(getInputStream("file2.pdf").available(),
-            storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available());
+        assertEquals(
+            getInputStream("file2.pdf").available(),
+            storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream().available()
+        );
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenDeleteObjectThenRaiseAnException()
-        throws ContentAddressableStorageException {
+    public void givenContainerNotFoundWhenDeleteObjectThenRaiseAnException() throws ContentAddressableStorageException {
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
-
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -142,10 +140,8 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
     }
 
-
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenGetObjectThenRaiseAnException()
-        throws ContentAddressableStorageException {
+    public void givenContainerNotFoundWhenGetObjectThenRaiseAnException() throws ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.getObject(CONTAINER_NAME, OBJECT_NAME);
     }
@@ -162,8 +158,9 @@ public abstract class ContentAddressableStorageTestAbstract {
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), DigestType.SHA512, 6906L);
 
-        assertThat(storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream())
-            .hasSameContentAs(getInputStream("file1.pdf"));
+        assertThat(storage.getObject(CONTAINER_NAME, OBJECT_NAME).getInputStream()).hasSameContentAs(
+            getInputStream("file1.pdf")
+        );
     }
 
     @Test
@@ -174,7 +171,6 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
         assertFalse(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
-
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenComputeObjectDigestThenRaiseAnException()
@@ -239,7 +235,8 @@ public abstract class ContentAddressableStorageTestAbstract {
         assertEquals(TYPE, result.getType());
         assertEquals(
             "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
-            result.getDigest());
+            result.getDigest()
+        );
         assertEquals(6906, result.getFileSize());
         assertNotNull(result.getLastAccessDate());
         assertNotNull(result.getLastModifiedDate());
@@ -271,10 +268,13 @@ public abstract class ContentAddressableStorageTestAbstract {
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
         verify(objectListingListener, times(nbIter * 100 + 50)).handleObjectEntry(objectEntryArgumentCaptor.capture());
 
-        objectEntryArgumentCaptor.getAllValues()
+        objectEntryArgumentCaptor
+            .getAllValues()
             .forEach(capturedObjectEntry -> assertThat(capturedObjectEntry.getSize()).isEqualTo(100L));
 
-        Set<String> capturedFileNames = objectEntryArgumentCaptor.getAllValues().stream()
+        Set<String> capturedFileNames = objectEntryArgumentCaptor
+            .getAllValues()
+            .stream()
             .map(ObjectEntry::getObjectId)
             .collect(Collectors.toSet());
         Set<String> expectedFileNames = IntStream.range(0, nbIter * 100 + 50)

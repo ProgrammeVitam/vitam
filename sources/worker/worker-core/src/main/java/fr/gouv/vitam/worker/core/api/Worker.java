@@ -39,7 +39,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
  * Worker Interface.
  */
 public interface Worker extends VitamAutoCloseable {
-
     /**
      * Worker execute the step's actions
      *
@@ -49,9 +48,7 @@ public interface Worker extends VitamAutoCloseable {
      * @throws IllegalArgumentException throws when arguments are null
      * @throws ProcessingException throws when error in execution
      */
-    ItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, ProcessingException;
-
+    ItemStatus run(WorkerParameters workParams, Step step) throws IllegalArgumentException, ProcessingException;
 
     /**
      * Constructor for test.
@@ -62,7 +59,6 @@ public interface Worker extends VitamAutoCloseable {
      */
     @VisibleForTesting
     Worker addActionHandler(String actionName, ActionHandler actionHandler);
-
 
     /**
      * get Worker Id

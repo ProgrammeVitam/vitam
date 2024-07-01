@@ -69,5 +69,5 @@ public enum FileRulesErrorCode {
     /**
      * RUle duration exceed limit
      */
-    STP_IMPORT_RULES_RULEDURATION_EXCEED
+    STP_IMPORT_RULES_RULEDURATION_EXCEED,
 }

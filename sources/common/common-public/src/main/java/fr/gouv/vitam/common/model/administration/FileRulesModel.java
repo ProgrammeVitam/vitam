@@ -87,11 +87,16 @@ public class FileRulesModel {
     @JsonProperty("UpdateDate")
     private String updateDate;
 
-    public FileRulesModel() {
-    }
+    public FileRulesModel() {}
 
-    public FileRulesModel(String ruleId, RuleType ruleType, String ruleValue, String ruleDescription,
-        String ruleDuration, RuleMeasurementEnum ruleMeasurement) {
+    public FileRulesModel(
+        String ruleId,
+        RuleType ruleType,
+        String ruleValue,
+        String ruleDescription,
+        String ruleDuration,
+        RuleMeasurementEnum ruleMeasurement
+    ) {
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.ruleValue = ruleValue;
@@ -223,8 +228,19 @@ public class FileRulesModel {
 
     @Override
     public String toString() {
-        return "ruleId=" + ruleId + ", ruleType=" + ruleType +
-            ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
-            ", ruleMeasurement=" + ruleMeasurement;
+        return (
+            "ruleId=" +
+            ruleId +
+            ", ruleType=" +
+            ruleType +
+            ", ruleValue=" +
+            ruleValue +
+            ", ruleDescription=" +
+            ruleDescription +
+            ", ruleDuration=" +
+            ruleDuration +
+            ", ruleMeasurement=" +
+            ruleMeasurement
+        );
     }
 }

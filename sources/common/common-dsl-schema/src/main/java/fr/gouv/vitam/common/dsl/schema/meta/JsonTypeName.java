@@ -73,10 +73,8 @@ public enum JsonTypeName {
                 return BOOLEAN;
             default:
                 throw new IllegalArgumentException();
-
         }
     }
-
 
     public String toString() {
         return super.toString().toLowerCase();

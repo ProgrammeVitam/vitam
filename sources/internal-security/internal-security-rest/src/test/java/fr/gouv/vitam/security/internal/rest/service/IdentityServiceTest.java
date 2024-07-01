@@ -56,6 +56,7 @@ public class IdentityServiceTest {
 
     @InjectMocks
     private IdentityService identityService;
+
     @Mock
     private IdentityRepository identityRepository;
 
@@ -77,11 +78,9 @@ public class IdentityServiceTest {
         then(identityRepository).should().createIdentity(identityModelCaptor.capture());
         IdentityModel identityModel = identityModelCaptor.getValue();
 
-        assertThat(identityModel.getSubjectDN()).isEqualTo(
-            "CN=userAdmin, O=VITAM, L=Paris, C=FR");
+        assertThat(identityModel.getSubjectDN()).isEqualTo("CN=userAdmin, O=VITAM, L=Paris, C=FR");
         assertThat(identityModel.getSerialNumber()).isEqualTo("3");
-        assertThat(identityModel.getIssuerDN()).isEqualTo(
-            "O=VITAM, L=Paris, C=FR");
+        assertThat(identityModel.getIssuerDN()).isEqualTo("O=VITAM, L=Paris, C=FR");
         assertThat(identityModel.getCertificate()).isEqualTo(certificate);
         assertThat(identityModel.getExpirationDate()).isEqualTo("9999-12-31T23:59:59.000");
     }
@@ -99,8 +98,7 @@ public class IdentityServiceTest {
         identityService.findIdentity(certBinary);
 
         // Then
-        then(identityRepository).should()
-            .findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", "3");
+        then(identityRepository).should().findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", "3");
     }
 
     @Test
@@ -113,24 +111,29 @@ public class IdentityServiceTest {
 
         identityService.createIdentity(identityInsertModel);
         IdentityModel identityModel = new IdentityModel();
-        given(identityRepository.findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", "3"))
-            .willReturn(of(identityModel));
+        given(identityRepository.findIdentity("CN=userAdmin, O=VITAM, L=Paris, C=FR", "3")).willReturn(
+            of(identityModel)
+        );
 
         // When
         identityInsertModel.setContextId(contextId);
         Optional<IdentityModel> result = identityService.linkContextToIdentity(identityInsertModel);
 
         // Then
-        then(identityRepository).should()
-            .linkContextToIdentity(identityModel.getSubjectDN(), identityModel.getContextId(),
-                identityModel.getSerialNumber());
-        assertThat(result).isPresent()
+        then(identityRepository)
+            .should()
+            .linkContextToIdentity(
+                identityModel.getSubjectDN(),
+                identityModel.getContextId(),
+                identityModel.getSerialNumber()
+            );
+        assertThat(result)
+            .isPresent()
             .hasValueSatisfying(identity -> assertThat(identity.getContextId()).isEqualTo(contextId));
     }
 
     @Test
     public void shouldFindContextIsUsed() {
-
         // Given
         final String CONTEXT_ID = "contextId";
         given(identityRepository.contextIsUsed(CONTEXT_ID)).willReturn(true);

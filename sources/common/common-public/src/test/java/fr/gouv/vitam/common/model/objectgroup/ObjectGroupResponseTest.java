@@ -47,20 +47,21 @@ public class ObjectGroupResponseTest {
 
     @Test
     public void shouldGetBinaryMasterVersion1Model() {
-
-        FormatIdentificationModel formatIdentification =
-            objectGroupModel.getFirstVersionsModel("BinaryMaster").get().getFormatIdentification();
+        FormatIdentificationModel formatIdentification = objectGroupModel
+            .getFirstVersionsModel("BinaryMaster")
+            .get()
+            .getFormatIdentification();
 
         assertThat(formatIdentification.getFormatId()).isEqualTo("fmt/354");
     }
 
     @Test
     public void shouldGetDisseminationLastVersion() {
-
-        FormatIdentificationModel formatIdentification =
-            objectGroupModel.getLastVersionsModel("Dissemination").get().getFormatIdentification();
+        FormatIdentificationModel formatIdentification = objectGroupModel
+            .getLastVersionsModel("Dissemination")
+            .get()
+            .getFormatIdentification();
 
         assertThat(formatIdentification.getFormatId()).isEqualTo("fmt/355");
     }
-
 }

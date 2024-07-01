@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 public enum EliminationActionUnitStatus {
-
     GLOBAL_STATUS_KEEP,
-    GLOBAL_STATUS_CONFLICT
+    GLOBAL_STATUS_CONFLICT,
 }

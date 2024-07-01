@@ -41,8 +41,7 @@ public class MetaDataClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        MetaDataClientFactory.changeMode(
-            MetaDataClientFactory.changeConfigurationFile("metadata-client-test.conf"));
+        MetaDataClientFactory.changeMode(MetaDataClientFactory.changeConfigurationFile("metadata-client-test.conf"));
     }
 
     @Test
@@ -74,21 +73,27 @@ public class MetaDataClientFactoryTest {
     public void changeDefautlClientTypeTest() {
         final MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
         assertTrue(client instanceof MetaDataClientRest);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.PRODUCTION, MetaDataClientFactory.getInstance()
-            .getVitamClientType());
+        assertEquals(
+            VitamClientFactoryInterface.VitamClientType.PRODUCTION,
+            MetaDataClientFactory.getInstance().getVitamClientType()
+        );
 
         MetaDataClientFactory.changeMode(null);
         final MetaDataClient client2 = MetaDataClientFactory.getInstance().getClient();
         // assertTrue(client instanceof MetaDataClientMock); actually only on implementation exists
         assertTrue(client2 instanceof MetaDataClientMock);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.MOCK,
-            MetaDataClientFactory.getInstance().getVitamClientType());
+        assertEquals(
+            VitamClientFactoryInterface.VitamClientType.MOCK,
+            MetaDataClientFactory.getInstance().getVitamClientType()
+        );
 
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
         final MetaDataClient client3 = MetaDataClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof MetaDataClientRest);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.PRODUCTION, MetaDataClientFactory.getInstance()
-            .getVitamClientType());
+        assertEquals(
+            VitamClientFactoryInterface.VitamClientType.PRODUCTION,
+            MetaDataClientFactory.getInstance().getVitamClientType()
+        );
     }
 
     @Test
@@ -98,15 +103,19 @@ public class MetaDataClientFactoryTest {
         final MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
         // assertTrue(client instanceof MetaDataClientMock); actually only one implementation exists
         assertTrue(client instanceof MetaDataClientMock);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.MOCK,
-            MetaDataClientFactory.getInstance().getVitamClientType());
+        assertEquals(
+            VitamClientFactoryInterface.VitamClientType.MOCK,
+            MetaDataClientFactory.getInstance().getVitamClientType()
+        );
     }
 
     @Test
     public void testInitWithConfigurationFile() {
         final MetaDataClient client = MetaDataClientFactory.getInstance().getClient();
         assertTrue(client instanceof MetaDataClientRest);
-        assertEquals(VitamClientFactoryInterface.VitamClientType.PRODUCTION, MetaDataClientFactory.getInstance()
-            .getVitamClientType());
+        assertEquals(
+            VitamClientFactoryInterface.VitamClientType.PRODUCTION,
+            MetaDataClientFactory.getInstance().getVitamClientType()
+        );
     }
 }

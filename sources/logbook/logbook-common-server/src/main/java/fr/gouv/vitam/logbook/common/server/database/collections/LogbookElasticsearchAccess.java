@@ -58,11 +58,10 @@ import java.util.List;
  * ElasticSearch model with MongoDB as main database with management of index and index entries
  */
 public class LogbookElasticsearchAccess extends ElasticsearchAccess {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
 
     public static final String MAPPING_LOGBOOK_OPERATION_FILE = "/logbook-es-mapping.json";
-
-
 
     private final ElasticsearchLogbookIndexManager indexManager;
 
@@ -72,20 +71,19 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param indexManager
      * @throws VitamException if elasticsearch nodes list is empty/null
      */
-    public LogbookElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes,
-        ElasticsearchLogbookIndexManager indexManager)
-        throws VitamException {
+    public LogbookElasticsearchAccess(
+        final String clusterName,
+        List<ElasticsearchNode> nodes,
+        ElasticsearchLogbookIndexManager indexManager
+    ) throws VitamException {
         super(clusterName, nodes);
         this.indexManager = indexManager;
     }
 
     public void createIndexesAndAliases() {
-
         try {
-
             createIndexesAndAliasesForDedicatedTenants();
             createIndexesAndAliasesForTenantGroups();
-
         } catch (final Exception e) {
             LOGGER.error(e);
             throw new RuntimeException("Could not create indexes and aliases", e);
@@ -103,7 +101,6 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     private void createIndexesAndAliasesForTenantGroups() throws LogbookExecutionException {
         Collection<String> tenantGroups = this.indexManager.getTenantGroups();
         for (String tenantGroup : tenantGroups) {
-
             Collection<Integer> tenantGroupTenants = this.indexManager.getTenantGroupTenants(tenantGroup);
             if (tenantGroupTenants.isEmpty()) {
                 continue;
@@ -135,8 +132,12 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param id the id of the entry
      * @param logbookDocument the entry document
      */
-    final <T> void updateFullDocument(final LogbookCollections collection, final Integer tenantId,
-        final String id, final VitamDocument<T> logbookDocument) throws LogbookExecutionException {
+    final <T> void updateFullDocument(
+        final LogbookCollections collection,
+        final Integer tenantId,
+        final String id,
+        final VitamDocument<T> logbookDocument
+    ) throws LogbookExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
@@ -160,32 +161,51 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @return a structure as SearchResponse
      * @throws LogbookException thrown of an error occurred while executing the request
      */
-    public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
+    public final SearchResponse search(
+        final LogbookCollections collection,
+        final Integer tenantId,
         final QueryBuilder query,
-        final QueryBuilder filter, final List<SortBuilder<?>> sorts, final int offset, final int limit)
-        throws LogbookException {
+        final QueryBuilder filter,
+        final List<SortBuilder<?>> sorts,
+        final int offset,
+        final int limit
+    ) throws LogbookException {
         try {
             int size = Math.min(GlobalDatas.LIMIT_LOAD, limit);
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
 
-            QueryBuilder finalQuery = new BoolQueryBuilder().must(query)
+            QueryBuilder finalQuery = new BoolQueryBuilder()
+                .must(query)
                 .must(QueryBuilders.termQuery(LogbookDocument.TENANT_ID, tenantId));
 
-            return super
-                .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
-                    sorts,
-                    offset,
-                    size, null, null, null, false);
+            return super.search(
+                indexAlias,
+                finalQuery,
+                filter,
+                VitamDocument.ES_FILTER_OUT,
+                sorts,
+                offset,
+                size,
+                null,
+                null,
+                null,
+                false
+            );
         } catch (DatabaseException | BadRequestException e) {
             throw new LogbookExecutionException(e);
         }
     }
 
-    public final SearchResponse searchCrossIndices(final LogbookCollections collection, final Integer tenantId,
+    public final SearchResponse searchCrossIndices(
+        final LogbookCollections collection,
+        final Integer tenantId,
         final QueryBuilder query,
-        final QueryBuilder filter, final List<SortBuilder<?>> sorts, final int offset, final int limit)
-        throws LogbookException {
+        final QueryBuilder filter,
+        final List<SortBuilder<?>> sorts,
+        final int offset,
+        final int limit
+    ) throws LogbookException {
         try {
             int size = Math.min(GlobalDatas.LIMIT_LOAD, limit);
             ElasticsearchIndexAlias indexAlias =
@@ -196,26 +216,56 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
             if (ParameterHelper.getTenantParameter().equals(VitamConfiguration.getAdminTenant())) {
                 finalQuery.must(currentTenantQuery);
-                return super
-                    .search(indexAlias, finalQuery, filter, VitamDocument.ES_FILTER_OUT,
-                        sorts,
-                        offset,
-                        size, null, null, null, false);
+                return super.search(
+                    indexAlias,
+                    finalQuery,
+                    filter,
+                    VitamDocument.ES_FILTER_OUT,
+                    sorts,
+                    offset,
+                    size,
+                    null,
+                    null,
+                    null,
+                    false
+                );
             } else {
                 ElasticsearchIndexAlias adminTenantIndex =
-                    this.indexManager.getElasticsearchIndexAliasResolver(collection)
-                        .resolveIndexName(VitamConfiguration.getAdminTenant());
-                finalQuery.must(new BoolQueryBuilder()
-                    .should(currentTenantQuery)
-                    .should(new BoolQueryBuilder()
-                        .must(QueryBuilders.termsQuery(LogbookEvent.EV_TYPE, LogbookCollections.MULTI_TENANT_EV_TYPES))
-                        .must(QueryBuilders.termQuery(LogbookDocument.TENANT_ID, VitamConfiguration.getAdminTenant()))
-                    )
+                    this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(
+                            VitamConfiguration.getAdminTenant()
+                        );
+                finalQuery.must(
+                    new BoolQueryBuilder()
+                        .should(currentTenantQuery)
+                        .should(
+                            new BoolQueryBuilder()
+                                .must(
+                                    QueryBuilders.termsQuery(
+                                        LogbookEvent.EV_TYPE,
+                                        LogbookCollections.MULTI_TENANT_EV_TYPES
+                                    )
+                                )
+                                .must(
+                                    QueryBuilders.termQuery(
+                                        LogbookDocument.TENANT_ID,
+                                        VitamConfiguration.getAdminTenant()
+                                    )
+                                )
+                        )
                 );
-                return super
-                    .searchCrossIndices(ImmutableSet.of(indexAlias, adminTenantIndex),
-                        finalQuery, filter, VitamDocument.ES_FILTER_OUT,
-                        sorts, offset, size, null, null, null, false);
+                return super.searchCrossIndices(
+                    ImmutableSet.of(indexAlias, adminTenantIndex),
+                    finalQuery,
+                    filter,
+                    VitamDocument.ES_FILTER_OUT,
+                    sorts,
+                    offset,
+                    size,
+                    null,
+                    null,
+                    null,
+                    false
+                );
             }
         } catch (DatabaseException | BadRequestException e) {
             throw new LogbookExecutionException(e);
@@ -225,19 +275,26 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     public void deleteIndexByAliasForTesting(LogbookCollections collection, int tenantId)
         throws LogbookExecutionException {
         try {
-            super.deleteIndexByAliasForTesting(this.indexManager
-                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId));
+            super.deleteIndexByAliasForTesting(
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId)
+            );
         } catch (DatabaseException e) {
             throw new LogbookExecutionException(e);
         }
     }
 
-    public <T> void indexEntry(LogbookCollections collection, Integer tenantId, String id,
-        VitamDocument<T> vitamDocument)
-        throws LogbookExecutionException {
+    public <T> void indexEntry(
+        LogbookCollections collection,
+        Integer tenantId,
+        String id,
+        VitamDocument<T> vitamDocument
+    ) throws LogbookExecutionException {
         try {
-            super.indexEntry(this.indexManager
-                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId), id, vitamDocument);
+            super.indexEntry(
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId),
+                id,
+                vitamDocument
+            );
         } catch (DatabaseException e) {
             throw new LogbookExecutionException(e);
         }
@@ -245,8 +302,9 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
     public void refreshIndex(LogbookCollections collection, int tenantId) throws LogbookExecutionException {
         try {
-            super.refreshIndex(this.indexManager
-                .getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId));
+            super.refreshIndex(
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId)
+            );
         } catch (DatabaseException e) {
             throw new LogbookExecutionException(e);
         }

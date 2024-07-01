@@ -135,8 +135,9 @@ public class StorageTestMultiIT {
     private static final TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
@@ -185,8 +186,7 @@ public class StorageTestMultiIT {
             final String[] seg = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
-        serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + workspacePort);
+        serverConfiguration.setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + workspacePort);
 
         folder.create();
         serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
@@ -211,7 +211,6 @@ public class StorageTestMultiIT {
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         StorageClientFactory.changeMode("http://localhost:" + storageEnginePort);
         storageClient = StorageClientFactory.getInstance().getClient();
-
     }
 
     @AfterClass
@@ -332,8 +331,11 @@ public class StorageTestMultiIT {
 
         backupService.backup(fileIS, DataCategory.RULES, FILE_NAME);
 
-        CloseableIterator<ObjectEntry> result =
-            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.RULES);
+        CloseableIterator<ObjectEntry> result = storageClient.listContainer(
+            VitamConfiguration.getDefaultStrategy(),
+            null,
+            DataCategory.RULES
+        );
 
         TestCase.assertNotNull(result);
 
@@ -363,18 +365,26 @@ public class StorageTestMultiIT {
         }
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             try {
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
-                    GUIDFactory.newObjectGroupGUID(0).getId(), description);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                StorageServerClientException e) {
+                storageClient.storeFileFromWorkspace(
+                    VitamConfiguration.getDefaultStrategy(),
+                    DataCategory.OBJECT,
+                    GUIDFactory.newObjectGroupGUID(0).getId(),
+                    description
+                );
+            } catch (
+                StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+            ) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
             }
 
             // see other test for full listing, here, we only have one object !
             try {
-                CloseableIterator<ObjectEntry> result =
-                    storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result = storageClient.listContainer(
+                    VitamConfiguration.getDefaultStrategy(),
+                    null,
+                    DataCategory.OBJECT
+                );
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 ObjectEntry node = result.next();
@@ -419,10 +429,15 @@ public class StorageTestMultiIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
-                    OBJECT_ID, description);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                StorageServerClientException e) {
+                storageClient.storeFileFromWorkspace(
+                    VitamConfiguration.getDefaultStrategy(),
+                    DataCategory.OBJECT,
+                    OBJECT_ID,
+                    description
+                );
+            } catch (
+                StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+            ) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
                 break;
@@ -430,8 +445,11 @@ public class StorageTestMultiIT {
 
             // see other test for full listing, here, we only have one object !
             try {
-                CloseableIterator<ObjectEntry> result =
-                    storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.OBJECT);
+                CloseableIterator<ObjectEntry> result = storageClient.listContainer(
+                    VitamConfiguration.getDefaultStrategy(),
+                    null,
+                    DataCategory.OBJECT
+                );
                 TestCase.assertNotNull(result);
                 Assert.assertTrue(result.hasNext());
                 ObjectEntry node = result.next();
@@ -470,7 +488,8 @@ public class StorageTestMultiIT {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID(CONTAINER);
         description.setWorkspaceObjectURI(
-            "04a5b5a5db9a4505d75f024af9379d0fc9b1d50f0eff8a6f1a7caa299a689639b57e4ace0f562643ab0822f7ea33e0539635fb8201a1bfacaab4210cd7236b82.jpg");
+            "04a5b5a5db9a4505d75f024af9379d0fc9b1d50f0eff8a6f1a7caa299a689639b57e4ace0f562643ab0822f7ea33e0539635fb8201a1bfacaab4210cd7236b82.jpg"
+        );
         try {
             populateWorkspace(description.getWorkspaceObjectURI());
         } catch (Exception e1) {
@@ -479,10 +498,15 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
-                OBJECT_ID, description);
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-            StorageServerClientException e) {
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.OBJECT,
+                OBJECT_ID,
+                description
+            );
+        } catch (
+            StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+        ) {
             LOGGER.error("Size: " + size, e);
             assert (false);
             return;
@@ -506,7 +530,8 @@ public class StorageTestMultiIT {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID(CONTAINER);
         description.setWorkspaceObjectURI(
-            "df3c1f0fe7bf3ef61bdc5fb6148efa1e3638ee4e933a3fab26203d95634caf6c1b7393cdf908d797088da07554e523571803462b07c807744f25d78aa7038a16.jpg");
+            "df3c1f0fe7bf3ef61bdc5fb6148efa1e3638ee4e933a3fab26203d95634caf6c1b7393cdf908d797088da07554e523571803462b07c807744f25d78aa7038a16.jpg"
+        );
         try {
             populateWorkspace(description.getWorkspaceObjectURI());
         } catch (Exception e1) {
@@ -515,10 +540,15 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
-                OBJECT_ID, description);
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-            StorageServerClientException e) {
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.OBJECT,
+                OBJECT_ID,
+                description
+            );
+        } catch (
+            StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+        ) {
             LOGGER.error("Size: " + size, e);
             assert (false);
             return;
@@ -541,7 +571,8 @@ public class StorageTestMultiIT {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID(CONTAINER);
         description.setWorkspaceObjectURI(
-            "0f1ddc38a1eb38d401e394c057db3f2ebc646fd1cd0c06e7dc680c19d89c05f74815cbf27399fafe111192bcb4c0e246186cc8cc430c6ff7fe52a7fdbd2110f7.png");
+            "0f1ddc38a1eb38d401e394c057db3f2ebc646fd1cd0c06e7dc680c19d89c05f74815cbf27399fafe111192bcb4c0e246186cc8cc430c6ff7fe52a7fdbd2110f7.png"
+        );
         try {
             populateWorkspace(description.getWorkspaceObjectURI());
         } catch (Exception e1) {
@@ -550,10 +581,15 @@ public class StorageTestMultiIT {
             return;
         }
         try {
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
-                OBJECT_ID, description);
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-            StorageServerClientException e) {
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.OBJECT,
+                OBJECT_ID,
+                description
+            );
+        } catch (
+            StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+        ) {
             LOGGER.error("Size: " + size, e);
             assert (false);
             return;
@@ -564,7 +600,6 @@ public class StorageTestMultiIT {
             // ignore
         }
     }
-
 
     @RunWithCustomExecutor
     @Test
@@ -687,10 +722,10 @@ public class StorageTestMultiIT {
         } catch (Exception e) {
             // ignore
         }
-
     }
 
     private static class FullTest implements Callable<Boolean> {
+
         private final GUID requestId;
         private final GUID objectId;
         private final GUID storageId;
@@ -708,19 +743,26 @@ public class StorageTestMultiIT {
             description.setWorkspaceContainerGUID(CONTAINER);
             description.setWorkspaceObjectURI(objectId.getId());
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT,
+                storageClient.storeFileFromWorkspace(
+                    VitamConfiguration.getDefaultStrategy(),
+                    DataCategory.OBJECT,
                     storageId.getId(),
-                    description);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                StorageServerClientException e) {
+                    description
+                );
+            } catch (
+                StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+            ) {
                 LOGGER.error("Size: " + size, e);
                 return false;
             }
             Response response = null;
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), storageId.getId(),
+                response = storageClient.getContainerAsync(
+                    VitamConfiguration.getDefaultStrategy(),
+                    storageId.getId(),
                     DataCategory.OBJECT,
-                    AccessLogUtils.getNoLogAccessLog());
+                    AccessLogUtils.getNoLogAccessLog()
+                );
                 final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                 if (status == Status.OK && response.hasEntity()) {
                     return true;
@@ -728,7 +770,11 @@ public class StorageTestMultiIT {
                     LOGGER.error("Error: " + status.getReasonPhrase());
                     return false;
                 }
-            } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+            } catch (
+                StorageServerClientException
+                | StorageNotFoundException
+                | StorageUnavailableDataFromAsyncOfferClientException e
+            ) {
                 LOGGER.error("Size: " + size, e);
                 return false;
             } finally {
@@ -757,11 +803,17 @@ public class StorageTestMultiIT {
                     break;
                 }
                 try {
-                    storageClient
-                        .storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, OBJECT_ID,
-                            description);
-                } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                    StorageServerClientException e) {
+                    storageClient.storeFileFromWorkspace(
+                        VitamConfiguration.getDefaultStrategy(),
+                        DataCategory.OBJECT,
+                        OBJECT_ID,
+                        description
+                    );
+                } catch (
+                    StorageAlreadyExistsClientException
+                    | StorageNotFoundClientException
+                    | StorageServerClientException e
+                ) {
                     LOGGER.error("Size: " + size, e);
                     assert (false);
                     break;
@@ -769,9 +821,14 @@ public class StorageTestMultiIT {
             }
         }
 
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            CloseableIterator<ObjectEntry> result = storageClient.listContainer(VitamConfiguration.getDefaultStrategy(),
-                null, DataCategory.OBJECT)) {
+        try (
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            CloseableIterator<ObjectEntry> result = storageClient.listContainer(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.OBJECT
+            )
+        ) {
             TestCase.assertNotNull(result);
             int count = 0;
             while (result.hasNext()) {
@@ -783,5 +840,4 @@ public class StorageTestMultiIT {
             Assert.fail("Should not raize an exception");
         }
     }
-
 }

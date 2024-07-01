@@ -69,6 +69,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 public class OfferLogDatabaseServiceTest {
+
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
@@ -149,8 +150,8 @@ public class OfferLogDatabaseServiceTest {
         OfferLogDatabaseService offerLogDatabaseService = new OfferLogDatabaseService(collection);
 
         // When
-        ThrowingCallable save =
-            () -> offerLogDatabaseService.bulkSave("containerName", Collections.singletonList("robin"), DELETE, 15);
+        ThrowingCallable save = () ->
+            offerLogDatabaseService.bulkSave("containerName", Collections.singletonList("robin"), DELETE, 15);
 
         // Then
         assertThatThrownBy(save).isInstanceOf(ContentAddressableStorageDatabaseException.class);
@@ -171,7 +172,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(descendingOfferLogs).hasSize(3);
         assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(6L, 5L, 4L);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName)
+        assertThat(descendingOfferLogs)
+            .extracting(OfferLog::getFileName)
             .containsExactly("fileName3", "fileName2", "fileName1");
         assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
@@ -191,7 +193,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(descendingOfferLogs).hasSize(3);
         assertThat(descendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(7L, 6L, 5L);
-        assertThat(descendingOfferLogs).extracting(OfferLog::getFileName)
+        assertThat(descendingOfferLogs)
+            .extracting(OfferLog::getFileName)
             .containsExactly("fileName4", "fileName3", "fileName2");
         assertThat(descendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
@@ -211,7 +214,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(ascendingOfferLogs).hasSize(3);
         assertThat(ascendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(5L, 6L, 7L);
-        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName)
+        assertThat(ascendingOfferLogs)
+            .extracting(OfferLog::getFileName)
             .containsExactly("fileName2", "fileName3", "fileName4");
         assertThat(ascendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
@@ -231,7 +235,8 @@ public class OfferLogDatabaseServiceTest {
         // Then
         assertThat(ascendingOfferLogs).hasSize(3);
         assertThat(ascendingOfferLogs).extracting(OfferLog::getSequence).containsExactly(4L, 5L, 6L);
-        assertThat(ascendingOfferLogs).extracting(OfferLog::getFileName)
+        assertThat(ascendingOfferLogs)
+            .extracting(OfferLog::getFileName)
             .containsExactly("fileName1", "fileName2", "fileName3");
         assertThat(ascendingOfferLogs).extracting(OfferLog::getAction).containsOnly(DELETE);
     }
@@ -250,8 +255,10 @@ public class OfferLogDatabaseServiceTest {
         service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
 
         // When
-        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request.getExpirationValue(),
-            request.getExpirationUnit());
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(
+            request.getExpirationValue(),
+            request.getExpirationUnit()
+        );
 
         // Then
         assertThat(logs).extracting(OfferLog::getFileName).containsOnly(firstFileName);
@@ -266,8 +273,10 @@ public class OfferLogDatabaseServiceTest {
         service.bulkSave("Container1", Arrays.asList("file1", "file2", "file3"), WRITE, 2L);
 
         // When
-        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request.getExpirationValue(),
-            request.getExpirationUnit());
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(
+            request.getExpirationValue(),
+            request.getExpirationUnit()
+        );
 
         // Then
         assertThat(logs).isEmpty();
@@ -286,11 +295,14 @@ public class OfferLogDatabaseServiceTest {
         service.save("Container1", "MY_FIRST_FILE5", WRITE, 5L);
 
         // When
-        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(request.getExpirationValue(),
-            request.getExpirationUnit());
+        Iterable<OfferLog> logs = service.getExpiredOfferLogByContainer(
+            request.getExpirationValue(),
+            request.getExpirationUnit()
+        );
 
         // Then
-        assertThat(logs).extracting(OfferLog::getContainer)
+        assertThat(logs)
+            .extracting(OfferLog::getContainer)
             .containsExactly("Container1", "Container1", "Container1", "Container2", "Container3");
     }
 
@@ -299,9 +311,7 @@ public class OfferLogDatabaseServiceTest {
     }
 
     public MongoIterable<OfferLog> getOfferLogs() {
-        return mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName())
-            .find()
-            .map(this::getOfferLog);
+        return mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName()).find().map(this::getOfferLog);
     }
 
     public OfferLog getOfferLog(Document document) {

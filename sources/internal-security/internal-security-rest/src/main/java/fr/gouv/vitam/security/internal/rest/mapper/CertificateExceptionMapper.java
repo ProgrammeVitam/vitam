@@ -49,5 +49,4 @@ public class CertificateExceptionMapper implements ExceptionMapper<CertificateEx
         LOGGER.error(exception);
         return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
     }
-
 }

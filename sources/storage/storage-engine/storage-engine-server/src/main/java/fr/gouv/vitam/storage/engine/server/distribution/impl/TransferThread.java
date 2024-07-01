@@ -53,6 +53,7 @@ import java.util.concurrent.Callable;
  * Thread Future used to send stream to one offer
  */
 public class TransferThread implements Callable<ThreadResponseData> {
+
     public static final String TIMEOUT_TEST = "timeoutTest";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferThread.class);
 
@@ -79,16 +80,29 @@ public class TransferThread implements Callable<ThreadResponseData> {
      * @param request the request to put object
      * @param globalDigest the globalDigest associated with the stream
      */
-    public TransferThread(int tenantId, String requestId, Driver driver, OfferReference offerReference,
-        StoragePutRequest request, Digest globalDigest, long size) {
+    public TransferThread(
+        int tenantId,
+        String requestId,
+        Driver driver,
+        OfferReference offerReference,
+        StoragePutRequest request,
+        Digest globalDigest,
+        long size
+    ) {
         this(tenantId, requestId, driver, offerReference, request, globalDigest, size, OFFER_PROVIDER);
     }
 
     @VisibleForTesting
-    public TransferThread(int tenantId, String requestId, Driver driver, OfferReference offerReference,
+    public TransferThread(
+        int tenantId,
+        String requestId,
+        Driver driver,
+        OfferReference offerReference,
         StoragePutRequest request,
         Digest globalDigest,
-        long size, StorageOfferProvider offerProvider) {
+        long size,
+        StorageOfferProvider offerProvider
+    ) {
         this.tenantId = tenantId;
         this.requestId = requestId;
         ParametersChecker.checkParameter("Driver cannot be null", driver);
@@ -114,9 +128,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
     // TODO: Manage interruption (if possible)
     @Override
-    public ThreadResponseData call()
-        throws StorageException, StorageDriverException, InterruptedException {
-
+    public ThreadResponseData call() throws StorageException, StorageDriverException, InterruptedException {
         String initialThreadId = Thread.currentThread().getName();
         try {
             Thread.currentThread().setName(initialThreadId + "-TransferThread-" + offerReference.getId());
@@ -132,8 +144,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         }
     }
 
-    private ThreadResponseData storeInOffer()
-        throws StorageException, StorageDriverException, InterruptedException {
+    private ThreadResponseData storeInOffer() throws StorageException, StorageDriverException, InterruptedException {
         if (IS_JUNIT_MODE && request.getGuid().equals(TIMEOUT_TEST) && request.getTenantId() == 0) {
             LOGGER.info("Sleep for Junit test");
             Thread.sleep(100);
@@ -150,8 +161,13 @@ public class TransferThread implements Callable<ThreadResponseData> {
             // ugly way to get digest from stream
             // TODO: How to do the cleaner ?
             // TODO: remove this, check is offer size (#1851) !
-            StoragePutRequest putObjectRequest = new StoragePutRequest(request.getTenantId(), request.getType(),
-                request.getGuid(), request.getDigestAlgorithm(), request.getDataStream());
+            StoragePutRequest putObjectRequest = new StoragePutRequest(
+                request.getTenantId(),
+                request.getType(),
+                request.getGuid(),
+                request.getDigestAlgorithm(),
+                request.getDataStream()
+            );
             putObjectRequest.setSize(this.size);
             StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
             LOGGER.debug(putObjectRequest.toString());
@@ -161,19 +177,38 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
             // Check digest against offer
             if (!globalDigest.digestHex().equals(putObjectResult.getDigestHashBase16())) {
-                LOGGER.error("Digest invalid for tenant: {} offer: {} id: {}",
-                    ParameterHelper.getTenantParameter(), offer.getId(), request.getGuid());
-                throw new StorageInconsistentStateException("[Driver:" + driver.getName() + "] Content "
-                    + "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid()
-                    + " sent digest: " + globalDigest.digestHex()
-                    + " offer digest: " + putObjectResult.getDigestHashBase16());
+                LOGGER.error(
+                    "Digest invalid for tenant: {} offer: {} id: {}",
+                    ParameterHelper.getTenantParameter(),
+                    offer.getId(),
+                    request.getGuid()
+                );
+                throw new StorageInconsistentStateException(
+                    "[Driver:" +
+                    driver.getName() +
+                    "] Content " +
+                    "digest invalid in offer id : '" +
+                    offer.getId() +
+                    "' for object " +
+                    request.getGuid() +
+                    " sent digest: " +
+                    globalDigest.digestHex() +
+                    " offer digest: " +
+                    putObjectResult.getDigestHashBase16()
+                );
             }
             response = new ThreadResponseData(
-                new StoragePutResult(putObjectResult.getTenantId(), putObjectResult.getType(),
+                new StoragePutResult(
+                    putObjectResult.getTenantId(),
+                    putObjectResult.getType(),
                     putObjectResult.getGuid(),
-                    putObjectResult.getDistantObjectId(), globalDigest.digestHex(),
-                    putObjectResult.getObjectSize()),
-                Response.Status.CREATED, request.getGuid());
+                    putObjectResult.getDistantObjectId(),
+                    globalDigest.digestHex(),
+                    putObjectResult.getObjectSize()
+                ),
+                Response.Status.CREATED,
+                request.getGuid()
+            );
         }
         return response;
     }

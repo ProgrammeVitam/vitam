@@ -35,32 +35,34 @@ import javax.xml.bind.annotation.XmlType;
 
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 
-
 /**
  * Class representing a Signer or a Validator
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(namespace = UNIFIED_NAMESPACE, propOrder = {
-    "firstName",
-    "birthName",
-    "fullName",
-    "givenName",
-    "gender",
-    "birthDate",
-    "birthPlace",
-    "deathDate",
-    "deathPlace",
-    "nationalities",
-    "corpname",
-    "identifiers",
-    "signingTime",
-    "validationTime",
-    "function",
-    "activity",
-    "position",
-    "role",
-    "mandate"
-})
+@XmlType(
+    namespace = UNIFIED_NAMESPACE,
+    propOrder = {
+        "firstName",
+        "birthName",
+        "fullName",
+        "givenName",
+        "gender",
+        "birthDate",
+        "birthPlace",
+        "deathDate",
+        "deathPlace",
+        "nationalities",
+        "corpname",
+        "identifiers",
+        "signingTime",
+        "validationTime",
+        "function",
+        "activity",
+        "position",
+        "role",
+        "mandate",
+    }
+)
 public class ValidatorOrSignerModel extends PersonOrEntityAndBusinessType {
 
     @JsonProperty("SigningTime")
@@ -75,8 +77,7 @@ public class ValidatorOrSignerModel extends PersonOrEntityAndBusinessType {
      * When updated : not forget to update XmlType.propOrder annotation to fix properties order
      * This avoid duplicating properties declaration between this class and his superclass AgentTypeModel
      */
-    public ValidatorOrSignerModel() {
-    }
+    public ValidatorOrSignerModel() {}
 
     public String getSigningTime() {
         return signingTime;

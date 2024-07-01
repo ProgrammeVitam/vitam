@@ -32,9 +32,7 @@ import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
 
 public class AdminManagementConfigurationValidator {
 
-    public static void validateConfiguration(
-        AdminManagementConfiguration adminManagementConfiguration) {
-
+    public static void validateConfiguration(AdminManagementConfiguration adminManagementConfiguration) {
         if (adminManagementConfiguration == null) {
             throw new IllegalStateException("Invalid configuration. Null config");
         }
@@ -43,8 +41,8 @@ public class AdminManagementConfigurationValidator {
     }
 
     private static void validateIndexationConfiguration(
-        FunctionalAdminIndexationConfiguration indexationConfiguration) {
-
+        FunctionalAdminIndexationConfiguration indexationConfiguration
+    ) {
         if (indexationConfiguration == null) {
             throw new IllegalStateException("Invalid configuration. Missing ES tenant indexation");
         }
@@ -56,7 +54,8 @@ public class AdminManagementConfigurationValidator {
         CollectionConfigurationUtils.validate(indexationConfiguration.getDefaultConfiguration(), false);
 
         for (CollectionConfiguration collectionConfiguration : indexationConfiguration
-            .getCollectionConfigurationMap().values()) {
+            .getCollectionConfigurationMap()
+            .values()) {
             CollectionConfigurationUtils.validate(collectionConfiguration, true);
         }
     }

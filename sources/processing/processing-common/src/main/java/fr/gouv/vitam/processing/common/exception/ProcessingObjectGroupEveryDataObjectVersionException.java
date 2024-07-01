@@ -31,11 +31,16 @@ package fr.gouv.vitam.processing.common.exception;
  * is attached to an existing objectGroup , not a fatal error
  */
 public class ProcessingObjectGroupEveryDataObjectVersionException extends ProcessingException {
+
     private String objectGroupId;
     private String unitId;
 
-    public ProcessingObjectGroupEveryDataObjectVersionException(String message, Throwable cause, String objectGroupId,
-        String unitId) {
+    public ProcessingObjectGroupEveryDataObjectVersionException(
+        String message,
+        Throwable cause,
+        String objectGroupId,
+        String unitId
+    ) {
         super(message, cause);
         this.objectGroupId = objectGroupId;
         this.unitId = unitId;

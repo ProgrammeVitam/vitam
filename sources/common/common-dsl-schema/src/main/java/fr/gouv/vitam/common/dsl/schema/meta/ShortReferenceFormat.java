@@ -41,5 +41,4 @@ public class ShortReferenceFormat extends ReferenceFormat {
         // Jackson goes here if it cannot decode a type definition
         throw new RuntimeException("Unrecognized kind of format");
     }
-
 }

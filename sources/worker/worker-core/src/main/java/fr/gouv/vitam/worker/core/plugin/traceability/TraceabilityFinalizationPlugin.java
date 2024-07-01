@@ -82,7 +82,6 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
     private static final String QUERY = "query";
     private static final String OBJECT_ID = "objectId";
 
-
     private final TraceabilityReportService traceabilityReportService;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
@@ -92,18 +91,17 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    TraceabilityFinalizationPlugin(TraceabilityReportService traceabilityReportService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    TraceabilityFinalizationPlugin(
+        TraceabilityReportService traceabilityReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.traceabilityReportService = traceabilityReportService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             storeReportEntriesToOffers(param, handler);
 
             generateTraceabilityReportToWorkspace(param, handler);
@@ -124,42 +122,50 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
         try {
             if (handler.isExistingFileInWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE)) {
                 List<String> operationsId = new ArrayList<>();
-                JsonLineGenericIterator<JsonLineModel> iterator =
-                    new JsonLineGenericIterator<>(handler.getInputStreamFromWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE),
-                        new TypeReference<>() {
-                        });
+                JsonLineGenericIterator<JsonLineModel> iterator = new JsonLineGenericIterator<>(
+                    handler.getInputStreamFromWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE),
+                    new TypeReference<>() {}
+                );
                 iterator.forEachRemaining(lineModel -> operationsId.add(lineModel.getId()));
 
-                List<TraceabilityReportEntry> reports = operationsId.stream().map(
-                        operationId -> {
-                            try {
-                                return handler
-                                    .getJsonFromWorkspace(operationId + File.separator + WorkspaceConstants.REPORT);
-                            } catch (ProcessingException e) {
-                                LOGGER.error(e);
-                                return null;
-                            }
+                List<TraceabilityReportEntry> reports = operationsId
+                    .stream()
+                    .map(operationId -> {
+                        try {
+                            return handler.getJsonFromWorkspace(
+                                operationId + File.separator + WorkspaceConstants.REPORT
+                            );
+                        } catch (ProcessingException e) {
+                            LOGGER.error(e);
+                            return null;
                         }
-                    ).filter(Objects::nonNull).map(jsonNode -> {
+                    })
+                    .filter(Objects::nonNull)
+                    .map(jsonNode -> {
                         try {
                             return JsonHandler.getFromJsonNode(jsonNode, TraceabilityReportEntry.class);
                         } catch (InvalidParseOperationException e) {
                             LOGGER.error(e);
                             return null;
                         }
-                    }).filter(Objects::nonNull)
+                    })
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
                 traceabilityReportService.appendEntries(param.getContainerName(), reports);
             }
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | ProcessingStatusException | IOException e) {
+        } catch (
+            ContentAddressableStorageServerException
+            | ContentAddressableStorageNotFoundException
+            | ProcessingStatusException
+            | IOException e
+        ) {
             throw new ProcessingException(e);
         }
     }
 
     private void generateTraceabilityReportToWorkspace(WorkerParameters param, HandlerIO handler)
         throws ProcessingStatusException, ProcessingException {
-
         if (traceabilityReportService.isReportWrittenInWorkspace(param.getContainerName())) {
             // Already stored in workspace (idempotency)
             return;
@@ -192,8 +198,10 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
 
             ArrayNode events = (ArrayNode) logbookOperation.get("events");
             if (events.size() <= 2) {
-                throw new ProcessingStatusException(StatusCode.FATAL,
-                    "Could not generate report summary : not enougth events");
+                throw new ProcessingStatusException(
+                    StatusCode.FATAL,
+                    "Could not generate report summary : not enougth events"
+                );
             }
             JsonNode lastEvent = events.get(events.size() - 2);
             Integer tenantId = logbookOperation.get(VitamDocument.TENANT_ID).asInt();
@@ -202,10 +210,10 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
             String outDetail = lastEvent.get(LogbookEvent.OUT_DETAIL).asText();
             String outMsg = lastEvent.get(LogbookEvent.OUT_MESSG).asText();
             JsonNode evDetData = JsonHandler.getFromString(lastEvent.get(LogbookEvent.EV_DET_DATA).asText());
-            JsonNode rSI =
-                JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
-            return new OperationSummary(tenantId, processId, evType, outcome, outDetail, outMsg, rSI,
-                evDetData);
+            JsonNode rSI = JsonHandler.getFromString(
+                logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText()
+            );
+            return new OperationSummary(tenantId, processId, evType, outcome, outDetail, outMsg, rSI, evDetData);
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate report", e);
         }
@@ -223,8 +231,10 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
     private JsonNode getLogbookOperation(String operationId) throws ProcessingStatusException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookResponse = client.selectOperationById(operationId);
-            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
-                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
+            if (
+                logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
+                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()
+            ) {
                 ArrayNode results = (ArrayNode) logbookResponse.get(RequestResponseOK.TAG_RESULTS);
                 if (results.size() > 0) {
                     return results.get(0);

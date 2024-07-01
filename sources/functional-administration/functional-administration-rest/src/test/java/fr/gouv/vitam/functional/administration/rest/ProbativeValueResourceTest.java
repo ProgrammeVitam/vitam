@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -73,24 +72,39 @@ import static org.mockito.Mockito.when;
  */
 public class ProbativeValueResourceTest {
 
-
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Mock ProcessingManagementClientFactory processingManagementClientFactory;
-    @Mock ProcessingManagementClient processingManagementClient;
-    @Mock WorkspaceClientFactory workspaceClientFactory;
-    @Mock WorkspaceClient workspaceClient;
-    @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock LogbookOperationsClient logbookOperationsClient;
-    @Mock AdminManagementClientFactory managementClientFactory;
-    @Mock AdminManagementClient adminManagementClient;
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
+    @Mock
+    ProcessingManagementClientFactory processingManagementClientFactory;
+
+    @Mock
+    ProcessingManagementClient processingManagementClient;
+
+    @Mock
+    WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    WorkspaceClient workspaceClient;
+
+    @Mock
+    LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    LogbookOperationsClient logbookOperationsClient;
+
+    @Mock
+    AdminManagementClientFactory managementClientFactory;
+
+    @Mock
+    AdminManagementClient adminManagementClient;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
     private static final int TENANT_ID = 0;
-
 
     private ProbativeValueResource probativeValueResource;
 
@@ -100,46 +114,51 @@ public class ProbativeValueResourceTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(managementClientFactory.getClient()).thenReturn(adminManagementClient);
-        when(adminManagementClient.findAccessContracts(any()))
-            .thenReturn(new RequestResponseOK<AccessContractModel>()
-                .addAllResults(Arrays.asList(new AccessContractModel()
-                    .setEveryOriginatingAgency(true)
-                    .setEveryDataObjectVersion(true))));
+        when(adminManagementClient.findAccessContracts(any())).thenReturn(
+            new RequestResponseOK<AccessContractModel>().addAllResults(
+                Arrays.asList(new AccessContractModel().setEveryOriginatingAgency(true).setEveryDataObjectVersion(true))
+            )
+        );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
         VitamThreadUtils.getVitamSession().setContractId("fakeContract");
-        probativeValueResource =
-            new ProbativeValueResource(processingManagementClientFactory, logbookOperationsClientFactory,
-                workspaceClientFactory);
+        probativeValueResource = new ProbativeValueResource(
+            processingManagementClientFactory,
+            logbookOperationsClientFactory,
+            workspaceClientFactory
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void given_empty_query_when_export_then_return_forbidden_request() {
-
-        Response probativeValue = probativeValueResource
-            .exportProbativeValue(new ProbativeValueRequest(new Select().getFinalSelect(), "BinaryMaster", "1"));
+        Response probativeValue = probativeValueResource.exportProbativeValue(
+            new ProbativeValueRequest(new Select().getFinalSelect(), "BinaryMaster", "1")
+        );
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
     public void given_good_request_then_return_ok_request() throws Exception {
-
         Select select = new Select();
         select.setQuery(QueryHelper.eq("name", "dd"));
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(select.getFinalSelect(), "BinaryMaster", "1");
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            select.getFinalSelect(),
+            "BinaryMaster",
+            "1"
+        );
 
-        Response probativeValue = probativeValueResource
-            .exportProbativeValue(new ProbativeValueRequest(new Select().getFinalSelect(), "BinaryMaster", "1"));
+        Response probativeValue = probativeValueResource.exportProbativeValue(
+            new ProbativeValueRequest(new Select().getFinalSelect(), "BinaryMaster", "1")
+        );
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
 
-        when(processingManagementClient
-            .executeOperationProcess(anyString(), eq("EXPORT_PROBATIVE_VALUE"), anyString()))
-            .thenReturn(new RequestResponseOK<ItemStatus>(new Select().getFinalSelect()).setHttpCode(200));
+        when(
+            processingManagementClient.executeOperationProcess(anyString(), eq("EXPORT_PROBATIVE_VALUE"), anyString())
+        ).thenReturn(new RequestResponseOK<ItemStatus>(new Select().getFinalSelect()).setHttpCode(200));
         probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
@@ -147,20 +166,21 @@ public class ProbativeValueResourceTest {
     @Test
     @RunWithCustomExecutor
     public void fail_when_a_related_server_is_unavailable() throws Exception {
-
         Select select = new Select();
         select.setQuery(QueryHelper.eq("name", "dd"));
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(select.getFinalSelect(), "BinaryMaster", "1");
-        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient)
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            select.getFinalSelect(),
+            "BinaryMaster",
+            "1"
+        );
+        willThrow(ContentAddressableStorageServerException.class)
+            .given(workspaceClient)
             .putObject(anyString(), any(), any());
         Response probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
 
         willThrow(LogbookClientAlreadyExistsException.class).given(logbookOperationsClient).create(any());
         probativeValue = probativeValueResource.exportProbativeValue(probativeValueRequest);
         assertThat(probativeValue.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
-
 }

@@ -51,27 +51,37 @@ public final class TarHelper {
      */
     public static InputStream readEntryAtPos(FileInputStream fileInputStream, TarEntryDescription entryDescription)
         throws IOException {
-
         // Seek to entry start position. Do not close channel since it will close the FileInputStream
         fileInputStream.getChannel().position(entryDescription.getStartPos());
 
         TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(
-            CloseShieldInputStream.wrap(fileInputStream));
+            CloseShieldInputStream.wrap(fileInputStream)
+        );
 
         ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
         if (!tarEntry.getName().equals(entryDescription.getEntryName())) {
             throw new IOException(
-                "Tar entry name conflict. Expected '" + entryDescription.getEntryName() + "', found '" +
-                    tarEntry.getName() + "'");
+                "Tar entry name conflict. Expected '" +
+                entryDescription.getEntryName() +
+                "', found '" +
+                tarEntry.getName() +
+                "'"
+            );
         }
         if (tarEntry.getSize() != entryDescription.getSize()) {
             throw new IOException(
-                "Tar entry size conflict. Expected '" + entryDescription.getSize() + "', found '" +
-                    tarEntry.getSize() + "'");
+                "Tar entry size conflict. Expected '" +
+                entryDescription.getSize() +
+                "', found '" +
+                tarEntry.getSize() +
+                "'"
+            );
         }
 
         return new ExactDigestValidatorInputStream(
             new ExactSizeInputStream(tarArchiveInputStream, entryDescription.getSize()),
-            VitamConfiguration.getDefaultDigestType(), entryDescription.getDigestValue());
+            VitamConfiguration.getDefaultDigestType(),
+            entryDescription.getDigestValue()
+        );
     }
 }

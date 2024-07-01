@@ -122,25 +122,26 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
     private static final String OLD_VALUE = "Toto";
 
-
     private static WorkspaceClient workspaceClient;
     private static ProcessingManagementClient processingClient;
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ProcessingIT.class, MongoRule.getDatabaseName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                BatchReportMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ProcessingIT.class,
+        MongoRule.getDatabaseName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            BatchReportMain.class
+        )
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -151,15 +152,17 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
     }
 
     private void populateData(String unitsFile, String lfcFile) throws Exception {
-        List<Unit> units = JsonHandler
-            .getFromInputStreamAsTypeReference(PropertiesUtils.getResourceAsStream(unitsFile), new TypeReference<>() {
-            });
+        List<Unit> units = JsonHandler.getFromInputStreamAsTypeReference(
+            PropertiesUtils.getResourceAsStream(unitsFile),
+            new TypeReference<>() {}
+        );
         MetadataCollections.UNIT.<Unit>getCollection().insertMany(units);
         MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, TENANT_0, units);
 
-        List<LogbookLifeCycleUnit> logbookLifeCycleUnits = JsonHandler
-            .getFromInputStreamAsTypeReference(PropertiesUtils.getResourceAsStream(lfcFile), new TypeReference<>() {
-            });
+        List<LogbookLifeCycleUnit> logbookLifeCycleUnits = JsonHandler.getFromInputStreamAsTypeReference(
+            PropertiesUtils.getResourceAsStream(lfcFile),
+            new TypeReference<>() {}
+        );
         LogbookCollections.LIFECYCLE_UNIT.<LogbookLifeCycleUnit>getCollection().insertMany(logbookLifeCycleUnits);
     }
 
@@ -178,17 +181,23 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         createLogbookOperation(operationGuid);
 
         workspaceClient.createContainer(containerName);
-        workspaceClient.putObject(containerName, OPTIONS_FILE, PropertiesUtils.getResourceAsStream(
-            OPTIONS_JSON_FILE));
-        workspaceClient.putObject(containerName, OperationContextMonitor.OperationContextFileName,
-            writeToInpustream(OperationContextModel
-                .get(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OPTIONS_JSON_FILE)))));
+        workspaceClient.putObject(containerName, OPTIONS_FILE, PropertiesUtils.getResourceAsStream(OPTIONS_JSON_FILE));
+        workspaceClient.putObject(
+            containerName,
+            OperationContextMonitor.OperationContextFileName,
+            writeToInpustream(
+                OperationContextModel.get(
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OPTIONS_JSON_FILE))
+                )
+            )
+        );
 
-        OperationContextMonitor
-            .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName,
-                Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
-                OperationContextMonitor.OperationContextFileName);
-
+        OperationContextMonitor.compressInWorkspace(
+            WorkspaceClientFactory.getInstance(),
+            containerName,
+            Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
+            OperationContextMonitor.OperationContextFileName
+        );
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METADATA.name());
@@ -202,22 +211,34 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
         Select select = new Select();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), containerName));
-        select.setProjection(createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-            createObjectNode().put(VitamFieldsHelper.id(), 1).put(VitamFieldsHelper.version(), 1).put(TITLE, 1)
-                .put(TITLE_FR, 1).put(VitamFieldsHelper.operations(), 1)));
+        select.setProjection(
+            createObjectNode()
+                .set(
+                    BuilderToken.PROJECTION.FIELDS.exactToken(),
+                    createObjectNode()
+                        .put(VitamFieldsHelper.id(), 1)
+                        .put(VitamFieldsHelper.version(), 1)
+                        .put(TITLE, 1)
+                        .put(TITLE_FR, 1)
+                        .put(VitamFieldsHelper.operations(), 1)
+                )
+        );
 
         JsonNode unitByIdRaw = metadataClient.selectUnits(select.getFinalSelect());
 
-        unitByIdRaw.get(RequestResponseOK.TAG_RESULTS).forEach(u -> {
-            if (u.has(TITLE)) {
-                assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
-            } else {
-                assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
-            }
-            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
-            assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
-                .contains(containerName);
-        });
+        unitByIdRaw
+            .get(RequestResponseOK.TAG_RESULTS)
+            .forEach(u -> {
+                if (u.has(TITLE)) {
+                    assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
+                } else {
+                    assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
+                }
+                assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+                assertThat(u.get(VitamFieldsHelper.operations()).iterator())
+                    .extracting(JsonNode::asText)
+                    .contains(containerName);
+            });
 
         List<JsonNode> reportLines = VitamTestHelper.getReports(containerName);
         assertThat(reportLines).isNotNull();
@@ -226,7 +247,6 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
         assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -243,17 +263,23 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         createLogbookOperation(operationGuid);
 
         workspaceClient.createContainer(containerName);
-        workspaceClient.putObject(containerName, OPTIONS_FILE, PropertiesUtils.getResourceAsStream(
-            OPTIONS_JSON_FILE));
-        workspaceClient.putObject(containerName, OperationContextMonitor.OperationContextFileName,
-            writeToInpustream(OperationContextModel
-                .get(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OPTIONS_JSON_FILE)))));
+        workspaceClient.putObject(containerName, OPTIONS_FILE, PropertiesUtils.getResourceAsStream(OPTIONS_JSON_FILE));
+        workspaceClient.putObject(
+            containerName,
+            OperationContextMonitor.OperationContextFileName,
+            writeToInpustream(
+                OperationContextModel.get(
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OPTIONS_JSON_FILE))
+                )
+            )
+        );
 
-        OperationContextMonitor
-            .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName,
-                Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
-                OperationContextMonitor.OperationContextFileName);
-
+        OperationContextMonitor.compressInWorkspace(
+            WorkspaceClientFactory.getInstance(),
+            containerName,
+            Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
+            OperationContextMonitor.OperationContextFileName
+        );
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METADATA.name());
@@ -267,22 +293,34 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
         Select select = new Select();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), containerName));
-        select.setProjection(createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-            createObjectNode().put(VitamFieldsHelper.id(), 1).put(VitamFieldsHelper.version(), 1).put(TITLE, 1)
-                .put(TITLE_FR, 1).put(VitamFieldsHelper.operations(), 1)));
+        select.setProjection(
+            createObjectNode()
+                .set(
+                    BuilderToken.PROJECTION.FIELDS.exactToken(),
+                    createObjectNode()
+                        .put(VitamFieldsHelper.id(), 1)
+                        .put(VitamFieldsHelper.version(), 1)
+                        .put(TITLE, 1)
+                        .put(TITLE_FR, 1)
+                        .put(VitamFieldsHelper.operations(), 1)
+                )
+        );
 
         JsonNode unitByIdRaw = metadataClient.selectUnits(select.getFinalSelect());
 
-        unitByIdRaw.get(RequestResponseOK.TAG_RESULTS).forEach(u -> {
-            if (u.has(TITLE)) {
-                assertEquals(u.get(TITLE).asText(), OLD_VALUE);
-            } else {
-                assertEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
-            }
-            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
-            assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
-                .doesNotContain(containerName);
-        });
+        unitByIdRaw
+            .get(RequestResponseOK.TAG_RESULTS)
+            .forEach(u -> {
+                if (u.has(TITLE)) {
+                    assertEquals(u.get(TITLE).asText(), OLD_VALUE);
+                } else {
+                    assertEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
+                }
+                assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+                assertThat(u.get(VitamFieldsHelper.operations()).iterator())
+                    .extracting(JsonNode::asText)
+                    .doesNotContain(containerName);
+            });
 
         List<JsonNode> reportLines = VitamTestHelper.getReports(containerName);
         assertThat(reportLines).isNotNull();
@@ -304,17 +342,27 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         createLogbookOperation(operationGuid);
 
         workspaceClient.createContainer(containerName);
-        workspaceClient
-            .putObject(containerName, OPTIONS_FILE, PropertiesUtils.getResourceAsStream(FORCE_OPTIONS_JSON_FILE));
-        workspaceClient.putObject(containerName, OperationContextMonitor.OperationContextFileName, writeToInpustream(
-            OperationContextModel
-                .get(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FORCE_OPTIONS_JSON_FILE)))));
+        workspaceClient.putObject(
+            containerName,
+            OPTIONS_FILE,
+            PropertiesUtils.getResourceAsStream(FORCE_OPTIONS_JSON_FILE)
+        );
+        workspaceClient.putObject(
+            containerName,
+            OperationContextMonitor.OperationContextFileName,
+            writeToInpustream(
+                OperationContextModel.get(
+                    JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FORCE_OPTIONS_JSON_FILE))
+                )
+            )
+        );
 
-        OperationContextMonitor
-            .compressInWorkspace(WorkspaceClientFactory.getInstance(), containerName,
-                Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
-                OperationContextMonitor.OperationContextFileName);
-
+        OperationContextMonitor.compressInWorkspace(
+            WorkspaceClientFactory.getInstance(),
+            containerName,
+            Contexts.REVERT_ESSENTIAL_METADATA.getLogbookTypeProcess(),
+            OperationContextMonitor.OperationContextFileName
+        );
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.REVERT_ESSENTIAL_METADATA.name());
@@ -328,22 +376,34 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
         Select select = new Select();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), containerName));
-        select.setProjection(createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-            createObjectNode().put(VitamFieldsHelper.id(), 1).put(VitamFieldsHelper.version(), 1).put(TITLE, 1)
-                .put(TITLE_FR, 1).put(VitamFieldsHelper.operations(), 1)));
+        select.setProjection(
+            createObjectNode()
+                .set(
+                    BuilderToken.PROJECTION.FIELDS.exactToken(),
+                    createObjectNode()
+                        .put(VitamFieldsHelper.id(), 1)
+                        .put(VitamFieldsHelper.version(), 1)
+                        .put(TITLE, 1)
+                        .put(TITLE_FR, 1)
+                        .put(VitamFieldsHelper.operations(), 1)
+                )
+        );
 
         JsonNode unitByIdRaw = metadataClient.selectUnits(select.getFinalSelect());
 
-        unitByIdRaw.get(RequestResponseOK.TAG_RESULTS).forEach(u -> {
-            if (u.has(TITLE)) {
-                assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
-            } else {
-                assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
-            }
-            assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
-            assertThat(u.get(VitamFieldsHelper.operations()).iterator()).extracting(JsonNode::asText)
-                .contains(containerName);
-        });
+        unitByIdRaw
+            .get(RequestResponseOK.TAG_RESULTS)
+            .forEach(u -> {
+                if (u.has(TITLE)) {
+                    assertNotEquals(u.get(TITLE).asText(), OLD_VALUE);
+                } else {
+                    assertNotEquals(u.get(TITLE_).get(FR).asText(), OLD_VALUE);
+                }
+                assertThat(u.get(VitamFieldsHelper.version()).asInt()).isGreaterThan(1);
+                assertThat(u.get(VitamFieldsHelper.operations()).iterator())
+                    .extracting(JsonNode::asText)
+                    .contains(containerName);
+            });
 
         List<JsonNode> reportLines = VitamTestHelper.getReports(containerName);
         assertThat(reportLines).isNotNull();
@@ -355,13 +415,8 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
 
     @After
     public void tearDown() {
-        runAfterMongo(Set.of(
-            MetadataCollections.UNIT.getName(),
-            LogbookCollections.LIFECYCLE_UNIT.getName()
-        ));
-        runAfterEs(
-            ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), TENANT_0)
-        );
+        runAfterMongo(Set.of(MetadataCollections.UNIT.getName(), LogbookCollections.LIFECYCLE_UNIT.getName()));
+        runAfterEs(ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), TENANT_0));
     }
 
     private void createLogbookOperation(GUID operationId)
@@ -373,7 +428,9 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
             operationId,
             LogbookTypeProcess.MASS_UPDATE,
             STARTED,
-            VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED), operationId);
+            VitamLogbookMessages.getCodeOp(Contexts.REVERT_ESSENTIAL_METADATA.getEventType(), STARTED),
+            operationId
+        );
         logbookClient.create(initParameters);
     }
 }

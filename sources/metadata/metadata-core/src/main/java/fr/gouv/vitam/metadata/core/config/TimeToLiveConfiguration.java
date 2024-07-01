@@ -33,8 +33,11 @@ public class TimeToLiveConfiguration {
     private final int criticalDipTimeToLiveInMinutes;
     private final int transfersSIPTimeToLiveInMinutes;
 
-    public TimeToLiveConfiguration(int dipTimeToLiveInMinutes, int criticalDipTimeToLiveInMinutes,
-        int transfersSIPTimeToLiveInMinutes) {
+    public TimeToLiveConfiguration(
+        int dipTimeToLiveInMinutes,
+        int criticalDipTimeToLiveInMinutes,
+        int transfersSIPTimeToLiveInMinutes
+    ) {
         this.dipTimeToLiveInMinutes = dipTimeToLiveInMinutes;
         this.criticalDipTimeToLiveInMinutes = criticalDipTimeToLiveInMinutes;
         this.transfersSIPTimeToLiveInMinutes = transfersSIPTimeToLiveInMinutes;

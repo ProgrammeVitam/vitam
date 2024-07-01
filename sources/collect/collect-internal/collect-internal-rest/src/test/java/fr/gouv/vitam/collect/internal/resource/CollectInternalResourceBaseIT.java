@@ -68,14 +68,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
 public class CollectInternalResourceBaseIT {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectInternalResourceBaseIT.class);
     static final String COLLECT_CONF = "collect-internal-test.conf";
     private static final String COLLECT_RESOURCE_URI = "collect-internal/v1/";
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
     private static VitamStarter application;
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+
     protected static ProjectService projectService = Mockito.mock(ProjectService.class);
     protected static TransactionService transactionService = mock(TransactionService.class);
     protected static SipService sipService = mock(SipService.class);
@@ -83,18 +86,26 @@ public class CollectInternalResourceBaseIT {
     protected static CollectService collectService = mock(CollectService.class);
     protected static MetadataRepository metadataRepository = mock(MetadataRepository.class);
     protected static ProjectRepository projectRepository = mock(ProjectRepository.class);
-    protected static BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService
-        = mock(BulkAtomicUpdateMetadataService.class);
-    protected static MetadataService metadataService = new MetadataService(metadataRepository, projectRepository,
-        bulkAtomicUpdateMetadataService);
+    protected static BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService = mock(
+        BulkAtomicUpdateMetadataService.class
+    );
+    protected static MetadataService metadataService = new MetadataService(
+        metadataRepository,
+        projectRepository,
+        bulkAtomicUpdateMetadataService
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new VitamStarter(CollectInternalConfiguration.class, COLLECT_CONF,
-                CollectInternalResourceBaseIT.BusinessApplication.class, AdminApplication.class);
+            application = new VitamStarter(
+                CollectInternalConfiguration.class,
+                COLLECT_CONF,
+                CollectInternalResourceBaseIT.BusinessApplication.class,
+                AdminApplication.class
+            );
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = COLLECT_RESOURCE_URI;
@@ -102,10 +113,8 @@ public class CollectInternalResourceBaseIT {
             LOGGER.debug("Beginning tests");
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Access Application Server", e);
+            throw new IllegalStateException("Cannot start the Access Application Server", e);
         }
-
     }
 
     @AfterClass
@@ -132,7 +141,6 @@ public class CollectInternalResourceBaseIT {
         private Set<Object> singletons;
         private final Set<Class<?>> classes;
 
-
         public BusinessApplication(@Context ServletConfig servletConfig) {
             classes = new HashSet<>();
             classes.add(HeaderIdContainerFilter.class);
@@ -149,11 +157,18 @@ public class CollectInternalResourceBaseIT {
                 singletons = new HashSet<>();
                 singletons.add(new SanityCheckerCommonFilter());
                 singletons.add(new GenericExceptionMapper());
-                final ProjectInternalResource projectInternalResource =
-                    new ProjectInternalResource(projectService, transactionService, metadataService);
-                final TransactionInternalResource transactionInternalResource =
-                    new TransactionInternalResource(transactionService, sipService, metadataService, fluxService,
-                        projectService);
+                final ProjectInternalResource projectInternalResource = new ProjectInternalResource(
+                    projectService,
+                    transactionService,
+                    metadataService
+                );
+                final TransactionInternalResource transactionInternalResource = new TransactionInternalResource(
+                    transactionService,
+                    sipService,
+                    metadataService,
+                    fluxService,
+                    projectService
+                );
                 final CollectMetadataInternalResource collectMetadataInternalResource =
                     new CollectMetadataInternalResource(metadataService, collectService, transactionService);
                 singletons.add(projectInternalResource);

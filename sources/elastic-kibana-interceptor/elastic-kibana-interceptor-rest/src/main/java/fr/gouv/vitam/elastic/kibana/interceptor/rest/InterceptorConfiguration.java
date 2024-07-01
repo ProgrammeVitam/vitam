@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
-
-
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
@@ -42,7 +40,6 @@ public class InterceptorConfiguration extends DbConfigurationImpl {
     private List<ElasticsearchNode> elasticsearchNodes;
     private List<String> whitelist;
 
-
     /**
      * InterceptorConfiguration empty constructor for YAMLFactory
      */
@@ -54,8 +51,7 @@ public class InterceptorConfiguration extends DbConfigurationImpl {
         return elasticsearchNodes;
     }
 
-    public void setElasticsearchNodes(
-        List<ElasticsearchNode> elasticsearchNodes) {
+    public void setElasticsearchNodes(List<ElasticsearchNode> elasticsearchNodes) {
         this.elasticsearchNodes = elasticsearchNodes;
     }
 

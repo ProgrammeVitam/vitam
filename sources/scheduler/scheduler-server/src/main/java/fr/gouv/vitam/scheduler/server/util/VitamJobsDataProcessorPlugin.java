@@ -60,12 +60,14 @@ public class VitamJobsDataProcessorPlugin {
         dataProcessorPlugin.setFailOnFileNotFound(configuration.isFailOnFileNotFound());
     }
 
-
     public void initialize() throws SchedulerException {
         refreshListFiles();
         dataProcessorPlugin.setFileNames(getFileNames());
-        dataProcessorPlugin.initialize("VitamJobs", SchedulerListener.getInstance().getScheduler(),
-            new SimpleClassLoadHelper());
+        dataProcessorPlugin.initialize(
+            "VitamJobs",
+            SchedulerListener.getInstance().getScheduler(),
+            new SimpleClassLoadHelper()
+        );
         dataProcessorPlugin.start();
     }
 
@@ -76,7 +78,8 @@ public class VitamJobsDataProcessorPlugin {
         File[] files = dir.listFiles(fileFilter);
         if (Objects.nonNull(files) && files.length != 0) {
             setFileNames(
-                Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.joining(FILE_NAME_DELIMITERS)));
+                Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.joining(FILE_NAME_DELIMITERS))
+            );
         } else {
             LOGGER.error("Cannot find job files");
         }

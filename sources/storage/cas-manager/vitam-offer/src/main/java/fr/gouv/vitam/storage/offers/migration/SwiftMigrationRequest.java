@@ -34,7 +34,6 @@ public class SwiftMigrationRequest {
     @JsonProperty("swiftMigrationMode")
     private SwiftMigrationMode swiftMigrationMode;
 
-
     public SwiftMigrationRequest() {
         // Empty constructor for deserialization
     }
@@ -47,8 +46,7 @@ public class SwiftMigrationRequest {
         return swiftMigrationMode;
     }
 
-    public SwiftMigrationRequest setSwiftMigrationMode(
-        SwiftMigrationMode swiftMigrationMode) {
+    public SwiftMigrationRequest setSwiftMigrationMode(SwiftMigrationMode swiftMigrationMode) {
         this.swiftMigrationMode = swiftMigrationMode;
         return this;
     }

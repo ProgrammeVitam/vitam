@@ -37,6 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
 public class ProcessStepTest {
+
     @Test
     public void testConstructor() throws InvalidParseOperationException {
         assertEquals(0, new ProcessStep().getElementProcessed().get());
@@ -45,12 +46,18 @@ public class ProcessStepTest {
         assertEquals(1, new ProcessStep().getElementProcessed().addAndGet(1));
         assertEquals(StatusCode.OK, new ProcessStep().setStepStatusCode(StatusCode.OK).getStepStatusCode());
         final Step step = new Step();
-        assertEquals(1,
+        assertEquals(
+            1,
             new ProcessStep(step, "1", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(1))
-                .getElementToProcess().get());
-        assertEquals(1,
+                .getElementToProcess()
+                .get()
+        );
+        assertEquals(
+            1,
             new ProcessStep(step, "2", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(1))
-                .getElementProcessed().get());
+                .getElementProcessed()
+                .get()
+        );
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -62,13 +69,24 @@ public class ProcessStepTest {
     public void equalsTest() {
         final Step step = new Step();
         step.setStepName("1");
-        final ProcessStep processStep =
-            new ProcessStep(step, "25", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(0));
-        assertEquals(processStep,
-            new ProcessStep(step, "25", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(0)));
+        final ProcessStep processStep = new ProcessStep(
+            step,
+            "25",
+            "containerName",
+            "workflowId",
+            0,
+            new AtomicLong(1),
+            new AtomicLong(0)
+        );
+        assertEquals(
+            processStep,
+            new ProcessStep(step, "25", "containerName", "workflowId", 0, new AtomicLong(1), new AtomicLong(0))
+        );
 
         assertNotEquals(processStep, new Object());
-        assertNotEquals(processStep,
-            new ProcessStep(step, "24", "containerName", "workflowId", 2, new AtomicLong(1), new AtomicLong(0)));
+        assertNotEquals(
+            processStep,
+            new ProcessStep(step, "24", "containerName", "workflowId", 2, new AtomicLong(1), new AtomicLong(0))
+        );
     }
 }

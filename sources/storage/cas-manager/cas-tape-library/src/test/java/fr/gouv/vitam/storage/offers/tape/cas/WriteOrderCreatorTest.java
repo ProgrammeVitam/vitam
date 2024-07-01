@@ -63,17 +63,24 @@ public class WriteOrderCreatorTest {
 
     @Test
     public void processMessage() throws Exception {
-
         // Given
-        WriteOrder message = new WriteOrder("bucket", "file-bucket-id", "filePath", 1000L, "digest", "tarId",
-            QueueMessageType.WriteOrder);
+        WriteOrder message = new WriteOrder(
+            "bucket",
+            "file-bucket-id",
+            "filePath",
+            1000L,
+            "digest",
+            "tarId",
+            QueueMessageType.WriteOrder
+        );
 
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        doAnswer((args) -> {
+        doAnswer(args -> {
             countDownLatch.countDown();
             return null;
-        }).when(readWriteQueue).addIfAbsent(any(), any());
-
+        })
+            .when(readWriteQueue)
+            .addIfAbsent(any(), any());
 
         // When
         writeOrderCreator.startListener();

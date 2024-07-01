@@ -66,5 +66,4 @@ public class VitamHttpHeaderTest {
         vitamHeader = VitamHttpHeader.get(VitamHttpHeader.METHOD_OVERRIDE.getName());
         assertNotNull(vitamHeader);
     }
-
 }

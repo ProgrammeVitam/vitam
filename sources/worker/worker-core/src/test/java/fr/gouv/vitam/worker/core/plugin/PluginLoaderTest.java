@@ -60,9 +60,11 @@ public class PluginLoaderTest {
         PluginLoader pluginLoader = new PluginLoader("plugins-missing.json");
 
         // Then
-        assertThatThrownBy(pluginLoader::loadConfiguration).isInstanceOf(PluginNotFoundException.class)
+        assertThatThrownBy(pluginLoader::loadConfiguration)
+            .isInstanceOf(PluginNotFoundException.class)
             .hasMessageContaining(
-                "could not find class: fr.gouv.vitam.worker.core.plugin.PluginLoaderTest$FakeMissingPlugin");
+                "could not find class: fr.gouv.vitam.worker.core.plugin.PluginLoaderTest$FakeMissingPlugin"
+            );
     }
 
     @Test(expected = IllegalPathException.class)
@@ -119,20 +121,16 @@ public class PluginLoaderTest {
 
     private static class FakePlugin extends ActionHandler {
 
-        public FakePlugin() {
-        }
+        public FakePlugin() {}
 
         @Override
-        public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-            throws ProcessingException {
+        public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
             return null;
         }
 
         @Override
-        public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        }
+        public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
     }
-
 
     private static class FakeBadPlugin extends ActionHandler {
 
@@ -146,8 +144,6 @@ public class PluginLoaderTest {
         }
 
         @Override
-        public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        }
+        public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
     }
-
 }

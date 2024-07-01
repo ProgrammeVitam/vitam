@@ -62,13 +62,13 @@ public class BackupFileStorage {
     private final String fileBucketId;
     private final Path fileBucketStoragePath;
 
-
     public BackupFileStorage(
         ArchiveReferentialRepository archiveReferentialRepository,
         WriteOrderCreator writeOrderCreator,
         String bucketId,
         String fileBucketId,
-        String inputArchiveStorageFolder) {
+        String inputArchiveStorageFolder
+    ) {
         this.archiveReferentialRepository = archiveReferentialRepository;
         this.writeOrderCreator = writeOrderCreator;
 
@@ -81,33 +81,31 @@ public class BackupFileStorage {
             Files.createDirectories(fileBucketStoragePath);
         } catch (IOException e) {
             throw new VitamRuntimeException(
-                "Could not initialize file bucket tar creator service " + fileBucketStoragePath, e);
+                "Could not initialize file bucket tar creator service " + fileBucketStoragePath,
+                e
+            );
         }
     }
 
-    public void writeFile(String uniqueFileName, InputStream in)
-        throws BackupWriteException {
-
+    public void writeFile(String uniqueFileName, InputStream in) throws BackupWriteException {
         LOGGER.debug("Write backup file :" + uniqueFileName);
 
         final Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-        try (ExtendedFileOutputStream extendedFileOutputStream = createBackupFile(uniqueFileName);
+        try (
+            ExtendedFileOutputStream extendedFileOutputStream = createBackupFile(uniqueFileName);
             SizedInputStream sizedInputStream = new SizedInputStream(in);
-            InputStream digestInputStream = digest.getDigestInputStream(sizedInputStream)) {
-
+            InputStream digestInputStream = digest.getDigestInputStream(sizedInputStream)
+        ) {
             IOUtils.copy(digestInputStream, extendedFileOutputStream);
             extendedFileOutputStream.fsync();
 
             finalizeBackupFile(uniqueFileName, sizedInputStream.getSize(), digest.digestHex());
-
         } catch (IOException | RuntimeException ex) {
             throw new BackupWriteException("An error occurred while copying backup file to disk", ex);
         }
     }
 
-    private ExtendedFileOutputStream createBackupFile(String uniqueFileName)
-        throws BackupWriteException, IOException {
-
+    private ExtendedFileOutputStream createBackupFile(String uniqueFileName) throws BackupWriteException, IOException {
         Path currentArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName);
         Path currentTmpArchiveFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
 
@@ -115,13 +113,17 @@ public class BackupFileStorage {
             throw new IOException("Backup file with same name " + uniqueFileName + " already exists or in progress");
         }
 
-
         LOGGER.info("Creating file {}", currentTmpArchiveFilePath);
 
         try {
             TapeArchiveReferentialEntity tarReferentialEntity = new TapeArchiveReferentialEntity(
-                uniqueFileName, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), EntryType.BACKUP, null, null,
-                LocalDateUtil.now().toString());
+                uniqueFileName,
+                new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                EntryType.BACKUP,
+                null,
+                null,
+                LocalDateUtil.now().toString()
+            );
             archiveReferentialRepository.insert(tarReferentialEntity);
         } catch (ArchiveReferentialException ex) {
             throw new BackupWriteException("Could not create a new archive file in DB", ex);
@@ -138,7 +140,6 @@ public class BackupFileStorage {
             throw new IOException("Backup file with name " + uniqueFileName + " not found");
         }
 
-
         // Mark file as done (remove .tmp extension)
         Files.move(currentTmpArchiveFilePath, currentArchiveFilePath, StandardCopyOption.ATOMIC_MOVE);
 
@@ -146,12 +147,12 @@ public class BackupFileStorage {
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
             this.fileBucketId,
-            LocalFileUtils
-                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, uniqueFileName),
+            LocalFileUtils.archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, uniqueFileName),
             size,
             digest,
             uniqueFileName,
-            QueueMessageType.WriteBackupOrder);
+            QueueMessageType.WriteBackupOrder
+        );
         this.writeOrderCreator.addToQueue(writeOrder);
     }
 }

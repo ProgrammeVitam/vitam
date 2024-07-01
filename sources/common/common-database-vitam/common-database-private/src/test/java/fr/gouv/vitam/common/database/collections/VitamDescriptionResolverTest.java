@@ -37,18 +37,35 @@ public class VitamDescriptionResolverTest {
 
     @Test
     public void test() {
-
         // Given
-        VitamDescriptionType title = new VitamDescriptionType("Title", null, VitamDescriptionType.VitamType.text,
-            VitamDescriptionType.VitamCardinality.one, true);
-        VitamDescriptionType description =
-            new VitamDescriptionType("Description", null, VitamDescriptionType.VitamType.text,
-                VitamDescriptionType.VitamCardinality.one, true);
-        VitamDescriptionType title_ = new VitamDescriptionType("Title_", null, VitamDescriptionType.VitamType.object,
-            VitamDescriptionType.VitamCardinality.one, true);
-        VitamDescriptionType title_Pattern =
-            new VitamDescriptionType(null, "Title_.[a-z]+", VitamDescriptionType.VitamType.text,
-                VitamDescriptionType.VitamCardinality.one, true);
+        VitamDescriptionType title = new VitamDescriptionType(
+            "Title",
+            null,
+            VitamDescriptionType.VitamType.text,
+            VitamDescriptionType.VitamCardinality.one,
+            true
+        );
+        VitamDescriptionType description = new VitamDescriptionType(
+            "Description",
+            null,
+            VitamDescriptionType.VitamType.text,
+            VitamDescriptionType.VitamCardinality.one,
+            true
+        );
+        VitamDescriptionType title_ = new VitamDescriptionType(
+            "Title_",
+            null,
+            VitamDescriptionType.VitamType.object,
+            VitamDescriptionType.VitamCardinality.one,
+            true
+        );
+        VitamDescriptionType title_Pattern = new VitamDescriptionType(
+            null,
+            "Title_.[a-z]+",
+            VitamDescriptionType.VitamType.text,
+            VitamDescriptionType.VitamCardinality.one,
+            true
+        );
 
         List<VitamDescriptionType> vitamDescriptionTypes = Arrays.asList(title, description, title_, title_Pattern);
 
@@ -71,5 +88,4 @@ public class VitamDescriptionResolverTest {
         assertThat(expectedUnknown2).isNull();
         assertThat(expectedUnknown3).isNull();
     }
-
 }

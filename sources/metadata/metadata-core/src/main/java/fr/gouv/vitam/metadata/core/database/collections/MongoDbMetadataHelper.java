@@ -47,6 +47,7 @@ import static com.mongodb.client.model.Filters.eq;
  */
 @Deprecated
 public class MongoDbMetadataHelper {
+
     /**
      * Quick projection for ID Only
      */
@@ -68,8 +69,10 @@ public class MongoDbMetadataHelper {
         if (id == null || id.length() == 0) {
             return null;
         }
-        final MetadataDocument<?> result =
-            (MetadataDocument<?>) col.getCollection().find(eq(VitamDocument.ID, id)).first();
+        final MetadataDocument<?> result = (MetadataDocument<?>) col
+            .getCollection()
+            .find(eq(VitamDocument.ID, id))
+            .first();
         return result;
     }
 
@@ -81,9 +84,11 @@ public class MongoDbMetadataHelper {
      * @param projection select condition
      * @return the FindIterable on the find request based on the given collection
      */
-    public static final FindIterable<?> select(final MetadataCollections collection,
+    public static final FindIterable<?> select(
+        final MetadataCollections collection,
         final Bson condition,
-        final Bson projection) {
+        final Bson projection
+    ) {
         if (projection != null) {
             return collection.getCollection().find(condition).projection(projection);
         } else {
@@ -102,9 +107,14 @@ public class MongoDbMetadataHelper {
      * @param limit limit (0 for no limit)
      * @return the FindIterable on the find request based on the given collection
      */
-    public static final FindIterable<?> select(final MetadataCollections collection,
-        final Bson condition, final Bson projection, final Bson orderBy,
-        final int offset, final int limit) {
+    public static final FindIterable<?> select(
+        final MetadataCollections collection,
+        final Bson condition,
+        final Bson projection,
+        final Bson orderBy,
+        final int offset,
+        final int limit
+    ) {
         FindIterable<?> find = collection.getCollection().find(condition);
         if (projection != null) {
             find = find.projection(projection);
@@ -121,8 +131,12 @@ public class MongoDbMetadataHelper {
      * @param limit
      * @return the modified FindIterable
      */
-    public static final FindIterable<?> selectFiltered(FindIterable<?> find, final Bson orderBy,
-        final int offset, final int limit) {
+    public static final FindIterable<?> selectFiltered(
+        FindIterable<?> find,
+        final Bson orderBy,
+        final int offset,
+        final int limit
+    ) {
         if (offset != -1) {
             find.skip(offset);
         }
@@ -142,8 +156,7 @@ public class MongoDbMetadataHelper {
      * @return the DeleteResult on the update request based on the given collection
      * @throws MetaDataExecutionException if a mongo operation exception occurred
      */
-    public static final DeleteResult delete(final MetadataCollections collection,
-        final Bson condition, int nb)
+    public static final DeleteResult delete(final MetadataCollections collection, final Bson condition, int nb)
         throws MetaDataExecutionException {
         try {
             if (nb > 1) {
@@ -172,7 +185,8 @@ public class MongoDbMetadataHelper {
             return Filters.or(
                 Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.ID, ancestorIds)),
                 Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(MetadataDocument.UP, ancestorIds)),
-                Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(Unit.UNITUPS, ancestorIds)));
+                Filters.and(Filters.in(MetadataDocument.ID, targetIds), Filters.in(Unit.UNITUPS, ancestorIds))
+            );
         }
         return new BasicDBObject();
     }
@@ -193,5 +207,4 @@ public class MongoDbMetadataHelper {
     public static Result createOneResult(FILTERARGS type, Collection<String> set) {
         return new ResultDefault(type, set);
     }
-
 }

@@ -46,10 +46,10 @@ import java.util.List;
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class PreservationResourceMock {
+
     private final ResteasyTestApplication.ExpectedResults mock;
 
-    public PreservationResourceMock(
-        ResteasyTestApplication.ExpectedResults mock) {
+    public PreservationResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
     }
 
@@ -65,8 +65,10 @@ public class PreservationResourceMock {
     @Path("/importPreservationScenarios")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importPreservationScenario(List<PreservationScenarioModel> preservationScenarioModel,
-        @Context UriInfo uri) {
+    public Response importPreservationScenario(
+        List<PreservationScenarioModel> preservationScenarioModel,
+        @Context UriInfo uri
+    ) {
         return mock.post();
     }
 

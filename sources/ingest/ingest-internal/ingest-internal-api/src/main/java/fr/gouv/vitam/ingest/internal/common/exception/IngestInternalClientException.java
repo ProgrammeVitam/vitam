@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Main Ingest Client Exception
  */
 public class IngestInternalClientException extends VitamException {
+
     private static final long serialVersionUID = -555270572527776030L;
 
     /**
@@ -70,8 +71,12 @@ public class IngestInternalClientException extends VitamException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public IngestInternalClientException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public IngestInternalClientException(
+        String message,
+        Throwable cause,
+        boolean enableSuppression,
+        boolean writableStackTrace
+    ) {
         super(message);
     }
 }

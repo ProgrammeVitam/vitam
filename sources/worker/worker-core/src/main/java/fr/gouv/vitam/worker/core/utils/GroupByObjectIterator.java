@@ -41,7 +41,6 @@ import java.util.NoSuchElementException;
  */
 public class GroupByObjectIterator implements Iterator<Pair<String, List<String>>> {
 
-
     private PeekingIterator<Pair<String, String>> iterator;
 
     public GroupByObjectIterator(Iterator<Pair<String, String>> iterator) {
@@ -55,7 +54,6 @@ public class GroupByObjectIterator implements Iterator<Pair<String, List<String>
 
     @Override
     public Pair<String, List<String>> next() {
-
         if (!iterator.hasNext()) {
             throw new NoSuchElementException();
         }
@@ -66,11 +64,9 @@ public class GroupByObjectIterator implements Iterator<Pair<String, List<String>
         unitIds.add(pair.getValue());
 
         while (iterator.hasNext() && iterator.peek().getKey().equals(pair.getKey())) {
-
             unitIds.add(iterator.next().getValue());
         }
 
         return new ImmutablePair<>(pair.getKey(), unitIds);
     }
 }
-

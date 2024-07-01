@@ -62,7 +62,6 @@ import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CE
  */
 public class X509AuthenticationFilter extends AuthenticatingFilter {
 
-
     private boolean useHeader = false;
 
     public void setUseHeader(boolean useHeader) {
@@ -70,8 +69,7 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     }
 
     @Override
-    protected boolean onAccessDenied(ServletRequest request, ServletResponse response)
-        throws Exception {
+    protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
         if (!executeLogin(request, response)) {
             ((HttpServletResponse) response).sendError(403, "Access Denied . Need a valid TLS client certificate");
             return false;
@@ -79,9 +77,12 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
         return true;
     }
 
-    protected boolean onLoginSuccess(AuthenticationToken token, Subject subject,
-        ServletRequest request, ServletResponse response) throws Exception {
-
+    protected boolean onLoginSuccess(
+        AuthenticationToken token,
+        Subject subject,
+        ServletRequest request,
+        ServletResponse response
+    ) throws Exception {
         X509AuthenticationToken x509Token = (X509AuthenticationToken) token;
         X509Certificate x509Certificate = x509Token.getX509Certificate();
         byte[] derEncodedCertificate = x509Certificate.getEncoded();
@@ -101,5 +102,4 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
 
         return new X509AuthenticationToken(clientCertChain, getHost(request));
     }
-
 }

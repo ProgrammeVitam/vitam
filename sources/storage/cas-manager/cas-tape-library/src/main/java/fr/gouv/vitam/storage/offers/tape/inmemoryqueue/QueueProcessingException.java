@@ -31,9 +31,8 @@ public class QueueProcessingException extends Exception {
     public enum RetryPolicy {
         FATAL_SHUTDOWN,
         DROP_MESSAGE,
-        RETRY
+        RETRY,
     }
-
 
     private final RetryPolicy retryPolicy;
 

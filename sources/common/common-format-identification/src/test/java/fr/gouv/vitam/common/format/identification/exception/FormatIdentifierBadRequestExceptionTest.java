@@ -42,6 +42,4 @@ public class FormatIdentifierBadRequestExceptionTest {
         assertNotNull(new FormatIdentifierBadRequestException(exception));
         assertNotNull(new FormatIdentifierBadRequestException(MESSAGE, exception));
     }
-
 }
-

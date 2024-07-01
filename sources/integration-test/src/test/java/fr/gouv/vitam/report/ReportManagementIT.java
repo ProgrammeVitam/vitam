@@ -94,25 +94,23 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 public class ReportManagementIT extends VitamRuleRunner {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
     private static final String PROCESS_ID = "123456789";
     private static final int TENANT_0 = 0;
     private static BatchReportClient batchReportClient;
     private static WorkspaceClient workspaceClient;
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ReportManagementIT.class, mongoRule.getMongoDatabase().getName(),
-            elasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                WorkspaceMain.class,
-                BatchReportMain.class
-            ));
-
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ReportManagementIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        elasticsearchRule.getClusterName(),
+        Sets.newHashSet(WorkspaceMain.class, BatchReportMain.class)
+    );
 
     @AfterClass
     public static void afterClass() throws Exception {
@@ -147,13 +145,14 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_elimination_action_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody<EliminationActionUnitReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            EliminationActionUnitReportEntry.class
+        );
         // When
         // Then
-        assertThatCode(
-            () -> batchReportClient.appendReportEntries(reportBody)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.appendReportEntries(reportBody)).doesNotThrowAnyException();
     }
 
     @Test
@@ -161,13 +160,14 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_purge_action_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/purgeUnitModel.json");
-        ReportBody<PurgeUnitReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, PurgeUnitReportEntry.class);
+        ReportBody<PurgeUnitReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            PurgeUnitReportEntry.class
+        );
         // When
         // Then
-        assertThatCode(
-            () -> batchReportClient.appendReportEntries(reportBody)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.appendReportEntries(reportBody)).doesNotThrowAnyException();
     }
 
     @Test
@@ -175,13 +175,14 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_purge_objectGroup_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/purgeObjectGroupModel.json");
-        ReportBody<PurgeObjectGroupReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, PurgeObjectGroupReportEntry.class);
+        ReportBody<PurgeObjectGroupReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            PurgeObjectGroupReportEntry.class
+        );
         // When
         // Then
-        assertThatCode(
-            () -> batchReportClient.appendReportEntries(reportBody)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.appendReportEntries(reportBody)).doesNotThrowAnyException();
     }
 
     @Test
@@ -189,13 +190,14 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_preservation_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/preservationModel.json");
-        ReportBody<PreservationReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
+        ReportBody<PreservationReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            PreservationReportEntry.class
+        );
         // When
         // Then
-        assertThatCode(
-            () -> batchReportClient.appendReportEntries(reportBody)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.appendReportEntries(reportBody)).doesNotThrowAnyException();
     }
 
     @Test
@@ -203,12 +205,13 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_audit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/auditObjectGroupModel.json");
-        ReportBody<AuditObjectGroupReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
+        ReportBody<AuditObjectGroupReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            AuditObjectGroupReportEntry.class
+        );
         // When / Then
-        assertThatCode(
-            () -> batchReportClient.appendReportEntries(reportBody)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.appendReportEntries(reportBody)).doesNotThrowAnyException();
     }
 
     @Test
@@ -216,17 +219,26 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_export_distinct_objectgroup_in_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/purgeUnitModel.json");
-        ReportBody<EliminationActionUnitReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            EliminationActionUnitReportEntry.class
+        );
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
         // When / Then
-        assertThatCode(() -> batchReportClient
-            .generatePurgeDistinctObjectGroupInUnitReport(reportBody.getProcessId(), reportExportRequest)
+        assertThatCode(
+            () ->
+                batchReportClient.generatePurgeDistinctObjectGroupInUnitReport(
+                    reportBody.getProcessId(),
+                    reportExportRequest
+                )
         ).doesNotThrowAnyException();
 
-        checkGeneratedReportEqualsExpectedJsonl("test.json",
-            "report/purgeUnitModel_expectedDistinctObjectGroupReport.jsonl");
+        checkGeneratedReportEqualsExpectedJsonl(
+            "test.json",
+            "report/purgeUnitModel_expectedDistinctObjectGroupReport.jsonl"
+        );
     }
 
     @Test
@@ -234,15 +246,26 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_store_preservation_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/preservationModel.json");
-        ReportBody<PreservationReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
+        ReportBody<PreservationReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            PreservationReportEntry.class
+        );
         batchReportClient.appendReportEntries(reportBody);
 
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary =
-            new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary = new OperationSummary(
+            tenant,
+            evId,
+            "",
+            "",
+            "",
+            "",
+            JsonHandler.createObjectNode(),
+            evDetData
+        );
 
         String date = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.PRESERVATION;
@@ -255,9 +278,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         Report report = new Report(operationSummary, reportSummary, context);
 
         // When / Then
-        assertThatCode(
-            () -> batchReportClient.storeReportToWorkspace(report)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.storeReportToWorkspace(report)).doesNotThrowAnyException();
     }
 
     @Test
@@ -265,25 +286,42 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_store_elimination_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/purgeObjectGroupModel.json");
-        ReportBody<PurgeObjectGroupReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, PurgeObjectGroupReportEntry.class);
+        ReportBody<PurgeObjectGroupReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            PurgeObjectGroupReportEntry.class
+        );
         batchReportClient.appendReportEntries(reportBody);
 
         InputStream stream2 = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody<EliminationActionUnitReportEntry> reportBody2 =
-            JsonHandler.getFromInputStream(stream2, ReportBody.class, EliminationActionUnitReportEntry.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody2 = JsonHandler.getFromInputStream(
+            stream2,
+            ReportBody.class,
+            EliminationActionUnitReportEntry.class
+        );
         batchReportClient.appendReportEntries(reportBody2);
 
         InputStream stream3 = getClass().getResourceAsStream("/report/purgeUnitModel.json");
-        ReportBody<PurgeUnitReportEntry> reportBody3 =
-            JsonHandler.getFromInputStream(stream3, ReportBody.class, PurgeUnitReportEntry.class);
+        ReportBody<PurgeUnitReportEntry> reportBody3 = JsonHandler.getFromInputStream(
+            stream3,
+            ReportBody.class,
+            PurgeUnitReportEntry.class
+        );
         batchReportClient.appendReportEntries(reportBody3);
 
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary =
-            new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary = new OperationSummary(
+            tenant,
+            evId,
+            "",
+            "",
+            "",
+            "",
+            JsonHandler.createObjectNode(),
+            evDetData
+        );
 
         String date = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.ELIMINATION_ACTION;
@@ -296,26 +334,34 @@ public class ReportManagementIT extends VitamRuleRunner {
         Report report = new Report(operationSummary, reportSummary, context);
 
         // When / Then
-        assertThatCode(
-            () -> batchReportClient.storeReportToWorkspace(report)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.storeReportToWorkspace(report)).doesNotThrowAnyException();
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void should_store_audit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/auditObjectGroupModel.json");
-        ReportBody<AuditObjectGroupReportEntry> reportBody =
-            JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
+        ReportBody<AuditObjectGroupReportEntry> reportBody = JsonHandler.getFromInputStream(
+            stream,
+            ReportBody.class,
+            AuditObjectGroupReportEntry.class
+        );
         batchReportClient.appendReportEntries(reportBody);
 
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary =
-            new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary = new OperationSummary(
+            tenant,
+            evId,
+            "",
+            "",
+            "",
+            "",
+            JsonHandler.createObjectNode(),
+            evDetData
+        );
 
         String date = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.AUDIT;
@@ -328,40 +374,41 @@ public class ReportManagementIT extends VitamRuleRunner {
         Report report = new Report(operationSummary, reportSummary, context);
 
         // When / Then
-        assertThatCode(
-            () -> batchReportClient.storeReportToWorkspace(report)
-        ).doesNotThrowAnyException();
+        assertThatCode(() -> batchReportClient.storeReportToWorkspace(report)).doesNotThrowAnyException();
     }
-
-
 
     private void checkGeneratedReportEqualsExpectedJsonl(String workspaceReportFile, String expectedJsonlResources)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
-
-        try (InputStream reportIS = new VitamAsyncInputStream(
-            workspaceClient.getObject(PROCESS_ID, workspaceReportFile));
-            InputStream expectedIS = PropertiesUtils.getResourceAsStream(expectedJsonlResources)) {
-
-
+        try (
+            InputStream reportIS = new VitamAsyncInputStream(
+                workspaceClient.getObject(PROCESS_ID, workspaceReportFile)
+            );
+            InputStream expectedIS = PropertiesUtils.getResourceAsStream(expectedJsonlResources)
+        ) {
             Map<String, String> reportEntriesById = parseJsonLineReport(reportIS);
             Map<String, String> expectedEntriesById = parseJsonLineReport(expectedIS);
 
             assertThat(reportEntriesById.keySet()).containsExactlyInAnyOrderElementsOf(expectedEntriesById.keySet());
 
             for (String id : expectedEntriesById.keySet()) {
-                JsonAssert.assertJsonEquals(expectedEntriesById.get(id), reportEntriesById.get(id),
-                    JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+                JsonAssert.assertJsonEquals(
+                    expectedEntriesById.get(id),
+                    reportEntriesById.get(id),
+                    JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
+                );
             }
         }
     }
 
     private Map<String, String> parseJsonLineReport(InputStream inputStream) {
-
         Map<String, String> reportEntriesById = new HashMap<>();
 
-        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE)) {
-
+        try (
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+                inputStream,
+                TYPE_REFERENCE
+            )
+        ) {
             while (jsonLineIterator.hasNext()) {
                 JsonLineModel entry = jsonLineIterator.next();
 
@@ -376,7 +423,6 @@ public class ReportManagementIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void should_store_units_to_invalidate_distribution_file() throws Exception {
-
         // Given
         String processId = VitamThreadUtils.getVitamSession().getRequestId();
         workspaceClient.createContainer(processId);
@@ -395,21 +441,22 @@ public class ReportManagementIT extends VitamRuleRunner {
         batchReportClient.exportUnitsToInvalidate(processId, new ReportExportRequest(unitsJsonlFileName));
 
         // Then
-        try (InputStream reportIS = new VitamAsyncInputStream(
-            workspaceClient.getObject(processId, unitsJsonlFileName));
-            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(reportIS,
-                TYPE_REFERENCE)) {
-
+        try (
+            InputStream reportIS = new VitamAsyncInputStream(workspaceClient.getObject(processId, unitsJsonlFileName));
+            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
+                reportIS,
+                TYPE_REFERENCE
+            )
+        ) {
             Set<String> expectedDeduplicatedIds = new HashSet<>();
             expectedDeduplicatedIds.addAll(ids1);
             expectedDeduplicatedIds.addAll(ids2);
             expectedDeduplicatedIds.addAll(ids3);
             expectedDeduplicatedIds.addAll(ids4);
 
-            assertThat(lineGenericIterator.stream()
-                .map(JsonLineModel::getId)
-                .collect(Collectors.toList()))
-                .containsExactlyInAnyOrder(expectedDeduplicatedIds.toArray(new String[0]));
+            assertThat(
+                lineGenericIterator.stream().map(JsonLineModel::getId).collect(Collectors.toList())
+            ).containsExactlyInAnyOrder(expectedDeduplicatedIds.toArray(new String[0]));
         }
     }
 
@@ -418,21 +465,28 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_store_Extracted_Metadata_For_Au() throws Exception {
         // Given
         List<ExtractedMetadata> extractedMetadata = Collections.singletonList(
-            new ExtractedMetadata("BATMAN", "processId", 0, Collections.singletonList("unitId"),
-                Collections.singletonMap("key", Collections.singletonList("value"))));
+            new ExtractedMetadata(
+                "BATMAN",
+                "processId",
+                0,
+                Collections.singletonList("unitId"),
+                Collections.singletonMap("key", Collections.singletonList("value"))
+            )
+        );
 
         // When
         // Then
         assertThatCode(
-            () -> batchReportClient.storeExtractedMetadataForAu(extractedMetadata)).doesNotThrowAnyException();
+            () -> batchReportClient.storeExtractedMetadataForAu(extractedMetadata)
+        ).doesNotThrowAnyException();
     }
 
     private ReportBody getReportBody(String processId, List<String> unitsIds) {
-        List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds.stream()
+        List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds
+            .stream()
             .distinct()
             .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
             .collect(Collectors.toList());
-        return new ReportBody<>(processId,
-            ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
+        return new ReportBody<>(processId, ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
     }
 }

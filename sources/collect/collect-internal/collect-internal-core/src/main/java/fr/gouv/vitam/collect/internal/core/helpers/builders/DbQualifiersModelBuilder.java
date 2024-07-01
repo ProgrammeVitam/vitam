@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class DbQualifiersModelBuilder {
+
     private DataObjectVersionType usage;
     private int nbc;
     private List<DbVersionsModel> versions;
@@ -49,8 +50,12 @@ public class DbQualifiersModelBuilder {
         return this;
     }
 
-    public DbQualifiersModelBuilder withVersion(String versionId, String fileName, DataObjectVersionType usage,
-        int version) {
+    public DbQualifiersModelBuilder withVersion(
+        String versionId,
+        String fileName,
+        DataObjectVersionType usage,
+        int version
+    ) {
         versions = Collections.singletonList(new DbVersionsModelBuilder().build(versionId, fileName, usage, version));
         return this;
     }

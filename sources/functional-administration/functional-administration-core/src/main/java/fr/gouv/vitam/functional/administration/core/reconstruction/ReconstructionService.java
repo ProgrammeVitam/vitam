@@ -39,7 +39,6 @@ import java.util.Set;
  * Reconstrution of Vitam Collections interface.<br>
  */
 public interface ReconstructionService {
-
     /**
      * Reconstrut Vitam collection by tenant.
      *

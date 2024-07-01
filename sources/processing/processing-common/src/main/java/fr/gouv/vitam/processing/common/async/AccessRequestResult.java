@@ -37,8 +37,11 @@ public class AccessRequestResult {
     // mandatory
     private final AccessRequestStatus accessRequestStatus;
 
-    public AccessRequestResult(AccessRequestValue accessRequestValue, AccessRequestContext accessRequestContext,
-        AccessRequestStatus accessRequestStatus) {
+    public AccessRequestResult(
+        AccessRequestValue accessRequestValue,
+        AccessRequestContext accessRequestContext,
+        AccessRequestStatus accessRequestStatus
+    ) {
         this.accessRequestValue = accessRequestValue;
         this.accessRequestContext = accessRequestContext;
         this.accessRequestStatus = accessRequestStatus;

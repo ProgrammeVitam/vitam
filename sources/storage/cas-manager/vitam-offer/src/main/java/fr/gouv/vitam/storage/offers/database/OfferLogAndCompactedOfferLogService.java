@@ -59,8 +59,10 @@ public class OfferLogAndCompactedOfferLogService {
     private final MongoCollection<Document> offerLogCollection;
     private final MongoCollection<Document> compactedOfferLogCollection;
 
-    public OfferLogAndCompactedOfferLogService(MongoCollection<Document> offerLogCollection,
-        MongoCollection<Document> compactedOfferLogCollection) {
+    public OfferLogAndCompactedOfferLogService(
+        MongoCollection<Document> offerLogCollection,
+        MongoCollection<Document> compactedOfferLogCollection
+    ) {
         this.offerLogCollection = offerLogCollection;
         this.compactedOfferLogCollection = compactedOfferLogCollection;
     }
@@ -70,7 +72,6 @@ public class OfferLogAndCompactedOfferLogService {
             save(toSave);
             delete(toDelete);
         } catch (Exception e) {
-
             // FIXME : This is a problem, it means we will have incoherent data between CompactedOfferLog and OfferLog collection.
             //  We MUST use transaction in order to have coherent data in those two collection, but 'no time' to finish this story.
             //  NB : Mongodb transactions requires a replica set deployment mode. Not testable right now on dev/build environments
@@ -78,7 +79,8 @@ public class OfferLogAndCompactedOfferLogService {
 
             LOGGER.error("An error occurred during offer log compaction. Possible CompactedOfferLog corruption", e);
             alertService.createAlert(
-                "An error occurred during offer log compaction. Possible CompactedOfferLog corruption");
+                "An error occurred during offer log compaction. Possible CompactedOfferLog corruption"
+            );
             throw new VitamRuntimeException(e);
         }
     }
@@ -89,13 +91,17 @@ public class OfferLogAndCompactedOfferLogService {
             eq(SEQUENCE_END, compactedOfferLog.getSequenceEnd()),
             eq(CompactedOfferLog.CONTAINER, compactedOfferLog.getContainer())
         );
-        CompactedOfferLog alreadySavedOfferLogCompacted = compactedOfferLogCollection.find(filters)
+        CompactedOfferLog alreadySavedOfferLogCompacted = compactedOfferLogCollection
+            .find(filters)
             .map(this::transformDocumentToOfferLogCompaction)
             .first();
         if (alreadySavedOfferLogCompacted != null) {
-            throw new VitamRuntimeException(String.format(
-                "Incoherent data between CompactedOfferLog and OfferLog collection, compaction offer logs '%s' already inserted.",
-                alreadySavedOfferLogCompacted));
+            throw new VitamRuntimeException(
+                String.format(
+                    "Incoherent data between CompactedOfferLog and OfferLog collection, compaction offer logs '%s' already inserted.",
+                    alreadySavedOfferLogCompacted
+                )
+            );
         }
         try {
             compactedOfferLogCollection.insertOne(Document.parse(JsonHandler.writeAsString(compactedOfferLog)));

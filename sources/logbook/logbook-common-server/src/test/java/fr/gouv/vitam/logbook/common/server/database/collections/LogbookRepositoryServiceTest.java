@@ -47,18 +47,20 @@ public class LogbookRepositoryServiceTest {
 
     @Test
     public void testSaveBulk() throws DatabaseException {
-
         VitamRepositoryProvider vitamRepositoryProvider = mock(VitamRepositoryProvider.class);
         VitamMongoRepository vitamMongoRepository = mock(VitamMongoRepository.class);
         VitamElasticsearchRepository vitamElasticsearchRepository = mock(VitamElasticsearchRepository.class);
         ElasticsearchLogbookIndexManager indexManager = mock(ElasticsearchLogbookIndexManager.class);
-        LogbookRepositoryService logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider,
-            indexManager);
+        LogbookRepositoryService logbookRepositoryService = new LogbookRepositoryService(
+            vitamRepositoryProvider,
+            indexManager
+        );
 
         Mockito.when(vitamRepositoryProvider.getVitamMongoRepository(any())).thenReturn(vitamMongoRepository);
         Mockito.doNothing().when(vitamMongoRepository).saveOrUpdate(any(List.class));
-        Mockito.when(vitamRepositoryProvider.getVitamESRepository(any(), any()))
-            .thenReturn(vitamElasticsearchRepository);
+        Mockito.when(vitamRepositoryProvider.getVitamESRepository(any(), any())).thenReturn(
+            vitamElasticsearchRepository
+        );
         Mockito.doNothing().when(vitamElasticsearchRepository).save(any(List.class));
 
         List<JsonNode> logbookItems = new ArrayList<>();
@@ -75,7 +77,5 @@ public class LogbookRepositoryServiceTest {
         assertThatCode(() -> {
             logbookRepositoryService.saveBulk(LogbookCollections.OPERATION, logbookItems);
         }).doesNotThrowAnyException();
-
     }
-
 }

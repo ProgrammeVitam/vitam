@@ -79,13 +79,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MetadataRawResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String METADATA_URI = "/metadata/v1";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
-    private final static String HOST_NAME = "127.0.0.1";
+    private static final String HOST_NAME = "127.0.0.1";
     private static JunitHelper junitHelper;
     private static int serverPort;
 
@@ -97,37 +98,46 @@ public class MetadataRawResourceTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class)
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        UNIT.getVitamCollection()
-            .setName(GUIDFactory.newGUID().getId() + UNIT.getClasz().getSimpleName());
+        UNIT.getVitamCollection().setName(GUIDFactory.newGUID().getId() + UNIT.getClasz().getSimpleName());
         mongoRule.addCollectionToBePurged(UNIT.getName());
         OBJECTGROUP.getVitamCollection()
             .setName(GUIDFactory.newGUID().getId() + OBJECTGROUP.getClasz().getSimpleName());
         mongoRule.addCollectionToBePurged(OBJECTGROUP.getName());
         junitHelper = JunitHelper.getInstance();
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, MongoRule.getDataBasePort()));
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
 
-        final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
-                mappingLoader);
+        final MetaDataConfiguration configuration = new MetaDataConfiguration(
+            mongo_nodes,
+            MongoRule.VITAM_DB,
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes,
+            mappingLoader
+        );
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
-        configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
-            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(1, 0))
-                .setObjectgroup(new CollectionConfiguration(1, 0))));
+        configuration.setIndexationConfiguration(
+            new MetadataIndexationConfiguration()
+                .setDefaultCollectionConfiguration(
+                    new DefaultCollectionConfiguration()
+                        .setUnit(new CollectionConfiguration(1, 0))
+                        .setObjectgroup(new CollectionConfiguration(1, 0))
+                )
+        );
 
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -165,12 +175,12 @@ public class MetadataRawResourceTest {
     @RunWithCustomExecutor
     @Test
     public void should_find_objectgroup_on_getByIdRaw() throws Exception {
-
         String operationId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).getId();
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         String objectGroupId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
-        ObjectNode objectGroup =
-            (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("objectgroup.json"));
+        ObjectNode objectGroup = (ObjectNode) JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("objectgroup.json")
+        );
         objectGroup.put("_id", objectGroupId);
         objectGroup.set("_ops", JsonHandler.createArrayNode().add(operationId));
         objectGroup.set("_up", JsonHandler.createArrayNode().add(unitId));
@@ -180,7 +190,11 @@ public class MetadataRawResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/raw/objectgroups/" + objectGroupId)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
@@ -189,25 +203,23 @@ public class MetadataRawResourceTest {
     @RunWithCustomExecutor
     @Test
     public void should_not_find_objectgroup_on_getByIdRaw() throws Exception {
-
         String objectGroupId = GUIDFactory.newObjectGroupGUID(TENANT_ID).getId();
         given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/raw/objectgroups/" + objectGroupId).then()
+            .get("/raw/objectgroups/" + objectGroupId)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @RunWithCustomExecutor
     @Test
     public void should_find_unit_on_getByIdRaw() throws Exception {
-
         String operationId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).getId();
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         String parentUnitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
-        ObjectNode unit =
-            (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("unit.json"));
+        ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("unit.json"));
         unit.put("_id", unitId);
         unit.set("_ops", JsonHandler.createArrayNode().add(operationId));
         unit.set("_up", JsonHandler.createArrayNode().add(parentUnitId));
@@ -219,23 +231,26 @@ public class MetadataRawResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/raw/units/" + unitId)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().asString();
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .asString();
 
         JsonNode responseUnit = JsonHandler.getFromString(reponseString);
         assertThat(responseUnit.get("$results").get(0).get("_nbc").asLong()).isEqualTo(1L);
-
     }
 
     @RunWithCustomExecutor
     @Test
     public void should_not_find_unit_on_getByIdRaw() throws Exception {
-
         String unitId = GUIDFactory.newUnitGUID(TENANT_ID).getId();
         given()
             .contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/raw/units/" + unitId).then()
+            .get("/raw/units/" + unitId)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }

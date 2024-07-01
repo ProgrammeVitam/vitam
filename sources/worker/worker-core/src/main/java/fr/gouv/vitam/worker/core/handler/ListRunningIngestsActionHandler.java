@@ -54,6 +54,7 @@ import java.util.List;
  */
 
 public class ListRunningIngestsActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ListRunningIngestsActionHandler.class);
 
     private static final String HANDLER_ID = "LIST_RUNNING_INGESTS";
@@ -66,8 +67,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
     }
 
     @VisibleForTesting
-    public ListRunningIngestsActionHandler(
-        ProcessingManagementClientFactory processingManagementClientFactory) {
+    public ListRunningIngestsActionHandler(ProcessingManagementClientFactory processingManagementClientFactory) {
         this.processingManagementClientFactory = processingManagementClientFactory;
     }
 
@@ -102,19 +102,18 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
         pq.setListProcessTypes(listProcessTypes);
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             // FIXME: 15/09/2019 what if response is VitamError
-            RequestResponseOK<ProcessDetail> response =
-                (RequestResponseOK<ProcessDetail>) processManagementClient.listOperationsDetails(pq);
+            RequestResponseOK<ProcessDetail> response = (RequestResponseOK<
+                    ProcessDetail
+                >) processManagementClient.listOperationsDetails(pq);
             List<ProcessDetail> ingestsInProcess = response.getResults();
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(RANK_FILE).getPath());
             JsonHandler.writeAsFile(ingestsInProcess, tempFile);
             handlerIO.addOutputResult(RANK_FILE, tempFile, true, false);
-
         } catch (VitamClientException e) {
             LOGGER.error("Process Management cannot be called", e);
             throw new ProcessingException(e);
         }
     }
-
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {

@@ -36,8 +36,8 @@ import java.io.FileNotFoundException;
  * Utility class for Junit
  */
 public class ResourcesPrivateUtilTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ResourcesPrivateUtilTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResourcesPrivateUtilTest.class);
 
     private static final String SERVER_IDENTITY_PROPERTIES_FILE = "ServerIdentity.properties";
     public static final String SERVER_IDENTITY_YAML_FILE = "server-identity.conf";
@@ -47,7 +47,6 @@ public class ResourcesPrivateUtilTest {
     public static final String EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION =
         "Expecting exception: IllegalArgumentException";
     public static final String CANNOT_FIND_RESOURCES_TEST_FILE = "CANNOT FIND RESOURCES TEST FILE";
-
 
     private final File serverIdentityPropertiesFile;
     private final File serverIdentityYamlFile;
@@ -92,5 +91,4 @@ public class ResourcesPrivateUtilTest {
 
         return null;
     }
-
 }

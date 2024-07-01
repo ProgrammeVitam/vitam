@@ -111,19 +111,24 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
+
     @Mock
     private HandlerIO handler;
+
     @Mock
     private WorkerParameters params;
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -146,14 +151,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenLfcAndMetadataWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -163,35 +165,62 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json", "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
-                "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
             .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection());
 
         // When
-        BuildObjectGroupTraceabilityActionPlugin plugin =
-            new BuildObjectGroupTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildObjectGroupTraceabilityActionPlugin plugin = new BuildObjectGroupTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
-        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE)));
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE))
+        );
 
         ArgumentCaptor<Collection> objectIds = ArgumentCaptor.forClass(Collection.class);
-        verify(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), objectIds.capture());
-        assertThat(objectIds.getValue()).containsExactlyInAnyOrder("aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
-            "aeaaaaaaaaesicexaasycalg6xcwe4yaaaaq", "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq");
+        verify(storageClient).getBatchObjectInformation(
+            anyString(),
+            eq(DataCategory.OBJECT),
+            eq(offerIds),
+            objectIds.capture()
+        );
+        assertThat(objectIds.getValue()).containsExactlyInAnyOrder(
+            "aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
+            "aeaaaaaaaaesicexaasycalg6xcwe4yaaaaq",
+            "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq"
+        );
 
         verifyNoMoreInteractions(alertService);
     }
@@ -199,14 +228,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenMultipleBatchLfcAndMetadataWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -216,45 +242,79 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest1 = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOT_PART1_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest1).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json", "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOT_PART1_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest1)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest2 = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOT_PART2_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest2).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOT_PART2_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest2)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(Arrays.asList("aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json"))
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest1 = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_PART1_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_PART1_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
         RequestResponseOK<BatchObjectInformationResponse> objectDigest2 = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_PART2_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        when(storageClient
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection()))
-            .thenReturn(objectDigest1, objectDigest2);
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_PART2_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        when(
+            storageClient.getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection())
+        ).thenReturn(objectDigest1, objectDigest2);
 
         // When
-        BuildObjectGroupTraceabilityActionPlugin plugin =
-            new BuildObjectGroupTraceabilityActionPlugin(storageClientFactory, 2, alertService);
+        BuildObjectGroupTraceabilityActionPlugin plugin = new BuildObjectGroupTraceabilityActionPlugin(
+            storageClientFactory,
+            2,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
-        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE)));
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE))
+        );
 
         ArgumentCaptor<Collection> objectIds = ArgumentCaptor.forClass(Collection.class);
-        verify(storageClient, times(2))
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), objectIds.capture());
-        assertThat(objectIds.getAllValues().get(0)).containsExactlyInAnyOrder("aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
-            "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq");
+        verify(storageClient, times(2)).getBatchObjectInformation(
+            anyString(),
+            eq(DataCategory.OBJECT),
+            eq(offerIds),
+            objectIds.capture()
+        );
+        assertThat(objectIds.getAllValues().get(0)).containsExactlyInAnyOrder(
+            "aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
+            "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq"
+        );
         assertThat(objectIds.getAllValues().get(1)).containsExactlyInAnyOrder("aeaaaaaaaaesicexaasycalg6xcwe4yaaaaq");
 
         verifyNoMoreInteractions(alertService);
@@ -263,14 +323,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenLfcAndMetadataWithBadStorageDigestWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -280,37 +337,64 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json", "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
-                "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
             .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection());
 
-
         // When
-        BuildObjectGroupTraceabilityActionPlugin plugin =
-            new BuildObjectGroupTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildObjectGroupTraceabilityActionPlugin plugin = new BuildObjectGroupTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(
-            TRACEABILITY_DATA_BAD_HASH_FILE));
-        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_BAD_HASH_FILE)));
+        assertThat(traceabilityDataFile).hasSameContentAs(
+            PropertiesUtils.getResourceFile(TRACEABILITY_DATA_BAD_HASH_FILE)
+        );
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_BAD_HASH_FILE))
+        );
 
         ArgumentCaptor<Collection> objectIds = ArgumentCaptor.forClass(Collection.class);
-        verify(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), objectIds.capture());
-        assertThat(objectIds.getValue()).containsExactlyInAnyOrder("aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
-            "aeaaaaaaaaesicexaasycalg6xcwe4yaaaaq", "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq");
+        verify(storageClient).getBatchObjectInformation(
+            anyString(),
+            eq(DataCategory.OBJECT),
+            eq(offerIds),
+            objectIds.capture()
+        );
+        assertThat(objectIds.getValue()).containsExactlyInAnyOrder(
+            "aeaaaaaaaaesicexaasycalg6xcwe5yaaaba",
+            "aeaaaaaaaaesicexaasycalg6xcwe4yaaaaq",
+            "aeaaaaaaaaesicexaasycalg6xcwe6iaaaaq"
+        );
 
         // 2x2 alerts (WARN for missing digest and ERROR for digest mismatch)
         verify(alertService, times(2)).createAlert(eq(VitamLogLevel.ERROR), anyString());
@@ -320,14 +404,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenLfcAndMetadataWithAllBadStorageMetadataDigestWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -337,23 +418,40 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_ALL_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json", "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
-                "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_ALL_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
             .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection());
 
-
         // When
-        BuildObjectGroupTraceabilityActionPlugin plugin =
-            new BuildObjectGroupTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildObjectGroupTraceabilityActionPlugin plugin = new BuildObjectGroupTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
@@ -368,14 +466,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
     @RunWithCustomExecutor
     public void givenLfcAndMetadata_With_AllBadStorageObjectDigests_When_ExecuteThenReturnResponseKO()
         throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -385,29 +480,47 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json", "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
-                "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_ALL_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_ALL_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
             .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection());
 
-
         // When
-        BuildObjectGroupTraceabilityActionPlugin plugin =
-            new BuildObjectGroupTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildObjectGroupTraceabilityActionPlugin plugin = new BuildObjectGroupTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(statusCode.getData("eventDetailData")).isEqualTo(
-            "{\"error\":\"There are at least1 objects with inconsistent digest between database and offers\",\"idObjectKo\":[\"aeaaaaaaaaesicexaasycalg6xcwe5yaaaba\"]}");
+            "{\"error\":\"There are at least1 objects with inconsistent digest between database and offers\",\"idObjectKo\":[\"aeaaaaaaaaesicexaasycalg6xcwe5yaaaba\"]}"
+        );
 
         // 2x2 alerts (WARN for missing digest and ERROR for digest mismatch)
         verify(alertService, times(3)).createAlert(eq(VitamLogLevel.ERROR), anyString());
@@ -418,14 +531,11 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
     @RunWithCustomExecutor
     public void givenLfcAndMetadata_With_AllBadStorageObjectDigests_GotDigest_When_ExecuteThenReturnResponseKO()
         throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -435,29 +545,47 @@ public class BuildObjectGroupTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> gotDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_ALL_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(gotDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECTGROUP), eq(offerIds), eq(Arrays.asList(
-                "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json", "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
-                "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_GOTS_ALL_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(gotDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.OBJECTGROUP),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aebaaaaaaaesicexaasycalg6xcwe6qaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe6aaaaaq.json",
+                        "aebaaaaaaaesicexaasycalg6xcwe5aaaaaq.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_ALL_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_OBJECTS_ALL_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
             .getBatchObjectInformation(anyString(), eq(DataCategory.OBJECT), eq(offerIds), anyCollection());
 
-
         // When
-        BuildObjectGroupTraceabilityActionPlugin plugin =
-            new BuildObjectGroupTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildObjectGroupTraceabilityActionPlugin plugin = new BuildObjectGroupTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(statusCode.getData("eventDetailData")).isEqualTo(
-            "{\"error\":\"There are at least1 metadata with inconsistent digest between database and offers\",\"idObjectKo\":[\"aebaaaaaaaesicexaasycalg6xcwe6qaaaaq\"]}");
+            "{\"error\":\"There are at least1 metadata with inconsistent digest between database and offers\",\"idObjectKo\":[\"aebaaaaaaaesicexaasycalg6xcwe6qaaaaq\"]}"
+        );
 
         // 2x2 alerts (WARN for missing digest and ERROR for digest mismatch)
         verify(alertService, times(2)).createAlert(eq(VitamLogLevel.ERROR), anyString());

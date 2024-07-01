@@ -49,5 +49,4 @@ public class CRLExceptionMapper implements ExceptionMapper<CRLException> {
         LOGGER.error(exception);
         return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
     }
-
 }

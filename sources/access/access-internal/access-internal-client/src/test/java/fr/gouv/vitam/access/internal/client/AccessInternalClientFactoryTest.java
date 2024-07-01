@@ -45,8 +45,9 @@ public class AccessInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        AccessInternalClientFactory
-            .changeMode(AccessInternalClientFactory.changeConfigurationFile("access-client.conf"));
+        AccessInternalClientFactory.changeMode(
+            AccessInternalClientFactory.changeConfigurationFile("access-client.conf")
+        );
     }
 
     @Test
@@ -55,31 +56,23 @@ public class AccessInternalClientFactoryTest {
             final ClientConfiguration configuration = new ClientConfigurationImpl().setServerPort(10);
             AccessInternalClientFactory.changeMode(configuration);
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             final ClientConfiguration configuration = new ClientConfigurationImpl("localhost", -10);
             AccessInternalClientFactory.changeMode(configuration);
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             final ClientConfiguration configuration = new ClientConfigurationImpl().setServerPort(10);
             AccessInternalClientFactory.changeMode(configuration);
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final AccessInternalClient client2 =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client2 = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -87,8 +80,7 @@ public class AccessInternalClientFactoryTest {
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessInternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AccessInternalClientFactory.getInstance().getVitamClientType());
 
@@ -107,8 +99,7 @@ public class AccessInternalClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AccessInternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AccessInternalClientFactory.getInstance().getVitamClientType());
     }

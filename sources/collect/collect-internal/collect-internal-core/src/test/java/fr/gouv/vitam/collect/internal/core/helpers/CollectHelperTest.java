@@ -28,8 +28,8 @@ package fr.gouv.vitam.collect.internal.core.helpers;
 
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.common.LocalDateUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -42,53 +42,89 @@ public class CollectHelperTest {
 
     @Before
     public void init() {
-        projectDto = new ProjectDto("XXXX00000111111", "name", "acquisitionInformation", "legalStatus", creationDate,
-            creationDate, "status", "archivalAgreement", "messageIdentifier",
-            "archivalAgencyIdentifier", "transferringAgencyIdentifier", "originatingAgencyIdentifier",
-            "submissionAgencyIdentifier", "archivalProfile", "comment", "unitUp", 1);
+        projectDto = new ProjectDto(
+            "XXXX00000111111",
+            "name",
+            "acquisitionInformation",
+            "legalStatus",
+            creationDate,
+            creationDate,
+            "status",
+            "archivalAgreement",
+            "messageIdentifier",
+            "archivalAgencyIdentifier",
+            "transferringAgencyIdentifier",
+            "originatingAgencyIdentifier",
+            "submissionAgencyIdentifier",
+            "archivalProfile",
+            "comment",
+            "unitUp",
+            1
+        );
     }
 
     @Test
     public void mapTransactionDtoToManifestContextTest_should_take_transaction_value() {
         // GIVEN
-        TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", "Tr_archivalAgreement", "Tr_messageIdentifier",
-                "Tr_archivalAgencyIdentifier", "Tr_transferringAgencyIdentifier", "Tr_originatingAgencyIdentifier",
-                "Tr_submissionAgencyIdentifier", "Tr_archivalProfile", "Tr_comment", 1, "Tr_acquisitionInformation",
-                "Tr_legalStatus",
-                creationDate, creationDate,
-                TransactionStatus.OPEN.toString());
-
+        TransactionDto transactionDto = new TransactionDto(
+            "XXXX00000111111",
+            "Tr_archivalAgreement",
+            "Tr_messageIdentifier",
+            "Tr_archivalAgencyIdentifier",
+            "Tr_transferringAgencyIdentifier",
+            "Tr_originatingAgencyIdentifier",
+            "Tr_submissionAgencyIdentifier",
+            "Tr_archivalProfile",
+            "Tr_comment",
+            1,
+            "Tr_acquisitionInformation",
+            "Tr_legalStatus",
+            creationDate,
+            creationDate,
+            TransactionStatus.OPEN.toString()
+        );
 
         // WHEN
         ManifestContext manifestContext = CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectDto);
 
         // THEN
         Assertions.assertThat(manifestContext).isNotNull();
-        Assertions.assertThat(manifestContext.getAcquisitionInformation())
-            .isEqualTo(transactionDto.getAcquisitionInformation());
+        Assertions.assertThat(manifestContext.getAcquisitionInformation()).isEqualTo(
+            transactionDto.getAcquisitionInformation()
+        );
         Assertions.assertThat(manifestContext.getArchivalAgreement()).isEqualTo(transactionDto.getArchivalAgreement());
         Assertions.assertThat(manifestContext.getComment()).isEqualTo(transactionDto.getComment());
     }
-
 
     @Test
     public void mapTransactionDtoToManifestContextTest_should_take_project_value() {
         // GIVEN
         final String creationDate = LocalDateUtil.now().toString();
-        TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", null, null,
-                null, null, null,
-                null, null, null, 1, null, null,
-                creationDate, creationDate,
-                TransactionStatus.OPEN.toString());
+        TransactionDto transactionDto = new TransactionDto(
+            "XXXX00000111111",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            null,
+            null,
+            creationDate,
+            creationDate,
+            TransactionStatus.OPEN.toString()
+        );
         // WHEN
         ManifestContext manifestContext = CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectDto);
 
         // THEN
         Assertions.assertThat(manifestContext).isNotNull();
-        Assertions.assertThat(manifestContext.getAcquisitionInformation())
-            .isEqualTo(projectDto.getAcquisitionInformation());
+        Assertions.assertThat(manifestContext.getAcquisitionInformation()).isEqualTo(
+            projectDto.getAcquisitionInformation()
+        );
         Assertions.assertThat(manifestContext.getArchivalAgreement()).isEqualTo(projectDto.getArchivalAgreement());
         Assertions.assertThat(manifestContext.getComment()).isEqualTo(projectDto.getComment());
     }
@@ -97,23 +133,32 @@ public class CollectHelperTest {
     public void mapTransactionDtoToManifestContextTest_should_take_mixed_value() {
         // GIVEN
         final String creationDate = LocalDateUtil.now().toString();
-        TransactionDto transactionDto =
-            new TransactionDto("XXXX00000111111", "Tr_archivalAgreement", "Tr_messageIdentifier",
-                "Tr_archivalAgencyIdentifier", "Tr_transferringAgencyIdentifier", "Tr_originatingAgencyIdentifier",
-                "Tr_submissionAgencyIdentifier", "Tr_archivalProfile", "Tr_comment", 1, null, "Tr_legalStatus",
-                creationDate, creationDate,
-                TransactionStatus.OPEN.toString());
+        TransactionDto transactionDto = new TransactionDto(
+            "XXXX00000111111",
+            "Tr_archivalAgreement",
+            "Tr_messageIdentifier",
+            "Tr_archivalAgencyIdentifier",
+            "Tr_transferringAgencyIdentifier",
+            "Tr_originatingAgencyIdentifier",
+            "Tr_submissionAgencyIdentifier",
+            "Tr_archivalProfile",
+            "Tr_comment",
+            1,
+            null,
+            "Tr_legalStatus",
+            creationDate,
+            creationDate,
+            TransactionStatus.OPEN.toString()
+        );
         // WHEN
         ManifestContext manifestContext = CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectDto);
 
         // THEN
         Assertions.assertThat(manifestContext).isNotNull();
-        Assertions.assertThat(manifestContext.getAcquisitionInformation())
-            .isEqualTo(projectDto.getAcquisitionInformation());
+        Assertions.assertThat(manifestContext.getAcquisitionInformation()).isEqualTo(
+            projectDto.getAcquisitionInformation()
+        );
         Assertions.assertThat(manifestContext.getArchivalAgreement()).isEqualTo(transactionDto.getArchivalAgreement());
         Assertions.assertThat(manifestContext.getComment()).isEqualTo(transactionDto.getComment());
     }
-
-
-
 }

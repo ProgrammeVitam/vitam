@@ -51,17 +51,30 @@ public class StateMachineFactoryTest {
         when(processStep.getPauseOrCancelAction()).thenReturn(PauseOrCancelAction.ACTION_RUN);
         when(processStep.getStepStatusCode()).thenReturn(StatusCode.UNKNOWN);
         processWorkflow.getSteps().add(processStep);
-        StateMachineFactory.get().create(
-            processWorkflow,
-            new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class),
-                mock(LogbookOperationsClientFactory.class), mock(WorkspaceClientFactory.class)));
+        StateMachineFactory.get()
+            .create(
+                processWorkflow,
+                new ProcessEngineImpl(
+                    WorkerParametersFactory.newWorkerParameters(),
+                    mock(ProcessDistributor.class),
+                    mock(LogbookOperationsClientFactory.class),
+                    mock(WorkspaceClientFactory.class)
+                )
+            );
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructorProcessWorkflowRequired() throws WorkflowNotFoundException {
-        StateMachineFactory.get().create(null,
-            new ProcessEngineImpl(WorkerParametersFactory.newWorkerParameters(), mock(ProcessDistributor.class),
-                mock(LogbookOperationsClientFactory.class), mock(WorkspaceClientFactory.class)));
+        StateMachineFactory.get()
+            .create(
+                null,
+                new ProcessEngineImpl(
+                    WorkerParametersFactory.newWorkerParameters(),
+                    mock(ProcessDistributor.class),
+                    mock(LogbookOperationsClientFactory.class),
+                    mock(WorkspaceClientFactory.class)
+                )
+            );
     }
 
     @Test(expected = IllegalArgumentException.class)

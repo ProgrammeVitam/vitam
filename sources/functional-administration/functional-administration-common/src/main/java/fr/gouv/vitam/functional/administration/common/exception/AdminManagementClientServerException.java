@@ -54,6 +54,4 @@ public class AdminManagementClientServerException extends ReferentialException {
     public AdminManagementClientServerException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }
-

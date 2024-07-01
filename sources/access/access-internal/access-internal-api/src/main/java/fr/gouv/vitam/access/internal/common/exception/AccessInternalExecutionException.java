@@ -31,7 +31,6 @@ package fr.gouv.vitam.access.internal.common.exception;
  */
 public class AccessInternalExecutionException extends AccessInternalException {
 
-
     private static final long serialVersionUID = 3109893413022252153L;
 
     /**
@@ -70,8 +69,12 @@ public class AccessInternalExecutionException extends AccessInternalException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public AccessInternalExecutionException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public AccessInternalExecutionException(
+        String message,
+        Throwable cause,
+        boolean enableSuppression,
+        boolean writableStackTrace
+    ) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

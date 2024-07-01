@@ -34,21 +34,19 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-
 public class IngestExternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        IngestExternalClientFactory
-            .changeMode(IngestExternalClientFactory.changeConfigurationFile("ingest-external-client.conf"));
+        IngestExternalClientFactory.changeMode(
+            IngestExternalClientFactory.changeConfigurationFile("ingest-external-client.conf")
+        );
     }
 
     @Test
     public void changeDefaultClientTypeTest() {
-
         // First client type : Production
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
+        final IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
 
@@ -61,8 +59,7 @@ public class IngestExternalClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final IngestExternalClient client =
-            IngestExternalClientFactory.getInstance().getClient();
+        final IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, IngestExternalClientFactory.getInstance().getVitamClientType());
     }

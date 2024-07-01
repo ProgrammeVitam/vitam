@@ -37,6 +37,7 @@ import java.util.Map;
  * Query helper (common to all types: SELECT, UPDATE, INSET, DELETE)
  */
 public class QueryHelper {
+
     protected QueryHelper() {
         // empty
     }
@@ -46,8 +47,7 @@ public class QueryHelper {
      * @return a PathQuery
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final PathQuery path(final String... pathes)
-        throws InvalidCreateOperationException {
+    public static final PathQuery path(final String... pathes) throws InvalidCreateOperationException {
         return new PathQuery(pathes);
     }
 
@@ -421,8 +421,7 @@ public class QueryHelper {
      * @return an ExistsQuery
      * @throws InvalidCreateOperationException using Exists operator
      */
-    public static final ExistsQuery exists(final String variableName)
-        throws InvalidCreateOperationException {
+    public static final ExistsQuery exists(final String variableName) throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.EXISTS, variableName);
     }
 
@@ -433,8 +432,7 @@ public class QueryHelper {
      * @deprecated Use $not + $exists
      */
     @Deprecated
-    public static final ExistsQuery missing(final String variableName)
-        throws InvalidCreateOperationException {
+    public static final ExistsQuery missing(final String variableName) throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.MISSING, variableName);
     }
 
@@ -443,8 +441,7 @@ public class QueryHelper {
      * @return an ExistsQuery using isNull operator
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final ExistsQuery isNull(final String variableName)
-        throws InvalidCreateOperationException {
+    public static final ExistsQuery isNull(final String variableName) throws InvalidCreateOperationException {
         return new ExistsQuery(QUERY.ISNULL, variableName);
     }
 
@@ -586,8 +583,7 @@ public class QueryHelper {
      * @return a MatchQuery using MATCH_PHRASE operator
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final MatchQuery matchPhrase(final String variableName,
-        final String value)
+    public static final MatchQuery matchPhrase(final String variableName, final String value)
         throws InvalidCreateOperationException {
         return new MatchQuery(QUERY.MATCH_PHRASE, variableName, value);
     }
@@ -598,8 +594,7 @@ public class QueryHelper {
      * @return a MatchQuery using MATCH_PHRASE_PREFIX operator
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final MatchQuery matchPhrasePrefix(final String variableName,
-        final String value)
+    public static final MatchQuery matchPhrasePrefix(final String variableName, final String value)
         throws InvalidCreateOperationException {
         return new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, variableName, value);
     }
@@ -708,8 +703,7 @@ public class QueryHelper {
      * @return a WildcardQuery
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final WildcardQuery wildcard(final String variableName,
-        final String value)
+    public static final WildcardQuery wildcard(final String variableName, final String value)
         throws InvalidCreateOperationException {
         return new WildcardQuery(variableName, value);
     }
@@ -745,27 +739,13 @@ public class QueryHelper {
      * @return a RangeQuery
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final RangeQuery range(final String variableName, final long min,
-        final boolean includeMin, final long max,
-        final boolean includeMax) throws InvalidCreateOperationException {
-        final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
-        final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
-        return new RangeQuery(variableName, rmin, min, rmax, max);
-    }
-
-    /**
-     * @param variableName key name
-     * @param min value
-     * @param includeMin include min value
-     * @param max value
-     * @param includeMax include max value
-     * @return a RangeQuery
-     * @throws InvalidCreateOperationException when creating query errors
-     */
-    public static final RangeQuery range(final String variableName, final double min,
+    public static final RangeQuery range(
+        final String variableName,
+        final long min,
         final boolean includeMin,
-        final double max, final boolean includeMax)
-        throws InvalidCreateOperationException {
+        final long max,
+        final boolean includeMax
+    ) throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
@@ -780,10 +760,13 @@ public class QueryHelper {
      * @return a RangeQuery
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final RangeQuery range(final String variableName, final String min,
+    public static final RangeQuery range(
+        final String variableName,
+        final double min,
         final boolean includeMin,
-        final String max, final boolean includeMax)
-        throws InvalidCreateOperationException {
+        final double max,
+        final boolean includeMax
+    ) throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);
@@ -798,9 +781,34 @@ public class QueryHelper {
      * @return a RangeQuery
      * @throws InvalidCreateOperationException when creating query errors
      */
-    public static final RangeQuery range(final String variableName, final Date min,
-        final boolean includeMin, final Date max,
-        final boolean includeMax) throws InvalidCreateOperationException {
+    public static final RangeQuery range(
+        final String variableName,
+        final String min,
+        final boolean includeMin,
+        final String max,
+        final boolean includeMax
+    ) throws InvalidCreateOperationException {
+        final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
+        final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
+        return new RangeQuery(variableName, rmin, min, rmax, max);
+    }
+
+    /**
+     * @param variableName key name
+     * @param min value
+     * @param includeMin include min value
+     * @param max value
+     * @param includeMax include max value
+     * @return a RangeQuery
+     * @throws InvalidCreateOperationException when creating query errors
+     */
+    public static final RangeQuery range(
+        final String variableName,
+        final Date min,
+        final boolean includeMin,
+        final Date max,
+        final boolean includeMax
+    ) throws InvalidCreateOperationException {
         final QUERY rmin = includeMin ? QUERY.GTE : QUERY.GT;
         final QUERY rmax = includeMax ? QUERY.LTE : QUERY.LT;
         return new RangeQuery(variableName, rmin, min, rmax, max);

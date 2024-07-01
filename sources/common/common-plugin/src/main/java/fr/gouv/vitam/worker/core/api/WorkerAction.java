@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.api;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -42,7 +41,6 @@ import java.util.List;
  * action handler class must be implement this interface
  */
 public interface WorkerAction {
-
     /**
      * Execute an action
      *
@@ -63,7 +61,6 @@ public interface WorkerAction {
      */
     default List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-
         try {
             List<ItemStatus> aggregateItemStatus = new ArrayList<>();
 
@@ -71,10 +68,10 @@ public interface WorkerAction {
             List<JsonNode> objectMetadataList = workerParameters.getObjectMetadataList();
 
             for (int i = 0; i < objectNameList.size(); i++) {
-
                 String objectId = objectNameList.get(i);
-                JsonNode metadata =
-                    objectMetadataList != null && !objectMetadataList.isEmpty() ? objectMetadataList.get(i) : null;
+                JsonNode metadata = objectMetadataList != null && !objectMetadataList.isEmpty()
+                    ? objectMetadataList.get(i)
+                    : null;
 
                 workerParameters.setObjectName(objectId);
                 workerParameters.setObjectMetadata(metadata);
@@ -85,12 +82,10 @@ public interface WorkerAction {
                 aggregateItemStatus.add(itemStatus);
             }
             return aggregateItemStatus;
-
         } finally {
             handler.setCurrentObjectId(null);
         }
     }
-
 
     /**
      * Check mandatory parameter
@@ -101,5 +96,4 @@ public interface WorkerAction {
     default void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         throw new IllegalStateException("Not implemented.");
     }
-
 }

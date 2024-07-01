@@ -148,7 +148,7 @@ public class WebApplicationResourceDeleteTest {
     private static final Integer ADMIN_TENANT_ID = 1;
     static final List<Integer> tenantList = Arrays.asList(0, ADMIN_TENANT_ID);
 
-    final static String tokenCSRF = XSRFHelper.generateCSRFToken();
+    static final String tokenCSRF = XSRFHelper.generateCSRFToken();
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
 
     private static final MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
@@ -160,23 +160,32 @@ public class WebApplicationResourceDeleteTest {
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> nodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes, functionalAdminIndexManager)
+        );
 
-        List<ElasticsearchNode> nodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                nodes, functionalAdminIndexManager));
+        MetadataCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes, metadataIndexManager)
+        );
 
-        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes, metadataIndexManager));
-
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes, logbookIndexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes, logbookIndexManager)
+        );
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -190,20 +199,22 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setEnableXsrFilter(true);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setFunctionalAdminIndexationConfiguration(
-            new FunctionalAdminIndexationConfiguration()
-                .setDefaultConfiguration(new CollectionConfiguration(1, 0))
+            new FunctionalAdminIndexationConfiguration().setDefaultConfiguration(new CollectionConfiguration(1, 0))
         );
         realAdminConfig.setMetadataIndexationConfiguration(
             new MetadataIndexationConfiguration()
-                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setUnit(new CollectionConfiguration(1, 0))
-                    .setObjectgroup(new CollectionConfiguration(1, 0)))
+                .setDefaultCollectionConfiguration(
+                    new DefaultCollectionConfiguration()
+                        .setUnit(new CollectionConfiguration(1, 0))
+                        .setObjectgroup(new CollectionConfiguration(1, 0))
+                )
         );
         realAdminConfig.setLogbookIndexationConfiguration(
             new LogbookIndexationConfiguration()
                 .setDefaultCollectionConfiguration(
                     new fr.gouv.vitam.logbook.common.server.config.DefaultCollectionConfiguration()
-                        .setLogbookoperation(new CollectionConfiguration(1, 0)))
+                        .setLogbookoperation(new CollectionConfiguration(1, 0))
+                )
         );
         VitamConfiguration.setTenants(tenantList);
 
@@ -215,28 +226,33 @@ public class WebApplicationResourceDeleteTest {
         RestAssured.port = serverPort;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
-
-        final DbConfigurationImpl adminConfiguration =
-            new DbConfigurationImpl(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMasterdataDbName(), false,
-                realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, Collections::emptyList,
-            functionalAdminIndexManager);
+        final DbConfigurationImpl adminConfiguration = new DbConfigurationImpl(
+            realAdminConfig.getMongoDbNodes(),
+            realAdminConfig.getMasterdataDbName(),
+            false,
+            realAdminConfig.getDbUserName(),
+            realAdminConfig.getDbPassword()
+        );
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(
+            adminConfiguration,
+            Collections::emptyList,
+            functionalAdminIndexManager
+        );
 
         try {
             application = new IhmRecetteMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
-
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
 
         XSRFFilter.addToken("testId", tokenCSRF);
 
-        FunctionalAdminCollectionsTestUtils
-            .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ONTOLOGY), false);
-
+        FunctionalAdminCollectionsTestUtils.afterTestClass(
+            Lists.newArrayList(FunctionalAdminCollections.ONTOLOGY),
+            false
+        );
     }
 
     @AfterClass
@@ -266,20 +282,33 @@ public class WebApplicationResourceDeleteTest {
     @Test
     @RunWithCustomExecutor
     public void givenNoSecureServerLoginUnauthorized() {
-        given().contentType(ContentType.JSON).body(CREDENTIALS).expect().statusCode(Status.UNAUTHORIZED.getStatusCode())
+        given()
+            .contentType(ContentType.JSON)
+            .body(CREDENTIALS)
+            .expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode())
             .when()
             .post("login");
-        given().contentType(ContentType.JSON).body(CREDENTIALS_NO_VALID).expect()
-            .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(CREDENTIALS_NO_VALID)
+            .expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode())
+            .when()
             .post("login");
     }
 
     @Test
     @RunWithCustomExecutor
     public void testSuccessStatus() {
-        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+        given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .cookie(COOKIE).expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
+            .cookie(COOKIE)
+            .expect()
+            .statusCode(Status.NO_CONTENT.getStatusCode())
+            .when()
+            .get("status");
     }
 
     @Test
@@ -288,9 +317,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
         } catch (final Exception e) {
@@ -305,9 +339,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOntology = addData(FunctionalAdminCollections.ONTOLOGY);
             assertTrue(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, ADMIN_TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, ADMIN_TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/ontologies");
             assertFalse(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
         } catch (final Exception e) {
@@ -323,9 +362,14 @@ public class WebApplicationResourceDeleteTest {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/rules");
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
         } catch (final Exception e) {
@@ -342,9 +386,14 @@ public class WebApplicationResourceDeleteTest {
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/accessionregisters");
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
@@ -359,9 +408,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOperation = addData(LogbookCollections.OPERATION);
             assertTrue(existsData(LogbookCollections.OPERATION, idOperation.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/logbook/operation");
             assertFalse(existsData(LogbookCollections.OPERATION, idOperation.getId()));
         } catch (final Exception e) {
@@ -376,9 +430,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idLfcOg = addData(LogbookCollections.LIFECYCLE_OBJECTGROUP);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/logbook/lifecycle/objectgroup");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfcOg.getId()));
         } catch (final Exception e) {
@@ -393,9 +452,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idLfcUnit = addData(LogbookCollections.LIFECYCLE_UNIT);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/logbook/lifecycle/unit");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
         } catch (final Exception e) {
@@ -410,9 +474,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOg = addData(MetadataCollections.OBJECTGROUP);
             assertTrue(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/metadata/objectgroup");
             assertFalse(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
         } catch (final Exception e) {
@@ -427,9 +496,14 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idUnit = addData(MetadataCollections.UNIT);
             assertTrue(existsData(MetadataCollections.UNIT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/metadata/unit");
             assertFalse(existsData(MetadataCollections.UNIT, idUnit.getId()));
         } catch (final Exception e) {
@@ -446,9 +520,14 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idUnit = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/accessContract");
             assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
         } catch (final Exception e) {
@@ -465,9 +544,14 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idUnit = addData(FunctionalAdminCollections.INGEST_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/ingestContract");
             assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
         } catch (final Exception e) {
@@ -484,9 +568,14 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idUnit = addData(FunctionalAdminCollections.MANAGEMENT_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.MANAGEMENT_CONTRACT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/managementContract");
             assertFalse(existsData(FunctionalAdminCollections.MANAGEMENT_CONTRACT, idUnit.getId()));
         } catch (final Exception e) {
@@ -518,9 +607,14 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             // delete all
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/deleteTnr");
             // check deleted
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
@@ -545,9 +639,14 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idProfile = addData(FunctionalAdminCollections.PROFILE);
             assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/profile");
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
         } catch (final Exception e) {
@@ -564,9 +663,14 @@ public class WebApplicationResourceDeleteTest {
 
             final GUID idAgency = addData(FunctionalAdminCollections.AGENCIES);
             assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/agencies");
             assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
         } catch (final Exception e) {
@@ -586,9 +690,14 @@ public class WebApplicationResourceDeleteTest {
             final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/context");
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
             assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
@@ -609,9 +718,14 @@ public class WebApplicationResourceDeleteTest {
             final GUID idSecurity = addData(FunctionalAdminCollections.SECURITY_PROFILE);
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            given()
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete/masterdata/securityProfil");
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
             assertFalse(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
@@ -620,7 +734,6 @@ public class WebApplicationResourceDeleteTest {
             fail("Exception using mongoDbAccess");
         }
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -657,7 +770,10 @@ public class WebApplicationResourceDeleteTest {
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+                .cookie(COOKIE)
+                .expect()
+                .statusCode(Status.OK.getStatusCode())
+                .when()
                 .delete("delete");
             // check not deleted
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
@@ -681,13 +797,14 @@ public class WebApplicationResourceDeleteTest {
 
     private GUID addData(FunctionalAdminCollections collection)
         throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
-
         final GUID guid = GUIDFactory.newGUID();
         ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
 
-        if (!collection.equals(FunctionalAdminCollections.CONTEXT) &&
+        if (
+            !collection.equals(FunctionalAdminCollections.CONTEXT) &&
             !collection.equals(FunctionalAdminCollections.SECURITY_PROFILE) &&
-            !collection.equals(FunctionalAdminCollections.FORMATS)) {
+            !collection.equals(FunctionalAdminCollections.FORMATS)
+        ) {
             data1.put("_tenant", 1);
         }
         data1.put("_v", "0");
@@ -739,9 +856,13 @@ public class WebApplicationResourceDeleteTest {
                 data1.put("Status", "ACTIVE");
                 data1.put("CreationDate", "2019-02-13");
                 data1.put("LastUpdate", "2019-02-13");
-                data1.set("Storage",
-                    JsonHandler.createObjectNode().put("UnitStrategy", "default").put("ObjectGroupStrategy", "default")
-                        .put("ObjectStrategy", "default"));
+                data1.set(
+                    "Storage",
+                    JsonHandler.createObjectNode()
+                        .put("UnitStrategy", "default")
+                        .put("ObjectGroupStrategy", "default")
+                        .put("ObjectStrategy", "default")
+                );
                 break;
             case RULES:
                 data1.put("RuleId", "APP-00001");
@@ -839,8 +960,7 @@ public class WebApplicationResourceDeleteTest {
     }
 
     public GUID addAdminContextData(FunctionalAdminCollections collection)
-        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException, InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
@@ -865,10 +985,8 @@ public class WebApplicationResourceDeleteTest {
         return adminContext;
     }
 
-
     public GUID addAdminSecurityData(FunctionalAdminCollections collection)
-        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
-        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException, InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);
@@ -893,14 +1011,11 @@ public class WebApplicationResourceDeleteTest {
 
     public boolean existsData(LogbookCollections collection, String id) {
         final BasicDBObject bbo = new BasicDBObject("_id", id);
-        return collection.getCollection().find(bbo)
-            .first() != null;
-
+        return collection.getCollection().find(bbo).first() != null;
     }
 
     public boolean existsData(MetadataCollections collection, String id) {
         final BasicDBObject bbo = new BasicDBObject("_id", id);
-        return collection.getCollection().find(bbo)
-            .first() != null;
+        return collection.getCollection().find(bbo).first() != null;
     }
 }

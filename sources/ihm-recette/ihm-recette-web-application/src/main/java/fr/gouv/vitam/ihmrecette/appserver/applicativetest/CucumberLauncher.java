@@ -92,5 +92,4 @@ public class CucumberLauncher {
         arguments.add(featurePath.toAbsolutePath().toString());
         return arguments;
     }
-
 }

@@ -38,5 +38,4 @@ public class SedaUtilsFactoryTest {
     public void givenSedaUtilsFactoryWhenCallingCreateWithoutParamsThenReturnClient() {
         assertTrue(SedaUtilsFactory.create(mock(HandlerIO.class)) instanceof SedaUtils);
     }
-
 }

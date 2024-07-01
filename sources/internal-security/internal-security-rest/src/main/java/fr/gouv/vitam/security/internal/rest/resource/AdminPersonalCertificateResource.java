@@ -44,8 +44,7 @@ public class AdminPersonalCertificateResource {
 
     private final PersonalCertificateService personalCertificateService;
 
-    public AdminPersonalCertificateResource(
-        PersonalCertificateService personalCertificateService) {
+    public AdminPersonalCertificateResource(PersonalCertificateService personalCertificateService) {
         this.personalCertificateService = personalCertificateService;
     }
 
@@ -60,8 +59,7 @@ public class AdminPersonalCertificateResource {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public void delete(byte[] certificate)
-        throws PersonalCertificateException {
+    public void delete(byte[] certificate) throws PersonalCertificateException {
         ParametersChecker.checkParameter("Certificate cannot be null", certificate);
 
         personalCertificateService.deletePersonalCertificateIfPresent(certificate);

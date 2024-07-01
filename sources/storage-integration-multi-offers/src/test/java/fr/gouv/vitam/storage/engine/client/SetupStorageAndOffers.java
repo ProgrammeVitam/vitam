@@ -59,6 +59,7 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
  * Helper class for storage engine IT test initialization with 2 offers
  */
 class SetupStorageAndOffers {
+
     private static final String JETTY_STORAGE_ADMIN = "jetty.storage.admin";
     public static final int PORT_SERVICE_WORKSPACE = 8987;
     public static final int PORT_SERVICE_STORAGE = 8583;
@@ -73,10 +74,14 @@ class SetupStorageAndOffers {
     private String secondStorageFolder;
     private String storageLoginDirectory;
 
-    public void setupStorageAndTwoOffer(TempFolderRule tempFolder, String storageConfFile, String workspaceConfFile,
-        String storageConf, String defaultOfferConf, String defaultSecondConf)
-        throws IOException, VitamApplicationServerException {
-
+    public void setupStorageAndTwoOffer(
+        TempFolderRule tempFolder,
+        String storageConfFile,
+        String workspaceConfFile,
+        String storageConf,
+        String defaultOfferConf,
+        String defaultSecondConf
+    ) throws IOException, VitamApplicationServerException {
         tempFolder.create();
         File vitamTempFolder = tempFolder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
@@ -85,13 +90,14 @@ class SetupStorageAndOffers {
         secondStorageFolder = tempFolder.newFolder().getAbsolutePath();
 
         // launch workspace
-        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE));
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKSPACE));
 
         final File workspaceConfigFile = PropertiesUtils.findFile(workspaceConfFile);
 
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            PropertiesUtils.readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration = PropertiesUtils.readYaml(
+            workspaceConfigFile,
+            fr.gouv.vitam.common.storage.StorageConfiguration.class
+        );
         workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
@@ -125,7 +131,6 @@ class SetupStorageAndOffers {
         SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
         ContentAddressableStorageAbstract.disableContainerCaching();
 
-
         // Second offer
         // Sorry Hack
         //Force offer 2 to have her own folder
@@ -138,8 +143,10 @@ class SetupStorageAndOffers {
         //
         SystemPropertyUtil.set("jetty.offer2.port", 8758);
         final File secondOfferConfig = PropertiesUtils.findFile(defaultSecondConf);
-        final OfferConfiguration secondOfferConfiguration =
-            PropertiesUtils.readYaml(secondOfferConfig, OfferConfiguration.class);
+        final OfferConfiguration secondOfferConfiguration = PropertiesUtils.readYaml(
+            secondOfferConfig,
+            OfferConfiguration.class
+        );
 
         List<MongoDbNode> mongoDbNodesSecond = secondOfferConfiguration.getMongoDbNodes();
         mongoDbNodesSecond.get(0).setDbPort(MongoRule.getDataBasePort());
@@ -163,8 +170,7 @@ class SetupStorageAndOffers {
             final String[] seg = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
-        serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + PORT_SERVICE_WORKSPACE);
+        serverConfiguration.setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + PORT_SERVICE_WORKSPACE);
 
         serverConfiguration.setZippingDirecorty(tempFolder.newFolder().getAbsolutePath());
         storageLoginDirectory = tempFolder.newFolder().getAbsolutePath();

@@ -77,13 +77,20 @@ public class LogbookStep extends CommonStep {
     @When("^je recherche le journal des opérations")
     public void download_logbook_operation() {
         try {
-            requestResponse =
-                world.getLogbookService().getLogbookOperation(world.getAccessClient(), world.getTenantId(),
-                    world.getContractId(), world.getApplicationSessionId(), world.getOperationId());
+            requestResponse = world
+                .getLogbookService()
+                .getLogbookOperation(
+                    world.getAccessClient(),
+                    world.getTenantId(),
+                    world.getContractId(),
+                    world.getApplicationSessionId(),
+                    world.getOperationId()
+                );
             isRequestResponseLifecycle = false;
         } catch (VitamClientException e) {
             LOGGER.error(
-                String.format("logbook operation could not be retrieved for operationId: %s", world.getOperationId()));
+                String.format("logbook operation could not be retrieved for operationId: %s", world.getOperationId())
+            );
             fail(String.format("logbook operation could not be retrieved for operationId: %s", world.getOperationId()));
         }
     }
@@ -91,56 +98,99 @@ public class LogbookStep extends CommonStep {
     @When("^je recherche le JCV de l'unité archivistique dont le titre est (.*)")
     public void download_logbook_lifecycle_unit(String unitTitle) {
         try {
-            String unitId = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
-                world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(),
-                unitTitle);
-            requestResponse = world.getAccessClient().selectUnitLifeCycleById(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                unitId, new Select().getFinalSelectById());
+            String unitId = world
+                .getAccessService()
+                .findUnitGUIDByTitleAndOperationId(
+                    world.getAccessClient(),
+                    world.getTenantId(),
+                    world.getContractId(),
+                    world.getApplicationSessionId(),
+                    world.getOperationId(),
+                    unitTitle
+                );
+            requestResponse = world
+                .getAccessClient()
+                .selectUnitLifeCycleById(
+                    new VitamContext(world.getTenantId())
+                        .setAccessContract(world.getContractId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    unitId,
+                    new Select().getFinalSelectById()
+                );
             isRequestResponseLifecycle = true;
         } catch (VitamClientException | InvalidCreateOperationException e) {
             LOGGER.error(
-                String.format("logbook lifecycle unit could not be retrieved for operationId and unit title: %s",
-                    world.getOperationId(), unitTitle));
-            fail(String.format("logbook lifecycle unit could not be retrieved for operationId and unit title: %s",
-                world.getOperationId(), unitTitle));
+                String.format(
+                    "logbook lifecycle unit could not be retrieved for operationId and unit title: %s",
+                    world.getOperationId(),
+                    unitTitle
+                )
+            );
+            fail(
+                String.format(
+                    "logbook lifecycle unit could not be retrieved for operationId and unit title: %s",
+                    world.getOperationId(),
+                    unitTitle
+                )
+            );
         }
     }
 
     @When("^je recherche le JCV du groupe d'objet de l'unité archivistique dont le titre est (.*)")
     public void download_logbook_lifecycle_object_for_unit(String unitTitle) {
         try {
-            String unitId = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
-                world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(),
-                unitTitle);
-            RequestResponse<JsonNode> requestResponseUnit =
-                world.getAccessClient().selectUnitbyId(
-                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            String unitId = world
+                .getAccessService()
+                .findUnitGUIDByTitleAndOperationId(
+                    world.getAccessClient(),
+                    world.getTenantId(),
+                    world.getContractId(),
+                    world.getApplicationSessionId(),
+                    world.getOperationId(),
+                    unitTitle
+                );
+            RequestResponse<JsonNode> requestResponseUnit = world
+                .getAccessClient()
+                .selectUnitbyId(
+                    new VitamContext(world.getTenantId())
+                        .setAccessContract(world.getContractId())
                         .setApplicationSessionId(world.getApplicationSessionId()),
-                    new SelectMultiQuery().getFinalSelectById(), unitId);
+                    new SelectMultiQuery().getFinalSelectById(),
+                    unitId
+                );
             if (requestResponseUnit.isOk()) {
                 RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponseUnit;
                 JsonNode unit = requestResponseOK.getResults().get(0);
                 if (unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText().isEmpty()) {
                     throw new VitamClientException("Unit does not have object");
                 }
-                requestResponse = world.getAccessClient().selectObjectGroupLifeCycleById(
-                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), new Select().getFinalSelectById());
+                requestResponse = world
+                    .getAccessClient()
+                    .selectObjectGroupLifeCycleById(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(world.getContractId())
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(),
+                        new Select().getFinalSelectById()
+                    );
                 isRequestResponseLifecycle = true;
             }
         } catch (VitamClientException | InvalidCreateOperationException e) {
             LOGGER.error(
                 String.format(
                     "logbook lifecycle object group could not be retrieved for operationId and unit title: %s",
-                    world.getOperationId(), unitTitle));
-            fail(String.format(
-                "logbook lifecycle object group could not be retrieved for operationId and unit title: %s",
-                world.getOperationId(), unitTitle));
+                    world.getOperationId(),
+                    unitTitle
+                )
+            );
+            fail(
+                String.format(
+                    "logbook lifecycle object group could not be retrieved for operationId and unit title: %s",
+                    world.getOperationId(),
+                    unitTitle
+                )
+            );
         }
-
     }
 
     /**
@@ -150,11 +200,17 @@ public class LogbookStep extends CommonStep {
      * @throws VitamClientException VitamClientException
      */
     @Then("^le statut final du journal des opérations est (.*)$")
-    public void the_logbook_operation_has_a_status(String status)
-        throws VitamClientException {
-        LogbookEventOperation lastEvent =
-            world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
-                world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), status);
+    public void the_logbook_operation_has_a_status(String status) throws VitamClientException {
+        LogbookEventOperation lastEvent = world
+            .getLogbookService()
+            .checkFinalStatusLogbook(
+                world.getAccessClient(),
+                world.getTenantId(),
+                world.getContractId(),
+                world.getApplicationSessionId(),
+                world.getOperationId(),
+                status
+            );
         world.setLogbookEvent(lastEvent);
     }
 
@@ -174,12 +230,11 @@ public class LogbookStep extends CommonStep {
      * @throws VitamClientException
      */
     @Then("^le journal des opérations est cohérent$")
-    public void the_logbook_operation_is_consistent()
-        throws VitamClientException {
-
+    public void the_logbook_operation_is_consistent() throws VitamClientException {
         if (requestResponse instanceof RequestResponseOK) {
-            RequestResponseOK<LogbookOperation> requestResponseOK =
-                (RequestResponseOK<LogbookOperation>) requestResponse;
+            RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<
+                    LogbookOperation
+                >) requestResponse;
             LogbookOperation master = requestResponseOK.getFirstResult();
             LogbookEventOperation lastEvent = Iterables.getLast(master.getEvents());
 
@@ -193,13 +248,21 @@ public class LogbookStep extends CommonStep {
             for (LogbookEventOperation event : master.getEvents()) {
                 // evIdProc of the event should be evId of THE MASTER
                 assertThat(event.getEvIdProc())
-                    .as("event has evIdProc value %s, but %s was expected. Event name is: %s", event.getEvIdProc(),
-                        masterEvId, event.getEvType())
+                    .as(
+                        "event has evIdProc value %s, but %s was expected. Event name is: %s",
+                        event.getEvIdProc(),
+                        masterEvId,
+                        event.getEvType()
+                    )
                     .isEqualTo(masterEvId);
                 // evTypeProc of event should be the same as master
                 assertThat(event.getEvTypeProc())
-                    .as("event has evTypeProc value %s, but %s was expected. Event name is: %s",
-                        event.getEvTypeProc(), masterEvTypeProc, event.getEvType())
+                    .as(
+                        "event has evTypeProc value %s, but %s was expected. Event name is: %s",
+                        event.getEvTypeProc(),
+                        masterEvTypeProc,
+                        event.getEvType()
+                    )
                     .isEqualTo(masterEvTypeProc);
 
                 evIds.add(event.getEvId());
@@ -209,17 +272,18 @@ public class LogbookStep extends CommonStep {
                 }
             }
             // evIds should be unique between events
-            assertThat(evIds.size()).as("all evId values should be differents but where not")
+            assertThat(evIds.size())
+                .as("all evId values should be differents but where not")
                 .isEqualTo(master.getEvents().size() + 1);
 
             // final status should be maximal status of events
             assertThat(finalStatus)
                 .as("the final outcome is %s, but an outcome %s was seen in an event", finalStatus, maxStatus)
                 .isGreaterThanOrEqualTo(maxStatus);
-
         } else {
             LOGGER.error(
-                String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
+                String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId())
+            );
             fail(String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
         }
     }
@@ -231,8 +295,7 @@ public class LogbookStep extends CommonStep {
      * @throws VitamClientException VitamClientException
      */
     @Then("^le journal ne contient pas de statut (.*)$")
-    public void the_logbook_has_not_the_status(String status)
-        throws VitamClientException {
+    public void the_logbook_has_not_the_status(String status) throws VitamClientException {
         if (requestResponse instanceof RequestResponseOK) {
             if (isRequestResponseLifecycle) {
                 the_logbook_lifecycle_has_not_the_status(status);
@@ -272,8 +335,13 @@ public class LogbookStep extends CommonStep {
             }
         } else {
             VitamError error = (VitamError) requestResponse;
-            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s, requestId is %s",
-                world.getOperationId(), error.getCode()));
+            LOGGER.error(
+                String.format(
+                    "logbook operation return a vitam error for operationId: %s, requestId is %s",
+                    world.getOperationId(),
+                    error.getCode()
+                )
+            );
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
     }
@@ -297,91 +365,106 @@ public class LogbookStep extends CommonStep {
             }
         } else {
             VitamError error = (VitamError) requestResponse;
-            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s, requestId is %s",
-                world.getOperationId(), error.getCode()));
+            LOGGER.error(
+                String.format(
+                    "logbook operation return a vitam error for operationId: %s, requestId is %s",
+                    world.getOperationId(),
+                    error.getCode()
+                )
+            );
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
     }
 
     private void the_logbook_operation_results_are(String eventName, String eventResults) throws SoftAssertionError {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
+        RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<LogbookOperation>) requestResponse;
 
         List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            List<LogbookEvent> events =
-                actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                    .filter(event -> !"STARTED".equals(event.getOutcome()))
-                    .collect(Collectors.toList());
+            List<LogbookEvent> events = actual
+                .stream()
+                .filter(event -> eventName.equals(event.getEvType()))
+                .filter(event -> !"STARTED".equals(event.getOutcome()))
+                .collect(Collectors.toList());
 
             the_logbook_event_result_check(eventName, eventResults, softly, events);
         }
     }
 
     private void the_logbook_lifecycle_results_are(String eventName, String eventResults) throws SoftAssertionError {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+        RequestResponseOK<LogbookLifecycle> requestResponseOK = (RequestResponseOK<LogbookLifecycle>) requestResponse;
 
         List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            List<LogbookEvent> events =
-                actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                    .filter(event -> !"STARTED".equals(event.getOutcome()))
-                    .collect(Collectors.toList());
+            List<LogbookEvent> events = actual
+                .stream()
+                .filter(event -> eventName.equals(event.getEvType()))
+                .filter(event -> !"STARTED".equals(event.getOutcome()))
+                .collect(Collectors.toList());
 
             the_logbook_event_result_check(eventName, eventResults, softly, events);
         }
     }
 
-    private void the_logbook_event_result_check(String eventName, String eventResults,
-        AutoCloseableSoftAssertions softly, List<LogbookEvent> events) {
+    private void the_logbook_event_result_check(
+        String eventName,
+        String eventResults,
+        AutoCloseableSoftAssertions softly,
+        List<LogbookEvent> events
+    ) {
         softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
         LogbookEvent onlyElement = Iterables.getOnlyElement(events);
 
         String currentResult = onlyElement.getOutDetail();
-        softly.assertThat(currentResult)
-            .as("event %s has outcome detail %s but excepted outcome detail is %s.", eventName, currentResult,
-                eventResults)
+        softly
+            .assertThat(currentResult)
+            .as(
+                "event %s has outcome detail %s but excepted outcome detail is %s.",
+                eventName,
+                currentResult,
+                eventResults
+            )
             .isEqualTo(eventResults);
     }
 
-
     private void the_logbook_operation_has_not_the_status(String status) {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
+        RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<LogbookOperation>) requestResponse;
         LogbookOperation master = requestResponseOK.getFirstResult();
-        assertThat(master.getOutcome()).as("master has forbidden status %s",
-            master.getOutcome(), master.getEvType()).isNotEqualTo(status);
+        assertThat(master.getOutcome())
+            .as("master has forbidden status %s", master.getOutcome(), master.getEvType())
+            .isNotEqualTo(status);
         for (LogbookEventOperation event : master.getEvents()) {
-            assertThat(event.getOutcome()).as("event has forbidden status %s. Event name is: %s",
-                event.getOutcome(), event.getEvType()).isNotEqualTo(status);
+            assertThat(event.getOutcome())
+                .as("event has forbidden status %s. Event name is: %s", event.getOutcome(), event.getEvType())
+                .isNotEqualTo(status);
         }
     }
 
     private void the_logbook_lifecycle_has_not_the_status(String status) {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+        RequestResponseOK<LogbookLifecycle> requestResponseOK = (RequestResponseOK<LogbookLifecycle>) requestResponse;
         LogbookLifecycle master = requestResponseOK.getFirstResult();
-        assertThat(master.getOutcome()).as("master has forbidden status %s",
-            master.getOutcome(), master.getEvType()).isNotEqualTo(status);
+        assertThat(master.getOutcome())
+            .as("master has forbidden status %s", master.getOutcome(), master.getEvType())
+            .isNotEqualTo(status);
         for (LogbookEvent event : master.getEvents()) {
-            assertThat(event.getOutcome()).as("event has forbidden status %s. Event name is: %s",
-                event.getOutcome(), event.getEvType()).isNotEqualTo(status);
+            assertThat(event.getOutcome())
+                .as("event has forbidden status %s. Event name is: %s", event.getOutcome(), event.getEvType())
+                .isNotEqualTo(status);
         }
     }
 
     private void the_logbook_operation_status_are(List<String> eventNames, String eventStatus)
         throws SoftAssertionError {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
+        RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<LogbookOperation>) requestResponse;
 
         List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             for (String eventName : eventNames) {
-                List<LogbookEvent> events =
-                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                        .filter(event -> !"STARTED".equals(event.getOutcome()))
-                        .collect(Collectors.toList());
+                List<LogbookEvent> events = actual
+                    .stream()
+                    .filter(event -> eventName.equals(event.getEvType()))
+                    .filter(event -> !"STARTED".equals(event.getOutcome()))
+                    .collect(Collectors.toList());
 
                 the_logbook_event_status_check(eventStatus, softly, eventName, events);
             }
@@ -390,46 +473,50 @@ public class LogbookStep extends CommonStep {
 
     private void the_logbook_lifecycle_status_are(List<String> eventNames, String eventStatus)
         throws SoftAssertionError {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+        RequestResponseOK<LogbookLifecycle> requestResponseOK = (RequestResponseOK<LogbookLifecycle>) requestResponse;
 
         List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
             for (String eventName : eventNames) {
-                List<LogbookEvent> events =
-                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                        .filter(event -> !"STARTED".equals(event.getOutcome()))
-                        .collect(Collectors.toList());
+                List<LogbookEvent> events = actual
+                    .stream()
+                    .filter(event -> eventName.equals(event.getEvType()))
+                    .filter(event -> !"STARTED".equals(event.getOutcome()))
+                    .collect(Collectors.toList());
 
                 the_logbook_event_status_check(eventStatus, softly, eventName, events);
             }
         }
     }
 
-    private void the_logbook_event_status_check(String eventStatus, AutoCloseableSoftAssertions softly,
-        String eventName, List<LogbookEvent> events) {
+    private void the_logbook_event_status_check(
+        String eventStatus,
+        AutoCloseableSoftAssertions softly,
+        String eventName,
+        List<LogbookEvent> events
+    ) {
         softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
         LogbookEvent onlyElement = Iterables.getOnlyElement(events);
 
         String currentStatus = onlyElement.getOutcome();
-        softly.assertThat(currentStatus)
+        softly
+            .assertThat(currentStatus)
             .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
             .isEqualTo(eventStatus);
     }
 
-
     private void the_logbook_operation_outcome_detail_is(String eventName, String eventOutDetail)
         throws SoftAssertionError {
-        RequestResponseOK<LogbookOperation> requestResponseOK =
-            (RequestResponseOK<LogbookOperation>) requestResponse;
+        RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<LogbookOperation>) requestResponse;
 
         List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
 
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            List<LogbookEvent> events =
-                actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                    .filter(event -> !"STARTED".equals(event.getOutcome()))
-                    .collect(Collectors.toList());
+            List<LogbookEvent> events = actual
+                .stream()
+                .filter(event -> eventName.equals(event.getEvType()))
+                .filter(event -> !"STARTED".equals(event.getOutcome()))
+                .collect(Collectors.toList());
 
             the_logbook_event_outcome_detail_check(eventName, eventOutDetail, softly, events);
         }
@@ -437,30 +524,34 @@ public class LogbookStep extends CommonStep {
 
     private void the_logbook_lifecycle_outcome_detail_is(String eventName, String eventOutDetail)
         throws SoftAssertionError {
-        RequestResponseOK<LogbookLifecycle> requestResponseOK =
-            (RequestResponseOK<LogbookLifecycle>) requestResponse;
+        RequestResponseOK<LogbookLifecycle> requestResponseOK = (RequestResponseOK<LogbookLifecycle>) requestResponse;
 
         List<LogbookEvent> actual = requestResponseOK.getFirstResult().getEvents();
 
         try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
-            List<LogbookEvent> events =
-                actual.stream().filter(event -> eventName.equals(event.getEvType()))
-                    .filter(event -> !"STARTED".equals(event.getOutcome()))
-                    .collect(Collectors.toList());
+            List<LogbookEvent> events = actual
+                .stream()
+                .filter(event -> eventName.equals(event.getEvType()))
+                .filter(event -> !"STARTED".equals(event.getOutcome()))
+                .collect(Collectors.toList());
 
             the_logbook_event_outcome_detail_check(eventName, eventOutDetail, softly, events);
         }
     }
 
-    private void the_logbook_event_outcome_detail_check(String eventName, String eventOutDetail,
-        AutoCloseableSoftAssertions softly, List<LogbookEvent> events) {
+    private void the_logbook_event_outcome_detail_check(
+        String eventName,
+        String eventOutDetail,
+        AutoCloseableSoftAssertions softly,
+        List<LogbookEvent> events
+    ) {
         softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
         LogbookEvent onlyElement = Iterables.getOnlyElement(events);
 
         String currentOutDetail = onlyElement.getOutDetail();
-        softly.assertThat(currentOutDetail)
-            .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail,
-                eventOutDetail)
+        softly
+            .assertThat(currentOutDetail)
+            .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail, eventOutDetail)
             .isEqualTo(eventOutDetail);
     }
 }

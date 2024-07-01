@@ -48,76 +48,82 @@ import static java.util.stream.Collectors.toMap;
 
 public class FileBucketTarCreatorBootstrapRecovery {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(FileBucketTarCreatorBootstrapRecovery.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        FileBucketTarCreatorBootstrapRecovery.class
+    );
 
     private final BasicFileStorage basicFileStorage;
     private final ObjectReferentialRepository objectReferentialRepository;
 
-
     public FileBucketTarCreatorBootstrapRecovery(
         BasicFileStorage basicFileStorage,
-        ObjectReferentialRepository objectReferentialRepository) {
-
+        ObjectReferentialRepository objectReferentialRepository
+    ) {
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
     }
 
-    public void initializeOnBootstrap(String fileBucketId, FileBucketTarCreator fileBucketTarCreator,
-        BucketTopologyHelper bucketTopologyHelper) {
-
+    public void initializeOnBootstrap(
+        String fileBucketId,
+        FileBucketTarCreator fileBucketTarCreator,
+        BucketTopologyHelper bucketTopologyHelper
+    ) {
         Set<String> containerNames = bucketTopologyHelper.listContainerNames(fileBucketId);
 
         try {
-
             // List existing files
             for (String containerName : containerNames) {
-                try (Stream<String> storageIdsStream = this.basicFileStorage
-                    .listStorageIdsByContainerName(containerName)) {
+                try (
+                    Stream<String> storageIdsStream = this.basicFileStorage.listStorageIdsByContainerName(containerName)
+                ) {
                     Iterator<List<String>> bulkIterator = Iterators.partition(
-                        storageIdsStream.iterator(), VitamConfiguration.getBatchSize());
+                        storageIdsStream.iterator(),
+                        VitamConfiguration.getBatchSize()
+                    );
 
                     while (bulkIterator.hasNext()) {
-
                         List<String> storageIds = bulkIterator.next();
                         try {
                             recoverBulkStorageIds(containerName, storageIds, fileBucketTarCreator);
                         } catch (ObjectReferentialException e) {
-                            throw new VitamRuntimeException("Could not initialize service to container " + containerName
-                                + " files " + storageIds, e);
+                            throw new VitamRuntimeException(
+                                "Could not initialize service to container " + containerName + " files " + storageIds,
+                                e
+                            );
                         }
                     }
                 }
             }
         } catch (IOException e) {
             throw new VitamRuntimeException(
-                "Could not recover file bucket tar creator on bootstrap for fileBucket " + fileBucketId, e);
+                "Could not recover file bucket tar creator on bootstrap for fileBucket " + fileBucketId,
+                e
+            );
         }
     }
 
-    private void recoverBulkStorageIds(String containerName, List<String> storageIds,
-        FileBucketTarCreator fileBucketTarCreator) throws ObjectReferentialException {
-
+    private void recoverBulkStorageIds(
+        String containerName,
+        List<String> storageIds,
+        FileBucketTarCreator fileBucketTarCreator
+    ) throws ObjectReferentialException {
         if (storageIds.isEmpty()) {
             return;
         }
 
         // Map storage ids to object names
-        Map<String, String> storageIdToObjectNameMap = storageIds.stream()
-            .collect(toMap(
-                storageId -> storageId,
-                LocalFileUtils::storageIdToObjectName
-            ));
+        Map<String, String> storageIdToObjectNameMap = storageIds
+            .stream()
+            .collect(toMap(storageId -> storageId, LocalFileUtils::storageIdToObjectName));
         HashSet<String> objectNames = new HashSet<>(storageIdToObjectNameMap.values());
 
         // Find objects in object referential (bulk)
         List<TapeObjectReferentialEntity> objectReferentialEntities =
-            this.objectReferentialRepository.bulkFind(containerName,
-                objectNames);
+            this.objectReferentialRepository.bulkFind(containerName, objectNames);
 
-        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectNameMap =
-            objectReferentialEntities.stream()
-                .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
+        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectNameMap = objectReferentialEntities
+            .stream()
+            .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
         // Process storage ids
         for (String storageId : storageIds) {
@@ -128,26 +134,30 @@ public class FileBucketTarCreatorBootstrapRecovery {
                 LOGGER.warn("Incomplete file " + storageId + ". Will be deleted");
                 this.basicFileStorage.deleteFile(containerName, storageId);
             } else {
-
-                TapeObjectReferentialEntity objectReferentialEntity =
-                    objectReferentialEntityByObjectNameMap.get(objectName);
+                TapeObjectReferentialEntity objectReferentialEntity = objectReferentialEntityByObjectNameMap.get(
+                    objectName
+                );
 
                 if (!storageId.equals(objectReferentialEntity.getStorageId())) {
                     // Not found in DB -> Log & delete file
                     LOGGER.warn("Incomplete or obsolete file " + storageId + ". Will be deleted");
                     this.basicFileStorage.deleteFile(containerName, storageId);
-                } else if (objectReferentialEntity.getLocation()
-                    instanceof TapeLibraryInputFileObjectStorageLocation) {
+                } else if (objectReferentialEntity.getLocation() instanceof TapeLibraryInputFileObjectStorageLocation) {
                     // Found & in file  =>  Add to queue
-                    LOGGER.warn("Input file to be scheduled for archival "
-                        + containerName + "/" + storageId);
-                    fileBucketTarCreator.addToQueue(new InputFileToProcessMessage(containerName, objectName, storageId,
-                        objectReferentialEntity.getSize(), objectReferentialEntity.getDigest(),
-                        objectReferentialEntity.getDigestType()));
+                    LOGGER.warn("Input file to be scheduled for archival " + containerName + "/" + storageId);
+                    fileBucketTarCreator.addToQueue(
+                        new InputFileToProcessMessage(
+                            containerName,
+                            objectName,
+                            storageId,
+                            objectReferentialEntity.getSize(),
+                            objectReferentialEntity.getDigest(),
+                            objectReferentialEntity.getDigestType()
+                        )
+                    );
                 } else {
                     // Input file already archived to TAR => Delete it
-                    LOGGER.debug("Input file already archived "
-                        + containerName + "/" + storageId);
+                    LOGGER.debug("Input file already archived " + containerName + "/" + storageId);
                     this.basicFileStorage.deleteFile(containerName, storageId);
                 }
             }

@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This class must be the reference to create new drivers implementation compatible with vitam
  */
 public abstract class AbstractDriver implements Driver {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractDriver.class);
 
     protected final Map<String, VitamClientFactoryInterface<? extends AbstractConnection>> connectionFactories =
@@ -58,8 +59,9 @@ public abstract class AbstractDriver implements Driver {
 
         if (connectionFactories.containsKey(offerId)) {
             try {
-                final VitamClientFactoryInterface<? extends AbstractConnection> factory =
-                    connectionFactories.get(offerId);
+                final VitamClientFactoryInterface<? extends AbstractConnection> factory = connectionFactories.get(
+                    offerId
+                );
                 try (final AbstractConnection connection = factory.getClient()) {
                     connection.checkStatus();
                 }
@@ -73,7 +75,6 @@ public abstract class AbstractDriver implements Driver {
         LOGGER.error("Driver {} has no Offer named {}", getName(), offerId);
         return false;
     }
-
 
     @Override
     public final boolean addOffer(StorageOffer offer, Properties parameters) {
@@ -91,7 +92,9 @@ public abstract class AbstractDriver implements Driver {
      * @return true if added
      */
     protected abstract VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(
-        StorageOffer offer, Properties parameters);
+        StorageOffer offer,
+        Properties parameters
+    );
 
     @Override
     public final boolean removeOffer(String offer) {
@@ -104,7 +107,6 @@ public abstract class AbstractDriver implements Driver {
         return false;
     }
 
-
     @Override
     public final boolean hasOffer(String offerId) {
         return connectionFactories.containsKey(offerId);
@@ -112,7 +114,10 @@ public abstract class AbstractDriver implements Driver {
 
     @Override
     public void close() {
-        for (Map.Entry<String, VitamClientFactoryInterface<? extends AbstractConnection>> item : connectionFactories.entrySet()) {
+        for (Map.Entry<
+            String,
+            VitamClientFactoryInterface<? extends AbstractConnection>
+        > item : connectionFactories.entrySet()) {
             item.getValue().shutdown();
         }
         connectionFactories.clear();

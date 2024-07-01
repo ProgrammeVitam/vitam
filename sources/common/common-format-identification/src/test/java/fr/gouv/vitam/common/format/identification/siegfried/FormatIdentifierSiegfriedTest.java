@@ -70,7 +70,6 @@ public class FormatIdentifierSiegfriedTest {
     private static SiegfriedClientFactory siegfriedClientFactory;
     private static SiegfriedClientRest siegfriedClientRest;
 
-
     private static FormatIdentifierSiegfried siegfried;
 
     private static JsonNode getJsonNode(String file) {
@@ -119,7 +118,8 @@ public class FormatIdentifierSiegfriedTest {
     public void testSiegfriedIdentify() throws Exception {
         reset(siegfriedClientRest);
         when(siegfriedClientRest.analysePath(any())).thenReturn(
-            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_OK));
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_OK)
+        );
 
         final List<FormatIdentifierResponse> response = siegfried.analysePath(FILE_PATH);
         assertNotNull(response);
@@ -135,7 +135,8 @@ public class FormatIdentifierSiegfriedTest {
     public void testSiegfriedIdentifyUnknownFormatFileButWarnWithFMT() throws Exception {
         reset(siegfriedClientRest);
         when(siegfriedClientRest.analysePath(any())).thenReturn(
-            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW));
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW)
+        );
         List<FormatIdentifierResponse> result = siegfried.analysePath(FILE_PATH);
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -146,7 +147,8 @@ public class FormatIdentifierSiegfriedTest {
     public void testSiegfriedIdentifyNoFormatFile() throws Exception {
         reset(siegfriedClientRest);
         when(siegfriedClientRest.analysePath(any())).thenReturn(
-            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW_NOWARN));
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW_NOWARN)
+        );
         siegfried.analysePath(FILE_PATH);
     }
 
@@ -154,7 +156,8 @@ public class FormatIdentifierSiegfriedTest {
     public void testSiegfriedIdentifyBadPath() throws Exception {
         reset(siegfriedClientRest);
         when(siegfriedClientRest.analysePath(any())).thenReturn(
-            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_BAD));
+            new RequestResponseOK().addResult(JSON_NODE_RESPONSE_BAD)
+        );
         siegfried.analysePath(FILE_PATH);
     }
 
@@ -171,5 +174,4 @@ public class FormatIdentifierSiegfriedTest {
         when(siegfriedClientRest.analysePath(any())).thenThrow(FormatIdentifierNotFoundException.class);
         siegfried.analysePath(FILE_PATH);
     }
-
 }

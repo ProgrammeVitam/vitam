@@ -87,21 +87,27 @@ public class BuildUnitTraceabilityActionPluginTest {
         "BuildUnitTraceabilityActionPlugin/traceabilityDataBadDigest.jsonl";
     private static final String TRACEABILITY_STATS_BAD_HASH_FILE =
         "BuildUnitTraceabilityActionPlugin/traceabilityStatsBadDigest.json";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
+
     @Mock
     private HandlerIO handler;
+
     @Mock
     private WorkerParameters params;
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -124,14 +130,11 @@ public class BuildUnitTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenLfcAndMetadataWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -141,38 +144,54 @@ public class BuildUnitTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(VitamConfiguration.getDefaultStrategy());
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.UNIT), eq(offerIds), eq(Arrays.asList(
-                "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.UNIT),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json"
+                    )
+                )
+            );
 
         // When
-        BuildUnitTraceabilityActionPlugin plugin =
-            new BuildUnitTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildUnitTraceabilityActionPlugin plugin = new BuildUnitTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
-        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE)));
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE))
+        );
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenMultipleBatchLfcAndMetadataWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -182,45 +201,71 @@ public class BuildUnitTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest1 = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_PART1_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest1).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.UNIT), eq(offerIds), eq(Arrays.asList(
-                "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_PART1_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest1)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.UNIT),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json"
+                    )
+                )
+            );
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest2 = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_PART2_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest2).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.UNIT), eq(offerIds), eq(Arrays.asList(
-                "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json")));
-
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_PART2_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest2)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.UNIT),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json"
+                    )
+                )
+            );
 
         // When
-        BuildUnitTraceabilityActionPlugin plugin =
-            new BuildUnitTraceabilityActionPlugin(storageClientFactory, 4, alertService);
+        BuildUnitTraceabilityActionPlugin plugin = new BuildUnitTraceabilityActionPlugin(
+            storageClientFactory,
+            4,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(TRACEABILITY_DATA_FILE));
-        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE)));
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_FILE))
+        );
         verifyNoMoreInteractions(alertService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenLfcAndMetadataWithBadStorageDigestWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -230,25 +275,45 @@ public class BuildUnitTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> objectDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(objectDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.UNIT), eq(offerIds), eq(Arrays.asList(
-                "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(objectDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.UNIT),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json"
+                    )
+                )
+            );
 
         // When
-        BuildUnitTraceabilityActionPlugin plugin =
-            new BuildUnitTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildUnitTraceabilityActionPlugin plugin = new BuildUnitTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(traceabilityDataFile).hasSameContentAs(PropertiesUtils.getResourceFile(
-            TRACEABILITY_DATA_BAD_HASH_FILE));
-        JsonAssert.assertJsonEquals(JsonHandler.getFromFile(traceabilityStatsFile),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_BAD_HASH_FILE)));
+        assertThat(traceabilityDataFile).hasSameContentAs(
+            PropertiesUtils.getResourceFile(TRACEABILITY_DATA_BAD_HASH_FILE)
+        );
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromFile(traceabilityStatsFile),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS_BAD_HASH_FILE))
+        );
         // 2 alerts (WARN for missing digest and ERROR for digest mismatch)
         verify(alertService, times(1)).createAlert(eq(VitamLogLevel.WARN), anyString());
         verify(alertService, times(1)).createAlert(eq(VitamLogLevel.ERROR), anyString());
@@ -257,14 +322,11 @@ public class BuildUnitTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenLfcAndMetadataWithAllBadStorageDigestWhenExecuteThenReturnResponseOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         doReturn(PropertiesUtils.getResourceFile(LFC_WITH_METADATA_FILE)).when(handler).getInput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl"))
-            .when(handler).getOutput(0);
-        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json"))
-            .when(handler).getOutput(1);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.jsonl")).when(handler).getOutput(0);
+        doReturn(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")).when(handler).getOutput(1);
         File traceabilityDataFile = folder.newFile();
         File traceabilityStatsFile = folder.newFile();
         doReturn(traceabilityDataFile).when(handler).getNewLocalFile("traceabilityData.jsonl");
@@ -274,23 +336,41 @@ public class BuildUnitTraceabilityActionPluginTest {
         doReturn(offerIds).when(storageClient).getOffers(anyString());
 
         RequestResponseOK<BatchObjectInformationResponse> MetadataDigest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_ALL_BAD_DIGEST_FILE), RequestResponseOK.class,
-            BatchObjectInformationResponse.class);
-        doReturn(MetadataDigest).when(storageClient)
-            .getBatchObjectInformation(anyString(), eq(DataCategory.UNIT), eq(offerIds), eq(Arrays.asList(
-                "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
-                "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json", "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json")));
+            PropertiesUtils.getResourceAsStream(BATCH_DIGESTS_ALL_BAD_DIGEST_FILE),
+            RequestResponseOK.class,
+            BatchObjectInformationResponse.class
+        );
+        doReturn(MetadataDigest)
+            .when(storageClient)
+            .getBatchObjectInformation(
+                anyString(),
+                eq(DataCategory.UNIT),
+                eq(offerIds),
+                eq(
+                    Arrays.asList(
+                        "aeaqaaaaaaesicexaasycalg6wczgmiaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwyaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczguqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgvqaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwaaaaba.json",
+                        "aeaqaaaaaaesicexaasycalg6wczgwqaaaaq.json"
+                    )
+                )
+            );
 
         // When
-        BuildUnitTraceabilityActionPlugin plugin =
-            new BuildUnitTraceabilityActionPlugin(storageClientFactory, 1000, alertService);
+        BuildUnitTraceabilityActionPlugin plugin = new BuildUnitTraceabilityActionPlugin(
+            storageClientFactory,
+            1000,
+            alertService
+        );
         ItemStatus statusCode = plugin.execute(params, handler);
 
         // Then
         assertThat(statusCode.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(statusCode.getData("eventDetailData")).isEqualTo(
-            "{\"error\":\"There are at least1 metadata with inconsistent digest between database and offers\",\"idObjectKo\":[\"aeaqaaaaaaesicexaasycalg6wczgwyaaaba\"]}");
+            "{\"error\":\"There are at least1 metadata with inconsistent digest between database and offers\",\"idObjectKo\":[\"aeaqaaaaaaesicexaasycalg6wczgwyaaaba\"]}"
+        );
 
         // 2 alerts (WARN for missing digest and ERROR for digest mismatch)
         verify(alertService, times(2)).createAlert(eq(VitamLogLevel.WARN), anyString());

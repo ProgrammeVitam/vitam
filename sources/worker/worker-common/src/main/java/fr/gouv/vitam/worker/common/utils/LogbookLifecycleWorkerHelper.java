@@ -41,6 +41,7 @@ import org.apache.commons.io.FilenameUtils;
  * Helper for Worker handlers to handle Logbook Lifecycle at startup/at end
  */
 public class LogbookLifecycleWorkerHelper {
+
     private static final String LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG = "Logbook LifeCycle resource not found";
 
     /**
@@ -69,33 +70,46 @@ public class LogbookLifecycleWorkerHelper {
      * @param additionalParams the additional params
      * @throws ProcessingException if logbook lfc ressouce not found
      */
-    public static void updateLifeCycleStep(LogbookLifeCyclesClientHelper helper,
-        LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, String lfcEventType,
-        LogbookTypeProcess logbookTypeProcess, StatusCode statusCode, String... additionalParams)
-        throws ProcessingException {
-
+    public static void updateLifeCycleStep(
+        LogbookLifeCyclesClientHelper helper,
+        LogbookLifeCycleParameters logbookLifecycleParameters,
+        WorkerParameters params,
+        String lfcEventType,
+        LogbookTypeProcess logbookTypeProcess,
+        StatusCode statusCode,
+        String... additionalParams
+    ) throws ProcessingException {
         try {
             if (additionalParams != null && additionalParams.length >= 1) {
-                logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                    additionalParams[0]);
+                logbookLifecycleParameters.putParameterValue(
+                    LogbookParameterName.objectIdentifier,
+                    additionalParams[0]
+                );
             } else {
-                logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                    getObjectID(params));
+                logbookLifecycleParameters.putParameterValue(
+                    LogbookParameterName.objectIdentifier,
+                    getObjectID(params)
+                );
             }
 
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                params.getContainerName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                GUIDFactory.newEventGUID(0).toString());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                logbookTypeProcess.name());
+            logbookLifecycleParameters.putParameterValue(
+                LogbookParameterName.eventIdentifierProcess,
+                params.getContainerName()
+            );
+            logbookLifecycleParameters.putParameterValue(
+                LogbookParameterName.eventIdentifier,
+                GUIDFactory.newEventGUID(0).toString()
+            );
+            logbookLifecycleParameters.putParameterValue(
+                LogbookParameterName.eventTypeProcess,
+                logbookTypeProcess.name()
+            );
 
             if (lfcEventType == null) {
                 logbookLifecycleParameters.setFinalStatus(params.getCurrentStep(), null, statusCode, null);
             } else {
                 logbookLifecycleParameters.setFinalStatus(lfcEventType, null, statusCode, null);
             }
-
 
             helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
@@ -110,23 +124,26 @@ public class LogbookLifecycleWorkerHelper {
      * @param params the parameters the worker parameters
      * @throws ProcessingException if logbook lfc ressouce not found
      */
-    public static void updateLifeCycleForBegining(LogbookLifeCyclesClientHelper helper,
-        LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params,
-        LogbookTypeProcess logbookTypeProcess)
-        throws ProcessingException {
-
+    public static void updateLifeCycleForBegining(
+        LogbookLifeCyclesClientHelper helper,
+        LogbookLifeCycleParameters logbookLifecycleParameters,
+        WorkerParameters params,
+        LogbookTypeProcess logbookTypeProcess
+    ) throws ProcessingException {
         try {
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier,
-                getObjectID(params));
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-                params.getContainerName());
-            logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                logbookTypeProcess.name());
+            logbookLifecycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, getObjectID(params));
+            logbookLifecycleParameters.putParameterValue(
+                LogbookParameterName.eventIdentifierProcess,
+                params.getContainerName()
+            );
+            logbookLifecycleParameters.putParameterValue(
+                LogbookParameterName.eventTypeProcess,
+                logbookTypeProcess.name()
+            );
             helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
             SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);
             throw new ProcessingException(e);
         }
     }
-
 }

@@ -60,5 +60,4 @@ public class ContractsDetailsModel {
     public void setManagementContractModel(ManagementContractModel managementContractModel) {
         this.managementContractModel = managementContractModel;
     }
-
 }

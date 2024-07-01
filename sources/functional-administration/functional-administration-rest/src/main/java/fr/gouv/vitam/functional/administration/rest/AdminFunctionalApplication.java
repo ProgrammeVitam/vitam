@@ -28,8 +28,6 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
@@ -76,15 +74,18 @@ public class AdminFunctionalApplication extends Application {
         AdminApplication adminApplication = new AdminApplication();
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final AdminManagementConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            final AdminManagementConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                AdminManagementConfiguration.class
+            );
 
             // Validate configuration
             AdminManagementConfigurationValidator.validateConfiguration(configuration);
 
             // Elasticsearch configuration
-            ElasticsearchFunctionalAdminIndexManager indexManager =
-                new ElasticsearchFunctionalAdminIndexManager(configuration);
+            ElasticsearchFunctionalAdminIndexManager indexManager = new ElasticsearchFunctionalAdminIndexManager(
+                configuration
+            );
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
@@ -95,22 +96,30 @@ public class AdminFunctionalApplication extends Application {
                 new FunctionAdministrationOntologyLoader()
             );
 
-            final AdminManagementResource resource = new AdminManagementResource(configuration, ontologyLoader,
-                indexManager);
+            final AdminManagementResource resource = new AdminManagementResource(
+                configuration,
+                ontologyLoader,
+                indexManager
+            );
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
             singletons.add(new ReindexationResource(indexManager));
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
-            final VitamCounterService vitamCounterService =
-                new VitamCounterService(mongoDbAccess, VitamConfiguration.getTenants(), externalIdentifiers);
+            final VitamCounterService vitamCounterService = new VitamCounterService(
+                mongoDbAccess,
+                VitamConfiguration.getTenants(),
+                externalIdentifiers
+            );
 
             FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
-            SecurityProfileService securityProfileService = new SecurityProfileService(mongoDbAccess,
+            SecurityProfileService securityProfileService = new SecurityProfileService(
+                mongoDbAccess,
                 vitamCounterService,
-                functionalBackupService);
+                functionalBackupService
+            );
 
             ContextService contextService = new ContextServiceImpl(mongoDbAccess, vitamCounterService);
 
@@ -121,19 +130,17 @@ public class AdminFunctionalApplication extends Application {
 
             final OntologyServiceImpl ontologyService = new OntologyServiceImpl(mongoDbAccess, functionalBackupService);
 
-
             AdminContextResource adminContextResource = new AdminContextResource(contextResource);
             singletons.add(adminContextResource);
 
-
             OntologyResource ontologyResource = new OntologyResource(ontologyService);
-            AdminOntologyResource adminOntologyResource =
-                new AdminOntologyResource(ontologyResource, ontologyService);
+            AdminOntologyResource adminOntologyResource = new AdminOntologyResource(ontologyResource, ontologyService);
             singletons.add(adminOntologyResource);
 
             SecurityProfileResource securityProfileResource = new SecurityProfileResource(securityProfileService);
-            AdminSecurityProfileResource adminSecurityProfileResource =
-                new AdminSecurityProfileResource(securityProfileResource);
+            AdminSecurityProfileResource adminSecurityProfileResource = new AdminSecurityProfileResource(
+                securityProfileResource
+            );
             singletons.add(adminSecurityProfileResource);
 
             singletons.add(new AdminMigrationResource(configuration, ontologyLoader, indexManager));
@@ -141,7 +148,6 @@ public class AdminFunctionalApplication extends Application {
 
             singletons.add(new BasicAuthenticationFilter(configuration));
             singletons.add(new AdminRequestIdFilter());
-
         } catch (VitamException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -151,5 +157,4 @@ public class AdminFunctionalApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

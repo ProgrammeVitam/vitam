@@ -55,5 +55,4 @@ public class Action {
         this.actionDefinition = actionDefinition;
         return this;
     }
-
 }

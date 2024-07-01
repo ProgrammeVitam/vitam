@@ -30,10 +30,8 @@ package fr.gouv.vitam.storage.engine.common.model;
  *
  */
 public enum TapeState {
-
     EMPTY,
     OPEN,
     FULL,
-    CONFLICT
-
+    CONFLICT,
 }

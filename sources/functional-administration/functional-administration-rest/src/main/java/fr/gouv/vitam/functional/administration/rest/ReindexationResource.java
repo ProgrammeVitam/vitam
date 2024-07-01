@@ -75,12 +75,10 @@ import java.util.List;
 public class ReindexationResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReindexationResource.class);
-    private static final String OPTIONS_IS_MANDATORY_PARAMETER =
-        "Parameters are mandatory";
+    private static final String OPTIONS_IS_MANDATORY_PARAMETER = "Parameters are mandatory";
 
     private static final String REINDEXATION_EXCEPTION_MSG =
         "ERROR: Exception has been thrown when reindexing Vitam collections: ";
-
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
@@ -100,9 +98,12 @@ public class ReindexationResource {
     private final ElasticsearchFunctionalAdminIndexManager indexManager;
 
     @VisibleForTesting
-    public ReindexationResource(LogbookOperationsClientFactory logbookOperationsClientFactory,
-        MetaDataClientFactory metaDataClientFactory, IndexationHelper indexationHelper,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public ReindexationResource(
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        MetaDataClientFactory metaDataClientFactory,
+        IndexationHelper indexationHelper,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
         this.indexationHelper = indexationHelper;
@@ -145,28 +146,42 @@ public class ReindexationResource {
             results.add(indexationResult);
         }
 
-        boolean atLeastOneOK = results.stream()
+        boolean atLeastOneOK = results
+            .stream()
             .anyMatch(indexationResult -> CollectionUtils.isNotEmpty(indexationResult.getIndexOK()));
 
-        boolean atLeastOneKO = results.stream()
+        boolean atLeastOneKO = results
+            .stream()
             .anyMatch(indexationResult -> CollectionUtils.isNotEmpty(indexationResult.getIndexKO()));
 
         if (atLeastOneKO && !atLeastOneOK) {
             final Status returnedStatus = Status.INTERNAL_SERVER_ERROR;
             return Response.status(returnedStatus)
-                .entity(new VitamError(returnedStatus.name()).setHttpCode(returnedStatus.getStatusCode())
-                    .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
-                    .setState("code_vitam")
-                    .setMessage(JsonHandler.unprettyPrint(results))
-                    .setDescription("Internal error."))
+                .entity(
+                    new VitamError(returnedStatus.name())
+                        .setHttpCode(returnedStatus.getStatusCode())
+                        .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
+                        .setState("code_vitam")
+                        .setMessage(JsonHandler.unprettyPrint(results))
+                        .setDescription("Internal error.")
+                )
                 .build();
         } else if (atLeastOneKO) {
-
-            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK<ReindexationResult>()
-                .addAllResults(results).setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+            return Response.status(Status.ACCEPTED)
+                .entity(
+                    new RequestResponseOK<ReindexationResult>()
+                        .addAllResults(results)
+                        .setHttpCode(Status.ACCEPTED.getStatusCode())
+                )
+                .build();
         } else {
-            return Response.status(Status.CREATED).entity(new RequestResponseOK<ReindexationResult>()
-                .addAllResults(results).setHttpCode(Status.CREATED.getStatusCode())).build();
+            return Response.status(Status.CREATED)
+                .entity(
+                    new RequestResponseOK<ReindexationResult>()
+                        .addAllResults(results)
+                        .setHttpCode(Status.CREATED.getStatusCode())
+                )
+                .build();
         }
     }
 
@@ -189,15 +204,15 @@ public class ReindexationResource {
     }
 
     private ReindexationResult reindexFunctionalAdminCollection(IndexParameters indexParameters) {
-
         // Reindex of the given collection
         FunctionalAdminCollections collectionToReindex;
         try {
-            collectionToReindex =
-                FunctionalAdminCollections.valueOf(indexParameters.getCollectionName());
+            collectionToReindex = FunctionalAdminCollections.valueOf(indexParameters.getCollectionName());
         } catch (IllegalArgumentException ex) {
-            String message = String.format("Try to reindex an unknown collection %s", indexParameters
-                .getCollectionName());
+            String message = String.format(
+                "Try to reindex an unknown collection %s",
+                indexParameters.getCollectionName()
+            );
             LOGGER.error(message, ex);
             return indexationHelper.getFullKOResult(indexParameters, message);
         }
@@ -209,7 +224,6 @@ public class ReindexationResource {
         MongoCollection<Document> mongoCollection = collectionToReindex.getCollection();
 
         try {
-
             ElasticsearchIndexAlias indexAlias =
                 this.indexManager.getElasticsearchIndexAliasResolver(collectionToReindex).resolveIndexName(null);
             ElasticsearchIndexSettings indexSettings =
@@ -222,13 +236,13 @@ public class ReindexationResource {
                 indexSettings,
                 collectionToReindex.getElasticsearchCollection(),
                 null,
-                null);
+                null
+            );
 
             ReindexationResult indexationResult = new ReindexationResult();
             indexationResult.setCollectionName(indexParameters.getCollectionName());
             indexationResult.setIndexOK(Collections.singletonList(reindexResult));
             return indexationResult;
-
         } catch (Exception exc) {
             LOGGER.error("Cannot reindex collection " + collectionToReindex.name() + ". Unexpected error");
             return indexationHelper.getFullKOResult(indexParameters, exc.getMessage());
@@ -251,7 +265,6 @@ public class ReindexationResource {
         // call the switch service
         switchIndexParameters.forEach(switchIndex -> {
             try {
-
                 SwitchIndexResult switchIndexResult;
                 if (VitamCollectionHelper.isLogbookCollection(switchIndex.getCollectionName())) {
                     switchIndexResult = switchLogbookCollectionAlias(switchIndex);
@@ -262,50 +275,62 @@ public class ReindexationResource {
                 }
 
                 results.add(switchIndexResult);
-
             } catch (Exception e) {
-                String message = String.format("Error while switching indexes for alias '%s' into '%s'",
-                    switchIndex.getAlias(), switchIndex.getIndexName());
+                String message = String.format(
+                    "Error while switching indexes for alias '%s' into '%s'",
+                    switchIndex.getAlias(),
+                    switchIndex.getIndexName()
+                );
                 LOGGER.error(message, e);
                 results.add(indexationHelper.getKOResult(switchIndex, message));
             }
         });
 
-        boolean atLeastOneOK = results.stream()
+        boolean atLeastOneOK = results
+            .stream()
             .anyMatch(switchIndexResult -> switchIndexResult.getStatusCode() == StatusCode.OK);
 
-        boolean atLeastOneKO = results.stream()
+        boolean atLeastOneKO = results
+            .stream()
             .anyMatch(switchIndexResult -> switchIndexResult.getStatusCode() != StatusCode.OK);
 
         if (atLeastOneKO && !atLeastOneOK) {
             final Status returnedStatus = Status.INTERNAL_SERVER_ERROR;
             return Response.status(returnedStatus)
-                .entity(new VitamError(returnedStatus.name()).setHttpCode(returnedStatus.getStatusCode())
-                    .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
-                    .setState("code_vitam")
-                    .setMessage(JsonHandler.unprettyPrint(results))
-                    .setDescription("Internal error."))
+                .entity(
+                    new VitamError(returnedStatus.name())
+                        .setHttpCode(returnedStatus.getStatusCode())
+                        .setContext(ServiceName.FUNCTIONAL_ADMINISTRATION.getName())
+                        .setState("code_vitam")
+                        .setMessage(JsonHandler.unprettyPrint(results))
+                        .setDescription("Internal error.")
+                )
                 .build();
         } else if (atLeastOneKO) {
-            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK<SwitchIndexResult>()
-                .addAllResults(results).setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+            return Response.status(Status.ACCEPTED)
+                .entity(
+                    new RequestResponseOK<SwitchIndexResult>()
+                        .addAllResults(results)
+                        .setHttpCode(Status.ACCEPTED.getStatusCode())
+                )
+                .build();
         } else {
-            return Response.status(Status.OK).entity(new RequestResponseOK<SwitchIndexResult>()
-                .addAllResults(results).setHttpCode(Status.OK.getStatusCode())).build();
+            return Response.status(Status.OK)
+                .entity(
+                    new RequestResponseOK<SwitchIndexResult>()
+                        .addAllResults(results)
+                        .setHttpCode(Status.OK.getStatusCode())
+                )
+                .build();
         }
     }
 
     private SwitchIndexResult switchFunctionalAdminCollection(SwitchIndexParameters switchIndex)
         throws DatabaseException {
+        ElasticsearchIndexAlias alias = ElasticsearchIndexAlias.ofFullIndexName(switchIndex.getAlias());
+        ElasticsearchIndexAlias newIndex = ElasticsearchIndexAlias.ofFullIndexName(switchIndex.getIndexName());
 
-        ElasticsearchIndexAlias alias =
-            ElasticsearchIndexAlias.ofFullIndexName(switchIndex.getAlias());
-        ElasticsearchIndexAlias newIndex =
-            ElasticsearchIndexAlias.ofFullIndexName(switchIndex.getIndexName());
-
-        return indexationHelper.switchIndex(alias, newIndex,
-            FunctionalAdminCollections.ACCESS_CONTRACT
-                .getEsClient());//We need an Es client, we take this one
+        return indexationHelper.switchIndex(alias, newIndex, FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient()); //We need an Es client, we take this one
     }
 
     private SwitchIndexResult switchLogbookCollectionAlias(SwitchIndexParameters switchIndex) {

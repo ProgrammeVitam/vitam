@@ -52,13 +52,21 @@ public class RequestToElasticsearchTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        exampleSelectElasticsearch = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+        exampleSelectElasticsearch = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $and : [ " +
+            "{$exists : 'mavar1'}, " +
+            "{$missing : 'mavar2'}, " +
+            "{$isNull : 'mavar3'}, " +
             "{ $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
             "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lt : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-            "{ $ne : { 'mavar9' : 'ab' } }, " + "{ $wildcard : { 'mavar9' : 'ab' } }, " +
+            "{ $not : [ " +
+            "{ $gt : { 'mavar6' : 7 } }, " +
+            "{ $lt : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ " +
+            "{ $eq : { 'mavar8' : 5 } }, " +
+            "{ $ne : { 'mavar9' : 'ab' } }, " +
+            "{ $wildcard : { 'mavar9' : 'ab' } }, " +
             "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
             "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 }, " +
@@ -83,48 +91,48 @@ public class RequestToElasticsearchTest {
             "        ]" +
             "    }" +
             "}" +
-            "] }");
+            "] }"
+        );
 
         nestedSearchQuery = JsonHandler.getFromString(
             "{\n" +
-                "  \"$query\": [\n" +
-                "    {\n" +
-                "      \"$and\": [\n" +
-                "        {\n" +
-                "          \"$match\": {\n" +
-                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                "          }\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"$subobject\": {\n" +
-                "            \"#qualifiers.versions\": {\n" +
-                "              \"$and\": [\n" +
-                "                {\n" +
-                "                  \"$eq\": {\n" +
-                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                "                  }\n" +
-                "                },\n" +
-                "                {\n" +
-                "                  \"$lte\": {\n" +
-                "                    \"version.size\": 20000\n" +
-                "                  }\n" +
-                "                }\n" +
-                "              ]\n" +
-                "            }\n" +
-                "          }\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"$projection\": {},\n" +
-                "  \"$filters\": {}\n" +
-                "}"
+            "  \"$query\": [\n" +
+            "    {\n" +
+            "      \"$and\": [\n" +
+            "        {\n" +
+            "          \"$match\": {\n" +
+            "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+            "          }\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"$subobject\": {\n" +
+            "            \"#qualifiers.versions\": {\n" +
+            "              \"$and\": [\n" +
+            "                {\n" +
+            "                  \"$eq\": {\n" +
+            "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+            "                  }\n" +
+            "                },\n" +
+            "                {\n" +
+            "                  \"$lte\": {\n" +
+            "                    \"version.size\": 20000\n" +
+            "                  }\n" +
+            "                }\n" +
+            "              ]\n" +
+            "            }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"$projection\": {},\n" +
+            "  \"$filters\": {}\n" +
+            "}"
         );
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     @Test
     public void testGetRequestToElasticsearch() {
@@ -141,31 +149,43 @@ public class RequestToElasticsearchTest {
 
     @Test
     public void testGetCommands() {
-
         try {
             final SelectToElasticsearch rte = createSelect(exampleSelectElasticsearch);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
-            DynamicParserTokens parserTokens =
-                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(
+                new VitamDescriptionResolver(Collections.emptyList()),
+                Collections.emptyList()
+            );
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand =
-                    rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
+                final QueryBuilder queryBuilderCommand = rte.getNthQueries(
+                    i,
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
             try {
                 rte.getNthQueries(size, new FakeMetadataVarNameAdapter(), parserTokens);
                 fail("Should failed");
-            } catch (final IllegalAccessError e) {
-
-            }
+            } catch (final IllegalAccessError e) {}
             assertNotNull(rte.getRequest());
             assertNotNull(rte.getNthQuery(0));
             assertNotNull(rte.getRequestParser());
             assertNotNull(rte.model());
-            System.out.println("Select Context = " + rte.getLastDepth() + ":" + rte.getFinalLimit() + ":" +
-                rte.getFinalOffset() + ":" + rte.getUsage() + ":" + rte.getHints());
+            System.out.println(
+                "Select Context = " +
+                rte.getLastDepth() +
+                ":" +
+                rte.getFinalLimit() +
+                ":" +
+                rte.getFinalOffset() +
+                ":" +
+                rte.getUsage() +
+                ":" +
+                rte.getHints()
+            );
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -173,8 +193,7 @@ public class RequestToElasticsearchTest {
     }
 
     @Test(expected = VitamException.class)
-    public void shouldRaiseException_whenRequestIsNotAllowed()
-        throws InvalidCreateOperationException, VitamException {
+    public void shouldRaiseException_whenRequestIsNotAllowed() throws InvalidCreateOperationException, VitamException {
         final DeleteParserMultiple request1 = new DeleteParserMultiple();
         RequestToElasticsearch.getRequestToElasticsearch(request1);
     }
@@ -194,31 +213,43 @@ public class RequestToElasticsearchTest {
 
     @Test
     public void testGetNestedCommands() {
-
         try {
             final SelectToElasticsearch rte = createSelect(nestedSearchQuery);
             final QueryBuilder queryBuilderRoot = rte.getInitialRoots("_up");
             final int size = rte.getNbQueries();
-            DynamicParserTokens parserTokens =
-                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(
+                new VitamDescriptionResolver(Collections.emptyList()),
+                Collections.emptyList()
+            );
             for (int i = 0; i < size; i++) {
-                final QueryBuilder queryBuilderCommand =
-                    rte.getNthQueries(i, new FakeMetadataVarNameAdapter(), parserTokens);
+                final QueryBuilder queryBuilderCommand = rte.getNthQueries(
+                    i,
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
                 final QueryBuilder queryBuilderseudoRequest = rte.getRequest(queryBuilderCommand, queryBuilderRoot);
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
             try {
                 rte.getNthQueries(size, new FakeMetadataVarNameAdapter(), parserTokens);
                 fail("Should failed");
-            } catch (final IllegalAccessError e) {
-
-            }
+            } catch (final IllegalAccessError e) {}
             assertNotNull(rte.getRequest());
             assertNotNull(rte.getNthQuery(0));
             assertNotNull(rte.getRequestParser());
             assertNotNull(rte.model());
-            System.out.println("Select Context = " + rte.getLastDepth() + ":" + rte.getFinalLimit() + ":" +
-                rte.getFinalOffset() + ":" + rte.getUsage() + ":" + rte.getHints());
+            System.out.println(
+                "Select Context = " +
+                rte.getLastDepth() +
+                ":" +
+                rte.getFinalLimit() +
+                ":" +
+                rte.getFinalOffset() +
+                ":" +
+                rte.getUsage() +
+                ":" +
+                rte.getHints()
+            );
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());

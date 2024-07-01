@@ -56,12 +56,13 @@ public class BusinessApplication extends Application {
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
-
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final StorageConfiguration storageConfiguration =
-                PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
+            final StorageConfiguration storageConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                StorageConfiguration.class
+            );
 
             commonBusinessApplication = new CommonBusinessApplication();
 
@@ -71,7 +72,6 @@ public class BusinessApplication extends Application {
             StorageResource storageResource = new StorageResource(storageConfiguration);
             singletons.add(storageResource);
             singletons.add(new WriteProtectionScanner(new AlertServiceImpl(), storageConfiguration.isReadOnly()));
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

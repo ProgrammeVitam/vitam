@@ -43,7 +43,6 @@ public class TapeRobotManager implements TapeRobotService {
         this.tapeLoadUnloadService = new MtxTapeLibraryService(tapeRobotConf, ProcessExecutor.getInstance());
     }
 
-
     @VisibleForTesting
     public TapeRobotManager(TapeRobotConf tapeRobotConf, TapeLoadUnloadService tapeLoadUnloadService) {
         ParametersChecker.checkParameter("All params are required", tapeRobotConf, tapeLoadUnloadService);

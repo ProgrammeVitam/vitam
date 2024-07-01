@@ -67,8 +67,9 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
     private static final String CAN_NOT_GET_THE_PROFILE = "Can_not_get_the_profile";
     private static final String THE_PROFILE_NOT_FOUND = "Profile_Not_Found";
     private static final String PROFILE_NOT_FOUND = "Profile not found";
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckArchiveProfileRelationActionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        CheckArchiveProfileRelationActionHandler.class
+    );
     private static final String HANDLER_ID = "CHECK_IC_AP_RELATION";
     private static final int PROFILE_IDENTIFIER_RANK = 0;
     private static final int CONTRACT_IDENTIFIER_RANK = 1;
@@ -81,7 +82,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
     public CheckArchiveProfileRelationActionHandler() {
         this(AdminManagementClientFactory.getInstance());
     }
-
 
     @VisibleForTesting
     public CheckArchiveProfileRelationActionHandler(AdminManagementClientFactory adminManagementClientFactory) {
@@ -106,7 +106,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         String dataKey = null;
         String dataValue = null;
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-
             if (ParametersChecker.isNotEmpty(profileIdentifier)) {
                 // Check that profile exists and not inactive
                 Select select = new Select();
@@ -129,14 +128,12 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                     dataValue = profileIdentifier;
                     status = CheckProfileStatus.UNKNOWN;
                 }
-
             } else {
                 // Force to null even if profileIdentifier is empty not null string
                 profileIdentifier = null;
             }
             // Validate profile according to contract
             if (null == status) {
-
                 if (ParametersChecker.isNotEmpty(ingestContractIdentifier)) {
                     Select select = new Select();
                     select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, ingestContractIdentifier));
@@ -147,8 +144,10 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                             ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
                         if (null != results && results.size() > 0) {
                             IngestContractModel contract = results.iterator().next();
-                            if ((null == profileIdentifier && contract.getArchiveProfiles().isEmpty()) ||
-                                (contract.getArchiveProfiles().contains(profileIdentifier))) {
+                            if (
+                                (null == profileIdentifier && contract.getArchiveProfiles().isEmpty()) ||
+                                (contract.getArchiveProfiles().contains(profileIdentifier))
+                            ) {
                                 status = CheckProfileStatus.OK;
                             } else {
                                 status = CheckProfileStatus.DIFF;
@@ -159,7 +158,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                             status = CheckProfileStatus.UNKNOWN;
                         }
                     } else {
-
                         dataKey = CAN_NOT_GET_THE_INGEST_CONTRACT;
                         dataValue = ingestContractIdentifier;
                         status = CheckProfileStatus.UNKNOWN;
@@ -168,8 +166,9 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                     status = CheckProfileStatus.OK;
                 }
             }
-        } catch (InvalidCreateOperationException | InvalidParseOperationException |
-            AdminManagementClientServerException e) {
+        } catch (
+            InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e
+        ) {
             LOGGER.error(PROFILE_NOT_FOUND, e);
             status = CheckProfileStatus.KO;
         } catch (Exception e) {
@@ -181,8 +180,10 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         switch (status) {
             case INACTIVE:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.INACTIVE.toString());
-                infoNode.put(SedaConstants.EV_DET_TECH_DATA,
-                    "The profile " + profileIdentifier + " has not the status ACTIVE");
+                infoNode.put(
+                    SedaConstants.EV_DET_TECH_DATA,
+                    "The profile " + profileIdentifier + " has not the status ACTIVE"
+                );
                 itemStatus.increment(StatusCode.KO);
                 break;
             case UNKNOWN:
@@ -193,8 +194,10 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             case DIFF:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.DIFF.toString());
                 itemStatus.increment(StatusCode.KO);
-                infoNode.put(SedaConstants.EV_DET_TECH_DATA,
-                    "The profile " + profileIdentifier + " was not found in the ingest contract");
+                infoNode.put(
+                    SedaConstants.EV_DET_TECH_DATA,
+                    "The profile " + profileIdentifier + " was not found in the ingest contract"
+                );
 
                 break;
             case KO:
@@ -205,19 +208,16 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                 break;
         }
 
-
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
         String evdev = JsonHandler.unprettyPrint(infoNode);
         itemStatus.setEvDetailData(evdev);
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evdev);
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 
     /**
      * Check profile status values
@@ -242,7 +242,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         /**
          * Other error situation
          */
-        KO
+        KO,
     }
-
 }

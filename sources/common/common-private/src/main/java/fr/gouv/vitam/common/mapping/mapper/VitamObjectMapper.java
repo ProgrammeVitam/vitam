@@ -76,8 +76,10 @@ public class VitamObjectMapper {
         module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
         module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
-        module.addDeserializer(OrganizationDescriptiveMetadataType.class,
-            new OrganizationDescriptiveMetadataTypeDeserializer(deserializationObjectMapper));
+        module.addDeserializer(
+            OrganizationDescriptiveMetadataType.class,
+            new OrganizationDescriptiveMetadataTypeDeserializer(deserializationObjectMapper)
+        );
         module.addDeserializer(TextType.class, new TextTypeDeSerializer());
         module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 
@@ -94,8 +96,10 @@ public class VitamObjectMapper {
         module.addSerializer(TextType.class, new TextTypeSerializer());
         module.addSerializer(LevelType.class, new LevelTypeSerializer());
         module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
-        module.addSerializer(OrganizationDescriptiveMetadataType.class,
-            new OrganizationDescriptiveMetadataTypeSerializer());
+        module.addSerializer(
+            OrganizationDescriptiveMetadataType.class,
+            new OrganizationDescriptiveMetadataTypeSerializer()
+        );
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
         module.addSerializer(KeyType.class, new KeywordTypeSerializer());
@@ -105,8 +109,7 @@ public class VitamObjectMapper {
         serializationObjectMapper.registerModule(module1);
     }
 
-    private VitamObjectMapper() {
-    }
+    private VitamObjectMapper() {}
 
     public static ObjectMapper getDeserializationObjectMapper() {
         return deserializationObjectMapper;
@@ -115,5 +118,4 @@ public class VitamObjectMapper {
     public static ObjectMapper getSerializationObjectMapper() {
         return serializationObjectMapper;
     }
-
 }

@@ -79,17 +79,21 @@ public class VerifyAtrPluginTest {
     private static final String ATR_WITH_CARDINALITY_ERROR_XML = "atr-with-cardinality-error.xml";
     private static final String ATR_WITH_UNIFIED_SEDA_XML = "atr-with-unified_seda.xml";
     private static final String ATR_WITH_SEDA_2_1_XML = "atr-with-seda-2.1.xml";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -121,7 +125,8 @@ public class VerifyAtrPluginTest {
         // Given
         mockTransformOperations(OK.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(
-            getLogbookOperation(OK));
+            getLogbookOperation(OK)
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -130,13 +135,13 @@ public class VerifyAtrPluginTest {
         assertThat(result.getGlobalStatus()).isEqualTo(OK);
     }
 
-
     @Test
     public void should_verify_plugin_with_transfer_operation_warning_return_OK() throws Exception {
         // Given
         mockTransformOperations(WARNING.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(
-            getLogbookOperation(StatusCode.WARNING));
+            getLogbookOperation(StatusCode.WARNING)
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -150,7 +155,8 @@ public class VerifyAtrPluginTest {
         // Given
         mockTransformOperations(KO.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willReturn(
-            getLogbookOperation(StatusCode.KO));
+            getLogbookOperation(StatusCode.KO)
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -164,7 +170,8 @@ public class VerifyAtrPluginTest {
         // Given
         mockTransformOperations(KO.name(), false);
         given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willThrow(
-            new JAXBException("Error"));
+            new JAXBException("Error")
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -178,7 +185,8 @@ public class VerifyAtrPluginTest {
         // Given
         mockTransformOperations(KO.name(), false);
         given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willThrow(
-            new UnmarshalException("Error"));
+            new UnmarshalException("Error")
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -192,9 +200,11 @@ public class VerifyAtrPluginTest {
         // Given
         VerifyAtrPlugin verifyAtrPlugin = new VerifyAtrPlugin();
         given(handlerIO.getFileFromWorkspace(eq(ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
-            PropertiesUtils.getResourceFile(ATR_WITH_CARDINALITY_ERROR_XML));
+            PropertiesUtils.getResourceFile(ATR_WITH_CARDINALITY_ERROR_XML)
+        );
         given(handlerIO.getNewLocalFile(eq(TRANSFORMED_ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
-            tempFolder.newFile());
+            tempFolder.newFile()
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -208,16 +218,17 @@ public class VerifyAtrPluginTest {
         // Given
         mockTransformOperations(OK.name(), true);
         given(logbookOperationsClient.selectOperationById(messageRequestIdentifier)).willThrow(
-            new LogbookClientNotFoundException(""));
+            new LogbookClientNotFoundException("")
+        );
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
 
         // Then
         assertThat(result.getGlobalStatus()).isEqualTo(KO);
-        assertThat(result.getEvDetailData())
-            .isEqualTo(
-                "{\"Event\":\"Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation.\"}");
+        assertThat(result.getEvDetailData()).isEqualTo(
+            "{\"Event\":\"Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation.\"}"
+        );
     }
 
     private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String replyCode) {
@@ -245,16 +256,18 @@ public class VerifyAtrPluginTest {
     }
 
     private void mockTransformOperations(String replyCode, boolean shouldMockUnmarshallStream)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException,
-        JAXBException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException, JAXBException {
         given(handlerIO.getFileFromWorkspace(eq(ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
-            PropertiesUtils.getResourceFile(ATR_WITH_SEDA_2_1_XML));
+            PropertiesUtils.getResourceFile(ATR_WITH_SEDA_2_1_XML)
+        );
         given(handlerIO.getNewLocalFile(eq(TRANSFORMED_ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
-            PropertiesUtils.getResourceFile(ATR_WITH_UNIFIED_SEDA_XML));
+            PropertiesUtils.getResourceFile(ATR_WITH_UNIFIED_SEDA_XML)
+        );
 
         if (shouldMockUnmarshallStream) {
             given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
-                getJaxbAtr(replyCode));
+                getJaxbAtr(replyCode)
+            );
         }
     }
 }

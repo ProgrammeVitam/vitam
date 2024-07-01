@@ -71,10 +71,10 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
-
 @Path("/collect-external/v1/projects")
 @Tag(name = "Collect")
 public class ProjectExternalResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProjectExternalResource.class);
 
     private static final String YOU_MUST_SUPPLY_PROJECTS_DATA = "You must supply projects data!";
@@ -84,7 +84,6 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
 
     private final CollectInternalClientFactory collectInternalClientFactory;
-
 
     ProjectExternalResource() {
         this(CollectInternalClientFactory.getInstance());
@@ -139,8 +138,10 @@ public class ProjectExternalResource extends ApplicationStatusResource {
         } catch (VitamClientException e) {
             final String message = e.getLocalizedMessage();
             LOGGER.error("Client error : {}", message);
-            return CollectRequestResponse.toVitamError(fromStatusCode(e.getVitamError().getStatus()),
-                e.getVitamError().getMessage());
+            return CollectRequestResponse.toVitamError(
+                fromStatusCode(e.getVitamError().getStatus()),
+                e.getVitamError().getMessage()
+            );
         }
 
         return Response.status(Response.Status.OK).entity(listProjectsResponse).build();

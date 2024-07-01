@@ -50,10 +50,11 @@ public class SelectSingleSchemaValidatorTest {
     public void testValidatorSelectSingleWithMultipleQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectSingleSchemaValidator();
-        JsonNode selectMultipleQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select_multiple_complete.json"));
-        assertThatThrownBy(() -> dslValidator.validate(selectMultipleQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode selectMultipleQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("select_multiple_complete.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(selectMultipleQuery)).hasMessageContaining(
+            "Dsl query is not valid"
+        );
     }
-
 }

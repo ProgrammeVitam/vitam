@@ -44,10 +44,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Tests of reclassification query schema validator
  */
 public class ValidatorReclassificationQueryTest {
+
     private static final String RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON = "reclassification-query-dsl-schema.json";
 
-    private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
-        throws Exception {
+    private Schema loadSchema(ObjectMapper objectMapper, File dslSource) throws Exception {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
             final Schema schema = Schema.getSchema().loadTypes(inputStream).build();
             Format dslType = schema.getType("DSL");
@@ -59,111 +59,136 @@ public class ValidatorReclassificationQueryTest {
     }
 
     @Test
-    public void testValidate_OK_complete()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_complete.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
+    public void testValidate_OK_complete() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_complete.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
         Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
-    public void testValidate_AttachmentOK()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ok_attachment_only.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
+    public void testValidate_AttachmentOK() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ok_attachment_only.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
         Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
-    public void testValidate_DetachmentOK()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ok_detachment_only.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
+    public void testValidate_DetachmentOK() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ok_detachment_only.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
         Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
-    public void testValidate_KoEmpty()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_empty.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("{$roots: ..., $query: ..., $action: ...}[] ~ ELEMENT_TOO_SHORT: 0 < 1");
+    public void testValidate_KoEmpty() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_empty.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "{$roots: ..., $query: ..., $action: ...}[] ~ ELEMENT_TOO_SHORT: 0 < 1"
+        );
     }
 
     @Test
-    public void testValidate_KoInvalidAction()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_invalid_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("INVALID_JSON_FIELD: $unkown");
+    public void testValidate_KoInvalidAction() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_invalid_action.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "INVALID_JSON_FIELD: $unkown"
+        );
     }
 
     @Test
-    public void testValidate_KoEmptyAction()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_empty_action.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("ELEMENT_TOO_SHORT: 0 < 1");
+    public void testValidate_KoEmptyAction() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_empty_action.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "ELEMENT_TOO_SHORT: 0 < 1"
+        );
     }
 
     @Test
-    public void testValidate_KoInvalidAddFieldName()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_invalid_add_field_name.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("INVALID_JSON_FIELD: Invalid");
+    public void testValidate_KoInvalidAddFieldName() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_invalid_add_field_name.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "INVALID_JSON_FIELD: Invalid"
+        );
     }
 
     @Test
-    public void testValidate_KoInvalidPullFieldName()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler
-                .getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_invalid_pull_field_name.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("INVALID_JSON_FIELD: Invalid");
+    public void testValidate_KoInvalidPullFieldName() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_invalid_pull_field_name.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "INVALID_JSON_FIELD: Invalid"
+        );
     }
 
     @Test
-    public void testValidate_KoMissingQuery()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_missing_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("ELEMENT_TOO_SHORT: 0 < 1");
+    public void testValidate_KoMissingQuery() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_missing_query.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "ELEMENT_TOO_SHORT: 0 < 1"
+        );
     }
 
     @Test
-    public void testValidate_KoMultiQueries()
-        throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("reclassification_query_ko_multiqueries.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("ELEMENT_TOO_LONG: 2 > 1");
+    public void testValidate_KoMultiQueries() throws Exception {
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("reclassification_query_ko_multiqueries.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(RECLASSIFICATION_QUERY_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "ELEMENT_TOO_LONG: 2 > 1"
+        );
     }
 }

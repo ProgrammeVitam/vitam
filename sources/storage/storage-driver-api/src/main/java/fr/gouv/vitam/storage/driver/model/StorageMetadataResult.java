@@ -50,10 +50,14 @@ public class StorageMetadataResult extends MetadatasObject {
      * @param last_access_date
      * @param last_modified_date
      */
-    public StorageMetadataResult(@JsonProperty("objectName") String object_name, @JsonProperty("type") String type,
-        @JsonProperty("digest") String digest, @JsonProperty("file_size") long file_size,
+    public StorageMetadataResult(
+        @JsonProperty("objectName") String object_name,
+        @JsonProperty("type") String type,
+        @JsonProperty("digest") String digest,
+        @JsonProperty("file_size") long file_size,
         @JsonProperty("last_access_date") String last_access_date,
-        @JsonProperty("last_modified_date") String last_modified_date) {
+        @JsonProperty("last_modified_date") String last_modified_date
+    ) {
         super(object_name, type, digest, file_size, last_access_date, last_modified_date);
     }
 }

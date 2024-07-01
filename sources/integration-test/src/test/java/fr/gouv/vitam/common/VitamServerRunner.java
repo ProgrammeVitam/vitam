@@ -117,8 +117,8 @@ import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 
 public class VitamServerRunner extends ExternalResource {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerRunner.class);
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServerRunner.class);
 
     // Constants
 
@@ -191,7 +191,6 @@ public class VitamServerRunner extends ExternalResource {
     public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
         "/deployment/environments/antivirus/scan-dev.sh";
 
-
     public static final String METADATA_PATH = "/metadata/v1";
     public static final String PROCESSING_PATH = "/processing/v1";
     public static final String WORKER_PATH = "/worker/v1";
@@ -201,7 +200,6 @@ public class VitamServerRunner extends ExternalResource {
     public static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
     public static final String INGEST_EXTERNAL_PATH = "/ingest-external/v1";
     public static final String ACCESS_EXTERNAL_PATH = "/access-external/v1";
-
 
     private static IdentityMain identityMain;
     private static MetadataMain metadataMain;
@@ -224,7 +222,7 @@ public class VitamServerRunner extends ExternalResource {
     private static WorkerMain workerMain;
     private static SchedulerMain schedulerMain;
 
-    public final static TempFolderRule tempFolderRule = new TempFolderRule();
+    public static final TempFolderRule tempFolderRule = new TempFolderRule();
 
     static {
         try {
@@ -249,12 +247,12 @@ public class VitamServerRunner extends ExternalResource {
         this.servers = servers;
     }
 
-
     @Override
     protected void before() {
         try {
             LOGGER.warn(
-                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Start " + clazz.getSimpleName() + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Start " + clazz.getSimpleName() + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+            );
 
             VitamConfiguration.setHttpClientWaitingTime(1);
             VitamConfiguration.setHttpClientRandomWaitingSleep(1);
@@ -283,24 +281,30 @@ public class VitamServerRunner extends ExternalResource {
 
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"))) {
                 Files.createDirectories(
-                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"));
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/")
+                );
             }
 
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"))) {
                 Files.createDirectories(
-                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"));
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/")
+                );
             }
 
-            if (Files.notExists(
-                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"))) {
+            if (
+                Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"))
+            ) {
                 Files.createDirectories(
-                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"));
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/")
+                );
             }
 
-            if (Files.notExists(
-                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"))) {
+            if (
+                Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"))
+            ) {
                 Files.createDirectories(
-                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/"));
+                    Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure/")
+                );
             }
 
             FormatIdentifierFactory.getInstance()
@@ -310,7 +314,6 @@ public class VitamServerRunner extends ExternalResource {
             if (servers.contains(IdentityMain.class)) {
                 startIdentityServer();
             }
-
 
             // launch workspace
             if (servers.contains(WorkspaceMain.class)) {
@@ -373,7 +376,8 @@ public class VitamServerRunner extends ExternalResource {
             if (servers.contains(BatchReportMain.class)) {
                 startBatchReportServer();
                 BatchReportClientFactory.changeMode(
-                    BatchReportClientFactory.changeConfigurationFile(BATCH_REPORT_CLIENT_PATH));
+                    BatchReportClientFactory.changeConfigurationFile(BATCH_REPORT_CLIENT_PATH)
+                );
             }
 
             // IngestInternalMain
@@ -446,8 +450,7 @@ public class VitamServerRunner extends ExternalResource {
                 return;
             }
 
-            SystemPropertyUtil.set(SchedulerMain.PARAMETER_JETTY_SERVER_PORT,
-                Integer.toString(PORT_SERVICE_SCHEDULER));
+            SystemPropertyUtil.set(SchedulerMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_SCHEDULER));
             LOGGER.warn("=== VitamServerRunner start  SchedulerMain");
             schedulerMain = new SchedulerMain(SCHEDULER_CONF);
             schedulerMain.start();
@@ -473,8 +476,10 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
 
-        SystemPropertyUtil.set(IngestInternalMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
+        SystemPropertyUtil.set(
+            IngestInternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_INGEST_INTERNAL)
+        );
         LOGGER.warn("=== VitamServerRunner start  IngestInternalMain");
         ingestInternalMain = new IngestInternalMain(INGEST_INTERNAL_CONF);
         ingestInternalMain.start();
@@ -490,26 +495,46 @@ public class VitamServerRunner extends ExternalResource {
         }
 
         File ingestExternalFile = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
-        final IngestExternalConfiguration serverConfiguration =
-            readYaml(ingestExternalFile, IngestExternalConfiguration.class);
+        final IngestExternalConfiguration serverConfiguration = readYaml(
+            ingestExternalFile,
+            IngestExternalConfiguration.class
+        );
 
-
-        serverConfiguration.setPath(Files.createTempDirectory(
-                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"), "workspace_").toFile()
-            .getAbsolutePath());
+        serverConfiguration.setPath(
+            Files.createTempDirectory(
+                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/workspace/"),
+                "workspace_"
+            )
+                .toFile()
+                .getAbsolutePath()
+        );
 
         serverConfiguration.setBaseUploadPath(
-            Files.createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"),
-                "upload_").toFile().getAbsolutePath());
+            Files.createTempDirectory(
+                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/"),
+                "upload_"
+            )
+                .toFile()
+                .getAbsolutePath()
+        );
 
+        serverConfiguration.setSuccessfulUploadDir(
+            Files.createTempDirectory(
+                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"),
+                "upload_"
+            )
+                .toFile()
+                .getAbsolutePath()
+        );
 
-        serverConfiguration.setSuccessfulUploadDir(Files.createTempDirectory(
-                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/success/"), "upload_").toFile()
-            .getAbsolutePath());
-
-        serverConfiguration.setFailedUploadDir(Files.createTempDirectory(
-                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure"), "upload_").toFile()
-            .getAbsolutePath());
+        serverConfiguration.setFailedUploadDir(
+            Files.createTempDirectory(
+                Paths.get(VitamConfiguration.getVitamDataFolder() + "/ingest-external/upload/failure"),
+                "upload_"
+            )
+                .toFile()
+                .getAbsolutePath()
+        );
 
         String dir = Paths.get("").toAbsolutePath().toString();
         String userDir = StringUtils.substringBeforeLast(dir, "/sources/");
@@ -518,10 +543,10 @@ public class VitamServerRunner extends ExternalResource {
         serverConfiguration.setAntiVirusScriptName(userDir + DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH);
         writeYaml(ingestExternalFile, serverConfiguration);
 
-
-
-        SystemPropertyUtil.set(IngestExternalMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_INGEST_EXTERNAL));
+        SystemPropertyUtil.set(
+            IngestExternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_INGEST_EXTERNAL)
+        );
         LOGGER.warn("=== VitamServerRunner start  IngestExternalMain");
         ingestExternalMain = new IngestExternalMain(INGEST_EXTERNAL_CONF);
 
@@ -534,8 +559,10 @@ public class VitamServerRunner extends ExternalResource {
         if (null != batchReportMain) {
             return;
         }
-        SystemPropertyUtil.set(BatchReportMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_BATCH_REPORT));
+        SystemPropertyUtil.set(
+            BatchReportMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_BATCH_REPORT)
+        );
         final File batchConfig = PropertiesUtils.findFile(BATCH_REPORT_CONF);
         final BatchReportConfiguration batchReportConfiguration = readYaml(batchConfig, BatchReportConfiguration.class);
         List<MongoDbNode> mongoDbNodes = batchReportConfiguration.getMongoDbNodes();
@@ -594,17 +621,17 @@ public class VitamServerRunner extends ExternalResource {
             AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
             return;
         }
-        SystemPropertyUtil.set(AccessInternalMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
+        SystemPropertyUtil.set(
+            AccessInternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_ACCESS_INTERNAL)
+        );
         LOGGER.warn("=== VitamServerRunner start  AccessInternalMain");
         AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
         accessInternalMain = new AccessInternalMain(ACCESS_INTERNAL_CONF);
         accessInternalMain.start();
         SystemPropertyUtil.clear(AccessInternalMain.PARAMETER_JETTY_SERVER_PORT);
-
         // Wait startup
     }
-
 
     private void stopAccessInternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == accessInternalMain) {
@@ -625,7 +652,6 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
-
     private void startAccessExternalServer() throws VitamApplicationServerException {
         if (null != accessExternalMain) {
             AccessExternalClientFactory.getInstance()
@@ -634,18 +660,18 @@ public class VitamServerRunner extends ExternalResource {
                 .setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
             return;
         }
-        SystemPropertyUtil.set(AccessExternalMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL));
+        SystemPropertyUtil.set(
+            AccessExternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_ACCESS_EXTERNAL)
+        );
         LOGGER.warn("=== VitamServerRunner start  AccessExternalMain");
         AccessExternalClientFactory.changeMode(ACCESS_EXTERNAL_CLIENT_CONF);
         AdminExternalClientFactory.changeModeFromFile(ACCESS_EXTERNAL_CLIENT_CONF);
         accessExternalMain = new AccessExternalMain(ACCESS_EXTERNAL_CONF);
         accessExternalMain.start();
         SystemPropertyUtil.clear(AccessExternalMain.PARAMETER_JETTY_SERVER_PORT);
-
         // Wait startup
     }
-
 
     private void stopAccessExternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == accessExternalMain) {
@@ -666,9 +692,7 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
-
     public void startStorageServer() throws IOException, VitamApplicationServerException {
-
         if (null != storageMain) {
             StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
             return;
@@ -678,11 +702,15 @@ public class VitamServerRunner extends ExternalResource {
         serverConfiguration.setUrlWorkspace("http://localhost:" + PORT_SERVICE_WORKSPACE);
 
         serverConfiguration.setZippingDirecorty(
-            Files.createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/zip/"), "zip_").toFile()
-                .getAbsolutePath());
+            Files.createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/zip/"), "zip_")
+                .toFile()
+                .getAbsolutePath()
+        );
         serverConfiguration.setLoggingDirectory(
-            Files.createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/log/"), "log_").toFile()
-                .getAbsolutePath());
+            Files.createTempDirectory(Paths.get(VitamConfiguration.getVitamDataFolder() + "/log/"), "log_")
+                .toFile()
+                .getAbsolutePath()
+        );
         writeYaml(storageConfigurationFile, serverConfiguration);
 
         SystemPropertyUtil.set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
@@ -692,7 +720,6 @@ public class VitamServerRunner extends ExternalResource {
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
-
         // Wait startup
     }
 
@@ -750,17 +777,20 @@ public class VitamServerRunner extends ExternalResource {
     }
 
     public void startAdminManagementServer() throws IOException, VitamApplicationServerException {
-
         if (null != adminManagementMain) {
             AdminManagementClientFactory.changeMode(
-                new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+                new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN)
+            );
             return;
         }
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        SystemPropertyUtil.set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
-            Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN));
+        SystemPropertyUtil.set(
+            JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+            Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN)
+        );
 
         // prepare functional admin
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
@@ -771,17 +801,17 @@ public class VitamServerRunner extends ExternalResource {
         realAdminConfig.setClusterName(cluster);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
         realAdminConfig.setIndexationConfiguration(
-            new FunctionalAdminIndexationConfiguration().setDefaultConfiguration(new CollectionConfiguration(1, 0)));
+            new FunctionalAdminIndexationConfiguration().setDefaultConfiguration(new CollectionConfiguration(1, 0))
+        );
         writeYaml(adminConfig, realAdminConfig);
         LOGGER.warn("=== VitamServerRunner start  AdminManagementMain");
         AdminManagementClientFactory.changeMode(
-            new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
+            new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN)
+        );
         adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
         adminManagementMain.start();
-
         // Wait startup
     }
-
 
     public void stopAdminManagementServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == adminManagementMain) {
@@ -803,15 +833,15 @@ public class VitamServerRunner extends ExternalResource {
     }
 
     public void startLogbookServer() throws IOException, VitamApplicationServerException {
-
         if (null != logbookMain) {
             LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
             LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
             return;
         }
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
         SystemPropertyUtil.set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
         final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
@@ -823,8 +853,11 @@ public class VitamServerRunner extends ExternalResource {
             logbookConfiguration.setLogbookTenantIndexation(customLogbookIndexationConfiguration);
         } else {
             logbookConfiguration.setLogbookTenantIndexation(
-                new LogbookIndexationConfiguration().setDefaultCollectionConfiguration(
-                    new DefaultCollectionConfiguration().setLogbookoperation(new CollectionConfiguration(1, 0))));
+                new LogbookIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new DefaultCollectionConfiguration().setLogbookoperation(new CollectionConfiguration(1, 0))
+                    )
+            );
         }
 
         writeYaml(logbookConfigFile, logbookConfiguration);
@@ -836,7 +869,6 @@ public class VitamServerRunner extends ExternalResource {
         logbookMain = new LogbookMain(logbookConfigFile.getAbsolutePath());
         logbookMain.start();
         SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
-
         // Wait startup
     }
 
@@ -871,8 +903,10 @@ public class VitamServerRunner extends ExternalResource {
 
         final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
 
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration = readYaml(
+            workspaceConfigFile,
+            fr.gouv.vitam.common.storage.StorageConfiguration.class
+        );
         workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/");
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
@@ -883,7 +917,6 @@ public class VitamServerRunner extends ExternalResource {
         workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
     }
-
 
     private void stopWorkspaceServer() throws VitamApplicationServerException {
         if (null == workspaceMain) {
@@ -902,8 +935,10 @@ public class VitamServerRunner extends ExternalResource {
         SystemPropertyUtil.set(IdentityMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_IDENTITY));
 
         File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
-        final InternalSecurityConfiguration internalSecurityConfiguration =
-            readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
+        final InternalSecurityConfiguration internalSecurityConfiguration = readYaml(
+            securityInternalConfigurationFile,
+            InternalSecurityConfiguration.class
+        );
         internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
         writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
@@ -929,7 +964,6 @@ public class VitamServerRunner extends ExternalResource {
         if (mockWhenStop) {
             InternalSecurityClientFactory.changeMode(null);
         }
-
     }
 
     public void startCollectInternalServer() throws VitamApplicationServerException {
@@ -937,17 +971,17 @@ public class VitamServerRunner extends ExternalResource {
             CollectInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT_INTERNAL);
             return;
         }
-        SystemPropertyUtil.set(CollectInternalMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_COLLECT_INTERNAL));
+        SystemPropertyUtil.set(
+            CollectInternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_COLLECT_INTERNAL)
+        );
         LOGGER.warn("=== VitamServerRunner start CollectInternalMain");
         CollectInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_COLLECT_INTERNAL);
         collectInternalMain = new CollectInternalMain(COLLECT_INTERNAL_CONF);
         collectInternalMain.start();
         SystemPropertyUtil.clear(CollectInternalMain.PARAMETER_JETTY_SERVER_PORT);
-
         // Wait startup
     }
-
 
     public void stopCollectInternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == collectInternalMain) {
@@ -967,7 +1001,6 @@ public class VitamServerRunner extends ExternalResource {
                 .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
         }
     }
-
 
     public void stopCollectExternalServer(boolean mockWhenStop) throws VitamApplicationServerException {
         if (null == collectExternalMain) {
@@ -994,18 +1027,17 @@ public class VitamServerRunner extends ExternalResource {
                 .setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
             return;
         }
-        SystemPropertyUtil.set(CollectExternalMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_COLLECT_EXTERNAL));
+        SystemPropertyUtil.set(
+            CollectExternalMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_COLLECT_EXTERNAL)
+        );
         LOGGER.warn("=== VitamServerRunner start CollectExternalMain");
         CollectExternalClientFactory.changeMode(COLLECT_EXTERNAL_CLIENT_CONF);
         collectExternalMain = new CollectExternalMain(COLLECT_EXTERNAL_CONF);
         collectExternalMain.start();
         SystemPropertyUtil.clear(CollectExternalMain.PARAMETER_JETTY_SERVER_PORT);
-
         // Wait startup
     }
-
-
 
     public void startMetadataServer() throws IOException, VitamApplicationServerException {
         if (null != metadataMain) {
@@ -1014,12 +1046,15 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
         SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_METADATA));
-        SystemPropertyUtil.set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
-            Integer.toString(PORT_SERVICE_METADATA_ADMIN));
+        SystemPropertyUtil.set(
+            JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+            Integer.toString(PORT_SERVICE_METADATA_ADMIN)
+        );
         final File metadataConfig = PropertiesUtils.findFile(METADATA_CONF);
         final MetaDataConfiguration realMetadataConfig = readYaml(metadataConfig, MetaDataConfiguration.class);
         realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
@@ -1034,9 +1069,13 @@ public class VitamServerRunner extends ExternalResource {
             realMetadataConfig.setIndexationConfiguration(this.customMetadataIndexationConfiguration);
         } else {
             realMetadataConfig.setIndexationConfiguration(
-                new MetadataIndexationConfiguration().setDefaultCollectionConfiguration(
-                    new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration().setUnit(
-                        new CollectionConfiguration(1, 0)).setObjectgroup(new CollectionConfiguration(1, 0))));
+                new MetadataIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
+                            .setUnit(new CollectionConfiguration(1, 0))
+                            .setObjectgroup(new CollectionConfiguration(1, 0))
+                    )
+            );
         }
         writeYaml(metadataConfig, realMetadataConfig);
 
@@ -1063,18 +1102,17 @@ public class VitamServerRunner extends ExternalResource {
         if (mockWhenStop) {
             MetaDataClientFactory.changeMode(null);
         }
-
     }
-
-
 
     public void startProcessManagementServer() throws VitamApplicationServerException {
         if (null != processManagementMain) {
             ProcessingManagementClientFactory.getInstance().changeServerPort(PORT_SERVICE_PROCESSING);
             return;
         }
-        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_PROCESSING));
+        SystemPropertyUtil.set(
+            ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_PROCESSING)
+        );
         LOGGER.warn("=== VitamServerRunner start  ProcessManagementMain");
         ProcessingManagementClientFactory.getInstance().changeServerPort(PORT_SERVICE_PROCESSING);
         processManagementMain = new ProcessManagementMain(PROCESSING_CONF);
@@ -1111,9 +1149,9 @@ public class VitamServerRunner extends ExternalResource {
         workerMain = new WorkerMain(conf);
         workerMain.start();
         SystemPropertyUtil.clear(WorkerMain.PARAMETER_JETTY_SERVER_PORT);
-        waitServerStart(WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER))
-            .getClient());
-
+        waitServerStart(
+            WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER)).getClient()
+        );
     }
 
     public void stopWorkerServer() throws VitamApplicationServerException {
@@ -1123,8 +1161,9 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner start  WorkerMain");
         workerMain.stop();
         workerMain = null;
-        waitServerStop(WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER))
-            .getClient());
+        waitServerStop(
+            WorkerClientFactory.getInstance(new WorkerClientConfiguration("localhost", PORT_SERVICE_WORKER)).getClient()
+        );
     }
 
     @Override
@@ -1135,10 +1174,10 @@ public class VitamServerRunner extends ExternalResource {
             throw new RuntimeException(e);
         } finally {
             LOGGER.warn(
-                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> End " + clazz.getSimpleName() + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> End " + clazz.getSimpleName() + " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+            );
         }
     }
-
 
     void waitServerStart() {
         if (null != workspaceMain) {
@@ -1171,8 +1210,10 @@ public class VitamServerRunner extends ExternalResource {
         }
 
         if (null != ingestExternalMain) {
-            waitServerStart(IngestExternalClientFactory.getInstance().getClient(),
-                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant())));
+            waitServerStart(
+                IngestExternalClientFactory.getInstance().getClient(),
+                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant()))
+            );
         }
         if (null != batchReportMain) {
             waitServerStart(BatchReportClientFactory.getInstance().getClient());
@@ -1183,10 +1224,14 @@ public class VitamServerRunner extends ExternalResource {
         }
 
         if (null != accessExternalMain) {
-            waitServerStart(AccessExternalClientFactory.getInstance().getClient(),
-                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant())));
-            waitServerStart(AdminExternalClientFactory.getInstance().getClient(),
-                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant())));
+            waitServerStart(
+                AccessExternalClientFactory.getInstance().getClient(),
+                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant()))
+            );
+            waitServerStart(
+                AdminExternalClientFactory.getInstance().getClient(),
+                new MultivaluedHashMap<>(Map.of(GlobalDataRest.X_TENANT_ID, VitamConfiguration.getAdminTenant()))
+            );
         }
     }
 
@@ -1243,7 +1288,6 @@ public class VitamServerRunner extends ExternalResource {
         }
     }
 
-
     /**
      * Clean offers content.
      */
@@ -1252,14 +1296,15 @@ public class VitamServerRunner extends ExternalResource {
         File directory = new File(getOfferPath());
         if (directory.exists()) {
             try {
-                Files.walk(directory.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile)
+                Files.walk(directory.toPath())
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
                     .forEach(File::delete);
             } catch (IOException | IllegalArgumentException e) {
                 e.printStackTrace();
             }
         }
     }
-
 
     public void startServers() {
         before();
@@ -1270,7 +1315,8 @@ public class VitamServerRunner extends ExternalResource {
     }
 
     public void setCustomMetadataIndexationConfiguration(
-        MetadataIndexationConfiguration customMetadataIndexationConfiguration) {
+        MetadataIndexationConfiguration customMetadataIndexationConfiguration
+    ) {
         this.customMetadataIndexationConfiguration = customMetadataIndexationConfiguration;
     }
 
@@ -1279,7 +1325,8 @@ public class VitamServerRunner extends ExternalResource {
     }
 
     public void setCustomLogbookIndexationConfiguration(
-        LogbookIndexationConfiguration customLogbookIndexationConfiguration) {
+        LogbookIndexationConfiguration customLogbookIndexationConfiguration
+    ) {
         this.customLogbookIndexationConfiguration = customLogbookIndexationConfiguration;
     }
 
@@ -1291,23 +1338,26 @@ public class VitamServerRunner extends ExternalResource {
         return VitamConfiguration.getVitamDataFolder() + "/offer/";
     }
 
-
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     public void startMetadataCollectServer() throws IOException, VitamApplicationServerException {
         if (null != metadataCollectMain) {
-
             MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA_COLLECT));
             return;
         }
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_METADATA_COLLECT));
-        SystemPropertyUtil.set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
-            Integer.toString(PORT_SERVICE_METADATA_COLLECT_ADMIN));
+        SystemPropertyUtil.set(
+            MetadataMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_METADATA_COLLECT)
+        );
+        SystemPropertyUtil.set(
+            JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+            Integer.toString(PORT_SERVICE_METADATA_COLLECT_ADMIN)
+        );
         final File metadataConfig = PropertiesUtils.findFile(METADATA_COLLECT_CONF);
         final MetaDataConfiguration realMetadataConfig = readYaml(metadataConfig, MetaDataConfiguration.class);
         realMetadataConfig.getMongoDbNodes().get(0).setDbPort(MongoRule.getDataBasePort());
@@ -1322,9 +1372,13 @@ public class VitamServerRunner extends ExternalResource {
             realMetadataConfig.setIndexationConfiguration(this.customMetadataIndexationConfiguration);
         } else {
             realMetadataConfig.setIndexationConfiguration(
-                new MetadataIndexationConfiguration().setDefaultCollectionConfiguration(
-                    new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration().setUnit(
-                        new CollectionConfiguration(1, 0)).setObjectgroup(new CollectionConfiguration(1, 0))));
+                new MetadataIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration()
+                            .setUnit(new CollectionConfiguration(1, 0))
+                            .setObjectgroup(new CollectionConfiguration(1, 0))
+                    )
+            );
         }
         writeYaml(metadataConfig, realMetadataConfig);
 
@@ -1358,13 +1412,17 @@ public class VitamServerRunner extends ExternalResource {
             WorkspaceClientFactory.changeMode(WORKSPACE_COLLECT_URL);
             return;
         }
-        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
-            Integer.toString(PORT_SERVICE_WORKSPACE_COLLECT));
+        SystemPropertyUtil.set(
+            WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_WORKSPACE_COLLECT)
+        );
 
         final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_COLLECT_CONF);
 
-        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
-            readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration = readYaml(
+            workspaceConfigFile,
+            fr.gouv.vitam.common.storage.StorageConfiguration.class
+        );
         workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/");
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
@@ -1376,7 +1434,6 @@ public class VitamServerRunner extends ExternalResource {
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
-
     public void stopWorkspaceCollectServer() throws VitamApplicationServerException {
         if (null == workspaceCollectMain) {
             return;
@@ -1385,5 +1442,4 @@ public class VitamServerRunner extends ExternalResource {
         workspaceCollectMain.stop();
         workspaceCollectMain = null;
     }
-
 }

@@ -39,9 +39,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractVitamCache<T, V> implements VitamCache<T, V> {
 
-
     LoadingCache<T, V> cache;
-
 
     public AbstractVitamCache() {
         this(true, Math.max(Runtime.getRuntime().availableProcessors(), 32));
@@ -56,8 +54,7 @@ public abstract class AbstractVitamCache<T, V> implements VitamCache<T, V> {
     }
 
     private void buildCache(boolean enableStats, int concurrencyLevel) {
-        CacheBuilder<Object, Object> builder = CacheBuilder
-            .newBuilder()
+        CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder()
             .maximumSize(VitamConfiguration.getMaxCacheEntries());
         if (enableStats) {
             builder.recordStats();
@@ -67,17 +64,19 @@ public abstract class AbstractVitamCache<T, V> implements VitamCache<T, V> {
             .softValues()
             .concurrencyLevel(concurrencyLevel)
             .expireAfterAccess(VitamConfiguration.getExpireCacheEntriesDelay(), TimeUnit.SECONDS)
-            .build(new CacheLoader<T, V>() {
-                @Override
-                public V load(T key) {
-                    return loadByKey(key);
-                }
+            .build(
+                new CacheLoader<T, V>() {
+                    @Override
+                    public V load(T key) {
+                        return loadByKey(key);
+                    }
 
-                @Override
-                public Map<T, V> loadAll(Iterable<? extends T> keys) {
-                    return loadByKeys(keys);
+                    @Override
+                    public Map<T, V> loadAll(Iterable<? extends T> keys) {
+                        return loadByKeys(keys);
+                    }
                 }
-            });
+            );
     }
 
     protected abstract Map<T, V> loadByKeys(Iterable<? extends T> keys);

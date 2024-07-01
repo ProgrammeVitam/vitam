@@ -74,7 +74,6 @@ public class ElasticsearchIndexAlias {
         return new ElasticsearchIndexAlias(fullIndexName);
     }
 
-
     private final String name;
 
     private ElasticsearchIndexAlias(String name) {
@@ -100,8 +99,6 @@ public class ElasticsearchIndexAlias {
 
     @Override
     public String toString() {
-        return "ElasticsearchIndexAlias{" +
-            "name='" + name + '\'' +
-            '}';
+        return "ElasticsearchIndexAlias{" + "name='" + name + '\'' + '}';
     }
 }

@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
  * Class JavaExecuteScript used to execute the shell script in java
  */
 public class JavaExecuteScript {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JavaExecuteScript.class);
 
     /**
@@ -72,7 +73,5 @@ public class JavaExecuteScript {
         } catch (Exception e) {
             return new ExecutionOutput(e, process, processBuilder);
         }
-
     }
-
 }

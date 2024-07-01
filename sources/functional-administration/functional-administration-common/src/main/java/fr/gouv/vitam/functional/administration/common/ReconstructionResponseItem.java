@@ -127,6 +127,4 @@ public class ReconstructionResponseItem {
         this.status = status;
         return this;
     }
-
-
 }

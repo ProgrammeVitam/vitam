@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * DTO for map #storage in objectGroup
  */
-@JsonIgnoreProperties({"#nbc", "offerIds"})
+@JsonIgnoreProperties({ "#nbc", "offerIds" })
 public class StorageRacineModel {
 
     @JsonProperty("strategyId")
@@ -45,5 +45,4 @@ public class StorageRacineModel {
     public void setStrategyId(String strategyId) {
         this.strategyId = strategyId;
     }
-
 }

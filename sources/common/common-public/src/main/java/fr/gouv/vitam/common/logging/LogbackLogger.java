@@ -32,6 +32,7 @@ import ch.qos.logback.classic.Logger;
  * logger using SLF4J from Logback
  */
 final class LogbackLogger extends AbstractVitamLogger {
+
     private static final long serialVersionUID = -7588688826950608830L;
     /**
      * Internal logger

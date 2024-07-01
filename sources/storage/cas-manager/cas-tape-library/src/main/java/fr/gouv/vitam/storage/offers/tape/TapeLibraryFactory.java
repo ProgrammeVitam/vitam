@@ -102,83 +102,114 @@ public class TapeLibraryFactory {
     private ArchiveCacheStorage archiveCacheStorage;
     private TapeServiceCreator tapeServiceCreator = defaultTapeServiceCreator;
 
-    private TapeLibraryFactory() {
-    }
+    private TapeLibraryFactory() {}
 
     public void initialize(TapeLibraryConfiguration configuration, MongoDatabase mongoDatabase)
         throws IOException, IllegalPathException {
-
         ParametersChecker.checkParameter("All params are required", configuration, mongoDatabase);
-        ParametersChecker.checkParameter("Missing cache capacity configuration settings",
+        ParametersChecker.checkParameter(
+            "Missing cache capacity configuration settings",
             configuration.getCachedTarMaxStorageSpaceInMB(),
             configuration.getCachedTarEvictionStorageSpaceThresholdInMB(),
-            configuration.getCachedTarSafeStorageSpaceThresholdInMB());
+            configuration.getCachedTarSafeStorageSpaceThresholdInMB()
+        );
 
         createWorkingDirectories(configuration);
 
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
-        TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDatabase
-            .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+        TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(
+            mongoDatabase.getCollection(OfferCollections.TAPE_CATALOG.getName())
+        );
 
         tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
 
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
 
-        ObjectReferentialRepository objectReferentialRepository =
-            new ObjectReferentialRepository(mongoDatabase
-                .getCollection(OfferCollections.TAPE_OBJECT_REFERENTIAL.getName()));
-        ArchiveReferentialRepository archiveReferentialRepository =
-            new ArchiveReferentialRepository(mongoDatabase
-                .getCollection(OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName()));
-        AccessRequestReferentialRepository accessRequestReferentialRepository =
-            new AccessRequestReferentialRepository(mongoDatabase
-                .getCollection(OfferCollections.ACCESS_REQUEST_REFERENTIAL.getName()));
-        QueueRepositoryImpl readWriteQueue = new QueueRepositoryImpl(mongoDatabase.getCollection(
-            OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
+        ObjectReferentialRepository objectReferentialRepository = new ObjectReferentialRepository(
+            mongoDatabase.getCollection(OfferCollections.TAPE_OBJECT_REFERENTIAL.getName())
+        );
+        ArchiveReferentialRepository archiveReferentialRepository = new ArchiveReferentialRepository(
+            mongoDatabase.getCollection(OfferCollections.TAPE_ARCHIVE_REFERENTIAL.getName())
+        );
+        AccessRequestReferentialRepository accessRequestReferentialRepository = new AccessRequestReferentialRepository(
+            mongoDatabase.getCollection(OfferCollections.ACCESS_REQUEST_REFERENTIAL.getName())
+        );
+        QueueRepositoryImpl readWriteQueue = new QueueRepositoryImpl(
+            mongoDatabase.getCollection(OfferCollections.TAPE_QUEUE_MESSAGE.getName())
+        );
 
         ArchiveCacheEvictionController archiveCacheEvictionController = new ArchiveCacheEvictionController(
-            accessRequestReferentialRepository, objectReferentialRepository, bucketTopologyHelper);
+            accessRequestReferentialRepository,
+            objectReferentialRepository,
+            bucketTopologyHelper
+        );
 
         archiveCacheStorage = new ArchiveCacheStorage(
-            configuration.getCachedTarStorageFolder(), bucketTopologyHelper, archiveCacheEvictionController,
+            configuration.getCachedTarStorageFolder(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
             configuration.getCachedTarMaxStorageSpaceInMB() * MB_BYTES,
             configuration.getCachedTarEvictionStorageSpaceThresholdInMB() * MB_BYTES,
             configuration.getCachedTarSafeStorageSpaceThresholdInMB() * MB_BYTES
         );
 
-        WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
-            archiveReferentialRepository, readWriteQueue);
+        WriteOrderCreator writeOrderCreator = new WriteOrderCreator(archiveReferentialRepository, readWriteQueue);
 
         TarFileRapairer tarFileRapairer = new TarFileRapairer(objectReferentialRepository);
-        WriteOrderCreatorBootstrapRecovery
-            writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
-            configuration.getInputTarStorageFolder(), archiveReferentialRepository,
-            bucketTopologyHelper, writeOrderCreator, tarFileRapairer, archiveCacheStorage);
+        WriteOrderCreatorBootstrapRecovery writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
+            configuration.getInputTarStorageFolder(),
+            archiveReferentialRepository,
+            bucketTopologyHelper,
+            writeOrderCreator,
+            tarFileRapairer,
+            archiveCacheStorage
+        );
 
-        backupFileStorage =
-            new BackupFileStorage(archiveReferentialRepository, writeOrderCreator, BucketTopologyHelper.BACKUP_BUCKET,
-                BucketTopologyHelper.BACKUP_FILE_BUCKET,
-                configuration.getInputTarStorageFolder());
+        backupFileStorage = new BackupFileStorage(
+            archiveReferentialRepository,
+            writeOrderCreator,
+            BucketTopologyHelper.BACKUP_BUCKET,
+            BucketTopologyHelper.BACKUP_FILE_BUCKET,
+            configuration.getInputTarStorageFolder()
+        );
 
-        BasicFileStorage basicFileStorage =
-            new BasicFileStorage(configuration.getInputFileStorageFolder());
-        FileBucketTarCreatorManager fileBucketTarCreatorManager =
-            new FileBucketTarCreatorManager(configuration, basicFileStorage, bucketTopologyHelper,
-                objectReferentialRepository, archiveReferentialRepository, writeOrderCreator);
+        BasicFileStorage basicFileStorage = new BasicFileStorage(configuration.getInputFileStorageFolder());
+        FileBucketTarCreatorManager fileBucketTarCreatorManager = new FileBucketTarCreatorManager(
+            configuration,
+            basicFileStorage,
+            bucketTopologyHelper,
+            objectReferentialRepository,
+            archiveReferentialRepository,
+            writeOrderCreator
+        );
 
-        accessRequestManager = new AccessRequestManager(objectReferentialRepository,
-            archiveReferentialRepository, accessRequestReferentialRepository, archiveCacheStorage, bucketTopologyHelper,
-            readWriteQueue, configuration.getMaxAccessRequestSize(),
-            configuration.getReadyAccessRequestExpirationDelay(), configuration.getReadyAccessRequestExpirationUnit(),
-            configuration.getReadyAccessRequestPurgeDelay(), configuration.getReadyAccessRequestPurgeUnit(),
+        accessRequestManager = new AccessRequestManager(
+            objectReferentialRepository,
+            archiveReferentialRepository,
+            accessRequestReferentialRepository,
+            archiveCacheStorage,
+            bucketTopologyHelper,
+            readWriteQueue,
+            configuration.getMaxAccessRequestSize(),
+            configuration.getReadyAccessRequestExpirationDelay(),
+            configuration.getReadyAccessRequestExpirationUnit(),
+            configuration.getReadyAccessRequestPurgeDelay(),
+            configuration.getReadyAccessRequestPurgeUnit(),
             configuration.getAccessRequestCleanupTaskIntervalDelay(),
-            configuration.getAccessRequestCleanupTaskIntervalUnit());
+            configuration.getAccessRequestCleanupTaskIntervalUnit()
+        );
 
-        tapeLibraryContentAddressableStorage =
-            new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
-                archiveReferentialRepository, accessRequestManager, fileBucketTarCreatorManager,
-                archiveCacheStorage, archiveCacheEvictionController, bucketTopologyHelper);
+        tapeLibraryContentAddressableStorage = new TapeLibraryContentAddressableStorage(
+            basicFileStorage,
+            objectReferentialRepository,
+            archiveReferentialRepository,
+            accessRequestManager,
+            fileBucketTarCreatorManager,
+            archiveCacheStorage,
+            archiveCacheEvictionController,
+            bucketTopologyHelper
+        );
 
         // Start AccessRequest expiration handler
         accessRequestManager.startExpirationHandler();
@@ -201,8 +232,10 @@ public class TapeLibraryFactory {
         for (String tapeLibraryIdentifier : libraries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);
 
-            BlockingQueue<TapeRobotService> robotServices =
-                new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
+            BlockingQueue<TapeRobotService> robotServices = new ArrayBlockingQueue<>(
+                tapeLibraryConf.getRobots().size(),
+                true
+            );
             ConcurrentHashMap<Integer, TapeDriveService> driveServices = new ConcurrentHashMap<>();
 
             for (TapeRobotConf tapeRobotConf : tapeLibraryConf.getRobots()) {
@@ -217,9 +250,10 @@ public class TapeLibraryFactory {
             }
 
             if (robotServices.size() > 0 && driveServices.size() > 0) {
-                tapeLibraryPool
-                    .putIfAbsent(tapeLibraryIdentifier,
-                        new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices));
+                tapeLibraryPool.putIfAbsent(
+                    tapeLibraryIdentifier,
+                    new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices)
+                );
             }
 
             // init tape catalog
@@ -232,10 +266,11 @@ public class TapeLibraryFactory {
                         TapeLibrarySpec libraryState = robot.getLoadUnloadService().status();
 
                         driveTape = tapeCatalogService.init(tapeLibraryIdentifier, libraryState);
-
                     } catch (TapeCommandException e) {
-                        throw new RuntimeException("Robot status command return ko :" +
-                            JsonHandler.unprettyPrint(e.getDetails()), e);
+                        throw new RuntimeException(
+                            "Robot status command return ko :" + JsonHandler.unprettyPrint(e.getDetails()),
+                            e
+                        );
                     } finally {
                         libraryPool.pushRobotService(robot);
                     }
@@ -245,11 +280,18 @@ public class TapeLibraryFactory {
             }
 
             // Start all workers
-            TapeDriveWorkerManager tapeDriveWorkerManager =
-                new TapeDriveWorkerManager(readWriteQueue, archiveReferentialRepository, accessRequestManager,
-                    libraryPool, driveTape, configuration.getInputTarStorageFolder(),
-                    configuration.isForceOverrideNonEmptyCartridges(), archiveCacheStorage, tapeCatalogService,
-                    tapeLibraryConf.getFullCartridgeDetectionThresholdInMB());
+            TapeDriveWorkerManager tapeDriveWorkerManager = new TapeDriveWorkerManager(
+                readWriteQueue,
+                archiveReferentialRepository,
+                accessRequestManager,
+                libraryPool,
+                driveTape,
+                configuration.getInputTarStorageFolder(),
+                configuration.isForceOverrideNonEmptyCartridges(),
+                archiveCacheStorage,
+                tapeCatalogService,
+                tapeLibraryConf.getFullCartridgeDetectionThresholdInMB()
+            );
 
             // Initialize drives on bootstrap
             tapeDriveWorkerManager.initializeOnBootstrap();
@@ -293,11 +335,12 @@ public class TapeLibraryFactory {
     }
 
     private void createWorkingDirectories(TapeLibraryConfiguration configuration) throws IOException {
-
-        if (isBlank(configuration.getInputFileStorageFolder()) ||
+        if (
+            isBlank(configuration.getInputFileStorageFolder()) ||
             isBlank(configuration.getInputTarStorageFolder()) ||
             isBlank(configuration.getTmpTarOutputStorageFolder()) ||
-            isBlank(configuration.getCachedTarStorageFolder())) {
+            isBlank(configuration.getCachedTarStorageFolder())
+        ) {
             throw new VitamRuntimeException("Tape storage configuration");
         }
         createDirectory(configuration.getInputFileStorageFolder());
@@ -348,14 +391,12 @@ public class TapeLibraryFactory {
     }
 
     public interface TapeServiceCreator {
-
         TapeRobotService createRobotService(TapeRobotConf tapeRobotConf);
 
         TapeDriveService createTapeDriveService(TapeLibraryConfiguration configuration, TapeDriveConf tapeDriveConf);
     }
 
-
-    private final static class TapeServiceCreatorImpl implements TapeServiceCreator {
+    private static final class TapeServiceCreatorImpl implements TapeServiceCreator {
 
         @Override
         public TapeRobotService createRobotService(TapeRobotConf tapeRobotConf) {
@@ -363,10 +404,15 @@ public class TapeLibraryFactory {
         }
 
         @Override
-        public TapeDriveService createTapeDriveService(TapeLibraryConfiguration configuration,
-            TapeDriveConf tapeDriveConf) {
-            return new TapeDriveManager(tapeDriveConf,
-                configuration.getInputTarStorageFolder(), configuration.getTmpTarOutputStorageFolder());
+        public TapeDriveService createTapeDriveService(
+            TapeLibraryConfiguration configuration,
+            TapeDriveConf tapeDriveConf
+        ) {
+            return new TapeDriveManager(
+                tapeDriveConf,
+                configuration.getInputTarStorageFolder(),
+                configuration.getTmpTarOutputStorageFolder()
+            );
         }
     }
 }

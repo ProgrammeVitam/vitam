@@ -145,7 +145,6 @@ public class ObjectGroupResponse {
         this.up = up;
     }
 
-
     public List<String> getUs() {
         return us;
     }
@@ -212,38 +211,25 @@ public class ObjectGroupResponse {
 
     @JsonIgnore
     public Optional<VersionsModel> getLastVersionsModel(String qualifier) {
-
         Optional<QualifiersModel> first = getQualifiersModel(qualifier);
 
         if (first.isPresent()) {
-            return first
-                .get()
-                .getVersions()
-                .stream()
-                .max(comparing(VersionsModel::getDataVersion));
+            return first.get().getVersions().stream().max(comparing(VersionsModel::getDataVersion));
         }
         return empty();
     }
 
     @JsonIgnore
     public Optional<VersionsModel> getFirstVersionsModel(String qualifier) {
-
         Optional<QualifiersModel> modelOptional = getQualifiersModel(qualifier);
 
         if (modelOptional.isPresent()) {
-            return modelOptional
-                .get()
-                .getVersions()
-                .stream()
-                .min(comparing(VersionsModel::getDataVersion));
+            return modelOptional.get().getVersions().stream().min(comparing(VersionsModel::getDataVersion));
         }
         return empty();
     }
 
     private Optional<QualifiersModel> getQualifiersModel(String qualifier) {
-        return qualifiers
-            .stream()
-            .filter(q -> q.getQualifier().equals(qualifier))
-            .findFirst();
+        return qualifiers.stream().filter(q -> q.getQualifier().equals(qualifier)).findFirst();
     }
 }

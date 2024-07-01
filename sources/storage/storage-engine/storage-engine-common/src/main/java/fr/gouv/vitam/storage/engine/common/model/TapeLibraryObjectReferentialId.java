@@ -69,13 +69,10 @@ public class TapeLibraryObjectReferentialId {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TapeLibraryObjectReferentialId that = (TapeLibraryObjectReferentialId) o;
-        return Objects.equal(containerName, that.containerName) &&
-            Objects.equal(objectName, that.objectName);
+        return Objects.equal(containerName, that.containerName) && Objects.equal(objectName, that.objectName);
     }
 
     @Override

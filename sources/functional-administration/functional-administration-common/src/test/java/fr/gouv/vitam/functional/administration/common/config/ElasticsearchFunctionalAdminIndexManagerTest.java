@@ -41,18 +41,19 @@ public class ElasticsearchFunctionalAdminIndexManagerTest {
 
     @Test
     public void testIndexAliasResolver() throws Exception {
-
         // Given
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "./functional_administration_test_config.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./functional_administration_test_config.yml")
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
         }
         ElasticsearchFunctionalAdminIndexManager indexManager = new ElasticsearchFunctionalAdminIndexManager(config);
 
         // When
-        ElasticsearchIndexAliasResolver accessContractResolver =
-            indexManager.getElasticsearchIndexAliasResolver(FunctionalAdminCollections.ACCESS_CONTRACT);
+        ElasticsearchIndexAliasResolver accessContractResolver = indexManager.getElasticsearchIndexAliasResolver(
+            FunctionalAdminCollections.ACCESS_CONTRACT
+        );
 
         // Then
         assertThat(accessContractResolver.resolveIndexName(null).getName()).isEqualTo("accesscontract");
@@ -61,21 +62,23 @@ public class ElasticsearchFunctionalAdminIndexManagerTest {
 
     @Test
     public void testIndexSettingsWithDefaultOnlyConfig() throws Exception {
-
         // Given
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils
-            .getConfigAsStream("./functional_administration_test_config.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./functional_administration_test_config.yml")
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
         }
 
         ElasticsearchFunctionalAdminIndexManager indexManager = new ElasticsearchFunctionalAdminIndexManager(config);
 
         // When
-        ElasticsearchIndexSettings accessContractIndexSettings =
-            indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.ACCESS_CONTRACT);
-        ElasticsearchIndexSettings ontologyIndexSettings =
-            indexManager.getElasticsearchIndexSettings(FunctionalAdminCollections.ONTOLOGY);
+        ElasticsearchIndexSettings accessContractIndexSettings = indexManager.getElasticsearchIndexSettings(
+            FunctionalAdminCollections.ACCESS_CONTRACT
+        );
+        ElasticsearchIndexSettings ontologyIndexSettings = indexManager.getElasticsearchIndexSettings(
+            FunctionalAdminCollections.ONTOLOGY
+        );
 
         // Then
         assertThat(accessContractIndexSettings.getShards()).isEqualTo(3);

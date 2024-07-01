@@ -72,14 +72,12 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 /**
  * Purge object group preparation handler.
  */
 public class PurgeObjectGroupPreparationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PurgeObjectGroupPreparationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeObjectGroupPreparationHandler.class);
 
     static final String OBJECT_GROUPS_TO_DELETE_FILE = "object_groups_to_delete.jsonl";
     static final String OBJECT_GROUPS_TO_DETACH_FILE = "object_groups_to_detach.jsonl";
@@ -103,10 +101,7 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
      * @param actionId
      */
     public PurgeObjectGroupPreparationHandler(String actionId) {
-        this(
-            actionId, MetaDataClientFactory.getInstance(),
-            new PurgeReportService(),
-            DEFAULT_OBJECT_GROUP_BULK_SIZE);
+        this(actionId, MetaDataClientFactory.getInstance(), new PurgeReportService(), DEFAULT_OBJECT_GROUP_BULK_SIZE);
     }
 
     /***
@@ -114,9 +109,11 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
      */
     @VisibleForTesting
     protected PurgeObjectGroupPreparationHandler(
-        String actionId, MetaDataClientFactory metaDataClientFactory,
+        String actionId,
+        MetaDataClientFactory metaDataClientFactory,
         PurgeReportService purgeReportService,
-        int objectGroupBulkSize) {
+        int objectGroupBulkSize
+    ) {
         this.actionId = actionId;
         this.metaDataClientFactory = metaDataClientFactory;
         this.purgeReportService = purgeReportService;
@@ -124,11 +121,8 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             File objectGroupsToDeleteFile = handler.getNewLocalFile(OBJECT_GROUPS_TO_DELETE_FILE);
             File objectGroupsToDetachFile = handler.getNewLocalFile(OBJECT_GROUPS_TO_DETACH_FILE);
 
@@ -137,20 +131,28 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
                 OutputStream objectGroupsToDetachStream = new FileOutputStream(objectGroupsToDetachFile);
                 JsonLineWriter objectGroupsToDeleteWriter = new JsonLineWriter(objectGroupsToDeleteStream);
                 JsonLineWriter objectGroupsToDetachWriter = new JsonLineWriter(objectGroupsToDetachStream);
-                CloseableIterator<String> iterator =
-                    purgeReportService.exportDistinctObjectGroups(handler, param.getContainerName())) {
-
+                CloseableIterator<String> iterator = purgeReportService.exportDistinctObjectGroups(
+                    handler,
+                    param.getContainerName()
+                )
+            ) {
                 Iterator<List<String>> bulkIterator = Iterators.partition(iterator, objectGroupBulkSize);
 
                 while (bulkIterator.hasNext()) {
                     List<String> objectGroupIds = bulkIterator.next();
-                    process(new HashSet<>(objectGroupIds), objectGroupsToDeleteWriter, objectGroupsToDetachWriter,
-                        param.getContainerName());
+                    process(
+                        new HashSet<>(objectGroupIds),
+                        objectGroupsToDeleteWriter,
+                        objectGroupsToDetachWriter,
+                        param.getContainerName()
+                    );
                 }
-
             } catch (IOException | InvalidParseOperationException e) {
-                throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate object group distribution",
-                    e);
+                throw new ProcessingStatusException(
+                    StatusCode.FATAL,
+                    "Could not generate object group distribution",
+                    e
+                );
             }
 
             handler.transferFileToWorkspace(OBJECT_GROUPS_TO_DELETE_FILE, objectGroupsToDeleteFile, true, false);
@@ -158,20 +160,21 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
 
             LOGGER.info("Purge of object group preparation succeeded");
             return buildItemStatus(actionId, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error(
                 String.format("Purge of object group preparation failed with status [%s]", e.getStatusCode()),
-                e);
+                e
+            );
             return buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails());
         }
     }
 
-    private void process(Set<String> objectGroupIds, JsonLineWriter objectGroupsToDeleteWriter,
+    private void process(
+        Set<String> objectGroupIds,
+        JsonLineWriter objectGroupsToDeleteWriter,
         JsonLineWriter objectGroupsToDetachWriter,
-        String processId)
-        throws ProcessingStatusException, IOException, InvalidParseOperationException {
-
+        String processId
+    ) throws ProcessingStatusException, IOException, InvalidParseOperationException {
         Map<String, ObjectGroupResponse> objectGroups = loadObjectGroups(objectGroupIds);
 
         Set<String> foundObjectGroupIds = objectGroups.keySet();
@@ -192,44 +195,65 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
         List<PurgeObjectGroupReportEntry> purgeObjectGroupReportEntries = new ArrayList<>();
 
         for (ObjectGroupResponse objectGroup : objectGroups.values()) {
-
             Set<String> objectGroupParentUnits = new HashSet<>(objectGroup.getUp());
             Set<String> removedParentUnits = SetUtils.difference(objectGroupParentUnits, existingParentUnits);
 
             if (removedParentUnits.size() == objectGroupParentUnits.size()) {
-
                 LOGGER.debug("Object group " + objectGroup.getId() + " will be deleted");
 
                 PurgeObjectGroupParams params = PurgeObjectGroupParams.fromObjectGroup(objectGroup);
 
-                objectGroupsToDeleteWriter.addEntry(new JsonLineModel(objectGroup.getId(), null,
-                    JsonHandler.toJsonNode(params)));
+                objectGroupsToDeleteWriter.addEntry(
+                    new JsonLineModel(objectGroup.getId(), null, JsonHandler.toJsonNode(params))
+                );
 
-                Set<String> objectIds = params.getObjects().stream()
+                Set<String> objectIds = params
+                    .getObjects()
+                    .stream()
                     .map(PurgeObjectParams::getId)
                     .collect(Collectors.toSet());
 
                 List<PurgeObjectGroupObjectVersion> objectVersions = getObjectVersions(objectGroup);
 
-                purgeObjectGroupReportEntries.add(new PurgeObjectGroupReportEntry(objectGroup.getId(),
-                    objectGroup.getOriginatingAgency(), objectGroup.getOpi(), null,
-                    objectIds, PurgeObjectGroupStatus.DELETED.name(), objectVersions));
-
+                purgeObjectGroupReportEntries.add(
+                    new PurgeObjectGroupReportEntry(
+                        objectGroup.getId(),
+                        objectGroup.getOriginatingAgency(),
+                        objectGroup.getOpi(),
+                        null,
+                        objectIds,
+                        PurgeObjectGroupStatus.DELETED.name(),
+                        objectVersions
+                    )
+                );
             } else {
-
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Object group " + objectGroup.getId() + " detached from deleted parents " +
-                        String.join(", ", removedParentUnits));
+                    LOGGER.debug(
+                        "Object group " +
+                        objectGroup.getId() +
+                        " detached from deleted parents " +
+                        String.join(", ", removedParentUnits)
+                    );
                 }
 
-                JsonLineModel entry = new JsonLineModel(objectGroup.getId(), null,
-                    JsonHandler.toJsonNode(removedParentUnits));
+                JsonLineModel entry = new JsonLineModel(
+                    objectGroup.getId(),
+                    null,
+                    JsonHandler.toJsonNode(removedParentUnits)
+                );
                 objectGroupsToDetachWriter.addEntry(entry);
 
-                purgeObjectGroupReportEntries
-                    .add(new PurgeObjectGroupReportEntry(objectGroup.getId(),
-                        objectGroup.getOriginatingAgency(), objectGroup.getOpi(), removedParentUnits,
-                        null, PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(), null));
+                purgeObjectGroupReportEntries.add(
+                    new PurgeObjectGroupReportEntry(
+                        objectGroup.getId(),
+                        objectGroup.getOriginatingAgency(),
+                        objectGroup.getOpi(),
+                        removedParentUnits,
+                        null,
+                        PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
+                        null
+                    )
+                );
             }
         }
 
@@ -237,24 +261,32 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
     }
 
     private List<PurgeObjectGroupObjectVersion> getObjectVersions(ObjectGroupResponse objectGroup) {
-
-        return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
+        return ListUtils.emptyIfNull(objectGroup.getQualifiers())
+            .stream()
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
-            .map(version -> new PurgeObjectGroupObjectVersion(version.getId(),
-                version.getOpi(), version.getSize(), version.getDataObjectVersion(), version.getDataObjectUse(), version.getPersistentIdentifier()))
+            .map(
+                version ->
+                    new PurgeObjectGroupObjectVersion(
+                        version.getId(),
+                        version.getOpi(),
+                        version.getSize(),
+                        version.getDataObjectVersion(),
+                        version.getDataObjectUse(),
+                        version.getPersistentIdentifier()
+                    )
+            )
             .collect(Collectors.toList());
     }
 
     private Map<String, ObjectGroupResponse> loadObjectGroups(Set<String> objectGroupIds)
         throws ProcessingStatusException {
-
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
             Map<String, ObjectGroupResponse> objectGroups = new HashMap<>();
 
-            for (List<String> ids : ListUtils
-                .partition(new ArrayList<>(objectGroupIds), MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE)) {
-
+            for (List<String> ids : ListUtils.partition(
+                new ArrayList<>(objectGroupIds),
+                MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE
+            )) {
                 SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
                 selectMultiQuery.addRoots(ids.toArray(new String[0]));
 
@@ -262,34 +294,36 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
                 RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
 
                 for (JsonNode objectGroupJson : requestResponseOK.getResults()) {
-
-                    ObjectGroupResponse objectGroup =
-                        JsonHandler.getFromJsonNode(objectGroupJson, ObjectGroupResponse.class);
+                    ObjectGroupResponse objectGroup = JsonHandler.getFromJsonNode(
+                        objectGroupJson,
+                        ObjectGroupResponse.class
+                    );
 
                     objectGroups.put(objectGroup.getId(), objectGroup);
                 }
             }
             return objectGroups;
-
-
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+        } catch (
+            MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | InvalidParseOperationException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object groups", e);
         }
     }
 
     private Set<String> getExistingParentUnits(Set<String> parentUnitIds) throws ProcessingStatusException {
-
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
             Set<String> foundUnitIds = new HashSet<>();
 
-            for (List<String> ids : ListUtils
-                .partition(new ArrayList<>(parentUnitIds), MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE)) {
-
+            for (List<String> ids : ListUtils.partition(
+                new ArrayList<>(parentUnitIds),
+                MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE
+            )) {
                 SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
                 selectMultiQuery.addRoots(ids.toArray(new String[0]));
-                selectMultiQuery.addUsedProjection(
-                    VitamFieldsHelper.id());
+                selectMultiQuery.addUsedProjection(VitamFieldsHelper.id());
 
                 JsonNode jsonNode = client.selectUnits(selectMultiQuery.getFinalSelect());
                 RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(jsonNode);
@@ -300,8 +334,12 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
             }
 
             return foundUnitIds;
-
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+        } catch (
+            MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | InvalidParseOperationException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load object group parent units", e);
         }
     }

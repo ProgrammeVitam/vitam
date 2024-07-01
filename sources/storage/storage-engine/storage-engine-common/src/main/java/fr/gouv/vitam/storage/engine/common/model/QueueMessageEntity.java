@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
 
 public class QueueMessageEntity {
+
     public static final String ID = "_id";
     public static final String STATE = "queue_state";
     public static final String PRIORITY = "queue_priority";
@@ -46,7 +47,6 @@ public class QueueMessageEntity {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
-
     @JsonProperty(TAG_CREATION_DATE)
     private String created = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
@@ -55,7 +55,6 @@ public class QueueMessageEntity {
 
     @JsonProperty(PRIORITY)
     private int priority = 1;
-
 
     public QueueMessageEntity(String id, QueueMessageType messageType) {
         this.id = id;

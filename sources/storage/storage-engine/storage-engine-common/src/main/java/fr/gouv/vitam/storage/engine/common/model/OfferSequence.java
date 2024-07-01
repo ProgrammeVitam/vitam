@@ -41,8 +41,7 @@ public class OfferSequence {
     /**
      * Constructor, jackson usage only
      */
-    public OfferSequence() {
-    }
+    public OfferSequence() {}
 
     /**
      * Constructor

@@ -49,22 +49,31 @@ public class ReadOnlyStorageLog implements StorageLog {
 
     @Override
     public void appendWriteLog(Integer tenant, StorageLogbookParameters parameters) {
-        throw reportIllegalAccess("Illegal operation reported on ReadOnly storage engine instance. "
-            + "Cannot write storage logs for tenant: " + tenant + ", parameters: " +
-            (parameters == null ? "null" : JsonHandler.unprettyPrint(parameters)));
+        throw reportIllegalAccess(
+            "Illegal operation reported on ReadOnly storage engine instance. " +
+            "Cannot write storage logs for tenant: " +
+            tenant +
+            ", parameters: " +
+            (parameters == null ? "null" : JsonHandler.unprettyPrint(parameters))
+        );
     }
 
     @Override
     public void appendAccessLog(Integer tenant, AccessLogParameters parameters) {
-        throw reportIllegalAccess("Illegal operation reported on ReadOnly storage engine instance. "
-            + "Cannot write access logs for tenant: " + tenant + ", parameters: " +
-            (parameters == null ? "null" : JsonHandler.unprettyPrint(parameters)));
+        throw reportIllegalAccess(
+            "Illegal operation reported on ReadOnly storage engine instance. " +
+            "Cannot write access logs for tenant: " +
+            tenant +
+            ", parameters: " +
+            (parameters == null ? "null" : JsonHandler.unprettyPrint(parameters))
+        );
     }
 
     @Override
     public List<LogInformation> rotateLogFile(Integer tenantId, boolean isWriteOperation) {
-        throw reportIllegalAccess("Illegal operation reported on ReadOnly storage engine instance. "
-            + "No log files to rotate");
+        throw reportIllegalAccess(
+            "Illegal operation reported on ReadOnly storage engine instance. " + "No log files to rotate"
+        );
     }
 
     @Override
@@ -74,8 +83,9 @@ public class ReadOnlyStorageLog implements StorageLog {
 
     @Override
     public String getFileName(boolean isWriteOperation) {
-        throw reportIllegalAccess("Illegal operation reported on ReadOnly storage engine instance. "
-            + "No log file name available");
+        throw reportIllegalAccess(
+            "Illegal operation reported on ReadOnly storage engine instance. " + "No log file name available"
+        );
     }
 
     private IllegalStateException reportIllegalAccess(String errorMessage) {

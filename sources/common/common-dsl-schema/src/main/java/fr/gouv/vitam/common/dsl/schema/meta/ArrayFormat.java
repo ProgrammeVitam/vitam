@@ -70,4 +70,3 @@ public class ArrayFormat extends Format {
         return itemType.debugInfo() + "[]";
     }
 }
-

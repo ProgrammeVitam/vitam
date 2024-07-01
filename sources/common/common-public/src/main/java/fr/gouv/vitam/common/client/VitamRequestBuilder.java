@@ -45,8 +45,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
 
 public class VitamRequestBuilder {
-    private static final Runnable NOOP = () -> {
-    };
+
+    private static final Runnable NOOP = () -> {};
 
     private final String httpMethod;
 
@@ -227,7 +227,8 @@ public class VitamRequestBuilder {
     public VitamRequestBuilder withQueryParams(Map<String, String> queryParams) {
         if (!GET.equals(httpMethod)) {
             throw new IllegalArgumentException(
-                String.format("Cannot use query params with something different that 'GET', here '%s'.", httpMethod));
+                String.format("Cannot use query params with something different that 'GET', here '%s'.", httpMethod)
+            );
         }
         this.queryParams = Objects.requireNonNull(queryParams);
         return this;
@@ -236,7 +237,8 @@ public class VitamRequestBuilder {
     public VitamRequestBuilder withQueryParam(String key, String value) {
         if (!GET.equals(httpMethod)) {
             throw new IllegalArgumentException(
-                String.format("Cannot use query params with something different that 'GET', here '%s'.", httpMethod));
+                String.format("Cannot use query params with something different that 'GET', here '%s'.", httpMethod)
+            );
         }
         if (this.queryParams == null) {
             this.queryParams = new HashMap<>();

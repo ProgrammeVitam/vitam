@@ -32,7 +32,6 @@ package fr.gouv.vitam.storage.driver.model;
  */
 public class StorageResult {
 
-
     private final Integer tenantId;
     private final String type;
 
@@ -64,5 +63,4 @@ public class StorageResult {
     public String getType() {
         return type;
     }
-
 }

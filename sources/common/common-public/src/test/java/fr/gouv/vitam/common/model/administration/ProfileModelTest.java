@@ -36,13 +36,10 @@ import static org.junit.Assert.assertEquals;
 
 public class ProfileModelTest {
 
-
     private static final Integer TENANT_ID = 0;
 
     @Test
     public void testConstructor() throws Exception {
-
-
         ProfileModel profile = new ProfileModel();
         final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
         String identifier = "aIdentifier";
@@ -72,5 +69,4 @@ public class ProfileModelTest {
         assertEquals(lastupdate, profile.getActivationdate());
         assertEquals(lastupdate, profile.getDeactivationdate());
     }
-
 }

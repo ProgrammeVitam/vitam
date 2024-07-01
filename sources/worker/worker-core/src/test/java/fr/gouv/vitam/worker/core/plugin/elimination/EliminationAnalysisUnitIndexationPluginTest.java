@@ -65,8 +65,9 @@ import static org.mockito.Mockito.verify;
 public class EliminationAnalysisUnitIndexationPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -87,20 +88,22 @@ public class EliminationAnalysisUnitIndexationPluginTest {
 
     @Before
     public void init() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
 
         EliminationAnalysisResult eliminationAnalysisResult = new EliminationAnalysisResult(
-            "opId", EliminationGlobalStatus.DESTROY,
+            "opId",
+            EliminationGlobalStatus.DESTROY,
             new HashSet<>(Collections.singletonList("sp1")),
             Collections.emptySet(),
-            Collections.emptyList());
+            Collections.emptyList()
+        );
 
-        this.parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        this.parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("unit1")
             .setObjectMetadata(JsonHandler.toJsonNode(eliminationAnalysisResult))
@@ -110,7 +113,6 @@ public class EliminationAnalysisUnitIndexationPluginTest {
     @Test
     @RunWithCustomExecutor
     public void testIndexUnitOK() throws Exception {
-
         // Given / When
         instance.execute(parameters, handlerIO);
 
@@ -126,7 +128,6 @@ public class EliminationAnalysisUnitIndexationPluginTest {
     @Test
     @RunWithCustomExecutor
     public void testIndexUnitOnMetadataExceptionThenFatal() throws Exception {
-
         // Given
         doThrow(MetaDataExecutionException.class).when(metaDataClient).updateUnitById(any(), any());
 

@@ -27,5 +27,5 @@
 package fr.gouv.vitam.common.model.administration;
 
 public enum PersistentIdentifierPolicyTypeEnum {
-    ARK
+    ARK,
 }

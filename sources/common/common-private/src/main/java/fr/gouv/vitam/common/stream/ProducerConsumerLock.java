@@ -58,14 +58,12 @@ public class ProducerConsumerLock implements AutoCloseable {
     public boolean tryBeginProduce(int units) throws InterruptedException {
         lock.lock();
         try {
-
             while (!closed && writeCapacity < units) {
                 canWrite.await();
             }
             writeCapacity -= units;
 
             return !closed;
-
         } finally {
             lock.unlock();
         }
@@ -92,7 +90,6 @@ public class ProducerConsumerLock implements AutoCloseable {
     public int tryBeginConsume(int units) throws InterruptedException {
         lock.lock();
         try {
-
             while (!closed && readCapacity == 0) {
                 canRead.await();
             }
@@ -101,7 +98,6 @@ public class ProducerConsumerLock implements AutoCloseable {
             readCapacity -= immediatelyAvailable;
 
             return immediatelyAvailable;
-
         } finally {
             lock.unlock();
         }

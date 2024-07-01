@@ -89,14 +89,13 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
         int cpt = 0;
         for (final Step step : workflow.getSteps()) {
-            final String uniqueId =
-                containerName + "_" + workflow.getId() + "_" + cpt + "_" + step.getStepName();
+            final String uniqueId = containerName + "_" + workflow.getId() + "_" + cpt + "_" + step.getStepName();
             step.setId(uniqueId);
-            pwkf.getSteps()
+            pwkf
+                .getSteps()
                 .add(new ProcessStep(step, containerName, workflow.getId(), cpt, new AtomicLong(0), new AtomicLong(0)));
             cpt++;
         }
-
 
         addToWorkflowList(pwkf);
         return pwkf;
@@ -107,11 +106,21 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         ParametersChecker.checkParameter("processId is a mandatory parameter", processId);
         ParametersChecker.checkParameter("tenantId is a mandatory parameter", tenantId);
 
-        if (!WORKFLOWS_LIST.containsKey(tenantId) || WORKFLOWS_LIST.get(tenantId) == null ||
-            !WORKFLOWS_LIST.get(tenantId).containsKey(processId)) {
+        if (
+            !WORKFLOWS_LIST.containsKey(tenantId) ||
+            WORKFLOWS_LIST.get(tenantId) == null ||
+            !WORKFLOWS_LIST.get(tenantId).containsKey(processId)
+        ) {
             throw new WorkflowNotFoundException(
-                PROCESS_DOES_NOT_EXIST + " > Tenant (" + tenantId + ")" + ". Process (" + processId + ") map = " +
-                    WORKFLOWS_LIST.keySet());
+                PROCESS_DOES_NOT_EXIST +
+                " > Tenant (" +
+                tenantId +
+                ")" +
+                ". Process (" +
+                processId +
+                ") map = " +
+                WORKFLOWS_LIST.keySet()
+            );
         } else {
             return WORKFLOWS_LIST.get(tenantId).get(processId);
         }
@@ -129,13 +138,16 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
     @Override
     public void addToWorkflowList(ProcessWorkflow processWorkflow) {
+        LOGGER.info(
+            "add workflow with processId: {} and tenant {}",
+            processWorkflow.getOperationId(),
+            processWorkflow.getTenantId()
+        );
 
-        LOGGER.info("add workflow with processId: {} and tenant {}", processWorkflow.getOperationId(),
-            processWorkflow.getTenantId());
-
-        WORKFLOWS_LIST.computeIfAbsent(processWorkflow.getTenantId(), (key) -> new ConcurrentHashMap<>())
-            .put(processWorkflow.getOperationId(), processWorkflow);
-
+        WORKFLOWS_LIST.computeIfAbsent(processWorkflow.getTenantId(), key -> new ConcurrentHashMap<>()).put(
+            processWorkflow.getOperationId(),
+            processWorkflow
+        );
     }
 
     @Override

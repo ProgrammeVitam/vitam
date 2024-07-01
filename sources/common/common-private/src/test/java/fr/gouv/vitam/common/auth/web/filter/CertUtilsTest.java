@@ -45,7 +45,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class CertUtilsTest {
 
-    private static final String HTTPD_CERTIFICATE_FORMAT = "" +
+    private static final String HTTPD_CERTIFICATE_FORMAT =
+        "" +
         "-----BEGIN CERTIFICATE----- " +
         "MIIDeTCCAmGgAwIBAgIUSCGUFJwxYU4vMvX1nbRiqHIDUOUwDQYJKoZIhvcNAQEL " +
         "BQAwGjEYMBYGA1UEAwwPaW50ZXJtZWRpYXRlLWNhMB4XDTIzMDMxNTA3NDcyMloX " +
@@ -68,7 +69,8 @@ public class CertUtilsTest {
         "WK31zmcgpI+s9vol2bn/VQL6szy47RXmctnkZVk= " +
         "-----END CERTIFICATE----- ";
 
-    private static final String NGINX_CERTIFICATE_FORMAT = "" +
+    private static final String NGINX_CERTIFICATE_FORMAT =
+        "" +
         "-----BEGIN%20CERTIFICATE-----%0A" +
         "MIIDeTCCAmGgAwIBAgIUSCGUFJwxYU4vMvX1nbRiqHIDUOUwDQYJKoZIhvcNAQEL%0A" +
         "BQAwGjEYMBYGA1UEAwwPaW50ZXJtZWRpYXRlLWNhMB4XDTIzMDMxNTA3NDcyMloX%0A" +
@@ -99,7 +101,6 @@ public class CertUtilsTest {
 
     @Test
     public void givenNoCertificateWithHeaderUsageDisabledThenNoCertificateFound() {
-
         // Given
         doReturn(null).when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(null).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
@@ -116,7 +117,6 @@ public class CertUtilsTest {
 
     @Test
     public void givenNoCertificateWithHeaderUsageEnabledThenNoCertificateFound() {
-
         // Given
         doReturn(null).when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(null).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
@@ -133,11 +133,11 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInRequestContextWithHeaderUsageDisabledThenCertificateFound() {
-
         // Given
         X509Certificate cert = mock(X509Certificate.class);
-        doReturn(new X509Certificate[] {cert})
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(new X509Certificate[] { cert })
+            .when(servletRequest)
+            .getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(null).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -153,11 +153,11 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInRequestContextWithHeaderUsageEnabledThenCertificateFound() {
-
         // Given
         X509Certificate cert = mock(X509Certificate.class);
-        doReturn(new X509Certificate[] {cert})
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(new X509Certificate[] { cert })
+            .when(servletRequest)
+            .getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(null).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -173,10 +173,8 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInHttpdFormatHeaderWithHeaderUsageEnabledThenCertificateFound() {
-
         // Given
-        doReturn(null)
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(null).when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(HTTPD_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -192,10 +190,8 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInNginxFormatHeaderWithHeaderUsageEnabledThenCertificateFound() {
-
         // Given
-        doReturn(null)
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(null).when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(NGINX_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -211,10 +207,8 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInHttpdFormatHeaderWithHeaderUsageDisabledThenNoCertificateFound() {
-
         // Given
-        doReturn(null)
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(null).when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(HTTPD_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -229,10 +223,8 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInNginxFormatHeaderWithHeaderUsageDisabledThenNotCertificateFound() {
-
         // Given
-        doReturn(null)
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(null).when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(NGINX_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -244,16 +236,13 @@ public class CertUtilsTest {
         verify(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
     }
 
-
-
-
     @Test
     public void givenCertificateInRequestContextAndInHttpdFormatHeaderWithHeaderUsageEnabledThenRequestContextCertificateFound() {
-
         // Given
         X509Certificate cert = mock(X509Certificate.class);
-        doReturn(new X509Certificate[] {cert})
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(new X509Certificate[] { cert })
+            .when(servletRequest)
+            .getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(HTTPD_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -269,11 +258,11 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInRequestContextAndInNginxFormatHeaderWithHeaderUsageEnabledThenRequestContextCertificateFound() {
-
         // Given
         X509Certificate cert = mock(X509Certificate.class);
-        doReturn(new X509Certificate[] {cert})
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(new X509Certificate[] { cert })
+            .when(servletRequest)
+            .getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(NGINX_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -289,11 +278,11 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInRequestContextAndInHttpdFormatHeaderWithHeaderUsageDisabledThenRequestContextCertificateFound() {
-
         // Given
         X509Certificate cert = mock(X509Certificate.class);
-        doReturn(new X509Certificate[] {cert})
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(new X509Certificate[] { cert })
+            .when(servletRequest)
+            .getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(HTTPD_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -309,11 +298,11 @@ public class CertUtilsTest {
 
     @Test
     public void givenCertificateInRequestContextAndInNginxFormatHeaderWithHeaderUsageDisabledThenRequestContextCertificateFound() {
-
         // Given
         X509Certificate cert = mock(X509Certificate.class);
-        doReturn(new X509Certificate[] {cert})
-            .when(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
+        doReturn(new X509Certificate[] { cert })
+            .when(servletRequest)
+            .getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
         doReturn(NGINX_CERTIFICATE_FORMAT).when(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
 
         // When
@@ -326,6 +315,4 @@ public class CertUtilsTest {
         verify(servletRequest, never()).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
         verifyNoMoreInteractions(servletRequest);
     }
-
-
 }

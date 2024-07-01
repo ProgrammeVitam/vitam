@@ -81,13 +81,16 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
     }
 
-    public AbstractAccessionRegisterAction(MetaDataClientFactory metaDataClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+    public AbstractAccessionRegisterAction(
+        MetaDataClientFactory metaDataClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     protected static class AccessionRegisterInfo {
+
         String originatingAgency;
         String submissionAgency = null;
         String acquisitionInformation = null;
@@ -171,8 +174,10 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         final ItemStatus itemStatus = new ItemStatus(getHandlerId());
 
         int tenantId = ParameterHelper.getTenantParameter();
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
-            MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+        try (
+            AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient()
+        ) {
             AccessionRegisterInfo accessionRegisterInfo = new AccessionRegisterInfo();
             if (LogbookTypeProcess.INGEST.equals(getOperationType())) {
                 prepareAccessionRegisterInformation(params, handler, accessionRegisterInfo);
@@ -190,14 +195,15 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             if (objectGroupPerOriginatingAgencies == null || objectGroupPerOriginatingAgencies.isEmpty()) {
                 byOperationMap.put(operationId, new HashMap<>());
             } else {
-
                 for (ObjectGroupPerOriginatingAgency o : objectGroupPerOriginatingAgencies) {
                     // Key = operation + agency
                     String qualifierVersionOpi = o.getOperation();
                     String agency = o.getAgency();
 
-                    Map<String, ObjectGroupPerOriginatingAgency> byAgencyMap =
-                        byOperationMap.getOrDefault(qualifierVersionOpi, new HashMap<>());
+                    Map<String, ObjectGroupPerOriginatingAgency> byAgencyMap = byOperationMap.getOrDefault(
+                        qualifierVersionOpi,
+                        new HashMap<>()
+                    );
 
                     if (byAgencyMap.isEmpty()) {
                         byOperationMap.put(qualifierVersionOpi, byAgencyMap);
@@ -217,15 +223,18 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 }
             }
 
-
             // The number of operations should be equal to 1 and the operation should be equal to current operation
             if (byOperationMap.keySet().size() > 1) {
-                LOGGER.warn("Compute AccessionRegister :  Multiple operations found [" + byOperationMap.keySet() +
-                    "]. Only current operation [" + operationId + "] should be returned ");
+                LOGGER.warn(
+                    "Compute AccessionRegister :  Multiple operations found [" +
+                    byOperationMap.keySet() +
+                    "]. Only current operation [" +
+                    operationId +
+                    "] should be returned "
+                );
             }
 
             // Get ingest originating agency
-
 
             List<UnitPerOriginatingAgency> unitPerOriginatingAgencies = null;
             // ArchiveUnit are created only in INGEST
@@ -237,7 +246,6 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                 unitPerOriginatingAgencies = new ArrayList<>();
             }
 
-
             Map<String, UnitPerOriginatingAgency> unitPerOriginatingAgenciesMap = new HashMap<>();
 
             for (UnitPerOriginatingAgency o : unitPerOriginatingAgencies) {
@@ -247,41 +255,49 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             Map<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgenciesMap =
                 byOperationMap.getOrDefault(operationId, new HashMap<>());
 
-
             if (unitPerOriginatingAgenciesMap.isEmpty() && objectGroupPerOriginatingAgenciesMap.isEmpty()) {
                 return itemStatus.increment(StatusCode.OK);
             }
 
-            Set<String> agencies = Stream.concat(unitPerOriginatingAgenciesMap.keySet().stream(),
-                objectGroupPerOriginatingAgenciesMap.keySet().stream()).collect(
-                Collectors.toSet());
-
+            Set<String> agencies = Stream.concat(
+                unitPerOriginatingAgenciesMap.keySet().stream(),
+                objectGroupPerOriginatingAgenciesMap.keySet().stream()
+            ).collect(Collectors.toSet());
 
             for (String agency : agencies) {
-                if (LogbookTypeProcess.INGEST.equals(getOperationType()) &&
-                    !agency.equals(accessionRegisterInfo.getOriginatingAgency())) {
+                if (
+                    LogbookTypeProcess.INGEST.equals(getOperationType()) &&
+                    !agency.equals(accessionRegisterInfo.getOriginatingAgency())
+                ) {
                     continue;
                 }
-                final AccessionRegisterDetailModel register = generateAccessionRegister(params,
+                final AccessionRegisterDetailModel register = generateAccessionRegister(
+                    params,
                     operationId,
                     operationId,
-                    objectGroupPerOriginatingAgenciesMap
-                        .getOrDefault(agency, new ObjectGroupPerOriginatingAgency().setAgency(agency)),
+                    objectGroupPerOriginatingAgenciesMap.getOrDefault(
+                        agency,
+                        new ObjectGroupPerOriginatingAgency().setAgency(agency)
+                    ),
                     unitPerOriginatingAgenciesMap.getOrDefault(agency, new UnitPerOriginatingAgency(agency, 0)),
                     accessionRegisterInfo,
-                    tenantId);
+                    tenantId
+                );
 
                 if (null == register) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(
-                            "All count equals to 0 => register not created for Originating Agency: " + agency);
+                        LOGGER.debug("All count equals to 0 => register not created for Originating Agency: " + agency);
                     }
                     continue;
                 }
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
-                        register.getOriginatingAgency());
+                    LOGGER.debug(
+                        "register ID / Originating Agency: " +
+                        register.getId() +
+                        " / " +
+                        register.getOriginatingAgency()
+                    );
                 }
 
                 // ugly hack > using raw and non raw method
@@ -300,7 +316,6 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
                     evDetDataInformation.set(VOLUMETRY, arrayInformation);
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
                 }
-
             }
 
             itemStatus.increment(StatusCode.OK);
@@ -315,11 +330,13 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
 
     protected abstract String getHandlerId();
 
-    protected abstract void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler,
-        AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException;
+    protected abstract void prepareAccessionRegisterInformation(
+        WorkerParameters params,
+        HandlerIO handler,
+        AccessionRegisterInfo accessionRegisterInfo
+    ) throws ProcessingException, InvalidParseOperationException;
 
     protected abstract LogbookTypeProcess getOperationType();
-
 
     private AccessionRegisterDetailModel generateAccessionRegister(
         WorkerParameters params,
@@ -328,8 +345,8 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
         ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency,
         UnitPerOriginatingAgency unitPerOriginatingAgency,
         AccessionRegisterInfo accessionRegisterInfo,
-        int tenantId) {
-
+        int tenantId
+    ) {
         String unitAgency = unitPerOriginatingAgency.getValue();
 
         long unitCount = unitPerOriginatingAgency.getCount();
@@ -346,12 +363,15 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             return null;
         }
 
-        RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel().setIngested(unitCount).setRemained(unitCount);
-        RegisterValueDetailModel totalObjectsGroups =
-            new RegisterValueDetailModel().setIngested(nbGot).setRemained(nbGot);
-        RegisterValueDetailModel totalObjects =
-            new RegisterValueDetailModel().setIngested(nbObject).setRemained(nbObject);
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel()
+            .setIngested(unitCount)
+            .setRemained(unitCount);
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel()
+            .setIngested(nbGot)
+            .setRemained(nbGot);
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel()
+            .setIngested(nbObject)
+            .setRemained(nbObject);
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(size).setRemained(size);
 
         String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
@@ -393,11 +413,12 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             .setTenant(tenantId);
     }
 
-
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        if (LogbookTypeProcess.INGEST.equals(getOperationType()) &&
-            !handler.checkHandlerIO(0, Lists.newArrayList(File.class))) {
+        if (
+            LogbookTypeProcess.INGEST.equals(getOperationType()) &&
+            !handler.checkHandlerIO(0, Lists.newArrayList(File.class))
+        ) {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }

@@ -71,14 +71,12 @@ public abstract class AbstractParser<E extends AbstractRequest> {
         return sourceRequest;
     }
 
-
     /**
      * @return the rootNode
      */
     public JsonNode getRootNode() {
         return rootNode;
     }
-
 
     /**
      * @return the Request
@@ -97,7 +95,6 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      * @throws InvalidParseOperationException if jsonRequest could not parse to JSON
      */
     public abstract void parse(final JsonNode jsonRequest) throws InvalidParseOperationException;
-
 
     /**
      * @param jsonRequest containing a parsed JSON as { $roots: root, $query : query, $filter : filter }
@@ -122,10 +119,8 @@ public abstract class AbstractParser<E extends AbstractRequest> {
         return adapter;
     }
 
-
     protected Query analyzeOneCommand(final String refCommand, final JsonNode command)
-        throws InvalidParseOperationException,
-        InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         Query query = QueryParserHelper.query(refCommand, command, adapter);
         if (query != null) {
             hasFullTextCurrentQuery |= query.isFullText();
@@ -138,18 +133,15 @@ public abstract class AbstractParser<E extends AbstractRequest> {
      */
     public abstract int getLastDepth();
 
-
     /**
      * @return FILTERARGS the filter argument
      */
     public abstract FILTERARGS model();
 
-
     /**
      * @return true if not time out
      */
     public abstract boolean hintNoTimeout();
-
 
     /**
      * @return true if not cache hint

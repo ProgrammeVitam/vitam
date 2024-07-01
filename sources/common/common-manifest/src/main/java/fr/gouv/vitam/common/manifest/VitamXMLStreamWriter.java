@@ -27,13 +27,13 @@
 
 package fr.gouv.vitam.common.manifest;
 
-
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.util.Iterator;
 
 public class VitamXMLStreamWriter implements XMLStreamWriter {
+
     protected final XMLStreamWriter delegate;
 
     private static final NamespaceContext emptyNamespaceContext = new NamespaceContext() {
@@ -52,7 +52,6 @@ public class VitamXMLStreamWriter implements XMLStreamWriter {
             return null;
         }
     };
-
 
     public VitamXMLStreamWriter(XMLStreamWriter del) {
         delegate = del;
@@ -90,8 +89,7 @@ public class VitamXMLStreamWriter implements XMLStreamWriter {
         delegate.setPrefix(pfx, uri);
     }
 
-    public void writeAttribute(String prefix, String uri,
-        String local, String value) throws XMLStreamException {
+    public void writeAttribute(String prefix, String uri, String local, String value) throws XMLStreamException {
         delegate.writeAttribute(prefix, uri, local, value);
     }
 

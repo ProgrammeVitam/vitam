@@ -56,8 +56,11 @@ public class ContractHelper {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    public static DbRequestResult findByIdentifier(String identifier, FunctionalAdminCollections collection,
-        MongoDbAccessReferential mongoAccess) throws InvalidParseOperationException, ReferentialException {
+    public static DbRequestResult findByIdentifier(
+        String identifier,
+        FunctionalAdminCollections collection,
+        MongoDbAccessReferential mongoAccess
+    ) throws InvalidParseOperationException, ReferentialException {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
@@ -77,11 +80,17 @@ public class ContractHelper {
      * @param sequenceType sequence collection
      * @throws ReferentialException
      */
-    public static void setIdentifier(boolean slaveMode, AbstractContractModel cm,
-        VitamCounterService vitamCounterService, SequenceType sequenceType) throws ReferentialException {
+    public static void setIdentifier(
+        boolean slaveMode,
+        AbstractContractModel cm,
+        VitamCounterService vitamCounterService,
+        SequenceType sequenceType
+    ) throws ReferentialException {
         if (!slaveMode) {
-            final String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                sequenceType);
+            final String code = vitamCounterService.getNextSequenceAsString(
+                ParameterHelper.getTenantParameter(),
+                sequenceType
+            );
             cm.setIdentifier(code);
         }
     }

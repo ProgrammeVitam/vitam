@@ -27,7 +27,6 @@
 package fr.gouv.vitam.metadata.common.bulkatomicupdate;
 
 public enum BulkUpdateUnitReportKey {
-
     INVALID_DSL_QUERY("Invalid DSL query: cannot contains internal field(s)"),
     UNIT_NOT_FOUND("No unit was matches selection criteria"),
     TOO_MANY_UNITS_FOUND("More than one unit matches selection criteria"),
@@ -42,5 +41,4 @@ public enum BulkUpdateUnitReportKey {
     public String getMessage() {
         return message;
     }
-
 }

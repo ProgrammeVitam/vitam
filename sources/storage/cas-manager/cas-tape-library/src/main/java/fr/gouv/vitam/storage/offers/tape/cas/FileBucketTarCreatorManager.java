@@ -53,46 +53,57 @@ public class FileBucketTarCreatorManager {
         BucketTopologyHelper bucketTopologyHelper,
         ObjectReferentialRepository objectReferentialRepository,
         ArchiveReferentialRepository archiveReferentialRepository,
-        WriteOrderCreator writeOrderCreator) {
+        WriteOrderCreator writeOrderCreator
+    ) {
         this.bucketTopologyHelper = bucketTopologyHelper;
 
-        this.fileBucketTarCreatorMap =
-            bucketTopologyHelper.listFileBuckets().stream()
-                .collect(Collectors.toMap(fileBucket -> fileBucket,
-                    fileBucket -> new FileBucketTarCreator(
-                        basicFileStorage,
-                        objectReferentialRepository,
-                        archiveReferentialRepository,
-                        writeOrderCreator,
-                        bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                        fileBucket,
-                        this.bucketTopologyHelper.getTarBufferingTimeoutInMinutes(
-                            this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket)), TimeUnit.MINUTES,
-                        tapeLibraryConfiguration.getInputTarStorageFolder(),
-                        tapeLibraryConfiguration.getMaxTarEntrySize(),
-                        tapeLibraryConfiguration.getMaxTarFileSize())));
-        inputTarStorageFolder = tapeLibraryConfiguration.getInputTarStorageFolder();
-        fileBucketTarCreatorBootstrapRecovery =
-            new FileBucketTarCreatorBootstrapRecovery(basicFileStorage, objectReferentialRepository
+        this.fileBucketTarCreatorMap = bucketTopologyHelper
+            .listFileBuckets()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    fileBucket -> fileBucket,
+                    fileBucket ->
+                        new FileBucketTarCreator(
+                            basicFileStorage,
+                            objectReferentialRepository,
+                            archiveReferentialRepository,
+                            writeOrderCreator,
+                            bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
+                            fileBucket,
+                            this.bucketTopologyHelper.getTarBufferingTimeoutInMinutes(
+                                    this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket)
+                                ),
+                            TimeUnit.MINUTES,
+                            tapeLibraryConfiguration.getInputTarStorageFolder(),
+                            tapeLibraryConfiguration.getMaxTarEntrySize(),
+                            tapeLibraryConfiguration.getMaxTarFileSize()
+                        )
+                )
             );
+        inputTarStorageFolder = tapeLibraryConfiguration.getInputTarStorageFolder();
+        fileBucketTarCreatorBootstrapRecovery = new FileBucketTarCreatorBootstrapRecovery(
+            basicFileStorage,
+            objectReferentialRepository
+        );
     }
 
     public void initializeOnBootstrap() {
-
         // Backup files
         ensureWorkingDirectoryExists(BucketTopologyHelper.BACKUP_FILE_BUCKET);
 
-
         // Other files
         for (Map.Entry<String, FileBucketTarCreator> entry : fileBucketTarCreatorMap.entrySet()) {
-
             String fileBucketId = entry.getKey();
             FileBucketTarCreator fileBucketTarCreator = entry.getValue();
 
             ensureWorkingDirectoryExists(fileBucketId);
 
             fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
-                fileBucketId, fileBucketTarCreator, this.bucketTopologyHelper);
+                fileBucketId,
+                fileBucketTarCreator,
+                this.bucketTopologyHelper
+            );
         }
     }
 
@@ -102,7 +113,9 @@ public class FileBucketTarCreatorManager {
             Files.createDirectories(fileBucketStoragePath);
         } catch (IOException e) {
             throw new VitamRuntimeException(
-                "Could not initialize file bucket tar creator service " + fileBucketStoragePath, e);
+                "Could not initialize file bucket tar creator service " + fileBucketStoragePath,
+                e
+            );
         }
     }
 
@@ -113,7 +126,6 @@ public class FileBucketTarCreatorManager {
     }
 
     public void addToQueue(InputFileToProcessMessage inputFileToProcessMessage) {
-
         String containerName = inputFileToProcessMessage.getContainerName();
         String fileBucket = bucketTopologyHelper.getFileBucketFromContainerName(containerName);
 
@@ -122,13 +134,11 @@ public class FileBucketTarCreatorManager {
     }
 
     public boolean containsTar(String fileBucketId, String tarId) {
-
         FileBucketTarCreator fileBucketTarCreator = fileBucketTarCreatorMap.get(fileBucketId);
         return fileBucketTarCreator.containsTar(tarId);
     }
 
     public Optional<FileInputStream> tryReadTar(String fileBucketId, String tarId) {
-
         FileBucketTarCreator fileBucketTarCreator = fileBucketTarCreatorMap.get(fileBucketId);
         return fileBucketTarCreator.tryReadTar(tarId);
     }

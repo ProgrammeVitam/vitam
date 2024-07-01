@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Exists, Missing, IsNull Query
  */
 public class ExistsQuery extends Query {
+
     protected ExistsQuery() {
         super();
     }
@@ -44,8 +45,7 @@ public class ExistsQuery extends Query {
      * @param variableName variable name
      * @throws InvalidCreateOperationException when not valid
      */
-    public ExistsQuery(final QUERY existsQuery, final String variableName)
-        throws InvalidCreateOperationException {
+    public ExistsQuery(final QUERY existsQuery, final String variableName) throws InvalidCreateOperationException {
         super();
         switch (existsQuery) {
             case EXISTS:
@@ -54,7 +54,8 @@ public class ExistsQuery extends Query {
                 break;
             default:
                 throw new InvalidCreateOperationException(
-                    "Query " + existsQuery + " is not an Exists/Missing/IsNull Query");
+                    "Query " + existsQuery + " is not an Exists/Missing/IsNull Query"
+                );
         }
         createQueryVariable(existsQuery, variableName);
         currentTokenQUERY = existsQuery;

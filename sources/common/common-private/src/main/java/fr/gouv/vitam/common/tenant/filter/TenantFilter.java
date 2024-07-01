@@ -68,13 +68,18 @@ public class TenantFilter implements Filter {
         // check if the tenant is not existing or is not an integer
         Status status = checkTenantHeaders((HttpServletRequest) request);
 
-        if (Status.PRECONDITION_FAILED.getStatusCode() == status.getStatusCode() ||
-            Status.UNAUTHORIZED.getStatusCode() == status.getStatusCode()) {
+        if (
+            Status.PRECONDITION_FAILED.getStatusCode() == status.getStatusCode() ||
+            Status.UNAUTHORIZED.getStatusCode() == status.getStatusCode()
+        ) {
             LOGGER.error(GlobalDataRest.X_TENANT_ID + " check failed!");
             final HttpServletResponse newResponse = (HttpServletResponse) response;
-            newResponse.sendError(status.getStatusCode(),
+            newResponse.sendError(
+                status.getStatusCode(),
                 JsonHandler.unprettyPrint(
-                    JsonHandler.createObjectNode().put("Error", GlobalDataRest.X_TENANT_ID + " check failed!")));
+                    JsonHandler.createObjectNode().put("Error", GlobalDataRest.X_TENANT_ID + " check failed!")
+                )
+            );
         } else {
             chain.doFilter(request, response);
         }
@@ -92,8 +97,10 @@ public class TenantFilter implements Filter {
      */
     private Status checkTenantHeaders(HttpServletRequest request) {
         // if admin or status requested, then return true
-        if (request.getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH) ||
-            request.getRequestURI().endsWith(VitamConfiguration.STATUS_URL)) {
+        if (
+            request.getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH) ||
+            request.getRequestURI().endsWith(VitamConfiguration.STATUS_URL)
+        ) {
             return Status.OK;
         }
         final Enumeration<String> headerNames = request.getHeaderNames();
@@ -117,8 +124,5 @@ public class TenantFilter implements Filter {
             }
         }
         return Status.PRECONDITION_FAILED;
-
     }
-
-
 }

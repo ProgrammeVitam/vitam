@@ -50,5 +50,4 @@ public class ProcessWorkflowNotFoundException extends ProcessingException {
     public ProcessWorkflowNotFoundException(String message) {
         super(message);
     }
-
 }

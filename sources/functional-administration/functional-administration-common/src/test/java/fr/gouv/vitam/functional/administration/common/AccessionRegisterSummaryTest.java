@@ -46,8 +46,10 @@ import static org.junit.Assert.assertEquals;
 public class AccessionRegisterSummaryTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     private static final Integer TENANT_ID = 0;
 
     @Test
@@ -71,8 +73,9 @@ public class AccessionRegisterSummaryTest {
         JsonAssert.assertJsonEquals(initialValue, register.getTotalUnits());
         JsonAssert.assertJsonEquals(initialValue, register.getTotalObjects());
 
-        final InputStream stream =
-            Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");
+        final InputStream stream = Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream("accession-register.json");
         final Map<String, Object> documentMap = JsonHandler.getMapFromInputStream(stream);
         documentMap.put("_id", id);
         register = new AccessionRegisterSummary(new Document(documentMap));
@@ -88,8 +91,5 @@ public class AccessionRegisterSummaryTest {
         assertEquals(1, register.getTotalObjectSize().getIngested());
         assertEquals(1, register.getTotalObjectSize().getRemained());
         assertEquals(0, register.getTotalObjectSize().getDeleted());
-
     }
-
-
 }

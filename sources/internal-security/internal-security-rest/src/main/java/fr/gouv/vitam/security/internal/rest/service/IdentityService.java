@@ -61,7 +61,6 @@ public class IdentityService extends SecurityService {
      */
     public void createIdentity(IdentityInsertModel identityInsertModel)
         throws CertificateException, InvalidParseOperationException {
-
         IdentityModel identityModel = new IdentityModel();
         identityModel.setId(GUIDFactory.newGUID().toString());
         identityModel.setContextId(identityInsertModel.getContextId());
@@ -73,8 +72,9 @@ public class IdentityService extends SecurityService {
         identityModel.setSubjectDN(certificate.getSubjectDN().getName());
         identityModel.setIssuerDN(certificate.getIssuerDN().getName());
         identityModel.setSerialNumber(String.valueOf(certificate.getSerialNumber()));
-        identityModel.setExpirationDate(LocalDateUtil.getFormattedDateForMongo(
-            LocalDateUtil.fromDate(certificate.getNotAfter())));
+        identityModel.setExpirationDate(
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.fromDate(certificate.getNotAfter()))
+        );
 
         identityRepository.createIdentity(identityModel);
     }
@@ -90,12 +90,17 @@ public class IdentityService extends SecurityService {
         X509Certificate x509Certificate = X509PKIUtil.parseX509Certificate(identityInsertModel.getCertificate());
 
         Optional<IdentityModel> identityModel = identityRepository.findIdentity(
-            x509Certificate.getSubjectDN().getName(), String.valueOf(x509Certificate.getSerialNumber()));
+            x509Certificate.getSubjectDN().getName(),
+            String.valueOf(x509Certificate.getSerialNumber())
+        );
 
         identityModel.ifPresent(identity -> {
             identity.setContextId(identityInsertModel.getContextId());
-            identityRepository.linkContextToIdentity(identity.getSubjectDN(), identity.getContextId(),
-                identity.getSerialNumber());
+            identityRepository.linkContextToIdentity(
+                identity.getSubjectDN(),
+                identity.getContextId(),
+                identity.getSerialNumber()
+            );
         });
         return identityModel;
     }
@@ -108,11 +113,12 @@ public class IdentityService extends SecurityService {
      */
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws CertificateException, InvalidParseOperationException {
-
         X509Certificate x509Certificate = X509PKIUtil.parseX509Certificate(certificate);
 
-        Optional<IdentityModel> identityModelOptional = identityRepository
-            .findIdentity(x509Certificate.getSubjectDN().getName(), String.valueOf(x509Certificate.getSerialNumber()));
+        Optional<IdentityModel> identityModelOptional = identityRepository.findIdentity(
+            x509Certificate.getSubjectDN().getName(),
+            String.valueOf(x509Certificate.getSerialNumber())
+        );
 
         // check validity of the retrieved certificate from VITAM DB
         if (identityModelOptional.isPresent()) {
@@ -126,8 +132,7 @@ public class IdentityService extends SecurityService {
      * @return list of identity models
      * @throws InvalidParseOperationException thrown retrieving certificates fail
      */
-    public List<IdentityModel> findAllIdentities()
-        throws InvalidParseOperationException {
+    public List<IdentityModel> findAllIdentities() throws InvalidParseOperationException {
         return identityRepository.findAll();
     }
 

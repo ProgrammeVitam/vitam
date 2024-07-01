@@ -85,6 +85,7 @@ import static fr.gouv.vitam.storage.offers.tape.metrics.ReadWriteOrderMetrics.WR
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 public class WriteTask implements Future<ReadWriteResult> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
     public static final String TAPE_LABEL = "tape-Label-";
@@ -109,16 +110,22 @@ public class WriteTask implements Future<ReadWriteResult> {
     private final boolean forceOverrideNonEmptyCartridges;
 
     public WriteTask(
-        WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
+        WriteOrder writeOrder,
+        TapeCatalog workerCurrentTape,
+        TapeLibraryService tapeLibraryService,
         TapeCatalogService tapeCatalogService,
         ArchiveReferentialRepository archiveReferentialRepository,
-        ArchiveCacheStorage archiveCacheStorage, String inputTarPath,
-        boolean forceOverrideNonEmptyCartridges) {
+        ArchiveCacheStorage archiveCacheStorage,
+        String inputTarPath,
+        boolean forceOverrideNonEmptyCartridges
+    ) {
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
-        ParametersChecker
-            .checkParameter("ArchiveReferentialRepository param is required.", archiveReferentialRepository);
+        ParametersChecker.checkParameter(
+            "ArchiveReferentialRepository param is required.",
+            archiveReferentialRepository
+        );
         ParametersChecker.checkParameter("ArchiveCacheStorage param is required.", archiveCacheStorage);
         ParametersChecker.checkParameter("InputTarPath param is required.", inputTarPath);
         this.writeOrder = writeOrder;
@@ -128,14 +135,16 @@ public class WriteTask implements Future<ReadWriteResult> {
         this.archiveReferentialRepository = archiveReferentialRepository;
         this.archiveCacheStorage = archiveCacheStorage;
         this.inputTarPath = inputTarPath;
-        this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeLibraryService.getLibraryIdentifier(),
-            tapeLibraryService.getDriveIndex());
+        this.MSG_PREFIX = String.format(
+            "[Library] : %s, [Drive] : %s, ",
+            tapeLibraryService.getLibraryIdentifier(),
+            tapeLibraryService.getDriveIndex()
+        );
         this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
     }
 
     @Override
     public ReadWriteResult get() {
-
         reportWaitTime();
 
         Histogram.Timer executionTimer = WRITE_ORDER_EXECUTION_DURATION.labels(writeOrder.getBucket()).startTimer();
@@ -157,14 +166,20 @@ public class WriteTask implements Future<ReadWriteResult> {
             retryable().execute(this::updateTarReferential);
 
             if (writeOrder.getMessageType() == QueueMessageType.WriteBackupOrder) {
-
-                LOGGER.warn("Backup archive '" + writeOrder.getArchiveId() + " archived to a backup tape with code '" +
-                    workerCurrentTape.getCode() + "'");
+                LOGGER.warn(
+                    "Backup archive '" +
+                    writeOrder.getArchiveId() +
+                    " archived to a backup tape with code '" +
+                    workerCurrentTape.getCode() +
+                    "'"
+                );
 
                 // Backup archives are not persisted on cache
                 if (!file.delete()) {
-                    throw new ReadWriteException("Could not delete backup archive " + writeOrder.getArchiveId() +
-                        " (" + file + ")", ReadWriteErrorCode.KO_ON_DELETE_ARCHIVED_BACKUP);
+                    throw new ReadWriteException(
+                        "Could not delete backup archive " + writeOrder.getArchiveId() + " (" + file + ")",
+                        ReadWriteErrorCode.KO_ON_DELETE_ARCHIVED_BACKUP
+                    );
                 }
             } else {
                 // Regular (data) archive. Move it to cache.
@@ -173,12 +188,10 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             readWriteResult.setStatus(StatusCode.OK);
             readWriteResult.setOrderState(QueueState.COMPLETED);
-
         } catch (ReadWriteException e) {
             LOGGER.error("Write task failed", e);
             readWriteResult.setCode(e.getReadWriteErrorCode());
             switch (e.getReadWriteErrorCode()) {
-
                 case KO_LABEL_DISCORDING:
                 case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
                 case KO_UNKNOWN_CURRENT_POSITION:
@@ -186,8 +199,12 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // TODO: rewind, goto position file count, retry write file
                     // TODO: ugly fix
                     workerCurrentTape.setTapeState(TapeState.CONFLICT);
-                    LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                        " is marked as conflict (incident close tape)");
+                    LOGGER.warn(
+                        MSG_PREFIX +
+                        TAPE_MSG +
+                        workerCurrentTape.getCode() +
+                        " is marked as conflict (incident close tape)"
+                    );
                     try {
                         retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
                     } catch (ReadWriteException ex) {
@@ -202,8 +219,12 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // Mark tape state conflict and retry with new tape
                     if (--cartridgeRetry >= 0) {
                         workerCurrentTape.setTapeState(TapeState.CONFLICT);
-                        LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                            " is marked as conflict (incident close tape)");
+                        LOGGER.warn(
+                            MSG_PREFIX +
+                            TAPE_MSG +
+                            workerCurrentTape.getCode() +
+                            " is marked as conflict (incident close tape)"
+                        );
                         return get();
                     } else {
                         readWriteResult.setStatus(StatusCode.FATAL);
@@ -219,23 +240,23 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case KO_ON_GOTO_FILE_COUNT:
                 case KO_ON_REWIND_FSF_BSF_TAPE:
                 case KO_REWIND_BEFORE_UNLOAD_TAPE:
-                    // Error maybe IO exception or tape corrupted or timeout
+                // Error maybe IO exception or tape corrupted or timeout
                 case TAPE_LOCATION_CONFLICT_ON_LOAD:
                 case TAPE_LOCATION_CONFLICT_ON_UNLOAD:
                 case TAPE_LOCATION_UNKNOWN:
-                    // TODO: should a re-init of tape catalog
+                // TODO: should a re-init of tape catalog
                 case TAPE_NOT_FOUND_IN_CATALOG:
-                    // demands to load a new tape from external
+                // demands to load a new tape from external
                 case NO_EMPTY_SLOT_FOUND:
-                    // Someone have manually modified library
+                // Someone have manually modified library
                 case NULL_CURRENT_TAPE:
                 case KO_ON_READ_FROM_TAPE:
                 case KO_ON_REWIND_TAPE:
-                    // drive is open (drive empty) , tape is corrupted ? timeout ? drive is busy?
+                // drive is open (drive empty) , tape is corrupted ? timeout ? drive is busy?
                 case KO_ON_LOAD_TAPE:
-                    // drive is online (already have a tape loaded)? timeout ? drive is busy?
+                // drive is online (already have a tape loaded)? timeout ? drive is busy?
                 case KO_ON_UNLOAD_TAPE:
-                    // drive is open (drive empty) ? timeout ? drive is busy?
+                // drive is open (drive empty) ? timeout ? drive is busy?
                 case KO_ON_READ_LABEL:
                 case KO_DB_PERSIST:
                 case KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT:
@@ -245,10 +266,9 @@ public class WriteTask implements Future<ReadWriteResult> {
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.READY);
                     break;
-
                 case FILE_NOT_FOUND:
-                    // File delete or not generated
-                    // Mark write order as error state
+                // File delete or not generated
+                // Mark write order as error state
                 case KO_ON_MOVE_TO_CACHE:
                 case KO_ON_DELETE_ARCHIVED_BACKUP:
                 case INTERNAL_ERROR_SERVER:
@@ -268,38 +288,53 @@ public class WriteTask implements Future<ReadWriteResult> {
     private void moveArchiveToCache(File archiveFile) throws ReadWriteException {
         try {
             // Reserve cache storage space
-            archiveCacheStorage.reserveArchiveStorageSpace(writeOrder.getFileBucketId(), writeOrder.getArchiveId(),
-                writeOrder.getSize());
+            archiveCacheStorage.reserveArchiveStorageSpace(
+                writeOrder.getFileBucketId(),
+                writeOrder.getArchiveId(),
+                writeOrder.getSize()
+            );
 
             try {
                 // Move archive to cache
-                archiveCacheStorage.moveArchiveToCache(archiveFile.toPath(), writeOrder.getFileBucketId(),
-                    writeOrder.getArchiveId());
+                archiveCacheStorage.moveArchiveToCache(
+                    archiveFile.toPath(),
+                    writeOrder.getFileBucketId(),
+                    writeOrder.getArchiveId()
+                );
             } catch (Exception e) {
                 // On error, cancel reservation
                 archiveCacheStorage.cancelReservedArchive(writeOrder.getFileBucketId(), writeOrder.getArchiveId());
                 throw e;
             }
-
         } catch (IllegalPathException | IOException | IllegalStateException e) {
             throw new ReadWriteException(
-                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while moving archive file '" +
-                    archiveFile + "' to archive cache", e, ReadWriteErrorCode.KO_ON_MOVE_TO_CACHE);
+                MSG_PREFIX +
+                TAPE_MSG +
+                workerCurrentTape.getCode() +
+                ", Error: while moving archive file '" +
+                archiveFile +
+                "' to archive cache",
+                e,
+                ReadWriteErrorCode.KO_ON_MOVE_TO_CACHE
+            );
         }
     }
 
     private void updateTarReferential() throws ReadWriteException {
         try {
             TapeLibraryOnTapeArchiveStorageLocation onTapeTarStorageLocation =
-                new TapeLibraryOnTapeArchiveStorageLocation(workerCurrentTape.getCode(),
-                    workerCurrentTape.getFileCount() - 1);
+                new TapeLibraryOnTapeArchiveStorageLocation(
+                    workerCurrentTape.getCode(),
+                    workerCurrentTape.getFileCount() - 1
+                );
 
             archiveReferentialRepository.updateLocationToOnTape(writeOrder.getArchiveId(), onTapeTarStorageLocation);
-
         } catch (ArchiveReferentialException e) {
             throw new ReadWriteException(
-                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update archive referential", e,
-                ReadWriteErrorCode.KO_DB_PERSIST);
+                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update archive referential",
+                e,
+                ReadWriteErrorCode.KO_DB_PERSIST
+            );
         }
     }
 
@@ -340,15 +375,19 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         if (!file.exists() || !file.isFile()) {
             throw new ReadWriteException(
-                MSG_PREFIX + TAPE_MSG + (workerCurrentTape == null ? "null" : workerCurrentTape.getCode()) +
-                    " Action : Write, Order: " + JsonHandler.unprettyPrint(writeOrder) + ", Error: File not found",
-                ReadWriteErrorCode.FILE_NOT_FOUND);
+                MSG_PREFIX +
+                TAPE_MSG +
+                (workerCurrentTape == null ? "null" : workerCurrentTape.getCode()) +
+                " Action : Write, Order: " +
+                JsonHandler.unprettyPrint(writeOrder) +
+                ", Error: File not found",
+                ReadWriteErrorCode.FILE_NOT_FOUND
+            );
         }
         return file;
     }
 
-    private void tryFindTapeCatalogAndLoadIntoDrive()
-        throws ReadWriteException {
+    private void tryFindTapeCatalogAndLoadIntoDrive() throws ReadWriteException {
         // Find tape
         // If tape not found WARN (return TAR to queue and continue)
         workerCurrentTape = loadTapeFromCatalog();
@@ -370,7 +409,6 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException
      */
     private TapeCatalog loadTapeFromCatalog() throws ReadWriteException {
-
         String bucket = writeOrder.getBucket();
 
         // Find tape catalog with state open (have data)
@@ -389,20 +427,20 @@ public class WriteTask implements Future<ReadWriteResult> {
                 query = and(
                     eq(TapeCatalog.LIBRARY, tapeLibraryService.getLibraryIdentifier()),
                     eq(TapeCatalog.TAPE_STATE, TapeState.EMPTY.name()),
-                    or(
-                        eq(TapeCatalog.BUCKET, bucket),
-                        exists(TapeCatalog.BUCKET, false)
-                    )
+                    or(eq(TapeCatalog.BUCKET, bucket), exists(TapeCatalog.BUCKET, false))
                 );
 
                 found = tapeCatalogService.receive(query);
                 if (found.isPresent()) {
                     return found.get();
                 } else {
-                    throw new ReadWriteException(MSG_PREFIX +
-                        " Action : Load Tape From Catalog, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                    throw new ReadWriteException(
+                        MSG_PREFIX +
+                        " Action : Load Tape From Catalog, Order: " +
+                        JsonHandler.unprettyPrint(writeOrder) +
                         ", Error: no markReady tape found in the catalog with expected bucket and/or remainingSize",
-                        ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
+                        ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG
+                    );
                 }
             }
         } catch (QueueException e) {
@@ -416,17 +454,13 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException
      */
     private void doCheckTapeLabel() throws ReadWriteException {
-
         // If no label then cartridge is unknown
         if (null == workerCurrentTape.getLabel()) {
-
             tapeLibraryService.ensureTapeIsEmpty(workerCurrentTape, forceOverrideNonEmptyCartridges);
 
             workerCurrentTape.setBucket(writeOrder.getBucket());
             retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
-
         } else {
-
             tapeLibraryService.checkNonEmptyTapeLabel(workerCurrentTape);
         }
     }
@@ -441,9 +475,11 @@ public class WriteTask implements Future<ReadWriteResult> {
             return false;
         }
 
-        return TapeState.EMPTY.equals(workerCurrentTape.getTapeState()) ||
+        return (
+            TapeState.EMPTY.equals(workerCurrentTape.getTapeState()) ||
             (Objects.equals(workerCurrentTape.getBucket(), writeOrder.getBucket()) &&
-                TapeState.OPEN.equals(workerCurrentTape.getTapeState()));
+                TapeState.OPEN.equals(workerCurrentTape.getTapeState()))
+        );
     }
 
     /**
@@ -463,7 +499,6 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         File labelFile = null;
         try {
-
             Path tmpPath = Paths.get(inputTarPath, LocalFileUtils.INPUT_TAR_TMP_FOLDER);
             Files.createDirectories(tmpPath);
 
@@ -477,7 +512,6 @@ public class WriteTask implements Future<ReadWriteResult> {
             workerCurrentTape.setLabel(objLabel);
 
             retryable().execute(() -> doUpdateTapeCatalog(workerCurrentTape));
-
         } catch (ReadWriteException e) {
             throw e;
         } catch (Exception e) {
@@ -490,7 +524,6 @@ public class WriteTask implements Future<ReadWriteResult> {
     private void doWriteFileToTape(String filePath, long writtenBytes) throws ReadWriteException {
         try {
             tapeLibraryService.write(filePath, writtenBytes, workerCurrentTape);
-
         } catch (ReadWriteException e) {
             if (e.getReadWriteErrorCode() == ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE) {
                 // Update TapeCatalog in db to set Conflict state
@@ -511,14 +544,18 @@ public class WriteTask implements Future<ReadWriteResult> {
             tapeCatalogService.replace(tapeCatalog);
         } catch (TapeCatalogException e) {
             throw new ReadWriteException(
-                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update tape catalog", e,
-                ReadWriteErrorCode.KO_DB_PERSIST);
+                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update tape catalog",
+                e,
+                ReadWriteErrorCode.KO_DB_PERSIST
+            );
         }
     }
 
     private void tapeBackToCatalog() throws ReadWriteException {
-        ParametersChecker
-            .checkParameter(MSG_PREFIX + ", Error: tape to update in the catalog is null.", workerCurrentTape);
+        ParametersChecker.checkParameter(
+            MSG_PREFIX + ", Error: tape to update in the catalog is null.",
+            workerCurrentTape
+        );
         try {
             final Map<String, Object> updates = new HashMap<>();
 
@@ -529,15 +566,21 @@ public class WriteTask implements Future<ReadWriteResult> {
             tapeCatalogService.update(workerCurrentTape.getId(), updates);
         } catch (TapeCatalogException e) {
             throw new ReadWriteException(
-                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update tape catalog", e,
-                ReadWriteErrorCode.KO_DB_PERSIST);
+                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update tape catalog",
+                e,
+                ReadWriteErrorCode.KO_DB_PERSIST
+            );
         }
-
     }
 
     private RetryableOnException<Void, ReadWriteException> retryable() {
-        RetryableParameters parameters =
-            new RetryableParameters(NB_RETRY, SLEEP_TIME, SLEEP_TIME, RANDOM_RANGE_SLEEP, MILLISECONDS);
+        RetryableParameters parameters = new RetryableParameters(
+            NB_RETRY,
+            SLEEP_TIME,
+            SLEEP_TIME,
+            RANDOM_RANGE_SLEEP,
+            MILLISECONDS
+        );
         return new RetryableOnException<>(parameters);
     }
 
@@ -562,10 +605,10 @@ public class WriteTask implements Future<ReadWriteResult> {
     @Override
     public ReadWriteResult get(long timeout, TimeUnit unit)
         throws InterruptedException, ExecutionException, TimeoutException {
-
-        return CompletableFuture.supplyAsync(this::get, VitamThreadPoolExecutor.getDefaultExecutor())
-            .get(timeout, unit);
-
+        return CompletableFuture.supplyAsync(this::get, VitamThreadPoolExecutor.getDefaultExecutor()).get(
+            timeout,
+            unit
+        );
     }
 
     @Override
@@ -585,9 +628,9 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     private void reportWaitTime() {
         long waitTimeInSeconds = Duration.between(
-                LocalDateUtil.now(),
-                LocalDateUtil.parseMongoFormattedDate(writeOrder.getCreated()))
-            .get(ChronoUnit.SECONDS);
+            LocalDateUtil.now(),
+            LocalDateUtil.parseMongoFormattedDate(writeOrder.getCreated())
+        ).get(ChronoUnit.SECONDS);
 
         WRITE_ORDER_WAIT_TIME_BEFORE_EXECUTION.labels(writeOrder.getBucket()).observe(waitTimeInSeconds);
     }

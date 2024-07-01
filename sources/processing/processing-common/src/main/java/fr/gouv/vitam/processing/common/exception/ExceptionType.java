@@ -28,5 +28,5 @@ package fr.gouv.vitam.processing.common.exception;
 
 public enum ExceptionType {
     UNIT,
-    GOT
+    GOT,
 }

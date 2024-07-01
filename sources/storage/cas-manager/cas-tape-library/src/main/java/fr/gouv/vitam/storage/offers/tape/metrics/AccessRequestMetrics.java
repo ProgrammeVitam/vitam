@@ -42,8 +42,8 @@ public class AccessRequestMetrics {
     }
 
     public static void initializeMetrics(AccessRequestReferentialRepository accessRequestRepository) {
-
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_READY_ACCESS_REQUESTS,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_READY_ACCESS_REQUESTS,
             "Number of READY access requests",
             () -> {
                 try {
@@ -55,7 +55,8 @@ public class AccessRequestMetrics {
             }
         ).register();
 
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_NON_READY_ACCESS_REQUESTS,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_NON_READY_ACCESS_REQUESTS,
             "Number of NON READY access requests",
             () -> {
                 try {
@@ -67,7 +68,8 @@ public class AccessRequestMetrics {
             }
         ).register();
 
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_EXPIRED_ACCESS_REQUESTS,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_COUNT_EXPIRED_ACCESS_REQUESTS,
             "Number of EXPIRED access requests",
             () -> {
                 try {

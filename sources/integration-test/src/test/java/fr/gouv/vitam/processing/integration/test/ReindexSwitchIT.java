@@ -108,32 +108,36 @@ public class ReindexSwitchIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReindexSwitchIT.class);
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ReindexSwitchIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ReindexSwitchIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class
+        )
+    );
+
     private static final Integer TENANT_ID = 0;
 
     private static final String SIP_FOLDER = "SIP";
 
     private static String CONFIG_SIEGFRIED_PATH;
 
-    final private static String SIP_OK = "integration-processing/OK_TEST_REPLAY_1.zip";
+    private static final String SIP_OK = "integration-processing/OK_TEST_REPLAY_1.zip";
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass("", Arrays.asList(0, 1), Collections.emptyMap());
-        CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath(
+            "integration-processing/format-identifiers.conf"
+        ).toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -160,23 +164,28 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationId, "Process_SIP_unitary", objectId,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId,
+            "Process_SIP_unitary",
+            objectId,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
-            operationId);
+            operationId
+        );
         logbookClient.create(initParameters);
     }
 
     @RunWithCustomExecutor
     @Test
     public void testReindexAndSwitch() throws Exception {
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        try (
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()
+        ) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
             launchReindexationAndSwitchAndCheckValues("ACCESS_CONTRACT", "accesscontract", client, "");
@@ -203,8 +212,10 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
             JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName);
 
-            validateLogbookOperations(logbookResultBefore.get("$results").get(0),
-                logbookResultAfter.get("$results").get(0));
+            validateLogbookOperations(
+                logbookResultBefore.get("$results").get(0),
+                logbookResultAfter.get("$results").get(0)
+            );
 
             nodeUnit = metadataClient.selectUnits(selectMulti.getFinalSelect());
             resultUnit = (ArrayNode) nodeUnit.get("$results");
@@ -215,27 +226,32 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             assertEquals(sizeUnitsBefore, sizeUnitsAfter);
             assertEquals(sizeOgBefore, sizeOgAfter);
         }
-
     }
 
-
-    private void launchReindexationAndSwitchAndCheckValues(String collection, String alias,
-        AdminManagementClient client, String tenants)
-        throws Exception {
+    private void launchReindexationAndSwitchAndCheckValues(
+        String collection,
+        String alias,
+        AdminManagementClient client,
+        String tenants
+    ) throws Exception {
         String order = "[{\"collection\" : \"" + collection + "\", \"tenants\" : [" + tenants + "]}]";
         Select select = new Select();
         JsonNode queryDsl = select.getFinalSelect();
         int sizeBefore = countCollection(collection, client, queryDsl);
 
-        RequestResponse<ReindexationResult> result =
-            client.launchReindexation(JsonHandler.getFromString(order));
+        RequestResponse<ReindexationResult> result = client.launchReindexation(JsonHandler.getFromString(order));
         assertTrue(result.isOk());
         List<ReindexationResult> idxResults = ((RequestResponseOK<ReindexationResult>) result).getResults();
         String newIndexName = idxResults.get(0).getIndexOK().get(0).getIndexName();
 
         String switchOrder =
-            "[{\"collection\" : \"" + collection + "\", \"alias\" : \"" + alias + "\", \"indexName\" : \"" +
-                newIndexName + "\"}]";
+            "[{\"collection\" : \"" +
+            collection +
+            "\", \"alias\" : \"" +
+            alias +
+            "\", \"indexName\" : \"" +
+            newIndexName +
+            "\"}]";
         RequestResponse<ReindexationResult> resultSwitch = client.switchIndexes(JsonHandler.getFromString(switchOrder));
         assertTrue(resultSwitch.isOk());
 
@@ -244,30 +260,23 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         assertEquals(sizeBefore, sizeAfter);
     }
 
-
-    private int countCollection(String collection, AdminManagementClient client, JsonNode queryDsl)
-        throws Exception {
+    private int countCollection(String collection, AdminManagementClient client, JsonNode queryDsl) throws Exception {
         int size = 0;
         if ("ACCESS_CONTRACT".equals(collection)) {
-            size =
-                ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(queryDsl)).getResults().size();
+            size = ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(queryDsl)).getResults().size();
         } else if ("FORMATS".equals(collection)) {
-            size =
-                ((RequestResponseOK<FileFormatModel>) client.getFormats(queryDsl)).getResults().size();
+            size = ((RequestResponseOK<FileFormatModel>) client.getFormats(queryDsl)).getResults().size();
         } else if ("INGEST_CONTRACT".equals(collection)) {
-            size =
-                ((RequestResponseOK<IngestContractModel>) client.findIngestContracts(queryDsl)).getResults().size();
+            size = ((RequestResponseOK<IngestContractModel>) client.findIngestContracts(queryDsl)).getResults().size();
         }
         return size;
     }
 
     private void validateLogbookOperations(JsonNode logbookResultReplay, JsonNode logbookResultNoReplay)
         throws Exception {
-
         JsonNode evDetDataReplay = JsonHandler.getFromString(logbookResultReplay.get("evDetData").asText());
         JsonNode evDetDataNotReplay = JsonHandler.getFromString(logbookResultNoReplay.get("evDetData").asText());
-        assertEquals(evDetDataReplay.get("EvDetailReq").asText(),
-            evDetDataNotReplay.get("EvDetailReq").asText());
+        assertEquals(evDetDataReplay.get("EvDetailReq").asText(), evDetDataNotReplay.get("EvDetailReq").asText());
     }
 
     private String launchIngest() throws Exception {
@@ -280,36 +289,34 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         InputStream zipInputStreamSipObject = null;
 
-        zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_OK);
+        zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_OK);
 
         //
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
         // Insert sanityCheck file & StpUpload
         insertWaitForStepEssentialFiles(containerName);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
-        final RequestResponse<ItemStatus> ret =
-            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                ProcessAction.RESUME.getValue());
+        final RequestResponse<ItemStatus> ret = processingClient.executeOperationProcess(
+            containerName,
+            Contexts.DEFAULT_WORKFLOW.name(),
+            ProcessAction.RESUME.getValue()
+        );
 
         assertNotNull(ret);
         assertThat(ret.isOk()).isTrue();
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         waitOperation(containerName);
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(containerName, TENANT_ID);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         return containerName;
     }
-
-
 }

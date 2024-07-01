@@ -66,8 +66,7 @@ import static org.openstack4j.core.transport.HttpEntityHandler.closeQuietly;
 @NotThreadSafe
 public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
-    private static final VitamLogger LOGGER
-        = VitamLoggerFactory.getInstance(VitamSwiftObjectStorageService.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamSwiftObjectStorageService.class);
 
     private static final String CONTENT_LENGTH = "Content-Length";
 
@@ -80,10 +79,11 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         osClientFactory.get();
     }
 
-    public List<? extends SwiftObject> list(String containerName, ObjectListOptions options,
-        Map<String, String> headers)
-        throws ContentAddressableStorageException {
-
+    public List<? extends SwiftObject> list(
+        String containerName,
+        ObjectListOptions options,
+        Map<String, String> headers
+    ) throws ContentAddressableStorageException {
         checkNotNull(containerName);
 
         Map<String, String> params = options != null ? options.getOptions() : Collections.emptyMap();
@@ -96,7 +96,6 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
             .headers(headers)
             .executeWithResponse();
         try {
-
             if (isSuccessResponse(resp)) {
                 List<? extends SwiftObject> objects = resp.getEntity(SwiftObjectImpl.SwiftObjects.class);
                 LOGGER.debug("Listing container {} returned {} entries", containerName, objects.size());
@@ -108,16 +107,23 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
             }
 
             throw new ContentAddressableStorageException(
-                "Could not get list objects for container " + containerName +
-                    " with params " + params + ". Got status code: " + resp.getStatus());
+                "Could not get list objects for container " +
+                containerName +
+                " with params " +
+                params +
+                ". Got status code: " +
+                resp.getStatus()
+            );
         } finally {
             closeQuietly(resp);
         }
     }
 
-    public Optional<SwiftObject> getObjectInformation(String containerName, String objectName,
-        Map<String, String> headers)
-        throws ContentAddressableStorageException {
+    public Optional<SwiftObject> getObjectInformation(
+        String containerName,
+        String objectName,
+        Map<String, String> headers
+    ) throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
 
@@ -125,9 +131,7 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
         LOGGER.debug("Getting object information {}/{}", location.getContainerName(), location.getObjectName());
 
-        HttpResponse resp = head(Void.class, location.getURI())
-            .headers(headers)
-            .executeWithResponse();
+        HttpResponse resp = head(Void.class, location.getURI()).headers(headers).executeWithResponse();
         try {
             if (isNotFoundResponse(resp)) {
                 LOGGER.debug("Object {}/{} Not Found", location.getContainerName(), location.getObjectName());
@@ -135,21 +139,24 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
             }
 
             if (isSuccessResponse(resp)) {
-                LOGGER.debug("Getting object {}/{} succeeded", location.getContainerName(),
-                    location.getObjectName());
+                LOGGER.debug("Getting object {}/{} succeeded", location.getContainerName(), location.getObjectName());
                 return Optional.of(ParseObjectFunction.create(location).apply(resp));
             }
 
             throw new ContentAddressableStorageException(
-                "Get object " + location.getContainerName() + "/" + location.getObjectName() +
-                    " failed with unexpected status code: " + resp.getStatus());
+                "Get object " +
+                location.getContainerName() +
+                "/" +
+                location.getObjectName() +
+                " failed with unexpected status code: " +
+                resp.getStatus()
+            );
         } finally {
             closeQuietly(resp);
         }
     }
 
-    public ObjectContent download(String containerName, String objectName,
-        Map<String, String> headers)
+    public ObjectContent download(String containerName, String objectName, Map<String, String> headers)
         throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
@@ -158,9 +165,7 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
         LOGGER.debug("Getting object {}/{}", location.getContainerName(), location.getObjectName());
 
-        HttpResponse resp = get(Void.class, location.getURI())
-            .headers(headers)
-            .executeWithResponse();
+        HttpResponse resp = get(Void.class, location.getURI()).headers(headers).executeWithResponse();
 
         boolean keepResponseOpen = false;
 
@@ -174,8 +179,12 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
                 if (contentLengthStr == null) {
                     // Content-Length is mandatory according to Swift Object Store API specification
                     // https://docs.openstack.org/api-ref/object-store/index.html?expanded=get-object-content-and-metadata-detail
-                    throw new ContentAddressableStorageException("Could not read object length for " +
-                        location.getContainerName() + "/" + location.getObjectName());
+                    throw new ContentAddressableStorageException(
+                        "Could not read object length for " +
+                        location.getContainerName() +
+                        "/" +
+                        location.getObjectName()
+                    );
                 }
                 long contentLength = Long.parseLong(contentLengthStr);
 
@@ -186,12 +195,18 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
             if (isNotFoundResponse(resp)) {
                 throw new ContentAddressableStorageNotFoundException(
-                    "Object not found " + containerName + "/" + objectName);
+                    "Object not found " + containerName + "/" + objectName
+                );
             }
 
             throw new ContentAddressableStorageException(
-                "Get object " + location.getContainerName() + "/" + location.getObjectName() +
-                    " failed with unexpected status code: " + resp.getStatus());
+                "Get object " +
+                location.getContainerName() +
+                "/" +
+                location.getObjectName() +
+                " failed with unexpected status code: " +
+                resp.getStatus()
+            );
         } finally {
             if (!keepResponseOpen) {
                 closeQuietly(resp);
@@ -199,8 +214,7 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         }
     }
 
-    public void put(String containerName, String name, Payload<?> payload)
-        throws ContentAddressableStorageException {
+    public void put(String containerName, String name, Payload<?> payload) throws ContentAddressableStorageException {
         put(containerName, name, payload, ObjectPutOptions.NONE);
     }
 
@@ -211,8 +225,9 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         checkNotNull(payload);
         checkNotNull(objectName);
 
-        if (options.getPath() != null && objectName.indexOf('/') == -1)
-            objectName = options.getPath() + "/" + objectName;
+        if (options.getPath() != null && objectName.indexOf('/') == -1) objectName = options.getPath() +
+        "/" +
+        objectName;
 
         LOGGER.debug("Uploading object {}/{}", containerName, objectName);
 
@@ -233,16 +248,19 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
             }
 
             throw new ContentAddressableStorageException(
-                "Could not upload object " + containerName + "/" + objectName +
-                    ". Got status code: " + resp.getStatus());
-
+                "Could not upload object " + containerName + "/" + objectName + ". Got status code: " + resp.getStatus()
+            );
         } finally {
             closeQuietly(resp);
         }
     }
 
-    public void deleteFullObject(String containerName, String objectName, List<String> objectNameSegments,
-        Map<String, String> headers) throws ContentAddressableStorageException {
+    public void deleteFullObject(
+        String containerName,
+        String objectName,
+        List<String> objectNameSegments,
+        Map<String, String> headers
+    ) throws ContentAddressableStorageException {
         checkNotNull(containerName);
         checkNotNull(objectName);
 
@@ -250,69 +268,89 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         if (objectNameSegments != null && objectNameSegments.size() > 0) {
             for (String objectNameSegment : objectNameSegments) {
                 ObjectLocation segmentLocation = ObjectLocation.create(containerName, objectNameSegment);
-                HttpResponse respForDeletedSegment = delete(Void.class, segmentLocation.getURI())
-                    .executeWithResponse();
-                LOGGER.debug("Deleting object segment {}/{}", segmentLocation.getContainerName(),
-                    segmentLocation.getObjectName());
+                HttpResponse respForDeletedSegment = delete(Void.class, segmentLocation.getURI()).executeWithResponse();
+                LOGGER.debug(
+                    "Deleting object segment {}/{}",
+                    segmentLocation.getContainerName(),
+                    segmentLocation.getObjectName()
+                );
 
                 if (isNotFoundResponse(respForDeletedSegment)) {
-                    LOGGER.debug("Cannot delete object segment. Not found {}/{}",
-                        segmentLocation.getContainerName(), segmentLocation.getObjectName());
+                    LOGGER.debug(
+                        "Cannot delete object segment. Not found {}/{}",
+                        segmentLocation.getContainerName(),
+                        segmentLocation.getObjectName()
+                    );
                     throw new ContentAddressableStorageNotFoundException(
-                        "Object segment not found " + segmentLocation.getContainerName() + "/" +
-                            segmentLocation.getObjectName());
+                        "Object segment not found " +
+                        segmentLocation.getContainerName() +
+                        "/" +
+                        segmentLocation.getObjectName()
+                    );
                 }
             }
-            LOGGER.debug("Object segments sized {} for manifest {} were deleted successfully.",
-                objectNameSegments.size(), objectName);
+            LOGGER.debug(
+                "Object segments sized {} for manifest {} were deleted successfully.",
+                objectNameSegments.size(),
+                objectName
+            );
         }
 
         // DELETE MANIFEST
         ObjectLocation location = ObjectLocation.create(containerName, objectName);
         LOGGER.debug("Deleting object {}/{}", location.getContainerName(), location.getObjectName());
 
-        HttpResponse resp = delete(Void.class, location.getURI())
-            .headers(headers)
-            .executeWithResponse();
+        HttpResponse resp = delete(Void.class, location.getURI()).headers(headers).executeWithResponse();
 
         try {
-
             if (isSuccessResponse(resp)) {
-                LOGGER.debug("Object deleted successfully {}/{}",
-                    location.getContainerName(), location.getObjectName());
+                LOGGER.debug(
+                    "Object deleted successfully {}/{}",
+                    location.getContainerName(),
+                    location.getObjectName()
+                );
                 return;
             }
 
             if (isNotFoundResponse(resp)) {
-                LOGGER.debug("Cannot delete object. Not found {}/{}",
-                    location.getContainerName(), location.getObjectName());
+                LOGGER.debug(
+                    "Cannot delete object. Not found {}/{}",
+                    location.getContainerName(),
+                    location.getObjectName()
+                );
                 throw new ContentAddressableStorageNotFoundException(
-                    "Object not found " + location.getContainerName() + "/" + location.getObjectName());
+                    "Object not found " + location.getContainerName() + "/" + location.getObjectName()
+                );
             }
 
             throw new ContentAddressableStorageException(
-                "Could not delete object " + location.getContainerName() + "/" +
-                    location.getObjectName() + ". Got status code: " + resp.getStatus());
+                "Could not delete object " +
+                location.getContainerName() +
+                "/" +
+                location.getObjectName() +
+                ". Got status code: " +
+                resp.getStatus()
+            );
         } finally {
             closeQuietly(resp);
         }
     }
 
-    public Map<String, String> getMetadata(String containerName, String objectName,
-        Map<String, String> headers)
+    public Map<String, String> getMetadata(String containerName, String objectName, Map<String, String> headers)
         throws ContentAddressableStorageException {
         checkNotNull(containerName, objectName);
 
         LOGGER.debug("Getting metadata for object {}/{}", containerName, objectName);
 
         ObjectLocation location = ObjectLocation.create(containerName, objectName);
-        HttpResponse resp = head(Void.class, location.getURI())
-            .headers(headers)
-            .executeWithResponse();
+        HttpResponse resp = head(Void.class, location.getURI()).headers(headers).executeWithResponse();
         try {
             if (isSuccessResponse(resp)) {
-                LOGGER.debug("Metadata retrieved successfully for object {}/{}",
-                    location.getContainerName(), location.getObjectName());
+                LOGGER.debug(
+                    "Metadata retrieved successfully for object {}/{}",
+                    location.getContainerName(),
+                    location.getObjectName()
+                );
                 TreeMap<String, String> metadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
                 metadata.putAll(MapWithoutMetaPrefixFunction.INSTANCE.apply(resp.headers()));
                 return metadata;
@@ -320,14 +358,18 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
 
             if (isNotFoundResponse(resp)) {
                 throw new ContentAddressableStorageNotFoundException(
-                    "No such object " + location.getContainerName() +
-                        "/" + location.getObjectName());
+                    "No such object " + location.getContainerName() + "/" + location.getObjectName()
+                );
             }
 
             throw new ContentAddressableStorageException(
-                "Could not get metadata for object " + location.getContainerName() + "/" +
-                    location.getObjectName() +
-                    ". Got status code: " + resp.getStatus());
+                "Could not get metadata for object " +
+                location.getContainerName() +
+                "/" +
+                location.getObjectName() +
+                ". Got status code: " +
+                resp.getStatus()
+            );
         } finally {
             closeQuietly(resp);
         }
@@ -338,24 +380,33 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         checkNotNull(location);
         checkNotNull(headers);
 
-        LOGGER.debug("Updating metadata for object {}/{} with headers {}",
-            location.getContainerName(), location.getObjectName(), headers);
+        LOGGER.debug(
+            "Updating metadata for object {}/{} with headers {}",
+            location.getContainerName(),
+            location.getObjectName(),
+            headers
+        );
 
-        HttpResponse resp = post(Void.class, location.getURI())
-            .headers(headers)
-            .executeWithResponse();
+        HttpResponse resp = post(Void.class, location.getURI()).headers(headers).executeWithResponse();
 
         try {
             if (isSuccessResponse(resp)) {
-                LOGGER.debug("Metadata updated successfully for object {}/{}",
-                    location.getContainerName(), location.getObjectName());
+                LOGGER.debug(
+                    "Metadata updated successfully for object {}/{}",
+                    location.getContainerName(),
+                    location.getObjectName()
+                );
                 return;
             }
 
             throw new ContentAddressableStorageException(
-                "Could not update metadata for object " + location.getContainerName() + "/" +
-                    location.getObjectName() +
-                    ". Got status code: " + resp.getStatus());
+                "Could not update metadata for object " +
+                location.getContainerName() +
+                "/" +
+                location.getObjectName() +
+                ". Got status code: " +
+                resp.getStatus()
+            );
         } finally {
             closeQuietly(resp);
         }

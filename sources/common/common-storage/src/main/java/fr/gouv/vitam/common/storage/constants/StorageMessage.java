@@ -73,5 +73,4 @@ public enum StorageMessage {
     public String getMessage() {
         return message;
     }
-
 }

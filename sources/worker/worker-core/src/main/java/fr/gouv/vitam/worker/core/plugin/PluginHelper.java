@@ -40,8 +40,7 @@ public class PluginHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PluginHelper.class);
 
-    private PluginHelper() {
-    }
+    private PluginHelper() {}
 
     public static void tryDeleteLocalPreservationFiles(Path batchDirectory) {
         try {

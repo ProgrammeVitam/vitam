@@ -44,13 +44,13 @@ public class AgenciesParserTest {
     @Test
     public void readFromCsv() throws Exception {
         String FILE_TO_TEST_OK = "agencies.csv";
-        List<AgenciesModel> test =
-            AgenciesParser.readFromCsv(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        List<AgenciesModel> test = AgenciesParser.readFromCsv(
+            new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK))
+        );
         assertThat(test).hasSize(4);
         assertThat(test.get(0).getIdentifier()).isEqualTo("AG-000000");
         assertThat(test.get(1).getIdentifier()).isEqualTo("AG-000001");
         assertThat(test.get(2).getIdentifier()).isEqualTo("AG-000002");
         assertThat(test.get(3).getIdentifier()).isEqualTo("AG-000003");
     }
-
 }

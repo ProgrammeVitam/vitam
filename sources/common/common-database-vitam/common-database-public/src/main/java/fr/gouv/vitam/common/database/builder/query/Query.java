@@ -41,6 +41,7 @@ import java.util.Date;
  * Query component
  */
 public class Query {
+
     private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
         " cannot be created with empty variable name";
     private static final String QUERY2 = "Query ";
@@ -77,8 +78,7 @@ public class Query {
     protected final void createQueryVariable(final QUERY query, final String variableName)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -88,12 +88,10 @@ public class Query {
         ((ObjectNode) currentObject).put(query.exactToken(), variableName.trim());
     }
 
-    protected final void createQueryVariableValue(final QUERY query,
-        final String variableName, final long value)
+    protected final void createQueryVariableValue(final QUERY query, final String variableName, final long value)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -104,12 +102,10 @@ public class Query {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createQueryVariableValue(final QUERY query,
-        final String variableName, final double value)
+    protected final void createQueryVariableValue(final QUERY query, final String variableName, final double value)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -120,12 +116,10 @@ public class Query {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createQueryVariableValue(final QUERY query,
-        final String variableName, final String value)
+    protected final void createQueryVariableValue(final QUERY query, final String variableName, final String value)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -137,12 +131,10 @@ public class Query {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createQueryVariableValue(final QUERY query,
-        final String variableName, final Date value)
+    protected final void createQueryVariableValue(final QUERY query, final String variableName, final Date value)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -153,12 +145,10 @@ public class Query {
         ((ObjectNode) currentObject).set(variableName.trim(), GlobalDatas.getDate(value));
     }
 
-    protected final void createQueryVariableValue(final QUERY query,
-        final String variableName, final boolean value)
+    protected final void createQueryVariableValue(final QUERY query, final String variableName, final boolean value)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -169,12 +159,10 @@ public class Query {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createQueryVariableValue(final QUERY query,
-        final String variableName, final JsonNode value)
+    protected final void createQueryVariableValue(final QUERY query, final String variableName, final JsonNode value)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + query + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

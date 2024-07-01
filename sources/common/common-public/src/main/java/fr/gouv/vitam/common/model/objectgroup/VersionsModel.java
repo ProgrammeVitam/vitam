@@ -93,6 +93,7 @@ public class VersionsModel {
 
     @JsonProperty("#opi")
     private String opi;
+
     @JsonProperty("DataObjectProfile")
     private String dataObjectProfile;
 
@@ -138,8 +139,7 @@ public class VersionsModel {
         return physicalDimensionsModel;
     }
 
-    public void setPhysicalDimensionsModel(
-        PhysicalDimensionsModel physicalDimensionsModel) {
+    public void setPhysicalDimensionsModel(PhysicalDimensionsModel physicalDimensionsModel) {
         this.physicalDimensionsModel = physicalDimensionsModel;
     }
 
@@ -267,8 +267,7 @@ public class VersionsModel {
         return persistentIdentifier;
     }
 
-    public void setPersistentIdentifier(
-        List<PersistentIdentifierModel> persistentIdentifier) {
+    public void setPersistentIdentifier(List<PersistentIdentifierModel> persistentIdentifier) {
         this.persistentIdentifier = persistentIdentifier;
     }
 
@@ -288,27 +287,60 @@ public class VersionsModel {
 
     @Override
     public String toString() {
-        return "VersionsModel{" +
-            "id='" + id + '\'' +
-            ", dataObjectVersion='" + dataObjectVersion + '\'' +
-            ", dataObjectProfile='" + dataObjectProfile + '\'' +
-            ", dataObjectGroupId='" + dataObjectGroupId + '\'' +
-            ", formatIdentification=" + formatIdentification +
-            ", fileInfoModel=" + fileInfoModel +
-            ", metadata=" + metadata +
-            ", size=" + size +
-            ", uri='" + uri + '\'' +
-            ", messageDigest='" + messageDigest + '\'' +
-            ", algorithm='" + algorithm + '\'' +
-            ", storage=" + storage +
-            ", physicalDimensionsModel=" + physicalDimensionsModel +
-            ", physicalId='" + physicalId + '\'' +
-            ", otherMetadata=" + otherMetadata +
-            ", opi='" + opi + '\'' +
-            ", dataObjectNumber='" + dataObjectNumber + '\'' +
-            ", dataObjectUse='" + dataObjectUse + '\'' +
-            ", persistentIdentifiers='" + persistentIdentifier != null ? "" : persistentIdentifier.toString() + '\'' +
-            ", any=" + any +
-            '}';
+        return (
+                "VersionsModel{" +
+                    "id='" +
+                    id +
+                    '\'' +
+                    ", dataObjectVersion='" +
+                    dataObjectVersion +
+                    '\'' +
+                    ", dataObjectProfile='" +
+                    dataObjectProfile +
+                    '\'' +
+                    ", dataObjectGroupId='" +
+                    dataObjectGroupId +
+                    '\'' +
+                    ", formatIdentification=" +
+                    formatIdentification +
+                    ", fileInfoModel=" +
+                    fileInfoModel +
+                    ", metadata=" +
+                    metadata +
+                    ", size=" +
+                    size +
+                    ", uri='" +
+                    uri +
+                    '\'' +
+                    ", messageDigest='" +
+                    messageDigest +
+                    '\'' +
+                    ", algorithm='" +
+                    algorithm +
+                    '\'' +
+                    ", storage=" +
+                    storage +
+                    ", physicalDimensionsModel=" +
+                    physicalDimensionsModel +
+                    ", physicalId='" +
+                    physicalId +
+                    '\'' +
+                    ", otherMetadata=" +
+                    otherMetadata +
+                    ", opi='" +
+                    opi +
+                    '\'' +
+                    ", dataObjectNumber='" +
+                    dataObjectNumber +
+                    '\'' +
+                    ", dataObjectUse='" +
+                    dataObjectUse +
+                    '\'' +
+                    ", persistentIdentifiers='" +
+                    persistentIdentifier !=
+                null
+            )
+            ? ""
+            : persistentIdentifier.toString() + '\'' + ", any=" + any + '}';
     }
 }

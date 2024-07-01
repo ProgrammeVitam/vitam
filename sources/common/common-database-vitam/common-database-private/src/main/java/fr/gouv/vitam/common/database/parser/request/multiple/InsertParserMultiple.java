@@ -80,7 +80,6 @@ public class InsertParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException
      */
     private void internalParseInsert() throws InvalidParseOperationException {
-
         // { $roots: root, $query : query, $filter : filter, $data : data }
         dataParse(rootNode.get(GLOBAL.DATA.exactToken()));
 
@@ -97,11 +96,9 @@ public class InsertParserMultiple extends RequestParserMultiple {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void dataParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void dataParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Insert: empty data");
+            throw new InvalidParseOperationException("Parse in error for Insert: empty data");
         }
         GlobalDatas.sanityValueCheck(rootNode.toString());
         // Fix varname using adapter
@@ -111,8 +108,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
         try {
             ((InsertMultiQuery) request).setData(newRootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Insert: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Insert: " + rootNode, e);
         }
     }
 

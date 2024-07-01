@@ -112,7 +112,6 @@ public class BoundedByteBuffer implements AutoCloseable {
          * Cannot write more than buffer size
          */
         public void write(byte[] src, int offset, int length) throws InterruptedException, IOException {
-
             if (offset < 0 || length < 0 || offset + length > src.length || length > bufferSize) {
                 throw new IllegalArgumentException("Invalid offset / length");
             }
@@ -180,7 +179,6 @@ public class BoundedByteBuffer implements AutoCloseable {
         }
     }
 
-
     /**
      * Reader InputStream.
      * Every reader has a read index from the circular buffer.
@@ -240,7 +238,6 @@ public class BoundedByteBuffer implements AutoCloseable {
          */
         @Override
         public int read(byte[] buffer, int offset, int length) throws IOException {
-
             if (offset < 0 || length < 0 || offset + length > buffer.length) {
                 throw new IllegalArgumentException("Invalid length");
             }

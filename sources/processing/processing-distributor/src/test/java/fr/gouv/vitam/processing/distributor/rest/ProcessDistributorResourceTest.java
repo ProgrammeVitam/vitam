@@ -62,13 +62,17 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
 
     private static final String JSON_REGISTER =
         "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
-    private final static WorkerManager workerManager = new WorkerManager();
-    private static final VitamServerTestRunner vitamServerTestRunner =
-        new VitamServerTestRunner(ProcessDistributorResourceTest.class);
+        "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
+    private static final WorkerManager workerManager = new WorkerManager();
+    private static final VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        ProcessDistributorResourceTest.class
+    );
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public TempFolderRule tempFolderRule = new TempFolderRule();
 
@@ -95,31 +99,46 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
         String JSON_INVALID_FILE = "json";
         final File file = PropertiesUtils.findFile(JSON_INVALID_FILE);
         final JsonNode json = JsonHandler.getFromFile(file);
-        given().contentType(ContentType.JSON).body(json).when()
-            .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
+            .when()
+            .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testRegisterWorkerOK() {
-        given().contentType(ContentType.JSON).body(JSON_REGISTER).when()
-            .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(JSON_REGISTER)
+            .when()
+            .post(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI)
+            .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public final void testUnregisterWorkerOK() {
-        given().contentType(ContentType.JSON).body("").when()
-            .delete(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body("")
+            .when()
+            .delete(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI)
+            .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public final void testUnregisterWorkerNotFound() {
         String FAMILY_ID_E = "/error";
-        given().contentType(ContentType.JSON).body("").when()
-            .delete(WORKER_FAMILY_URI + FAMILY_ID_E + WORKERS_URI + ID_WORKER_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body("")
+            .when()
+            .delete(WORKER_FAMILY_URI + FAMILY_ID_E + WORKERS_URI + ID_WORKER_URI)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }
-

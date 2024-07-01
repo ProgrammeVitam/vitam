@@ -41,34 +41,48 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 public class MetadataReconstructionMetricsCache {
 
-    private final PassiveExpiringCache<Triple<MetadataCollections, Integer, String>, LocalDateTime>
-        documentReconstructionStatsCache;
-    private final PassiveExpiringCache<MetadataCollections, LocalDateTime>
-        graphReconstructionStatsCache;
+    private final PassiveExpiringCache<
+        Triple<MetadataCollections, Integer, String>,
+        LocalDateTime
+    > documentReconstructionStatsCache;
+    private final PassiveExpiringCache<MetadataCollections, LocalDateTime> graphReconstructionStatsCache;
 
     public MetadataReconstructionMetricsCache(long cacheDuration, TimeUnit cacheDurationUnit) {
         this.documentReconstructionStatsCache = new PassiveExpiringCache<>(cacheDuration, cacheDurationUnit);
         this.graphReconstructionStatsCache = new PassiveExpiringCache<>(cacheDuration, cacheDurationUnit);
     }
 
-    public void registerLastDocumentReconstructionDate(MetadataCollections metadataCollection, int tenant,
-        String strategy, LocalDateTime lastDocumentReconstructionDate) {
+    public void registerLastDocumentReconstructionDate(
+        MetadataCollections metadataCollection,
+        int tenant,
+        String strategy,
+        LocalDateTime lastDocumentReconstructionDate
+    ) {
         ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
         ParametersChecker.checkParameter("Missing strategy", strategy);
         ParametersChecker.checkParameter("Missing lastDocumentReconstructionDate", lastDocumentReconstructionDate);
 
-        Triple<MetadataCollections, Integer, String> metadataKey =
-            new ImmutableTriple<>(metadataCollection, tenant, strategy);
+        Triple<MetadataCollections, Integer, String> metadataKey = new ImmutableTriple<>(
+            metadataCollection,
+            tenant,
+            strategy
+        );
         documentReconstructionStatsCache.put(metadataKey, lastDocumentReconstructionDate);
     }
 
-    public Duration getDocumentReconstructionLatency(MetadataCollections metadataCollection, int tenant,
-        String strategy) {
+    public Duration getDocumentReconstructionLatency(
+        MetadataCollections metadataCollection,
+        int tenant,
+        String strategy
+    ) {
         ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
         ParametersChecker.checkParameter("Missing strategy", strategy);
 
-        Triple<MetadataCollections, Integer, String> metadataKey =
-            new ImmutableTriple<>(metadataCollection, tenant, strategy);
+        Triple<MetadataCollections, Integer, String> metadataKey = new ImmutableTriple<>(
+            metadataCollection,
+            tenant,
+            strategy
+        );
         LocalDateTime lastDocumentReconstructionDate = this.documentReconstructionStatsCache.get(metadataKey);
 
         if (lastDocumentReconstructionDate == null) {
@@ -79,7 +93,9 @@ public class MetadataReconstructionMetricsCache {
     }
 
     public void registerLastGraphReconstructionDate(
-        MetadataCollections metadataCollection, LocalDateTime lastGraphReconstructionDate) {
+        MetadataCollections metadataCollection,
+        LocalDateTime lastGraphReconstructionDate
+    ) {
         ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
         ParametersChecker.checkParameter("Missing lastGraphReconstructionDate", lastGraphReconstructionDate);
 

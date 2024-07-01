@@ -30,11 +30,10 @@ package fr.gouv.vitam.collect.internal.core.common;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CollectObjectGroupModel {
+
     @JsonProperty("#id")
     private String id;
 
     @JsonProperty("#qualifiers")
     private String og;
-
-
 }

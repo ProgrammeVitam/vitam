@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Max Action
  */
 public class MaxAction extends fr.gouv.vitam.common.database.builder.query.action.IncAction {
+
     /**
      * For Parsing
      *

@@ -35,8 +35,7 @@ public class MetadataValidationException extends Exception {
         this.errorCode = errorCode;
     }
 
-    public MetadataValidationException(MetadataValidationErrorCode errorCode, String message,
-        Throwable cause) {
+    public MetadataValidationException(MetadataValidationErrorCode errorCode, String message, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }

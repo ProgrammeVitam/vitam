@@ -97,13 +97,11 @@ public class JsonLineGenericIterator<T> implements CloseableIterator<T> {
 
     @Override
     public T next() {
-
         if (!hasNext()) {
             throw new IllegalStateException();
         }
 
         InputStream lineInputStream = new InputStream() {
-
             boolean endOfLineStream = false;
 
             @Override
@@ -170,8 +168,9 @@ public class JsonLineGenericIterator<T> implements CloseableIterator<T> {
         try {
             // Wrap line input stream to ensure all line is read
             // Jackson may not consume the whole line stream if it ends with spacing or \n
-            InputStream remainingReadOnCloseInputStream =
-                StreamUtils.getRemainingReadOnCloseInputStream(lineInputStream);
+            InputStream remainingReadOnCloseInputStream = StreamUtils.getRemainingReadOnCloseInputStream(
+                lineInputStream
+            );
             return JsonHandler.getFromInputStreamAsTypeReference(remainingReadOnCloseInputStream, typeReference);
         } catch (InvalidParseOperationException | IOException e) {
             throw new RuntimeException("Could not parse json line entry", e);

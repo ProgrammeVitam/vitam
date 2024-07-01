@@ -31,13 +31,18 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class OutcomeMessageTest {
+
     @Test
     public void testEnum() {
-        assertEquals(OutcomeMessage.CHECK_CONFORMITY_OK.value(),
-            "Contrôle de conformité des objets réalisé avec succès");
+        assertEquals(
+            OutcomeMessage.CHECK_CONFORMITY_OK.value(),
+            "Contrôle de conformité des objets réalisé avec succès"
+        );
         assertEquals(OutcomeMessage.CHECK_CONFORMITY_KO.value(), "Erreur de contrôle de conformité des objets");
-        assertEquals(OutcomeMessage.CHECK_OBJECT_NUMBER_OK.value(),
-            "Contrôle du nombre des objets réalisé avec succès");
+        assertEquals(
+            OutcomeMessage.CHECK_OBJECT_NUMBER_OK.value(),
+            "Contrôle du nombre des objets réalisé avec succès"
+        );
         assertEquals(OutcomeMessage.CHECK_OBJECT_NUMBER_KO.value(), "Erreur de contrôle du nombre des objets");
         assertEquals(OutcomeMessage.CHECK_VERSION_OK.value(), "Contrôle des versions réalisé avec succès");
         assertEquals(OutcomeMessage.CHECK_VERSION_KO.value(), "Erreur de contrôle des versions");
@@ -48,5 +53,4 @@ public class OutcomeMessageTest {
         assertEquals(OutcomeMessage.WORKFLOW_INGEST_OK.value(), "Entrée effectuée avec succès");
         assertEquals(OutcomeMessage.WORKFLOW_INGEST_KO.value(), "Entrée en échec");
     }
-
 }

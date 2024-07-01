@@ -42,5 +42,4 @@ public class PluginPropertiesTest {
         assertEquals("newName", pluginProp.getClassName());
         assertEquals("newFIle", pluginProp.getPropertiesFile());
     }
-
 }

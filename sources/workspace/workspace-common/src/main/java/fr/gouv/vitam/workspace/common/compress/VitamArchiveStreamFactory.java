@@ -56,7 +56,6 @@ public class VitamArchiveStreamFactory {
      */
     public ArchiveInputStream createArchiveInputStream(final MediaType mediaType, final InputStream in)
         throws ArchiveException, IOException {
-
         if (mediaType == null) {
             throw new IllegalArgumentException("archiverMediaType must not be null.");
         }
@@ -72,11 +71,9 @@ public class VitamArchiveStreamFactory {
                 return new TarArchiveInputStream(in);
             case CommonMediaType.XGZIP:
             case CommonMediaType.GZIP:
-                return new TarArchiveInputStream(
-                    new GzipCompressorInputStream(in));
+                return new TarArchiveInputStream(new GzipCompressorInputStream(in));
             case CommonMediaType.BZIP2:
-                return new TarArchiveInputStream(
-                    new BZip2CompressorInputStream(in));
+                return new TarArchiveInputStream(new BZip2CompressorInputStream(in));
             default:
                 throw new ArchiveException("Archiver: " + mediaType + " not found.");
         }

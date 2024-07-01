@@ -46,9 +46,9 @@ import java.util.Map;
  * @param <E> Class associated with this Document
  */
 public abstract class MetadataDocument<E> extends VitamDocument<E> {
+
     private static final long serialVersionUID = 7912599149562030658L;
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MetadataDocument.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataDocument.class);
     /**
      * Internal version of the document: Incremented for each update (including computed fields)
      */
@@ -121,14 +121,12 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     /**
      * Quick projection for ID and ObjectGroup Only
      */
-    static final String[] ES_PROJECTION = {
-        ID, MetadataDocument.NBCHILD, TENANT_ID, SCORE};
+    static final String[] ES_PROJECTION = { ID, MetadataDocument.NBCHILD, TENANT_ID, SCORE };
 
     /**
      * Empty constructor
      */
-    public MetadataDocument() {
-    }
+    public MetadataDocument() {}
 
     /**
      * Constructor from Json
@@ -199,15 +197,13 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
 
     public <T> Collection<T> getCollectionOrEmpty(String name) {
         Collection<T> collection = this.get(name, Collection.class);
-        if (collection == null)
-            return Collections.EMPTY_LIST;
+        if (collection == null) return Collections.EMPTY_LIST;
         return collection;
     }
 
     public <V> Map<String, V> getMapOrEmpty(String name) {
         Map<String, V> map = this.get(name, Map.class);
-        if (map == null)
-            return Collections.EMPTY_MAP;
+        if (map == null) return Collections.EMPTY_MAP;
         return map;
     }
 

@@ -135,7 +135,6 @@ public class ArchiveUnitModel {
         this.management = management;
     }
 
-
     public List<ArchiveUnitHistoryModel> getHistory() {
         return history;
     }
@@ -186,8 +185,6 @@ public class ArchiveUnitModel {
         this.ops = ops;
         return this;
     }
-
-
 
     public String getOriginatingAgency() {
         return originatingAgency;

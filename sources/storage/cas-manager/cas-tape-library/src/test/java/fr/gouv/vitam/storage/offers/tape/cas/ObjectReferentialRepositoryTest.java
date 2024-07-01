@@ -70,16 +70,20 @@ public class ObjectReferentialRepositoryTest {
     private static final int BULK_SIZE = 10;
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TAPE_OBJECT_REFERENTIAL_COLLECTION);
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        TAPE_OBJECT_REFERENTIAL_COLLECTION
+    );
 
     private static ObjectReferentialRepository objectReferentialRepository;
 
     @BeforeClass
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        objectReferentialRepository = new ObjectReferentialRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(TAPE_OBJECT_REFERENTIAL_COLLECTION), BULK_SIZE);
+        objectReferentialRepository = new ObjectReferentialRepository(
+            mongoDbAccess.getMongoDatabase().getCollection(TAPE_OBJECT_REFERENTIAL_COLLECTION),
+            BULK_SIZE
+        );
     }
 
     @After
@@ -94,7 +98,6 @@ public class ObjectReferentialRepositoryTest {
 
     @Test
     public void insertOrUpdateNewEntity() throws Exception {
-
         // Given
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
 
@@ -102,8 +105,10 @@ public class ObjectReferentialRepositoryTest {
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity1);
 
         // Then
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         assertThat(tapeObjectReferentialEntity.isPresent()).isTrue();
         assertThat(tapeObjectReferentialEntity.get().getId().getContainerName()).isEqualTo("container");
@@ -111,20 +116,22 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntity.get().getSize()).isEqualTo(10L);
         assertThat(tapeObjectReferentialEntity.get().getDigest()).isEqualTo("digest1");
         assertThat(tapeObjectReferentialEntity.get().getDigestType()).isEqualTo("SHA-512");
-        assertThat(tapeObjectReferentialEntity.get().getLocation())
-            .isInstanceOf(TapeLibraryInputFileObjectStorageLocation.class);
+        assertThat(tapeObjectReferentialEntity.get().getLocation()).isInstanceOf(
+            TapeLibraryInputFileObjectStorageLocation.class
+        );
         assertThat(tapeObjectReferentialEntity.get().getLastObjectModifiedDate()).isEqualTo("date1");
         assertThat(tapeObjectReferentialEntity.get().getLastUpdateDate()).isEqualTo("date2");
     }
 
     @Test
     public void insertOrUpdateExistingEntity() throws Exception {
-
         // Given
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
 
         TapeObjectReferentialEntity tapeObjectReferentialEntity1Version2 = JsonHandler.getFromString(
-                JsonHandler.unprettyPrint(tapeObjectReferentialEntity1), TapeObjectReferentialEntity.class)
+            JsonHandler.unprettyPrint(tapeObjectReferentialEntity1),
+            TapeObjectReferentialEntity.class
+        )
             .setSize(20L)
             .setDigest("digest2")
             .setStorageId("storageId2")
@@ -136,8 +143,10 @@ public class ObjectReferentialRepositoryTest {
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity1Version2);
 
         // Then
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         assertThat(tapeObjectReferentialEntity.isPresent()).isTrue();
         assertThat(tapeObjectReferentialEntity.get().getId().getContainerName()).isEqualTo("container");
@@ -145,8 +154,9 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntity.get().getSize()).isEqualTo(20L);
         assertThat(tapeObjectReferentialEntity.get().getDigest()).isEqualTo("digest2");
         assertThat(tapeObjectReferentialEntity.get().getDigestType()).isEqualTo("SHA-512");
-        assertThat(tapeObjectReferentialEntity.get().getLocation())
-            .isInstanceOf(TapeLibraryInputFileObjectStorageLocation.class);
+        assertThat(tapeObjectReferentialEntity.get().getLocation()).isInstanceOf(
+            TapeLibraryInputFileObjectStorageLocation.class
+        );
         assertThat(tapeObjectReferentialEntity.get().getLastObjectModifiedDate()).isEqualTo("date3");
         assertThat(tapeObjectReferentialEntity.get().getLastUpdateDate()).isEqualTo("date4");
     }
@@ -156,8 +166,10 @@ public class ObjectReferentialRepositoryTest {
         //Given
 
         // When
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         // Then
         assertThat(tapeObjectReferentialEntity.isPresent()).isFalse();
@@ -165,14 +177,15 @@ public class ObjectReferentialRepositoryTest {
 
     @Test
     public void findExisting() throws Exception {
-
         // Given
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity1);
 
         // When
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         // Then
         assertThat(tapeObjectReferentialEntity.isPresent()).isTrue();
@@ -183,8 +196,10 @@ public class ObjectReferentialRepositoryTest {
         // Given
 
         // When
-        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
-            objectReferentialRepository.bulkFind("container", emptySet());
+        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities = objectReferentialRepository.bulkFind(
+            "container",
+            emptySet()
+        );
 
         // Then
         assertThat(tapeObjectReferentialEntities).isEmpty();
@@ -192,22 +207,28 @@ public class ObjectReferentialRepositoryTest {
 
     @Test
     public void bulkFindSmallDataSet() throws ObjectReferentialException {
-
         // Given
         int nbEntries = 6;
         for (int i = 0; i < nbEntries; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    10L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    10L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
-        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
-            objectReferentialRepository.bulkFind("container",
-                IntStream.range(0, 8).mapToObj(i -> "objectName" + i).collect(Collectors.toSet()));
+        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities = objectReferentialRepository.bulkFind(
+            "container",
+            IntStream.range(0, 8).mapToObj(i -> "objectName" + i).collect(Collectors.toSet())
+        );
 
         // Then
         assertThat(tapeObjectReferentialEntities.size()).isLessThan(BULK_SIZE);
@@ -215,29 +236,36 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntities)
             .extracting(entity -> entity.getId().getObjectName(), TapeObjectReferentialEntity::getDigest)
             .containsExactlyInAnyOrderElementsOf(
-                IntStream.range(0, nbEntries).mapToObj(i -> tuple("objectName" + i, "digest" + i))
+                IntStream.range(0, nbEntries)
+                    .mapToObj(i -> tuple("objectName" + i, "digest" + i))
                     .collect(Collectors.toList())
             );
     }
 
     @Test
     public void bulkFindLargeDataSet() throws ObjectReferentialException {
-
         // Given
         int nbEntries = 21;
         for (int i = 0; i < nbEntries; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    10L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    10L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
-        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
-            objectReferentialRepository.bulkFind("container",
-                IntStream.range(0, 25).mapToObj(i -> "objectName" + i).collect(Collectors.toSet()));
+        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities = objectReferentialRepository.bulkFind(
+            "container",
+            IntStream.range(0, 25).mapToObj(i -> "objectName" + i).collect(Collectors.toSet())
+        );
 
         // Then
         assertThat(tapeObjectReferentialEntities.size()).isGreaterThan(BULK_SIZE);
@@ -245,48 +273,53 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntities)
             .extracting(entity -> entity.getId().getObjectName(), TapeObjectReferentialEntity::getDigest)
             .containsExactlyInAnyOrderElementsOf(
-                IntStream.range(0, nbEntries).mapToObj(i -> tuple("objectName" + i, "digest" + i))
+                IntStream.range(0, nbEntries)
+                    .mapToObj(i -> tuple("objectName" + i, "digest" + i))
                     .collect(Collectors.toList())
             );
     }
 
     @Test
     public void bulkFindExistingPartial() throws ObjectReferentialException {
-
         // Given
         for (int i = 0; i < 5; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    10L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    10L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
-        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities =
-            objectReferentialRepository.bulkFind("container",
-                ImmutableSet.of("objectName1", "Unknown", "objectName3"));
+        List<TapeObjectReferentialEntity> tapeObjectReferentialEntities = objectReferentialRepository.bulkFind(
+            "container",
+            ImmutableSet.of("objectName1", "Unknown", "objectName3")
+        );
 
         // Then
-        assertThat(tapeObjectReferentialEntities).extracting(
-            entity -> entity.getId().getObjectName(),
-            TapeObjectReferentialEntity::getDigest).containsExactlyInAnyOrder(
-            tuple("objectName1", "digest1"),
-            tuple("objectName3", "digest3")
-        );
+        assertThat(tapeObjectReferentialEntities)
+            .extracting(entity -> entity.getId().getObjectName(), TapeObjectReferentialEntity::getDigest)
+            .containsExactlyInAnyOrder(tuple("objectName1", "digest1"), tuple("objectName3", "digest3"));
     }
 
     @Test
     public void updateStorageLocationWithSameStorageId() throws Exception {
-
         // Given
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity1);
 
         // When
         objectReferentialRepository.updateStorageLocation(
-            "container", "objectName1", "storageId1",
+            "container",
+            "objectName1",
+            "storageId1",
             new TapeLibraryTarObjectStorageLocation(
                 Arrays.asList(
                     new TarEntryDescription("tarId1", "entry1", 1000L, 3L, "digest1-1"),
@@ -296,8 +329,10 @@ public class ObjectReferentialRepositoryTest {
         );
 
         // Then
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         assertThat(tapeObjectReferentialEntity.isPresent()).isTrue();
         assertThat(tapeObjectReferentialEntity.get().getId().getContainerName()).isEqualTo("container");
@@ -305,32 +340,38 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntity.get().getSize()).isEqualTo(10L);
         assertThat(tapeObjectReferentialEntity.get().getDigest()).isEqualTo("digest1");
         assertThat(tapeObjectReferentialEntity.get().getDigestType()).isEqualTo("SHA-512");
-        assertThat(tapeObjectReferentialEntity.get().getLocation())
-            .isInstanceOf(TapeLibraryTarObjectStorageLocation.class);
-        assertThat(((TapeLibraryTarObjectStorageLocation) tapeObjectReferentialEntity.get().getLocation())
-            .getTarEntries()).extracting(
-            TarEntryDescription::getTarFileId,
-            TarEntryDescription::getEntryName,
-            TarEntryDescription::getStartPos,
-            TarEntryDescription::getSize,
-            TarEntryDescription::getDigestValue).containsExactly(
-            tuple("tarId1", "entry1", 1000L, 3L, "digest1-1"),
-            tuple("tarId2", "entry2", 2000L, 7L, "digest1-2")
+        assertThat(tapeObjectReferentialEntity.get().getLocation()).isInstanceOf(
+            TapeLibraryTarObjectStorageLocation.class
         );
+        assertThat(
+            ((TapeLibraryTarObjectStorageLocation) tapeObjectReferentialEntity.get().getLocation()).getTarEntries()
+        )
+            .extracting(
+                TarEntryDescription::getTarFileId,
+                TarEntryDescription::getEntryName,
+                TarEntryDescription::getStartPos,
+                TarEntryDescription::getSize,
+                TarEntryDescription::getDigestValue
+            )
+            .containsExactly(
+                tuple("tarId1", "entry1", 1000L, 3L, "digest1-1"),
+                tuple("tarId2", "entry2", 2000L, 7L, "digest1-2")
+            );
         assertThat(tapeObjectReferentialEntity.get().getLastObjectModifiedDate()).isEqualTo("date1");
         assertThat(tapeObjectReferentialEntity.get().getLastUpdateDate()).isNotEqualTo("date2");
     }
 
     @Test
     public void updateStorageLocationWithDifferentStorageId() throws Exception {
-
         // Given
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity1);
 
         // When
         objectReferentialRepository.updateStorageLocation(
-            "container", "objectName1", "ANOTHER_STORAGE_ID",
+            "container",
+            "objectName1",
+            "ANOTHER_STORAGE_ID",
             new TapeLibraryTarObjectStorageLocation(
                 Arrays.asList(
                     new TarEntryDescription("tarId1", "entry1", 1000L, 3L, "digest1-1"),
@@ -340,8 +381,10 @@ public class ObjectReferentialRepositoryTest {
         );
 
         // Then
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         assertThat(tapeObjectReferentialEntity.isPresent()).isTrue();
         assertThat(tapeObjectReferentialEntity.get().getId().getContainerName()).isEqualTo("container");
@@ -349,20 +392,22 @@ public class ObjectReferentialRepositoryTest {
         assertThat(tapeObjectReferentialEntity.get().getSize()).isEqualTo(10L);
         assertThat(tapeObjectReferentialEntity.get().getDigest()).isEqualTo("digest1");
         assertThat(tapeObjectReferentialEntity.get().getDigestType()).isEqualTo("SHA-512");
-        assertThat(tapeObjectReferentialEntity.get().getLocation())
-            .isInstanceOf(TapeLibraryInputFileObjectStorageLocation.class);
+        assertThat(tapeObjectReferentialEntity.get().getLocation()).isInstanceOf(
+            TapeLibraryInputFileObjectStorageLocation.class
+        );
         assertThat(tapeObjectReferentialEntity.get().getLastObjectModifiedDate()).isEqualTo("date1");
         assertThat(tapeObjectReferentialEntity.get().getLastUpdateDate()).isEqualTo("date2");
     }
 
     @Test
     public void updateStorageLocationUnknownObject() throws Exception {
-
         // Given
 
         // When
         objectReferentialRepository.updateStorageLocation(
-            "container", "objectName1", "ANOTHER_STORAGE_ID",
+            "container",
+            "objectName1",
+            "ANOTHER_STORAGE_ID",
             new TapeLibraryTarObjectStorageLocation(
                 Arrays.asList(
                     new TarEntryDescription("tarId1", "entry1", 1000L, 3L, "digest1-1"),
@@ -370,18 +415,17 @@ public class ObjectReferentialRepositoryTest {
                 )
             )
         );
-
         // Then (no exception)
     }
 
     @Test
     public void deleteNonExistingObject() throws Exception {
-
         // Given
 
         // When
-        boolean deleted =
-            objectReferentialRepository.delete(new TapeLibraryObjectReferentialId("container", "objectName1"));
+        boolean deleted = objectReferentialRepository.delete(
+            new TapeLibraryObjectReferentialId("container", "objectName1")
+        );
 
         // Then
         assertThat(deleted).isFalse();
@@ -389,19 +433,21 @@ public class ObjectReferentialRepositoryTest {
 
     @Test
     public void deleteExistingObject() throws Exception {
-
         // Given
         TapeObjectReferentialEntity tapeObjectReferentialEntity1 = createObjectReferentialEntity();
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity1);
 
         // When
-        boolean deleted =
-            objectReferentialRepository.delete(new TapeLibraryObjectReferentialId("container", "objectName1"));
+        boolean deleted = objectReferentialRepository.delete(
+            new TapeLibraryObjectReferentialId("container", "objectName1")
+        );
 
         // Then
         assertThat(deleted).isTrue();
-        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity =
-            objectReferentialRepository.find("container", "objectName1");
+        Optional<TapeObjectReferentialEntity> tapeObjectReferentialEntity = objectReferentialRepository.find(
+            "container",
+            "objectName1"
+        );
 
         assertThat(tapeObjectReferentialEntity.isPresent()).isFalse();
     }
@@ -413,32 +459,71 @@ public class ObjectReferentialRepositoryTest {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    100L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
         for (int i = 3; i < 6; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryTarObjectStorageLocation(List.of(
-                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 0, 40, "digest-tar-" + i + "-1"),
-                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 40, 40, "digest-tar-" + i + "-1"),
-                        new TarEntryDescription("tarId" + i + "-2", "storageId" + i, 0, 20, "digest-tar-" + i + "-2")
-                    )), "date1-" + i, "date2-" + i
-                ));
+                    100L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryTarObjectStorageLocation(
+                        List.of(
+                            new TarEntryDescription(
+                                "tarId" + i + "-1",
+                                "storageId" + i,
+                                0,
+                                40,
+                                "digest-tar-" + i + "-1"
+                            ),
+                            new TarEntryDescription(
+                                "tarId" + i + "-1",
+                                "storageId" + i,
+                                40,
+                                40,
+                                "digest-tar-" + i + "-1"
+                            ),
+                            new TarEntryDescription(
+                                "tarId" + i + "-2",
+                                "storageId" + i,
+                                0,
+                                20,
+                                "digest-tar-" + i + "-2"
+                            )
+                        )
+                    ),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
         Set<String> archiveIds = objectReferentialRepository.selectArchiveIdsByObjectIds(
             IntStream.range(0, 10)
                 .mapToObj(i -> new TapeLibraryObjectReferentialId("container", "objectName" + i))
-                .iterator());
+                .iterator()
+        );
 
         // Then
         assertThat(archiveIds).containsExactlyInAnyOrder(
-            "tarId3-1", "tarId3-2", "tarId4-1", "tarId4-2", "tarId5-1", "tarId5-2");
+            "tarId3-1",
+            "tarId3-2",
+            "tarId4-1",
+            "tarId4-2",
+            "tarId5-1",
+            "tarId5-2"
+        );
     }
 
     @Test
@@ -450,28 +535,61 @@ public class ObjectReferentialRepositoryTest {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    100L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
         for (int i = nbInputFileObjects; i < nbInputFileObjects + nbOnTarObjects; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    100L, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryTarObjectStorageLocation(List.of(
-                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 0, 40, "digest-tar-" + i + "-1"),
-                        new TarEntryDescription("tarId" + i + "-1", "storageId" + i, 40, 40, "digest-tar-" + i + "-1"),
-                        new TarEntryDescription("tarId" + i + "-2", "storageId" + i, 0, 20, "digest-tar-" + i + "-2")
-                    )), "date1-" + i, "date2-" + i
-                ));
+                    100L,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryTarObjectStorageLocation(
+                        List.of(
+                            new TarEntryDescription(
+                                "tarId" + i + "-1",
+                                "storageId" + i,
+                                0,
+                                40,
+                                "digest-tar-" + i + "-1"
+                            ),
+                            new TarEntryDescription(
+                                "tarId" + i + "-1",
+                                "storageId" + i,
+                                40,
+                                40,
+                                "digest-tar-" + i + "-1"
+                            ),
+                            new TarEntryDescription(
+                                "tarId" + i + "-2",
+                                "storageId" + i,
+                                0,
+                                20,
+                                "digest-tar-" + i + "-2"
+                            )
+                        )
+                    ),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
         Set<String> archiveIds = objectReferentialRepository.selectArchiveIdsByObjectIds(
             IntStream.range(0, nbInputFileObjects + nbOnTarObjects + 10)
                 .mapToObj(i -> new TapeLibraryObjectReferentialId("container", "objectName" + i))
-                .iterator());
+                .iterator()
+        );
 
         // Then
         assertThat(nbInputFileObjects).isGreaterThan(BULK_SIZE);
@@ -480,12 +598,12 @@ public class ObjectReferentialRepositoryTest {
             IntStream.range(nbInputFileObjects, nbInputFileObjects + nbOnTarObjects)
                 .mapToObj(i -> List.of("tarId" + i + "-1", "tarId" + i + "-2"))
                 .flatMap(Collection::stream)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList())
+        );
     }
 
     @Test
     public void findAllOfEmptyContainer() throws ObjectReferentialException {
-
         // Given
 
         // When
@@ -498,69 +616,95 @@ public class ObjectReferentialRepositoryTest {
 
     @Test
     public void findAllObjectsOfNonEmptyContainer() throws ObjectReferentialException {
-
         // Given
         for (int i = 0; i < 5; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    1_000_000_000L * i, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    1_000_000_000L * i,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
         CloseableIterator<ObjectEntry> result = objectReferentialRepository.listContainerObjectEntries("container");
 
         // Then
-        assertThat(result).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize).containsExactlyInAnyOrder(
-            tuple("objectName0", 0L),
-            tuple("objectName1", 1_000_000_000L),
-            tuple("objectName2", 2_000_000_000L),
-            tuple("objectName3", 3_000_000_000L),
-            tuple("objectName4", 4_000_000_000L)
-        );
+        assertThat(result)
+            .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            .containsExactlyInAnyOrder(
+                tuple("objectName0", 0L),
+                tuple("objectName1", 1_000_000_000L),
+                tuple("objectName2", 2_000_000_000L),
+                tuple("objectName3", 3_000_000_000L),
+                tuple("objectName4", 4_000_000_000L)
+            );
 
         assertThatCode(result::close).doesNotThrowAnyException();
     }
 
     @Test
     public void findAllObjectsIgnoresOtherContainers() throws ObjectReferentialException {
-
         // Given
         objectReferentialRepository.insertOrUpdate(
             new TapeObjectReferentialEntity(
                 new TapeLibraryObjectReferentialId("container", "objectName1"),
-                100, DigestType.SHA512.getName(), "digest1", "storageId1",
-                new TapeLibraryInputFileObjectStorageLocation(), "date1", "date2"));
+                100,
+                DigestType.SHA512.getName(),
+                "digest1",
+                "storageId1",
+                new TapeLibraryInputFileObjectStorageLocation(),
+                "date1",
+                "date2"
+            )
+        );
 
         objectReferentialRepository.insertOrUpdate(
             new TapeObjectReferentialEntity(
                 new TapeLibraryObjectReferentialId("ANOTHER_CONTAINER", "objectName2"),
-                200, DigestType.SHA512.getName(), "digest2", "storageId2",
-                new TapeLibraryInputFileObjectStorageLocation(), "date1", "date2"));
+                200,
+                DigestType.SHA512.getName(),
+                "digest2",
+                "storageId2",
+                new TapeLibraryInputFileObjectStorageLocation(),
+                "date1",
+                "date2"
+            )
+        );
 
         // When
         CloseableIterator<ObjectEntry> result = objectReferentialRepository.listContainerObjectEntries("container");
 
         // Then
-        assertThat(result).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize).containsExactly(
-            tuple("objectName1", 100L));
+        assertThat(result)
+            .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+            .containsExactly(tuple("objectName1", 100L));
 
         assertThatCode(result::close).doesNotThrowAnyException();
     }
 
     @Test
     public void findAllObjectsThenCloseIteratorThenClosed() throws ObjectReferentialException {
-
         // Given
         for (int i = 0; i < 5; i++) {
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId("container", "objectName" + i),
-                    1_000_000_000L * i, DigestType.SHA512.getName(), "digest" + i, "storageId" + i,
-                    new TapeLibraryInputFileObjectStorageLocation(), "date1-" + i, "date2-" + i
-                ));
+                    1_000_000_000L * i,
+                    DigestType.SHA512.getName(),
+                    "digest" + i,
+                    "storageId" + i,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    "date1-" + i,
+                    "date2-" + i
+                )
+            );
         }
 
         // When
@@ -580,8 +724,13 @@ public class ObjectReferentialRepositoryTest {
     private TapeObjectReferentialEntity createObjectReferentialEntity() {
         return new TapeObjectReferentialEntity(
             new TapeLibraryObjectReferentialId("container", "objectName1"),
-            10L, DigestType.SHA512.getName(), "digest1", "storageId1",
-            new TapeLibraryInputFileObjectStorageLocation(), "date1", "date2"
+            10L,
+            DigestType.SHA512.getName(),
+            "digest1",
+            "storageId1",
+            new TapeLibraryInputFileObjectStorageLocation(),
+            "date1",
+            "date2"
         );
     }
 }

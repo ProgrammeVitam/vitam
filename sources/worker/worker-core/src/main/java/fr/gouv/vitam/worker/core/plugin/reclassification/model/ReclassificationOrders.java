@@ -38,7 +38,8 @@ public class ReclassificationOrders {
 
     public ReclassificationOrders(
         HashSetValuedHashMap<String, String> childToParentAttachments,
-        HashSetValuedHashMap<String, String> childToParentDetachments) {
+        HashSetValuedHashMap<String, String> childToParentDetachments
+    ) {
         this.childToParentAttachments = childToParentAttachments;
         this.childToParentDetachments = childToParentDetachments;
     }

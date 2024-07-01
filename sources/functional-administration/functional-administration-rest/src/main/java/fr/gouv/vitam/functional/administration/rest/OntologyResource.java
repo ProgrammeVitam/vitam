@@ -65,8 +65,7 @@ public class OntologyResource {
     private static final String ONTOLOGY_URI = "/ontologies";
     private static final String ONTOLOGY_CACHE_URI = "/ontologies/cache";
 
-    private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER =
-        "The json input of ontology type is mandatory";
+    private static final String ONTOLOGY_JSON_IS_MANDATORY_PATAMETER = "The json input of ontology type is mandatory";
 
     private final OntologyService ontologyService;
 
@@ -77,7 +76,6 @@ public class OntologyResource {
         this.ontologyService = ontologyService;
         LOGGER.debug("init Ontology Resource server");
     }
-
 
     /**
      * Import a set of ontologies metadata. </BR>
@@ -98,28 +96,34 @@ public class OntologyResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
-        List<OntologyModel> ontologyModelList, @Context UriInfo uri) {
+    public Response importOntologies(
+        @HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
+        List<OntologyModel> ontologyModelList,
+        @Context UriInfo uri
+    ) {
         ParametersChecker.checkParameter(ONTOLOGY_JSON_IS_MANDATORY_PATAMETER, ontologyModelList);
 
         try {
-            RequestResponse<OntologyModel> requestResponse =
-                ontologyService.importOntologies(forceUpdate, ontologyModelList);
+            RequestResponse<OntologyModel> requestResponse = ontologyService.importOntologies(
+                forceUpdate,
+                ontologyModelList
+            );
 
             if (!requestResponse.isOk()) {
                 return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage())).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage()))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage()))
+                .build();
         }
     }
 
@@ -134,20 +138,17 @@ public class OntologyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findOntologies(JsonNode queryDsl) {
-
         try {
+            final RequestResponseOK<OntologyModel> ontologyModelList = ontologyService
+                .findOntologies(queryDsl)
+                .setQuery(queryDsl);
 
-            final RequestResponseOK<OntologyModel> ontologyModelList =
-                ontologyService.findOntologies(queryDsl).setQuery(queryDsl);
-
-            return Response.status(Status.OK)
-                .entity(ontologyModelList)
-                .build();
-
+            return Response.status(Status.OK).entity(ontologyModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
@@ -162,24 +163,22 @@ public class OntologyResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findOntologiesForCache(JsonNode queryDsl) {
-
         try {
+            final RequestResponseOK<OntologyModel> ontologyModelList = ontologyService
+                .findOntologiesForCache(queryDsl)
+                .setQuery(queryDsl);
 
-            final RequestResponseOK<OntologyModel> ontologyModelList =
-                ontologyService.findOntologiesForCache(queryDsl).setQuery(queryDsl);
-
-            return Response.status(Status.OK)
-                .entity(ontologyModelList)
-                .build();
-
+            return Response.status(Status.OK).entity(ontologyModelList).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage())).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage()))
+                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
@@ -191,12 +190,14 @@ public class OntologyResource {
      * @return
      */
     private VitamError<OntologyModel> getErrorEntity(Status status, String message) {
-        String aMessage = (message != null && !message.trim().isEmpty()) ?
-            message :
-            (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError<OntologyModel>(String.valueOf(status.getStatusCode())).setHttpCode(status.getStatusCode())
-            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE).setState("ko").setMessage(status.getReasonPhrase())
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError<OntologyModel>(String.valueOf(status.getStatusCode()))
+            .setHttpCode(status.getStatusCode())
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+            .setState("ko")
+            .setMessage(status.getReasonPhrase())
             .setDescription(aMessage);
     }
-
 }

@@ -58,33 +58,38 @@ public class ManagmentContractChecker {
     private AdminManagementClientFactory adminManagementClientFactory;
     private StorageClientFactory storageClientFactory;
 
-    public ManagmentContractChecker(String managementContractId,
-        AdminManagementClientFactory adminManagementClientFactory, StorageClientFactory storageClientFactory) {
+    public ManagmentContractChecker(
+        String managementContractId,
+        AdminManagementClientFactory adminManagementClientFactory,
+        StorageClientFactory storageClientFactory
+    ) {
         this.managementContractId = managementContractId;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.storageClientFactory = storageClientFactory;
     }
 
     public CheckIngestContractStatus check() {
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient()) {
-            RequestResponse<ManagementContractModel> ManagementContractResponse = adminManagementClient
-                .findManagementContractsByID(managementContractId);
+        try (
+            AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
+            StorageClient storageClient = storageClientFactory.getClient()
+        ) {
+            RequestResponse<ManagementContractModel> ManagementContractResponse =
+                adminManagementClient.findManagementContractsByID(managementContractId);
             if (ManagementContractResponse.isOk()) {
-
                 List<ManagementContractModel> results =
-                    ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse)
-                        .getResults();
+                    ((RequestResponseOK<ManagementContractModel>) ManagementContractResponse).getResults();
                 if (results.isEmpty()) {
-                    LOGGER.error("CheckContract : The Management Contract " + managementContractId
-                        + "  not found in database");
+                    LOGGER.error(
+                        "CheckContract : The Management Contract " + managementContractId + "  not found in database"
+                    );
                     return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
                 } else {
                     final ManagementContractModel managementContract = Iterables.getFirst(results, null);
 
                     if (!ActivationStatus.ACTIVE.equals(managementContract.getStatus())) {
                         LOGGER.error(
-                            "CheckContract : The Management Contract " + managementContract + "  is not activated");
+                            "CheckContract : The Management Contract " + managementContract + "  is not activated"
+                        );
                         return CheckIngestContractStatus.MANAGEMENT_CONTRACT_INACTIVE;
                     }
 
@@ -94,23 +99,34 @@ public class ManagmentContractChecker {
                             LOGGER.error(strategiesResponse.toString());
                             throw new StorageServerClientException("Exception while retrieving storage strategies");
                         }
-                        List<StorageStrategy> strategies = ((RequestResponseOK<StorageStrategy>) strategiesResponse)
-                            .getResults();
+                        List<StorageStrategy> strategies =
+                            ((RequestResponseOK<StorageStrategy>) strategiesResponse).getResults();
 
                         try {
                             if (managementContract.getStorage().getObjectGroupStrategy() != null) {
                                 StorageStrategyUtils.checkStrategy(
-                                    managementContract.getStorage().getObjectGroupStrategy(), strategies,
-                                    ManagementContract.OBJECTGROUP_STRATEGY, true);
+                                    managementContract.getStorage().getObjectGroupStrategy(),
+                                    strategies,
+                                    ManagementContract.OBJECTGROUP_STRATEGY,
+                                    true
+                                );
                             }
                             if (managementContract.getStorage().getUnitStrategy() != null) {
-                                StorageStrategyUtils.checkStrategy(managementContract.getStorage().getUnitStrategy(),
-                                    strategies, ManagementContract.UNIT_STRATEGY, true);
+                                StorageStrategyUtils.checkStrategy(
+                                    managementContract.getStorage().getUnitStrategy(),
+                                    strategies,
+                                    ManagementContract.UNIT_STRATEGY,
+                                    true
+                                );
                             }
 
                             if (managementContract.getStorage().getObjectStrategy() != null) {
-                                StorageStrategyUtils.checkStrategy(managementContract.getStorage().getObjectStrategy(),
-                                    strategies, ManagementContract.OBJECT_STRATEGY, false);
+                                StorageStrategyUtils.checkStrategy(
+                                    managementContract.getStorage().getObjectStrategy(),
+                                    strategies,
+                                    ManagementContract.OBJECT_STRATEGY,
+                                    false
+                                );
                             }
                         } catch (StorageStrategyNotFoundException | StorageStrategyReferentOfferException exc) {
                             LOGGER.error(exc);
@@ -124,14 +140,13 @@ public class ManagmentContractChecker {
         } catch (ReferentialNotFoundException e) {
             LOGGER.error("Management Contract not found :", e);
             return CheckIngestContractStatus.MANAGEMENT_CONTRACT_UNKNOWN;
-
-        } catch (AdminManagementClientServerException | InvalidParseOperationException
-            | StorageServerClientException e) {
+        } catch (
+            AdminManagementClientServerException | InvalidParseOperationException | StorageServerClientException e
+        ) {
             LOGGER.error("Fatal check error :", e);
             return CheckIngestContractStatus.FATAL;
         }
 
         return CheckIngestContractStatus.KO;
     }
-
 }

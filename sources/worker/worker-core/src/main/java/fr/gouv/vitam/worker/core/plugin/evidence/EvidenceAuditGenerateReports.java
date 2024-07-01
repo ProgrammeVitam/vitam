@@ -61,6 +61,7 @@ import java.util.List;
  * EvidenceAuditGenerateReports class
  */
 public class EvidenceAuditGenerateReports extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditGenerateReports.class);
 
     private static final String EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS = "EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS";
@@ -81,8 +82,7 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS);
 
         try {
@@ -93,80 +93,91 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             File securedDataFile = handlerIO.getFileFromWorkspace(ZIP + "/" + param.getObjectName());
             File listOfObjectByFile = handlerIO.getFileFromWorkspace(FILE_NAMES + "/" + param.getObjectName());
 
-            List<String> securedLines = Files.readAllLines(securedDataFile.toPath(),
-                Charset.defaultCharset());
+            List<String> securedLines = Files.readAllLines(securedDataFile.toPath(), Charset.defaultCharset());
 
-            ArrayList<String> listIds =
-                JsonHandler.getFromFileAsTypeReference(listOfObjectByFile, new TypeReference<ArrayList<String>>() {
-                });
+            ArrayList<String> listIds = JsonHandler.getFromFileAsTypeReference(
+                listOfObjectByFile,
+                new TypeReference<ArrayList<String>>() {}
+            );
 
             EvidenceService evidenceService = new EvidenceService();
 
             for (String objectToAuditId : listIds) {
-
                 File infoFromDatabase = handlerIO.getFileFromWorkspace(DATA + "/" + objectToAuditId);
 
-                EvidenceAuditParameters parameters =
-                    JsonHandler.getFromFile(infoFromDatabase, EvidenceAuditParameters.class);
+                EvidenceAuditParameters parameters = JsonHandler.getFromFile(
+                    infoFromDatabase,
+                    EvidenceAuditParameters.class
+                );
 
                 EvidenceAuditReportLine evidenceAuditReportLine;
 
                 File file = handlerIO.getNewLocalFile(objectToAuditId);
 
                 if (parameters.getEvidenceStatus().equals(EvidenceStatus.OK)) {
-
-                    evidenceAuditReportLine =
-                        evidenceService.auditAndGenerateReportIfKo(parameters, securedLines, objectToAuditId);
-
-
+                    evidenceAuditReportLine = evidenceService.auditAndGenerateReportIfKo(
+                        parameters,
+                        securedLines,
+                        objectToAuditId
+                    );
                 } else {
-
                     evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
                     evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
                     evidenceAuditReportLine.setMessage(parameters.getAuditMessage());
                 }
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
 
-                if (!correctiveAudit)
-                    addReportEntry(param.getContainerName(), createEvidenceReportEntry(evidenceAuditReportLine));
+                if (!correctiveAudit) addReportEntry(
+                    param.getContainerName(),
+                    createEvidenceReportEntry(evidenceAuditReportLine)
+                );
 
-                handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
-                    file, !correctiveAudit, false);
+                handlerIO.transferFileToWorkspace(
+                    REPORTS + "/" + objectToAuditId + ".report.json",
+                    file,
+                    !correctiveAudit,
+                    false
+                );
 
                 // corrective audit
                 if (correctiveAudit) {
-                    handlerIO.transferFileToWorkspace(ALTER + "/" + objectToAuditId + ".json",
-                        file, true, false);
+                    handlerIO.transferFileToWorkspace(ALTER + "/" + objectToAuditId + ".json", file, true, false);
                 }
-
             }
 
             itemStatus.increment(StatusCode.OK);
-
-        } catch (IOException | ContentAddressableStorageNotFoundException | InvalidParseOperationException | ProcessingStatusException | ContentAddressableStorageServerException e) {
-
+        } catch (
+            IOException
+            | ContentAddressableStorageNotFoundException
+            | InvalidParseOperationException
+            | ProcessingStatusException
+            | ContentAddressableStorageServerException e
+        ) {
             LOGGER.error(e);
 
             return itemStatus.increment(StatusCode.FATAL);
         }
-        return new ItemStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS)
-            .setItemsStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS, itemStatus);
+        return new ItemStatus(EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS).setItemsStatus(
+            EVIDENCE_AUDIT_PREPARE_GENERATE_REPORTS,
+            itemStatus
+        );
     }
 
-    private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
-        throws ProcessingStatusException {
+    private void addReportEntry(String processId, EvidenceAuditReportEntry entry) throws ProcessingStatusException {
         evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
     private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditReportLine evidenceAuditReportLine) {
+        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport = createEvidenceBatchFromEvidenceWorker(
+            evidenceAuditReportLine
+        );
 
-        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport =
-            createEvidenceBatchFromEvidenceWorker(evidenceAuditReportLine);
-
-        String message = evidenceAuditReportLine.getMessage() != null ?
-            evidenceAuditReportLine.getMessage() :
-            "audit " + evidenceAuditReportLine.getEvidenceStatus().name() + " for " +
-                evidenceAuditReportLine.getObjectType().getName();
+        String message = evidenceAuditReportLine.getMessage() != null
+            ? evidenceAuditReportLine.getMessage()
+            : "audit " +
+            evidenceAuditReportLine.getEvidenceStatus().name() +
+            " for " +
+            evidenceAuditReportLine.getObjectType().getName();
         return new EvidenceAuditReportEntry(
             evidenceAuditReportLine.getIdentifier(),
             evidenceAuditReportLine.getEvidenceStatus().name(),
@@ -176,23 +187,31 @@ public class EvidenceAuditGenerateReports extends ActionHandler {
             evidenceAuditReportLine.getSecuredHash(),
             evidenceAuditReportLine.getStrategyId(),
             evidenceAuditReportLine.getOffersHashes(),
-            evidenceAuditReportLine.getEvidenceStatus().name());
+            evidenceAuditReportLine.getEvidenceStatus().name()
+        );
     }
 
     private ArrayList<EvidenceAuditReportObject> createEvidenceBatchFromEvidenceWorker(
-        EvidenceAuditReportLine evidenceAuditReportLine) {
+        EvidenceAuditReportLine evidenceAuditReportLine
+    ) {
         ArrayList<EvidenceAuditReportObject> list = new ArrayList<>();
 
         if (evidenceAuditReportLine.getObjectsReports() != null) {
-            for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine
-                .getObjectsReports()) {
-                list.add(new EvidenceAuditReportObject(objects.getIdentifier(), objects.getEvidenceStatus().name(),
-                    objects.getMessage(), objects.getObjectType(), objects.getSecuredHash(), objects.getStrategyId(),
-                    objects.getOffersHashes()));
+            for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine.getObjectsReports()) {
+                list.add(
+                    new EvidenceAuditReportObject(
+                        objects.getIdentifier(),
+                        objects.getEvidenceStatus().name(),
+                        objects.getMessage(),
+                        objects.getObjectType(),
+                        objects.getSecuredHash(),
+                        objects.getStrategyId(),
+                        objects.getOffersHashes()
+                    )
+                );
             }
             return list;
         }
         return list;
     }
-
 }

@@ -53,9 +53,7 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return response
      * @throws IngestExternalException
      */
-    RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
-        String contextId,
-        String action)
+    RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream, String contextId, String action)
         throws IngestExternalException;
 
     /**
@@ -67,9 +65,11 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return response
      * @throws IngestExternalException
      */
-    RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
-        IngestRequestParameters ingestRequestParameters)
-        throws IngestExternalException;
+    RequestResponse<Void> ingest(
+        VitamContext vitamContext,
+        InputStream stream,
+        IngestRequestParameters ingestRequestParameters
+    ) throws IngestExternalException;
 
     /**
      * Download object stored by ingest operation<br>
@@ -82,10 +82,8 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return object as stream
      * @throws VitamClientException
      */
-    Response downloadObjectAsync(VitamContext vitamContext, String objectId,
-        IngestCollection type)
+    Response downloadObjectAsync(VitamContext vitamContext, String objectId, IngestCollection type)
         throws VitamClientException;
-
 
     /**
      * ingest a file that has been uploaded locally on a vitam folder then launch an ingest workflow
@@ -99,11 +97,8 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return response
      * @throws IngestExternalException
      */
-    RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
-        String contextId,
-        String action)
+    RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile, String contextId, String action)
         throws IngestExternalException;
-
 
     /**
      * ingest a file that has been uploaded locally on a vitam folder then launch an ingest workflow
@@ -114,8 +109,9 @@ public interface IngestExternalClient extends MockOrRestClient {
      * @return response
      * @throws IngestExternalException
      */
-    RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
-        IngestRequestParameters ingestRequestParameters)
-        throws IngestExternalException;
-
+    RequestResponse<Void> ingestLocal(
+        VitamContext vitamContext,
+        LocalFile localFile,
+        IngestRequestParameters ingestRequestParameters
+    ) throws IngestExternalException;
 }

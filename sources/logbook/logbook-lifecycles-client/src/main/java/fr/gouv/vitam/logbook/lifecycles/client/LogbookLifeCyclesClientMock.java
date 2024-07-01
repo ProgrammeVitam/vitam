@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -79,24 +78,24 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
         logInformation(CREATE, parameters);
     }
 
     @Override
     public void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
 
         logInformation(UPDATE, parameters);
     }
@@ -104,12 +103,12 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
 
         logInformation(UPDATE, parameters);
     }
@@ -118,24 +117,24 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
         logInformation(COMMIT, parameters);
     }
 
     @Override
     public void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
         logInformation(ROLLBACK, parameters);
     }
 
@@ -189,14 +188,20 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public InputStream exportRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate,
-        LocalDateTime endDate, int maxEntries) {
+    public InputStream exportRawUnitLifecyclesByLastPersistedDate(
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        int maxEntries
+    ) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
-        int maxEntries) {
+    public InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        int maxEntries
+    ) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
@@ -214,14 +219,20 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus, JsonNode query) {
+    public CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(
+        String operationId,
+        LifeCycleStatusCode lifeCycleStatus,
+        JsonNode query
+    ) {
         throw new NotImplementedException("Unsupported mock");
     }
 
     @Override
-    public CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus, JsonNode query) {
+    public CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(
+        String operationId,
+        LifeCycleStatusCode lifeCycleStatus,
+        JsonNode query
+    ) {
         throw new NotImplementedException("Unsupported mock");
     }
 
@@ -237,8 +248,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             }
         } else {
             LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            throw new LogbookClientBadRequestException(
-                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
     }
 
@@ -250,8 +260,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             }
         } else {
             LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
-            throw new LogbookClientBadRequestException(
-                ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+            throw new LogbookClientBadRequestException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
     }
 
@@ -291,8 +300,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     private void commitObject(String operationId, String unitId) {
-        if (!lifeCyclesByOperation
-            .containsKey(operationId)) {
+        if (!lifeCyclesByOperation.containsKey(operationId)) {
             List<String> objectList = new ArrayList<>();
             objectList.add(unitId);
             lifeCyclesByOperation.put(operationId, objectList);
@@ -302,20 +310,17 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void rollBackUnitsByOperation(String operationId)
-        throws LogbookClientNotFoundException {
+    public void rollBackUnitsByOperation(String operationId) throws LogbookClientNotFoundException {
         rollBackObjectByOperation(operationId);
     }
 
     @Override
-    public void rollBackObjectGroupsByOperation(String operationId)
-        throws LogbookClientNotFoundException {
+    public void rollBackObjectGroupsByOperation(String operationId) throws LogbookClientNotFoundException {
         rollBackObjectByOperation(operationId);
     }
 
     private void rollBackObjectByOperation(String operationId) throws LogbookClientNotFoundException {
-        if (!lifeCyclesByOperation
-            .containsKey(operationId)) {
+        if (!lifeCyclesByOperation.containsKey(operationId)) {
             throw new LogbookClientNotFoundException("Operation not found");
         } else {
             lifeCyclesByOperation.remove(operationId);
@@ -342,8 +347,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
-        throws InvalidParseOperationException {
+    public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl) throws InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookLifecycle();
     }
 
@@ -365,17 +369,14 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws) {
-    }
+    public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws) {}
 
     @Override
-    public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws) {
-    }
+    public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws) {}
 
     @Override
     public void deleteLifecycleUnitsBulk(Collection<String> listIds) {
         throw new IllegalArgumentException("Stop mocking in production ");
-
     }
 
     @Override
@@ -383,17 +384,21 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         throw new IllegalArgumentException("Stop mocking in production ");
     }
 
-
     @Override
-    public void bulkLifeCycleTemporary(String operationId, DistributionType type,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+    public void bulkLifeCycleTemporary(
+        String operationId,
+        DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    ) {
         // do nothing
     }
 
     @Override
-    public void bulkLifeCycle(String operationId, DistributionType type,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+    public void bulkLifeCycle(
+        String operationId,
+        DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    ) {
         // do nothing
     }
-
 }

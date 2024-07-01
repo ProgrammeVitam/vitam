@@ -57,13 +57,13 @@ import static org.mockito.Mockito.mock;
 public class StorageResourceBulkTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceInternalServerError() throws Exception {
-
         // Given
         int tenantId = 2;
         String strategyId = "strategyId";
@@ -74,7 +74,11 @@ public class StorageResourceBulkTest {
         String requester = "requester";
 
         BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
-            workspaceContainer, uris, dataCategory, objectNames);
+            workspaceContainer,
+            uris,
+            dataCategory,
+            objectNames
+        );
 
         HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
 
@@ -85,13 +89,18 @@ public class StorageResourceBulkTest {
         TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
 
         doThrow(StorageException.class)
-            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+            .when(storageDistribution)
+            .bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
 
         StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
 
         // When
         Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
+            httpServletRequest,
+            headers,
+            dataCategory.getCollectionName(),
+            bulkObjectStoreRequest
+        );
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -100,7 +109,6 @@ public class StorageResourceBulkTest {
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceConflict() throws Exception {
-
         // Given
         int tenantId = 2;
         String strategyId = "strategyId";
@@ -111,7 +119,11 @@ public class StorageResourceBulkTest {
         String requester = "requester";
 
         BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
-            workspaceContainer, uris, dataCategory, objectNames);
+            workspaceContainer,
+            uris,
+            dataCategory,
+            objectNames
+        );
 
         HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
 
@@ -122,13 +134,18 @@ public class StorageResourceBulkTest {
         TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
 
         doThrow(StorageInconsistentStateException.class)
-            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+            .when(storageDistribution)
+            .bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
 
         StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
 
         // When
         Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
+            httpServletRequest,
+            headers,
+            dataCategory.getCollectionName(),
+            bulkObjectStoreRequest
+        );
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.CONFLICT.getStatusCode());
@@ -137,7 +154,6 @@ public class StorageResourceBulkTest {
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceOK() throws Exception {
-
         // Given
         int tenantId = 2;
         String strategyId = "strategyId";
@@ -148,10 +164,13 @@ public class StorageResourceBulkTest {
         String requester = "requester";
 
         BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
-            workspaceContainer, uris, dataCategory, objectNames);
+            workspaceContainer,
+            uris,
+            dataCategory,
+            objectNames
+        );
 
         BulkObjectStoreResponse bulkObjectStoreResponse = mock(BulkObjectStoreResponse.class);
-
 
         HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
 
@@ -162,13 +181,18 @@ public class StorageResourceBulkTest {
         TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
 
         doReturn(bulkObjectStoreResponse)
-            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+            .when(storageDistribution)
+            .bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
 
         StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
 
         // When
         Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
+            httpServletRequest,
+            headers,
+            dataCategory.getCollectionName(),
+            bulkObjectStoreRequest
+        );
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
@@ -178,7 +202,6 @@ public class StorageResourceBulkTest {
     @Test
     @RunWithCustomExecutor
     public final void bulkCreateFromWorkspaceIllegalArguments() {
-
         // Given
         int tenantId = 2;
         String strategyId = "strategyId";
@@ -193,93 +216,116 @@ public class StorageResourceBulkTest {
             new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(null, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         // Missing strategy
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, null),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         // Missing workspace container
         checkBackRequest(
             new BulkObjectStoreRequest("", uris, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         checkBackRequest(
             new BulkObjectStoreRequest(null, uris, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         // Missing uri
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, null, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", null), dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         // Missing data category
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, uris, null, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         // Missing object name
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, null),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, Collections.emptyList()),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, Arrays.asList("ob1", null)),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
 
         // Invalid folder
         checkBackRequest(
             new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            "invalid folder");
+            "invalid folder"
+        );
 
         // Uri / object name mismatch
         checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", "uri2", "uri3"), dataCategory,
-                Arrays.asList("ob1", "ob2")),
+            new BulkObjectStoreRequest(
+                workspaceContainer,
+                Arrays.asList("uri1", "uri2", "uri3"),
+                dataCategory,
+                Arrays.asList("ob1", "ob2")
+            ),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
+            dataCategory.getCollectionName()
+        );
     }
 
-    private void checkBackRequest(BulkObjectStoreRequest bulkObjectStoreRequest,
-        HttpServletRequest httpServletRequest, HttpHeaders headers, String folder) {
-
+    private void checkBackRequest(
+        BulkObjectStoreRequest bulkObjectStoreRequest,
+        HttpServletRequest httpServletRequest,
+        HttpHeaders headers,
+        String folder
+    ) {
         StorageDistribution storageDistribution = mock(StorageDistribution.class);
         TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
 
         StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
 
         Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, folder, bulkObjectStoreRequest);
+            httpServletRequest,
+            headers,
+            folder,
+            bulkObjectStoreRequest
+        );
 
         assertThat(response.getStatus()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -293,14 +339,15 @@ public class StorageResourceBulkTest {
     private HttpHeaders getHttpHeaders(Integer tenantId, String strategyId) {
         HttpHeaders headers = mock(HttpHeaders.class);
         if (strategyId != null) {
-            doReturn(Collections.singletonList(strategyId)).when(headers)
+            doReturn(Collections.singletonList(strategyId))
+                .when(headers)
                 .getRequestHeader(VitamHttpHeader.STRATEGY_ID.getName());
         }
         if (tenantId != null) {
-            doReturn(Collections.singletonList(Integer.toString(tenantId))).when(headers)
+            doReturn(Collections.singletonList(Integer.toString(tenantId)))
+                .when(headers)
                 .getRequestHeader(VitamHttpHeader.TENANT_ID.getName());
         }
         return headers;
     }
-
 }

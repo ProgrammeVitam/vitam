@@ -32,7 +32,9 @@ import fr.gouv.vitam.common.model.StatusCode;
  * List of status used in report.
  */
 public enum ReportStatus {
-    OK, WARNING, KO;
+    OK,
+    WARNING,
+    KO;
 
     public static ReportStatus parseFromStatusCode(StatusCode statusCode) {
         ReportStatus reportStatus = null;
@@ -53,5 +55,4 @@ public enum ReportStatus {
         }
         return reportStatus;
     }
-
 }

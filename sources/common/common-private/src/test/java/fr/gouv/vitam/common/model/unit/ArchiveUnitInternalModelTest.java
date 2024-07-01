@@ -39,15 +39,16 @@ public class ArchiveUnitInternalModelTest {
 
     @Test
     public void checkInternalExternalFieldMapping() {
+        Map<String, Field> externalModelFields = Arrays.stream(ArchiveUnitModel.class.getDeclaredFields()).collect(
+            Collectors.toMap(Field::getName, field -> field)
+        );
 
-        Map<String, Field> externalModelFields = Arrays.stream(ArchiveUnitModel.class.getDeclaredFields())
-            .collect(Collectors.toMap(Field::getName, field -> field));
+        Map<String, Field> internalModelFields = Arrays.stream(
+            ArchiveUnitInternalModel.class.getDeclaredFields()
+        ).collect(Collectors.toMap(Field::getName, field -> field));
 
-        Map<String, Field> internalModelFields = Arrays.stream(ArchiveUnitInternalModel.class.getDeclaredFields())
-            .collect(Collectors.toMap(Field::getName, field -> field));
-
-
-        assertThat(externalModelFields.keySet()).withFailMessage("Expected same field names")
+        assertThat(externalModelFields.keySet())
+            .withFailMessage("Expected same field names")
             .isEqualTo(internalModelFields.keySet());
         for (String fieldName : internalModelFields.keySet()) {
             assertThat(internalModelFields.get(fieldName).getType())

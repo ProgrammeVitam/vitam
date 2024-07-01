@@ -102,5 +102,4 @@ public class LogbookLifecycle extends LogbookEvent {
     public void setEvents(List<LogbookEvent> events) {
         this.events = events;
     }
-
 }

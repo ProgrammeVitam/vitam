@@ -44,18 +44,20 @@ public class RevertUpdateUnitFinalizePlugin extends UpdateUnitFinalize {
 
     private static final String PLUGIN_ID = "REVERT_UPDATE_FINALIZE";
 
-
     public RevertUpdateUnitFinalizePlugin() {
         this(
             BatchReportClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    private RevertUpdateUnitFinalizePlugin(BatchReportClientFactory batchReportClientFactory,
+    private RevertUpdateUnitFinalizePlugin(
+        BatchReportClientFactory batchReportClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(batchReportClientFactory, logbookOperationsClientFactory, storageClientFactory);
     }
 
@@ -78,5 +80,4 @@ public class RevertUpdateUnitFinalizePlugin extends UpdateUnitFinalize {
     protected ReportType getReportType() {
         return BULK_UPDATE_UNIT;
     }
-
 }

@@ -30,16 +30,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TransferReplyUnitReportEntry {
-    private final static String ID = "id";
-    private final static String STATUS = "status";
+
+    private static final String ID = "id";
+    private static final String STATUS = "status";
 
     private final String id;
     private final String status;
 
     @JsonCreator
-    public TransferReplyUnitReportEntry(
-        @JsonProperty(ID) String id,
-        @JsonProperty(STATUS) String status) {
+    public TransferReplyUnitReportEntry(@JsonProperty(ID) String id, @JsonProperty(STATUS) String status) {
         this.id = id;
         this.status = status;
     }

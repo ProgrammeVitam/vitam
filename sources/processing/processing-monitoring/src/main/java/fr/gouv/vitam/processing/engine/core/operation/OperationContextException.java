@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.engine.core.operation;
 
 public class OperationContextException extends Exception {
+
     public OperationContextException(Throwable cause) {
         super(cause);
     }

@@ -39,8 +39,7 @@ public class SedaConfiguration {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaConfiguration.class);
 
-    private SedaConfiguration() {
-    }
+    private SedaConfiguration() {}
 
     /**
      * @return SedaVersion supported version

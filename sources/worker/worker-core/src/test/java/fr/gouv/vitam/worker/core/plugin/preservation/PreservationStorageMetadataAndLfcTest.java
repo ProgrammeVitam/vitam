@@ -70,12 +70,13 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class PreservationStorageMetadataAndLfcTest {
 
     private final String GOT_ID = "aebaaaaaaahuq4l4aa4zsalhgwcreaiaaaaq";
-    private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
-        .withRequestId("REQUEST_ID_TEST").build();
+    private final TestWorkerParameter parameter = workerParameterBuilder()
+        .withContainerName("CONTAINER_NAME_TEST")
+        .withRequestId("REQUEST_ID_TEST")
+        .build();
     private static final String JSON = ".json";
 
     private PreservationStorageMetadataAndLfc plugin;
@@ -105,31 +106,54 @@ public class PreservationStorageMetadataAndLfcTest {
 
     @Before
     public void setUp() throws Exception {
-
         reset(storageClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         given(logbookLifeCyclesClientFactory.getClient()).willReturn(logbookClient);
         parameter.setObjectNameList(Collections.singletonList(GOT_ID));
         handlerIO = new TestHandlerIO();
-        plugin = new PreservationStorageMetadataAndLfc(metaDataClientFactory, logbookLifeCyclesClientFactory,
-            storageClientFactory);
+        plugin = new PreservationStorageMetadataAndLfc(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
-        FormatIdentifierResponse format = new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111",
-            "");
+        FormatIdentifierResponse format = new FormatIdentifierResponse(
+            "Plain Text File",
+            "text/plain",
+            "x-fmt/111",
+            ""
+        );
         StoredInfoResult value = new StoredInfoResult();
         OutputPreservation output = new OutputPreservation();
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
-        WorkflowBatchResult.OutputExtra outputExtra = new WorkflowBatchResult.OutputExtra(output, "binaryGUID",
-            Optional.of(12L), Optional.of("hash"), Optional.of(format), Optional.of(value), Optional.empty(),
-            Optional.empty(), Optional.empty());
+        WorkflowBatchResult.OutputExtra outputExtra = new WorkflowBatchResult.OutputExtra(
+            output,
+            "binaryGUID",
+            Optional.of(12L),
+            Optional.of("hash"),
+            Optional.of(format),
+            Optional.of(value),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        );
 
-        WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId",
-            Collections.singletonList(outputExtra), "BinaryMaster", "other_binary_strategy",
-            Collections.singletonList("unitId"));
-        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"),
-            Collections.singletonList(batchResult));
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            GOT_ID,
+            "unitId",
+            "BinaryMaster",
+            "requestId",
+            Collections.singletonList(outputExtra),
+            "BinaryMaster",
+            "other_binary_strategy",
+            Collections.singletonList("unitId")
+        );
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(
+            Paths.get("tmp"),
+            Collections.singletonList(batchResult)
+        );
 
         handlerIO.addOutputResult(0, batchResults);
         handlerIO.setInputs(batchResults);
@@ -140,11 +164,11 @@ public class PreservationStorageMetadataAndLfcTest {
         // Given
         InputStream stream = getClass().getResourceAsStream("/preservation/objectGroup.json");
         JsonNode document = JsonHandler.getFromInputStream(stream);
-        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>().addResult(document)
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(document)
             .setHttpCode(Response.Status.OK.getStatusCode());
 
-        given(metaDataClient.getObjectGroupsByIdsRaw(eq(Collections.singletonList(GOT_ID))))
-            .willReturn(responseOK);
+        given(metaDataClient.getObjectGroupsByIdsRaw(eq(Collections.singletonList(GOT_ID)))).willReturn(responseOK);
         given(logbookClient.getRawObjectGroupLifeCycleById(GOT_ID)).willReturn(document);
 
         // When
@@ -152,12 +176,16 @@ public class PreservationStorageMetadataAndLfcTest {
 
         // Then
         assertThat(itemStatus).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
-        verify(storageClient).bulkStoreFilesFromWorkspace(eq("other_got_strategy"),
-            argThat(this::bulkObjectStoreRequestMatches));
+        verify(storageClient).bulkStoreFilesFromWorkspace(
+            eq("other_got_strategy"),
+            argThat(this::bulkObjectStoreRequestMatches)
+        );
     }
 
     private boolean bulkObjectStoreRequestMatches(BulkObjectStoreRequest bulkObjectStoreRequest) {
-        return bulkObjectStoreRequest.getObjectNames().equals(Collections.singletonList(GOT_ID + JSON)) &&
-            bulkObjectStoreRequest.getType().equals(DataCategory.OBJECTGROUP);
+        return (
+            bulkObjectStoreRequest.getObjectNames().equals(Collections.singletonList(GOT_ID + JSON)) &&
+            bulkObjectStoreRequest.getType().equals(DataCategory.OBJECTGROUP)
+        );
     }
 }

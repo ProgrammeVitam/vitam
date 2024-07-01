@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.logging;
  * <em>Internal-use-only</em> logger used by VITAM. <strong>DO NOT</strong> access this class outside of VITAM.
  */
 public interface VitamLogger {
-
     /**
      * Return the name of this {@link VitamLogger} instance.
      *

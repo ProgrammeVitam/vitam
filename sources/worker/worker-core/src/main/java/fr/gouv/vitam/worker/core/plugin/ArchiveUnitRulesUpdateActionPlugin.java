@@ -106,8 +106,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
             objectNode.put(MANAGEMENT_KEY, 1);
             projectionNode.set(FIELDS_KEY, objectNode);
             final SelectMultiQuery request = selectRequest.getRequest().reset().addProjection(projectionNode);
-            JsonNode jsonResponse =
-                metaDataClient.selectUnitbyId(request.getFinalSelect(), archiveUnitId);
+            JsonNode jsonResponse = metaDataClient.selectUnitbyId(request.getFinalSelect(), archiveUnitId);
 
             JsonNode archiveUnitNode = jsonResponse.get(RESULTS);
             // if result = 0 then throw Exception
@@ -122,7 +121,8 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
             Map<String, List<JsonNode>> updatedRulesByType = new HashMap<>();
 
             final JsonNode rulesForAU = handler.getJsonFromWorkspace(
-                UpdateWorkflowConstants.UNITS_FOLDER + "/" + params.getObjectName());
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + params.getObjectName()
+            );
 
             for (final JsonNode rule : rulesForAU) {
                 if (!updatedRulesByType.containsKey(rule.get(RULE_TYPE).asText())) {
@@ -138,23 +138,36 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
             int nbUpdates = 0;
             for (Map.Entry<String, List<JsonNode>> entry : updatedRulesByType.entrySet()) {
                 JsonNode categoryNode = managementNode.get(entry.getKey());
-                if (categoryNode != null && categoryNode.get(RULES_KEY) != null
-                    && ArchiveUnitUpdateUtils.updateCategoryRules(categoryNode.get(RULES_KEY),
-                    entry.getValue(), query,
-                    entry.getKey())) {
+                if (
+                    categoryNode != null &&
+                    categoryNode.get(RULES_KEY) != null &&
+                    ArchiveUnitUpdateUtils.updateCategoryRules(
+                        categoryNode.get(RULES_KEY),
+                        entry.getValue(),
+                        query,
+                        entry.getKey()
+                    )
+                ) {
                     nbUpdates++;
                 }
             }
             // if at least one action is set
             if (nbUpdates > 0) {
-                query
-                    .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
                 JsonNode updateResultJson = metaDataClient.updateUnitById(query.getFinalUpdate(), archiveUnitId);
                 String diffMessage = ArchiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
-                archiveUnitLifecycleUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
-                    handler.getLifecyclesClient());
-                archiveUnitLifecycleUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
-                    handler.getLifecyclesClient());
+                archiveUnitLifecycleUpdateUtils.logLifecycle(
+                    params,
+                    archiveUnitId,
+                    StatusCode.OK,
+                    diffMessage,
+                    handler.getLifecyclesClient()
+                );
+                archiveUnitLifecycleUpdateUtils.commitLifecycle(
+                    params.getContainerName(),
+                    archiveUnitId,
+                    handler.getLifecyclesClient()
+                );
             }
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
@@ -163,8 +176,12 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Exception while parsing json : ", e);
             itemStatus.increment(StatusCode.KO);
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
-            InvalidCreateOperationException e) {
+        } catch (
+            MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | InvalidCreateOperationException e
+        ) {
             LOGGER.error("Exception with metadata: ", e);
             itemStatus.increment(StatusCode.FATAL);
         } catch (MetaDataNotFoundException e) {
@@ -176,10 +193,8 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
         return new ItemStatus(UPDATE_UNIT_RULES_TASK_ID).setItemsStatus(UPDATE_UNIT_RULES_TASK_ID, itemStatus);
     }
 
-
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Do not know...
     }
-
 }

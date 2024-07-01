@@ -51,7 +51,6 @@ import java.util.Optional;
  * Ingest Internal client interface
  */
 public interface IngestInternalClient extends MockOrRestClient {
-
     /**
      * Upload compressed SIP as stream
      *
@@ -69,8 +68,7 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @param logbookParametersList
      * @throws VitamException
      */
-    void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
-        throws VitamException;
+    void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList) throws VitamException;
 
     /**
      * Download object stored by ingest operation
@@ -83,8 +81,7 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws IngestInternalClientNotFoundException
      */
     Response downloadObjectAsync(String objectId, IngestCollection type)
-        throws InvalidParseOperationException, IngestInternalClientServerException,
-        IngestInternalClientNotFoundException;
+        throws InvalidParseOperationException, IngestInternalClientServerException, IngestInternalClientNotFoundException;
 
     /**
      * getOperationProcessStatus:
@@ -109,8 +106,7 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
 
-    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id)
-        throws VitamClientException;
+    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id) throws VitamClientException;
 
     /**
      * cancelOperationProcessExecution : cancel processing operation
@@ -119,8 +115,7 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @return ItemStatus response containing message and status
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
-        throws VitamClientException;
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(String id) throws VitamClientException;
 
     /**
      * updateOperationActionProcess : update operation processing status
@@ -142,7 +137,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      */
     void initWorkflow(WorkFlow workFlow) throws VitamException;
 
-
     /**
      * Retrieve all the workflow operations
      *
@@ -152,7 +146,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      */
     RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException;
 
-
     /**
      * Retrieve all the workflow definitions.
      *
@@ -160,7 +153,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException;
-
 
     /**
      * @param WorkflowIdentifier

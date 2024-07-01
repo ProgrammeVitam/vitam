@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
@@ -55,12 +54,10 @@ import static org.junit.Assert.assertEquals;
 
 public class LogbookEventMapperTest {
 
-
     final JAXBContext jaxbContext = JAXBContext.newInstance(LogBookOgTestType.class);
     final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
-    public LogbookEventMapperTest() throws JAXBException {
-    }
+    public LogbookEventMapperTest() throws JAXBException {}
 
     @Test
     public void should_create_iterator_of_events() throws Exception {
@@ -70,55 +67,71 @@ public class LogbookEventMapperTest {
         LogBookOgTestType logbook = (LogBookOgTestType) jaxbUnmarshaller.unmarshal(xmlEventReader);
 
         // When
-        List<LogbookEvent> logbookEvents =
-            logbook.getEvent().stream().map(LogbookEventMapper::map).collect(Collectors.toList());
+        List<LogbookEvent> logbookEvents = logbook
+            .getEvent()
+            .stream()
+            .map(LogbookEventMapper::map)
+            .collect(Collectors.toList());
 
         // Then
         assertEquals(2, logbookEvents.size());
     }
 
     @Test
-     public void should_create_iterator_OK() throws Exception {
-         // Given
-         XMLEventReader xmlEventReader = createXmlEventReader(PropertiesUtils.getResourceAsStream("logbook_events.xml"));
+    public void should_create_iterator_OK() throws Exception {
+        // Given
+        XMLEventReader xmlEventReader = createXmlEventReader(PropertiesUtils.getResourceAsStream("logbook_events.xml"));
 
         LogBookOgTestType logbook = (LogBookOgTestType) jaxbUnmarshaller.unmarshal(xmlEventReader);
 
         // When
-        List<LogbookEvent> logbookEvents =
-            logbook.getEvent().stream().map(LogbookEventMapper::map).collect(Collectors.toList());
+        List<LogbookEvent> logbookEvents = logbook
+            .getEvent()
+            .stream()
+            .map(LogbookEventMapper::map)
+            .collect(Collectors.toList());
 
-         LogbookEvent event = logbookEvents.get(0);
+        LogbookEvent event = logbookEvents.get(0);
 
-         // Then
-         assertThat(event).extracting(LogbookEvent::getEvId).isEqualTo("aedqaaaaacglsdgpaa3ikalnhzhaxfiaaaaq");
-         assertThat(event).extracting(LogbookEvent::getEvTypeProc).isEqualTo("INGEST");
-         assertThat(event).extracting(LogbookEvent::getEvType).isEqualTo("LFC.CHECK_MANIFEST");
-         assertThat(event).extracting(LogbookEvent::getEvDateTime).isEqualTo("2019-09-17T08:19:25.206");
-         assertThat(event).extracting(LogbookEvent::getOutcome).isEqualTo("OK");
-         assertThat(event).extracting(LogbookEvent::getOutDetail).isEqualTo("LFC.CHECK_MANIFEST.OK");
-         assertThat(event).extracting(LogbookEvent::getOutMessg)
-             .isEqualTo("Succès de la vérification de la cohérence du bordereau de transfert");
-         assertThat(event).extracting(LogbookEvent::getEvDetData).isEqualTo("{ }");
-         assertThat(event).extracting(LogbookEvent::getAgId).isEqualTo(
-             "{\"Name\":\"5ca8d99a4a94\",\"Role\":\"worker\",\"ServerId\":1555631311,\"SiteId\":1,\"GlobalPlatformId\":213454031}");
-     }
+        // Then
+        assertThat(event).extracting(LogbookEvent::getEvId).isEqualTo("aedqaaaaacglsdgpaa3ikalnhzhaxfiaaaaq");
+        assertThat(event).extracting(LogbookEvent::getEvTypeProc).isEqualTo("INGEST");
+        assertThat(event).extracting(LogbookEvent::getEvType).isEqualTo("LFC.CHECK_MANIFEST");
+        assertThat(event).extracting(LogbookEvent::getEvDateTime).isEqualTo("2019-09-17T08:19:25.206");
+        assertThat(event).extracting(LogbookEvent::getOutcome).isEqualTo("OK");
+        assertThat(event).extracting(LogbookEvent::getOutDetail).isEqualTo("LFC.CHECK_MANIFEST.OK");
+        assertThat(event)
+            .extracting(LogbookEvent::getOutMessg)
+            .isEqualTo("Succès de la vérification de la cohérence du bordereau de transfert");
+        assertThat(event).extracting(LogbookEvent::getEvDetData).isEqualTo("{ }");
+        assertThat(event)
+            .extracting(LogbookEvent::getAgId)
+            .isEqualTo(
+                "{\"Name\":\"5ca8d99a4a94\",\"Role\":\"worker\",\"ServerId\":1555631311,\"SiteId\":1,\"GlobalPlatformId\":213454031}"
+            );
+    }
 
-     @Test
-     public void should_return_empty_iterator_when_no_events() throws Exception {
-         // Given
-         XMLEventReader xmlEventReader =
-             createXmlEventReader(new ByteArrayInputStream("<LogBook xmlns=\"fr:gouv:culture:archivesdefrance:seda:v2\"></LogBook>".getBytes()));
+    @Test
+    public void should_return_empty_iterator_when_no_events() throws Exception {
+        // Given
+        XMLEventReader xmlEventReader = createXmlEventReader(
+            new ByteArrayInputStream(
+                "<LogBook xmlns=\"fr:gouv:culture:archivesdefrance:seda:v2\"></LogBook>".getBytes()
+            )
+        );
 
-         // When
-         LogBookOgTestType logbook = (LogBookOgTestType) jaxbUnmarshaller.unmarshal(xmlEventReader);
+        // When
+        LogBookOgTestType logbook = (LogBookOgTestType) jaxbUnmarshaller.unmarshal(xmlEventReader);
 
-         List<LogbookEvent> logbookEvents =
-             logbook.getEvent().stream().map(LogbookEventMapper::map).collect(Collectors.toList());
+        List<LogbookEvent> logbookEvents = logbook
+            .getEvent()
+            .stream()
+            .map(LogbookEventMapper::map)
+            .collect(Collectors.toList());
 
-         // Then
-         assertThat(logbookEvents).isEmpty();
-     }
+        // Then
+        assertThat(logbookEvents).isEmpty();
+    }
 
     private XMLEventReader createXmlEventReader(InputStream xmlFile) throws XMLStreamException, IOException {
         XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
@@ -133,7 +146,5 @@ public class LogbookEventMapperTest {
     }
 
     @XmlRootElement(name = "LogBook", namespace = "fr:gouv:culture:archivesdefrance:seda:v2")
-    private static class LogBookOgTestType extends LogBookOgType {
-
-    }
+    private static class LogBookOgTestType extends LogBookOgType {}
 }

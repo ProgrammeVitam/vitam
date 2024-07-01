@@ -46,5 +46,5 @@ public enum ProcessBehavior {
     /**
      * Final step type
      */
-    FINALLY
+    FINALLY,
 }

@@ -55,6 +55,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 public class ExtractedMetadataRepositoryTest {
+
     private static final int TENANT = 0;
     private static final String PROCESS_ID = "processId";
 
@@ -92,8 +93,10 @@ public class ExtractedMetadataRepositoryTest {
         extractedMetadataRepository.addExtractedMetadataForAu(extractedMetadatas);
 
         // Then
-        assertThat(captor.getValue()).extracting(UpdateOneModel::getUpdate)
-            .extracting(i -> ((Document) ((Document) i).get("$set")).get("processId")).contains(PROCESS_ID);
+        assertThat(captor.getValue())
+            .extracting(UpdateOneModel::getUpdate)
+            .extracting(i -> ((Document) ((Document) i).get("$set")).get("processId"))
+            .contains(PROCESS_ID);
     }
 
     @Test
@@ -103,7 +106,8 @@ public class ExtractedMetadataRepositoryTest {
         MongoCursor expectedCursorResult = Mockito.mock(MongoCursor.class);
 
         given(extractedMetadataForAuCollection.find(and(eq("processId", PROCESS_ID), eq("tenant", TENANT)))).willReturn(
-            findResultMock);
+            findResultMock
+        );
         given(findResultMock.map(any())).willReturn(findResultMock);
         given(findResultMock.cursor()).willReturn(expectedCursorResult);
 

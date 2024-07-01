@@ -56,20 +56,22 @@ public class ErrorReportOntologies {
      */
     private String fieldName;
 
-
     public ErrorReportOntologies() {
         super();
     }
 
-    public ErrorReportOntologies(OntologyErrorCode code, String fieldName, String message,
-        OntologyModel ontologyModel) {
+    public ErrorReportOntologies(
+        OntologyErrorCode code,
+        String fieldName,
+        String message,
+        OntologyModel ontologyModel
+    ) {
         super();
         this.code = code;
         this.fieldName = fieldName;
         this.message = message;
         this.ontologyModel = ontologyModel;
     }
-
 
     public String getMessage() {
         return message;
@@ -86,7 +88,6 @@ public class ErrorReportOntologies {
     public void setCode(OntologyErrorCode code) {
         this.code = code;
     }
-
 
     public OntologyModel getOntologyModel() {
         return ontologyModel;

@@ -38,7 +38,6 @@ import java.util.List;
  * Certificate state updater contract for revocation check of VITAM's identity and personal certificates.
  */
 public interface CertificateCRLCheckStateUpdater<T extends CertificateBaseModel> {
-
     /**
      * return list of certificate filtered by issuerDN and certificateStatus
      *

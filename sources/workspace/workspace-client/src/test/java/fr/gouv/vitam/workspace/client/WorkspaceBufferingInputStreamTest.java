@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.workspace.client;
 
-
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -118,7 +117,6 @@ public class WorkspaceBufferingInputStreamTest {
     }
 
     private void verifyReadByte(int size, int maxInMemoryBufferSize, int maxOnDiskBufferSize) throws Exception {
-
         // Given
         File testFile = createRandomFile(size);
 
@@ -126,10 +124,16 @@ public class WorkspaceBufferingInputStreamTest {
 
         // When
         InputStream inputStream;
-        try (WorkspaceBufferingInputStream instance = new WorkspaceBufferingInputStream(
-            workspaceClientFactory, "container", "object", maxOnDiskBufferSize, maxInMemoryBufferSize,
-            tempFolder.getRoot())) {
-
+        try (
+            WorkspaceBufferingInputStream instance = new WorkspaceBufferingInputStream(
+                workspaceClientFactory,
+                "container",
+                "object",
+                maxOnDiskBufferSize,
+                maxInMemoryBufferSize,
+                tempFolder.getRoot()
+            )
+        ) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             int read;
             while (EOF != (read = instance.read())) {
@@ -143,7 +147,6 @@ public class WorkspaceBufferingInputStreamTest {
     }
 
     private void verifyReadByteArray(int size, int maxInMemoryBufferSize, int maxOnDiskBufferSize) throws Exception {
-
         // Given
         File testFile = createRandomFile(size);
 
@@ -151,10 +154,16 @@ public class WorkspaceBufferingInputStreamTest {
 
         // When
         InputStream inputStream;
-        try (WorkspaceBufferingInputStream instance = new WorkspaceBufferingInputStream(
-            workspaceClientFactory, "container", "object", maxOnDiskBufferSize, maxInMemoryBufferSize,
-            tempFolder.getRoot())) {
-
+        try (
+            WorkspaceBufferingInputStream instance = new WorkspaceBufferingInputStream(
+                workspaceClientFactory,
+                "container",
+                "object",
+                maxOnDiskBufferSize,
+                maxInMemoryBufferSize,
+                tempFolder.getRoot()
+            )
+        ) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[50];
             int read;
@@ -170,7 +179,6 @@ public class WorkspaceBufferingInputStreamTest {
 
     private void verifyReadByteArrayWithOffset(int size, int maxInMemoryBufferSize, int maxOnDiskBufferSize)
         throws Exception {
-
         // Given
         File testFile = createRandomFile(size);
 
@@ -178,10 +186,16 @@ public class WorkspaceBufferingInputStreamTest {
 
         // When
         InputStream inputStream;
-        try (WorkspaceBufferingInputStream instance = new WorkspaceBufferingInputStream(
-            workspaceClientFactory, "container", "object", maxOnDiskBufferSize, maxInMemoryBufferSize,
-            tempFolder.getRoot())) {
-
+        try (
+            WorkspaceBufferingInputStream instance = new WorkspaceBufferingInputStream(
+                workspaceClientFactory,
+                "container",
+                "object",
+                maxOnDiskBufferSize,
+                maxInMemoryBufferSize,
+                tempFolder.getRoot()
+            )
+        ) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             byte[] buffer = new byte[50];
             int read;
@@ -203,33 +217,34 @@ public class WorkspaceBufferingInputStreamTest {
 
     private void givenWorkspaceClientReturnsFileContent(File file)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-
         when(workspaceClient.getObject(CONTAINER, OBJECT)).thenAnswer(
-            (args) -> Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build());
-        when(workspaceClient.getObject(eq(CONTAINER), eq(OBJECT), anyLong(), anyLong())).thenAnswer(
-            (args) -> {
-                long startOffset = args.getArgument(2);
-                Long maxSize = args.getArgument(3);
-                long actualMaxSize = maxSize == null ? Long.MAX_VALUE : maxSize;
+            args -> Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build()
+        );
+        when(workspaceClient.getObject(eq(CONTAINER), eq(OBJECT), anyLong(), anyLong())).thenAnswer(args -> {
+            long startOffset = args.getArgument(2);
+            Long maxSize = args.getArgument(3);
+            long actualMaxSize = maxSize == null ? Long.MAX_VALUE : maxSize;
 
-                BoundedInputStream inputStream = new BoundedInputStream(
-                    Channels.newInputStream(
-                        Files.newByteChannel(file.toPath())
-                            .position(startOffset))
-                    , actualMaxSize);
+            BoundedInputStream inputStream = new BoundedInputStream(
+                Channels.newInputStream(Files.newByteChannel(file.toPath()).position(startOffset)),
+                actualMaxSize
+            );
 
-                long actualSize = Math.min(file.length() - startOffset, actualMaxSize);
+            long actualSize = Math.min(file.length() - startOffset, actualMaxSize);
 
-                MultivaluedHashMap headers = new MultivaluedHashMap();
-                headers.add(X_CHUNK_LENGTH, actualSize);
-                headers.add(X_CONTENT_LENGTH, file.length());
-                return new AbstractMockClient.FakeInboundResponse(Response.Status.OK,
-                    new BufferedInputStream(inputStream), null, headers);
-            });
+            MultivaluedHashMap headers = new MultivaluedHashMap();
+            headers.add(X_CHUNK_LENGTH, actualSize);
+            headers.add(X_CONTENT_LENGTH, file.length());
+            return new AbstractMockClient.FakeInboundResponse(
+                Response.Status.OK,
+                new BufferedInputStream(inputStream),
+                null,
+                headers
+            );
+        });
     }
 
-    private void verifyResult(int size, int maxOnDiskBufferSize, File testFile,
-        InputStream inputStream)
+    private void verifyResult(int size, int maxOnDiskBufferSize, File testFile, InputStream inputStream)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
         assertThat(inputStream).hasSameContentAs(new FileInputStream(testFile));
         int expectedInvocations = size / maxOnDiskBufferSize + 1;
@@ -238,5 +253,4 @@ public class WorkspaceBufferingInputStreamTest {
         Files.delete(testFile.toPath());
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
     }
-
 }

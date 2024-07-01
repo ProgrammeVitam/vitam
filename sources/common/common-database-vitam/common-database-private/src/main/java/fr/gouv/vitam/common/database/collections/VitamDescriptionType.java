@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 public class VitamDescriptionType {
+
     private final String path;
     private final String pathRegex;
     private final VitamType type;
@@ -40,9 +41,13 @@ public class VitamDescriptionType {
     private final boolean indexed;
 
     @JsonCreator
-    public VitamDescriptionType(@JsonProperty("path") String path, @JsonProperty("pathRegex") String pathRegex,
-        @JsonProperty("type") VitamType type, @JsonProperty("cardinality") VitamCardinality cardinality,
-        @JsonProperty("indexed") boolean indexed) {
+    public VitamDescriptionType(
+        @JsonProperty("path") String path,
+        @JsonProperty("pathRegex") String pathRegex,
+        @JsonProperty("type") VitamType type,
+        @JsonProperty("cardinality") VitamCardinality cardinality,
+        @JsonProperty("indexed") boolean indexed
+    ) {
         this.path = path;
         this.pathRegex = pathRegex;
         this.type = type;
@@ -78,15 +83,12 @@ public class VitamDescriptionType {
     @JsonIgnore
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         VitamDescriptionType that = (VitamDescriptionType) o;
-        return indexed == that.indexed &&
-            path.equals(that.path) &&
-            type == that.type &&
-            cardinality == that.cardinality;
+        return (
+            indexed == that.indexed && path.equals(that.path) && type == that.type && cardinality == that.cardinality
+        );
     }
 
     @JsonIgnore
@@ -98,13 +100,22 @@ public class VitamDescriptionType {
     @JsonIgnore
     @Override
     public String toString() {
-        return "VitamDescriptionType{" +
-            "path='" + path + '\'' +
-            ", pathRegex='" + pathRegex + '\'' +
-            ", type=" + type +
-            ", cardinality=" + cardinality +
-            ", indexed=" + indexed +
-            '}';
+        return (
+            "VitamDescriptionType{" +
+            "path='" +
+            path +
+            '\'' +
+            ", pathRegex='" +
+            pathRegex +
+            '\'' +
+            ", type=" +
+            type +
+            ", cardinality=" +
+            cardinality +
+            ", indexed=" +
+            indexed +
+            '}'
+        );
     }
 
     public enum VitamType {
@@ -115,12 +126,11 @@ public class VitamDescriptionType {
         text,
         signed_long,
         signed_double,
-        bool
+        bool,
     }
-
 
     public enum VitamCardinality {
         one,
-        many
+        many,
     }
 }

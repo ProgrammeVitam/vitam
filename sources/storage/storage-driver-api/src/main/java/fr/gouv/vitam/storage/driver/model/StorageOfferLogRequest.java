@@ -84,7 +84,4 @@ public class StorageOfferLogRequest extends StorageRequest {
     public Order getOrder() {
         return order;
     }
-
-
-
 }

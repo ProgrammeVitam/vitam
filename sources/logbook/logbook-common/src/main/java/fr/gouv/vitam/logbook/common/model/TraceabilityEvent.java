@@ -99,6 +99,7 @@ public class TraceabilityEvent {
      */
     @JsonProperty("Size")
     private long size;
+
     /**
      * securisationVersion
      */
@@ -110,7 +111,6 @@ public class TraceabilityEvent {
      */
     @JsonProperty("DigestAlgorithm")
     private DigestType digestAlgorithm;
-
 
     /**
      * Max entries reached (unit & object group lifecycle traceability operation are limited in size)
@@ -148,11 +148,23 @@ public class TraceabilityEvent {
      * @param digestAlgorithm digestAlgorithm
      * @param statistics
      */
-    public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
-        byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
-        String minusOneYearLogbookTraceabilityDate, long numberOfElements, String fileName, long size,
-        DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion,
-        TraceabilityStatistics statistics) {
+    public TraceabilityEvent(
+        TraceabilityType logType,
+        String startDate,
+        String endDate,
+        String hash,
+        byte[] timeStampToken,
+        String previousLogbookTraceabilityDate,
+        String minusOneMonthLogbookTraceabilityDate,
+        String minusOneYearLogbookTraceabilityDate,
+        long numberOfElements,
+        String fileName,
+        long size,
+        DigestType digestAlgorithm,
+        boolean maxEntriesReached,
+        String securisationVersion,
+        TraceabilityStatistics statistics
+    ) {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;

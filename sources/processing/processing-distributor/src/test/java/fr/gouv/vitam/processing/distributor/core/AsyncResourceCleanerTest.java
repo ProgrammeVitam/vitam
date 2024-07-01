@@ -70,6 +70,7 @@ public class AsyncResourceCleanerTest {
 
     @Mock
     private ScheduledExecutorService scheduledExecutor;
+
     private Runnable registeredTask;
 
     private AsyncResourceCleaner asyncResourceCleaner;
@@ -78,10 +79,12 @@ public class AsyncResourceCleanerTest {
     public void setup() throws Exception {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             registeredTask = args.getArgument(0);
             return null;
-        }).when(scheduledExecutor).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
+        })
+            .when(scheduledExecutor)
+            .scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
 
         VitamConfiguration.setAdminTenant(1);
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -91,7 +94,6 @@ public class AsyncResourceCleanerTest {
 
     @Test
     public void givenNoAccessRequestsWhenCleanupRunThenNoOp() throws Exception {
-
         // Given
 
         // When
@@ -103,18 +105,21 @@ public class AsyncResourceCleanerTest {
 
     @Test
     public void givenAccessRequestsWhenCleanupRunThenAccessRequestsRemoved() throws Exception {
-
         // Given
         doNothing().when(storageClient).removeAccessRequest(any(), any(), any(), anyBoolean());
 
         // When
-        asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId2", "offerId2")
-        ));
-        asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
-            "accessRequestId3", new AccessRequestContext("strategyId1")
-        ));
+        asyncResourceCleaner.markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId2", "offerId2")
+            )
+        );
+        asyncResourceCleaner.markAsyncResourcesForRemoval(
+            Map.of("accessRequestId3", new AccessRequestContext("strategyId1"))
+        );
         simulateBackgroundScheduledTasksRun3xTimes();
 
         // Then
@@ -128,21 +133,25 @@ public class AsyncResourceCleanerTest {
     @Test
     public void givenAccessRequestsWhenCleanupRunWithTemporaryErrorsThenAccessRequestsEventuallyRemoved()
         throws Exception {
-
         // Given
         doNothing().when(storageClient).removeAccessRequest(eq("strategyId1"), any(), any(), anyBoolean());
         // 1x failure than 1 success
         doThrow(new StorageServerClientException("error"))
             .doNothing()
-            .when(storageClient).removeAccessRequest("strategyId2", "offerId2", "accessRequestId3", true);
-
+            .when(storageClient)
+            .removeAccessRequest("strategyId2", "offerId2", "accessRequestId3", true);
 
         // When
-        asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId2", "offerId2")
-        ));
+        asyncResourceCleaner.markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId2", "offerId2")
+            )
+        );
         simulateBackgroundScheduledTasksRun3xTimes();
 
         // Then
@@ -154,23 +163,29 @@ public class AsyncResourceCleanerTest {
     }
 
     @Test
-    public void givenExistingAccessRequestWhenAddingDuplicateAccessRequestThenKO()
-        throws Exception {
-
+    public void givenExistingAccessRequestWhenAddingDuplicateAccessRequestThenKO() throws Exception {
         // Given
         doNothing().when(storageClient).removeAccessRequest(any(), any(), any(), anyBoolean());
 
-        asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId2", "offerId2")
-        ));
+        asyncResourceCleaner.markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId2", "offerId2")
+            )
+        );
 
         // When / Then
 
-        assertThatThrownBy(() -> asyncResourceCleaner.markAsyncResourcesForRemoval(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId3"))))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(
+            () ->
+                asyncResourceCleaner.markAsyncResourcesForRemoval(
+                    Map.of("accessRequestId1", new AccessRequestContext("strategyId3"))
+                )
+        ).isInstanceOf(IllegalArgumentException.class);
     }
 
     private void simulateBackgroundScheduledTasksRun3xTimes() throws InterruptedException {

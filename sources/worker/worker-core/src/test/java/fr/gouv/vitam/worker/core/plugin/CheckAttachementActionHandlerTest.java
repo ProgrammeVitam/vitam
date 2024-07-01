@@ -75,24 +75,27 @@ public class CheckAttachementActionHandlerTest {
 
     private CheckAttachementActionHandler checkAttachementActionHandler;
 
-    @Before()
+    @Before
     public void setUp() {
         metaDataClient = mock(MetaDataClient.class);
         MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
 
         processingManagementClient = mock(ProcessingManagementClient.class);
-        ProcessingManagementClientFactory processingManagementClientFactory =
-            mock(ProcessingManagementClientFactory.class);
+        ProcessingManagementClientFactory processingManagementClientFactory = mock(
+            ProcessingManagementClientFactory.class
+        );
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
 
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         LogbookOperationsClientFactory logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-        checkAttachementActionHandler =
-            new CheckAttachementActionHandler(metaDataClientFactory, processingManagementClientFactory,
-                logbookOperationsClientFactory);
+        checkAttachementActionHandler = new CheckAttachementActionHandler(
+            metaDataClientFactory,
+            processingManagementClientFactory,
+            logbookOperationsClientFactory
+        );
     }
 
     @Test
@@ -100,8 +103,7 @@ public class CheckAttachementActionHandlerTest {
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        when(handlerIO.getJsonFromWorkspace(anyString()))
-            .thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
+        when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
 
         ItemStatus itemStatus = checkAttachementActionHandler.execute(param, handlerIO);
 
@@ -113,11 +115,10 @@ public class CheckAttachementActionHandlerTest {
         //given
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
-        when(handlerIO.getJsonFromWorkspace(anyString()))
-            .thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
-        when(handlerIO
-            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE))
-            .thenReturn(JsonHandler.getFromString(EXISTING_GOT_JSON));
+        when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
+        when(
+            handlerIO.getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE)
+        ).thenReturn(JsonHandler.getFromString(EXISTING_GOT_JSON));
 
         RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
         requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
@@ -154,9 +155,9 @@ public class CheckAttachementActionHandlerTest {
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
-        when(handlerIO
-            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE))
-            .thenReturn(JsonHandler.getFromString(EXISTING_UNIT_JSON));
+        when(
+            handlerIO.getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE)
+        ).thenReturn(JsonHandler.getFromString(EXISTING_UNIT_JSON));
 
         RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
         requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
@@ -193,9 +194,9 @@ public class CheckAttachementActionHandlerTest {
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
-        when(handlerIO
-            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE))
-            .thenReturn(JsonHandler.getFromString(EXISTING_GOT_JSON));
+        when(
+            handlerIO.getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE)
+        ).thenReturn(JsonHandler.getFromString(EXISTING_GOT_JSON));
 
         RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
         requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));
@@ -232,9 +233,9 @@ public class CheckAttachementActionHandlerTest {
         WorkerParameters param = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromString(EMPTY_JSON_ARRAY));
-        when(handlerIO
-            .getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE))
-            .thenReturn(JsonHandler.getFromString(EXISTING_UNIT_JSON));
+        when(
+            handlerIO.getJsonFromWorkspace(CheckAttachementActionHandler.MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE)
+        ).thenReturn(JsonHandler.getFromString(EXISTING_UNIT_JSON));
 
         RequestResponseOK<Map<String, String>> requestResponse = new RequestResponseOK<>();
         requestResponse.addAllResults(Collections.singletonList(Collections.singletonMap(OPI, OPI_ID)));

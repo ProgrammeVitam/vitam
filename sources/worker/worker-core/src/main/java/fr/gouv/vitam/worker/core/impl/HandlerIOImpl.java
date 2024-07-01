@@ -118,8 +118,13 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * @param objectIds
      */
     public HandlerIOImpl(String containerName, String workerId, List<String> objectIds) {
-        this(WorkspaceClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), containerName,
-            workerId, objectIds);
+        this(
+            WorkspaceClientFactory.getInstance(),
+            LogbookLifeCyclesClientFactory.getInstance(),
+            containerName,
+            workerId,
+            objectIds
+        );
     }
 
     /**
@@ -132,9 +137,13 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * @param objectIds
      */
     @VisibleForTesting
-    public HandlerIOImpl(WorkspaceClientFactory workspaceClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, String containerName, String workerId,
-        List<String> objectIds) {
+    public HandlerIOImpl(
+        WorkspaceClientFactory workspaceClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        String containerName,
+        String workerId,
+        List<String> objectIds
+    ) {
         this.containerName = containerName;
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
@@ -146,8 +155,6 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
         this.asyncWorkspaceTransfer = new AsyncWorkspaceTransfer(this);
     }
-
-
 
     @Override
     public LogbookLifeCyclesClient getLifecyclesClient() {
@@ -188,8 +195,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                     input.put(uri.getPath(), memoryMap.get(uri.getPath()));
                     break;
                 default:
-                    throw new IllegalArgumentException(
-                        HANDLER_INPUT_NOT_FOUND + uri.getPrefix() + ":" + uri.getPath());
+                    throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri.getPrefix() + ":" + uri.getPath());
             }
         }
     }
@@ -322,8 +328,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 if (!(object instanceof File)) {
                     throw new ProcessingException("Not a File but WORKSPACE out parameter: " + uri);
                 }
-                transferFileToWorkspace(currentObjectId + File.separator + uri.getPath(), (File) object, deleteLocal,
-                    asyncIO);
+                transferFileToWorkspace(
+                    currentObjectId + File.separator + uri.getPath(),
+                    (File) object,
+                    deleteLocal,
+                    asyncIO
+                );
                 break;
             case WORKSPACE:
                 if (!(object instanceof File)) {
@@ -333,7 +343,6 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 break;
             default:
                 throw new IllegalArgumentException(HANDLER_INPUT_NOT_FOUND + uri);
-
         }
         return this;
     }
@@ -358,15 +367,23 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public boolean checkHandlerIO(int outputNumber, List<Class<?>> clasz) {
         if (getInput().size() != clasz.size() || getOutput().size() != outputNumber) {
-            LOGGER.error("InputSize shoul be {} but is {} OR OutputSize should be {} but is {}",
-                clasz.size(), getInput().size(), outputNumber, getOutput().size());
+            LOGGER.error(
+                "InputSize shoul be {} but is {} OR OutputSize should be {} but is {}",
+                clasz.size(),
+                getInput().size(),
+                outputNumber,
+                getOutput().size()
+            );
             return false;
         }
         for (int i = 0; i < getInput().size(); i++) {
             final Object object = getInput(i);
             if (object == null || !clasz.get(i).isInstance(object)) {
-                LOGGER.error("Input class should be {} but is {}",
-                    clasz.get(i).getName(), object != null ? object.getClass().getName() : "Null object");
+                LOGGER.error(
+                    "Input class should be {} but is {}",
+                    clasz.get(i).getName(),
+                    object != null ? object.getClass().getName() : "Null object"
+                );
                 return false;
             }
         }
@@ -379,7 +396,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             return workspaceClient.isExistingObject(containerName, workspacePath);
         } catch (final ContentAddressableStorageServerException e) {
             throw new ProcessingException(
-                "Cannot check file existence in workspace: " + containerName + "/" + workspacePath, e);
+                "Cannot check file existence in workspace: " + containerName + "/" + workspacePath,
+                e
+            );
         }
     }
 
@@ -397,27 +416,37 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         }
 
         try {
-            transferInputStreamToWorkspace(workspacePath, Files.newInputStream(sourceFile.toPath()),
-                toDelete, Paths.get(sourceFile.toURI()), asyncIO);
+            transferInputStreamToWorkspace(
+                workspacePath,
+                Files.newInputStream(sourceFile.toPath()),
+                toDelete,
+                Paths.get(sourceFile.toURI()),
+                asyncIO
+            );
         } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
         }
     }
 
     @Override
-    public void transferAtomicFileToWorkspace(String workspacePath, File sourceFile)
-        throws ProcessingException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
-            InputStream inputStream = new FileInputStream(sourceFile)) {
+    public void transferAtomicFileToWorkspace(String workspacePath, File sourceFile) throws ProcessingException {
+        try (
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            InputStream inputStream = new FileInputStream(sourceFile)
+        ) {
             workspaceClient.putAtomicObject(containerName, workspacePath, inputStream, sourceFile.length());
         } catch (final ContentAddressableStorageServerException | IOException e) {
             throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
         }
     }
 
-    private void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, boolean toDelete,
+    private void transferInputStreamToWorkspace(
+        String workspacePath,
+        InputStream inputStream,
+        boolean toDelete,
         Path filePath,
-        boolean asyncIO) throws ProcessingException {
+        boolean asyncIO
+    ) throws ProcessingException {
         if (!asyncIO) {
             try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
                 workspaceClient.putObject(containerName, workspacePath, inputStream);
@@ -441,8 +470,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             }
         } else {
             try {
-                this.asyncWorkspaceTransfer
-                    .transfer(new WorkspaceQueue(workspacePath, inputStream).setFilePath(filePath));
+                this.asyncWorkspaceTransfer.transfer(
+                        new WorkspaceQueue(workspacePath, inputStream).setFilePath(filePath)
+                    );
             } catch (WorkerspaceQueueException e) {
                 throw new ProcessingException(e);
             }
@@ -450,9 +480,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
-        boolean asyncIO)
-        throws ProcessingException {
+    public void transferInputStreamToWorkspace(
+        String workspacePath,
+        InputStream inputStream,
+        Path filePath,
+        boolean asyncIO
+    ) throws ProcessingException {
         transferInputStreamToWorkspace(workspacePath, inputStream, true, filePath, asyncIO);
     }
 
@@ -469,8 +502,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         File file;
         try {
             file = getFileFromWorkspace(objectName);
-        } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
+        } catch (
+            final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e
+        ) {
             throw new FileNotFoundException("File not found: " + objectName + ExceptionUtils.getStackTrace(e));
         }
         if (!file.exists()) {
@@ -481,8 +515,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public File getFileFromWorkspace(String objectName)
-        throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
@@ -502,8 +535,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
-        throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         return new FileInputStream(getFileFromWorkspace(objectName));
     }
 
@@ -548,11 +580,15 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            return JsonHandler
-                .getFromStringAsTypeReference(
-                    workspaceClient.getListUriDigitalObjectFromFolder(containerName, folderName)
-                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                    });
+            return JsonHandler.getFromStringAsTypeReference(
+                workspaceClient
+                    .getListUriDigitalObjectFromFolder(containerName, folderName)
+                    .toJsonNode()
+                    .get("$results")
+                    .get(0)
+                    .toString(),
+                new TypeReference<List<URI>>() {}
+            );
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
@@ -560,9 +596,13 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public void transferJsonToWorkspace(String collectionName, String objectName, JsonNode jsonNode,
-        boolean toDelete, boolean asyncIO)
-        throws ProcessingException {
+    public void transferJsonToWorkspace(
+        String collectionName,
+        String objectName,
+        JsonNode jsonNode,
+        boolean toDelete,
+        boolean asyncIO
+    ) throws ProcessingException {
         String path = collectionName + File.separator + objectName;
         try {
             if (toDelete) {
@@ -576,14 +616,16 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         } catch (final InvalidParseOperationException e) {
             throw new ProcessingException("Invalid parse Exception: " + path, e);
         }
-
     }
 
     @Override
-    public void unzipInputStreamOnWorkspace(String container, final String folderName,
-        final String archiveMimeType, final InputStream uploadedInputStream, boolean asyncIO)
-        throws ContentAddressableStorageException {
-
+    public void unzipInputStreamOnWorkspace(
+        String container,
+        final String folderName,
+        final String archiveMimeType,
+        final InputStream uploadedInputStream,
+        boolean asyncIO
+    ) throws ContentAddressableStorageException {
         if (container == null) {
             container = this.containerName;
         }
@@ -604,8 +646,10 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         } else {
             try {
                 this.asyncWorkspaceTransfer.transfer(
-                    new WorkspaceQueue(container, uploadedInputStream, WorkspaceAction.UNZIP)
-                        .setMediaType(archiveMimeType).setFolderName(folderName));
+                        new WorkspaceQueue(container, uploadedInputStream, WorkspaceAction.UNZIP)
+                            .setMediaType(archiveMimeType)
+                            .setFolderName(folderName)
+                    );
             } catch (WorkerspaceQueueException e) {
                 new ContentAddressableStorageException(e);
             }
@@ -661,10 +705,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 workspaceClient.getFilesWithParamsFromFolder(containerName, folderName);
             if (filesWithParamsFromFolderRequest != null && filesWithParamsFromFolderRequest.isOk()) {
                 Map<String, FileParams> resultMap = JsonHandler.getFromStringAsTypeReference(
-                    filesWithParamsFromFolderRequest
-                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<>() {
-                    });
-                mapResults = resultMap.entrySet().stream()
+                    filesWithParamsFromFolderRequest.toJsonNode().get("$results").get(0).toString(),
+                    new TypeReference<>() {}
+                );
+                mapResults = resultMap
+                    .entrySet()
+                    .stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getSize()));
             }
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {

@@ -41,13 +41,13 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProcessStep extends Step {
+
     private AtomicLong elementProcessed = new AtomicLong(0);
     private AtomicLong elementToProcess = new AtomicLong(0);
     private StatusCode stepStatusCode = StatusCode.UNKNOWN;
 
     @JsonIgnore
     private boolean lastStep = false;
-
 
     @VisibleForTesting
     public ProcessStep(Step step, AtomicLong elementToProcess, AtomicLong elementProcessed, String id) {
@@ -76,13 +76,17 @@ public class ProcessStep extends Step {
     }
 
     @VisibleForTesting
-    public ProcessStep(Step step, String id, String containerName, String workflowId, int position,
+    public ProcessStep(
+        Step step,
+        String id,
+        String containerName,
+        String workflowId,
+        int position,
         AtomicLong elementToProcess,
-        AtomicLong elementProcessed) {
+        AtomicLong elementProcessed
+    ) {
         this(step, containerName, workflowId, position, elementToProcess, elementProcessed);
         setId(id);
-
-
     }
 
     /**
@@ -96,9 +100,14 @@ public class ProcessStep extends Step {
      * @param elementProcessed number of element processed
      * @throws IllegalArgumentException if the step is null
      */
-    public ProcessStep(Step step, String containerName, String workflowId, int position,
+    public ProcessStep(
+        Step step,
+        String containerName,
+        String workflowId,
+        int position,
         AtomicLong elementToProcess,
-        AtomicLong elementProcessed) {
+        AtomicLong elementProcessed
+    ) {
         ParametersChecker.checkParameter("containerName could not be null", containerName);
         ParametersChecker.checkParameter("workflowId could not be null", workflowId);
         ParametersChecker.checkParameter("position could not be null", position);
@@ -114,11 +123,8 @@ public class ProcessStep extends Step {
         this.elementToProcess = elementToProcess;
     }
 
-
     // Used for tests
-    ProcessStep() {
-
-    }
+    ProcessStep() {}
 
     @JsonIgnore
     public boolean isBlockingKO() {
@@ -175,7 +181,6 @@ public class ProcessStep extends Step {
         return this;
     }
 
-
     /**
      * {@inheritDoc}
      *
@@ -185,8 +190,11 @@ public class ProcessStep extends Step {
     public boolean equals(Object object) {
         if (object instanceof ProcessStep) {
             final ProcessStep processStep = (ProcessStep) object;
-            return getId().equals(processStep.getId()) && getStepName().equals(processStep.getStepName()) &&
-                getWorkerGroupId().equals(processStep.getWorkerGroupId());
+            return (
+                getId().equals(processStep.getId()) &&
+                getStepName().equals(processStep.getStepName()) &&
+                getWorkerGroupId().equals(processStep.getWorkerGroupId())
+            );
         } else {
             return false;
         }
@@ -199,9 +207,18 @@ public class ProcessStep extends Step {
 
     @Override
     public String toString() {
-        return "" + this.getStepName() + " " +
-            this.getActions() + " " + this.getDistribution().getKind() + " " +
-            this.getDistribution().getElement() + " " + this.getId();
+        return (
+            "" +
+            this.getStepName() +
+            " " +
+            this.getActions() +
+            " " +
+            this.getDistribution().getKind() +
+            " " +
+            this.getDistribution().getElement() +
+            " " +
+            this.getId()
+        );
     }
 
     public void setLastStep(boolean lastStep) {

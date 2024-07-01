@@ -105,7 +105,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
-
 public class StorageTraceabilityAdministrationTest {
 
     public static final Integer OVERLAP_DELAY = 300;
@@ -122,8 +121,9 @@ public class StorageTraceabilityAdministrationTest {
     private static final int TRACEABILITY_THREAD_POOL_SIZE = 4;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -133,16 +133,23 @@ public class StorageTraceabilityAdministrationTest {
 
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
+
     @Mock
     private TimestampGenerator timestampGenerator;
+
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
+
     @Mock
     private WorkspaceClient workspaceClient;
+
     @Mock
     private TraceabilityStorageService traceabilityLogbookService;
-    private final ArgumentCaptor<LogbookOperationParameters> captor =
-        ArgumentCaptor.forClass(LogbookOperationParameters.class);
+
+    private final ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(
+        LogbookOperationParameters.class
+    );
+
     @Mock
     private StorageDistribution distribution;
 
@@ -150,9 +157,8 @@ public class StorageTraceabilityAdministrationTest {
     public void setUp() throws Exception {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
 
-        byte[] hash = {1, 2, 3, 4};
-        given(timestampGenerator.generateToken(any(byte[].class),
-            eq(DigestType.SHA512), eq(null))).willReturn(hash);
+        byte[] hash = { 1, 2, 3, 4 };
+        given(timestampGenerator.generateToken(any(byte[].class), eq(DigestType.SHA512), eq(null))).willReturn(hash);
     }
 
     @Test
@@ -164,20 +170,30 @@ public class StorageTraceabilityAdministrationTest {
         File file = folder.newFolder();
 
         // First traceability
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(null);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            null
+        );
         // No storage log files found
-        given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(IteratorUtils.emptyIterator());
+        given(
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy())
+        ).willReturn(IteratorUtils.emptyIterator());
 
-        StorageTraceabilityAdministration storageAdministration =
-            new StorageTraceabilityAdministration(traceabilityLogbookService, distribution, logbookOperationsClient,
-                file, workspaceClient, timestampGenerator, OVERLAP_DELAY, TRACEABILITY_THREAD_POOL_SIZE);
+        StorageTraceabilityAdministration storageAdministration = new StorageTraceabilityAdministration(
+            traceabilityLogbookService,
+            distribution,
+            logbookOperationsClient,
+            file,
+            workspaceClient,
+            timestampGenerator,
+            OVERLAP_DELAY,
+            TRACEABILITY_THREAD_POOL_SIZE
+        );
 
         // When
-        List<StorageLogTraceabilityResult> results = storageAdministration
-            .generateStorageLogTraceabilityOperations(VitamConfiguration.getDefaultStrategy(), Collections
-                .singletonList(tenantId));
+        List<StorageLogTraceabilityResult> results = storageAdministration.generateStorageLogTraceabilityOperations(
+            VitamConfiguration.getDefaultStrategy(),
+            Collections.singletonList(tenantId)
+        );
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getTenantId()).isEqualTo(tenantId);
@@ -211,31 +227,50 @@ public class StorageTraceabilityAdministrationTest {
                 Files.copy(argumentAt, archive2);
             }
             return null;
-        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
         // First traceability
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(null);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            null
+        );
         // One storage log file
-        given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
+        given(
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy())
+        ).willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
 
         doAnswer(o -> fakeResponse("test"))
             .when(traceabilityLogbookService)
             .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG);
 
-        given(distribution.storeDataInAllOffers(eq(VitamConfiguration.getDefaultStrategy()), anyString(),
-            any(ObjectDescription.class), eq(DataCategory.STORAGETRACEABILITY), eq(null))).willReturn(
-            new StoredInfoResult());
+        given(
+            distribution.storeDataInAllOffers(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                anyString(),
+                any(ObjectDescription.class),
+                eq(DataCategory.STORAGETRACEABILITY),
+                eq(null)
+            )
+        ).willReturn(new StoredInfoResult());
 
-        StorageTraceabilityAdministration storageAdministration =
-            new StorageTraceabilityAdministration(traceabilityLogbookService, distribution, logbookOperationsClient,
-                file, workspaceClient, timestampGenerator, OVERLAP_DELAY, TRACEABILITY_THREAD_POOL_SIZE);
+        StorageTraceabilityAdministration storageAdministration = new StorageTraceabilityAdministration(
+            traceabilityLogbookService,
+            distribution,
+            logbookOperationsClient,
+            file,
+            workspaceClient,
+            timestampGenerator,
+            OVERLAP_DELAY,
+            TRACEABILITY_THREAD_POOL_SIZE
+        );
 
         // insert initial event
-        List<StorageLogTraceabilityResult> traceabilityResult1 = storageAdministration
-            .generateStorageLogTraceabilityOperations(VitamConfiguration.getDefaultStrategy(), Collections
-                .singletonList(tenantId));
+        List<StorageLogTraceabilityResult> traceabilityResult1 =
+            storageAdministration.generateStorageLogTraceabilityOperations(
+                VitamConfiguration.getDefaultStrategy(),
+                Collections.singletonList(tenantId)
+            );
 
         assertThat(traceabilityResult1).hasSize(1);
         assertThat(traceabilityResult1.get(0).getTenantId()).isEqualTo(tenantId);
@@ -244,32 +279,39 @@ public class StorageTraceabilityAdministrationTest {
         TraceabilityEvent lastEvent = extractLastTimestampToken();
 
         // Existing traceability file
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).
-            willReturn(TRACEABILITY_FILE);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            TRACEABILITY_FILE
+        );
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), TRACEABILITY_FILE,
-            DataCategory.STORAGETRACEABILITY))
-            .willReturn(fakeResponse(Files.newInputStream(archive)));
+        given(
+            traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                TRACEABILITY_FILE,
+                DataCategory.STORAGETRACEABILITY
+            )
+        ).willReturn(fakeResponse(Files.newInputStream(archive)));
 
-        given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE_2)));
+        given(
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy())
+        ).willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE_2)));
 
         doAnswer(o -> fakeResponse("test-2"))
             .when(traceabilityLogbookService)
             .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_2, DataCategory.STORAGELOG);
 
         // When
-        List<StorageLogTraceabilityResult> traceabilityResult2 = storageAdministration
-            .generateStorageLogTraceabilityOperations(VitamConfiguration.getDefaultStrategy(), Collections
-                .singletonList(tenantId));
+        List<StorageLogTraceabilityResult> traceabilityResult2 =
+            storageAdministration.generateStorageLogTraceabilityOperations(
+                VitamConfiguration.getDefaultStrategy(),
+                Collections.singletonList(tenantId)
+            );
 
         assertThat(traceabilityResult2).hasSize(1);
         assertThat(traceabilityResult2.get(0).getTenantId()).isEqualTo(tenantId);
         assertThat(traceabilityResult2.get(0).getOperationId()).isNotNull();
 
         // Then
-        assertThat(archive2).
-            exists();
+        assertThat(archive2).exists();
 
         String previousHash = BaseXx.getBase64(new String(lastEvent.getTimeStampToken()).getBytes());
         validateFile(archive2, 1, previousHash);
@@ -300,7 +342,9 @@ public class StorageTraceabilityAdministrationTest {
     private List<LogbookOperationParameters> getMasterLogbookOperations()
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         verify(logbookOperationsClient, Mockito.atLeastOnce()).update(captor.capture());
-        return captor.getAllValues().stream()
+        return captor
+            .getAllValues()
+            .stream()
             .filter(l -> l.getMapParameters().get(LogbookParameterName.eventType).equals("STP_STORAGE_SECURISATION"))
             .collect(Collectors.toList());
     }
@@ -318,36 +362,64 @@ public class StorageTraceabilityAdministrationTest {
         doAnswer(args -> {
             Files.copy((InputStream) args.getArgument(2), archive);
             return null;
-        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
-        given(traceabilityLogbookService
-            .getObject(VitamConfiguration.getDefaultStrategy(), TRACEABILITY_FILE_MISSING,
-                DataCategory.STORAGETRACEABILITY))
-            .willThrow(new StorageNotFoundException(""));
+        given(
+            traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                TRACEABILITY_FILE_MISSING,
+                DataCategory.STORAGETRACEABILITY
+            )
+        ).willThrow(new StorageNotFoundException(""));
 
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(TRACEABILITY_FILE_MISSING);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            TRACEABILITY_FILE_MISSING
+        );
 
         // One storage log file
-        given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
+        given(
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy())
+        ).willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE,
-            DataCategory.STORAGELOG))
-            .willReturn(fakeResponse("test"));
+        given(
+            traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                BACKUP_FILE,
+                DataCategory.STORAGELOG
+            )
+        ).willReturn(fakeResponse("test"));
 
-        given(distribution.storeDataInAllOffers(eq(VitamConfiguration.getDefaultStrategy()), anyString(),
-            any(ObjectDescription.class), eq(DataCategory.STORAGETRACEABILITY), eq(null))).willReturn(
-            new StoredInfoResult());
+        given(
+            distribution.storeDataInAllOffers(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                anyString(),
+                any(ObjectDescription.class),
+                eq(DataCategory.STORAGETRACEABILITY),
+                eq(null)
+            )
+        ).willReturn(new StoredInfoResult());
 
-        StorageTraceabilityAdministration storageAdministration =
-            new StorageTraceabilityAdministration(traceabilityLogbookService, distribution, logbookOperationsClient,
-                file, workspaceClient, timestampGenerator, OVERLAP_DELAY, TRACEABILITY_THREAD_POOL_SIZE);
+        StorageTraceabilityAdministration storageAdministration = new StorageTraceabilityAdministration(
+            traceabilityLogbookService,
+            distribution,
+            logbookOperationsClient,
+            file,
+            workspaceClient,
+            timestampGenerator,
+            OVERLAP_DELAY,
+            TRACEABILITY_THREAD_POOL_SIZE
+        );
 
         // When / Then
-        assertThatThrownBy(() -> storageAdministration.generateStorageLogTraceabilityOperations(
-            VitamConfiguration.getDefaultStrategy(), Collections.singletonList(tenantId)))
-            .isInstanceOf(TraceabilityException.class);
+        assertThatThrownBy(
+            () ->
+                storageAdministration.generateStorageLogTraceabilityOperations(
+                    VitamConfiguration.getDefaultStrategy(),
+                    Collections.singletonList(tenantId)
+                )
+        ).isInstanceOf(TraceabilityException.class);
     }
 
     @Test
@@ -363,36 +435,62 @@ public class StorageTraceabilityAdministrationTest {
         doAnswer(args -> {
             Files.copy((InputStream) args.getArgument(2), archive);
             return null;
-        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
         // First traceability
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(null);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            null
+        );
 
         // 2 storage log files, but only 1 exists
-        given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(IteratorUtils.arrayIterator(offerLogFor(BACKUP_FILE), offerLogFor(BACKUP_FILE_2)));
+        given(
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy())
+        ).willReturn(IteratorUtils.arrayIterator(offerLogFor(BACKUP_FILE), offerLogFor(BACKUP_FILE_2)));
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE,
-            DataCategory.STORAGELOG))
-            .willReturn(fakeResponse("test"));
+        given(
+            traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                BACKUP_FILE,
+                DataCategory.STORAGELOG
+            )
+        ).willReturn(fakeResponse("test"));
 
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_2,
-            DataCategory.STORAGELOG))
-            .willReturn(fakeResponse("test-2"));
+        given(
+            traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                BACKUP_FILE_2,
+                DataCategory.STORAGELOG
+            )
+        ).willReturn(fakeResponse("test-2"));
 
-        given(distribution.storeDataInAllOffers(eq(VitamConfiguration.getDefaultStrategy()), anyString(),
-            any(ObjectDescription.class), eq(DataCategory.STORAGETRACEABILITY), eq(null))).willReturn(
-            new StoredInfoResult());
+        given(
+            distribution.storeDataInAllOffers(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                anyString(),
+                any(ObjectDescription.class),
+                eq(DataCategory.STORAGETRACEABILITY),
+                eq(null)
+            )
+        ).willReturn(new StoredInfoResult());
 
-        StorageTraceabilityAdministration storageAdministration =
-            new StorageTraceabilityAdministration(traceabilityLogbookService, distribution, logbookOperationsClient,
-                file, workspaceClient, timestampGenerator, OVERLAP_DELAY, TRACEABILITY_THREAD_POOL_SIZE);
+        StorageTraceabilityAdministration storageAdministration = new StorageTraceabilityAdministration(
+            traceabilityLogbookService,
+            distribution,
+            logbookOperationsClient,
+            file,
+            workspaceClient,
+            timestampGenerator,
+            OVERLAP_DELAY,
+            TRACEABILITY_THREAD_POOL_SIZE
+        );
 
         // insert initial event
-        List<StorageLogTraceabilityResult> resultList = storageAdministration
-            .generateStorageLogTraceabilityOperations(VitamConfiguration.getDefaultStrategy(), Collections
-                .singletonList(tenantId));
+        List<StorageLogTraceabilityResult> resultList = storageAdministration.generateStorageLogTraceabilityOperations(
+            VitamConfiguration.getDefaultStrategy(),
+            Collections.singletonList(tenantId)
+        );
 
         assertThat(resultList).hasSize(1);
         assertThat(resultList.get(0).getTenantId()).isEqualTo(tenantId);
@@ -422,24 +520,41 @@ public class StorageTraceabilityAdministrationTest {
         File file = folder.newFolder();
 
         // First traceability
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(null);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            null
+        );
         // No storage log files found
-        given(traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
-        given(traceabilityLogbookService.getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE,
-            DataCategory.STORAGELOG))
-            .willThrow(new StorageNotFoundException(""));
+        given(
+            traceabilityLogbookService.getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy())
+        ).willReturn(IteratorUtils.singletonIterator(offerLogFor(BACKUP_FILE)));
+        given(
+            traceabilityLogbookService.getObject(
+                VitamConfiguration.getDefaultStrategy(),
+                BACKUP_FILE,
+                DataCategory.STORAGELOG
+            )
+        ).willThrow(new StorageNotFoundException(""));
 
-        StorageTraceabilityAdministration storageAdministration =
-            new StorageTraceabilityAdministration(traceabilityLogbookService, distribution, logbookOperationsClient,
-                file, workspaceClient, timestampGenerator, OVERLAP_DELAY, TRACEABILITY_THREAD_POOL_SIZE);
+        StorageTraceabilityAdministration storageAdministration = new StorageTraceabilityAdministration(
+            traceabilityLogbookService,
+            distribution,
+            logbookOperationsClient,
+            file,
+            workspaceClient,
+            timestampGenerator,
+            OVERLAP_DELAY,
+            TRACEABILITY_THREAD_POOL_SIZE
+        );
 
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         // When / Then
-        assertThatThrownBy(() -> storageAdministration.generateStorageLogTraceabilityOperations(
-            VitamConfiguration.getDefaultStrategy(), Collections.singletonList(tenantId)))
-            .isInstanceOf(TraceabilityException.class);
+        assertThatThrownBy(
+            () ->
+                storageAdministration.generateStorageLogTraceabilityOperations(
+                    VitamConfiguration.getDefaultStrategy(),
+                    Collections.singletonList(tenantId)
+                )
+        ).isInstanceOf(TraceabilityException.class);
     }
 
     @Test
@@ -466,11 +581,14 @@ public class StorageTraceabilityAdministrationTest {
                 default:
                     throw new IllegalStateException();
             }
-        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
         // First traceability
-        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy()))
-            .willReturn(null);
+        given(traceabilityLogbookService.getLastTraceabilityZip(VitamConfiguration.getDefaultStrategy())).willReturn(
+            null
+        );
         // Existing storage log files
         doAnswer(args -> {
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -482,30 +600,50 @@ public class StorageTraceabilityAdministrationTest {
                 default:
                     throw new IllegalStateException();
             }
-        }).when(traceabilityLogbookService).getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy());
+        })
+            .when(traceabilityLogbookService)
+            .getLastSavedStorageLogIterator(VitamConfiguration.getDefaultStrategy());
 
         doAnswer(o -> {
             assertThat(VitamThreadUtils.getVitamSession().getTenantId()).isEqualTo(0);
             return fakeResponse("test");
-        }).when(traceabilityLogbookService)
+        })
+            .when(traceabilityLogbookService)
             .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE, DataCategory.STORAGELOG);
         doAnswer(o -> {
             assertThat(VitamThreadUtils.getVitamSession().getTenantId()).isEqualTo(1);
             return fakeResponse("test");
-        }).when(traceabilityLogbookService)
+        })
+            .when(traceabilityLogbookService)
             .getObject(VitamConfiguration.getDefaultStrategy(), BACKUP_FILE_TENANT_1, DataCategory.STORAGELOG);
 
-        given(distribution.storeDataInAllOffers(eq(VitamConfiguration.getDefaultStrategy()), anyString(),
-            any(ObjectDescription.class), eq(DataCategory.STORAGETRACEABILITY), eq(null))).willReturn(
-            new StoredInfoResult());
+        given(
+            distribution.storeDataInAllOffers(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                anyString(),
+                any(ObjectDescription.class),
+                eq(DataCategory.STORAGETRACEABILITY),
+                eq(null)
+            )
+        ).willReturn(new StoredInfoResult());
 
-        StorageTraceabilityAdministration storageAdministration =
-            new StorageTraceabilityAdministration(traceabilityLogbookService, distribution, logbookOperationsClient,
-                file, workspaceClient, timestampGenerator, OVERLAP_DELAY, TRACEABILITY_THREAD_POOL_SIZE);
+        StorageTraceabilityAdministration storageAdministration = new StorageTraceabilityAdministration(
+            traceabilityLogbookService,
+            distribution,
+            logbookOperationsClient,
+            file,
+            workspaceClient,
+            timestampGenerator,
+            OVERLAP_DELAY,
+            TRACEABILITY_THREAD_POOL_SIZE
+        );
 
         // When : Start traceability for multiple
-        List<StorageLogTraceabilityResult> traceabilityResults = storageAdministration
-            .generateStorageLogTraceabilityOperations(VitamConfiguration.getDefaultStrategy(), Arrays.asList(0, 1));
+        List<StorageLogTraceabilityResult> traceabilityResults =
+            storageAdministration.generateStorageLogTraceabilityOperations(
+                VitamConfiguration.getDefaultStrategy(),
+                Arrays.asList(0, 1)
+            );
 
         // Then :
         assertThat(traceabilityResults).hasSize(2);
@@ -519,13 +657,16 @@ public class StorageTraceabilityAdministrationTest {
         validateFile(archive_tenant0, 1, "null");
         validateFile(archive_tenant1, 1, "null");
 
-
-        Map<String, LogbookOperationParameters> logs = getMasterLogbookOperations().stream()
-            .collect(Collectors
-                .toMap(log -> log.getParameterValue(LogbookParameterName.eventIdentifierProcess), log -> log));
+        Map<String, LogbookOperationParameters> logs = getMasterLogbookOperations()
+            .stream()
+            .collect(
+                Collectors.toMap(log -> log.getParameterValue(LogbookParameterName.eventIdentifierProcess), log -> log)
+            );
         assertThat(logs).hasSize(2);
-        assertThat(logs).containsOnlyKeys(traceabilityResults.get(0).getOperationId(),
-            traceabilityResults.get(1).getOperationId());
+        assertThat(logs).containsOnlyKeys(
+            traceabilityResults.get(0).getOperationId(),
+            traceabilityResults.get(1).getOperationId()
+        );
 
         LogbookOperationParameters traceability_tenant0 = logs.get(traceabilityResults.get(0).getOperationId());
         LogbookOperationParameters traceability_tenant1 = logs.get(traceabilityResults.get(1).getOperationId());
@@ -539,8 +680,7 @@ public class StorageTraceabilityAdministrationTest {
     }
 
     private TraceabilityEvent extractLastTimestampToken()
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
-        InvalidParseOperationException {
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException, InvalidParseOperationException {
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
         verify(logbookOperationsClient, atLeastOnce()).update(captor.capture());
@@ -553,10 +693,10 @@ public class StorageTraceabilityAdministrationTest {
 
     private void validateFile(Path path, int numberOfElements, String previousHash)
         throws IOException, ArchiveException {
-        try (ArchiveInputStream archiveInputStream =
-            new ArchiveStreamFactory()
-                .createArchiveInputStream(ArchiveStreamFactory.ZIP, Files.newInputStream(path))) {
-
+        try (
+            ArchiveInputStream archiveInputStream = new ArchiveStreamFactory()
+                .createArchiveInputStream(ArchiveStreamFactory.ZIP, Files.newInputStream(path))
+        ) {
             ArchiveEntry entry = archiveInputStream.getNextEntry();
 
             assertThat(entry.getName()).isEqualTo("data.txt");
@@ -585,13 +725,21 @@ public class StorageTraceabilityAdministrationTest {
     }
 
     private AbstractMockClient.FakeInboundResponse fakeResponse(String data) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK,
-            new ByteArrayInputStream(data.getBytes()), MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            new ByteArrayInputStream(data.getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     private AbstractMockClient.FakeInboundResponse fakeResponse(InputStream inputStream) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK,
-            inputStream, MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            inputStream,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     private OfferLog offerLogFor(String filename) {

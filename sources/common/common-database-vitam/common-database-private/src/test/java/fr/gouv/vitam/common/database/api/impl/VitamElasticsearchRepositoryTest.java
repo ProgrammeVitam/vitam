@@ -57,13 +57,15 @@ import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
  *
  */
 public class VitamElasticsearchRepositoryTest {
+
     public static final String TEST_INDEX = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
     public static final String TEST_ALIAS = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
     private static VitamElasticsearchRepository repository;
 
     private static final String FAKE_IDENTIFIER = "FakeIdentifier";
 
-    private static final String mapping = "{\n" +
+    private static final String mapping =
+        "{\n" +
         "  \"properties\": {\n" +
         "    \"Identifier\": {\n" +
         "      \"type\": \"keyword\"\n" +
@@ -87,12 +89,12 @@ public class VitamElasticsearchRepositoryTest {
         "    }\n" +
         "  }\n" +
         "}";
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(TEST_ALIAS);
-
 
     @AfterClass
     public static void afterClass() {
@@ -101,8 +103,8 @@ public class VitamElasticsearchRepositoryTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver =
-            (tenant) -> ElasticsearchIndexAlias.ofFullIndexName(TEST_ALIAS);
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver = tenant ->
+            ElasticsearchIndexAlias.ofFullIndexName(TEST_ALIAS);
         repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), elasticsearchIndexAliasResolver);
         /*
          * findByIdentifierAndTenant works only if identifier is term (not text) As es by default detect Identifier as
@@ -260,7 +262,6 @@ public class VitamElasticsearchRepositoryTest {
         // purge tenant 0
         long deleted = repository.purge(0);
         assertThat(deleted).isEqualTo(100);
-
     }
 
     @Test
@@ -285,7 +286,6 @@ public class VitamElasticsearchRepositoryTest {
         response = repository.getByID(id, tenant);
         assertThat(response).isEmpty();
     }
-
 
     @Test
     public void testRemoveNotExistsThenOK() throws DatabaseException {
@@ -363,7 +363,6 @@ public class VitamElasticsearchRepositoryTest {
 
     private static void createIndexWithMapping() throws IOException {
         if (!elasticsearchRule.existsIndex(TEST_INDEX)) {
-
             boolean created = elasticsearchRule.createIndex(TEST_ALIAS, TEST_INDEX, mapping);
             assertThat(created).isTrue();
         }

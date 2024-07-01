@@ -55,7 +55,9 @@ public class MerkleTreeAlgoTest {
         // Then
         assertThat(mt.getRoot()).isEqualTo(
             BaseXx.getFromBase64(
-                "QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="));
+                "QC71vcS+qHQfQEr9kfpQ6Ud0O5myI2GacxkhrzY+jYAch4TFMIgH5nueosyQLLlM1fwGPU4Cah+o+RhWQYbj2w=="
+            )
+        );
     }
 
     @Test
@@ -69,7 +71,9 @@ public class MerkleTreeAlgoTest {
         // Then
         assertThat(mt.getRoot()).isEqualTo(
             BaseXx.getFromBase64(
-                "H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="));
+                "H0D8ktokFpR1CXnubPWC8tXX0o4YM13gWrxU0FYOD1MChgxlK/CNVgJSql50IQVG82n7u86MEs/HlXsmUv6adQ=="
+            )
+        );
     }
 
     @Test
@@ -86,7 +90,6 @@ public class MerkleTreeAlgoTest {
 
         // Then
         assertThat(merkleTreeAlgo.numberOfLeaves()).isEqualTo(8);
-
     }
 
     @Test
@@ -103,5 +106,4 @@ public class MerkleTreeAlgoTest {
         // Then
         assertThat(merkleTreeAlgo.numberOfLeaves()).isEqualTo(4);
     }
-
 }

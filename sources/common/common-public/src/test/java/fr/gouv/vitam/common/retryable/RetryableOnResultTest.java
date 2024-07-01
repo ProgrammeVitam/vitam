@@ -39,6 +39,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RetryableOnResultTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -51,8 +52,10 @@ public class RetryableOnResultTest {
             return counter.get();
         };
         RetryableParameters parameters = new RetryableParameters(3, 1, 1, 1, MILLISECONDS);
-        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult =
-            new RetryableOnResult<>(parameters, r -> r <= 3);
+        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult = new RetryableOnResult<>(
+            parameters,
+            r -> r <= 3
+        );
 
         // When
         Integer result = retryableOnResult.exec(delegate);
@@ -68,8 +71,10 @@ public class RetryableOnResultTest {
         int nbRetry = 10;
         Predicate<Integer> shouldRetryOnPredicate = r -> r < 3;
         RetryableParameters parameters = new RetryableParameters(nbRetry, 1, 1, 1, MILLISECONDS);
-        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult =
-            new RetryableOnResult<>(parameters, shouldRetryOnPredicate);
+        RetryableOnResult<Integer, VitamRuntimeException> retryableOnResult = new RetryableOnResult<>(
+            parameters,
+            shouldRetryOnPredicate
+        );
 
         // When
         Integer nbRetryDone = retryableOnResult.exec(counter::getAndIncrement);

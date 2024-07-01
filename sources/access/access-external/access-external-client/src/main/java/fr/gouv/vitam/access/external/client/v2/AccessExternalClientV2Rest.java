@@ -69,7 +69,11 @@ class AccessExternalClientV2Rest extends DefaultClient implements AccessExternal
         }
 
         throw new VitamClientException(
-            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase()));
+            String.format(
+                "Error with the response, get status: '%d' and reason '%s'.",
+                response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()
+            )
+        );
     }
 }

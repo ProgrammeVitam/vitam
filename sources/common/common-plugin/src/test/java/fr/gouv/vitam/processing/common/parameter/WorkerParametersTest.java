@@ -50,8 +50,10 @@ public class WorkerParametersTest {
         }
         assertEquals(params.getMapParameters().size(), WorkerParameterName.values().length);
 
-        assertEquals(params.getMapParameters().get(WorkerParameterName.currentStep),
-            WorkerParameterName.currentStep.name());
+        assertEquals(
+            params.getMapParameters().get(WorkerParameterName.currentStep),
+            WorkerParameterName.currentStep.name()
+        );
         final WorkerParameters params2 = WorkerParametersFactory.newWorkerParameters();
         params2.setFromParameters(params);
         for (final WorkerParameterName value : WorkerParameterName.values()) {
@@ -138,7 +140,8 @@ public class WorkerParametersTest {
     @Test
     public void toStringTest() {
         final GUID guid = GUIDFactory.newGUID();
-        final String json = "{\n" +
+        final String json =
+            "{\n" +
             "  \"urlMetadata\" : \"urlMetadata\",\n" +
             "  \"urlWorkspace\" : \"urlWorkspace\",\n" +
             "  \"processId\" : \"processId\",\n" +
@@ -146,12 +149,21 @@ public class WorkerParametersTest {
             "  \"containerName\" : \"containerName\",\n" +
             "  \"objectNameList\" : \"[ \\\"objectName\\\" ]\",\n" +
             "  \"objectId\" : \"objectId\",\n" +
-            "  \"workerGUID\" : \"" + guid.getId() + "\",\n" +
+            "  \"workerGUID\" : \"" +
+            guid.getId() +
+            "\",\n" +
             "  \"metadataRequest\" : \"metadataRequest\",\n" +
             "  \"currentStep\" : \"currentStep\"\n" +
             "}";
-        final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
-            "containerName", "currentStep", Lists.newArrayList("objectName"), "urlMetadata", "urlWorkspace");
+        final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters(
+            "processId",
+            "stepUniqId",
+            "containerName",
+            "currentStep",
+            Lists.newArrayList("objectName"),
+            "urlMetadata",
+            "urlWorkspace"
+        );
         assertNotNull(parameters);
         parameters.setObjectId("objectId");
         parameters.setMetadataRequest("metadataRequest");

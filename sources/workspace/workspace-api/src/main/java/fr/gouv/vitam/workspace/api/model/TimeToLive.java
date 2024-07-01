@@ -68,13 +68,10 @@ public class TimeToLive {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TimeToLive that = (TimeToLive) o;
-        return value == that.value &&
-            unit == that.unit;
+        return value == that.value && unit == that.unit;
     }
 
     @Override

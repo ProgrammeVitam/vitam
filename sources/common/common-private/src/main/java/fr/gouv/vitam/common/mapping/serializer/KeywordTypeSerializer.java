@@ -63,8 +63,7 @@ public class KeywordTypeSerializer extends StdSerializer<KeyType> {
      * @throws IOException
      */
     @Override
-    public void serialize(KeyType keywordType, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException {
+    public void serialize(KeyType keywordType, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         if (isNull(keywordType.getValue())) {
             jgen.writeNull();
             return;

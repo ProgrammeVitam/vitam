@@ -62,13 +62,21 @@ public class BusinessApplicationTest extends Application {
         SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
         SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final IngestExternalConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
+            final IngestExternalConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                IngestExternalConfiguration.class
+            );
             commonBusinessApplication = new CommonBusinessApplication(true);
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry, formatIdentifierFactory,
-                ingestInternalClientFactory));
+            singletons.add(
+                new IngestExternalResource(
+                    configuration,
+                    secureEndpointRegistry,
+                    formatIdentifierFactory,
+                    ingestInternalClientFactory
+                )
+            );
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
             singletons.add(secureEndpointScanner);

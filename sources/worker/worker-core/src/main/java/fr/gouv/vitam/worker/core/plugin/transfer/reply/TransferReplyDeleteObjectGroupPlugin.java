@@ -45,8 +45,7 @@ public class TransferReplyDeleteObjectGroupPlugin extends PurgeDeleteObjectGroup
      * Test only constructor
      */
     @VisibleForTesting
-    TransferReplyDeleteObjectGroupPlugin(
-        PurgeDeleteService purgeDeleteService) {
+    TransferReplyDeleteObjectGroupPlugin(PurgeDeleteService purgeDeleteService) {
         super(TRANSFER_REPLY_DELETE_OBJECT_GROUP, purgeDeleteService);
     }
 

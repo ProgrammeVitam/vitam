@@ -33,8 +33,7 @@ import fr.gouv.vitam.worker.core.plugin.purge.PurgeAccessionRegisterUpdatePlugin
 
 public class TransferReplyAccessionRegisterUpdatePlugin extends PurgeAccessionRegisterUpdatePlugin {
 
-    private static final String TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE =
-        "TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE";
+    private static final String TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE = "TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE";
 
     /**
      * Default constructor
@@ -48,8 +47,11 @@ public class TransferReplyAccessionRegisterUpdatePlugin extends PurgeAccessionRe
      */
     @VisibleForTesting
     TransferReplyAccessionRegisterUpdatePlugin(AdminManagementClientFactory adminManagementClientFactory) {
-        super(TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.TRANSFER_REPLY,
-            adminManagementClientFactory);
+        super(
+            TRANSFER_REPLY_ACCESSION_REGISTER_UPDATE,
+            LogbookTypeProcess.TRANSFER_REPLY,
+            adminManagementClientFactory
+        );
     }
 
     public static String getId() {

@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -48,8 +47,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.ExportException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -70,7 +67,6 @@ import org.apache.commons.io.FileUtils;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -104,9 +100,7 @@ public class SipService {
         this.metadataRepository = metadataRepository;
     }
 
-    public String generateSip(TransactionModel transactionModel)
-        throws CollectInternalException {
-
+    public String generateSip(TransactionModel transactionModel) throws CollectInternalException {
         File localDirectory = PropertiesUtils.fileFromTmpFolder(transactionModel.getId());
         File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(SEDA_FILE));
 
@@ -116,15 +110,18 @@ public class SipService {
             throw new CollectInternalException("An error occurs when trying to create manifest parent directory");
         }
 
-        try (OutputStream outputStream = new FileOutputStream(manifestFile);
-            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, null)) {
-
+        try (
+            OutputStream outputStream = new FileOutputStream(manifestFile);
+            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, null)
+        ) {
             ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(transactionModel);
             ExportRequest exportRequest = SipHelper.buildExportRequest(transactionModel, exportRequestParameters);
 
-
-            manifestBuilder.startDocument(transactionModel.getManifestContext().getMessageIdentifier(),
-                ExportType.ArchiveTransfer, exportRequestParameters);
+            manifestBuilder.startDocument(
+                transactionModel.getManifestContext().getMessageIdentifier(),
+                ExportType.ArchiveTransfer,
+                exportRequestParameters
+            );
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -135,29 +132,39 @@ public class SipService {
             parser.parse(exportRequest.getDslRequest());
             SelectMultiQuery request = parser.getRequest();
 
-            ScrollSpliterator<JsonNode> scrollRequest = metadataRepository.selectUnits(request, transactionModel.getId());
+            ScrollSpliterator<JsonNode> scrollRequest = metadataRepository.selectUnits(
+                request,
+                transactionModel.getId()
+            );
 
-            StreamSupport.stream(scrollRequest, false)
-                .forEach(item -> CollectHelper.createGraph(multimap, originatingAgencies, ogs, item));
+            StreamSupport.stream(scrollRequest, false).forEach(
+                item -> CollectHelper.createGraph(multimap, originatingAgencies, ogs, item)
+            );
 
             manifestBuilder.startDataObjectPackage();
             Select select = new Select();
             Iterable<List<Map.Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
             for (List<Map.Entry<String, String>> partition : partitions) {
-
-                ListMultimap<String, String> unitsForObjectGroupId = partition.stream()
-                    .collect(ArrayListMultimap::create, (map, entry) -> map.put(entry.getValue(), entry.getKey()),
-                        (list1, list2) -> list1.putAll(list2));
+                ListMultimap<String, String> unitsForObjectGroupId = partition
+                    .stream()
+                    .collect(
+                        ArrayListMultimap::create,
+                        (map, entry) -> map.put(entry.getValue(), entry.getKey()),
+                        (list1, list2) -> list1.putAll(list2)
+                    );
                 InQuery in = QueryHelper.in(id(), partition.stream().map(Map.Entry::getValue).toArray(String[]::new));
 
                 select.setQuery(in);
 
-                JsonNode response =
-                    metadataRepository.selectObjectGroups(select.getFinalSelect(), transactionModel.getId());
+                JsonNode response = metadataRepository.selectObjectGroups(
+                    select.getFinalSelect(),
+                    transactionModel.getId()
+                );
                 ArrayNode objects = (ArrayNode) response.get(RequestResponseOK.TAG_RESULTS);
                 for (JsonNode object : objects) {
-                    List<String> linkedUnits =
-                        unitsForObjectGroupId.get(object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue());
+                    List<String> linkedUnits = unitsForObjectGroupId.get(
+                        object.get(ParserTokens.PROJECTIONARGS.ID.exactToken()).textValue()
+                    );
                     manifestBuilder.writeGOT(object, linkedUnits.get(linkedUnits.size() - 1), Stream.empty());
                 }
             }
@@ -166,7 +173,6 @@ public class SipService {
             initialQueryParser.parse(exportRequest.getDslRequest());
 
             scrollRequest = metadataRepository.selectUnits(initialQueryParser.getRequest(), transactionModel.getId());
-
 
             StreamSupport.stream(scrollRequest, false).forEach(result -> {
                 try {
@@ -187,14 +193,17 @@ public class SipService {
                 submissionAgencyIdentifier = transactionModel.getManifestContext().getOriginatingAgencyIdentifier();
             }
 
-
-            manifestBuilder.writeManagementMetadata(acquisitionInformation, legalStatus,
-                transactionModel.getManifestContext().getOriginatingAgencyIdentifier(), submissionAgencyIdentifier, archivalProfile);
+            manifestBuilder.writeManagementMetadata(
+                acquisitionInformation,
+                legalStatus,
+                transactionModel.getManifestContext().getOriginatingAgencyIdentifier(),
+                submissionAgencyIdentifier,
+                archivalProfile
+            );
             manifestBuilder.endDataObjectPackage();
 
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
-
         } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectInternalException(e);
@@ -212,7 +221,6 @@ public class SipService {
                 throw new CollectInternalException(exception);
             }
         }
-
     }
 
     private String saveManifestInWorkspace(TransactionModel transactionModel, InputStream inputStream)
@@ -247,8 +255,10 @@ public class SipService {
             if (!workspaceClient.isExistingContainer(transactionModel.getId())) {
                 return null;
             }
-            Response response =
-                workspaceClient.getObject(transactionModel.getId(), transactionModel.getId() + SIP_EXTENSION);
+            Response response = workspaceClient.getObject(
+                transactionModel.getId(),
+                transactionModel.getId() + SIP_EXTENSION
+            );
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 sipInputStream = (InputStream) response.getEntity();
             }

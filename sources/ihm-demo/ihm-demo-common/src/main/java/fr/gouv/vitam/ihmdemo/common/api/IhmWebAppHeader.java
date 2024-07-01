@@ -35,7 +35,6 @@ import javax.ws.rs.core.HttpHeaders;
  * from HTTP headers are right
  */
 public enum IhmWebAppHeader {
-
     /**
      * The X_LIMIT header, used to get an object
      */
@@ -103,5 +102,4 @@ public enum IhmWebAppHeader {
         }
         return null;
     }
-
 }

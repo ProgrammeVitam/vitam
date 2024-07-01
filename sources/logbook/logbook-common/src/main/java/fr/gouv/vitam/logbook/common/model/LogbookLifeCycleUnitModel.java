@@ -48,9 +48,12 @@ public class LogbookLifeCycleUnitModel implements LogbookLifeCycleModel {
      * @param logbookLifeCycleParameters lfc parameters
      */
     @JsonCreator
-    public LogbookLifeCycleUnitModel(@JsonProperty("id") String id,
-        @JsonProperty("logbookLifeCycleParameters")
-            Collection<LogbookLifeCycleUnitParameters> logbookLifeCycleParameters) {
+    public LogbookLifeCycleUnitModel(
+        @JsonProperty("id") String id,
+        @JsonProperty("logbookLifeCycleParameters") Collection<
+            LogbookLifeCycleUnitParameters
+        > logbookLifeCycleParameters
+    ) {
         this.id = id;
         this.logbookLifeCycleParameters = logbookLifeCycleParameters;
     }
@@ -72,5 +75,4 @@ public class LogbookLifeCycleUnitModel implements LogbookLifeCycleModel {
     public String getId() {
         return id;
     }
-
 }

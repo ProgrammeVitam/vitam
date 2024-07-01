@@ -62,24 +62,25 @@ public class PersonalCertificateResourceTest {
     @Test
     public void should_check_personal_certificate() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
 
-        doThrow(PersonalCertificateException.class).when(personalCertificateService)
+        doThrow(PersonalCertificateException.class)
+            .when(personalCertificateService)
             .checkPersonalCertificateExistence(bytes, PERMISSION);
 
         // When / Then
-        assertThatThrownBy(() -> personalCertificateResource.checkPersonalCertificate(bytes, PERMISSION))
-            .isInstanceOf(PersonalCertificateException.class);
+        assertThatThrownBy(() -> personalCertificateResource.checkPersonalCertificate(bytes, PERMISSION)).isInstanceOf(
+            PersonalCertificateException.class
+        );
     }
 
     @Test
     public void isPersonalCertificateRequiredForPermission() throws Exception {
-
         IsPersonalCertificateRequiredModel response = mock(IsPersonalCertificateRequiredModel.class);
-        when(permissionService.isPersonalCertificateRequiredForPermission(PERMISSION))
-            .thenReturn(response);
+        when(permissionService.isPersonalCertificateRequiredForPermission(PERMISSION)).thenReturn(response);
 
-        assertThat(personalCertificateResource.isPersonalCertificateRequiredForPermission(PERMISSION))
-            .isEqualTo(response);
+        assertThat(personalCertificateResource.isPersonalCertificateRequiredForPermission(PERMISSION)).isEqualTo(
+            response
+        );
     }
 }

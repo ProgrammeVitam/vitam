@@ -30,7 +30,6 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 
 public interface TapeDriveCommandService {
-
     /**
      * @return
      * @throws TapeCommandException on command failure
@@ -64,5 +63,4 @@ public interface TapeDriveCommandService {
      * @throws TapeCommandException on command failure
      */
     void eject() throws TapeCommandException;
-
 }

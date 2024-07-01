@@ -173,7 +173,6 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     default:
                         break;
                 }
-
             } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException("Name: " + name, e);
             }

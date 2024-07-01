@@ -86,14 +86,17 @@ import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
 public class IngestInternalResourceTest extends ResteasyTestApplication {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResourceTest.class);
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    private static VitamServerTestRunner vitamServerTestRunner =
-        new VitamServerTestRunner(IngestInternalResourceTest.class);
+    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        IngestInternalResourceTest.class
+    );
 
     private static final String REST_URI = "/ingest/v1";
     private static final String STATUS_URI = "/status";
@@ -103,16 +106,15 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
     private static final String INIT_CONTEXT = "initContext";
     private static final String OPERATION_URL = "/operations/id1";
 
+    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
-    private final static WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private static final ProcessingManagementClientFactory processingManagementClientFactory = mock(
+        ProcessingManagementClientFactory.class
+    );
 
-    private final static ProcessingManagementClientFactory processingManagementClientFactory =
-        mock(ProcessingManagementClientFactory.class);
-
-    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
-
-
+    private static final LogbookOperationsClientFactory logbookOperationsClientFactory = mock(
+        LogbookOperationsClientFactory.class
+    );
 
     private GUID ingestGuid;
     private ProcessingManagementClient processingClient;
@@ -124,10 +126,14 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        return Sets
-            .newHashSet(new HeaderIdContainerFilter(),
-                new IngestInternalResource(workspaceClientFactory, processingManagementClientFactory,
-                    logbookOperationsClientFactory));
+        return Sets.newHashSet(
+            new HeaderIdContainerFilter(),
+            new IngestInternalResource(
+                workspaceClientFactory,
+                processingManagementClientFactory,
+                logbookOperationsClientFactory
+            )
+        );
     }
 
     @BeforeClass
@@ -152,7 +158,6 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-
         ingestGuid = GUIDFactory.newManifestGUID(0);
         final LogbookOperationParameters externalOperationParameters1 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -162,7 +167,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                ingestGuid);
+                ingestGuid
+            );
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -172,7 +178,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest external",
-                ingestGuid);
+                ingestGuid
+            );
 
         final LogbookOperationParameters externalOperationParameters3 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -182,7 +189,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest internal",
-                ingestGuid);
+                ingestGuid
+            );
         operationList = new ArrayList<>();
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
@@ -196,7 +204,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "End Ingest ATR",
-                ingestGuid);
+                ingestGuid
+            );
         final LogbookOperationParameters externalOperationParameters5 =
             LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
@@ -205,7 +214,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest ATR",
-                ingestGuid);
+                ingestGuid
+            );
         final LogbookOperationParameters externalOperationParameters6 =
             LogbookParameterHelper.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0),
@@ -214,7 +224,8 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest internal",
-                ingestGuid);
+                ingestGuid
+            );
         operationList2 = new ArrayList<>();
         operationList2.add(externalOperationParameters4);
         operationList2.add(externalOperationParameters5);
@@ -228,53 +239,70 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void givenNoZipWhenUploadSipAsStreamThenReturnKO() {
-        given().body(operationList).contentType(MediaType.APPLICATION_JSON).when().post(INGEST_URL)
-            .then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+        given()
+            .body(operationList)
+            .contentType(MediaType.APPLICATION_JSON)
+            .when()
+            .post(INGEST_URL)
+            .then()
+            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
-    public void givenUnzipNonZipErrorWhenUploadSipAsStreaminInitPhaseThenReturnKO()
-        throws Exception {
-        doThrow(new BadRequestException("Test")).when(processingClient).initVitamProcess(
-            any(),
-            any());
+    public void givenUnzipNonZipErrorWhenUploadSipAsStreaminInitPhaseThenReturnKO() throws Exception {
+        doThrow(new BadRequestException("Test")).when(processingClient).initVitamProcess(any(), any());
 
-        final InputStream inputStreamZip =
-            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
+        final InputStream inputStreamZip = PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
         given()
             .headers(
-                GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
-                GlobalDataRest.X_ACTION, ProcessAction.INIT,
-                GlobalDataRest.X_ACTION_INIT, ProcessAction.INIT,
-                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT,
-                GlobalDataRest.X_TYPE_PROCESS, "INGEST")
-            .body(inputStreamZip).contentType(CommonMediaType.ZIP)
-            .when().post(INGEST_URL)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-
+                GlobalDataRest.X_REQUEST_ID,
+                ingestGuid.getId(),
+                GlobalDataRest.X_ACTION,
+                ProcessAction.INIT,
+                GlobalDataRest.X_ACTION_INIT,
+                ProcessAction.INIT,
+                GlobalDataRest.X_CONTEXT_ID,
+                INIT_CONTEXT,
+                GlobalDataRest.X_TYPE_PROCESS,
+                "INGEST"
+            )
+            .body(inputStreamZip)
+            .contentType(CommonMediaType.ZIP)
+            .when()
+            .post(INGEST_URL)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void givenUnzipObjectErrorWhenUploadSipAsStreamThenReturnKO() throws Exception {
-        doThrow(new ContentAddressableStorageException("Test")).when(workspaceClient)
+        doThrow(new ContentAddressableStorageException("Test"))
+            .when(workspaceClient)
             .uncompressObject(any(), any(), any(), any());
-
 
         try (InputStream inputStream = new FakeInputStream(1)) {
             given()
                 .headers(
-                    GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(),
-                    GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                    GlobalDataRest.X_ACTION_INIT, ProcessAction.START,
-                    GlobalDataRest.X_CONTEXT_ID, START_CONTEXT, GlobalDataRest.X_TYPE_PROCESS, "INGEST")
-                .body(inputStream).contentType(CommonMediaType.ZIP)
-                .when().post(INGEST_URL)
-                .then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+                    GlobalDataRest.X_REQUEST_ID,
+                    ingestGuid.getId(),
+                    GlobalDataRest.X_ACTION,
+                    ProcessAction.RESUME,
+                    GlobalDataRest.X_ACTION_INIT,
+                    ProcessAction.START,
+                    GlobalDataRest.X_CONTEXT_ID,
+                    START_CONTEXT,
+                    GlobalDataRest.X_TYPE_PROCESS,
+                    "INGEST"
+                )
+                .body(inputStream)
+                .contentType(CommonMediaType.ZIP)
+                .when()
+                .post(INGEST_URL)
+                .then()
+                .statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
         }
-
     }
-
 
     @Test
     public void givenContainerAlreadyExistsWhenUploadSipAsStreamThenReturnKO() throws Exception {
@@ -282,97 +310,137 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
 
         try (InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
             given()
-                .header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                    GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-                .body(inputStream).contentType(CommonMediaType.ZIP)
-                .when().post(INGEST_URL)
-                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+                .header(
+                    GlobalDataRest.X_REQUEST_ID,
+                    ingestGuid.getId(),
+                    GlobalDataRest.X_ACTION,
+                    ProcessAction.RESUME,
+                    GlobalDataRest.X_CONTEXT_ID,
+                    DEFAULT_CONTEXT
+                )
+                .body(inputStream)
+                .contentType(CommonMediaType.ZIP)
+                .when()
+                .post(INGEST_URL)
+                .then()
+                .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
-
     }
 
     @Test
     public void downloadObjects() {
         given()
-            .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.REPORT.getCollectionName())
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.REPORT.getCollectionName())
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .when()
             .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.MANIFEST.getCollectionName())
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .when()
             .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + DataCategory.LOGBOOK.getCollectionName())
-            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given()
-            .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/unknown")
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .get(INGEST_URL + "/" + ingestGuid.getId() + "/unknown")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public void givenOperationIdUnavailableWhenupdateOperationProcessStatusThenRaiseAnExceptionProcessingException()
         throws Exception {
-        doThrow(new VitamClientException("")).when(processingClient).updateOperationActionProcess(
-            any(),
-            any());
+        doThrow(new VitamClientException("")).when(processingClient).updateOperationActionProcess(any(), any());
 
         given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-            .when().put(OPERATION_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .headers(
+                GlobalDataRest.X_REQUEST_ID,
+                ingestGuid.getId(),
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID,
+                DEFAULT_CONTEXT
+            )
+            .when()
+            .put(OPERATION_URL)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
-    public void givenOperationIdUnavailableWhengetStatusThenRaiseAnExceptionProcessingException()
-        throws Exception {
-        doThrow(new VitamClientException("")).when(processingClient).getOperationProcessStatus(
-            any());
+    public void givenOperationIdUnavailableWhengetStatusThenRaiseAnExceptionProcessingException() throws Exception {
+        doThrow(new VitamClientException("")).when(processingClient).getOperationProcessStatus(any());
 
         given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-            .when().head(OPERATION_URL)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .headers(
+                GlobalDataRest.X_REQUEST_ID,
+                ingestGuid.getId(),
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID,
+                DEFAULT_CONTEXT
+            )
+            .when()
+            .head(OPERATION_URL)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
-    public void givenOperationIdWhengetDetailedStatusThenReturnOk()
-        throws Exception {
-        ItemStatus itemStatus = new ItemStatus().setGlobalState(
-            ProcessState.COMPLETED);
+    public void givenOperationIdWhengetDetailedStatusThenReturnOk() throws Exception {
+        ItemStatus itemStatus = new ItemStatus().setGlobalState(ProcessState.COMPLETED);
 
-        RequestResponseOK<ItemStatus> objectRequestResponseOK =
-            new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode());
+        RequestResponseOK<ItemStatus> objectRequestResponseOK = new RequestResponseOK<ItemStatus>()
+            .addResult(itemStatus)
+            .setHttpCode(Status.OK.getStatusCode());
         when(processingClient.getOperationProcessExecutionDetails(anyString())).thenReturn(objectRequestResponseOK);
 
         given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .headers(
+                GlobalDataRest.X_REQUEST_ID,
+                ingestGuid.getId(),
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID,
+                DEFAULT_CONTEXT
+            )
             .contentType(MediaType.APPLICATION_JSON)
             .body(JsonHandler.createObjectNode())
-            .when().get(OPERATION_URL)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .get(OPERATION_URL)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
-    public void givenOperationIdWhengetStatusBadRequestExceptionThenReturnOk()
-        throws Exception {
-        when(processingClient.getOperationProcessStatus(any())).thenReturn(new ItemStatus().setGlobalState(
-            ProcessState.RUNNING));
+    public void givenOperationIdWhengetStatusBadRequestExceptionThenReturnOk() throws Exception {
+        when(processingClient.getOperationProcessStatus(any())).thenReturn(
+            new ItemStatus().setGlobalState(ProcessState.RUNNING)
+        );
         given()
-            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
-                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
-            .when().head(OPERATION_URL)
-            .then().statusCode(Status.ACCEPTED.getStatusCode());
+            .headers(
+                GlobalDataRest.X_REQUEST_ID,
+                ingestGuid.getId(),
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID,
+                DEFAULT_CONTEXT
+            )
+            .when()
+            .head(OPERATION_URL)
+            .then()
+            .statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test
-    public void givenOperationIdWhenDeleteOperationProcessThenOK()
-        throws Exception {
+    public void givenOperationIdWhenDeleteOperationProcessThenOK() throws Exception {
         ItemStatus result = new ItemStatus();
         result.setGlobalState(ProcessState.COMPLETED);
         result.increment(StatusCode.FATAL);
@@ -384,29 +452,36 @@ public class IngestInternalResourceTest extends ResteasyTestApplication {
         when(processingClient.cancelOperationProcessExecution(anyString())).thenReturn(responseOK);
         given()
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
-            .when().delete(OPERATION_URL)
-            .then().statusCode(Status.ACCEPTED.getStatusCode());
+            .when()
+            .delete(OPERATION_URL)
+            .then()
+            .statusCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Test
-    public void givenWorkflowDefinitionsInternalServerExceptionThenReturnInternalServerError()
-        throws Exception {
+    public void givenWorkflowDefinitionsInternalServerExceptionThenReturnInternalServerError() throws Exception {
         when(processingClient.getWorkflowDefinitions()).thenThrow(new VitamClientException(""));
         given()
-            .contentType(MediaType.APPLICATION_JSON).when()
-            .get("workflows").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .contentType(MediaType.APPLICATION_JSON)
+            .when()
+            .get("workflows")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
-    public void givenWorkflowDefinitionsRequestResponseThenReturnOk()
-        throws Exception {
+    public void givenWorkflowDefinitionsRequestResponseThenReturnOk() throws Exception {
         doReturn(
-            new RequestResponseOK().addResult(JsonHandler.createObjectNode()).setHttpCode(Status.OK.getStatusCode()))
+            new RequestResponseOK().addResult(JsonHandler.createObjectNode()).setHttpCode(Status.OK.getStatusCode())
+        )
             .when(processingClient)
             .getWorkflowDefinitions();
 
-        given().contentType(MediaType.APPLICATION_JSON)
-            .when().get("workflows").then().statusCode(Status.OK.getStatusCode());
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .when()
+            .get("workflows")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 }
-

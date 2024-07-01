@@ -39,7 +39,6 @@ public class AlertServiceImpl implements AlertService {
 
     VitamLogger LOGGER = VitamLoggerFactory.getInstance(AlertServiceImpl.class);
 
-
     public AlertServiceImpl() {
         super();
     }
@@ -54,8 +53,7 @@ public class AlertServiceImpl implements AlertService {
         try {
             LOGGER.log(level, message);
         } finally {
-            VitamCommonMetrics.ALERT_SERVICE_COUNTER
-                .labels(level.name()).inc();
+            VitamCommonMetrics.ALERT_SERVICE_COUNTER.labels(level.name()).inc();
         }
     }
 
@@ -64,15 +62,12 @@ public class AlertServiceImpl implements AlertService {
         try {
             LOGGER.log(level, message, cause);
         } finally {
-            VitamCommonMetrics.ALERT_SERVICE_COUNTER
-                .labels(level.name()).inc();
+            VitamCommonMetrics.ALERT_SERVICE_COUNTER.labels(level.name()).inc();
         }
     }
-
 
     @Override
     public void createAlert(String message) {
         createAlert(VitamLogLevel.INFO, message);
     }
-
 }

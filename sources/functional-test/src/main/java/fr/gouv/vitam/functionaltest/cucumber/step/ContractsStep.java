@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -154,19 +153,20 @@ public class ContractsStep extends CommonStep {
      * @throws IngestExternalException
      */
     @Then("^j'importe ce contrat incorrect de type (.*)")
-    public void upload_incorrect_contract(String type)
-        throws Exception {
+    public void upload_incorrect_contract(String type) throws Exception {
         uploadContract(type, CONTEXT_IDENTIFIER, false);
     }
 
     private void uploadContract(String type, String contextIdentifier, Boolean expectedSuccessStatus)
-        throws IOException, InvalidParseOperationException, AccessExternalClientException, VitamClientException,
-        InvalidCreateOperationException {
+        throws IOException, InvalidParseOperationException, AccessExternalClientException, VitamClientException, InvalidCreateOperationException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<ContextModel> res = world.getAdminClient()
-                .findContextById(new VitamContext(world.getTenantId())
-                    .setApplicationSessionId(world.getApplicationSessionId()), contextIdentifier);
+            RequestResponse<ContextModel> res = world
+                .getAdminClient()
+                .findContextById(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    contextIdentifier
+                );
             assertThat(res.isOk()).isTrue();
             ContextModel contextModel = ((RequestResponseOK<ContextModel>) res).getFirstResult();
             assertThat(contextModel).isNotNull();
@@ -185,13 +185,19 @@ public class ContractsStep extends CommonStep {
         }
     }
 
-    private void uploadIngestContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-        InputStream inputStream, List<PermissionModel> permissions)
-        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
-        RequestResponse response =
-            world.getAdminClient().createIngestContracts(
+    private void uploadIngestContract(
+        String contextIdentifier,
+        Boolean expectedSuccessStatus,
+        Path sip,
+        InputStream inputStream,
+        List<PermissionModel> permissions
+    ) throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        RequestResponse response = world
+            .getAdminClient()
+            .createIngestContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                inputStream);
+                inputStream
+            );
 
         if (expectedSuccessStatus != null) {
             assertThat(response.isOk()).isEqualTo(expectedSuccessStatus);
@@ -200,15 +206,16 @@ public class ContractsStep extends CommonStep {
         world.setOperationId(operationId);
 
         if (expectedSuccessStatus == null || expectedSuccessStatus) {
-
-            final List<IngestContractModel> ingestContractModelList =
-                JsonHandler
-                    .getFromFileAsTypeReference(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
-                    });
+            final List<IngestContractModel> ingestContractModelList = JsonHandler.getFromFileAsTypeReference(
+                sip.toFile(),
+                new TypeReference<List<IngestContractModel>>() {}
+            );
 
             if (ingestContractModelList != null && !ingestContractModelList.isEmpty() && response.isOk()) {
-                Set<String> contractIdentifier =
-                    ingestContractModelList.stream().map(ic -> ic.getIdentifier()).collect(Collectors.toSet());
+                Set<String> contractIdentifier = ingestContractModelList
+                    .stream()
+                    .map(ic -> ic.getIdentifier())
+                    .collect(Collectors.toSet());
 
                 // Remove, because TNR testing security control on ingest contract
                 contractIdentifier.remove(INGEST_CONTRACT_NOT_IN_CONTEXT);
@@ -226,20 +233,31 @@ public class ContractsStep extends CommonStep {
                 }
 
                 if (changed) {
-                    updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
-                        permissions, expectedSuccessStatus);
+                    updateContext(
+                        world.getAdminClient(),
+                        world.getApplicationSessionId(),
+                        contextIdentifier,
+                        permissions,
+                        expectedSuccessStatus
+                    );
                 }
             }
         }
     }
 
-    private void uploadAccessContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-        InputStream inputStream, List<PermissionModel> permissions)
-        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
-        RequestResponse response =
-            world.getAdminClient().createAccessContracts(
+    private void uploadAccessContract(
+        String contextIdentifier,
+        Boolean expectedSuccessStatus,
+        Path sip,
+        InputStream inputStream,
+        List<PermissionModel> permissions
+    ) throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        RequestResponse response = world
+            .getAdminClient()
+            .createAccessContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                inputStream);
+                inputStream
+            );
 
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
@@ -249,14 +267,16 @@ public class ContractsStep extends CommonStep {
         }
 
         if (expectedSuccessStatus == null || expectedSuccessStatus) {
-            final List<IngestContractModel> accessContractModelList =
-                JsonHandler
-                    .getFromFileAsTypeReference(sip.toFile(), new TypeReference<List<IngestContractModel>>() {
-                    });
+            final List<IngestContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+                sip.toFile(),
+                new TypeReference<List<IngestContractModel>>() {}
+            );
 
             if (accessContractModelList != null && !accessContractModelList.isEmpty()) {
-                Set<String> contractIdentifier =
-                    accessContractModelList.stream().map(ac -> ac.getIdentifier()).collect(Collectors.toSet());
+                Set<String> contractIdentifier = accessContractModelList
+                    .stream()
+                    .map(ac -> ac.getIdentifier())
+                    .collect(Collectors.toSet());
 
                 boolean changed = false;
                 for (PermissionModel p : permissions) {
@@ -270,20 +290,31 @@ public class ContractsStep extends CommonStep {
                 }
 
                 if (changed) {
-                    updateContext(world.getAdminClient(), world.getApplicationSessionId(), contextIdentifier,
-                        permissions, expectedSuccessStatus);
+                    updateContext(
+                        world.getAdminClient(),
+                        world.getApplicationSessionId(),
+                        contextIdentifier,
+                        permissions,
+                        expectedSuccessStatus
+                    );
                 }
             }
         }
     }
 
-    private void uploadManagementContract(String contextIdentifier, Boolean expectedSuccessStatus, Path sip,
-        InputStream inputStream, List<PermissionModel> permissions)
-        throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
-        RequestResponse response =
-            world.getAdminClient().createManagementContracts(
+    private void uploadManagementContract(
+        String contextIdentifier,
+        Boolean expectedSuccessStatus,
+        Path sip,
+        InputStream inputStream,
+        List<PermissionModel> permissions
+    ) throws InvalidParseOperationException, AccessExternalClientException, InvalidCreateOperationException {
+        RequestResponse response = world
+            .getAdminClient()
+            .createManagementContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                inputStream);
+                inputStream
+            );
 
         final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
@@ -293,9 +324,13 @@ public class ContractsStep extends CommonStep {
         }
     }
 
-    public static void updateContext(AdminExternalClient adminExternalClient, String applicationSessionId,
-        String contextIdentifier, List<PermissionModel> permissions, Boolean expectedSuccessStatus)
-        throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientException {
+    public static void updateContext(
+        AdminExternalClient adminExternalClient,
+        String applicationSessionId,
+        String contextIdentifier,
+        List<PermissionModel> permissions,
+        Boolean expectedSuccessStatus
+    ) throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientException {
         // update contexte
         ObjectNode permissionsNode = JsonHandler.createObjectNode();
         permissionsNode.set(ContextModel.TAG_PERMISSIONS, JsonHandler.toJsonNode(permissions));
@@ -306,8 +341,11 @@ public class ContractsStep extends CommonStep {
         update.addActions(setPermission);
         JsonNode queryDsl = update.getFinalUpdateById();
 
-        RequestResponse<ContextModel> requestResponse =
-            adminExternalClient.updateContext(context, contextIdentifier, queryDsl);
+        RequestResponse<ContextModel> requestResponse = adminExternalClient.updateContext(
+            context,
+            contextIdentifier,
+            queryDsl
+        );
 
         if (expectedSuccessStatus != null) {
             assertThat(requestResponse.isOk()).isEqualTo(expectedSuccessStatus);
@@ -316,8 +354,7 @@ public class ContractsStep extends CommonStep {
 
     @When("^je cherche un contrat de type (.*) et nommé (.*)")
     public void search_contracts(String type, String name)
-        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
-        VitamClientException {
+        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException, VitamClientException {
         this.setModel(retriveContract(type, name));
     }
 
@@ -332,12 +369,14 @@ public class ContractsStep extends CommonStep {
         final JsonNode query = select.getFinalSelect();
         switch (collection) {
             case ACCESS_CONTRACTS:
-                RequestResponse<AccessContractModel> accessResponse =
-                    world.getAdminClient().findAccessContracts(
-                        new VitamContext(world.getTenantId()).setAccessContract(null)
+                RequestResponse<AccessContractModel> accessResponse = world
+                    .getAdminClient()
+                    .findAccessContracts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
                             .setApplicationSessionId(world.getApplicationSessionId()),
-                        query);
-
+                        query
+                    );
 
                 assertThat(accessResponse.isOk()).isTrue();
 
@@ -349,11 +388,14 @@ public class ContractsStep extends CommonStep {
                 }
                 return null;
             case INGEST_CONTRACTS:
-                RequestResponse<IngestContractModel> ingestResponse =
-                    world.getAdminClient().findIngestContracts(
-                        new VitamContext(world.getTenantId()).setAccessContract(null)
+                RequestResponse<IngestContractModel> ingestResponse = world
+                    .getAdminClient()
+                    .findIngestContracts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
                             .setApplicationSessionId(world.getApplicationSessionId()),
-                        query);
+                        query
+                    );
 
                 assertThat(ingestResponse.isOk()).isTrue();
 
@@ -365,12 +407,14 @@ public class ContractsStep extends CommonStep {
                 }
                 return null;
             case MANAGEMENT_CONTRACTS:
-                RequestResponse<ManagementContractModel> managementResponse =
-                    world.getAdminClient().findManagementContracts(
-                        new VitamContext(world.getTenantId()).setAccessContract(null)
+                RequestResponse<ManagementContractModel> managementResponse = world
+                    .getAdminClient()
+                    .findManagementContracts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
                             .setApplicationSessionId(world.getApplicationSessionId()),
-                        query);
-
+                        query
+                    );
 
                 assertThat(managementResponse.isOk()).isTrue();
 
@@ -406,11 +450,11 @@ public class ContractsStep extends CommonStep {
         }
     }
 
-
-    @When("^je modifie un contrat de type (.*) avec le fichier de requête suivant (.*) le statut de la requête est (.*)$")
+    @When(
+        "^je modifie un contrat de type (.*) avec le fichier de requête suivant (.*) le statut de la requête est (.*)$"
+    )
     public void update_contract_by_query(String type, String queryFilename, Integer statusCode)
-        throws IOException, InvalidParseOperationException,
-        AccessExternalClientException, VitamClientException {
+        throws IOException, InvalidParseOperationException, AccessExternalClientException, VitamClientException {
         AdminCollections collection = AdminCollections.valueOf(type);
         String contractIdentifier = getModel().get("Identifier").asText();
 
@@ -420,21 +464,33 @@ public class ContractsStep extends CommonStep {
         RequestResponse requestResponse = null;
         switch (collection) {
             case ACCESS_CONTRACTS:
-                requestResponse = world.getAdminClient().updateAccessContract(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    contractIdentifier, queryDsl);
+                requestResponse = world
+                    .getAdminClient()
+                    .updateAccessContract(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        contractIdentifier,
+                        queryDsl
+                    );
                 assertThat(statusCode).isEqualTo(requestResponse.getStatus());
                 break;
             case INGEST_CONTRACTS:
-                requestResponse = world.getAdminClient().updateIngestContract(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    contractIdentifier, queryDsl);
+                requestResponse = world
+                    .getAdminClient()
+                    .updateIngestContract(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        contractIdentifier,
+                        queryDsl
+                    );
                 assertThat(statusCode).isEqualTo(requestResponse.getStatus());
                 break;
             case MANAGEMENT_CONTRACTS:
-                requestResponse = world.getAdminClient().updateManagementContract(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    contractIdentifier, queryDsl);
+                requestResponse = world
+                    .getAdminClient()
+                    .updateManagementContract(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        contractIdentifier,
+                        queryDsl
+                    );
                 assertThat(statusCode).isEqualTo(requestResponse.getStatus());
                 break;
             default:
@@ -445,7 +501,6 @@ public class ContractsStep extends CommonStep {
         world.setOperationId(operationId);
     }
 
-
     @When("^je modifie un contrat d'accès et le statut de la requête est (.*)$")
     public void update_access_contract(Integer statusCode)
         throws InvalidParseOperationException, AccessExternalClientException {
@@ -454,11 +509,14 @@ public class ContractsStep extends CommonStep {
         JsonNode queryDsl = JsonHandler.getFromString(world.getQuery());
         RequestResponse requestResponse = null;
 
-        requestResponse = world.getAdminClient().updateAccessContract(
-            new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-            contractIdentifier, queryDsl);
+        requestResponse = world
+            .getAdminClient()
+            .updateAccessContract(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                contractIdentifier,
+                queryDsl
+            );
         assertThat(statusCode).isEqualTo(requestResponse.getStatus());
-
 
         final String operationId = requestResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         world.setOperationId(operationId);
@@ -473,8 +531,7 @@ public class ContractsStep extends CommonStep {
      * @throws Exception
      */
     @Then("^le[s]? contract[s]? (.*) de type (.*) (?:définie|définies) dans le fichier (.*)$")
-    public void verify_contrat_or_import(List<String> contractNames, String type, String fileName)
-        throws Exception {
+    public void verify_contrat_or_import(List<String> contractNames, String type, String fileName) throws Exception {
         boolean shouldImport = false;
         for (String contractName : contractNames) {
             JsonNode jsonNode = retriveContract(type, contractName);

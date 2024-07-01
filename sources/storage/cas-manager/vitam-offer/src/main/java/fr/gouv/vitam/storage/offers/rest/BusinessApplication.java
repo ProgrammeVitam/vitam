@@ -53,8 +53,9 @@ public class BusinessApplication extends Application {
 
         OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
 
-        DefaultOfferResource defaultOfferResource =
-            new DefaultOfferResource(offerCommonApplication.getDefaultOfferService());
+        DefaultOfferResource defaultOfferResource = new DefaultOfferResource(
+            offerCommonApplication.getDefaultOfferService()
+        );
 
         singletons.addAll(commonBusinessApplication.getResources());
         singletons.add(defaultOfferResource);
@@ -64,5 +65,4 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

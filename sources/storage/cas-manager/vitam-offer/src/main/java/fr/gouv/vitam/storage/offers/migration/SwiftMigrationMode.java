@@ -28,7 +28,6 @@
 package fr.gouv.vitam.storage.offers.migration;
 
 public enum SwiftMigrationMode {
-
     MODE_0_ANALYSIS_ONLY(false, false, "Analysis-only mode"),
     MODE_1_FIX_INCONSISTENCIES(true, false, "Fix inconsistencies mode"),
     MODE_2_FIX_INCONSISTENCIES_AND_PURGE_DELETED(true, true, "Fix inconsistencies and purge deleted mode");

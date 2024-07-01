@@ -39,7 +39,6 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
     private String workspaceUrl;
     private String processingUrl;
 
-
     /**
      * IngestInternalConfiguration empty constructor for YAMLFactory
      */
@@ -56,15 +55,13 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
         return workspaceUrl;
     }
 
-
     /**
      * @param workspaceUrl the workspace Url to set
      * @return this
      * @throws IllegalArgumentException if workspaceUrl is null or empty
      */
     public IngestInternalConfiguration setWorkspaceUrl(String workspaceUrl) {
-        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER,
-            workspaceUrl);
+        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER, workspaceUrl);
         this.workspaceUrl = workspaceUrl;
         return this;
     }
@@ -78,15 +75,13 @@ public class IngestInternalConfiguration extends DefaultVitamApplicationConfigur
         return processingUrl;
     }
 
-
     /**
      * @param processingUrl the processing Url to set
      * @return this
      * @throws IllegalArgumentException if processingUrl is null or empty
      */
     public IngestInternalConfiguration setProcessingUrl(String processingUrl) {
-        ParametersChecker.checkParameter("processingUrl" + IS_A_MANDATORY_PARAMETER,
-            processingUrl);
+        ParametersChecker.checkParameter("processingUrl" + IS_A_MANDATORY_PARAMETER, processingUrl);
         this.processingUrl = processingUrl;
         return this;
     }

@@ -59,8 +59,16 @@ public class OperationSummary {
         // Empty constructor for deserialization
     }
 
-    public OperationSummary(Integer tenant, String evId, String evType, String outcome, String outDetail, String outMsg,
-        JsonNode rSI, JsonNode evDetData) {
+    public OperationSummary(
+        Integer tenant,
+        String evId,
+        String evType,
+        String outcome,
+        String outDetail,
+        String outMsg,
+        JsonNode rSI,
+        JsonNode evDetData
+    ) {
         this.tenant = tenant;
         this.evId = evId;
         this.evType = evType;

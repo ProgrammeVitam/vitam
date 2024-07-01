@@ -56,7 +56,8 @@ public class VitamObjectMapperTest {
             JsonNode json = JsonHandler.getFromInputStream(is);
             ArchiveUnitInternalModel archiveUnitModel = objectMapper.treeToValue(json, ArchiveUnitInternalModel.class);
             assertThat(archiveUnitModel.getId()).isEqualTo("aeaqaaaaaahk64ngaaudyamgscsjluqaaabq");
-            assertThat(archiveUnitModel.getManagement().getDissemination().getRules()).extracting(RuleModel::getRule)
+            assertThat(archiveUnitModel.getManagement().getDissemination().getRules())
+                .extracting(RuleModel::getRule)
                 .contains("DIS-00001");
         } catch (InvalidParseOperationException | JsonProcessingException e) {
             fail("Cannot deserialize json", e);

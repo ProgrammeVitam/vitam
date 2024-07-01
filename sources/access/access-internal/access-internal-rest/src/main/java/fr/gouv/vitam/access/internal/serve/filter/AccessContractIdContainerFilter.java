@@ -51,21 +51,26 @@ public class AccessContractIdContainerFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        if (requestContext.getUriInfo().getPath().contains("/status")
-            || requestContext.getUriInfo().getPath().contains("/operations")) {
+        if (
+            requestContext.getUriInfo().getPath().contains("/status") ||
+            requestContext.getUriInfo().getPath().contains("/operations")
+        ) {
             return;
         }
         try {
-            AccessContractIdHeaderHelper
-                .manageAccessContractFromHeader(requestContext.getHeaders(), AdminManagementClientFactory
-                    .getInstance());
+            AccessContractIdHeaderHelper.manageAccessContractFromHeader(
+                requestContext.getHeaders(),
+                AdminManagementClientFactory.getInstance()
+            );
         } catch (MissingAccessContractIdException e) {
             LOGGER.error(e);
 
-            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
-                .entity(JsonHandler.createObjectNode().put("Error", e.getMessage()))
-                .type(MediaType.APPLICATION_JSON_TYPE).build());
+            requestContext.abortWith(
+                Response.status(Response.Status.UNAUTHORIZED)
+                    .entity(JsonHandler.createObjectNode().put("Error", e.getMessage()))
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .build()
+            );
         }
     }
-
 }

@@ -35,6 +35,7 @@ import java.util.Map;
  * EvidenceAuditReportObject class
  */
 public class EvidenceAuditReportObject {
+
     @JsonProperty("identifier")
     private String identifier;
 
@@ -56,10 +57,7 @@ public class EvidenceAuditReportObject {
     @JsonProperty("offersHashes")
     private Map<String, String> offersHashes;
 
-
-    EvidenceAuditReportObject() {
-
-    }
+    EvidenceAuditReportObject() {}
 
     public EvidenceAuditReportObject(String id) {
         this.identifier = id;

@@ -64,13 +64,15 @@ public class BusinessApplication extends Application {
     private MetaDataClientFactory metaDataClientFactory;
     private ProcessingManagementClientFactory processingManagementClientFactory;
 
-
-    public BusinessApplication(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory, StorageClientFactory storageClientFactory,
-        WorkspaceClientFactory workspaceClientFactory, AdminManagementClientFactory adminManagementClientFactory,
+    public BusinessApplication(
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        StorageClientFactory storageClientFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory,
         MetaDataClientFactory metaDataClientFactory,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
-
+        ProcessingManagementClientFactory processingManagementClientFactory
+    ) {
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -78,7 +80,6 @@ public class BusinessApplication extends Application {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
-
 
         commonBusinessApplication = new CommonBusinessApplication();
 
@@ -96,8 +97,10 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final AccessInternalConfiguration accessInternalConfiguration =
-                PropertiesUtils.readYaml(yamlIS, AccessInternalConfiguration.class);
+            final AccessInternalConfiguration accessInternalConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                AccessInternalConfiguration.class
+            );
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
@@ -109,22 +112,33 @@ public class BusinessApplication extends Application {
     }
 
     private void prepare(AccessInternalConfiguration accessInternalConfiguration) {
-
         if (null != accessInternalConfiguration) {
             singletons.add(new AccessInternalResourceImpl(accessInternalConfiguration));
             singletons.add(new LogbookInternalResourceImpl());
         } else {
-            singletons.add(new AccessInternalResourceImpl(logbookLifeCyclesClientFactory,
-                logbookOperationsClientFactory, storageClientFactory,
-                workspaceClientFactory, adminManagementClientFactory,
-                metaDataClientFactory,
-                processingManagementClientFactory));
+            singletons.add(
+                new AccessInternalResourceImpl(
+                    logbookLifeCyclesClientFactory,
+                    logbookOperationsClientFactory,
+                    storageClientFactory,
+                    workspaceClientFactory,
+                    adminManagementClientFactory,
+                    metaDataClientFactory,
+                    processingManagementClientFactory
+                )
+            );
 
-            singletons.add(new LogbookInternalResourceImpl(logbookLifeCyclesClientFactory,
-                logbookOperationsClientFactory, storageClientFactory,
-                workspaceClientFactory, adminManagementClientFactory,
-                metaDataClientFactory,
-                processingManagementClientFactory));
+            singletons.add(
+                new LogbookInternalResourceImpl(
+                    logbookLifeCyclesClientFactory,
+                    logbookOperationsClientFactory,
+                    storageClientFactory,
+                    workspaceClientFactory,
+                    adminManagementClientFactory,
+                    metaDataClientFactory,
+                    processingManagementClientFactory
+                )
+            );
         }
 
         singletons.add(new AccessContractIdContainerFilter());
@@ -134,5 +148,4 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

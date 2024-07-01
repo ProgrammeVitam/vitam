@@ -44,8 +44,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class ServerIdentityTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ServerIdentityTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerIdentityTest.class);
 
     private static boolean first = true;
 
@@ -187,5 +187,4 @@ public class ServerIdentityTest {
         assertEquals("Role still the same", "role1", serverIdentity.getRole());
         assertEquals("Pid still the same", 1, serverIdentity.getSiteId());
     }
-
 }

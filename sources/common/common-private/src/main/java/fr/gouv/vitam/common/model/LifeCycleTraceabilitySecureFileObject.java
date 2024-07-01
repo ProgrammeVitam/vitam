@@ -37,36 +37,48 @@ public class LifeCycleTraceabilitySecureFileObject {
 
     @JsonProperty("lEvtIdProc")
     private String lastEvtIdProc;
+
     @JsonProperty("lEvTypeProc")
     private String lastEvTypeProc;
+
     @JsonProperty("lEvDTime")
     private String lastEvDateTime;
+
     @JsonProperty("lfcId")
     private String lfcId;
+
     @JsonProperty("mdType")
     private MetadataType metadataType;
+
     @JsonProperty("version")
     private int version;
+
     @JsonProperty("ltEvtOutcome")
     private String lastEvtOutcome;
+
     @JsonProperty("hLFC")
     private String hashLFC;
+
     @JsonProperty("hLFCEvts")
     private String hashLFCEvents;
+
     @JsonProperty("hMetadata")
     private String hashMetadata;
+
     @JsonProperty("hGlobalFStorage")
     private String hashGlobalFromStorage;
+
     @JsonProperty("hGlobalDetails")
     private TraceabilityHashDetails traceabilityHashDetails;
+
     @JsonProperty("hOGDocsStorage")
     private List<ObjectGroupDocumentHash> objectGroupDocumentHashList;
+
     @JsonProperty("up")
     private List<String> up;
+
     @JsonProperty("idOG")
     private String idGot;
-
-
 
     /**
      * set lastEvtIdProc
@@ -154,8 +166,7 @@ public class LifeCycleTraceabilitySecureFileObject {
         this.objectGroupDocumentHashList = objectGroupDocumentHashList;
     }
 
-    public LifeCycleTraceabilitySecureFileObject() {
-    }
+    public LifeCycleTraceabilitySecureFileObject() {}
 
     /**
      * Constructor to set the attributes for lfc tracibility file lines
@@ -171,10 +182,20 @@ public class LifeCycleTraceabilitySecureFileObject {
      * @param hashMetadata hashMetadata
      * @param hashGlobalFromStorage hashGlobalFromStorage
      */
-    public LifeCycleTraceabilitySecureFileObject(String lastEvtIdProc, String lastEvTypeProc, String lastEvDateTime,
-        String lfcId, MetadataType metadataType,
-        int version, String lastEvtOutcome, String hashLFC, String hashLFCEvents, String hashMetadata,
-        String hashGlobalFromStorage, List<ObjectGroupDocumentHash> objectGroupDocumentHashList) {
+    public LifeCycleTraceabilitySecureFileObject(
+        String lastEvtIdProc,
+        String lastEvTypeProc,
+        String lastEvDateTime,
+        String lfcId,
+        MetadataType metadataType,
+        int version,
+        String lastEvtOutcome,
+        String hashLFC,
+        String hashLFCEvents,
+        String hashMetadata,
+        String hashGlobalFromStorage,
+        List<ObjectGroupDocumentHash> objectGroupDocumentHashList
+    ) {
         this.lastEvtIdProc = lastEvtIdProc;
         this.lastEvTypeProc = lastEvTypeProc;
         this.lastEvDateTime = lastEvDateTime;
@@ -192,8 +213,6 @@ public class LifeCycleTraceabilitySecureFileObject {
             this.objectGroupDocumentHashList = objectGroupDocumentHashList;
         }
     }
-
-
 
     /**
      * getter for lastEvtIdProc
@@ -336,7 +355,8 @@ public class LifeCycleTraceabilitySecureFileObject {
     }
 
     public LifeCycleTraceabilitySecureFileObject setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
+        TraceabilityHashDetails traceabilityHashDetails
+    ) {
         this.traceabilityHashDetails = traceabilityHashDetails;
         return this;
     }

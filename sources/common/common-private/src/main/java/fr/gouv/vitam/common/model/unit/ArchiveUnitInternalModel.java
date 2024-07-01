@@ -134,7 +134,6 @@ public class ArchiveUnitInternalModel {
         this.management = management;
     }
 
-
     public List<ArchiveUnitHistoryModel> getHistory() {
         return history;
     }

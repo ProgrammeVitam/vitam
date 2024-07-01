@@ -45,11 +45,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ProfileManagerTest {
+
     private static final Integer TENANT_ID = 1;
     static ProfileManager profileManager = new ProfileManager(null, null);
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -67,8 +70,7 @@ public class ProfileManagerTest {
 
         final VitamError vitamError = new VitamError("");
 
-        boolean isValide =
-            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
+        boolean isValide = profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isTrue();
     }
@@ -84,12 +86,10 @@ public class ProfileManagerTest {
 
         final VitamError vitamError = new VitamError("");
 
-        boolean isValide =
-            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
+        boolean isValide = profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isFalse();
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -102,8 +102,7 @@ public class ProfileManagerTest {
 
         final VitamError vitamError = new VitamError("");
 
-        boolean isValide =
-            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
+        boolean isValide = profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isTrue();
     }
@@ -119,10 +118,8 @@ public class ProfileManagerTest {
 
         final VitamError vitamError = new VitamError("");
 
-        boolean isValide =
-            profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
+        boolean isValide = profileManager.validateProfileFile(modelMock, fileProfileXsd, vitamError);
 
         assertThat(isValide).isFalse();
     }
-
 }

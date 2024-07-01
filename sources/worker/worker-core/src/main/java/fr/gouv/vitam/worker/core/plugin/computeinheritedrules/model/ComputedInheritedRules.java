@@ -51,38 +51,51 @@ public class ComputedInheritedRules {
 
     @JsonProperty(STORAGE_RULE)
     private StorageRule storageRule;
+
     @JsonProperty(APPRAISAL_RULE)
     private AppraisalRule appraisalRule;
+
     @JsonProperty(DISSEMINATION_RULE)
     private InheritedRule disseminationRule;
+
     @JsonProperty(ACCESS_RULE)
     private InheritedRule accessRule;
+
     @JsonProperty(REUSE_RULE)
     private InheritedRule reuseRule;
+
     @JsonProperty(CLASSIFICATION_RULE)
     private ClassificationRule classificationRule;
+
     @JsonProperty(HOLD_RULE)
     private InheritedRule holdRule;
+
     @JsonProperty("inheritedRulesAPIOutput")
     private JsonNode inheritedRulesAPIOutput;
+
     @JsonProperty("indexationDate")
     private String indexationDate;
+
     @JsonProperty(NEED_AUTHORIZATION)
     private List<Boolean> needAuthorization;
 
+    public ComputedInheritedRules() {}
 
-    public ComputedInheritedRules() {
-
-    }
-
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, JsonNode inheritedRulesAPIOutput,
-        Map<String, Object> globalInheritedProperties, String indexationDate) {
+    public ComputedInheritedRules(
+        Map<String, InheritedRule> inheritedRules,
+        JsonNode inheritedRulesAPIOutput,
+        Map<String, Object> globalInheritedProperties,
+        String indexationDate
+    ) {
         this(inheritedRules, indexationDate, globalInheritedProperties);
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate,
-        Map<String, Object> globalInheritedProperties) {
+    public ComputedInheritedRules(
+        Map<String, InheritedRule> inheritedRules,
+        String indexationDate,
+        Map<String, Object> globalInheritedProperties
+    ) {
         this.storageRule = (StorageRule) inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = (AppraisalRule) inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
@@ -95,13 +108,11 @@ public class ComputedInheritedRules {
     }
 
     private List<Boolean> parseNeedAuthorizationProperty(Object needAuthorizationProperty) {
-
         if (needAuthorizationProperty == null) {
             return null;
         }
         if (needAuthorizationProperty instanceof Boolean) {
             return this.needAuthorization = Collections.singletonList((Boolean) needAuthorizationProperty);
-
         } else if (needAuthorizationProperty instanceof Collection<?>) {
             return this.needAuthorization = (List<Boolean>) needAuthorizationProperty;
         }
@@ -180,7 +191,6 @@ public class ComputedInheritedRules {
     public void setIndexationDate(String indexationDate) {
         this.indexationDate = indexationDate;
     }
-
 
     public List<Boolean> getNeedAuthorization() {
         return needAuthorization;

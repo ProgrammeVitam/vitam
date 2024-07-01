@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
  * GUUID Reader
  */
 public final class GUIDReader {
+
     private GUIDReader() {
         // Empty constructor
     }
@@ -62,7 +63,6 @@ public final class GUIDReader {
         }
     }
 
-
     /**
      * Get GUID from byte array representation
      *
@@ -73,5 +73,4 @@ public final class GUIDReader {
     public static final GUID getGUID(byte[] guid) throws InvalidGuidOperationException {
         return new GUIDImpl(guid);
     }
-
 }

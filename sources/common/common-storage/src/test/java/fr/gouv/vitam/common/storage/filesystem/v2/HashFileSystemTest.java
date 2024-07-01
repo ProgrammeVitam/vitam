@@ -52,6 +52,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystemTest.class);
 
     private static final String ROOT_CONTAINER = "container";
@@ -77,7 +78,6 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
      */
     @Test
     public void should_write_and_read_extended_attribute() throws Exception {
-
         // Given
         File rootContainer = new File(tempDir, ROOT_CONTAINER);
         rootContainer.mkdir();
@@ -89,7 +89,7 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         Files.createDirectories(path);
 
         Path file = path.resolve(FILE);
-        Files.write(file, new byte[] {1, 2, 3, 4});
+        Files.write(file, new byte[] { 1, 2, 3, 4 });
 
         String hash = storage.getObjectDigest(CONTAINER_NAME, FILE, DigestType.SHA512, true);
 
@@ -138,13 +138,12 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         storage.createContainer(containerName);
 
         // check if digest has been updated when call getMetadatas
-        assertThatThrownBy(() -> storage.getObjectMetadata(containerName, OBJECT_ID, true))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
-
+        assertThatThrownBy(() -> storage.getObjectMetadata(containerName, OBJECT_ID, true)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
     }
 
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
     }
-
 }

@@ -39,6 +39,7 @@ import java.io.IOException;
  * client for identity
  */
 public class InternalSecurityClientFactory extends VitamClientFactory<InternalSecurityClient> {
+
     // Using same client config with access external client
     private static final String CONFIGURATION_FILENAME = "internal-security-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalSecurityClientFactory.class);
@@ -67,17 +68,22 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
     private static ClientConfiguration changeConfigurationFile() {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(
-                InternalSecurityClientFactory.CONFIGURATION_FILENAME),
-                SecureClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(InternalSecurityClientFactory.CONFIGURATION_FILENAME),
+                SecureClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
+            LOGGER.debug(
+                "Error when retrieving configuration file {}, using mock",
                 InternalSecurityClientFactory.CONFIGURATION_FILENAME,
-                fnf);
+                fnf
+            );
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                InternalSecurityClientFactory.CONFIGURATION_FILENAME);
+            LOGGER.error(
+                "Error when retrieving configuration file {}, using mock",
+                InternalSecurityClientFactory.CONFIGURATION_FILENAME
+            );
         }
         return configuration;
     }
@@ -104,5 +110,4 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
         }
         return client;
     }
-
 }

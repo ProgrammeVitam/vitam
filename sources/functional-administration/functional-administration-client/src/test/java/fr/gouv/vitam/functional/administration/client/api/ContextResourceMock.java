@@ -44,7 +44,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class ContextResourceMock {
@@ -79,6 +78,5 @@ public class ContextResourceMock {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
         return mock.put();
-
     }
 }

@@ -45,6 +45,7 @@ import java.io.InputStream;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.STP_UPLOAD_RESULT_JSON;
 
 public class UploadSIPActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UploadSIPActionHandler.class);
     private static final String HANDLER_ID = "UPLOAD_SIP";
 
@@ -52,8 +53,7 @@ public class UploadSIPActionHandler extends ActionHandler {
         return HANDLER_ID;
     }
 
-    public UploadSIPActionHandler() {
-    }
+    public UploadSIPActionHandler() {}
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
@@ -61,7 +61,12 @@ public class UploadSIPActionHandler extends ActionHandler {
         try {
             InputStream externalJsonResults = handler.getInputStreamFromWorkspace(STP_UPLOAD_RESULT_JSON);
             return JsonHandler.getFromInputStream(externalJsonResults, ItemStatus.class);
-        } catch (InvalidParseOperationException | IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+        } catch (
+            InvalidParseOperationException
+            | IOException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageServerException e
+        ) {
             LOGGER.error("An exception occured : " + e.getMessage());
             return new ItemStatus(HANDLER_ID).increment(StatusCode.KO);
         }

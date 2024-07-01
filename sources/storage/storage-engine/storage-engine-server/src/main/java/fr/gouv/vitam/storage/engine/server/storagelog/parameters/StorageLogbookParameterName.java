@@ -121,6 +121,5 @@ public enum StorageLogbookParameterName {
     /**
      * Object Size
      */
-    objectSize
-
+    objectSize,
 }

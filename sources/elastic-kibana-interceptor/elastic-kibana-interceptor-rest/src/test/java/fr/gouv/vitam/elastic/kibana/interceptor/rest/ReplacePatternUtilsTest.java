@@ -38,6 +38,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReplacePatternUtilsTest {
+
     private static final String UNDERSCORE_JSON = "underscore.json";
     private static final String SHARP_JSON = "sharp.json";
 
@@ -46,11 +47,11 @@ public class ReplacePatternUtilsTest {
         // Given
         JsonNode fromInputStream = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UNDERSCORE_JSON));
         List<String> whiteList = new ArrayList<>(Arrays.asList("tenant", "sp", "v", "storage"));
-        ReplacePatternUtils replacePatternUtils =
-            new ReplacePatternUtils(whiteList);
+        ReplacePatternUtils replacePatternUtils = new ReplacePatternUtils(whiteList);
         // When
-        String bodyWithoutUnderscore =
-            replacePatternUtils.replaceUnderscoreBySharp(JsonHandler.unprettyPrint(fromInputStream));
+        String bodyWithoutUnderscore = replacePatternUtils.replaceUnderscoreBySharp(
+            JsonHandler.unprettyPrint(fromInputStream)
+        );
         // Then
         assertThat(bodyWithoutUnderscore).contains("#tenant").contains("#v").contains("#storage.#nbc");
         assertThat(bodyWithoutUnderscore).contains("_tenantx").contains("test._tenant");
@@ -61,15 +62,14 @@ public class ReplacePatternUtilsTest {
         // Given
         JsonNode fromInputStream = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SHARP_JSON));
         List<String> whiteList = new ArrayList<>(Arrays.asList("tenant", "sp", "v", "storage"));
-        ReplacePatternUtils replacePatternUtils =
-            new ReplacePatternUtils(whiteList);
+        ReplacePatternUtils replacePatternUtils = new ReplacePatternUtils(whiteList);
         // When
-        String bodyWithoutSharp =
-            replacePatternUtils.replaceSharpByUnderscore(JsonHandler.unprettyPrint(fromInputStream));
+        String bodyWithoutSharp = replacePatternUtils.replaceSharpByUnderscore(
+            JsonHandler.unprettyPrint(fromInputStream)
+        );
 
         // Then
         assertThat(bodyWithoutSharp).contains("_tenant").contains("_v").contains("_storage._nbc");
         assertThat(bodyWithoutSharp).contains("#tenantx").contains("test.#tenant");
     }
-
 }

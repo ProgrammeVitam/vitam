@@ -125,5 +125,4 @@ public class MerkleTreeAlgo {
         }
         return tree;
     }
-
 }

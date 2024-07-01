@@ -126,6 +126,7 @@ public class AccessionRegisterDetailModel {
      */
     @JsonProperty(END_DATE)
     private String endDate;
+
     /**
      * start date
      */
@@ -168,13 +169,11 @@ public class AccessionRegisterDetailModel {
     @JsonProperty(OBJECT_SIZE)
     private RegisterValueDetailModel ObjectSize;
 
-
     /**
      * Operation current
      */
     @JsonProperty(OPC)
     private String opc;
-
 
     /**
      * Operation ingest (origin of creation of the current detail
@@ -182,17 +181,14 @@ public class AccessionRegisterDetailModel {
     @JsonProperty(OPI)
     private String opi;
 
-
     @JsonProperty(OPERATION_TYPE)
     private String operationType;
-
 
     /**
      * Operation ingest (origin of creation of the current detail
      */
     @JsonProperty(EVENTS)
     private List<RegisterValueEventModel> events;
-
 
     /**
      * Linked ingest operation id
@@ -206,13 +202,10 @@ public class AccessionRegisterDetailModel {
     @JsonProperty(COMMENT)
     private List<String> comment;
 
-
-
     /**
      * Constructor without fields use for jackson
      */
-    public AccessionRegisterDetailModel() {
-    }
+    public AccessionRegisterDetailModel() {}
 
     /**
      * @return id
@@ -220,7 +213,6 @@ public class AccessionRegisterDetailModel {
     public String getId() {
         return id;
     }
-
 
     /**
      * @param id value to set
@@ -486,7 +478,6 @@ public class AccessionRegisterDetailModel {
         return this;
     }
 
-
     /**
      * Get current operation
      *
@@ -514,7 +505,6 @@ public class AccessionRegisterDetailModel {
     public String getOpi() {
         return opi;
     }
-
 
     /**
      * Set the operation of ingest

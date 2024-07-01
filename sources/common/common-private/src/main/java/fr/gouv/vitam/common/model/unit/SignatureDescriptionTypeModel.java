@@ -32,8 +32,10 @@ public class SignatureDescriptionTypeModel {
 
     @JsonProperty("Signer")
     protected ValidatorOrSignerModel signer;
+
     @JsonProperty("Validator")
     protected ValidatorOrSignerModel validator;
+
     @JsonProperty("SigningType")
     protected String signingType;
 

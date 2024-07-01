@@ -53,8 +53,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRulesInvalidatorPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ComputeInheritedRulesInvalidatorPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ComputeInheritedRulesInvalidatorPlugin.class
+    );
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_INVALIDATOR";
 
     private final MetaDataClientFactory metaDataClientFactory;

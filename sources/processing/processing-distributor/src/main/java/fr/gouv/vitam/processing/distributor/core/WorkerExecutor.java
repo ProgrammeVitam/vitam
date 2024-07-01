@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * manage one worker with n thread
  */
 public class WorkerExecutor implements Runnable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerExecutor.class);
     private final AtomicBoolean mustStop;
     private final PriorityTaskQueue<Runnable> queue;

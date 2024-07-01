@@ -53,12 +53,16 @@ public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<Of
     private final int chunkSize;
     private Long lastOffset;
 
-    public StorageClientOfferLogIterator(StorageClientFactory storageClientFactory, String strategyId, String offerId,
+    public StorageClientOfferLogIterator(
+        StorageClientFactory storageClientFactory,
+        String strategyId,
+        String offerId,
         Order order,
         DataCategory dataCategory,
-        int chunkSize, Long startOffset) {
+        int chunkSize,
+        Long startOffset
+    ) {
         super(chunkSize);
-
         this.strategyId = strategyId;
         this.offerId = offerId;
         this.order = order;
@@ -70,10 +74,15 @@ public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<Of
 
     @Override
     protected List<OfferLog> loadNextChunk(int chunkSize) {
-
         try (StorageClient storageClient = this.storageClientFactory.getClient()) {
-            RequestResponse<OfferLog> response = storageClient.getOfferLogs(this.strategyId,
-                this.offerId, this.dataCategory, this.lastOffset, this.chunkSize, this.order);
+            RequestResponse<OfferLog> response = storageClient.getOfferLogs(
+                this.strategyId,
+                this.offerId,
+                this.dataCategory,
+                this.lastOffset,
+                this.chunkSize,
+                this.order
+            );
 
             if (!response.isOk()) {
                 throw new VitamRuntimeException("Could not list offer log");
@@ -82,9 +91,7 @@ public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<Of
             List<OfferLog> buffer = ((RequestResponseOK<OfferLog>) response).getResults();
 
             if (!CollectionUtils.isEmpty(buffer)) {
-
                 switch (this.order) {
-
                     case ASC:
                         this.lastOffset = buffer.get(buffer.size() - 1).getSequence() + 1;
                         break;
@@ -96,7 +103,6 @@ public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<Of
                 }
             }
             return buffer;
-
         } catch (StorageServerClientException e) {
             throw new VitamRuntimeException(e);
         }

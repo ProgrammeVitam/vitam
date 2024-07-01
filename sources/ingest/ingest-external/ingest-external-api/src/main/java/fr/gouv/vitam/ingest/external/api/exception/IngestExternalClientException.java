@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Main Ingest Client Exception
  */
 public class IngestExternalClientException extends VitamException {
+
     private static final long serialVersionUID = -4557066419914695785L;
 
     /**

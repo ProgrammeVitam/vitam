@@ -68,27 +68,22 @@ public class ArchiveReferentialRepository {
         this.bulkSize = bulkSize;
     }
 
-    public void insert(TapeArchiveReferentialEntity tapeArchiveReferentialEntity)
-        throws ArchiveReferentialException {
-
+    public void insert(TapeArchiveReferentialEntity tapeArchiveReferentialEntity) throws ArchiveReferentialException {
         try {
             collection.insertOne(toBson(tapeArchiveReferentialEntity));
         } catch (MongoException ex) {
             throw new ArchiveReferentialException(
                 "Could not insert or update archive referential for id " + tapeArchiveReferentialEntity.getArchiveId(),
-                ex);
+                ex
+            );
         }
     }
 
-    public Optional<TapeArchiveReferentialEntity> find(String archiveId)
-        throws ArchiveReferentialException {
-
+    public Optional<TapeArchiveReferentialEntity> find(String archiveId) throws ArchiveReferentialException {
         Document document;
 
         try {
-            document = collection.find(
-                    Filters.eq(TapeArchiveReferentialEntity.ID, archiveId))
-                .first();
+            document = collection.find(Filters.eq(TapeArchiveReferentialEntity.ID, archiveId)).first();
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not find storage location by id " + archiveId, ex);
         }
@@ -104,9 +99,7 @@ public class ArchiveReferentialRepository {
         }
     }
 
-    public List<TapeArchiveReferentialEntity> bulkFind(Set<String> archiveIds)
-        throws ArchiveReferentialException {
-
+    public List<TapeArchiveReferentialEntity> bulkFind(Set<String> archiveIds) throws ArchiveReferentialException {
         if (archiveIds.isEmpty()) {
             return Collections.emptyList();
         }
@@ -114,21 +107,23 @@ public class ArchiveReferentialRepository {
         List<TapeArchiveReferentialEntity> result = new ArrayList<>();
 
         // Process in bulk
-        UnmodifiableIterator<List<String>> archiveIdBulkIterator =
-            Iterators.partition(archiveIds.iterator(), bulkSize);
+        UnmodifiableIterator<List<String>> archiveIdBulkIterator = Iterators.partition(archiveIds.iterator(), bulkSize);
         while (archiveIdBulkIterator.hasNext()) {
-
-            try (MongoCursor<Document> documents =
-                collection.find(Filters.in(TapeArchiveReferentialEntity.ID, archiveIdBulkIterator.next())).cursor()) {
+            try (
+                MongoCursor<Document> documents = collection
+                    .find(Filters.in(TapeArchiveReferentialEntity.ID, archiveIdBulkIterator.next()))
+                    .cursor()
+            ) {
                 documents.forEachRemaining(document -> {
-                        try {
-                            result.add(fromBson(document, TapeArchiveReferentialEntity.class));
-                        } catch (InvalidParseOperationException e) {
-                            throw new IllegalStateException(
-                                "Could not parse document from DB " + BsonHelper.stringify(document), e);
-                        }
+                    try {
+                        result.add(fromBson(document, TapeArchiveReferentialEntity.class));
+                    } catch (InvalidParseOperationException e) {
+                        throw new IllegalStateException(
+                            "Could not parse document from DB " + BsonHelper.stringify(document),
+                            e
+                        );
                     }
-                );
+                });
             } catch (MongoException ex) {
                 throw new ArchiveReferentialException("Could not find storage location by ids", ex);
             }
@@ -142,46 +137,45 @@ public class ArchiveReferentialRepository {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeArchiveReferentialEntity.ID, archiveId),
                 Updates.combine(
-                    Updates.set(TapeArchiveReferentialEntity.LOCATION,
-                        toBson(new TapeLibraryReadyOnDiskArchiveStorageLocation())),
-                    Updates.set(TapeArchiveReferentialEntity.SIZE,
-                        size),
-                    Updates.set(TapeArchiveReferentialEntity.DIGEST,
-                        digest),
-                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE,
-                        LocalDateUtil.now().toString())
+                    Updates.set(
+                        TapeArchiveReferentialEntity.LOCATION,
+                        toBson(new TapeLibraryReadyOnDiskArchiveStorageLocation())
+                    ),
+                    Updates.set(TapeArchiveReferentialEntity.SIZE, size),
+                    Updates.set(TapeArchiveReferentialEntity.DIGEST, digest),
+                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.now().toString())
                 ),
                 new UpdateOptions().upsert(false)
             );
 
             if (updateResult.getMatchedCount() != 1) {
                 throw new ArchiveReferentialException(
-                    "Could not update storage location for " + archiveId + ". No such archiveId");
+                    "Could not update storage location for " + archiveId + ". No such archiveId"
+                );
             }
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not update storage location for " + archiveId, ex);
         }
     }
 
-    public void updateLocationToOnTape(String archiveId,
-        TapeLibraryOnTapeArchiveStorageLocation onTapeTarStorageLocation)
-        throws ArchiveReferentialException {
-
+    public void updateLocationToOnTape(
+        String archiveId,
+        TapeLibraryOnTapeArchiveStorageLocation onTapeTarStorageLocation
+    ) throws ArchiveReferentialException {
         try {
             UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeArchiveReferentialEntity.ID, archiveId),
                 Updates.combine(
-                    Updates.set(TapeArchiveReferentialEntity.LOCATION,
-                        toBson(onTapeTarStorageLocation)),
-                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE,
-                        LocalDateUtil.now().toString())
+                    Updates.set(TapeArchiveReferentialEntity.LOCATION, toBson(onTapeTarStorageLocation)),
+                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.now().toString())
                 ),
                 new UpdateOptions().upsert(false)
             );
 
             if (updateResult.getMatchedCount() != 1) {
                 throw new ArchiveReferentialException(
-                    "Could not update storage location for " + archiveId + ". No such archiveId");
+                    "Could not update storage location for " + archiveId + ". No such archiveId"
+                );
             }
         } catch (MongoException ex) {
             throw new ArchiveReferentialException("Could not update storage location for " + archiveId, ex);
@@ -192,8 +186,7 @@ public class ArchiveReferentialRepository {
         return Document.parse(JsonHandler.unprettyPrint(object));
     }
 
-    private <T> T fromBson(Document document, Class<T> clazz)
-        throws InvalidParseOperationException {
+    private <T> T fromBson(Document document, Class<T> clazz) throws InvalidParseOperationException {
         return BsonHelper.fromDocumentToObject(document, clazz);
     }
 }

@@ -41,5 +41,5 @@ public enum DataCategory {
     /**
      * the object group data type
      */
-    OBJECT_GROUP
+    OBJECT_GROUP,
 }

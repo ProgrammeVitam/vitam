@@ -95,19 +95,18 @@ public class ParsedCertificate {
      * @throws PersonalCertificateException
      */
     public static ParsedCertificate parseCertificate(byte[] certificate) throws PersonalCertificateException {
-
         try {
-
             X509Certificate x509certificate = X509PKIUtil.parseX509Certificate(certificate);
 
             byte[] rawCertificate = x509certificate.getEncoded();
             String certificateHash = getCertificateHash(rawCertificate);
 
             return new ParsedCertificate(x509certificate, rawCertificate, certificateHash);
-
         } catch (CertificateException ex) {
             throw new PersonalCertificateException(
-                "Could not parse certificate. " + toCertificateHexString(certificate), ex);
+                "Could not parse certificate. " + toCertificateHexString(certificate),
+                ex
+            );
         }
     }
 
@@ -129,6 +128,5 @@ public class ParsedCertificate {
         } else {
             return Hex.encodeHexString(certificate);
         }
-
     }
 }

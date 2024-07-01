@@ -42,6 +42,7 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
  * CommitLifeCycle Handler
  */
 public abstract class CommitLifeCycleActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CommitLifeCycleActionHandler.class);
 
     /**
@@ -50,7 +51,6 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
     public CommitLifeCycleActionHandler() {
         // Empty constructor
     }
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
@@ -62,7 +62,12 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
             checkMandatoryIOParameter(handlerIO);
             commitLifeCycle(handlerIO, objectID, operationId);
             itemStatus.increment(StatusCode.OK);
-        } catch (final ProcessingException | LogbookClientServerException | LogbookClientNotFoundException | LogbookClientBadRequestException e) {
+        } catch (
+            final ProcessingException
+            | LogbookClientServerException
+            | LogbookClientNotFoundException
+            | LogbookClientBadRequestException e
+        ) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -97,10 +102,8 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
      * @throws LogbookClientServerException if the Server got an internal error when commit unit lifecycle
      */
     public abstract void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)
-        throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,
-        LogbookClientServerException;
+        throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

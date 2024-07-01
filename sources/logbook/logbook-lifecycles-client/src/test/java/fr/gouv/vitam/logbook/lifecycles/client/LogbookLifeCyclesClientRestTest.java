@@ -95,16 +95,16 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
+
     protected static LogbookLifeCyclesClientRest client;
 
-
-    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+    protected static final ExpectedResults mock = mock(ExpectedResults.class);
     static LogbookLifeCyclesClientFactory factory = LogbookLifeCyclesClientFactory.getInstance();
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(LogbookLifeCyclesClientRestTest.class, factory);
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        LogbookLifeCyclesClientRestTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -129,6 +129,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     @Path("/logbook/v1")
     public static class MockResource {
+
         private final ExpectedResults mock;
 
         public MockResource(ExpectedResults mock) {
@@ -154,8 +155,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response createOperation(@PathParam("id_op") String operationId,
-            LogbookOperationParameters operation) {
+        public Response createOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
             return mock.post();
         }
 
@@ -166,7 +166,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
             return mock.put();
         }
-
 
         @POST
         @Path("/operations/traceability")
@@ -203,8 +202,11 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/unitlifecycles")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
+        public Response getUnitLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            JsonNode query
+        ) {
             return mock.get();
         }
 
@@ -212,18 +214,22 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response createUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String unitLcId, LogbookLifeCycleUnitParameters parameters) {
+        public Response createUnitLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId,
+            LogbookLifeCycleUnitParameters parameters
+        ) {
             return mock.post();
-
         }
 
         @POST
         @Path("/operations/{id_op}/bulklifecycles/unit/temporary")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitLifeCyclesUnitTemporaryByOperation(@PathParam("id_op") String operationId,
-            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+        public Response updateUnitLifeCyclesUnitTemporaryByOperation(
+            @PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+        ) {
             return mock.post();
         }
 
@@ -231,8 +237,10 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/bulklifecycles/got/temporary")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitLifeCyclesGOTTemporaryByOperation(@PathParam("id_op") String operationId,
-            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+        public Response updateUnitLifeCyclesGOTTemporaryByOperation(
+            @PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+        ) {
             return mock.post();
         }
 
@@ -240,8 +248,10 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/bulklifecycles/unit")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitLifeCyclesUnitByOperation(@PathParam("id_op") String operationId,
-            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+        public Response updateUnitLifeCyclesUnitByOperation(
+            @PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+        ) {
             return mock.post();
         }
 
@@ -249,8 +259,10 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/bulklifecycles/got")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitLifeCyclesGOTByOperation(@PathParam("id_op") String operationId,
-            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+        public Response updateUnitLifeCyclesGOTByOperation(
+            @PathParam("id_op") String operationId,
+            List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+        ) {
             return mock.post();
         }
 
@@ -258,9 +270,12 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitLifeCyclesUnitTemporaryByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String unitLcId, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-            LogbookLifeCycleUnitParameters parameters) {
+        public Response updateUnitLifeCyclesUnitTemporaryByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            LogbookLifeCycleUnitParameters parameters
+        ) {
             return mock.put();
         }
 
@@ -268,19 +283,22 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/unitlifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response deleteUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String unitLcId) {
+        public Response deleteUnitLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId
+        ) {
             return mock.delete();
         }
-
 
         @Deprecated
         @PUT
         @Path("/operations/{id_op}/unitlifecycles/{id_lc}/commit")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response commitUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String unitLcId) {
+        public Response commitUnitLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String unitLcId
+        ) {
             return mock.put();
         }
 
@@ -295,16 +313,20 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @PUT
         @Path("/operations/{id_op}/lifecycles/objectgroup/bulk")
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response createLifeCycleObjectGroupBulk(@PathParam("id_op") String idOp,
-            List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels) {
+        public Response createLifeCycleObjectGroupBulk(
+            @PathParam("id_op") String idOp,
+            List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels
+        ) {
             return mock.put();
         }
 
         @PUT
         @Path("/operations/{id_op}/lifecycles/unit/bulk")
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response createLifeCycleUnitBulk(@PathParam("id_op") String idOp,
-            List<LogbookLifeCycleUnitModel> logbookLifeCycleModels) {
+        public Response createLifeCycleUnitBulk(
+            @PathParam("id_op") String idOp,
+            List<LogbookLifeCycleUnitModel> logbookLifeCycleModels
+        ) {
             return mock.put();
         }
 
@@ -319,8 +341,11 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @GET
         @Path("/unitlifecycles/{id_lc}")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
-            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) {
+        public Response getUnitLifeCycleById(
+            @PathParam("id_lc") String unitLifeCycleId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            JsonNode queryDsl
+        ) {
             return mock.get();
         }
 
@@ -330,13 +355,14 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
             return mock.head();
         }
 
-
         @GET
         @Path("/unitlifecycles")
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
-        public Response getUnitLifeCycle(JsonNode queryDsl,
-            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus) {
+        public Response getUnitLifeCycle(
+            JsonNode queryDsl,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus
+        ) {
             return mock.get();
         }
 
@@ -360,8 +386,11 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/objectgrouplifecycles")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
+        public Response getObjectGroupLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            JsonNode query
+        ) {
             return mock.get();
         }
 
@@ -369,8 +398,11 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response createObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String objGrpId, LogbookLifeCycleObjectGroupParameters parameters) {
+        public Response createObjectGroupLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId,
+            LogbookLifeCycleObjectGroupParameters parameters
+        ) {
             return mock.post();
         }
 
@@ -378,10 +410,12 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
+        public Response updateObjectGroupLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
             @PathParam("id_lc") String objGrpId,
             @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-            LogbookLifeCycleObjectGroupParameters parameters) {
+            LogbookLifeCycleObjectGroupParameters parameters
+        ) {
             return mock.put();
         }
 
@@ -389,8 +423,10 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response deleteObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String objGrpId) {
+        public Response deleteObjectGroupLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId
+        ) {
             return mock.delete();
         }
 
@@ -399,8 +435,10 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response commitObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String objGrpId) {
+        public Response commitObjectGroupLifeCyclesByOperation(
+            @PathParam("id_op") String operationId,
+            @PathParam("id_lc") String objGrpId
+        ) {
             return mock.put();
         }
 
@@ -423,16 +461,21 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @GET
         @Path("/objectgrouplifecycles/{id_lc}")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
-            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) {
+        public Response getObjectGroupLifeCycleById(
+            @PathParam("id_lc") String objectGroupLifeCycleId,
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            JsonNode queryDsl
+        ) {
             return mock.get();
         }
 
         @GET
         @Path("/objectgrouplifecycles")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectGroupLifeCycle(@HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
-            JsonNode queryDsl) {
+        public Response getObjectGroupLifeCycle(
+            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            JsonNode queryDsl
+        ) {
             return mock.get();
         }
 
@@ -490,7 +533,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
             return mock.post();
         }
 
-
         @GET
         @Path("/lifecycles/traceability/check/{id}")
         @Produces(MediaType.APPLICATION_JSON)
@@ -520,7 +562,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response launchTraceabilityAudit(AuditLogbookOptions options) {
             return mock.post();
-
         }
 
         @DELETE
@@ -536,7 +577,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         public Response deleteUnits(List<String> unitsIdentifier) {
             return mock.delete();
         }
-
 
         @POST
         @Path("raw/unitlifecycles/bulk")
@@ -575,27 +615,31 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         final GUID ioL = GUIDFactory.newUnitGUID(0);
         LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
 
-
         logbookLifeCyclesUnitParametersStart = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip.toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier, eip.toString());
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.objectIdentifier, ioL.toString());
 
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCyclesUnitParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetail, "outcomeDetail");
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         return logbookLifeCyclesUnitParametersStart;
-
     }
 
     private static final LogbookLifeCycleObjectGroupParameters getCompleteLifeCycleObjectGroupParameters() {
@@ -604,29 +648,40 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         final GUID ioL = GUIDFactory.newUnitGUID(0);
         LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjectGroupParametersStart;
 
-
-        logbookLifeCycleObjectGroupParametersStart =
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        logbookLifeCycleObjectGroupParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip.toString());
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            eip.toString()
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            ioL.toString()
+        );
 
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCycleObjectGroupParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetail,
-            "outcomeDetail");
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            "outcomeDetail"
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         return logbookLifeCycleObjectGroupParametersStart;
-
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -895,28 +950,34 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
         LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjectGroupParametersStart;
 
-        logbookLifeCycleObjectGroupParametersStart =
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        logbookLifeCycleObjectGroupParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
 
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCycleObjectGroupParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetail,
-            "outcomeDetail");
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            "outcomeDetail"
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCycleObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
 
         client.rollback(logbookLifeCycleObjectGroupParametersStart);
     }
 
     @Test
     public void selectExecution() throws Exception {
-        final String BODY_WITHOUT_ID =
-            "{\"$query\": {}, \"$projection\": {}, \"$filter\": {}}";
+        final String BODY_WITHOUT_ID = "{\"$query\": {}, \"$projection\": {}, \"$filter\": {}}";
         final String BODY_WITH_ID =
             "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
 
@@ -924,53 +985,48 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         try {
             client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
-        } catch (final LogbookClientNotFoundException e) {
-
-        }
+        } catch (final LogbookClientNotFoundException e) {}
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
-        } catch (final LogbookClientNotFoundException e) {
-
-        }
+        } catch (final LogbookClientNotFoundException e) {}
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
             client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID));
             fail("Should raise an exception");
-        } catch (final LogbookClientNotFoundException e) {
-
-        }
+        } catch (final LogbookClientNotFoundException e) {}
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
-        } catch (final LogbookClientException e) {
-
-        }
+        } catch (final LogbookClientException e) {}
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
-        } catch (final LogbookClientException e) {
-
-        }
+        } catch (final LogbookClientException e) {}
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID));
             fail("Should raise an exception");
-        } catch (final LogbookClientException e) {
-
-        }
-        assertThatThrownBy(() -> client.unitLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED,
-            JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
-        assertThatThrownBy(() -> client.objectGroupLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED,
-            JsonHandler.createObjectNode())).isInstanceOf(LogbookClientServerException.class);
+        } catch (final LogbookClientException e) {}
+        assertThatThrownBy(
+            () -> client.unitLifeCyclesByOperationIterator("id", LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode())
+        ).isInstanceOf(LogbookClientServerException.class);
+        assertThatThrownBy(
+            () ->
+                client.objectGroupLifeCyclesByOperationIterator(
+                    "id",
+                    LIFE_CYCLE_COMMITTED,
+                    JsonHandler.createObjectNode()
+                )
+        ).isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
@@ -1066,9 +1122,9 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test
     public void getUnitLifeCycleStatusThenReturnOk()
         throws LogbookClientNotFoundException, LogbookClientServerException {
-
         when(mock.head()).thenReturn(
-            Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
+            Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build()
+        );
 
         GUID unitId = GUIDFactory.newUnitGUID(0);
         assertThatCode(() -> client.getUnitLifeCycleStatus(unitId.toString())).doesNotThrowAnyException();
@@ -1077,7 +1133,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test(expected = LogbookClientNotFoundException.class)
     public void getUnitLifeCycleStatus_ThrowLogbookClientNotFoundException()
         throws LogbookClientNotFoundException, LogbookClientServerException {
-
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
 
         GUID unitId = GUIDFactory.newUnitGUID(0);
@@ -1087,7 +1142,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test(expected = LogbookClientServerException.class)
     public void getUnitLifeCycleStatus_ThrowLogbookClientServerException()
         throws LogbookClientNotFoundException, LogbookClientServerException {
-
         when(mock.head()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
 
         GUID unitId = GUIDFactory.newUnitGUID(0);
@@ -1097,9 +1151,9 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test
     public void getObjectGroupLifeCycleStatusThenReturnOk()
         throws LogbookClientNotFoundException, LogbookClientServerException {
-
         when(mock.head()).thenReturn(
-            Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build());
+            Response.status(Response.Status.OK).header(X_EVENT_STATUS, LIFE_CYCLE_COMMITTED).build()
+        );
 
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
         assertThatCode(() -> client.getObjectGroupLifeCycleStatus(objectGroupId.toString())).doesNotThrowAnyException();
@@ -1108,7 +1162,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test(expected = LogbookClientNotFoundException.class)
     public void getObjectGroupLifeCycleStatus_ThrowLogbookClientNotFoundException()
         throws LogbookClientNotFoundException, LogbookClientServerException {
-
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
 
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
@@ -1118,7 +1171,6 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     @Test(expected = LogbookClientServerException.class)
     public void getObjectGroupLifeCycleStatus_ThrowLogbookClientServerException()
         throws LogbookClientNotFoundException, LogbookClientServerException {
-
         when(mock.head()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
 
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
@@ -1189,101 +1241,98 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void getRawUnitLifecyclesByLastPersistedDate_OK()
-        throws Exception {
-        when(mock.post())
-            .thenReturn(Response.ok(new NullInputStream(100))
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "100")
-                .build());
-        InputStream inputStream =
-            client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+    public void getRawUnitLifecyclesByLastPersistedDate_OK() throws Exception {
+        when(mock.post()).thenReturn(
+            Response.ok(new NullInputStream(100)).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "100").build()
+        );
+        InputStream inputStream = client.exportRawUnitLifecyclesByLastPersistedDate(
+            LocalDateUtil.now(),
+            LocalDateUtil.now(),
+            1000
+        );
         assertThat(ByteStreams.toByteArray(inputStream)).hasSize(100);
     }
 
     @Test
-    public void getRawUnitLifecyclesByLastPersistedDateBadSize()
-        throws Exception {
-        when(mock.post())
-            .thenReturn(Response.ok(new NullInputStream(100))
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "50")
-                .build());
-        InputStream inputStream =
-            client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+    public void getRawUnitLifecyclesByLastPersistedDateBadSize() throws Exception {
+        when(mock.post()).thenReturn(
+            Response.ok(new NullInputStream(100)).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "50").build()
+        );
+        InputStream inputStream = client.exportRawUnitLifecyclesByLastPersistedDate(
+            LocalDateUtil.now(),
+            LocalDateUtil.now(),
+            1000
+        );
 
-        assertThatThrownBy(() -> ByteStreams.toByteArray(inputStream))
-            .isInstanceOf(IOException.class);
+        assertThatThrownBy(() -> ByteStreams.toByteArray(inputStream)).isInstanceOf(IOException.class);
     }
 
     @Test
     public void getRawUnitLifecyclesByLastPersistedDateMissingSize() {
-        when(mock.post())
-            .thenReturn(Response.ok(new NullInputStream(100))
-                .build());
+        when(mock.post()).thenReturn(Response.ok(new NullInputStream(100)).build());
         assertThatThrownBy(
-            () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
-            .isInstanceOf(LogbookClientException.class);
+            () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000)
+        ).isInstanceOf(LogbookClientException.class);
     }
 
     @Test
     public void getRawUnitLifecyclesByLastPersistedDate_InternalServerError() {
-        when(mock.post())
-            .thenReturn(Response.serverError().build());
+        when(mock.post()).thenReturn(Response.serverError().build());
         assertThatThrownBy(
-            () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000))
-            .isInstanceOf(LogbookClientServerException.class);
+            () -> client.exportRawUnitLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000)
+        ).isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
-    public void getRawObjectGroupLifecyclesByLastPersistedDate_OK()
-        throws Exception {
-        when(mock.post())
-            .thenReturn(Response.ok(new NullInputStream(100))
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "100")
-                .build());
-        InputStream inputStream =
-            client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+    public void getRawObjectGroupLifecyclesByLastPersistedDate_OK() throws Exception {
+        when(mock.post()).thenReturn(
+            Response.ok(new NullInputStream(100)).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "100").build()
+        );
+        InputStream inputStream = client.exportRawObjectGroupLifecyclesByLastPersistedDate(
+            LocalDateUtil.now(),
+            LocalDateUtil.now(),
+            1000
+        );
         assertThat(ByteStreams.toByteArray(inputStream)).hasSize(100);
     }
 
     @Test
-    public void getRawObjectGroupLifecyclesByLastPersistedDateBadSize()
-        throws Exception {
-        when(mock.post())
-            .thenReturn(Response.ok(new NullInputStream(100))
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "50")
-                .build());
-        InputStream inputStream =
-            client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000);
+    public void getRawObjectGroupLifecyclesByLastPersistedDateBadSize() throws Exception {
+        when(mock.post()).thenReturn(
+            Response.ok(new NullInputStream(100)).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "50").build()
+        );
+        InputStream inputStream = client.exportRawObjectGroupLifecyclesByLastPersistedDate(
+            LocalDateUtil.now(),
+            LocalDateUtil.now(),
+            1000
+        );
 
-        assertThatThrownBy(() -> ByteStreams.toByteArray(inputStream))
-            .isInstanceOf(IOException.class);
+        assertThatThrownBy(() -> ByteStreams.toByteArray(inputStream)).isInstanceOf(IOException.class);
     }
 
     @Test
     public void getRawObjectGroupLifecyclesByLastPersistedDateMissingSize() {
-        when(mock.post())
-            .thenReturn(Response.ok(new NullInputStream(100))
-                .build());
+        when(mock.post()).thenReturn(Response.ok(new NullInputStream(100)).build());
         assertThatThrownBy(
-            () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(),
-                1000))
-            .isInstanceOf(LogbookClientException.class);
+            () ->
+                client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000)
+        ).isInstanceOf(LogbookClientException.class);
     }
 
     @Test
     public void getRawObjectGroupLifecyclesByLastPersistedDate_InternalServerError() {
-        when(mock.post())
-            .thenReturn(Response.serverError().build());
+        when(mock.post()).thenReturn(Response.serverError().build());
         assertThatThrownBy(
-            () -> client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(),
-                1000))
-            .isInstanceOf(LogbookClientServerException.class);
+            () ->
+                client.exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateUtil.now(), LocalDateUtil.now(), 1000)
+        ).isInstanceOf(LogbookClientServerException.class);
     }
 
     @Test
     public void getRawUnitLifeCyclesById_OK() throws LogbookClientException, InvalidParseOperationException {
-        when(mock.get())
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
+        when(mock.get()).thenReturn(
+            new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse()
+        );
         client.getRawUnitLifeCycleById("id");
     }
 
@@ -1297,8 +1346,9 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void getRawObjectGroupLifeCycleById_OK() throws LogbookClientException, InvalidParseOperationException {
-        when(mock.get())
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
+        when(mock.get()).thenReturn(
+            new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse()
+        );
         client.getRawObjectGroupLifeCycleById("id");
     }
 
@@ -1310,11 +1360,11 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         }).isInstanceOf(LogbookClientNotFoundException.class);
     }
 
-
     @Test
     public void getRawUnitLifeCyclesByIds_OK() throws LogbookClientException, InvalidParseOperationException {
-        when(mock.get())
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
+        when(mock.get()).thenReturn(
+            new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse()
+        );
         client.getRawUnitLifeCycleByIds(Arrays.asList("id1", "id2"));
     }
 
@@ -1328,8 +1378,9 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void getRawObjectGroupLifeCycleByIds_OK() throws LogbookClientException, InvalidParseOperationException {
-        when(mock.get())
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
+        when(mock.get()).thenReturn(
+            new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse()
+        );
         client.getRawObjectGroupLifeCycleByIds(Arrays.asList("id1", "id2"));
     }
 

@@ -42,23 +42,27 @@ import java.io.IOException;
  */
 @Priority(Priorities.AUTHORIZATION)
 public class SanityCheckerInputStreamFilter implements ContainerRequestFilter {
+
     private static final String CHECK_SANITY = "CHECK_SANITY";
     private static final String CODE_VITAM = "code_vitam";
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
         // Check if Transfer-Encoding header exists : this header indicates that the request was sent with chunked mode
         // transfer
         if (!requestContext.getHeaders().containsKey(GlobalDataRest.TRANSFER_ENCODING_HEADER)) {
-            requestContext.abortWith(Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED)).build());
+            requestContext.abortWith(
+                Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED)).build()
+            );
         }
     }
 
     private VitamError getErrorEntity(Response.Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(CHECK_SANITY)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase())
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setContext(CHECK_SANITY)
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase())
             .setDescription("Send of Stream must be in Chunked Mode");
     }
 }

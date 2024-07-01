@@ -30,8 +30,7 @@ public class VirtualChanger {
 
     private VirtualChangerState changerState;
 
-    public VirtualChanger() {
-    }
+    public VirtualChanger() {}
 
     public VirtualChangerState getChangerStatus() {
         return changerState;

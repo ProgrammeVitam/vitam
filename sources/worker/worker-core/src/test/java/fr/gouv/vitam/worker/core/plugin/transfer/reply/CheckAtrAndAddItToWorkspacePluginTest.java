@@ -95,8 +95,8 @@ public class CheckAtrAndAddItToWorkspacePluginTest {
 
         // Then
         assertThat(JsonHandler.getFromFile(file, TransferReplyContext.class)).isEqualTo(
-            new TransferReplyContext(atr.getMessageRequestIdentifier().getValue(),
-                atr.getMessageIdentifier()));
+            new TransferReplyContext(atr.getMessageRequestIdentifier().getValue(), atr.getMessageIdentifier())
+        );
     }
 
     private ArchiveTransferReplyType createATR(String name) {

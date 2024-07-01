@@ -113,43 +113,49 @@ public class PreservationScenarioService {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final FunctionalBackupService functionalBackupService;
 
-    PreservationScenarioService(MongoDbAccessReferential mongoDbAccess,
+    PreservationScenarioService(
+        MongoDbAccessReferential mongoDbAccess,
         FunctionalBackupService functionalBackupService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.mongoDbAccess = mongoDbAccess;
         this.functionalBackupService = functionalBackupService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
-    public PreservationScenarioService(MongoDbAccessAdminImpl mongoAccess,
-        FunctionalBackupService functionalBackupService) {
+    public PreservationScenarioService(
+        MongoDbAccessAdminImpl mongoAccess,
+        FunctionalBackupService functionalBackupService
+    ) {
         this(mongoAccess, functionalBackupService, getInstance());
     }
 
     public RequestResponse<PreservationScenarioModel> importScenarios(
-        @NotNull List<PreservationScenarioModel> listToImport)
-        throws VitamException {
-
+        @NotNull List<PreservationScenarioModel> listToImport
+    ) throws VitamException {
         String operationId = getVitamSession().getRequestId();
         GUID guid = getGUID(operationId);
 
         createLogbook(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT);
 
         try {
-
             validate(listToImport);
 
             final ObjectNode finalSelect = new Select().getFinalSelect();
             DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, PRESERVATION_SCENARIO);
-            final List<PreservationScenarioModel> allScenariosInDatabase =
-                result.getDocuments(PreservationScenario.class, PreservationScenarioModel.class);
+            final List<PreservationScenarioModel> allScenariosInDatabase = result.getDocuments(
+                PreservationScenario.class,
+                PreservationScenarioModel.class
+            );
 
-
-            Set<String> newIdentifiers =
-                listToImport.stream().map(PreservationScenarioModel::getIdentifier).collect(toSet());
-            Set<String> oldIdentifiers =
-                allScenariosInDatabase.stream().map(PreservationScenarioModel::getIdentifier).collect(toSet());
-
+            Set<String> newIdentifiers = listToImport
+                .stream()
+                .map(PreservationScenarioModel::getIdentifier)
+                .collect(toSet());
+            Set<String> oldIdentifiers = allScenariosInDatabase
+                .stream()
+                .map(PreservationScenarioModel::getIdentifier)
+                .collect(toSet());
 
             Set<String> updatedIdentifiers = SetUtils.intersection(newIdentifiers, oldIdentifiers);
 
@@ -167,22 +173,29 @@ public class PreservationScenarioService {
                 insertScenarios(listToImport, identifierToAdd);
             }
 
-            functionalBackupService
-                .saveCollectionAndSequence(guid, SCENARIO_BACKUP_EVENT, PRESERVATION_SCENARIO, operationId);
+            functionalBackupService.saveCollectionAndSequence(
+                guid,
+                SCENARIO_BACKUP_EVENT,
+                PRESERVATION_SCENARIO,
+                operationId
+            );
 
-            PreservationScenarioReport preservationScenarioReport =
-                generateReport(allScenariosInDatabase, listToImport, updatedIdentifiers, identifierToDelete,
-                    identifierToAdd);
+            PreservationScenarioReport preservationScenarioReport = generateReport(
+                allScenariosInDatabase,
+                listToImport,
+                updatedIdentifiers,
+                identifierToDelete,
+                identifierToAdd
+            );
             saveReport(guid, preservationScenarioReport);
-
-
         } catch (VitamException e) {
             createLogbookEventKo(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT, e.getMessage());
             throw e;
         }
         createLogbookEventSuccess(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT);
 
-        return new RequestResponseOK<PreservationScenarioModel>().addAllResults(listToImport)
+        return new RequestResponseOK<PreservationScenarioModel>()
+            .addAllResults(listToImport)
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
@@ -191,38 +204,33 @@ public class PreservationScenarioService {
         for (GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
             if (!griffinsIdentifiers.contains(griffinByFormat.getGriffinIdentifier())) {
                 throw new ReferentialException(
-                    "Griffin '" + griffinByFormat.getGriffinIdentifier() + "' is not in database");
+                    "Griffin '" + griffinByFormat.getGriffinIdentifier() + "' is not in database"
+                );
             }
         }
 
-        boolean defaultGriffinDoesNotExists = scenario.getDefaultGriffin() != null &&
+        boolean defaultGriffinDoesNotExists =
+            scenario.getDefaultGriffin() != null &&
             !griffinsIdentifiers.contains(scenario.getDefaultGriffin().getGriffinIdentifier());
 
         if (defaultGriffinDoesNotExists) {
             throw new ReferentialException(
-                "Griffin '" + scenario.getDefaultGriffin().getGriffinIdentifier() + "' is not in database");
+                "Griffin '" + scenario.getDefaultGriffin().getGriffinIdentifier() + "' is not in database"
+            );
         }
     }
 
-
-
     private void saveReport(GUID guid, PreservationScenarioReport griffinReport) throws StorageException {
-
         try (InputStream reportInputStream = JsonHandler.writeToInpustream(griffinReport)) {
-
             final String fileName = guid.getId() + ".json";
 
-            functionalBackupService
-                .saveFile(reportInputStream, guid, SCENARIO_REPORT, DataCategory.REPORT, fileName);
-
+            functionalBackupService.saveFile(reportInputStream, guid, SCENARIO_REPORT, DataCategory.REPORT, fileName);
         } catch (IOException | VitamException e) {
             throw new StorageException(e.getMessage(), e);
         }
     }
 
-    private void validate(List<PreservationScenarioModel> listToImport)
-        throws VitamException {
-
+    private void validate(List<PreservationScenarioModel> listToImport) throws VitamException {
         entryValidation(listToImport);
 
         functionalGriffinIdentifierValidation(listToImport);
@@ -240,14 +248,18 @@ public class PreservationScenarioService {
             }
 
             if ((model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
-                throw new ReferentialException("Invalid scenario for : '" + model.getIdentifier() +
-                    "' : at least one griffin must be defined (griffin by format or default griffin)");
+                throw new ReferentialException(
+                    "Invalid scenario for : '" +
+                    model.getIdentifier() +
+                    "' : at least one griffin must be defined (griffin by format or default griffin)"
+                );
             }
 
             Set<ConstraintViolation<PreservationScenarioModel>> constraints = validator.validate(model);
             if (!constraints.isEmpty()) {
                 throw new ReferentialException(
-                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraints));
+                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraints)
+                );
             }
 
             identifiers.add(model.getIdentifier());
@@ -256,13 +268,14 @@ public class PreservationScenarioService {
 
     private void functionalGriffinIdentifierValidation(List<PreservationScenarioModel> listToImport)
         throws BadRequestException, ReferentialException, InvalidParseOperationException {
-
         final ObjectNode finalSelect = new Select().getFinalSelect();
         DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, GRIFFIN);
 
         final List<GriffinModel> allGriffinInDatabase = result.getDocuments(Griffin.class, GriffinModel.class);
-        List<String> griffinsIdentifier =
-            allGriffinInDatabase.stream().map(GriffinModel::getIdentifier).collect(toList());
+        List<String> griffinsIdentifier = allGriffinInDatabase
+            .stream()
+            .map(GriffinModel::getIdentifier)
+            .collect(toList());
 
         for (PreservationScenarioModel scenario : listToImport) {
             checkGriffinByFormatIdentifier(scenario, griffinsIdentifier);
@@ -273,12 +286,14 @@ public class PreservationScenarioService {
         ObjectNode finalSelect = new Select().getFinalSelect();
         DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, FORMATS);
 
-        Set<String> referencePuids = result.getDocuments(FileFormat.class, FileFormatModel.class)
+        Set<String> referencePuids = result
+            .getDocuments(FileFormat.class, FileFormatModel.class)
             .stream()
             .map(FileFormatModel::getPuid)
             .collect(toSet());
 
-        Set<String> puidsToCheck = listToImport.stream()
+        Set<String> puidsToCheck = listToImport
+            .stream()
             .flatMap(s -> s.getGriffinByFormat().stream().flatMap(g -> g.getFormatList().stream()))
             .collect(toSet());
 
@@ -286,7 +301,8 @@ public class PreservationScenarioService {
 
         if (!puidsToCheck.isEmpty()) {
             throw new ReferentialException(
-                String.format("List: %s does not exist in the database.", puidsToCheck.toString()));
+                String.format("List: %s does not exist in the database.", puidsToCheck.toString())
+            );
         }
     }
 
@@ -300,8 +316,9 @@ public class PreservationScenarioService {
 
     private FunctionalOperationModel retrieveOperationModel() {
         try {
-            JsonNode result = logbookOperationsClientFactory.getClient().selectOperationById(
-                getVitamSession().getRequestId());
+            JsonNode result = logbookOperationsClientFactory
+                .getClient()
+                .selectOperationById(getVitamSession().getRequestId());
 
             return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FunctionalOperationModel.class);
         } catch (LogbookClientException | InvalidParseOperationException e) {
@@ -309,11 +326,13 @@ public class PreservationScenarioService {
         }
     }
 
-    private PreservationScenarioReport generateReport(List<PreservationScenarioModel> currentScenariosModels,
+    private PreservationScenarioReport generateReport(
+        List<PreservationScenarioModel> currentScenariosModels,
         List<PreservationScenarioModel> newScenarioModels,
-        Set<String> updatedIdentifiers, Set<String> removedIdentifiers, Set<String> addedIdentifiers) {
-
-
+        Set<String> updatedIdentifiers,
+        Set<String> removedIdentifiers,
+        Set<String> addedIdentifiers
+    ) {
         PreservationScenarioReport report = new PreservationScenarioReport();
 
         FunctionalOperationModel operationModel = retrieveOperationModel();
@@ -330,8 +349,7 @@ public class PreservationScenarioService {
 
         Map<String, PreservationScenarioModel> currentScenariosModelsByIdentifiers = newScenarioModels
             .stream()
-            .collect(Collectors
-                .toMap(PreservationScenarioModel::getIdentifier, model -> model));
+            .collect(Collectors.toMap(PreservationScenarioModel::getIdentifier, model -> model));
 
         Map<String, PreservationScenarioModel> newScenariosModelByIdentifiers = newScenarioModels
             .stream()
@@ -339,12 +357,14 @@ public class PreservationScenarioService {
 
         report.setRemovedIdentifiers(removedIdentifiers);
 
-
         report.setAddedIdentifiers(addedIdentifiers);
 
-
-        reportUpdatedIdentifiers(updatedIdentifiers, report, currentScenariosModelsByIdentifiers,
-            newScenariosModelByIdentifiers);
+        reportUpdatedIdentifiers(
+            updatedIdentifiers,
+            report,
+            currentScenariosModelsByIdentifiers,
+            newScenariosModelByIdentifiers
+        );
 
         reportVersioning(report);
 
@@ -361,7 +381,6 @@ public class PreservationScenarioService {
 
     private void reportVersioning(PreservationScenarioReport report) {
         if (report.getPreviousScenariosCreationDate() != null && report.getNewScenariosCreationDate() != null) {
-
             String previousDate = LocalDateUtil.getFormattedDateForMongo(report.getPreviousScenariosCreationDate());
             String newDate = LocalDateUtil.getFormattedDateForMongo(report.getNewScenariosCreationDate());
 
@@ -370,17 +389,23 @@ public class PreservationScenarioService {
             }
 
             if (previousDate.compareTo(newDate) > 0) {
-                report.addWarning("New imported referential date " + report.getNewScenariosCreationDate() +
-                    " is older than previous report date " + report.getNewScenariosCreationDate());
+                report.addWarning(
+                    "New imported referential date " +
+                    report.getNewScenariosCreationDate() +
+                    " is older than previous report date " +
+                    report.getNewScenariosCreationDate()
+                );
             }
         }
     }
 
-    private void reportUpdatedIdentifiers(Set<String> updatedIdentifiers, PreservationScenarioReport report,
+    private void reportUpdatedIdentifiers(
+        Set<String> updatedIdentifiers,
+        PreservationScenarioReport report,
         Map<String, PreservationScenarioModel> currentScenariosModelsByIdentifiers,
-        Map<String, PreservationScenarioModel> newScenariosModelByIdentifiers) {
+        Map<String, PreservationScenarioModel> newScenariosModelByIdentifiers
+    ) {
         for (String identifier : updatedIdentifiers) {
-
             PreservationScenarioModel currentScenarioModel = currentScenariosModelsByIdentifiers.get(identifier);
             PreservationScenarioModel newScenarioModel = newScenariosModelByIdentifiers.get(identifier);
 
@@ -403,8 +428,10 @@ public class PreservationScenarioService {
         }
     }
 
-    private List<String> diff(PreservationScenarioModel currentScenarioModel,
-        PreservationScenarioModel newScenarioModel) {
+    private List<String> diff(
+        PreservationScenarioModel currentScenarioModel,
+        PreservationScenarioModel newScenarioModel
+    ) {
         String after = toComparableString(newScenarioModel);
         String before = toComparableString(currentScenarioModel);
 
@@ -414,9 +441,7 @@ public class PreservationScenarioService {
     }
 
     private void insertScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> newIdentifiers)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
-        DocumentAlreadyExistsException {
-
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         if (listToImport.isEmpty()) {
             return;
         }
@@ -437,7 +462,6 @@ public class PreservationScenarioService {
     }
 
     private JsonNode toJson(@NotNull PreservationScenarioModel model) throws InvalidParseOperationException {
-
         ObjectNode modelNode = (ObjectNode) toJsonNode(model);
 
         JsonNode jsonNode = modelNode.remove(id());
@@ -466,9 +490,7 @@ public class PreservationScenarioService {
 
     private void updateScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> identifierToUpdate)
         throws InvalidParseOperationException, DatabaseException, ReferentialException {
-
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
-
             if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
                 preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(LocalDateUtil.now()));
 
@@ -478,21 +500,29 @@ public class PreservationScenarioService {
                 ObjectNode scenario = (ObjectNode) toJsonNode(preservationScenarioModel);
 
                 scenario.put(UND_TENANT, getVitamSession().getTenantId());
-                mongoDbAccess.replaceDocument(scenario,
-                    preservationScenarioModel.getIdentifier(), IDENTIFIER,
-                    FunctionalAdminCollections.PRESERVATION_SCENARIO);
+                mongoDbAccess.replaceDocument(
+                    scenario,
+                    preservationScenarioModel.getIdentifier(),
+                    IDENTIFIER,
+                    FunctionalAdminCollections.PRESERVATION_SCENARIO
+                );
             }
         }
     }
 
     private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) throws ReferentialException {
-
         try {
             String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
             preservationScenarioModel.setLastUpdate(lastUpdate);
         } catch (DateTimeParseException e) {
-            throw new ReferentialException("Error in scenario '" + preservationScenarioModel.getIdentifier() +
-                "' : field '" + PreservationScenarioModel.TAG_LAST_UPDATE + "' format is invalid", e);
+            throw new ReferentialException(
+                "Error in scenario '" +
+                preservationScenarioModel.getIdentifier() +
+                "' : field '" +
+                PreservationScenarioModel.TAG_LAST_UPDATE +
+                "' format is invalid",
+                e
+            );
         }
 
         if (preservationScenarioModel.getCreationDate() != null) {
@@ -500,15 +530,20 @@ public class PreservationScenarioService {
                 String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
                 preservationScenarioModel.setCreationDate(creationDate);
             } catch (DateTimeParseException e) {
-                throw new ReferentialException("Error in scenario '" + preservationScenarioModel.getIdentifier() +
-                    "' : field '" + PreservationScenarioModel.TAG_CREATION_DATE + "' format is invalid", e);
+                throw new ReferentialException(
+                    "Error in scenario '" +
+                    preservationScenarioModel.getIdentifier() +
+                    "' : field '" +
+                    PreservationScenarioModel.TAG_CREATION_DATE +
+                    "' format is invalid",
+                    e
+                );
             }
         }
     }
 
     public RequestResponse<PreservationScenarioModel> findPreservationScenario(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException {
-
         DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, PRESERVATION_SCENARIO);
 
         return documents.getRequestResponseOK(queryDsl, PreservationScenario.class, PreservationScenarioModel.class);

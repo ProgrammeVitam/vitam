@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response.Status;
 import static fr.gouv.vitam.common.VitamConfiguration.ADMIN_PATH;
 
 public class DefaultAdminClient extends AbstractCommonClient implements AdminClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultAdminClient.class);
     private final String adminUrl;
 
@@ -115,9 +116,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
     }
 
     private String getUrl(VitamClientFactoryInterface<DefaultAdminClient> factory) {
-        String protocol = factory.getClientConfiguration().isSecure()
-            ? "https"
-            : "http";
+        String protocol = factory.getClientConfiguration().isSecure() ? "https" : "http";
         String host = factory.getClientConfiguration().getServerHost();
         int port = factory.getClientConfiguration().getServerPort();
 

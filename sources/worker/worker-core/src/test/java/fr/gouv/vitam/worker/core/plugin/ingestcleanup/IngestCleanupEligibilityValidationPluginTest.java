@@ -60,11 +60,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class IngestCleanupEligibilityValidationPluginTest {
 
-    private final static String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
+    private static final String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -83,7 +84,6 @@ public class IngestCleanupEligibilityValidationPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
@@ -102,13 +102,11 @@ public class IngestCleanupEligibilityValidationPluginTest {
     }
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     @Test
     @RunWithCustomExecutor
     public void checkEligibilityOK() throws Exception {
-
         // Given
 
         // When
@@ -118,10 +116,14 @@ public class IngestCleanupEligibilityValidationPluginTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         verify(ingestCleanupEligibilityService).checkChildUnitsFromOtherIngests(eq(INGEST_OPERATION_ID), any());
         verify(ingestCleanupEligibilityService).checkUnitUpdatesFromOtherOperations(eq(INGEST_OPERATION_ID), any());
-        verify(ingestCleanupEligibilityService)
-            .checkObjectAttachmentsToExistingObjectGroups(eq(INGEST_OPERATION_ID), any());
-        verify(ingestCleanupEligibilityService)
-            .checkObjectGroupUpdatesFromOtherOperations(eq(INGEST_OPERATION_ID), any());
+        verify(ingestCleanupEligibilityService).checkObjectAttachmentsToExistingObjectGroups(
+            eq(INGEST_OPERATION_ID),
+            any()
+        );
+        verify(ingestCleanupEligibilityService).checkObjectGroupUpdatesFromOtherOperations(
+            eq(INGEST_OPERATION_ID),
+            any()
+        );
         verifyNoMoreInteractions(ingestCleanupEligibilityService);
 
         Optional<CleanupReportManager> cleanupReportManager = CleanupReportManager.loadReportDataFromWorkspace(handler);
@@ -132,12 +134,13 @@ public class IngestCleanupEligibilityValidationPluginTest {
     @Test
     @RunWithCustomExecutor
     public void checkEligibilityWithWarningThanWarning() throws Exception {
-
         // Given
         doAnswer(args -> {
             ((CleanupReportManager) args.getArgument(1)).reportUnitWarning("unit1", "message");
             return null;
-        }).when(ingestCleanupEligibilityService).checkUnitUpdatesFromOtherOperations(any(), any());
+        })
+            .when(ingestCleanupEligibilityService)
+            .checkUnitUpdatesFromOtherOperations(any(), any());
 
         // When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -153,16 +156,19 @@ public class IngestCleanupEligibilityValidationPluginTest {
     @Test
     @RunWithCustomExecutor
     public void checkEligibilityWithErrorThanError() throws Exception {
-
         // Given
         doAnswer(args -> {
             ((CleanupReportManager) args.getArgument(1)).reportUnitWarning("unit1", "message");
             return null;
-        }).when(ingestCleanupEligibilityService).checkUnitUpdatesFromOtherOperations(any(), any());
+        })
+            .when(ingestCleanupEligibilityService)
+            .checkUnitUpdatesFromOtherOperations(any(), any());
         doAnswer(args -> {
             ((CleanupReportManager) args.getArgument(1)).reportObjectGroupError("og1", "message");
             return null;
-        }).when(ingestCleanupEligibilityService).checkObjectAttachmentsToExistingObjectGroups(any(), any());
+        })
+            .when(ingestCleanupEligibilityService)
+            .checkObjectAttachmentsToExistingObjectGroups(any(), any());
 
         // When
         ItemStatus itemStatus = instance.execute(params, handler);

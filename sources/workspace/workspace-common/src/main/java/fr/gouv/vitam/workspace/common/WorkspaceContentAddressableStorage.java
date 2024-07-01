@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface WorkspaceContentAddressableStorage {
-
     /**
      * Creates a container
      *
@@ -99,8 +98,7 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void createFolder(String containerName, String folderName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageServerException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
 
     /**
      * Deletes a folder (or a directory) marker depending on the service
@@ -147,8 +145,12 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageCompressedFileException Thrown when the file is not a zip or an empty zip
      */
-    void uncompressObject(String containerName, String folderName, String archiveMimeType,
-        InputStream inputStreamObject) throws ContentAddressableStorageException;
+    void uncompressObject(
+        String containerName,
+        String folderName,
+        String archiveMimeType,
+        InputStream inputStreamObject
+    ) throws ContentAddressableStorageException;
 
     /**
      * Adds an object representing the data at location containerName/objectName
@@ -160,8 +162,8 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    void putObject(String containerName, String objectName, InputStream stream) throws
-        ContentAddressableStorageException;
+    void putObject(String containerName, String objectName, InputStream stream)
+        throws ContentAddressableStorageException;
 
     void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
         throws ContentAddressableStorageException;
@@ -218,8 +220,8 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
      */
-    String computeObjectDigest(String containerName, String objectName, DigestType algo) throws
-        ContentAddressableStorageException;
+    String computeObjectDigest(String containerName, String objectName, DigestType algo)
+        throws ContentAddressableStorageException;
 
     /**
      * Get container information like capacity

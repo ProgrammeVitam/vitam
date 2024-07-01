@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * TapeDrive or tape drive
  */
 public class TapeDrive {
+
     private Integer index;
     private TapeCartridge tape;
 

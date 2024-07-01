@@ -38,7 +38,6 @@ import java.util.Map;
  * Process Data Access Interface offers services
  */
 public interface ProcessDataAccess {
-
     /**
      * Allows a process to be initialized
      *

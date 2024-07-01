@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
  *
  */
 public class WorkspaceBatchRunnerTest {
+
     @Test
     public void whenConstructorThenOK() {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
@@ -70,7 +71,6 @@ public class WorkspaceBatchRunnerTest {
         new WorkspaceBatchRunner(handlerIO, null, 10);
     }
 
-
     @Test(expected = WorkerspaceQueueException.class)
     public void whenTransferThenRunnerNotStartedKO() throws WorkerspaceQueueException {
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
@@ -83,35 +83,41 @@ public class WorkspaceBatchRunnerTest {
     @Test
     public void whenTransferThenOK() throws ProcessingException, WorkerspaceQueueException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
-        doAnswer(o -> o)
-            .when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
+        doAnswer(o -> o).when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.TRANSFER);
 
-        WorkspaceBatchRunner workspaceBatchRunner =
-            new WorkspaceBatchRunner(handlerIO, VitamThreadPoolExecutor.getDefaultExecutor(), 10);
+        WorkspaceBatchRunner workspaceBatchRunner = new WorkspaceBatchRunner(
+            handlerIO,
+            VitamThreadPoolExecutor.getDefaultExecutor(),
+            10
+        );
 
         workspaceBatchRunner.start();
         workspaceBatchRunner.transfer(workspaceQueue);
         workspaceBatchRunner.join();
     }
 
-
     @Test(expected = WorkerspaceQueueException.class)
     public void whenJoinThenKO() throws WorkerspaceQueueException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
-        WorkspaceBatchRunner workspaceBatchRunner =
-            new WorkspaceBatchRunner(handlerIO, VitamThreadPoolExecutor.getDefaultExecutor(), 10);
+        WorkspaceBatchRunner workspaceBatchRunner = new WorkspaceBatchRunner(
+            handlerIO,
+            VitamThreadPoolExecutor.getDefaultExecutor(),
+            10
+        );
 
         workspaceBatchRunner.join();
     }
 
-
     @Test(expected = WorkerspaceQueueException.class)
     public void whenDoubleStartThenOK() throws WorkerspaceQueueException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
-        WorkspaceBatchRunner workspaceBatchRunner =
-            new WorkspaceBatchRunner(handlerIO, VitamThreadPoolExecutor.getDefaultExecutor(), 10);
+        WorkspaceBatchRunner workspaceBatchRunner = new WorkspaceBatchRunner(
+            handlerIO,
+            VitamThreadPoolExecutor.getDefaultExecutor(),
+            10
+        );
         workspaceBatchRunner.start();
         workspaceBatchRunner.start();
     }

@@ -48,7 +48,6 @@ public class SecureEndpointRegistry {
     }
 
     public List<EndpointInfo> getEndPointsByResourcePath(String resourcePath) {
-
         final String normalizedResourcePath = resourcePath.startsWith("/") ? resourcePath : "/" + resourcePath;
 
         return endpointInfoList

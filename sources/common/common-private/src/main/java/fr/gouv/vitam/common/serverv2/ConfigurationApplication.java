@@ -54,5 +54,4 @@ public class ConfigurationApplication extends Application {
     public ConfigurationFile getVitamApplicationConfiguration() {
         return vitamApplicationConfiguration;
     }
-
 }

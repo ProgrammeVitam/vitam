@@ -39,8 +39,7 @@ import java.util.Set;
 
 public class ObjectGroupGraphUpdates {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ObjectGroupGraphUpdates.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ObjectGroupGraphUpdates.class);
 
     private final Set<String> parentUnitsToAdd = new HashSet<>();
     private final Set<String> allParentUnitsToAdd = new HashSet<>();
@@ -56,7 +55,6 @@ public class ObjectGroupGraphUpdates {
     }
 
     public Bson toBsonUpdate() {
-
         Bson updates = Updates.combine(
             // Update graph
             Updates.addEachToSet(ObjectGroup.UP, new ArrayList<>(this.parentUnitsToAdd)),
@@ -64,8 +62,10 @@ public class ObjectGroupGraphUpdates {
             Updates.addEachToSet(ObjectGroup.ORIGINATING_AGENCIES, new ArrayList<>(this.originatingAgenciesToAdd)),
             Updates.addEachToSet(ObjectGroup.OPS, new ArrayList<>(this.operationsToAdd)),
             // Last graph update date
-            Updates.set(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
+            Updates.set(
+                ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
+                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+            ),
             // Inc version
             Updates.inc(ObjectGroup.VERSION, 1),
             Updates.inc(ObjectGroup.ATOMIC_VERSION, 1)
@@ -81,11 +81,17 @@ public class ObjectGroupGraphUpdates {
 
     @Override
     public String toString() {
-        return "ObjectGroupGraphUpdates{" +
-            "parentUnitsToAdd=" + parentUnitsToAdd +
-            ", allParentUnitsToAdd=" + allParentUnitsToAdd +
-            ", operationsToAdd=" + operationsToAdd +
-            ", originatingAgenciesToAdd=" + originatingAgenciesToAdd +
-            '}';
+        return (
+            "ObjectGroupGraphUpdates{" +
+            "parentUnitsToAdd=" +
+            parentUnitsToAdd +
+            ", allParentUnitsToAdd=" +
+            allParentUnitsToAdd +
+            ", operationsToAdd=" +
+            operationsToAdd +
+            ", originatingAgenciesToAdd=" +
+            originatingAgenciesToAdd +
+            '}'
+        );
     }
 }

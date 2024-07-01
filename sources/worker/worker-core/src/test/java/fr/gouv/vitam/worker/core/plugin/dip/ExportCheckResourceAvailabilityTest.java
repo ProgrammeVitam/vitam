@@ -71,14 +71,20 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 
 public class ExportCheckResourceAvailabilityTest {
+
     private final String objectId = "TEST_ID";
     private final String accessRequestId = "ACCESS_TEST_ID";
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     private TestWorkerParameter parameter;
+
     @Mock
     private StorageClientFactory storageClientFactory;
 
@@ -99,7 +105,6 @@ public class ExportCheckResourceAvailabilityTest {
         plugin = new ExportCheckResourceAvailability(storageClientFactory);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void given_available_resource_should_return_ok() throws Exception {
@@ -107,19 +112,24 @@ public class ExportCheckResourceAvailabilityTest {
         File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
         given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initOneLineWorkflowContext();
-        BulkObjectAvailabilityRequest request =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId)
+        );
         BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(true);
-        given(storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames")))
-            .willReturn(response);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(), refEq(request, "objectNames"))
+        ).willReturn(response);
 
         // When
         List<ItemStatus> pluginResult = plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("other_binary_strategy"),
+            any(),
+            refEq(request, "objectNames")
+        );
         assertThat(pluginResult.size()).isEqualTo(1);
         assertThat(pluginResult.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
@@ -131,29 +141,44 @@ public class ExportCheckResourceAvailabilityTest {
         File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
         given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initOneLineWorkflowContext();
-        BulkObjectAvailabilityRequest request =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId)
+        );
         BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(false);
-        Map<AccessRequestContext, List<String>> accessRequestsCreated =
-            Map.of(new AccessRequestContext("other_binary_strategy", null), List.of(accessRequestId));
+        Map<AccessRequestContext, List<String>> accessRequestsCreated = Map.of(
+            new AccessRequestContext("other_binary_strategy", null),
+            List.of(accessRequestId)
+        );
         ProcessingRetryAsyncException exception = new ProcessingRetryAsyncException(accessRequestsCreated);
-        given(storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames")))
-            .willReturn(response);
         given(
-            storageClient.createAccessRequestIfRequired(eq("other_binary_strategy"), eq(null), eq(DataCategory.OBJECT),
-                eq(List.of(objectId))))
-            .willReturn(Optional.of(accessRequestId));
+            storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(), refEq(request, "objectNames"))
+        ).willReturn(response);
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("other_binary_strategy"),
+                eq(null),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId))
+            )
+        ).willReturn(Optional.of(accessRequestId));
         // When + Then
-        assertThatThrownBy(() -> plugin.executeList(parameter, handler)).isInstanceOf(
-            ProcessingRetryAsyncException.class).isEqualToComparingFieldByField(exception);
+        assertThatThrownBy(() -> plugin.executeList(parameter, handler))
+            .isInstanceOf(ProcessingRetryAsyncException.class)
+            .isEqualToComparingFieldByField(exception);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames"));
-        verify(storageClient).createAccessRequestIfRequired(eq("other_binary_strategy"), eq(null),
-            eq(DataCategory.OBJECT), eq(List.of(objectId)));
-
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("other_binary_strategy"),
+            any(),
+            refEq(request, "objectNames")
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("other_binary_strategy"),
+            eq(null),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId))
+        );
     }
 
     @Test
@@ -163,18 +188,23 @@ public class ExportCheckResourceAvailabilityTest {
         File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
         given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initOneLineWorkflowContext();
-        BulkObjectAvailabilityRequest request =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
-        given(storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames")))
-            .willThrow(new StorageServerClientException("Something bad happened"));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId)
+        );
+        given(
+            storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(), refEq(request, "objectNames"))
+        ).willThrow(new StorageServerClientException("Something bad happened"));
 
         // When + Then
         assertThatThrownBy(() -> plugin.executeList(parameter, handler)).isInstanceOf(ProcessingException.class);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("other_binary_strategy"),
+            any(),
+            refEq(request, "objectNames")
+        );
     }
 
     @Test
@@ -184,20 +214,24 @@ public class ExportCheckResourceAvailabilityTest {
         File file = PropertiesUtils.getResourceFile("ExportCheckResourceAvailability/guid_to_path_mono_strategy.json");
         given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initMultiLinesWorkflowContext(3);
-        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.OBJECT,
-            List.of(objectId + "0", objectId + "1", objectId + "2"));
-        BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(
-            true);
-        given(storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames")))
-            .willReturn(response);
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId + "0", objectId + "1", objectId + "2")
+        );
+        BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(true);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("other_binary_strategy"), any(), refEq(request, "objectNames"))
+        ).willReturn(response);
 
         // When
         List<ItemStatus> pluginResult = plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("other_binary_strategy"), any(),
-            refEq(request, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("other_binary_strategy"),
+            any(),
+            refEq(request, "objectNames")
+        );
         assertThat(pluginResult.size()).isEqualTo(3);
         assertThat(pluginResult.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(pluginResult.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -213,17 +247,22 @@ public class ExportCheckResourceAvailabilityTest {
         given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initMultiLinesWorkflowContext("10", "20", "11");
 
-        BulkObjectAvailabilityRequest request1 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId + "10", objectId + "11"));
-        BulkObjectAvailabilityRequest request2 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId + "20"));
-        BulkObjectAvailabilityResponse response1 =
-            new BulkObjectAvailabilityResponse(true);
+        BulkObjectAvailabilityRequest request1 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId + "10", objectId + "11")
+        );
+        BulkObjectAvailabilityRequest request2 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId + "20")
+        );
+        BulkObjectAvailabilityResponse response1 = new BulkObjectAvailabilityResponse(true);
         BulkObjectAvailabilityResponse response2 = new BulkObjectAvailabilityResponse(true);
-        given(storageClient.checkBulkObjectAvailability(eq("strategy_1"), any(), refEq(request1, "objectNames")))
-            .willReturn(response1);
-        given(storageClient.checkBulkObjectAvailability(eq("strategy_2"), any(), refEq(request2, "objectNames")))
-            .willReturn(response2);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("strategy_1"), any(), refEq(request1, "objectNames"))
+        ).willReturn(response1);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("strategy_2"), any(), refEq(request2, "objectNames"))
+        ).willReturn(response2);
 
         // When
         List<ItemStatus> pluginResult = plugin.executeList(parameter, handler);
@@ -245,20 +284,30 @@ public class ExportCheckResourceAvailabilityTest {
         given(handler.getInput(GUID_TO_INFO_RANK)).willReturn(file);
         initMultiLinesWorkflowContext("10", "20", "11");
 
-        BulkObjectAvailabilityRequest request1 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId + "10", objectId + "11"));
-        BulkObjectAvailabilityRequest request2 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId + "2"));
-        BulkObjectAvailabilityResponse response1 =
-            new BulkObjectAvailabilityResponse(true);
+        BulkObjectAvailabilityRequest request1 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId + "10", objectId + "11")
+        );
+        BulkObjectAvailabilityRequest request2 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId + "2")
+        );
+        BulkObjectAvailabilityResponse response1 = new BulkObjectAvailabilityResponse(true);
         BulkObjectAvailabilityResponse response2 = new BulkObjectAvailabilityResponse(false);
-        given(storageClient.checkBulkObjectAvailability(eq("strategy_1"), any(), refEq(request1, "objectNames")))
-            .willReturn(response1);
-        given(storageClient.checkBulkObjectAvailability(eq("strategy_2"), any(), refEq(request2, "objectNames")))
-            .willReturn(response2);
-        given(storageClient.createAccessRequestIfRequired(eq("strategy_2"), eq(null), eq(DataCategory.OBJECT),
-            eq(List.of(objectId + "20"))))
-            .willReturn(Optional.of(accessRequestId));
+        given(
+            storageClient.checkBulkObjectAvailability(eq("strategy_1"), any(), refEq(request1, "objectNames"))
+        ).willReturn(response1);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("strategy_2"), any(), refEq(request2, "objectNames"))
+        ).willReturn(response2);
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("strategy_2"),
+                eq(null),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId + "20"))
+            )
+        ).willReturn(Optional.of(accessRequestId));
 
         // When
         Throwable thrown = catchThrowable(() -> plugin.executeList(parameter, handler));
@@ -270,22 +319,29 @@ public class ExportCheckResourceAvailabilityTest {
         ProcessingRetryAsyncException exc = (ProcessingRetryAsyncException) thrown;
         assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("strategy_2", null));
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("strategy_2", null))).contains(
-            accessRequestId);
+            accessRequestId
+        );
         verify(storageClient).checkBulkObjectAvailability(eq("strategy_1"), any(), refEq(request1, "objectNames"));
         verify(storageClient).checkBulkObjectAvailability(eq("strategy_2"), any(), refEq(request2, "objectNames"));
-        verify(storageClient).createAccessRequestIfRequired(eq("strategy_2"), eq(null), eq(DataCategory.OBJECT),
-            eq(List.of(objectId + "20")));
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("strategy_2"),
+            eq(null),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId + "20"))
+        );
     }
 
     private void initOneLineWorkflowContext() {
-        parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+        parameter = workerParameterBuilder()
+            .withContainerName("CONTAINER_NAME_TEST")
             .withRequestId("REQUEST_ID_TEST")
             .build();
         parameter.setObjectNameList(Collections.singletonList(objectId));
     }
 
     private void initMultiLinesWorkflowContext(int nbLines) {
-        parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+        parameter = workerParameterBuilder()
+            .withContainerName("CONTAINER_NAME_TEST")
             .withRequestId("REQUEST_ID_TEST")
             .build();
         List<String> objectNameList = new ArrayList<>();
@@ -296,7 +352,8 @@ public class ExportCheckResourceAvailabilityTest {
     }
 
     private void initMultiLinesWorkflowContext(String... numLines) {
-        parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+        parameter = workerParameterBuilder()
+            .withContainerName("CONTAINER_NAME_TEST")
             .withRequestId("REQUEST_ID_TEST")
             .build();
         List<String> objectNameList = new ArrayList<>();
@@ -305,5 +362,4 @@ public class ExportCheckResourceAvailabilityTest {
         }
         parameter.setObjectNameList(objectNameList);
     }
-
 }

@@ -56,13 +56,13 @@ import static org.mockito.Mockito.verify;
 public class MultiplexedStreamTransferThreadTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @RunWithCustomExecutor
     @Test
     public void testTransferThread() throws Exception {
-
         // Given
         String requestId = GUIDFactory.newGUID().getId();
         InputStream is = mock(InputStream.class);
@@ -75,7 +75,14 @@ public class MultiplexedStreamTransferThreadTest {
         doReturn(result).when(connection).bulkPutObjects(any(StorageBulkPutRequest.class));
 
         MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
-            2, requestId, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer,
+            2,
+            requestId,
+            DataCategory.UNIT,
+            Arrays.asList("ob1", "ob2"),
+            is,
+            100L,
+            driver,
+            storageOffer,
             DigestType.SHA512
         );
 
@@ -83,8 +90,9 @@ public class MultiplexedStreamTransferThreadTest {
         StorageBulkPutResult storageBulkPutResult = multiplexedStreamTransferThread.call();
 
         // Then
-        ArgumentCaptor<StorageBulkPutRequest> storageBulkPutRequest =
-            ArgumentCaptor.forClass(StorageBulkPutRequest.class);
+        ArgumentCaptor<StorageBulkPutRequest> storageBulkPutRequest = ArgumentCaptor.forClass(
+            StorageBulkPutRequest.class
+        );
         verify(connection).bulkPutObjects(storageBulkPutRequest.capture());
         assertThat(storageBulkPutRequest.getValue().getObjectIds()).containsExactly("ob1", "ob2");
         assertThat(storageBulkPutRequest.getValue().getDataStream()).isEqualTo(is);
@@ -101,7 +109,6 @@ public class MultiplexedStreamTransferThreadTest {
     @RunWithCustomExecutor
     @Test
     public void testTransferThreadWithErrorDuringConnection() throws Exception {
-
         // Given
         String requestId = GUIDFactory.newGUID().getId();
         InputStream is = mock(InputStream.class);
@@ -113,13 +120,19 @@ public class MultiplexedStreamTransferThreadTest {
         doThrow(ex).when(driver).connect("OfferId");
 
         MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
-            2, requestId, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer,
+            2,
+            requestId,
+            DataCategory.UNIT,
+            Arrays.asList("ob1", "ob2"),
+            is,
+            100L,
+            driver,
+            storageOffer,
             DigestType.SHA512
         );
 
         // When / When
-        assertThatThrownBy(multiplexedStreamTransferThread::call)
-            .isEqualTo(ex);
+        assertThatThrownBy(multiplexedStreamTransferThread::call).isEqualTo(ex);
 
         verify(is).close();
     }
@@ -127,7 +140,6 @@ public class MultiplexedStreamTransferThreadTest {
     @RunWithCustomExecutor
     @Test
     public void testTransferThreadWithErrorDuringTransfer() throws Exception {
-
         // Given
         String requestId = GUIDFactory.newGUID().getId();
         InputStream is = mock(InputStream.class);
@@ -141,13 +153,19 @@ public class MultiplexedStreamTransferThreadTest {
         doThrow(ex).when(connection).bulkPutObjects(any(StorageBulkPutRequest.class));
 
         MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
-            2, requestId, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer,
+            2,
+            requestId,
+            DataCategory.UNIT,
+            Arrays.asList("ob1", "ob2"),
+            is,
+            100L,
+            driver,
+            storageOffer,
             DigestType.SHA512
         );
 
         // When / When
-        assertThatThrownBy(multiplexedStreamTransferThread::call)
-            .isEqualTo(ex);
+        assertThatThrownBy(multiplexedStreamTransferThread::call).isEqualTo(ex);
 
         verify(connection).close();
         verify(is).close();

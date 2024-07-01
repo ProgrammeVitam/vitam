@@ -51,16 +51,15 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SwiftKeystoneFactoryV2.class);
 
-
     private final StorageConfiguration configuration;
     private final Config configOS4J;
     private final AtomicReference<Access> atomicAccess = new AtomicReference<>(null);
     private final AtomicBoolean oneThread = new AtomicBoolean(true);
     private final Object monitor = new Object();
 
-
     public SwiftKeystoneFactoryV2(StorageConfiguration configuration) {
-        configOS4J = Config.newConfig().withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
+        configOS4J = Config.newConfig()
+            .withEndpointURLResolver(new VitamEndpointUrlResolver(configuration))
             .withConnectionTimeout(configuration.getSwiftConnectionTimeout())
             .withReadTimeout(configuration.getSwiftReadTimeout())
             .withMaxConnections(configuration.getSwiftMaxConnections())
@@ -72,7 +71,8 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         Access currentAccess = atomicAccess.get();
         // First call to we have to authenticate
         Date nearTime = LocalDateUtil.getDate(
-            LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime()));
+            LocalDateUtil.now().plusSeconds(configuration.getSwiftHardRenewTokenDelayBeforeExpireTime())
+        );
         if (currentAccess == null || currentAccess.getToken().getExpires().before(nearTime)) {
             synchronized (monitor) {
                 currentAccess = atomicAccess.get();
@@ -88,7 +88,8 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
 
         // Renew Access before expiration only one thread should re-authenticate
         Date farTime = LocalDateUtil.getDate(
-            LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime()));
+            LocalDateUtil.now().plusSeconds(configuration.getSwiftSoftRenewTokenDelayBeforeExpireTime())
+        );
         if (currentAccess.getToken().getExpires().before(farTime)) {
             // Only one thread should re-authentication
             if (oneThread.compareAndSet(true, false)) {
@@ -118,8 +119,10 @@ public class SwiftKeystoneFactoryV2 implements Supplier<OSClient> {
         Stopwatch times = Stopwatch.createStarted();
         LOGGER.info("No access or access expired, let's get authenticate again");
         try {
-            return OSFactory.builderV2().endpoint(configuration.getSwiftKeystoneAuthUrl()).tenantName(configuration
-                    .getSwiftDomain()).credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())
+            return OSFactory.builderV2()
+                .endpoint(configuration.getSwiftKeystoneAuthUrl())
+                .tenantName(configuration.getSwiftDomain())
+                .credentials(configuration.getSwiftUser(), configuration.getSwiftPassword())
                 .withConfig(configOS4J)
                 .authenticate();
         } finally {

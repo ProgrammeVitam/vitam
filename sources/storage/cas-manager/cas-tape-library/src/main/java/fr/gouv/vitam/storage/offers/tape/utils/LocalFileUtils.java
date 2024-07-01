@@ -40,8 +40,9 @@ public final class LocalFileUtils {
 
     private static final String CONTAINER_SEPARATOR = "/";
     private static final String SEPARATOR = "-";
-    private static final Pattern ARCHIVE_ID_FILENAME_PATTERN =
-        Pattern.compile("^(?<CreationDate>\\d{17})-(?<GUID>[a-z0-9\\-]*)\\.(tar|zip)$");
+    private static final Pattern ARCHIVE_ID_FILENAME_PATTERN = Pattern.compile(
+        "^(?<CreationDate>\\d{17})-(?<GUID>[a-z0-9\\-]*)\\.(tar|zip)$"
+    );
 
     private static final int GUID_LENGTH = 36;
     public static final String TAR_EXTENSION = ".tar";
@@ -77,7 +78,6 @@ public final class LocalFileUtils {
     }
 
     public static String getStorageIdFromTarEntryName(String tarEntryName) {
-
         int containerSeparatorIndex = tarEntryName.indexOf(CONTAINER_SEPARATOR);
         int entryIndexSeparatorIndex = tarEntryName.lastIndexOf(SEPARATOR);
 
@@ -91,7 +91,6 @@ public final class LocalFileUtils {
     }
 
     public static int getEntryIndexFromTarEntryName(String tarEntryName) {
-
         int entryIndexSeparatorIndex = tarEntryName.lastIndexOf(SEPARATOR);
         if (entryIndexSeparatorIndex <= 0) {
             throw new IllegalArgumentException("Invalid tar entry name '" + tarEntryName + "'");
@@ -100,8 +99,9 @@ public final class LocalFileUtils {
     }
 
     public static String createTarId(LocalDateTime now) {
-        return LocalDateUtil.getDateTimeFormatterForFileNames().format(now) + SEPARATOR
-            + UUID.randomUUID() + TAR_EXTENSION;
+        return (
+            LocalDateUtil.getDateTimeFormatterForFileNames().format(now) + SEPARATOR + UUID.randomUUID() + TAR_EXTENSION
+        );
     }
 
     public static String archiveFileNameRelativeToInputArchiveStorageFolder(String fileBucket, String archiveId) {
@@ -117,7 +117,6 @@ public final class LocalFileUtils {
     }
 
     public static String archiveFileNamePathToArchiveId(String tarFileName) {
-
         if (tarFileName.endsWith(TMP_EXTENSION)) {
             tarFileName = tarFileName.substring(0, tarFileName.length() - TMP_EXTENSION.length());
         }

@@ -124,10 +124,19 @@ public class AdminMigrationResource {
     private VitamCounterService vitamCounterService;
     private final MetaDataClientFactory metaDataClientFactory;
 
-    AdminMigrationResource(AdminManagementConfiguration configuration, OntologyLoader ontologyLoader,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
-        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance(), configuration, ontologyLoader, indexManager);
+    AdminMigrationResource(
+        AdminManagementConfiguration configuration,
+        OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
+        this(
+            LogbookOperationsClientFactory.getInstance(),
+            ProcessingManagementClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            configuration,
+            ontologyLoader,
+            indexManager
+        );
     }
 
     /**
@@ -138,20 +147,26 @@ public class AdminMigrationResource {
      * @param workspaceClientFactory workspaceClientFactory
      */
     @VisibleForTesting
-    public AdminMigrationResource(LogbookOperationsClientFactory logbookOperationsClientFactory,
+    public AdminMigrationResource(
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory, AdminManagementConfiguration configuration,
-        OntologyLoader ontologyLoader, ElasticsearchFunctionalAdminIndexManager indexManager) {
+        WorkspaceClientFactory workspaceClientFactory,
+        AdminManagementConfiguration configuration,
+        OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         this.configuration = configuration;
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
-            adminConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
-                    true, configuration.getDbUserName(), configuration.getDbPassword());
+            adminConfiguration = new DbConfigurationImpl(
+                configuration.getMongoDbNodes(),
+                configuration.getDbName(),
+                true,
+                configuration.getDbUserName(),
+                configuration.getDbPassword()
+            );
         } else {
-            adminConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(),
-                    configuration.getDbName());
+            adminConfiguration = new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName());
         }
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
@@ -174,7 +189,6 @@ public class AdminMigrationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response start(@Context HttpHeaders headers) {
-
         xrequestIds.clear();
 
         getTenants().forEach(integer -> xrequestIds.put(integer, GUIDFactory.newGUID().getId()));
@@ -199,8 +213,7 @@ public class AdminMigrationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response check() {
-        ProcessingManagementClient processingManagementClient =
-            processingManagementClientFactory.getClient();
+        ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient();
         if (xrequestIds.isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -208,14 +221,16 @@ public class AdminMigrationResource {
         for (Map.Entry<Integer, String> entry : xrequestIds.entrySet()) {
             VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
             try {
-                ItemStatus operationProcessStatus =
-                    processingManagementClient.getOperationProcessStatus(entry.getValue());
+                ItemStatus operationProcessStatus = processingManagementClient.getOperationProcessStatus(
+                    entry.getValue()
+                );
                 // if one process is on STARTED status return accepted
 
                 boolean isProcessFinished = operationProcessStatus.getGlobalState().equals(ProcessState.COMPLETED);
 
                 // When FATAL occurs, the process state will be set to PAUSE and status to FATAL => To be treated manually
-                boolean isProcessPauseFatal = operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) &&
+                boolean isProcessPauseFatal =
+                    operationProcessStatus.getGlobalState().equals(ProcessState.PAUSE) &&
                     StatusCode.FATAL.equals(operationProcessStatus.getGlobalStatus());
 
                 if (!isProcessFinished && !isProcessPauseFatal) {
@@ -228,7 +243,6 @@ public class AdminMigrationResource {
                 LOGGER.error("Could not check process status " + entry.getValue(), e);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
             }
-
         }
 
         return Response.status(Response.Status.OK).build();
@@ -247,25 +261,29 @@ public class AdminMigrationResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response migrateCollection(DataMigrationBody dataMigrationBody) {
-
         // Validate Body
         try {
             validateDataMigrationBody(dataMigrationBody);
         } catch (ValidationException e) {
             return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, (e.getMessage()))).build();
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, (e.getMessage())))
+                .build();
         }
 
         // Check Collection & fields and start data migration
-        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().equals(dataMigrationBody.getCollection()) &&
-            authorizedFieldsForCollection(AccessionRegisterDetail.AUTHORIZED_FIELDS_TO_UPDATE,
-                dataMigrationBody.getFields())) {
+        if (
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().equals(dataMigrationBody.getCollection()) &&
+            authorizedFieldsForCollection(
+                AccessionRegisterDetail.AUTHORIZED_FIELDS_TO_UPDATE,
+                dataMigrationBody.getFields()
+            )
+        ) {
             return migrateAccessionRegisterDetails(dataMigrationBody);
         }
 
         return Response.status(BAD_REQUEST)
-            .entity(getErrorEntity(BAD_REQUEST, "Incorrect body fields! Data migration has been aborted !")).build();
-
+            .entity(getErrorEntity(BAD_REQUEST, "Incorrect body fields! Data migration has been aborted !"))
+            .build();
     }
 
     private boolean authorizedFieldsForCollection(List<String> authorizedFieldsToUpdate, List<String> fields) {
@@ -273,14 +291,19 @@ public class AdminMigrationResource {
     }
 
     private Response migrateAccessionRegisterDetails(DataMigrationBody dataMigrationBody) {
-
         try {
-            AccessionRegisterDetailModel accessionRegister =
-                JsonHandler.getFromJsonNode(dataMigrationBody.getModel(), AccessionRegisterDetailModel.class);
+            AccessionRegisterDetailModel accessionRegister = JsonHandler.getFromJsonNode(
+                dataMigrationBody.getModel(),
+                AccessionRegisterDetailModel.class
+            );
 
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("register ID / Originating Agency: " + accessionRegister.getId() + " / " +
-                    accessionRegister.getOriginatingAgency());
+                LOGGER.debug(
+                    "register ID / Originating Agency: " +
+                    accessionRegister.getId() +
+                    " / " +
+                    accessionRegister.getOriginatingAgency()
+                );
             }
             ParametersChecker.checkParameter("Accession Register is a mandatory parameter", accessionRegister);
 
@@ -288,27 +311,34 @@ public class AdminMigrationResource {
                 VitamThreadUtils.getVitamSession().setTenantId(accessionRegister.getTenant());
             } else {
                 throw new ValidationException(
-                    String.format("The Tenant of the document's ID : %s is not setted !", accessionRegister.getId()));
+                    String.format("The Tenant of the document's ID : %s is not setted !", accessionRegister.getId())
+                );
             }
 
-            try (ReferentialAccessionRegisterImpl accessionRegisterManagement =
-                new ReferentialAccessionRegisterImpl(mongoAccess, vitamCounterService, metaDataClientFactory,
-                    configuration)) {
+            try (
+                ReferentialAccessionRegisterImpl accessionRegisterManagement = new ReferentialAccessionRegisterImpl(
+                    mongoAccess,
+                    vitamCounterService,
+                    metaDataClientFactory,
+                    configuration
+                )
+            ) {
                 accessionRegisterManagement.migrateAccessionRegister(accessionRegister, dataMigrationBody.getFields());
                 return Response.status(CREATED).build();
             } catch (final BadRequestException e) {
                 LOGGER.error(e);
-                return Response.status(BAD_REQUEST)
-                    .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
+                return Response.status(BAD_REQUEST).entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+                    .build();
             }
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
@@ -331,9 +361,10 @@ public class AdminMigrationResource {
 
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
+        try (
+            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
             GUID guid = GUIDReader.getGUID(requestId);
 
             VitamThreadUtils.getVitamSession().setRequestId(guid.getId());
@@ -344,49 +375,54 @@ public class AdminMigrationResource {
             // No need to backup operation context, this workflow can be re-executed using logbook information
             processingClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
 
-            RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                processingClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(),
-                    ProcessAction.RESUME.getValue());
+            RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
+                guid.getId(),
+                Contexts.DATA_MIGRATION.name(),
+                ProcessAction.RESUME.getValue()
+            );
             jsonNodeRequestResponse.toResponse();
-
         } catch (LogbookClientBadRequestException | BadRequestException e) {
             LOGGER.error(e);
-            status(BAD_REQUEST)
-                .header(GlobalDataRest.X_REQUEST_ID, requestId)
-                .build();
-
-        } catch (ContentAddressableStorageServerException | VitamClientException | InternalServerException | InvalidGuidOperationException e) {
+            status(BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
+        } catch (
+            ContentAddressableStorageServerException
+            | VitamClientException
+            | InternalServerException
+            | InvalidGuidOperationException e
+        ) {
             LOGGER.error(e);
             Response.status(INTERNAL_SERVER_ERROR)
                 .header(GlobalDataRest.X_REQUEST_ID, requestId)
-                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
-
     private VitamError getErrorEntity(Response.Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
-
-    private void createOperation(GUID guid)
-        throws LogbookClientBadRequestException {
+    private void createOperation(GUID guid) throws LogbookClientBadRequestException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-            final LogbookOperationParameters initParameter =
-                LogbookParameterHelper.newLogbookOperationParameters(
-                    guid,
-                    Contexts.DATA_MIGRATION.name(),
-                    guid,
-                    LogbookTypeProcess.DATA_MIGRATION,
-                    StatusCode.STARTED,
-                    VitamLogbookMessages
-                        .getLabelOp(String.format("%s.%s", Contexts.DATA_MIGRATION.name(), StatusCode.STARTED.name())) +
-                        " : " + guid,
-                    guid);
+            final LogbookOperationParameters initParameter = LogbookParameterHelper.newLogbookOperationParameters(
+                guid,
+                Contexts.DATA_MIGRATION.name(),
+                guid,
+                LogbookTypeProcess.DATA_MIGRATION,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getLabelOp(
+                    String.format("%s.%s", Contexts.DATA_MIGRATION.name(), StatusCode.STARTED.name())
+                ) +
+                " : " +
+                guid,
+                guid
+            );
             client.create(initParameter);
         } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new VitamRuntimeException("Internal server error ", e);

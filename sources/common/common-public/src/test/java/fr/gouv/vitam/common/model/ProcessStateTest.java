@@ -66,7 +66,6 @@ public class ProcessStateTest {
         ProcessState.RUNNING.eval(ProcessState.RUNNING);
     }
 
-
     @Test(expected = StateNotAllowedException.class)
     public void completedEvalPauseStateThenOK() throws Exception {
         ProcessState.COMPLETED.eval(ProcessState.PAUSE);
@@ -81,7 +80,6 @@ public class ProcessStateTest {
     public void completedEvalRunningStateThenOK() throws Exception {
         ProcessState.COMPLETED.eval(ProcessState.RUNNING);
     }
-
 
     @Test
     public void should_convert_workflow_status_to_http_status() throws Exception {

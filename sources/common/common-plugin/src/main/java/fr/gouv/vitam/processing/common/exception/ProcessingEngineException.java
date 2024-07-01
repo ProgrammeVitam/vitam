@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Exception handled by the ProcessEngine.
  */
 public class ProcessingEngineException extends VitamException {
+
     private static final long serialVersionUID = 6288951051488329582L;
 
     /**

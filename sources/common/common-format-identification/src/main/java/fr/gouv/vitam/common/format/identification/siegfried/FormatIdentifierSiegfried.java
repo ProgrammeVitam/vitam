@@ -54,6 +54,7 @@ import java.util.Map;
  * Siegfried implementation of format identifier
  */
 public class FormatIdentifierSiegfried implements FormatIdentifier {
+
     /**
      * Pronom namespace
      */
@@ -67,7 +68,6 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentifierSiegfried.class);
 
     private final SiegfriedClientFactory siegfriedClientFactory;
-
 
     /**
      * Configuration should come with 'client', 'rootPath' and 'versionPath' mandatory parameters. If client is 'http':
@@ -141,8 +141,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
 
     @Override
     public List<FormatIdentifierResponse> analysePath(Path path)
-        throws FileFormatNotFoundException, FormatIdentifierBadRequestException, FormatIdentifierTechnicalException,
-        FormatIdentifierNotFoundException {
+        throws FileFormatNotFoundException, FormatIdentifierBadRequestException, FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
@@ -177,8 +176,12 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                 }
                 final String mimetype = match.get("mime").asText();
                 final String format = match.get("format").asText();
-                final FormatIdentifierResponse formatIdentifier =
-                    new FormatIdentifierResponse(format, mimetype, formatId, namespace);
+                final FormatIdentifierResponse formatIdentifier = new FormatIdentifierResponse(
+                    format,
+                    mimetype,
+                    formatId,
+                    namespace
+                );
                 matchesFormats.add(formatIdentifier);
             } else if (PRONOM_NAMESPACE.equals(namespace)) {
                 final JsonNode warnNode = match.get("warning");
@@ -206,8 +209,12 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
                             }
                             final String mimetype = MediaType.APPLICATION_OCTET_STREAM;
                             final String format = "Approximative format: " + newFormatId;
-                            final FormatIdentifierResponse formatIdentifier =
-                                new FormatIdentifierResponse(format, mimetype, newFormatId, namespace);
+                            final FormatIdentifierResponse formatIdentifier = new FormatIdentifierResponse(
+                                format,
+                                mimetype,
+                                newFormatId,
+                                namespace
+                            );
                             matchesFormats.add(formatIdentifier);
                         }
                     }

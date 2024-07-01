@@ -56,7 +56,7 @@ public class AnyKeyFormat extends Format {
             return;
         }
 
-        for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext();) {
             Map.Entry<String, JsonNode> item = it.next();
             String name = item.getKey();
             validator.pushContext(name);

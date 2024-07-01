@@ -54,6 +54,7 @@ import java.util.Optional;
  * Abstract service of resource availability plugins. These plugins should be added at the beginning of any workflow step who contains an action that download or copy from a resource that could be stored on an async offer.
  */
 public abstract class CheckResourceAvailability extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckResourceAvailability.class);
 
     private final StorageClientFactory storageClientFactory;
@@ -70,20 +71,24 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      * @throws ProcessingRetryAsyncException exception thrown when some resources are unavailable
      */
     protected void checkResourcesAvailabilityByTypes(
-        Map<DataCategory, Map<AccessRequestContext, List<String>>> objectIdsByContextbyType)
-        throws StorageServerClientException,
-        ProcessingRetryAsyncException {
+        Map<DataCategory, Map<AccessRequestContext, List<String>>> objectIdsByContextbyType
+    ) throws StorageServerClientException, ProcessingRetryAsyncException {
         LOGGER.info("Check if resources are available for multiple categories.");
         Map<AccessRequestContext, List<String>> accessRequestsCreated = new HashMap<>();
         for (DataCategory type : objectIdsByContextbyType.keySet()) {
-            MultiValuedMap<AccessRequestContext, String> unavailableResources =
-                extractUnavailableResources(objectIdsByContextbyType.get(type), type);
+            MultiValuedMap<AccessRequestContext, String> unavailableResources = extractUnavailableResources(
+                objectIdsByContextbyType.get(type),
+                type
+            );
             if (!unavailableResources.isEmpty()) {
                 LOGGER.info("Some resources are unavailable, creation of accessRequests.");
-                Map<AccessRequestContext, List<String>> createAccessRequestsForType =
-                    createAccessRequests(unavailableResources, type);
+                Map<AccessRequestContext, List<String>> createAccessRequestsForType = createAccessRequests(
+                    unavailableResources,
+                    type
+                );
                 for (AccessRequestContext context : createAccessRequestsForType.keySet()) {
-                    accessRequestsCreated.computeIfAbsent(context, (x -> new ArrayList<>()))
+                    accessRequestsCreated
+                        .computeIfAbsent(context, (x -> new ArrayList<>()))
                         .addAll(createAccessRequestsForType.get(context));
                 }
             }
@@ -101,17 +106,21 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      * @throws StorageServerClientException exception from storage
      * @throws ProcessingRetryAsyncException exception thrown when some resources are unavailable
      */
-    protected void checkResourcesAvailability(Map<AccessRequestContext, List<String>> objectIdsByContext,
-        DataCategory type)
-        throws StorageServerClientException,
-        ProcessingRetryAsyncException {
+    protected void checkResourcesAvailability(
+        Map<AccessRequestContext, List<String>> objectIdsByContext,
+        DataCategory type
+    ) throws StorageServerClientException, ProcessingRetryAsyncException {
         LOGGER.info("Check if resources are available.");
-        MultiValuedMap<AccessRequestContext, String> unavailableResources =
-            extractUnavailableResources(objectIdsByContext, type);
+        MultiValuedMap<AccessRequestContext, String> unavailableResources = extractUnavailableResources(
+            objectIdsByContext,
+            type
+        );
         if (!unavailableResources.isEmpty()) {
             LOGGER.info("Some resources are unavailable, creation of accessRequests.");
-            Map<AccessRequestContext, List<String>> accessRequestsCreated =
-                createAccessRequests(unavailableResources, type);
+            Map<AccessRequestContext, List<String>> accessRequestsCreated = createAccessRequests(
+                unavailableResources,
+                type
+            );
             throw new ProcessingRetryAsyncException(accessRequestsCreated);
         }
     }
@@ -125,28 +134,31 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      * @throws StorageServerClientException exception from storage
      */
     private MultiValuedMap<AccessRequestContext, String> extractUnavailableResources(
-        Map<AccessRequestContext, List<String>> objectIdsByContext, DataCategory type)
-        throws StorageServerClientException {
+        Map<AccessRequestContext, List<String>> objectIdsByContext,
+        DataCategory type
+    ) throws StorageServerClientException {
         LOGGER.debug("Extract the resources that are unavailable");
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             MultiValuedMap<AccessRequestContext, String> unavailableObjects = new ArrayListValuedHashMap<>();
             for (AccessRequestContext context : objectIdsByContext.keySet()) {
                 Collection<String> objectIds = objectIdsByContext.get(context);
-                Iterator<List<String>> objectIdsIterator =
-                    Iterators.partition(objectIds.iterator(), VitamConfiguration.getBatchSize());
+                Iterator<List<String>> objectIdsIterator = Iterators.partition(
+                    objectIds.iterator(),
+                    VitamConfiguration.getBatchSize()
+                );
                 while (objectIdsIterator.hasNext()) {
                     List<String> objectIdsBulk = objectIdsIterator.next();
-                    BulkObjectAvailabilityRequest request =
-                        new BulkObjectAvailabilityRequest(type, objectIdsBulk);
-                    BulkObjectAvailabilityResponse response =
-                        storageClient.checkBulkObjectAvailability(context.getStrategyId(), context.getOfferId(),
-                            request);
+                    BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(type, objectIdsBulk);
+                    BulkObjectAvailabilityResponse response = storageClient.checkBulkObjectAvailability(
+                        context.getStrategyId(),
+                        context.getOfferId(),
+                        request
+                    );
                     if (!response.getAreObjectsAvailable()) {
                         for (String objectName : request.getObjectNames()) {
                             unavailableObjects.put(context, objectName);
                         }
                     }
-
                 }
             }
             return unavailableObjects;
@@ -162,27 +174,42 @@ public abstract class CheckResourceAvailability extends ActionHandler {
      * @throws StorageServerClientException exception from storage
      */
     private Map<AccessRequestContext, List<String>> createAccessRequests(
-        MultiValuedMap<AccessRequestContext, String> objectIdsByContext, DataCategory type)
-        throws StorageServerClientException {
+        MultiValuedMap<AccessRequestContext, String> objectIdsByContext,
+        DataCategory type
+    ) throws StorageServerClientException {
         LOGGER.debug("Create access requests if required");
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             Map<AccessRequestContext, List<String>> accessRequests = new HashMap<>();
             for (AccessRequestContext context : objectIdsByContext.keySet()) {
                 Collection<String> objectIds = objectIdsByContext.get(context);
-                Iterator<List<String>> objectIdsIterator =
-                    Iterators.partition(objectIds.iterator(), VitamConfiguration.getBatchSize());
+                Iterator<List<String>> objectIdsIterator = Iterators.partition(
+                    objectIds.iterator(),
+                    VitamConfiguration.getBatchSize()
+                );
                 while (objectIdsIterator.hasNext()) {
                     List<String> objectIdsBulk = objectIdsIterator.next();
                     objectIdsBulk.forEach(item -> {
-                        LOGGER.debug("Create access requests if required for " +
-                            context.getStrategyId() + " " + context.getOfferId() + " " + type + " " + item);
+                        LOGGER.debug(
+                            "Create access requests if required for " +
+                            context.getStrategyId() +
+                            " " +
+                            context.getOfferId() +
+                            " " +
+                            type +
+                            " " +
+                            item
+                        );
                     });
-                    Optional<String> accessRequestId =
-                        storageClient.createAccessRequestIfRequired(context.getStrategyId(), context.getOfferId(), type,
-                            objectIdsBulk);
+                    Optional<String> accessRequestId = storageClient.createAccessRequestIfRequired(
+                        context.getStrategyId(),
+                        context.getOfferId(),
+                        type,
+                        objectIdsBulk
+                    );
                     accessRequestId.ifPresentOrElse(
                         id -> accessRequests.computeIfAbsent(context, (x -> new ArrayList<>())).add(id),
-                        () -> LOGGER.warn("Access Request was not created"));
+                        () -> LOGGER.warn("Access Request was not created")
+                    );
                 }
             }
             return accessRequests;

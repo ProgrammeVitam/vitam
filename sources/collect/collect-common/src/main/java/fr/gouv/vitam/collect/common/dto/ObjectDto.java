@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.collect.common.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -69,10 +68,8 @@ public class ObjectDto implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ObjectDto that = (ObjectDto) o;
         return Objects.equals(id, that.id) && Objects.equals(fileInfo, that.fileInfo);
     }
@@ -84,9 +81,6 @@ public class ObjectDto implements Serializable {
 
     @Override
     public String toString() {
-        return "ObjectGroupDto{" +
-            "id='" + id + '\'' +
-            ", fileInfo=" + fileInfo +
-            '}';
+        return "ObjectGroupDto{" + "id='" + id + '\'' + ", fileInfo=" + fileInfo + '}';
     }
 }

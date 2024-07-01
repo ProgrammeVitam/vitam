@@ -66,8 +66,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMe
 
 public class ChecksSecureTraceabilityDataHashesPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ChecksSecureTraceabilityDataHashesPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ChecksSecureTraceabilityDataHashesPlugin.class
+    );
     private static final String PLUGIN_NAME = "CHECKS_SECURE_TRACEABILITY_DATA_HASHES";
     private static final int TRACEABILITY_EVENT_IN_RANK = 0;
     private static final int DIGEST_IN_RANK = 1;
@@ -84,40 +85,48 @@ public class ChecksSecureTraceabilityDataHashesPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         if (handler.isExistingFileInWorkspace(param.getObjectName() + File.separator + ERROR_FLAG)) {
             return buildItemStatus(PLUGIN_NAME, KO);
         }
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             File traceabilityEventJsonFile = (File) handler.getInput(TRACEABILITY_EVENT_IN_RANK);
             // todo : add zip fingerprint to TraceabilityEvent
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromFile(traceabilityEventJsonFile, TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromFile(
+                traceabilityEventJsonFile,
+                TraceabilityEvent.class
+            );
 
             String digest = String.valueOf(handler.getInput(DIGEST_IN_RANK));
 
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
-            Response response = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                    traceabilityEvent.getFileName(),
-                    dataCategory,
-                    AccessLogUtils.getNoLogAccessLog());
+            Response response = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                traceabilityEvent.getFileName(),
+                dataCategory,
+                AccessLogUtils.getNoLogAccessLog()
+            );
 
             File traceabilityFile = response.readEntity(File.class);
 
-            DigestType digestType = (traceabilityEvent.getDigestAlgorithm() != null) ?
-                traceabilityEvent.getDigestAlgorithm() : VitamConfiguration.getDefaultDigestType();
+            DigestType digestType = (traceabilityEvent.getDigestAlgorithm() != null)
+                ? traceabilityEvent.getDigestAlgorithm()
+                : VitamConfiguration.getDefaultDigestType();
 
             Digest eventDigest = new Digest(digestType);
             eventDigest.update(traceabilityFile);
             if (!eventDigest.digestHex().equals(digest)) {
-                ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO,
-                    "Invalid data fingerprint");
-                updateReport(param, handler,
-                    (report) -> report.setMessage(result.getMessage()).setSecuredHash(eventDigest.digestHex()).setError(
-                        TraceabilityError.INVALID_FINGERPRINT));
+                ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, "Invalid data fingerprint");
+                updateReport(
+                    param,
+                    handler,
+                    report ->
+                        report
+                            .setMessage(result.getMessage())
+                            .setSecuredHash(eventDigest.digestHex())
+                            .setError(TraceabilityError.INVALID_FINGERPRINT)
+                );
                 HandlerUtils.save(handler, "", param.getObjectName() + File.separator + ERROR_FLAG);
                 return result;
             }
@@ -125,10 +134,19 @@ public class ChecksSecureTraceabilityDataHashesPlugin extends ActionHandler {
             handler.addOutputResult(0, traceabilityFile, false);
 
             ItemStatus result = buildItemStatus(PLUGIN_NAME, StatusCode.OK);
-            updateReport(param, handler,
-                (report) -> report.setMessage(result.getMessage()).setSecuredHash(eventDigest.digestHex()));
+            updateReport(
+                param,
+                handler,
+                report -> report.setMessage(result.getMessage()).setSecuredHash(eventDigest.digestHex())
+            );
             return result;
-        } catch (InvalidParseOperationException | StorageServerClientException | StorageNotFoundException | IOException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | StorageServerClientException
+            | StorageNotFoundException
+            | IOException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             throw new ProcessingException(e);
         }
     }
@@ -136,14 +154,15 @@ public class ChecksSecureTraceabilityDataHashesPlugin extends ActionHandler {
     private void updateReport(WorkerParameters param, HandlerIO handlerIO, Consumer<TraceabilityReportEntry> updater)
         throws IOException, ProcessingException, InvalidParseOperationException {
         String path = param.getObjectName() + File.separator + WorkspaceConstants.REPORT;
-        TraceabilityReportEntry traceabilityReportEntry =
-            JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(path), TraceabilityReportEntry.class);
+        TraceabilityReportEntry traceabilityReportEntry = JsonHandler.getFromJsonNode(
+            handlerIO.getJsonFromWorkspace(path),
+            TraceabilityReportEntry.class
+        );
         updater.accept(traceabilityReportEntry);
         HandlerUtils.save(handlerIO, traceabilityReportEntry, path);
     }
 
     private DataCategory getDataCategory(TraceabilityEvent traceabilityEvent) {
-
         if (traceabilityEvent.getLogType() == null) {
             throw new IllegalStateException("Missing traceability event type");
         }

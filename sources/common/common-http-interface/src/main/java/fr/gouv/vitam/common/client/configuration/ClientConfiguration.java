@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.common.client.configuration;
 
-
 /**
  * Defines minimal common configurations for client configuration properties.
  */
 public interface ClientConfiguration {
-
     /**
      * Must return the value of a 'serverHost' attribute
      *
@@ -66,5 +64,4 @@ public interface ClientConfiguration {
      * @return secure = false : HTTP, secure = true : HTTPS
      */
     boolean isSecure();
-
 }

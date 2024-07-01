@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 
 import java.time.Instant;
 
-
 /**
  * Cache entry of {@link LRUCache}.
  * Instances of this class are immutable.
@@ -49,8 +48,7 @@ public class LRUCacheEntry<T> {
      * @param lastAccessInstant last used instant of the entry.
      * @throws IllegalArgumentException when provided parameters have illegal values.
      */
-    public LRUCacheEntry(T key, long weight, Instant lastAccessInstant)
-        throws IllegalArgumentException {
+    public LRUCacheEntry(T key, long weight, Instant lastAccessInstant) throws IllegalArgumentException {
         ParametersChecker.checkParameter("Key must not be null", key);
         ParametersChecker.checkParameter("last access instant must not be null", lastAccessInstant);
         ParametersChecker.checkValue("Entry weight must be positive", weight, 1);

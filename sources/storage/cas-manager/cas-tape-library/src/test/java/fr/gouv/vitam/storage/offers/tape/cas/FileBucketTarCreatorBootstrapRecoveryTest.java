@@ -70,7 +70,6 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-
     @Mock
     ObjectReferentialRepository objectReferentialRepository;
 
@@ -86,27 +85,31 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
 
     @Before
     public void initialize() throws IOException {
-
         String inputTarStorageFolder = temporaryFolder.newFolder("inputFiles").getAbsolutePath();
         Files.createDirectories(LocalFileUtils.fileBuckedInputFilePath(inputTarStorageFolder, FILE_BUCKET_ID));
 
         basicFileStorage = spy(new BasicFileStorage(inputTarStorageFolder));
 
-        fileBucketTarCreatorBootstrapRecovery =
-            new FileBucketTarCreatorBootstrapRecovery(basicFileStorage, objectReferentialRepository);
+        fileBucketTarCreatorBootstrapRecovery = new FileBucketTarCreatorBootstrapRecovery(
+            basicFileStorage,
+            objectReferentialRepository
+        );
 
         doReturn(ImmutableSet.of(UNIT_CONTAINER, OBJECT_GROUP_CONTAINER))
-            .when(bucketTopologyHelper).listContainerNames(FILE_BUCKET_ID);
+            .when(bucketTopologyHelper)
+            .listContainerNames(FILE_BUCKET_ID);
     }
 
     @Test
     public void initializeOnBootstrapWithEmptyWorkdirs() throws Exception {
-
         // Given (empty folder)
 
         // When
         fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
-            FILE_BUCKET_ID, fileBucketTarCreator, bucketTopologyHelper);
+            FILE_BUCKET_ID,
+            fileBucketTarCreator,
+            bucketTopologyHelper
+        );
 
         // Then
         verifyNoMoreInteractions(objectReferentialRepository);
@@ -120,15 +123,16 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
 
     @Test
     public void initializeOnBootstrapWithNonExistingFile() throws Exception {
-
         // Given
         String storageId1 = this.basicFileStorage.writeFile(UNIT_CONTAINER, FILE_1, new NullInputStream(10), 10);
-        doReturn(emptyList())
-            .when(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
+        doReturn(emptyList()).when(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
 
         // When
         fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
-            FILE_BUCKET_ID, fileBucketTarCreator, bucketTopologyHelper);
+            FILE_BUCKET_ID,
+            fileBucketTarCreator,
+            bucketTopologyHelper
+        );
 
         // Then
         verify(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
@@ -146,18 +150,31 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
 
     @Test
     public void initializeOnBootstrapWithInvalidFileStorageId() throws Exception {
-
         // Given
         String storageId1 = this.basicFileStorage.writeFile(UNIT_CONTAINER, FILE_1, new NullInputStream(10), 10);
-        doReturn(singletonList(new TapeObjectReferentialEntity(
-            new TapeLibraryObjectReferentialId(UNIT_CONTAINER, FILE_1),
-            10, DIGEST_TYPE, "digest", "ANOTHER-STORAGE-ID", null, null, null
-        )))
-            .when(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
+        doReturn(
+            singletonList(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId(UNIT_CONTAINER, FILE_1),
+                    10,
+                    DIGEST_TYPE,
+                    "digest",
+                    "ANOTHER-STORAGE-ID",
+                    null,
+                    null,
+                    null
+                )
+            )
+        )
+            .when(objectReferentialRepository)
+            .bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
 
         // When
         fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
-            FILE_BUCKET_ID, fileBucketTarCreator, bucketTopologyHelper);
+            FILE_BUCKET_ID,
+            fileBucketTarCreator,
+            bucketTopologyHelper
+        );
 
         // Then
         verify(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
@@ -175,18 +192,31 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
 
     @Test
     public void initializeOnBootstrapWithAlreadyProceededFile() throws Exception {
-
         // Given
         String storageId1 = this.basicFileStorage.writeFile(UNIT_CONTAINER, FILE_1, new NullInputStream(10), 10);
-        doReturn(singletonList(new TapeObjectReferentialEntity(
-            new TapeLibraryObjectReferentialId(UNIT_CONTAINER, FILE_1),
-            10, DIGEST_TYPE, "digest", storageId1, new TapeLibraryTarObjectStorageLocation(null), null, null
-        )))
-            .when(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
+        doReturn(
+            singletonList(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId(UNIT_CONTAINER, FILE_1),
+                    10,
+                    DIGEST_TYPE,
+                    "digest",
+                    storageId1,
+                    new TapeLibraryTarObjectStorageLocation(null),
+                    null,
+                    null
+                )
+            )
+        )
+            .when(objectReferentialRepository)
+            .bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
 
         // When
         fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
-            FILE_BUCKET_ID, fileBucketTarCreator, bucketTopologyHelper);
+            FILE_BUCKET_ID,
+            fileBucketTarCreator,
+            bucketTopologyHelper
+        );
 
         // Then
         verify(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
@@ -204,23 +234,35 @@ public class FileBucketTarCreatorBootstrapRecoveryTest {
 
     @Test
     public void initializeOnBootstrapRecoverFile() throws Exception {
-
         // Given
         String storageId1 = this.basicFileStorage.writeFile(UNIT_CONTAINER, FILE_1, new NullInputStream(10), 10);
-        doReturn(singletonList(new TapeObjectReferentialEntity(
-            new TapeLibraryObjectReferentialId(UNIT_CONTAINER, FILE_1),
-            10, DIGEST_TYPE, "digest", storageId1, new TapeLibraryInputFileObjectStorageLocation(), null, null
-        )))
-            .when(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
+        doReturn(
+            singletonList(
+                new TapeObjectReferentialEntity(
+                    new TapeLibraryObjectReferentialId(UNIT_CONTAINER, FILE_1),
+                    10,
+                    DIGEST_TYPE,
+                    "digest",
+                    storageId1,
+                    new TapeLibraryInputFileObjectStorageLocation(),
+                    null,
+                    null
+                )
+            )
+        )
+            .when(objectReferentialRepository)
+            .bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
 
         // When
         fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
-            FILE_BUCKET_ID, fileBucketTarCreator, bucketTopologyHelper);
+            FILE_BUCKET_ID,
+            fileBucketTarCreator,
+            bucketTopologyHelper
+        );
 
         // Then
         verify(objectReferentialRepository).bulkFind(UNIT_CONTAINER, ImmutableSet.of(FILE_1));
         verifyNoMoreInteractions(objectReferentialRepository);
-
 
         ArgumentCaptor<TarCreatorMessage> tarCreatorMessageArgCaptor = ArgumentCaptor.forClass(TarCreatorMessage.class);
         verify(fileBucketTarCreator).addToQueue(tarCreatorMessageArgCaptor.capture());

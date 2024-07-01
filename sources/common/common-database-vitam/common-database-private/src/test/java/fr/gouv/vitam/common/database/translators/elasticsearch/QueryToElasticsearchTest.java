@@ -52,15 +52,25 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class QueryToElasticsearchTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(QueryToElasticsearchTest.class);
 
-    private static final String exampleElasticsearch = "{ $roots : [ 'id0' ], $query : [ " +
-        "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
-        "{ $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-        "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-        "{ $lt : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-        "{ $ne : { 'mavar9' : 'ab' } }, " + "{ $wildcard : { 'mavar9' : 'ab' } }, " +
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueryToElasticsearchTest.class);
+
+    private static final String exampleElasticsearch =
+        "{ $roots : [ 'id0' ], $query : [ " +
+        "{ $and : [ " +
+        "{$exists : 'mavar1'}, " +
+        "{$missing : 'mavar2'}, " +
+        "{$isNull : 'mavar3'}, " +
+        "{ $or : [ {$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
+        "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+        "{ $not : [ " +
+        "{ $size : { 'mavar5' : 5 } }, " +
+        "{ $gt : { 'mavar6' : 7 } }, " +
+        "{ $lt : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+        "{ $not : [ " +
+        "{ $eq : { 'mavar8' : 5 } }, " +
+        "{ $ne : { 'mavar9' : 'ab' } }, " +
+        "{ $wildcard : { 'mavar9' : 'ab' } }, " +
         "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
         "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
         "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 }, " +
@@ -70,11 +80,9 @@ public class QueryToElasticsearchTest {
         "{ $match : { 'mavar19' : 'words' , '$max_expansions' : 1  } }," +
         "{ $match_phrase : { 'mavar20' : 'words', '$max_expansions' : 1 } }," +
         "{ $match_phrase_prefix : { 'mavar21' : 'phrase', '$max_expansions' : 1 } }," +
-
         "{ $match : { 'mavar19' : 'words' } }," +
         "{ $match_phrase : { 'mavar20' : 'words'} }," +
         "{ $match_phrase_prefix : { 'mavar21' : 'phrase'} }," +
-
         "{ $search : { 'mavar25' : 'searchParameter' } }" +
         "], " +
         "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
@@ -101,52 +109,51 @@ public class QueryToElasticsearchTest {
         example = JsonHandler.getFromString(exampleElasticsearch);
         nestedSearchQuery = JsonHandler.getFromString(
             "{\n" +
-                "  \"$query\": [\n" +
-                "    {\n" +
-                "      \"$and\": [\n" +
-                "        {\n" +
-                "          \"$match\": {\n" +
-                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                "          }\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"$subobject\": {\n" +
-                "            \"#qualifiers.versions\": {\n" +
-                "              \"$and\": [\n" +
-                "                {\n" +
-                "                  \"$eq\": {\n" +
-                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                "                  }\n" +
-                "                },\n" +
-                "                {\n" +
-                "                  \"$lte\": {\n" +
-                "                    \"version.size\": 20000\n" +
-                "                  }\n" +
-                "                }\n" +
-                "              ]\n" +
-                "            }\n" +
-                "          }\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"$projection\": {},\n" +
-                "  \"$filters\": {},\n" +
-                "\"$facets\": [\n" +
-                "  {\n" +
-                "    \"$name\": \"facet_testl\",\n" +
-                "    \"$terms\": {\n" +
-                "      \"$subobject\": \"#qualifiers.versions\",\n" +
-                "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
-                "      \"$size\": 5,\n" +
-                "      \"$order\": \"ASC\"        \n" +
-                "    }\n" +
-                "  }\n" +
-                "]" +
-                "}"
+            "  \"$query\": [\n" +
+            "    {\n" +
+            "      \"$and\": [\n" +
+            "        {\n" +
+            "          \"$match\": {\n" +
+            "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+            "          }\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"$subobject\": {\n" +
+            "            \"#qualifiers.versions\": {\n" +
+            "              \"$and\": [\n" +
+            "                {\n" +
+            "                  \"$eq\": {\n" +
+            "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+            "                  }\n" +
+            "                },\n" +
+            "                {\n" +
+            "                  \"$lte\": {\n" +
+            "                    \"version.size\": 20000\n" +
+            "                  }\n" +
+            "                }\n" +
+            "              ]\n" +
+            "            }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"$projection\": {},\n" +
+            "  \"$filters\": {},\n" +
+            "\"$facets\": [\n" +
+            "  {\n" +
+            "    \"$name\": \"facet_testl\",\n" +
+            "    \"$terms\": {\n" +
+            "      \"$subobject\": \"#qualifiers.versions\",\n" +
+            "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
+            "      \"$size\": 5,\n" +
+            "      \"$order\": \"ASC\"        \n" +
+            "    }\n" +
+            "  }\n" +
+            "]" +
+            "}"
         );
     }
-
 
     private SelectParserMultiple createSelect(JsonNode query) {
         try {
@@ -167,8 +174,10 @@ public class QueryToElasticsearchTest {
             final SelectParserMultiple parser = createSelect(example);
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
-            DynamicParserTokens parserTokens =
-                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(
+                new VitamDescriptionResolver(Collections.emptyList()),
+                Collections.emptyList()
+            );
             final List<SortBuilder<?>> sortBuilders = QueryToElasticsearch.getSorts(parser, true, parserTokens);
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             assertEquals(4, sortBuilders.size());
@@ -177,10 +186,15 @@ public class QueryToElasticsearchTest {
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
                 System.out.println(i + " = " + list.get(i).toString());
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
         } catch (final Exception e) {
@@ -195,35 +209,39 @@ public class QueryToElasticsearchTest {
             final SelectParserMultiple parser;
             try {
                 parser = new SelectParserMultiple(new FakeMetadataVarNameAdapter());
-                parser.parse(JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " +
-                    "{ $exists : '#id'}, " +
-                    "{ $missing : '#id'}, " +
-                    "{ $isNull : '#id'}, " +
-                    "{ $lt : { '#id' : '8' } }, " +
-                    "{ $eq : { '#id' : 'ab' } }, " +
-                    "{ $and : [ { $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
-                    "{ $or : [ { $or : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
-                    "{ $and : [ { $or : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
-                    "{ $or : [ { $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] } " +
-                    "], " +
-                    "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
-                    "$orderby : { #id : 1, maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
-                    "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, " +
-                    "$facets: [" +
-                    "{$name : 'mafacet', $terms : {$field : '#id', $size : 1, $order: 'ASC'} }," +
-                    "{$name : 'EndDate', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800',$to: '2080'}]} }," +
-                    "{$name : 'EndDate2', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }," +
-                    "{$name : 'facetFilters', $filters : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }," +
-                    "{" +
-                    "    $name: 'filters_facet'," +
-                    "    $filters: {" +
-                    "        $query_filters: [" +
-                    "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," +
-                    "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" +
-                    "        ]" +
-                    "    }" +
-                    "}" +
-                    "] }"));
+                parser.parse(
+                    JsonHandler.getFromString(
+                        "{ $roots : [ 'id0' ], $query : [ " +
+                        "{ $exists : '#id'}, " +
+                        "{ $missing : '#id'}, " +
+                        "{ $isNull : '#id'}, " +
+                        "{ $lt : { '#id' : '8' } }, " +
+                        "{ $eq : { '#id' : 'ab' } }, " +
+                        "{ $and : [ { $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
+                        "{ $or : [ { $or : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
+                        "{ $and : [ { $or : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] }, " +
+                        "{ $or : [ { $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] } ] } " +
+                        "], " +
+                        "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
+                        "$orderby : { #id : 1, maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
+                        "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }, " +
+                        "$facets: [" +
+                        "{$name : 'mafacet', $terms : {$field : '#id', $size : 1, $order: 'ASC'} }," +
+                        "{$name : 'EndDate', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800',$to: '2080'}]} }," +
+                        "{$name : 'EndDate2', $date_range : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }," +
+                        "{$name : 'facetFilters', $filters : { $field : 'EndDate',$format : 'yyyy',$ranges: [{$from: '1800'}]} }] }," +
+                        "{" +
+                        "    $name: 'filters_facet'," +
+                        "    $filters: {" +
+                        "        $query_filters: [" +
+                        "            {$name: 'StorageRules', $query: {$exists: '#management.StorageRule.Rules.Rule'}}," +
+                        "            {$name: 'AccessRules',$query: {$exists: '#management.AccessRule.Rules.Rule'}}" +
+                        "        ]" +
+                        "    }" +
+                        "}" +
+                        "] }"
+                    )
+                );
             } catch (final Exception e) {
                 e.printStackTrace();
                 fail(e.getMessage());
@@ -232,8 +250,10 @@ public class QueryToElasticsearchTest {
 
             final SelectMultiQuery select = parser.getRequest();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
-            DynamicParserTokens parserTokens =
-                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            DynamicParserTokens parserTokens = new DynamicParserTokens(
+                new VitamDescriptionResolver(Collections.emptyList()),
+                Collections.emptyList()
+            );
             final List<SortBuilder<?>> sortBuilders = QueryToElasticsearch.getSorts(parser, true, parserTokens);
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             assertEquals(4, sortBuilders.size());
@@ -243,73 +263,107 @@ public class QueryToElasticsearchTest {
             // exists #id
             {
                 int i = 0;
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 assertFalse(ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
             }
             // missing #id
             {
                 int i = 1;
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 assertFalse(ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
             }
             // isNull #id
             {
                 int i = 2;
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 assertFalse(ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
             }
             // lt #id
             {
                 int i = 3;
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 assertTrue(ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_id"));
                 assertFalse(
-                    ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("typeunique#8"));
+                    ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("typeunique#8")
+                );
             }
             // eq #id
             {
                 int i = 4;
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 assertFalse(ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("_uid"));
             }
             // and and
             {
                 int i = 5;
-                assertEquals(list.get(i).getCurrentQuery().toString().indexOf("$and"),
-                    list.get(i).getCurrentQuery().toString().lastIndexOf("$and"));
+                assertEquals(
+                    list.get(i).getCurrentQuery().toString().indexOf("$and"),
+                    list.get(i).getCurrentQuery().toString().lastIndexOf("$and")
+                );
             }
             // or or
             {
                 int i = 6;
-                assertEquals(list.get(i).getCurrentQuery().toString().indexOf("$or"),
-                    list.get(i).getCurrentQuery().toString().lastIndexOf("$or"));
+                assertEquals(
+                    list.get(i).getCurrentQuery().toString().indexOf("$or"),
+                    list.get(i).getCurrentQuery().toString().lastIndexOf("$or")
+                );
             }
             // and or
             {
                 int i = 7;
-                assertTrue(list.get(i).getCurrentQuery().toString().contains("$and") &&
-                    list.get(i).getCurrentQuery().toString().contains("$or"));
+                assertTrue(
+                    list.get(i).getCurrentQuery().toString().contains("$and") &&
+                    list.get(i).getCurrentQuery().toString().contains("$or")
+                );
             }
             // or and
             {
                 int i = 8;
-                assertTrue(list.get(i).getCurrentQuery().toString().contains("$and") &&
-                    list.get(i).getCurrentQuery().toString().contains("$or"));
+                assertTrue(
+                    list.get(i).getCurrentQuery().toString().contains("$and") &&
+                    list.get(i).getCurrentQuery().toString().contains("$or")
+                );
             }
         } catch (final Exception e) {
             e.printStackTrace();
@@ -322,10 +376,14 @@ public class QueryToElasticsearchTest {
         try {
             final SelectParserMultiple parser = createSelect(nestedSearchQuery);
             final SelectMultiQuery select = parser.getRequest();
-            assertEquals("#qualifiers.versions",
-                select.getFacets().get(0).getCurrentFacet().get("$terms").get("$subobject").asText());
-            DynamicParserTokens parserTokens =
-                new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+            assertEquals(
+                "#qualifiers.versions",
+                select.getFacets().get(0).getCurrentFacet().get("$terms").get("$subobject").asText()
+            );
+            DynamicParserTokens parserTokens = new DynamicParserTokens(
+                new VitamDescriptionResolver(Collections.emptyList()),
+                Collections.emptyList()
+            );
             final List<AggregationBuilder> facetBuilders = QueryToElasticsearch.getFacets(parser, parserTokens);
             assertEquals(1, facetBuilders.size());
             assertTrue(facetBuilders.get(0) instanceof NestedAggregationBuilder);
@@ -336,20 +394,30 @@ public class QueryToElasticsearchTest {
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
                 System.out.println(i + " = " + list.get(i).toString());
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(i), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(i),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 System.out.println(i + " = " + ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest));
             }
 
             {
                 final List<Query> queries = select.getQueries();
                 assertEquals(1, queries.size());
-                final QueryBuilder queryBuilderCommand =
-                    QueryToElasticsearch.getCommand(list.get(0), new FakeMetadataVarNameAdapter(), parserTokens);
-                final QueryBuilder queryBuilderseudoRequest =
-                    QueryToElasticsearch.getFullCommand(queryBuilderCommand, queryBuilderRoot);
+                final QueryBuilder queryBuilderCommand = QueryToElasticsearch.getCommand(
+                    list.get(0),
+                    new FakeMetadataVarNameAdapter(),
+                    parserTokens
+                );
+                final QueryBuilder queryBuilderseudoRequest = QueryToElasticsearch.getFullCommand(
+                    queryBuilderCommand,
+                    queryBuilderRoot
+                );
                 assertTrue(ElasticsearchHelper.queryBuilderToString(queryBuilderseudoRequest).contains("nested"));
             }
         } catch (final Exception e) {

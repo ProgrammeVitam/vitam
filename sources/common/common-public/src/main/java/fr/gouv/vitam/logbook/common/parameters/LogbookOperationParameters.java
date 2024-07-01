@@ -102,7 +102,6 @@ public class LogbookOperationParameters extends AbstractParameters {
         this.events = events;
     }
 
-
     /**
      * Get event list
      *
@@ -112,5 +111,4 @@ public class LogbookOperationParameters extends AbstractParameters {
     public Set<LogbookParameters> getEvents() {
         return events;
     }
-
 }

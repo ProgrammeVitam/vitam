@@ -41,17 +41,16 @@ public class TapeLibraryConfConfigurationTest {
 
     @Test
     public void testLoadOfferTapeConfOK() throws IOException {
-
-        TapeLibraryConfiguration configuration =
-            PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
-                TapeLibraryConfiguration.class);
+        TapeLibraryConfiguration configuration = PropertiesUtils.readYaml(
+            PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
+            TapeLibraryConfiguration.class
+        );
         assertThat(configuration).isNotNull();
 
         assertThat(configuration.getTapeLibraries()).isNotEmpty();
         assertThat(configuration.getTapeLibraries()).hasSize(1);
         assertThat(configuration.getTapeLibraries().keySet()).containsExactly("TAPE_LIB_1");
         Iterator<TapeLibraryConf> tapeLibraryIt = configuration.getTapeLibraries().values().iterator();
-
 
         TapeLibraryConf tapeLibraryConf = tapeLibraryIt.next();
         assertThat(tapeLibraryConf.getRobots()).hasSize(1);

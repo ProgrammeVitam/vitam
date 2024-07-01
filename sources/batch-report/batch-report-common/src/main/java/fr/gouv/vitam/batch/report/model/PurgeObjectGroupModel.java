@@ -58,8 +58,12 @@ public class PurgeObjectGroupModel {
         // Empty constructor for deserialization
     }
 
-    public PurgeObjectGroupModel(String processId, String creationDateTime,
-        PurgeObjectGroupReportEntry metadata, int tenant) {
+    public PurgeObjectGroupModel(
+        String processId,
+        String creationDateTime,
+        PurgeObjectGroupReportEntry metadata,
+        int tenant
+    ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
@@ -100,21 +104,24 @@ public class PurgeObjectGroupModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
+        if (o == this) return true;
         if (!(o instanceof PurgeObjectGroupModel)) {
             return false;
         }
         PurgeObjectGroupModel eliminationActionObjectGroupModel = (PurgeObjectGroupModel) o;
 
-        return Objects.equals(getTenant(), eliminationActionObjectGroupModel.getTenant())
-            && Objects.equals(getProcessId(), eliminationActionObjectGroupModel.getProcessId())
-            && Objects.equals(getMetadataId(this), getMetadataId(eliminationActionObjectGroupModel));
+        return (
+            Objects.equals(getTenant(), eliminationActionObjectGroupModel.getTenant()) &&
+            Objects.equals(getProcessId(), eliminationActionObjectGroupModel.getProcessId()) &&
+            Objects.equals(getMetadataId(this), getMetadataId(eliminationActionObjectGroupModel))
+        );
     }
 
     private static String getMetadataId(PurgeObjectGroupModel eliminationActionUnitModel) {
-        if (eliminationActionUnitModel.getMetadata() == null
-            || StringUtils.isEmpty(eliminationActionUnitModel.getMetadata().getId())) {
+        if (
+            eliminationActionUnitModel.getMetadata() == null ||
+            StringUtils.isEmpty(eliminationActionUnitModel.getMetadata().getId())
+        ) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 

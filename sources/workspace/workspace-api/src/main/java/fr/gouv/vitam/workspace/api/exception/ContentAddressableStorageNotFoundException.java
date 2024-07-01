@@ -31,7 +31,6 @@ package fr.gouv.vitam.workspace.api.exception;
  */
 public class ContentAddressableStorageNotFoundException extends ContentAddressableStorageException {
 
-
     private static final long serialVersionUID = -8557401608602084895L;
 
     /**

@@ -39,5 +39,4 @@ public class StorageInformationTest {
         assertEquals(0, new StorageInformation().getUsableSpace());
         assertEquals(TEST, new StorageInformation().setUsableSpace(TEST).getUsableSpace());
     }
-
 }

@@ -40,16 +40,13 @@ public class RequestFacetItem {
     @JsonProperty("field")
     private String field;
 
-
     /**
      * value.
      */
     @JsonProperty("value")
     private String value;
 
-
-    public RequestFacetItem() {
-    }
+    public RequestFacetItem() {}
 
     /**
      * getField

@@ -36,6 +36,7 @@ import java.util.NoSuchElementException;
  * Iterator that loads data in chunks, and return single entries
  */
 public abstract class BulkBufferingEntryIterator<T> implements Iterator<T> {
+
     private final int bufferSize;
 
     private List<T> buffer;
@@ -48,7 +49,6 @@ public abstract class BulkBufferingEntryIterator<T> implements Iterator<T> {
 
     @Override
     public boolean hasNext() {
-
         if (this.endOfStream) {
             return false;
         }
@@ -56,15 +56,12 @@ public abstract class BulkBufferingEntryIterator<T> implements Iterator<T> {
         if (this.buffer == null) {
             // First invocation
             load();
-
         } else if (this.nextPos >= this.buffer.size()) {
             // No more items in current buffer
 
             if (this.buffer.size() < bufferSize) {
-
                 // Current buffer is incomplete ==> no more data
                 this.endOfStream = true;
-
             } else {
                 load();
             }
@@ -88,7 +85,6 @@ public abstract class BulkBufferingEntryIterator<T> implements Iterator<T> {
 
     @Override
     public T next() {
-
         if (!hasNext()) {
             throw new NoSuchElementException();
         }

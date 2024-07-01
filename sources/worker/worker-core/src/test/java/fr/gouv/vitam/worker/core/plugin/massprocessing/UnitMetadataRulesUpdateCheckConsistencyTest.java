@@ -61,7 +61,6 @@ import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
 import static fr.gouv.vitam.common.model.administration.RuleType.HoldRule;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -71,6 +70,7 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
         "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemoveWrongRuleCategory.json";
     public static final String DELETE_PREVENT_RULES_ID_TO_REMOVE_UNKNOWN_RULE_ID_JSON =
         "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemoveUnknownRuleId.json";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -86,25 +86,33 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
     private UnitMetadataRulesUpdateCheckConsistency unitMetadataRulesUpdateCheckConsistency;
     private DefaultWorkerParameters workerParameters;
 
-    private static final String PREVENT_RULES_ID_TO_REMOVE = "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemove.json";
-    private static final String PREVENT_RULES_ID_TO_ADD = "UnitMetadataRulesUpdateCheckConsistency/addPreventRulesIdToDelete.json";
+    private static final String PREVENT_RULES_ID_TO_REMOVE =
+        "UnitMetadataRulesUpdateCheckConsistency/deletePreventRulesIdToRemove.json";
+    private static final String PREVENT_RULES_ID_TO_ADD =
+        "UnitMetadataRulesUpdateCheckConsistency/addPreventRulesIdToDelete.json";
 
     @Before
     public void init() throws Exception {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
-        unitMetadataRulesUpdateCheckConsistency =
-            new UnitMetadataRulesUpdateCheckConsistency(adminManagementClientFactory);
+        unitMetadataRulesUpdateCheckConsistency = new UnitMetadataRulesUpdateCheckConsistency(
+            adminManagementClientFactory
+        );
         workerParameters = WorkerParametersFactory.newWorkerParameters(
-            "procId", "stepId", "container", "step", Collections.singletonList("id"), "url", "url");
+            "procId",
+            "stepId",
+            "container",
+            "step",
+            Collections.singletonList("id"),
+            "url",
+            "url"
+        );
 
         initializeRuleReferential();
     }
 
     private void initializeRuleReferential()
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException {
-
-        doThrow(new FileRulesNotFoundException("NOT FOUND"))
-            .when(adminManagementClient).getRuleByID(anyString());
+        doThrow(new FileRulesNotFoundException("NOT FOUND")).when(adminManagementClient).getRuleByID(anyString());
 
         List<FileRulesModel> knownRules = Arrays.asList(
             new FileRulesModel("APP-00001", AppraisalRule, "Val", "Desc", "1", YEAR),
@@ -117,68 +125,65 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
         for (FileRulesModel rule : knownRules) {
             doReturn(new RequestResponseOK<FileRulesModel>().addResult(rule).toJsonNode())
-                .when(adminManagementClient).getRuleByID((rule.getRuleId()));
+                .when(adminManagementClient)
+                .getRuleByID((rule.getRuleId()));
         }
     }
 
     @Test
     public void addAppraisalRuleKoInvalidFieldDeleteHoldRuleField() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleKoInvalidFieldDeleteHoldRuleField.json");
+            "UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleKoInvalidFieldDeleteHoldRuleField.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addAppraisalRuleKoInvalidFieldDeleteStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleKoInvalidFieldDeleteStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addAppraisalRuleKoInvalidHoldRuleField() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleKoInvalidHoldRuleField.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addAppraisalRuleOkFull() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addAppraisalRuleOkFull.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -186,13 +191,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void addHoldRuleOkMinimal() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleOkMinimal.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -200,13 +203,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void addHoldRuleOkFull() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleOkFull.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -214,320 +215,302 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void addHoldRuleKoUnknownRuleInReferential() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoUnknownRuleInReferential.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_UNKNOWN");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_UNKNOWN"
+        );
     }
 
     @Test
     public void addHoldRuleKoWrongRuleCategory() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoWrongRuleCategory.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldDeleteHoldEndDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeleteHoldEndDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldDeleteHoldOwner() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeleteHoldOwner.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldDeleteHoldReason() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeleteHoldReason.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldDeleteHoldReassessingDate() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeleteHoldReassessingDate.json");
+            "UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeleteHoldReassessingDate.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldDeletePreventRearrangement() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeletePreventRearrangement.json");
+            "UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeletePreventRearrangement.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldDeleteStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldDeleteStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldEndDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldEndDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoMissingFieldRule() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoMissingFieldRule.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_MISSING_MANDATORY_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_MISSING_MANDATORY_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldFormatHoldEndDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldFormatHoldEndDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldFormatHoldReassessingDate() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldFormatHoldReassessingDate.json");
+            "UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldFormatHoldReassessingDate.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldFormatStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldFormatStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidFieldLimitStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidFieldLimitStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_UNAUTHORIZED");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_UNAUTHORIZED"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidEmptyFieldHoldOwner() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidEmptyFieldHoldOwner.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_EMPTY_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_EMPTY_FIELD"
+        );
     }
 
     @Test
     public void addHoldRuleKoInvalidEmptyFieldHoldReason() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/addHoldRuleKoInvalidEmptyFieldHoldReason.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_EMPTY_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_EMPTY_FIELD"
+        );
     }
 
     @Test
     public void updateAppraisalRuleKoDeleteHoldRuleFields() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateAppraisalRuleKoDeleteHoldRuleFields.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void updateAppraisalRuleKoSetAndUnsetStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateAppraisalRuleKoSetAndUnsetStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateAppraisalRuleKoSetHoldRuleFields() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateAppraisalRuleKoSetHoldRuleFields.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_UNEXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_UNEXPECTED_FIELD"
+        );
     }
 
     @Test
     public void updateAppraisalRuleOkDeleteFields() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateAppraisalRuleOkDeleteFields.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -535,13 +518,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void updateAppraisalRuleOkFullUpdateFields() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateAppraisalRuleOkFullUpdateFields.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -549,256 +530,242 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void updateHoldRuleKoMissingOldRule() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoMissingOldRule.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_MISSING_MANDATORY_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_MISSING_MANDATORY_FIELD"
+        );
     }
 
     @Test
     public void updateHoldRuleKoEmptyUpdateRequest() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoEmptyUpdateRequest.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_NOT_EXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_NOT_EXPECTED_FIELD"
+        );
     }
 
     @Test
     public void updateHoldRuleKoSetAndDeleteHoldEndDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldEndDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateHoldRuleKoSetAndDeleteHoldOwner() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldOwner.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateHoldRuleKoSetAndDeleteHoldReason() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldReason.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateHoldRuleKoSetAndDeleteHoldReassessingDate() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldReassessingDate.json");
+            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeleteHoldReassessingDate.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateHoldRuleKoSetAndDeletePreventRearrangement() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeletePreventRearrangement.json");
+            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndDeletePreventRearrangement.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateHoldRuleKoSetAndUnsetStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoSetAndUnsetStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidFieldFormatHoldEndDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidFieldFormatHoldEndDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidFieldFormatHoldReassessingDate() throws Exception {
-
         // Given
         givenRuleActions(
-            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidFieldFormatHoldReassessingDate.json");
+            "UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidFieldFormatHoldReassessingDate.json"
+        );
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidFieldFormatStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidFieldFormatStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidFieldLimitStartDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidFieldLimitStartDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_METADATA_UPDATE_CHECK_RULES_DATE_UNAUTHORIZED");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_UNAUTHORIZED"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidEmptyFieldHoldOwner() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidEmptyFieldHoldOwner.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_EMPTY_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_EMPTY_FIELD"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidEmptyFieldHoldReason() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidEmptyFieldHoldReason.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_EMPTY_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_EMPTY_FIELD"
+        );
     }
 
     @Test
     public void updateHoldRuleKoInvalidFieldEndDate() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleKoInvalidFieldEndDate.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNIT_RULES_NOT_EXPECTED_FIELD");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNIT_RULES_NOT_EXPECTED_FIELD"
+        );
     }
 
     @Test
     public void updateHoldRuleOkFullRemoveFields() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleOkFullRemoveFields.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -806,13 +773,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void updateHoldRuleOkFullUpdateFields() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/updateHoldRuleOkFullUpdateFields.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -820,13 +785,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void deleteAppraisalRuleOk() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/deleteAppraisalRuleOk.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -834,13 +797,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void deleteHoldRuleCategoryOk() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/deleteHoldRuleCategoryOk.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -848,13 +809,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void deleteHoldRuleOk() throws Exception {
-
         // Given
         givenRuleActions("UnitMetadataRulesUpdateCheckConsistency/deleteHoldRuleOk.json");
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -862,13 +821,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void testAddPreventRulesIdOK() throws Exception {
-
         // Given
-        givenRuleActions( PREVENT_RULES_ID_TO_ADD);
+        givenRuleActions(PREVENT_RULES_ID_TO_ADD);
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -876,13 +833,11 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void givenPreventRuleIdsToRemoveWithValidRuleIdsThenOK() throws Exception {
-
         // Given
         givenRuleActions(PREVENT_RULES_ID_TO_REMOVE);
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -890,39 +845,38 @@ public class UnitMetadataRulesUpdateCheckConsistencyTest {
 
     @Test
     public void givenPreventRuleIdsToRemoveWithUnknownRuleIdsThenKO() throws Exception {
-
         // Given
         givenRuleActions(DELETE_PREVENT_RULES_ID_TO_REMOVE_UNKNOWN_RULE_ID_JSON);
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_UNKNOWN");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_UNKNOWN"
+        );
     }
 
     @Test
     public void givenPreventRuleIdsToRemoveWithWrongRuleCategoryThenKO() throws Exception {
-
         // Given
         givenRuleActions(DELETE_PREVENT_RULES_ID_TO_REMOVE_WRONG_RULE_CATEGORY_JSON);
 
         // When
-        ItemStatus itemStatus =
-            unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
+        ItemStatus itemStatus = unitMetadataRulesUpdateCheckConsistency.execute(workerParameters, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData())
-            .get("Code").asText()).isEqualTo("UNITS_RULES_INCONSISTENCY");
+        assertThat(JsonHandler.getFromString(itemStatus.getEvDetailData()).get("Code").asText()).isEqualTo(
+            "UNITS_RULES_INCONSISTENCY"
+        );
     }
 
     private JsonNode givenRuleActions(String queryFile)
         throws ProcessingException, InvalidParseOperationException, FileNotFoundException {
         return doReturn(JsonHandler.getFromString(PropertiesUtils.getResourceAsString(queryFile)))
-            .when(handlerIO).getJsonFromWorkspace("actions.json");
+            .when(handlerIO)
+            .getJsonFromWorkspace("actions.json");
     }
 }

@@ -51,7 +51,8 @@ public class AccessExternalConfiguration extends DefaultVitamApplicationConfigur
     }
 
     public void setObjectGroupBlackListedFieldsForVisualizationByTenant(
-        Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant) {
+        Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant
+    ) {
         this.objectGroupBlackListedFieldsForVisualizationByTenant =
             objectGroupBlackListedFieldsForVisualizationByTenant;
     }

@@ -82,7 +82,6 @@ public class ApplicativeTestResource {
         }
         try {
             if (applicativeTestService.getIsTnrMasterActived().get()) {
-
                 applicativeTestService.setIsTnrMasterActived(new AtomicBoolean(false));
                 applicativeTestService.setTnrBranch("master");
                 applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "master");
@@ -93,8 +92,6 @@ public class ApplicativeTestResource {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
-
-
     }
 
     /**
@@ -109,7 +106,6 @@ public class ApplicativeTestResource {
         String results;
 
         try {
-
             if (!applicativeTestService.getIsTnrMasterActived().get()) {
                 applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "tnr_master");
                 applicativeTestService.setTnrBranch("tnr_master");
@@ -117,7 +113,6 @@ public class ApplicativeTestResource {
             }
             results = applicativeTestService.launchPiecesCucumberTest(pieces + "\n");
         } catch (Exception e) {
-
             String stackTrace = getStack(e);
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(stackTrace).build();
@@ -154,10 +149,9 @@ public class ApplicativeTestResource {
     public Response listReports() throws IOException {
         List<java.nio.file.Path> reports = applicativeTestService.reports();
 
-        return Response.ok(reports.stream()
-            .map(java.nio.file.Path::getFileName)
-            .map(java.nio.file.Path::toString)
-            .collect(toList())).build();
+        return Response.ok(
+            reports.stream().map(java.nio.file.Path::getFileName).map(java.nio.file.Path::toString).collect(toList())
+        ).build();
     }
 
     /**
@@ -221,7 +215,6 @@ public class ApplicativeTestResource {
         }
 
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(1).build();
-
     }
 
     private Response synchronizeGit(String tnrMaster) throws IOException, InterruptedException {
@@ -241,5 +234,4 @@ public class ApplicativeTestResource {
     public Response synchronizedTestDirectory() throws IOException, InterruptedException {
         return synchronizeGit(applicativeTestService.getTnrBranch());
     }
-
 }

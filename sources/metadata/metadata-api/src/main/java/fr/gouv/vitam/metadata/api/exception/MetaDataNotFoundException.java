@@ -30,6 +30,7 @@ package fr.gouv.vitam.metadata.api.exception;
  * MetaDataNotFoundException document not found error
  */
 public class MetaDataNotFoundException extends MetaDataException {
+
     /**
      *
      */
@@ -62,5 +63,4 @@ public class MetaDataNotFoundException extends MetaDataException {
     public MetaDataNotFoundException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

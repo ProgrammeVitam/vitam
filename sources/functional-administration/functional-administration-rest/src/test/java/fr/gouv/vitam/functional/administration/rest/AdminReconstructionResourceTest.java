@@ -83,8 +83,7 @@ public class AdminReconstructionResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -108,23 +107,28 @@ public class AdminReconstructionResourceTest {
     private static File adminConfigFile;
     private static AdminManagementMain application;
 
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager
-        = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
@@ -134,10 +138,11 @@ public class AdminReconstructionResourceTest {
 
         LogbookOperationsClientFactory.changeMode(null);
 
-
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
@@ -147,10 +152,11 @@ public class AdminReconstructionResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -163,8 +169,7 @@ public class AdminReconstructionResourceTest {
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the AdminManagement Application Server", e);
+            throw new IllegalStateException("Cannot start the AdminManagement Application Server", e);
         }
         VitamConfiguration.setTenants(new ArrayList<>());
     }
@@ -200,10 +205,14 @@ public class AdminReconstructionResourceTest {
         JsonNode json = JsonHandler.createArrayNode();
 
         // call the endpoint
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RECONSTRUCTION_URI)
-            .then().statusCode(Response.Status.OK.getStatusCode());
+            .when()
+            .post(RECONSTRUCTION_URI)
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
@@ -212,10 +221,13 @@ public class AdminReconstructionResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // call the endpoint with rules collection.
-        given().contentType(ContentType.JSON)
+        given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RECONSTRUCTION_URI + RECONSTRUCTION_COLLECTION_URI)
-            .then().statusCode(Response.Status.OK.getStatusCode());
+            .when()
+            .post(RECONSTRUCTION_URI + RECONSTRUCTION_COLLECTION_URI)
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
@@ -229,11 +241,13 @@ public class AdminReconstructionResourceTest {
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
 
         // call the endpoint with valid json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RECONSTRUCTION_URI)
-            .then().statusCode(Response.Status.OK.getStatusCode());
-
+            .when()
+            .post(RECONSTRUCTION_URI)
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
     }
-
 }

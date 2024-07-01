@@ -63,11 +63,18 @@ public class TransactionModel {
     @JsonProperty("_tenant")
     private Integer tenant;
 
-    public TransactionModel() {
-    }
+    public TransactionModel() {}
 
-    public TransactionModel(String id, String name, ManifestContext manifestContext, TransactionStatus status,
-        String projectId, String creationDate, String lastUpdate, Integer tenant) {
+    public TransactionModel(
+        String id,
+        String name,
+        ManifestContext manifestContext,
+        TransactionStatus status,
+        String projectId,
+        String creationDate,
+        String lastUpdate,
+        Integer tenant
+    ) {
         this.id = id;
         this.name = name;
         this.manifestContext = manifestContext;
@@ -152,10 +159,8 @@ public class TransactionModel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TransactionModel that = (TransactionModel) o;
         return Objects.equals(id, that.id);
     }
@@ -164,5 +169,4 @@ public class TransactionModel {
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }

@@ -37,6 +37,7 @@ import java.util.Arrays;
  * GUID Reader (Global Unique Identifier Reader) <br>
  */
 class GUIDImpl extends GUIDAbstract {
+
     private static final String ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID = "Attempted to parse malformed ARK GUID: ";
     /**
      * Native size of the GUID
@@ -114,8 +115,7 @@ class GUIDImpl extends GUIDAbstract {
      * @throws InvalidGuidOperationException
      */
     @JsonSetter("id")
-    GUIDImpl setString(final String idsource)
-        throws InvalidGuidOperationException {
+    GUIDImpl setString(final String idsource) throws InvalidGuidOperationException {
         if (idsource == null) {
             throw new InvalidGuidOperationException("Empty argument");
         }
@@ -125,22 +125,19 @@ class GUIDImpl extends GUIDAbstract {
             ids = ids.substring(ARK.length());
             final int separator = ids.indexOf('/');
             if (separator <= 0) {
-                throw new InvalidGuidOperationException(
-                    ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID + id);
+                throw new InvalidGuidOperationException(ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID + id);
             }
             int tenantId;
             try {
                 tenantId = Integer.parseInt(ids.substring(0, separator));
             } catch (final NumberFormatException e) {
-                throw new InvalidGuidOperationException(
-                    ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID + id);
+                throw new InvalidGuidOperationException(ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID + id);
             }
             // BASE32
             ids = ids.substring(separator + 1);
             final byte[] base32 = BaseXx.getFromBase32(ids);
             if (base32.length != KEYSIZE - TENANT_SIZE) {
-                throw new InvalidGuidOperationException(
-                    ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID + id);
+                throw new InvalidGuidOperationException(ATTEMPTED_TO_PARSE_MALFORMED_ARK_GUID + id);
             }
             System.arraycopy(base32, 0, guid, HEADER_POS, HEADER_SIZE);
             // GUID Domain default to 0 (from 0 to 2^30-1)
@@ -152,8 +149,13 @@ class GUIDImpl extends GUIDAbstract {
             tenantId >>>= BYTE_SIZE;
             guid[TENANT_POS] = (byte) (tenantId & 0x3F);
             // BASE32
-            System.arraycopy(base32, HEADER_SIZE, guid, PLATFORM_POS,
-                PLATFORM_SIZE + PID_SIZE + TIME_SIZE + COUNTER_SIZE);
+            System.arraycopy(
+                base32,
+                HEADER_SIZE,
+                guid,
+                PLATFORM_POS,
+                PLATFORM_SIZE + PID_SIZE + TIME_SIZE + COUNTER_SIZE
+            );
             return this;
         }
         final int len = id.length();
@@ -168,12 +170,10 @@ class GUIDImpl extends GUIDAbstract {
                 // BASE64
                 System.arraycopy(BaseXx.getFromBase64UrlWithoutPadding(idsource), 0, guid, 0, KEYSIZE);
             } else {
-                throw new InvalidGuidOperationException(
-                    "Attempted to parse malformed GUID: (" + len + ") " + id);
+                throw new InvalidGuidOperationException("Attempted to parse malformed GUID: (" + len + ") " + id);
             }
         } catch (final IllegalArgumentException e) {
-            throw new InvalidGuidOperationException(
-                "Attempted to parse malformed GUID: " + id, e);
+            throw new InvalidGuidOperationException("Attempted to parse malformed GUID: " + id, e);
         }
         return this;
     }
@@ -193,8 +193,12 @@ class GUIDImpl extends GUIDAbstract {
     @Override
     @JsonIgnore
     public final int getTenantId() {
-        return (guid[TENANT_POS] & 0x3F) << BYTE_SIZE * 3 | (guid[TENANT_POS + 1] & 0xFF) << BYTE_SIZE * 2 |
-            (guid[TENANT_POS + 2] & 0xFF) << BYTE_SIZE | guid[TENANT_POS + 3] & 0xFF;
+        return (
+            ((guid[TENANT_POS] & 0x3F) << (BYTE_SIZE * 3)) |
+            ((guid[TENANT_POS + 1] & 0xFF) << (BYTE_SIZE * 2)) |
+            ((guid[TENANT_POS + 2] & 0xFF) << BYTE_SIZE) |
+            (guid[TENANT_POS + 3] & 0xFF)
+        );
     }
 
     @Override
@@ -206,8 +210,12 @@ class GUIDImpl extends GUIDAbstract {
     @Override
     @JsonIgnore
     public final int getPlatformId() {
-        return (guid[PLATFORM_POS] & 0x7F) << BYTE_SIZE * 3 | (guid[PLATFORM_POS + 1] & 0xFF) << BYTE_SIZE * 2 |
-            (guid[PLATFORM_POS + 2] & 0xFF) << BYTE_SIZE | guid[PLATFORM_POS + 3] & 0xFF;
+        return (
+            ((guid[PLATFORM_POS] & 0x7F) << (BYTE_SIZE * 3)) |
+            ((guid[PLATFORM_POS + 1] & 0xFF) << (BYTE_SIZE * 2)) |
+            ((guid[PLATFORM_POS + 2] & 0xFF) << BYTE_SIZE) |
+            (guid[PLATFORM_POS + 3] & 0xFF)
+        );
     }
 
     @Override
@@ -232,8 +240,11 @@ class GUIDImpl extends GUIDAbstract {
         if (getVersion() != VERSION) {
             return -1;
         }
-        return (guid[PID_POS] & 0xFF) << BYTE_SIZE * 2 | (guid[PID_POS + 1] & 0xFF) << BYTE_SIZE |
-            guid[PID_POS + 2] & 0xFF;
+        return (
+            ((guid[PID_POS] & 0xFF) << (BYTE_SIZE * 2)) |
+            ((guid[PID_POS + 1] & 0xFF) << BYTE_SIZE) |
+            (guid[PID_POS + 2] & 0xFF)
+        );
     }
 
     @Override
@@ -253,9 +264,11 @@ class GUIDImpl extends GUIDAbstract {
     @Override
     @JsonIgnore
     public final int getCounter() {
-        return (guid[COUNTER_POS] & 0xFF) << BYTE_SIZE * 2 |
-            (guid[COUNTER_POS + 1] & 0xFF) << BYTE_SIZE |
-            guid[COUNTER_POS + 2] & 0xFF;
+        return (
+            ((guid[COUNTER_POS] & 0xFF) << (BYTE_SIZE * 2)) |
+            ((guid[COUNTER_POS + 1] & 0xFF) << BYTE_SIZE) |
+            (guid[COUNTER_POS + 2] & 0xFF)
+        );
     }
 
     @Override
@@ -263,8 +276,7 @@ class GUIDImpl extends GUIDAbstract {
     public final String toArkName() {
         final byte[] temp = new byte[KEYSIZE - TENANT_SIZE];
         System.arraycopy(guid, HEADER_POS, temp, 0, HEADER_SIZE);
-        System.arraycopy(guid, PLATFORM_POS, temp, HEADER_SIZE,
-            PLATFORM_SIZE + PID_SIZE + TIME_SIZE + COUNTER_SIZE);
+        System.arraycopy(guid, PLATFORM_POS, temp, HEADER_SIZE, PLATFORM_SIZE + PID_SIZE + TIME_SIZE + COUNTER_SIZE);
         return BaseXx.getBase32(temp);
     }
 
@@ -295,5 +307,4 @@ class GUIDImpl extends GUIDAbstract {
         // others as ProcessId or Platform are unimportant in comparison
         return ts < ts2 ? -1 : 1;
     }
-
 }

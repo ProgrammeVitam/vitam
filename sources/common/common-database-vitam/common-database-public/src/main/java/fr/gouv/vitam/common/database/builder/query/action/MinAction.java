@@ -35,6 +35,7 @@ import java.util.Date;
  * Min Action: $min : { name : value }
  */
 public class MinAction extends Action {
+
     protected MinAction() {
         super();
     }
@@ -46,8 +47,7 @@ public class MinAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MinAction(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public MinAction(final String variableName, final long value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MIN, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MIN;
@@ -61,8 +61,7 @@ public class MinAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MinAction(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public MinAction(final String variableName, final double value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MIN, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MIN;
@@ -76,8 +75,7 @@ public class MinAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MinAction(final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    public MinAction(final String variableName, final Date value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MIN, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MIN;
@@ -91,8 +89,7 @@ public class MinAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MinAction(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public MinAction(final String variableName, final boolean value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MIN, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MIN;
@@ -106,12 +103,10 @@ public class MinAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MinAction(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public MinAction(final String variableName, final String value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MIN, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MIN;
         setReady(true);
     }
-
 }

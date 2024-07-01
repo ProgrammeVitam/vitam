@@ -70,13 +70,11 @@ public class TapeLibrarySimulatorTest {
     public void before() throws IOException {
         inputDir = temporaryFolder.newFolder("inputDir").toPath();
         tmpOutputDir = temporaryFolder.newFolder("tmpOutputDir").toPath();
-        tapeLibrarySimulator = new TapeLibrarySimulator(
-            inputDir, tmpOutputDir, 4, 10, 8, 100_000, "LTO-6", 10);
+        tapeLibrarySimulator = new TapeLibrarySimulator(inputDir, tmpOutputDir, 4, 10, 8, 100_000, "LTO-6", 10);
     }
 
     @Test
     public void testTapeLibraryStatusAfterInit() throws TapeCommandException {
-
         // Given
 
         // When
@@ -95,7 +93,8 @@ public class TapeLibrarySimulatorTest {
 
         assertThat(status.getSlots()).hasSize(10);
         assertThat(status.getSlots())
-            .extracting(TapeSlot::getIndex,
+            .extracting(
+                TapeSlot::getIndex,
                 TapeSlot::getStorageElementType,
                 tapeSlot -> tapeSlot.getTape() == null ? null : tapeSlot.getTape().getSlotIndex(),
                 tapeSlot -> tapeSlot.getTape() == null ? null : tapeSlot.getTape().getVolumeTag()
@@ -118,7 +117,6 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testTapeLibraryStatusAfterFewOperations() throws IOException, TapeCommandException {
-
         // Given
         loadTape(1, 0);
         loadTape(2, 1);
@@ -149,16 +147,12 @@ public class TapeLibrarySimulatorTest {
                 TapeDrive::getIndex,
                 tapeDrive -> tapeDrive.getTape() == null ? null : tapeDrive.getTape().getVolumeTag()
             )
-            .containsExactly(
-                tuple(0, "TAPE-0"),
-                tuple(1, "TAPE-1"),
-                tuple(2, null),
-                tuple(3, "TAPE-3")
-            );
+            .containsExactly(tuple(0, "TAPE-0"), tuple(1, "TAPE-1"), tuple(2, null), tuple(3, "TAPE-3"));
 
         assertThat(status.getSlots()).hasSize(10);
         assertThat(status.getSlots())
-            .extracting(TapeSlot::getIndex,
+            .extracting(
+                TapeSlot::getIndex,
                 TapeSlot::getStorageElementType,
                 tapeSlot -> tapeSlot.getTape() == null ? null : tapeSlot.getTape().getSlotIndex(),
                 tapeSlot -> tapeSlot.getTape() == null ? null : tapeSlot.getTape().getVolumeTag()
@@ -181,7 +175,6 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testDriveStatusWithEmptyDrive() throws TapeCommandException {
-
         // Given
 
         // When
@@ -194,14 +187,15 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testDriveStatusWithEmptyTapeLoadedIntoDrive() throws TapeCommandException {
-
         // Given
         loadTape(2, 0);
 
@@ -215,7 +209,10 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
@@ -223,7 +220,6 @@ public class TapeLibrarySimulatorTest {
     @Test
     public void testDriveStatusWithNonEmptyTapeLoadedIntoDriveAtBeginningOfTape()
         throws TapeCommandException, IOException {
-
         // Given
         loadTape(2, 0);
         writeFile(0, "content1");
@@ -240,14 +236,16 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testDriveStatusWithNonEmptyTapeLoadedIntoDriveAtEndOfFile1() throws TapeCommandException, IOException {
-
         // Given
         loadTape(2, 0);
         writeFile(0, "content1");
@@ -265,7 +263,10 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         assertThat(outFile1).hasContent("content1");
 
@@ -274,7 +275,6 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testDriveStatusWithNonEmptyTapeLoadedIntoDriveAtEndOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(2, 0);
         writeFile(0, "content1");
@@ -291,14 +291,16 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testDriveStatusWithTapeEjectedFromDriveButNotYetUnloaded() throws TapeCommandException, IOException {
-
         // Given
         loadTape(2, 0);
         writeFile(0, "content1");
@@ -315,14 +317,15 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testDriveStatusWithTapeEjectedAndUnloadedFromDrive() throws TapeCommandException, IOException {
-
         // Given
         loadTape(2, 0);
         writeFile(0, "content1");
@@ -340,25 +343,28 @@ public class TapeLibrarySimulatorTest {
         assertThat(status.getErrorCountSinceLastStatus()).isEqualTo(0);
         assertThat(status.getDescription()).isEqualTo("DRIVE-0");
         assertThat(status.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testLoadTapeFromSlotIntoEmptyDrive() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatCode(() -> loadTape(2, 0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> loadTape(2, 0)).doesNotThrowAnyException();
 
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
         assertThat(tapeLibrarySpec).isNotNull();
@@ -371,19 +377,19 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testLoadTapeFromEmptySlotThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> loadTape(9, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> loadTape(9, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -397,21 +403,22 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testLoadTapeFromSlotIntoLoadedDriveThenKO() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
 
         // When / Then
-        assertThatThrownBy(() -> loadTape(9, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> loadTape(9, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -425,21 +432,21 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testLoadTapeFromSlotIntoEjectedButNotUnloadedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> loadTape(9, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> loadTape(9, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -453,22 +460,23 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testLoadTapeFromSlotIntoUnloadedDriveThenOK() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(10, 0);
 
         // When / Then
-        assertThatCode(() -> loadTape(2, 0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> loadTape(2, 0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -486,21 +494,21 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testUnloadTapeFromEjectedDriveIntoSlot() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatCode(() -> unloadTape(10, 0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> unloadTape(10, 0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -515,20 +523,21 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testUnloadTapeFromNonEjectedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> unloadTape(10, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> unloadTape(10, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -543,19 +552,19 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testUnloadTapeFromEmptyDriveIntoSlotThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> unloadTape(9, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> unloadTape(9, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -570,22 +579,22 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testUnloadTapeFromAlreadyUnloadedDriveIntoSlotThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(10, 0);
 
         // When / Then
-        assertThatThrownBy(() -> unloadTape(9, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> unloadTape(9, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -603,21 +612,21 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testUnloadTapeIntoFullSlotThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> unloadTape(5, 0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> unloadTape(5, 0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -635,20 +644,20 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testEjectLoadedTapeFromDrive() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatCode(() -> ejectDrive(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> ejectDrive(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -663,19 +672,19 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testEjectFromEmptyDriveThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> ejectDrive(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> ejectDrive(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -687,21 +696,21 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testEjectAnAlreadyEjectedTapeFromDriveThanKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> ejectDrive(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> ejectDrive(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -716,22 +725,22 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testEjectFromAnUnloadedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> ejectDrive(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> ejectDrive(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -742,27 +751,27 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testRewindAnEmptyTape() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatCode(() -> rewindDriveTape(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> rewindDriveTape(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testRewindANonEmptyTapeAlreadyAtBeginningOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -770,22 +779,23 @@ public class TapeLibrarySimulatorTest {
         moveDrive(0, 2, true);
 
         // When / Then
-        assertThatCode(() -> rewindDriveTape(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> rewindDriveTape(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testRewindANonEmptyTapePositionedAtMiddleOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -793,44 +803,46 @@ public class TapeLibrarySimulatorTest {
         moveDrive(0, 1, true);
 
         // When / Then
-        assertThatCode(() -> rewindDriveTape(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> rewindDriveTape(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testRewindANonEmptyTapePositionedAtEndOfLastFile() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         writeFile(0, "content2");
 
         // When / Then
-        assertThatCode(() -> rewindDriveTape(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> rewindDriveTape(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testRewindANonEmptyTapePositionedAtEndOfData() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -838,34 +850,36 @@ public class TapeLibrarySimulatorTest {
         goToEnd(0);
 
         // When / Then
-        assertThatCode(() -> rewindDriveTape(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> rewindDriveTape(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testRewindWithEmptyDriveThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> rewindDriveTape(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> rewindDriveTape(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -876,36 +890,34 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testRewindWithEjectedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> rewindDriveTape(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> rewindDriveTape(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testRewindWithUnloadedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> rewindDriveTape(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> rewindDriveTape(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
@@ -917,7 +929,9 @@ public class TapeLibrarySimulatorTest {
         assertThat(tapeLibrarySpec.getDrives().get(0).getTape()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThat(tapeLibrarySpec.getSlots().get(0).getIndex()).isEqualTo(1);
         assertThat(tapeLibrarySpec.getSlots().get(0).getTape().getVolumeTag()).isEqualTo("TAPE-0");
@@ -927,27 +941,27 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testGoToEndAnEmptyTape() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatCode(() -> goToEnd(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> goToEnd(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testGoToEndANonEmptyTapePositionedAtBeginningOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -955,22 +969,23 @@ public class TapeLibrarySimulatorTest {
         rewindDriveTape(0);
 
         // When / Then
-        assertThatCode(() -> goToEnd(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> goToEnd(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testGoToEndANonEmptyTapePositionedAtMiddleOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -978,44 +993,46 @@ public class TapeLibrarySimulatorTest {
         moveDrive(0, 1, true);
 
         // When / Then
-        assertThatCode(() -> goToEnd(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> goToEnd(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testGoToEndANonEmptyTapePositionedAtEndOfLastFile() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         writeFile(0, "content2");
 
         // When / Then
-        assertThatCode(() -> goToEnd(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> goToEnd(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testGoToEndANonEmptyTapeAlreadyAtEndOfData() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1023,34 +1040,36 @@ public class TapeLibrarySimulatorTest {
         goToEnd(0);
 
         // When / Then
-        assertThatCode(() -> goToEnd(0))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> goToEnd(0)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testGoToEndWithEmptyDriveThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> goToEnd(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> goToEnd(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -1061,43 +1080,43 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testGoToEndWithEjectedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> goToEnd(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> goToEnd(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testGoToEndWithUnloadedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> goToEnd(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> goToEnd(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         // Check tape library status for drive & slot
         TapeLibrarySpec tapeLibrarySpec = getTapeLibraryStatus();
@@ -1112,216 +1131,221 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testMove0FilesForwardThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 0, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 0, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testMove0FilesBackwardThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 0, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 0, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testMoveNegativeNumberOfFilesForwardThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, -1, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, -1, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testMoveNegativeNumberOfFilesBackwardThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, -1, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, -1, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testMoveMultiplePositionsForwardForEmptyTapeThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
-
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 2, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 2, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testTryMoveTape1PositionForwardToCheckForEmptinessThenNonBlockingError() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
-
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 1, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 1, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testMovePositionBackwardForEmptyTapeThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
-
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 1, true))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 1, true)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testMovePositionBackwardToMiddleOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         writeFile(0, "content2");
 
         // When / Then
-        assertThatCode(() -> moveDrive(0, 1, true))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> moveDrive(0, 1, true)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testMovePositionBackwardToBeginningOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         writeFile(0, "content2");
 
         // When / Then
-        assertThatCode(() -> moveDrive(0, 2, true))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> moveDrive(0, 2, true)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testMovePositionBackwardToPastBeginningOfTapeThenKO() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         writeFile(0, "content2");
 
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 3, true))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 3, true)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.BOT);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.BOT
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testMovePositionForwardToMiddleOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1329,22 +1353,22 @@ public class TapeLibrarySimulatorTest {
         rewindDriveTape(0);
 
         // When / Then
-        assertThatCode(() -> moveDrive(0, 1, false))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> moveDrive(0, 1, false)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testMovePositionForwardToEnd() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1352,22 +1376,22 @@ public class TapeLibrarySimulatorTest {
         rewindDriveTape(0);
 
         // When / Then
-        assertThatCode(() -> moveDrive(0, 2, false))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> moveDrive(0, 2, false)).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatNoFailuresReported();
     }
 
     @Test
     public void testMovePositionForwardPastEndOfTapeThenKO() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1375,64 +1399,67 @@ public class TapeLibrarySimulatorTest {
         rewindDriveTape(0);
 
         // When / Then
-        assertThatThrownBy(() -> moveDrive(0, 3, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 3, false)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testReadFromEmptyTapeThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(0);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testReadFromTapePositionedAfterLastFileThenKO() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         writeFile(0, "content2");
 
         // When / Then
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testReadFromTapePositionedAtEndOfDataThenKO() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1440,22 +1467,23 @@ public class TapeLibrarySimulatorTest {
         goToEnd(0);
 
         // When / Then
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOD);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOD
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testReadFromTapePositionedAtMiddleOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1470,7 +1498,10 @@ public class TapeLibrarySimulatorTest {
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         assertThat(readFile2).hasContent("content2");
 
@@ -1479,7 +1510,6 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testReadFromTapePositionedAtBeginningOfTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1494,7 +1524,10 @@ public class TapeLibrarySimulatorTest {
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         assertThat(readFile1).hasContent("content1");
 
@@ -1503,82 +1536,83 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testReadFromEmptyDriveThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testReadFromEjectedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testReadFromUnloadedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testWriteToEmptyTape() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
 
         // When / Then
-        assertThatCode(() -> writeFile(0, "content1"))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> writeFile(0, "content1")).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(1);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         // Test read
         rewindDriveTape(0);
@@ -1589,21 +1623,22 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testWriteOnTapePositionedAfterLastFile() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
 
         // When / Then
-        assertThatCode(() -> writeFile(0, "content2"))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> writeFile(0, "content2")).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         // Test read
         rewindDriveTape(0);
@@ -1615,22 +1650,23 @@ public class TapeLibrarySimulatorTest {
 
     @Test
     public void testWriteToTapePositionedAtEndOfData() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
         goToEnd(0);
 
         // When / Then
-        assertThatCode(() -> writeFile(0, "content2"))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> writeFile(0, "content2")).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(2);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         // Test read
         rewindDriveTape(0);
@@ -1643,7 +1679,6 @@ public class TapeLibrarySimulatorTest {
     @Test
     public void testWriteToTapePositionedAtMiddleOfTapeThenOverrideExistingData()
         throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         writeFile(0, "content1");
@@ -1653,17 +1688,18 @@ public class TapeLibrarySimulatorTest {
         moveDrive(0, 3, true);
 
         // When / Then
-        assertThatCode(() -> writeFile(0, "content2-new"))
-            .doesNotThrowAnyException();
-        assertThatCode(() -> writeFile(0, "content3-new"))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> writeFile(0, "content2-new")).doesNotThrowAnyException();
+        assertThatCode(() -> writeFile(0, "content3-new")).doesNotThrowAnyException();
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(3);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         // Test read
         rewindDriveTape(0);
@@ -1674,17 +1710,14 @@ public class TapeLibrarySimulatorTest {
         assertThatNoFailuresReported();
 
         // Ensure no more data available
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
-        assertThatThrownBy(() -> moveDrive(0, 1, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 1, false)).isInstanceOf(TapeCommandException.class);
 
         assertThatFailuresReported(2);
     }
 
     @Test
     public void testWriteToFullTapeThenFailure() throws TapeCommandException, IOException {
-
         // Given
         loadTape(1, 0);
         String random3KString = RandomStringUtils.randomAlphabetic(3000);
@@ -1693,15 +1726,17 @@ public class TapeLibrarySimulatorTest {
         }
 
         // When / Then
-        assertThatThrownBy(() -> writeFile(0, random3KString))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> writeFile(0, random3KString)).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isEqualTo("LTO-6");
         assertThat(driveStatus.getFileNumber()).isEqualTo(34);
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.ONLINE, TapeDriveStatus.IM_REP_EN, TapeDriveStatus.EOF);
+            TapeDriveStatus.ONLINE,
+            TapeDriveStatus.IM_REP_EN,
+            TapeDriveStatus.EOF
+        );
 
         // Test read
         rewindDriveTape(0);
@@ -1714,92 +1749,86 @@ public class TapeLibrarySimulatorTest {
         assertThat(tapeLibrarySimulator.getFailures()).isEmpty();
 
         // Ensure no more writes allowed
-        assertThatThrownBy(() -> writeFile(0, "content"))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> writeFile(0, "content")).isInstanceOf(TapeCommandException.class);
 
         // Ensure no more data available
-        assertThatThrownBy(() -> readFile(0))
-            .isInstanceOf(TapeCommandException.class);
-        assertThatThrownBy(() -> moveDrive(0, 1, false))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> readFile(0)).isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> moveDrive(0, 1, false)).isInstanceOf(TapeCommandException.class);
 
         assertThatFailuresReported(2);
     }
 
     @Test
     public void testWriteToEmptyDriveThenKO() throws TapeCommandException {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> writeFile(0, "content1"))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> writeFile(0, "content1")).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testWriteToEjectedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
 
         // When / Then
-        assertThatThrownBy(() -> writeFile(0, "content1"))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> writeFile(0, "content1")).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void testWriteToFromUnloadedDriveThenKO() throws TapeCommandException {
-
         // Given
         loadTape(1, 0);
         ejectDrive(0);
         unloadTape(1, 0);
 
         // When / Then
-        assertThatThrownBy(() -> writeFile(0, "content1"))
-            .isInstanceOf(TapeCommandException.class);
+        assertThatThrownBy(() -> writeFile(0, "content1")).isInstanceOf(TapeCommandException.class);
 
         // Check drive status
         TapeDriveSpec driveStatus = getDriveStatus(0);
         assertThat(driveStatus.getCartridge()).isNull();
         assertThat(driveStatus.getFileNumber()).isNull();
         assertThat(driveStatus.getDriveStatuses()).containsExactlyInAnyOrder(
-            TapeDriveStatus.DR_OPEN, TapeDriveStatus.IM_REP_EN);
+            TapeDriveStatus.DR_OPEN,
+            TapeDriveStatus.IM_REP_EN
+        );
 
         assertThatFailuresReported(1);
     }
 
     @Test
     public void complexConcurrentWorkflow() {
-
         // Given
-        this.tapeLibrarySimulator = new TapeLibrarySimulator(
-            inputDir, tmpOutputDir, 4, 10, 8, 100_000, "LTO-6", 500);
+        this.tapeLibrarySimulator = new TapeLibrarySimulator(inputDir, tmpOutputDir, 4, 10, 8, 100_000, "LTO-6", 500);
 
         CountDownLatch tape2UnloadedFromDrive2 = new CountDownLatch(1);
 
         Runnable job1 = () -> {
             try {
-
                 loadTape(1, 0);
 
                 for (int i = 1; i <= 5; i++) {
@@ -1820,7 +1849,6 @@ public class TapeLibrarySimulatorTest {
 
                 ejectDrive(0);
                 unloadTape(1, 0);
-
             } catch (TapeCommandException | IOException e) {
                 LOGGER.error(e);
                 throw new RuntimeException(e);
@@ -1829,7 +1857,6 @@ public class TapeLibrarySimulatorTest {
 
         Runnable job2 = () -> {
             try {
-
                 loadTape(2, 1);
 
                 for (int i = 1; i <= 2; i++) {
@@ -1846,7 +1873,6 @@ public class TapeLibrarySimulatorTest {
                 for (int i = 1; i <= 2; i++) {
                     writeFile(1, "tape6-content" + i);
                 }
-
             } catch (TapeCommandException | IOException e) {
                 LOGGER.error(e);
                 throw new RuntimeException(e);
@@ -1855,7 +1881,6 @@ public class TapeLibrarySimulatorTest {
 
         Runnable job3 = () -> {
             try {
-
                 if (!tape2UnloadedFromDrive2.await(10, TimeUnit.SECONDS)) {
                     throw new IllegalStateException("Timeout");
                 }
@@ -1864,7 +1889,6 @@ public class TapeLibrarySimulatorTest {
 
                 moveDrive(2, 1, false);
                 readFileAndVerifyContent(2, "tape2-content2");
-
             } catch (TapeCommandException | IOException | InterruptedException e) {
                 LOGGER.error(e);
                 throw new RuntimeException(e);
@@ -1875,8 +1899,11 @@ public class TapeLibrarySimulatorTest {
         CompletableFuture<Void> job2CompletableFuture = CompletableFuture.runAsync(job2);
         CompletableFuture<Void> job3CompletableFuture = CompletableFuture.runAsync(job3);
 
-        CompletableFuture<Void> allJobsDone =
-            CompletableFuture.allOf(job1CompletableFuture, job2CompletableFuture, job3CompletableFuture);
+        CompletableFuture<Void> allJobsDone = CompletableFuture.allOf(
+            job1CompletableFuture,
+            job2CompletableFuture,
+            job3CompletableFuture
+        );
         allJobsDone.join();
         assertThat(allJobsDone).isCompleted();
         assertThat(allJobsDone).hasNotFailed();
@@ -1925,8 +1952,7 @@ public class TapeLibrarySimulatorTest {
         tapeLibrarySimulator.getTapeDriveCommandServices().get(driveIndex).goToEnd();
     }
 
-    private void writeFile(int driveIndex, String content)
-        throws IOException, TapeCommandException {
+    private void writeFile(int driveIndex, String content) throws IOException, TapeCommandException {
         String randomFileName = GUIDFactory.newGUID().toString();
         Path fileToWrite = inputDir.resolve(randomFileName);
         Files.writeString(fileToWrite, content, StandardCharsets.UTF_8);
@@ -1935,7 +1961,6 @@ public class TapeLibrarySimulatorTest {
     }
 
     private Path readFile(int driveIndex) throws TapeCommandException {
-
         String randomFileName = GUIDFactory.newGUID().toString();
         tapeLibrarySimulator.getTapeReadWriteServices().get(driveIndex).readFromTape(randomFileName);
         Path tmpFile = tmpOutputDir.resolve(randomFileName);

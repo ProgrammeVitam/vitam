@@ -40,25 +40,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ReclassificationRequestDslParserTest {
 
     @Before
-    public void setUp() throws Exception {
-    }
+    public void setUp() throws Exception {}
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     @Test
     public void parseReclassificationRequest_validQuery() throws Exception {
-
         // Given
         JsonNode jsonRequest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("Reclassification/dsl_parsing/reclassification_query_complete.json"));
+            PropertiesUtils.getResourceAsStream("Reclassification/dsl_parsing/reclassification_query_complete.json")
+        );
 
         ReclassificationRequestDslParser instance = new ReclassificationRequestDslParser();
 
         // When
-        ParsedReclassificationDslRequest parsedReclassificationDslRequest =
-            instance.parseReclassificationRequest(jsonRequest);
+        ParsedReclassificationDslRequest parsedReclassificationDslRequest = instance.parseReclassificationRequest(
+            jsonRequest
+        );
 
         // Then
         assertThat(parsedReclassificationDslRequest.getEntries()).hasSize(4);
@@ -67,17 +66,22 @@ public class ReclassificationRequestDslParserTest {
         assertThat(entry1.getSelectMultiQuery().getQueries()).hasSize(1);
         assertThat(entry1.getSelectMultiQuery().getQueries().get(0).getQUERY().exactToken()).isEqualTo("$exists");
         assertThat(entry1.getAttachments()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca");
-        assertThat(entry1.getDetachments()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc",
-            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacb");
+        assertThat(entry1.getDetachments()).containsExactlyInAnyOrder(
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc",
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacb"
+        );
 
         ParsedReclassificationDslRequestEntry entry2 = parsedReclassificationDslRequest.getEntries().get(1);
         assertThat(entry2.getSelectMultiQuery().getRoots()).containsExactlyInAnyOrder(
-            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc");
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacc"
+        );
         assertThat(entry2.getSelectMultiQuery().getQueries()).hasSize(1);
         assertThat(entry2.getSelectMultiQuery().getQueries().get(0).getQUERY().exactToken()).isEqualTo("$exists");
         assertThat(entry2.getAttachments()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacd");
-        assertThat(entry2.getDetachments()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaace",
-            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacf");
+        assertThat(entry2.getDetachments()).containsExactlyInAnyOrder(
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaace",
+            "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaacf"
+        );
 
         ParsedReclassificationDslRequestEntry entry3 = parsedReclassificationDslRequest.getEntries().get(2);
         assertThat(entry3.getAttachments()).containsExactlyInAnyOrder("aeaqaaaaaagdmvr3abnwoak7fzjq75qaaach");
@@ -90,15 +94,16 @@ public class ReclassificationRequestDslParserTest {
 
     @Test
     public void parseReclassificationRequest_emptyQuery() throws Exception {
-
         // Given
         JsonNode jsonRequest = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("Reclassification/dsl_parsing/reclassification_query_empty.json"));
+            PropertiesUtils.getResourceAsStream("Reclassification/dsl_parsing/reclassification_query_empty.json")
+        );
 
         ReclassificationRequestDslParser instance = new ReclassificationRequestDslParser();
 
         // When // Then
-        assertThatThrownBy(() -> instance.parseReclassificationRequest(jsonRequest))
-            .isInstanceOf(InvalidParseOperationException.class);
+        assertThatThrownBy(() -> instance.parseReclassificationRequest(jsonRequest)).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 }

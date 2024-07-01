@@ -55,6 +55,4 @@ public class BuilderTokenTest {
         assertEquals(GLOBAL.FACETS.exactToken(), "$facets");
         assertEquals(PROJECTIONARGS.QUALIFIERS.exactToken(), "#qualifiers");
     }
-
-
 }

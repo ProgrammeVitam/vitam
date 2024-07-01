@@ -53,10 +53,10 @@ public class UpdateByIdSchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public UpdateByIdSchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.UPDATE_BY_ID.name(),
-            DslSchema.UPDATE_BY_ID.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.UPDATE_BY_ID.getFilename())) {
+        LOGGER.debug("Loading schema {} from {}", DslSchema.UPDATE_BY_ID.name(), DslSchema.UPDATE_BY_ID.getFilename());
+        try (
+            final InputStream schemaSource = PropertiesUtils.getResourceAsStream(DslSchema.UPDATE_BY_ID.getFilename())
+        ) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
@@ -65,5 +65,4 @@ public class UpdateByIdSchemaValidator implements DslValidator {
     public void validate(JsonNode dsl) throws ValidationException {
         Validator.validate(schema, "DSL", dsl);
     }
-
 }

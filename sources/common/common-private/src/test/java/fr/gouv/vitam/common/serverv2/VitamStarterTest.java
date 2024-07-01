@@ -60,8 +60,12 @@ public class VitamStarterTest {
         }
         VitamStarter vitamStarter = null;
         try {
-            vitamStarter = new VitamStarter(ConfigurationTest.class, "configuration-test.conf", AdminApplication.class,
-                AdminApplication.class);
+            vitamStarter = new VitamStarter(
+                ConfigurationTest.class,
+                "configuration-test.conf",
+                AdminApplication.class,
+                AdminApplication.class
+            );
         } catch (Exception e) {
             fail("Should not raise an exception");
         }
@@ -80,6 +84,5 @@ public class VitamStarterTest {
         assertFalse(vitamStarter.isStarted());
     }
 
-    static class ConfigurationTest extends DefaultVitamApplicationConfiguration {
-    }
+    static class ConfigurationTest extends DefaultVitamApplicationConfiguration {}
 }

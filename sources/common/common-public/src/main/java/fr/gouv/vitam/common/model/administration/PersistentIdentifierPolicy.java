@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class PersistentIdentifierPolicy {
+
     @JsonProperty("PersistentIdentifierPolicyType")
     private PersistentIdentifierPolicyTypeEnum persistentIdentifierPolicyType;
 
@@ -47,8 +48,7 @@ public class PersistentIdentifierPolicy {
         return persistentIdentifierPolicyType;
     }
 
-    public void setPersistentIdentifierPolicyType(
-        PersistentIdentifierPolicyTypeEnum persistentIdentifierPolicyType) {
+    public void setPersistentIdentifierPolicyType(PersistentIdentifierPolicyTypeEnum persistentIdentifierPolicyType) {
         this.persistentIdentifierPolicyType = persistentIdentifierPolicyType;
     }
 
@@ -72,8 +72,7 @@ public class PersistentIdentifierPolicy {
         return persistentIdentifierUsages;
     }
 
-    public void setPersistentIdentifierUsages(
-        List<PersistentIdentifierUsage> persistentIdentifierUsages) {
+    public void setPersistentIdentifierUsages(List<PersistentIdentifierUsage> persistentIdentifierUsages) {
         this.persistentIdentifierUsages = persistentIdentifierUsages;
     }
 }

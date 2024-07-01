@@ -35,6 +35,7 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 
 public class ResultErrorTest {
+
     @Test
     public void givenResultErrorConstructorWhenCreateWithoutCollectionThenAddNothing() {
         final ResultError resultError = new ResultError(FILTERARGS.UNITS);

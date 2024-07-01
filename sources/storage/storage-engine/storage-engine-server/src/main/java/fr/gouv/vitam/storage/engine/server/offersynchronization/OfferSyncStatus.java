@@ -33,20 +33,28 @@ public class OfferSyncStatus {
 
     @JsonProperty("requestId")
     private String requestId;
+
     @JsonProperty("statusCode")
     private StatusCode statusCode;
+
     @JsonProperty("startDate")
     private String startDate;
+
     @JsonProperty("endDate")
     private String endDate;
+
     @JsonProperty("sourceOffer")
     private String sourceOffer;
+
     @JsonProperty("targetOffer")
     private String targetOffer;
+
     @JsonProperty("container")
     private String container;
+
     @JsonProperty("startOffset")
     private Long startOffset;
+
     @JsonProperty("currentOffset")
     private Long currentOffset;
 
@@ -54,10 +62,17 @@ public class OfferSyncStatus {
         // Empty constructor for deserialization
     }
 
-    public OfferSyncStatus(String requestID, StatusCode statusCode, String startDate, String endDate,
+    public OfferSyncStatus(
+        String requestID,
+        StatusCode statusCode,
+        String startDate,
+        String endDate,
         String sourceOffer,
-        String targetOffer, String container, Long startOffset, Long currentOffset) {
-
+        String targetOffer,
+        String container,
+        Long startOffset,
+        Long currentOffset
+    ) {
         this.requestId = requestID;
         this.statusCode = statusCode;
         this.startDate = startDate;

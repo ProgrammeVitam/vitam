@@ -73,8 +73,9 @@ import static org.mockito.Mockito.verify;
 public class ReclassificationPreparationUpdateDistributionHandlerTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -84,11 +85,13 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
     @Mock
     private HandlerIO handlerIO;
+
     private Map<String, File> transferredFiles = new HashMap<>();
 
     private WorkerParameters parameters;
@@ -105,27 +108,31 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
 
         String objectId = GUIDFactory.newGUID().toString();
-        parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(operationId)
+        parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(operationId)
             .setObjectNameList(Lists.newArrayList(objectId))
-            .setObjectName(objectId).setCurrentStep("StepName");
+            .setObjectName(objectId)
+            .setCurrentStep("StepName");
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String path = args.getArgument(0);
             InputStream is = args.getArgument(1);
             File file = tempFolder.newFile();
             Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             transferredFiles.put(path, file);
             return null;
-        }).when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), eq(false));
+        })
+            .when(handlerIO)
+            .transferInputStreamToWorkspace(any(), any(), any(), eq(false));
 
-        reclassificationPreparationLoadHandlerPlugin =
-            new ReclassificationPreparationUpdateDistributionHandler(metaDataClientFactory);
+        reclassificationPreparationLoadHandlerPlugin = new ReclassificationPreparationUpdateDistributionHandler(
+            metaDataClientFactory
+        );
     }
 
     @Test
     public void execute_whenExportFailedThenExpectFatal() throws Exception {
-
         // Given
         HashSetValuedHashMap<String, String> attachments = new HashSetValuedHashMap<>();
         attachments.put("id1", "id2");
@@ -134,7 +141,8 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
         ReclassificationOrders reclassificationOrders = new ReclassificationOrders(attachments, detachments);
         doReturn(reclassificationOrders).when(handlerIO).getInput(0);
 
-        doThrow(MetaDataExecutionException.class).when(metaDataClient)
+        doThrow(MetaDataExecutionException.class)
+            .when(metaDataClient)
             .exportReclassificationChildNodes(any(), any(), any());
 
         // When
@@ -146,7 +154,6 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
 
     @Test
     public void execute_whenExportOKThenExpectOK() throws Exception {
-
         // Given
         HashSetValuedHashMap<String, String> attachments = new HashSetValuedHashMap<>();
         attachments.putAll("id1", Arrays.asList("id2", "id3"));
@@ -164,20 +171,23 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(transferredFiles).hasSize(4);
 
-        assertThat(JsonHandler
-            .getFromFile(transferredFiles.get("UnitsToDetach/id1"), String[].class))
-            .containsExactlyInAnyOrder("id5");
-        assertThat(JsonHandler
-            .getFromFile(transferredFiles.get("UnitsToDetach/id3"), String[].class))
-            .containsExactlyInAnyOrder("id5");
-        assertThat(JsonHandler
-            .getFromFile(transferredFiles.get("UnitsToAttach/id1"), String[].class))
-            .containsExactlyInAnyOrder("id2", "id3");
-        assertThat(JsonHandler
-            .getFromFile(transferredFiles.get("UnitsToAttach/id2"), String[].class))
-            .containsExactlyInAnyOrder("id3", "id4");
+        assertThat(
+            JsonHandler.getFromFile(transferredFiles.get("UnitsToDetach/id1"), String[].class)
+        ).containsExactlyInAnyOrder("id5");
+        assertThat(
+            JsonHandler.getFromFile(transferredFiles.get("UnitsToDetach/id3"), String[].class)
+        ).containsExactlyInAnyOrder("id5");
+        assertThat(
+            JsonHandler.getFromFile(transferredFiles.get("UnitsToAttach/id1"), String[].class)
+        ).containsExactlyInAnyOrder("id2", "id3");
+        assertThat(
+            JsonHandler.getFromFile(transferredFiles.get("UnitsToAttach/id2"), String[].class)
+        ).containsExactlyInAnyOrder("id3", "id4");
 
-        verify(metaDataClient)
-            .exportReclassificationChildNodes(eq(new HashSet<>(Arrays.asList("id1", "id2", "id3"))), any(), any());
+        verify(metaDataClient).exportReclassificationChildNodes(
+            eq(new HashSet<>(Arrays.asList("id1", "id2", "id3"))),
+            any(),
+            any()
+        );
     }
 }

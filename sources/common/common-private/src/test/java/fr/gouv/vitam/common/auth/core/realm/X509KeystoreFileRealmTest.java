@@ -52,12 +52,11 @@ public class X509KeystoreFileRealmTest {
     private X509KeystoreFileRealm realm;
     private X509Certificate cert;
 
-    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
+    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
     BigInteger serial = new BigInteger("1000000000000000");
 
     @Before
     public void setUp() throws Exception {
-
         realm = new X509KeystoreFileRealm();
 
         realm.setGrantedKeyStoreName("src/test/resources/tls/server/granted_certs.jks");
@@ -72,7 +71,6 @@ public class X509KeystoreFileRealmTest {
 
     @Test
     public void testGettersAndSetters() {
-
         realm.getAuthenticationTokenClass();
 
         assertEquals("src/test/resources/tls/server/granted_certs.jks", realm.getGrantedKeyStoreName());
@@ -83,13 +81,11 @@ public class X509KeystoreFileRealmTest {
 
     @Test
     public void givenRealmWhenSendCertificateTokenThenGetCertificateInfo() {
-
-        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+        final X509Certificate[] clientCertChain = new X509Certificate[] { cert };
         final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
         assertTrue(realm.supports(token));
 
         final X509AuthenticationInfo info = (X509AuthenticationInfo) realm.doGetAuthenticationInfo(token);
-
     }
 
     @Test
@@ -97,7 +93,7 @@ public class X509KeystoreFileRealmTest {
         realm.setGrantedKeyStoreName("XXX.jks");
         realm.setGrantedKeyStorePassphrase("gazerty");
 
-        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+        final X509Certificate[] clientCertChain = new X509Certificate[] { cert };
         final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
         assertNull(realm.doGetAuthenticationInfo(token));
     }
@@ -113,7 +109,7 @@ public class X509KeystoreFileRealmTest {
         final String alias = ks.aliases().nextElement();
         final X509Certificate certificate = (X509Certificate) ks.getCertificate(alias);
 
-        final X509Certificate[] clientCertChain = new X509Certificate[] {certificate};
+        final X509Certificate[] clientCertChain = new X509Certificate[] { certificate };
         final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
         final X509AuthenticationInfo info = (X509AuthenticationInfo) realm.doGetAuthenticationInfo(token);
         assertNull(info);

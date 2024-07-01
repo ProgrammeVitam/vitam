@@ -52,8 +52,6 @@ public class StorageBulkPutResult {
 
     @Override
     public String toString() {
-        return "StorageBulkPutResult{" +
-            "entries=" + entries +
-            '}';
+        return "StorageBulkPutResult{" + "entries=" + entries + '}';
     }
 }

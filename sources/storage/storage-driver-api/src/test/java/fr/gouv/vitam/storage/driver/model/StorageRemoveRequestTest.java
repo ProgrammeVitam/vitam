@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
  * Test for StorageRemoveRequest
  */
 public class StorageRemoveRequestTest {
+
     private static StorageRemoveRequest storageRemoveRequest;
     private static final Integer TENANT_ID = 0;
 
@@ -57,6 +58,4 @@ public class StorageRemoveRequestTest {
     public void testGetGuid() throws Exception {
         assertEquals("guid", storageRemoveRequest.getGuid());
     }
-
-
 }

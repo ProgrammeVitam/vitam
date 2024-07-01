@@ -50,7 +50,6 @@ public class MetaDataConfigurationTest {
     private static final String HOST_NAME = "localhost";
     private static final int TCP_PORT = 9300;
 
-
     @Test
     public void testSetterGetter() throws Exception {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
@@ -68,8 +67,13 @@ public class MetaDataConfigurationTest {
         assertEquals(1, config1.setElasticsearchNodes(es_nodes).getElasticsearchNodes().size());
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-        final MetaDataConfiguration config2 =
-            new MetaDataConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, es_nodes, mappingLoader);
+        final MetaDataConfiguration config2 = new MetaDataConfiguration(
+            mongo_nodes,
+            DB_NAME,
+            CLUSTER_NAME,
+            es_nodes,
+            mappingLoader
+        );
         assertEquals(config2.getMongoDbNodes().get(0).getDbHost(), HOST);
         assertEquals(config2.getMongoDbNodes().get(0).getDbPort(), PORT);
         assertEquals(config2.getDbName(), DB_NAME);
@@ -80,7 +84,6 @@ public class MetaDataConfigurationTest {
 
     @Test
     public void testElasticsearchIndexationConfigurationLoading() throws Exception {
-
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
             config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
@@ -88,8 +91,9 @@ public class MetaDataConfigurationTest {
 
         assertThat(config.getIndexationConfiguration()).isNotNull();
 
-        DefaultCollectionConfiguration defaultCollectionConfiguration =
-            config.getIndexationConfiguration().getDefaultCollectionConfiguration();
+        DefaultCollectionConfiguration defaultCollectionConfiguration = config
+            .getIndexationConfiguration()
+            .getDefaultCollectionConfiguration();
         assertThat(defaultCollectionConfiguration).isNotNull();
         assertThat(defaultCollectionConfiguration.getUnit()).isNotNull();
         assertThat(defaultCollectionConfiguration.getUnit().getNumberOfShards()).isEqualTo(3);
@@ -97,9 +101,9 @@ public class MetaDataConfigurationTest {
         assertThat(defaultCollectionConfiguration.getObjectgroup().getNumberOfShards()).isEqualTo(3);
         assertThat(defaultCollectionConfiguration.getObjectgroup().getNumberOfReplicas()).isEqualTo(11);
 
-
-        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration =
-            config.getIndexationConfiguration().getDedicatedTenantConfiguration();
+        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration = config
+            .getIndexationConfiguration()
+            .getDedicatedTenantConfiguration();
         assertThat(dedicatedTenantConfiguration).isNotNull();
         assertThat(dedicatedTenantConfiguration).hasSize(1);
         assertThat(dedicatedTenantConfiguration.get(0)).isNotNull();
@@ -111,9 +115,9 @@ public class MetaDataConfigurationTest {
         assertThat(dedicatedTenantConfiguration.get(0).getObjectgroup().getNumberOfShards()).isEqualTo(5);
         assertThat(dedicatedTenantConfiguration.get(0).getObjectgroup().getNumberOfReplicas()).isEqualTo(13);
 
-
-        List<GroupedTenantConfiguration> groupedTenantConfiguration =
-            config.getIndexationConfiguration().getGroupedTenantConfiguration();
+        List<GroupedTenantConfiguration> groupedTenantConfiguration = config
+            .getIndexationConfiguration()
+            .getGroupedTenantConfiguration();
         assertThat(groupedTenantConfiguration).isNotNull();
         assertThat(groupedTenantConfiguration).hasSize(1);
         assertThat(groupedTenantConfiguration.get(0)).isNotNull();

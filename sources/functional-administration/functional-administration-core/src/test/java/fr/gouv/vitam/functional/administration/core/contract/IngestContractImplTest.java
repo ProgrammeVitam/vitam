@@ -126,13 +126,14 @@ public class IngestContractImplTest {
     private static final String FORMAT_FILE = "file-format-light.json";
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(AccessContract.class, Agencies.class));
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(AccessContract.class, Agencies.class)
+    );
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
 
     static VitamCounterService vitamCounterService;
     static MetaDataClient metaDataClientMock;
@@ -147,27 +148,35 @@ public class IngestContractImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Collections
-                    .singletonList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
-                indexManager),
-            Arrays.asList(FunctionalAdminCollections.INGEST_CONTRACT, FunctionalAdminCollections.AGENCIES));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(
+                ElasticsearchRule.VITAM_CLUSTER,
+                Collections.singletonList(
+                    new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+                ),
+                indexManager
+            ),
+            Arrays.asList(FunctionalAdminCollections.INGEST_CONTRACT, FunctionalAdminCollections.AGENCIES)
+        );
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
-        dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME), Collections::emptyList,
-                indexManager);
+        dbImpl = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, DATABASE_NAME),
+            Collections::emptyList,
+            indexManager
+        );
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
         list_tenant.add("INGEST_CONTRACT");
         listEnableExternalIdentifiers.put(EXTERNAL_TENANT, list_tenant);
-
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
@@ -180,13 +189,19 @@ public class IngestContractImplTest {
 
         managementContractService = mock(ManagementContractImpl.class);
 
-        ingestContractService =
-            new IngestContractImpl(dbImpl, vitamCounterService, metaDataClientMock, logbookOperationsClientMock,
-                functionalBackupService, managementContractService);
+        ingestContractService = new IngestContractImpl(
+            dbImpl,
+            vitamCounterService,
+            metaDataClientMock,
+            logbookOperationsClientMock,
+            functionalBackupService,
+            managementContractService
+        );
 
-        validationService =
-            new IngestContractImpl.IngestContractValidationService(metaDataClientMock, managementContractService);
-
+        validationService = new IngestContractImpl.IngestContractValidationService(
+            metaDataClientMock,
+            managementContractService
+        );
     }
 
     @AfterClass
@@ -209,17 +224,18 @@ public class IngestContractImplTest {
         Mockito.reset(functionalBackupService);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestWellFormedContractThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -227,22 +243,29 @@ public class IngestContractImplTest {
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("IC-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("IC-000");
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(IngestContractImpl.CONTRACT_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.INGEST_CONTRACT), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(IngestContractImpl.CONTRACT_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.INGEST_CONTRACT),
+            any()
+        );
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
     }
 
     @Test
@@ -250,12 +273,15 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestComputeInheritedRulesAtIngestThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile(
-            "referential_contracts_ok_ComputeInheritedRulesAtIngest.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+            "referential_contracts_ok_ComputeInheritedRulesAtIngest.json"
+        );
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -263,22 +289,29 @@ public class IngestContractImplTest {
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("IC-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("IC-000");
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(IngestContractImpl.CONTRACT_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.INGEST_CONTRACT), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(IngestContractImpl.CONTRACT_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.INGEST_CONTRACT),
+            any()
+        );
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
     }
 
     @Test
@@ -286,32 +319,37 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestMissingNameReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_missingName.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
 
         verifyNoMoreInteractions(functionalBackupService);
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
@@ -319,29 +357,35 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestProfileNotInDBReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_not_indb.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_INGEST_CONTRACT.PROFILE_NOT_FOUND.KO");
     }
 
     @Test
@@ -363,27 +407,32 @@ public class IngestContractImplTest {
         }).doesNotThrowAnyException();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestProfileInDBReturnOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_contract.json");
 
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
 
-        dbImpl.insertDocuments(
-            JsonHandler.createArrayNode().add(JsonHandler.toJsonNode(profileModelList.iterator().next())),
-            FunctionalAdminCollections.PROFILE).close();
+        dbImpl
+            .insertDocuments(
+                JsonHandler.createArrayNode().add(JsonHandler.toJsonNode(profileModelList.iterator().next())),
+                FunctionalAdminCollections.PROFILE
+            )
+            .close();
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_indb.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -396,32 +445,37 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
-        final List<IngestContractModel> ingestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         ingestContractModelList.get(0).setId(GUIDFactory.newGUID().getId());
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestContractModelList);
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IngestContract service error");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("IngestContract service error");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventDetailData))
-            .contains("ingestContractCheck").contains("Id must be null when creating contracts (aName)");
+            .contains("ingestContractCheck")
+            .contains("Id must be null when creating contracts (aName)");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -429,24 +483,21 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
-        List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(IngestContractModelList);
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
-
         // unset ids
-        IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {});
         response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(response.isOk()).isTrue();
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -459,12 +510,12 @@ public class IngestContractImplTest {
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("#id", "fakeid"));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
-        final RequestResponseOK<IngestContractModel> IngestContractModelList =
-            ingestContractService.findContracts(queryDsl);
+        final RequestResponseOK<IngestContractModel> IngestContractModelList = ingestContractService.findContracts(
+            queryDsl
+        );
 
         assertThat(IngestContractModelList.getResults()).isEmpty();
     }
-
 
     /**
      * Check that the created ingest conrtact have the tenant owner after persisted to database
@@ -474,14 +525,15 @@ public class IngestContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestTenantOwner() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -493,7 +545,6 @@ public class IngestContractImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -502,9 +553,7 @@ public class IngestContractImplTest {
 
         assertThat(one.getTenant()).isNotNull();
         assertThat(one.getTenant()).isEqualTo(TENANT_ID);
-
     }
-
 
     /**
      * Ingest contract of tenant 1, try to get the same contract with id mongo but with tenant 2 This sgould not return
@@ -515,14 +564,15 @@ public class IngestContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestNotTenantOwner() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -534,26 +584,25 @@ public class IngestContractImplTest {
         final String id1 = acm.getId();
         assertThat(id1).isNotNull();
 
-
         VitamThreadUtils.getVitamSession().setTenantId(2);
 
         final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNull();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestfindByIdentifier() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -565,7 +614,6 @@ public class IngestContractImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -573,16 +621,15 @@ public class IngestContractImplTest {
         assertThat(one.getName()).isEqualTo(acm.getName());
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestImportExternalIdentifier() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok_identifier.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(IngestContractModelList);
         assertThat(response.isOk()).isTrue();
 
@@ -596,7 +643,6 @@ public class IngestContractImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -608,85 +654,94 @@ public class IngestContractImplTest {
         assertThat(response.isOk()).isFalse();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenIngesContractsTestImportExternalIdentifierKO() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
         assertThat(response.isOk()).isFalse();
 
-
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_INGEST_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestInvalidVersionThenImportKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> ingestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         ingestContractModelList.get(0).setDataObjectVersion(Collections.singleton("toto"));
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(ingestContractModelList);
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            ingestContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError) response).getErrors()).isNotNull();
         assertThat(((VitamError) response).getMessage()).isEqualTo("IngestContract service error");
-        assertThat(((VitamError) response).getDescription()).contains("Import ingest contracts error > ")
+        assertThat(((VitamError) response).getDescription())
+            .contains("Import ingest contracts error > ")
             .contains("Document schema validation failed");
         assertThat(((VitamError) response).getState()).isEqualTo("KO");
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
         verifyNoMoreInteractions(functionalBackupService);
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT.BAD_REQUEST.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_INGEST_CONTRACT.BAD_REQUEST.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenIngestContractsTestFindAllThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RequestResponseOK<IngestContractModel> IngestContractModelList =
-            ingestContractService.findContracts(JsonHandler.createObjectNode());
+        final RequestResponseOK<IngestContractModel> IngestContractModelList = ingestContractService.findContracts(
+            JsonHandler.createObjectNode()
+        );
         assertThat(IngestContractModelList.getResults()).isEmpty();
     }
 
@@ -695,11 +750,13 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestFindAllThenReturnTwoContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -717,14 +774,14 @@ public class IngestContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
-        final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
@@ -763,8 +820,10 @@ public class IngestContractImplTest {
         // Test update for ingest contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive =
-            UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set(
+            "Status",
+            ActivationStatus.INACTIVE.toString()
+        );
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
 
@@ -774,8 +833,10 @@ public class IngestContractImplTest {
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
-        RequestResponse<IngestContractModel> updateContractStatus =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<IngestContractModel> updateContractStatus = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         parser.parse(new Select().getFinalSelect());
@@ -798,8 +859,12 @@ public class IngestContractImplTest {
         final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, "");
         final Update updateStatusActive = new Update();
         updateStatusActive.setQuery(QueryHelper.eq("Identifier", identifier));
-        updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-            setActionLastUpdateActive, setLinkParentId);
+        updateStatusActive.addActions(
+            setActionStatusActive,
+            setActionDesactivationDateActive,
+            setActionLastUpdateActive,
+            setLinkParentId
+        );
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
@@ -816,8 +881,10 @@ public class IngestContractImplTest {
         }
 
         // we try to update ingest contract with same value -> Bad Request
-        RequestResponse<IngestContractModel> responseUpdate =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
+        RequestResponse<IngestContractModel> responseUpdate = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslStatusActive
+        );
         assertThat(responseUpdate.isOk()).isTrue();
         assertEquals(200, responseUpdate.getStatus());
     }
@@ -828,12 +895,14 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final String documentName = "aName";
         // Create document
-        final File fileContracts =
-            PropertiesUtils.getResourceFile("referential_contracts_ok_ComputeInheritedRulesAtIngest.json");
+        final File fileContracts = PropertiesUtils.getResourceFile(
+            "referential_contracts_ok_ComputeInheritedRulesAtIngest.json"
+        );
 
-        final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
@@ -862,8 +931,10 @@ public class IngestContractImplTest {
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
-        final SetAction setComputeInheritedRulesAtIngest =
-            UpdateActionHelper.set("ComputeInheritedRulesAtIngest", true);
+        final SetAction setComputeInheritedRulesAtIngest = UpdateActionHelper.set(
+            "ComputeInheritedRulesAtIngest",
+            true
+        );
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", identifier));
@@ -871,8 +942,10 @@ public class IngestContractImplTest {
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
-        RequestResponse<IngestContractModel> updateContractStatus =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<IngestContractModel> updateContractStatus = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         parser.parse(new Select().getFinalSelect());
@@ -892,22 +965,22 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileFormat = PropertiesUtils.getResourceFile(FORMAT_FILE);
 
-        final List<FileFormatModel> fileFormatModelList =
-            JsonHandler.getFromFileAsTypeReference(fileFormat, new TypeReference<>() {
-            });
+        final List<FileFormatModel> fileFormatModelList = JsonHandler.getFromFileAsTypeReference(
+            fileFormat,
+            new TypeReference<>() {}
+        );
 
         ArrayNode allFormatNodeArray = JsonHandler.createArrayNode();
         for (FileFormatModel format : fileFormatModelList) {
             allFormatNodeArray.add(JsonHandler.toJsonNode(format));
         }
-        dbImpl.insertDocuments(
-            allFormatNodeArray,
-            FunctionalAdminCollections.FORMATS).close();
+        dbImpl.insertDocuments(allFormatNodeArray, FunctionalAdminCollections.FORMATS).close();
         //Contract format OK
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ok.json");
-        final List<IngestContractModel> ingestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
 
         RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestContractModelList);
 
@@ -925,9 +998,10 @@ public class IngestContractImplTest {
 
         //KO
         final File fileContractsKO = PropertiesUtils.getResourceFile("referential_contracts_with_formattype_ko.json");
-        final List<IngestContractModel> ingestContractModelKOList =
-            JsonHandler.getFromFileAsTypeReference(fileContractsKO, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestContractModelKOList = JsonHandler.getFromFileAsTypeReference(
+            fileContractsKO,
+            new TypeReference<>() {}
+        );
 
         response = ingestContractService.createContracts(ingestContractModelKOList);
 
@@ -944,15 +1018,16 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestFindByName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final IngestContractModel acm = IngestContractModelList.iterator().next();
         assertThat(acm).isNotNull();
@@ -963,16 +1038,15 @@ public class IngestContractImplTest {
         final String name = acm.getName();
         assertThat(name).isNotNull();
 
-
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Name", name));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-
-        final RequestResponseOK<IngestContractModel> IngestContractModelListFound =
-            ingestContractService.findContracts(queryDsl);
+        final RequestResponseOK<IngestContractModel> IngestContractModelListFound = ingestContractService.findContracts(
+            queryDsl
+        );
         assertThat(IngestContractModelListFound.getResults()).hasSize(1);
 
         final IngestContractModel acmFound = IngestContractModelListFound.getResults().iterator().next();
@@ -980,7 +1054,6 @@ public class IngestContractImplTest {
 
         assertThat(acmFound.getId()).isEqualTo(id1);
         assertThat(acmFound.getName()).isEqualTo(name);
-
     }
 
     @Test
@@ -991,11 +1064,13 @@ public class IngestContractImplTest {
         when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response).isInstanceOf(VitamError.class);
 
@@ -1004,27 +1079,31 @@ public class IngestContractImplTest {
         assertThat(vitamError.getErrors()).isNotNull();
         assertThat(vitamError.getErrors().size()).isEqualTo(2);
         assertThat(vitamError.getErrors().get(0).getMessage()).isEqualTo("IngestContract service error");
-        assertThat(vitamError.getErrors().get(0).getDescription())
-            .isEqualTo("At least one AU id holding_guid not found");
+        assertThat(vitamError.getErrors().get(0).getDescription()).isEqualTo(
+            "At least one AU id holding_guid not found"
+        );
         assertThat(vitamError.getState()).isEqualTo("KO");
         assertThat(vitamError.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IngestContract service error");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("IngestContract service error");
     }
 
     @Test
@@ -1035,11 +1114,13 @@ public class IngestContractImplTest {
         when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response).isInstanceOf(VitamError.class);
 
@@ -1047,27 +1128,31 @@ public class IngestContractImplTest {
         assertThat(vitamError.getErrors()).isNotNull();
         assertThat(vitamError.getErrors().size()).isEqualTo(2);
         assertThat(vitamError.getErrors().get(1).getMessage()).isEqualTo("IngestContract service error");
-        assertThat(vitamError.getErrors().get(1).getDescription())
-            .isEqualTo("At least one AU id unitId2 unitId not found");
+        assertThat(vitamError.getErrors().get(1).getDescription()).isEqualTo(
+            "At least one AU id unitId2 unitId not found"
+        );
         assertThat(vitamError.getState()).isEqualTo("KO");
         assertThat(vitamError.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IngestContract service error");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("IngestContract service error");
     }
 
     @Test
@@ -1075,16 +1160,18 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestLinkParentIdOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponseOK ok = new RequestResponseOK<>();
-        ok.setHits(1, 0, 1, 1);// simulate returning result when query for filing or holding unit
+        ok.setHits(1, 0, 1, 1); // simulate returning result when query for filing or holding unit
         when(metaDataClientMock.selectUnitbyId(any(), any())).thenReturn(ok.toJsonNode());
         when(metaDataClientMock.selectUnits(any())).thenReturn(ok.toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(5);
@@ -1102,14 +1189,14 @@ public class IngestContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
-        final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
 
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
@@ -1135,14 +1222,18 @@ public class IngestContractImplTest {
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
-        RequestResponse<IngestContractModel> updateContractStatus =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<IngestContractModel> updateContractStatus = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         List<VitamError<IngestContractModel>> errors =
             ((VitamError<IngestContractModel>) updateContractStatus).getErrors();
-        assertThat(VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
-            "Échec du processus de mise à jour du contrat d'entrée : une valeur ne correspond pas aux valeurs attendues")
+        assertThat(
+            VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
+                "Échec du processus de mise à jour du contrat d'entrée : une valeur ne correspond pas aux valeurs attendues"
+            )
         ).isTrue();
 
         final UpdateParserSingle updateParser2 = new UpdateParserSingle(new SingleVarNameAdapter());
@@ -1153,8 +1244,10 @@ public class IngestContractImplTest {
         updateParser2.parse(update2.getFinalUpdate());
         JsonNode queryDslForUpdate2 = updateParser2.getRequest().getFinalUpdate();
 
-        RequestResponse<IngestContractModel> updateCheckParentLinkStatus =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate2);
+        RequestResponse<IngestContractModel> updateCheckParentLinkStatus = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslForUpdate2
+        );
         assertEquals(updateCheckParentLinkStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateCheckParentLinkStatus).isInstanceOf(VitamError.class);
 
@@ -1167,8 +1260,10 @@ public class IngestContractImplTest {
         updateParserMc.parse(updateMc.getFinalUpdate());
         JsonNode queryDslForUpdateMc = updateParserMc.getRequest().getFinalUpdate();
 
-        RequestResponse<IngestContractModel> updateCheckMc =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdateMc);
+        RequestResponse<IngestContractModel> updateCheckMc = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslForUpdateMc
+        );
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), updateCheckMc.getStatus());
         assertThat(updateCheckMc).isInstanceOf(VitamError.class);
     }
@@ -1182,13 +1277,13 @@ public class IngestContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 
-        final List<IngestContractModel> ingestModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<IngestContractModel> ingestModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(ingestModelList);
         RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
@@ -1211,14 +1306,17 @@ public class IngestContractImplTest {
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         // Then
-        RequestResponse<IngestContractModel> ingestContractModelRequestResponse =
-            ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
+        RequestResponse<IngestContractModel> ingestContractModelRequestResponse = ingestContractService.updateContract(
+            ingestModelList.get(0).getIdentifier(),
+            queryDslStatusActive
+        );
         assertThat(ingestContractModelRequestResponse.getHttpCode()).isEqualTo(400);
-        VitamError vitamError =
-            JsonHandler.getFromJsonNode(ingestContractModelRequestResponse.toJsonNode(), VitamError.class);
+        VitamError vitamError = JsonHandler.getFromJsonNode(
+            ingestContractModelRequestResponse.toJsonNode(),
+            VitamError.class
+        );
         assertThat(vitamError.getCode()).isEqualTo("08");
         assertThat(vitamError.getDescription()).isEqualTo("Ingest contract update error");
-
     }
 
     @Test
@@ -1228,11 +1326,13 @@ public class IngestContractImplTest {
         when(managementContractService.findByIdentifier(any())).thenReturn(new ManagementContractModel());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_managementContractId.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(5);
@@ -1249,11 +1349,13 @@ public class IngestContractImplTest {
         when(managementContractService.findByIdentifier(any())).thenReturn(null);
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_managementContractId.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<IngestContractModel> response =
-            ingestContractService.createContracts(IngestContractModelList);
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
 
         assertThat(response).isInstanceOf(VitamError.class);
 
@@ -1261,29 +1363,34 @@ public class IngestContractImplTest {
         assertThat(vitamError.toString()).contains("At least one Management Contract with Id MC-00002 not found");
         assertThat(vitamError.getErrors()).isNotNull();
         assertThat(vitamError.getErrors().size()).isEqualTo(2);
-        assertThat(vitamError.getErrors().get(0).getMessage())
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT.MANAGEMENTCONTRACT_NOT_FOUND.KO");
-        assertThat(vitamError.getErrors().get(0).getDescription())
-            .isEqualTo("At least one Management Contract with Id MC-00001 not found");
+        assertThat(vitamError.getErrors().get(0).getMessage()).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT.MANAGEMENTCONTRACT_NOT_FOUND.KO"
+        );
+        assertThat(vitamError.getErrors().get(0).getDescription()).isEqualTo(
+            "At least one Management Contract with Id MC-00001 not found"
+        );
         assertThat(vitamError.getState()).isEqualTo("KO");
         assertThat(vitamError.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
 
-
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_INGEST_CONTRACT.MANAGEMENTCONTRACT_NOT_FOUND.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_INGEST_CONTRACT.MANAGEMENTCONTRACT_NOT_FOUND.KO");
     }
 
     @Test

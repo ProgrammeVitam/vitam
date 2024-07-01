@@ -45,6 +45,7 @@ import java.lang.reflect.Constructor;
  * @param <T> The parameter of the class
  */
 public class VitamDocumentCodec<T extends Document> implements CollectibleCodec<T> {
+
     private final DocumentCodec documentCodec;
     private final Class<T> clasz;
     private final Constructor<T> constructor;
@@ -102,5 +103,4 @@ public class VitamDocumentCodec<T extends Document> implements CollectibleCodec<
             throw new IllegalStateException(ex);
         }
     }
-
 }

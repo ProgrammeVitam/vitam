@@ -73,66 +73,72 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-
 public class CheckConformityActionPluginTest {
+
     private static final String CALC_CHECK = "CALC_CHECK";
 
-    static ObjectNode jsonNode_1 = JsonHandler
-        .createObjectNode()
-        .put("MessageDigest",
-            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804")
+    static ObjectNode jsonNode_1 = JsonHandler.createObjectNode()
+        .put(
+            "MessageDigest",
+            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804"
+        )
         .put("Algorithm", "SHA-512")
-        .put("SystemMessageDigest",
-            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804")
+        .put(
+            "SystemMessageDigest",
+            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804"
+        )
         .put("SystemAlgorithm", "SHA-512");
 
-
-    static ObjectNode jsonNode_2 = JsonHandler
-        .createObjectNode()
-        .put("MessageDigest",
-            "f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954")
-        .put("Algorithm", "SHA-256").put("SystemMessageDigest",
-            "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073a422d825175bf1bef24dc355bfa081f7e48b106070fd5")
+    static ObjectNode jsonNode_2 = JsonHandler.createObjectNode()
+        .put("MessageDigest", "f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954")
+        .put("Algorithm", "SHA-256")
+        .put(
+            "SystemMessageDigest",
+            "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073a422d825175bf1bef24dc355bfa081f7e48b106070fd5"
+        )
         .put("SystemAlgorithm", "SHA-512");
 
-
-
-    static ObjectNode jsonNode_3 = JsonHandler
-        .createObjectNode()
-        .put("MessageDigest",
-            "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0")
-        .put("Algorithm", "SHA-512").put("SystemMessageDigest",
-            "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0")
+    static ObjectNode jsonNode_3 = JsonHandler.createObjectNode()
+        .put(
+            "MessageDigest",
+            "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0"
+        )
+        .put("Algorithm", "SHA-512")
+        .put(
+            "SystemMessageDigest",
+            "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0"
+        )
         .put("SystemAlgorithm", "SHA-512");
 
-
-
-    static ObjectNode jsonNode_4 = JsonHandler
-        .createObjectNode()
-        .put("MessageDigest",
-            "3273aa2ccb0cf4d5d37cef899d1774b9")
-        .put("Algorithm", "MD5").put("SystemMessageDigest",
-            "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4")
+    static ObjectNode jsonNode_4 = JsonHandler.createObjectNode()
+        .put("MessageDigest", "3273aa2ccb0cf4d5d37cef899d1774b9")
+        .put("Algorithm", "MD5")
+        .put(
+            "SystemMessageDigest",
+            "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4"
+        )
         .put("SystemAlgorithm", "SHA-512");
 
-
-    private static final Map<String, ObjectNode> EV_DETAIL_DATA = Collections.unmodifiableMap(Stream.of(
+    private static final Map<String, ObjectNode> EV_DETAIL_DATA = Collections.unmodifiableMap(
+        Stream.of(
             new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3rqaaaaq", jsonNode_1),
             new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3tqaaaaq", jsonNode_2),
             new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uaaaaaq", jsonNode_3),
-            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq", jsonNode_4))
-        .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq", jsonNode_4)
+        ).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()))
+    );
 
-    private static final JsonNode EV_DETAIL_DATA_BDO_AND_PDO =
-        JsonHandler
-            .createObjectNode()
-            .put("MessageDigest",
-                "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7")
-            .put("Algorithm", "SHA-512").put("SystemMessageDigest",
-                "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7")
-            .put("SystemAlgorithm", "SHA-512");
-
-
+    private static final JsonNode EV_DETAIL_DATA_BDO_AND_PDO = JsonHandler.createObjectNode()
+        .put(
+            "MessageDigest",
+            "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"
+        )
+        .put("Algorithm", "SHA-512")
+        .put(
+            "SystemMessageDigest",
+            "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"
+        )
+        .put("SystemAlgorithm", "SHA-512");
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq.json";
     private static final String bdo1 =
@@ -149,6 +155,7 @@ public class CheckConformityActionPluginTest {
         "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaabb.json";
     private static final String OBJECT_GROUP_DIGEST_INVALID =
         "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaabc.json";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -180,38 +187,40 @@ public class CheckConformityActionPluginTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-
     }
 
     @Test
     public void getNonStandardDigestUpdate() throws Exception {
-
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName2")))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo1)))
-            .thenReturn(
-                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo1)).build());
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName2"))).thenReturn(
+            Response.status(Status.OK).entity(objectGroup).build()
+        );
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo1))).thenReturn(
+            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo1)).build()
+        );
 
-        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo2)))
-            .thenReturn(
-                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo2)).build());
-        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo3)))
-            .thenReturn(
-                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo3)).build());
-        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo4)))
-            .thenReturn(
-                Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo4)).build());
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo2))).thenReturn(
+            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo2)).build()
+        );
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo3))).thenReturn(
+            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo3)).build()
+        );
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo4))).thenReturn(
+            Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo4)).build()
+        );
 
         // assertNotNull(objectGroup);
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objName2");
         String objectId = "objectId";
-        final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
-                Lists.newArrayList(objectId));
+        final HandlerIOImpl handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "CheckConformityActionHandlerTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
 
         final List<IOParameter> out = new ArrayList<>();
@@ -227,31 +236,43 @@ public class CheckConformityActionPluginTest {
         Assertions.assertThat(count).isEqualTo(4);
 
         // check all subtasks
-        response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().forEach((k, v) -> {
-            assertEquals(v.getEvDetailData(), JsonHandler.unprettyPrint(EV_DETAIL_DATA.get(k)));
-        });
+        response
+            .getItemsStatus()
+            .get(CALC_CHECK)
+            .getSubTaskStatus()
+            .forEach((k, v) -> {
+                assertEquals(v.getEvDetailData(), JsonHandler.unprettyPrint(EV_DETAIL_DATA.get(k)));
+            });
         handlerIO.close();
     }
 
     @Test
     public void checkBinaryAndPhysicalObject() throws Exception {
-
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_BDO_AND_PDO);
-        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName1")))
-            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
-            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
-                    .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
-                .build());
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName1"))).thenReturn(
+            Response.status(Status.OK).entity(objectGroup).build()
+        );
+        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))).thenReturn(
+            Response.status(Status.OK)
+                .entity(
+                    PropertiesUtils.getResourceAsStream(
+                        "checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"
+                    )
+                )
+                .build()
+        );
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objName1");
         String objectId = "objectId";
-        final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
-                Lists.newArrayList(objectId));
+        final HandlerIOImpl handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "CheckConformityActionHandlerTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
         final List<IOParameter> out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));
@@ -263,30 +284,41 @@ public class CheckConformityActionPluginTest {
         Integer count = response.getStatusMeter().get(StatusCode.OK.ordinal());
         Assertions.assertThat(count).isEqualTo(1);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertEquals(response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().values()
-            .iterator().next().getEvDetailData(), JsonHandler.unprettyPrint(EV_DETAIL_DATA_BDO_AND_PDO));
+        assertEquals(
+            response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().values().iterator().next().getEvDetailData(),
+            JsonHandler.unprettyPrint(EV_DETAIL_DATA_BDO_AND_PDO)
+        );
         handlerIO.close();
     }
 
     @Test
     public void checkEmptyDigestMessage() throws Exception {
         InputStream objectGroupEmptyDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_EMPTY);
-        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName2")))
-            .thenReturn(Response.status(Status.OK).entity(objectGroupEmptyDigest).build());
-        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
-            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
-                    .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
-                .build());
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName2"))).thenReturn(
+            Response.status(Status.OK).entity(objectGroupEmptyDigest).build()
+        );
+        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))).thenReturn(
+            Response.status(Status.OK)
+                .entity(
+                    PropertiesUtils.getResourceAsStream(
+                        "checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"
+                    )
+                )
+                .build()
+        );
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objectName2");
 
         String objectId = "objectId";
-        final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
-                Lists.newArrayList(objectId));
+        final HandlerIOImpl handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "CheckConformityActionHandlerTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
         final List<IOParameter> out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));
@@ -306,24 +338,32 @@ public class CheckConformityActionPluginTest {
 
     @Test
     public void checkInvalidDigestMessage() throws Exception {
-
         InputStream objectGroupInvalideDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_INVALID);
-        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName3")))
-            .thenReturn(Response.status(Status.OK).entity(objectGroupInvalideDigest).build());
-        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
-            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
-                    .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
-                .build());
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName3"))).thenReturn(
+            Response.status(Status.OK).entity(objectGroupInvalideDigest).build()
+        );
+        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))).thenReturn(
+            Response.status(Status.OK)
+                .entity(
+                    PropertiesUtils.getResourceAsStream(
+                        "checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"
+                    )
+                )
+                .build()
+        );
 
         CheckConformityActionPlugin plugin = new CheckConformityActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
         params.setObjectName("objectName3");
 
         String objectId = "objectId";
-        final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
-                Lists.newArrayList(objectId));
+        final HandlerIOImpl handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "CheckConformityActionHandlerTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
         final List<IOParameter> out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "objectGroupId.json")));
@@ -342,9 +382,15 @@ public class CheckConformityActionPluginTest {
     }
 
     private DefaultWorkerParameters getDefaultWorkerParameters() {
-        DefaultWorkerParameters workerParam =
-            WorkerParametersFactory.newWorkerParameters("pId", "stepId", "CheckConformityActionHandlerTest",
-                "currentStep", Lists.newArrayList("objName"), "metadataURL", "workspaceURL");
+        DefaultWorkerParameters workerParam = WorkerParametersFactory.newWorkerParameters(
+            "pId",
+            "stepId",
+            "CheckConformityActionHandlerTest",
+            "currentStep",
+            Lists.newArrayList("objName"),
+            "metadataURL",
+            "workspaceURL"
+        );
         return workerParam;
     }
 }

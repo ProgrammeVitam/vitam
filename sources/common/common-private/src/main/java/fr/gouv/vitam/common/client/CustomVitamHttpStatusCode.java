@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.client;
 
 public enum CustomVitamHttpStatusCode {
-
     UNAVAILABLE_DATA_FROM_ASYNC_OFFER(460, "Access to data from async offer without active access request"),
     UNAVAILABLE_ASYNC_DATA_RETRY_LATER(461, "Required async data is currently unavailable, retry later");
 

@@ -58,16 +58,20 @@ public class ArchiveReferentialRepositoryTest {
     private static final int BULK_SIZE = 10;
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TAPE_TAR_REFERENTIAL_COLLECTION);
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        TAPE_TAR_REFERENTIAL_COLLECTION
+    );
 
     private static ArchiveReferentialRepository archiveReferentialRepository;
 
     @BeforeClass
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        archiveReferentialRepository = new ArchiveReferentialRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(TAPE_TAR_REFERENTIAL_COLLECTION), BULK_SIZE);
+        archiveReferentialRepository = new ArchiveReferentialRepository(
+            mongoDbAccess.getMongoDatabase().getCollection(TAPE_TAR_REFERENTIAL_COLLECTION),
+            BULK_SIZE
+        );
     }
 
     @After
@@ -82,10 +86,13 @@ public class ArchiveReferentialRepositoryTest {
 
     @Test
     public void insertNewTar() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest1", "date1"
+            "tarId1",
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+            10L,
+            "digest1",
+            "date1"
         );
 
         // When
@@ -96,7 +103,8 @@ public class ArchiveReferentialRepositoryTest {
         assertThat(tarReferentialEntity.isPresent()).isTrue();
         assertThat(tarReferentialEntity.get().getArchiveId()).isEqualTo("tarId1");
         assertThat(tarReferentialEntity.get().getLocation()).isInstanceOf(
-            TapeLibraryBuildingOnDiskArchiveStorageLocation.class);
+            TapeLibraryBuildingOnDiskArchiveStorageLocation.class
+        );
         assertThat(tarReferentialEntity.get().getSize()).isEqualTo(10L);
         assertThat(tarReferentialEntity.get().getDigestValue()).isEqualTo("digest1");
         assertThat(tarReferentialEntity.get().getLastUpdateDate()).isEqualTo("date1");
@@ -104,21 +112,24 @@ public class ArchiveReferentialRepositoryTest {
 
     @Test
     public void insertExistingTar() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest1", "date1"
+            "tarId1",
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+            10L,
+            "digest1",
+            "date1"
         );
         archiveReferentialRepository.insert(tapeArchiveReferentialEntity);
 
         // When / Then
-        assertThatThrownBy(() -> archiveReferentialRepository.insert(tapeArchiveReferentialEntity))
-            .isInstanceOf(ArchiveReferentialException.class);
+        assertThatThrownBy(() -> archiveReferentialRepository.insert(tapeArchiveReferentialEntity)).isInstanceOf(
+            ArchiveReferentialException.class
+        );
     }
 
     @Test
     public void findNonExisting() throws Exception {
-
         // Given
 
         // When
@@ -130,10 +141,13 @@ public class ArchiveReferentialRepositoryTest {
 
     @Test
     public void findExisting() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest1", "date1"
+            "tarId1",
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+            10L,
+            "digest1",
+            "date1"
         );
         archiveReferentialRepository.insert(tapeArchiveReferentialEntity);
 
@@ -146,7 +160,6 @@ public class ArchiveReferentialRepositoryTest {
 
     @Test
     public void bulkFindEmptyList() throws Exception {
-
         // Given
 
         // When
@@ -158,13 +171,18 @@ public class ArchiveReferentialRepositoryTest {
 
     @Test
     public void bulkFind() throws Exception {
-
         // Given
         int nbEntries = 6;
         for (int i = 0; i < nbEntries; i++) {
-            archiveReferentialRepository.insert(new TapeArchiveReferentialEntity(
-                "tarId" + i, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest" + i, "date" + i
-            ));
+            archiveReferentialRepository.insert(
+                new TapeArchiveReferentialEntity(
+                    "tarId" + i,
+                    new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                    10L,
+                    "digest" + i,
+                    "date" + i
+                )
+            );
         }
 
         // When
@@ -175,19 +193,27 @@ public class ArchiveReferentialRepositoryTest {
         // Then
         assertThat(results.size()).isLessThan(BULK_SIZE);
         assertThat(results).hasSize(nbEntries);
-        assertThat(results).extracting(TapeArchiveReferentialEntity::getArchiveId).containsExactlyInAnyOrderElementsOf(
-            IntStream.range(0, nbEntries).mapToObj(i -> "tarId" + i).collect(Collectors.toSet()));
+        assertThat(results)
+            .extracting(TapeArchiveReferentialEntity::getArchiveId)
+            .containsExactlyInAnyOrderElementsOf(
+                IntStream.range(0, nbEntries).mapToObj(i -> "tarId" + i).collect(Collectors.toSet())
+            );
     }
 
     @Test
     public void bulkFindLargeDataSet() throws Exception {
-
         // Given
         int nbEntries = 21;
         for (int i = 0; i < nbEntries; i++) {
-            archiveReferentialRepository.insert(new TapeArchiveReferentialEntity(
-                "tarId" + i, new TapeLibraryBuildingOnDiskArchiveStorageLocation(), 10L, "digest" + i, "date" + i
-            ));
+            archiveReferentialRepository.insert(
+                new TapeArchiveReferentialEntity(
+                    "tarId" + i,
+                    new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+                    10L,
+                    "digest" + i,
+                    "date" + i
+                )
+            );
         }
 
         // When
@@ -198,16 +224,22 @@ public class ArchiveReferentialRepositoryTest {
         // Then
         assertThat(results.size()).isGreaterThan(BULK_SIZE);
         assertThat(results).hasSize(nbEntries);
-        assertThat(results).extracting(TapeArchiveReferentialEntity::getArchiveId).containsExactlyInAnyOrderElementsOf(
-            IntStream.range(0, nbEntries).mapToObj(i -> "tarId" + i).collect(Collectors.toSet()));
+        assertThat(results)
+            .extracting(TapeArchiveReferentialEntity::getArchiveId)
+            .containsExactlyInAnyOrderElementsOf(
+                IntStream.range(0, nbEntries).mapToObj(i -> "tarId" + i).collect(Collectors.toSet())
+            );
     }
 
     @Test
     public void updateLocationToReadyOnDiskExisting() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, "date1"
+            "tarId1",
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+            null,
+            null,
+            "date1"
         );
         archiveReferentialRepository.insert(tapeArchiveReferentialEntity);
 
@@ -219,7 +251,8 @@ public class ArchiveReferentialRepositoryTest {
         assertThat(tarReferentialEntity.isPresent()).isTrue();
         assertThat(tarReferentialEntity.get().getArchiveId()).isEqualTo("tarId1");
         assertThat(tarReferentialEntity.get().getLocation()).isInstanceOf(
-            TapeLibraryReadyOnDiskArchiveStorageLocation.class);
+            TapeLibraryReadyOnDiskArchiveStorageLocation.class
+        );
         assertThat(tarReferentialEntity.get().getSize()).isEqualTo(10L);
         assertThat(tarReferentialEntity.get().getDigestValue()).isEqualTo("digest1");
         assertThat(tarReferentialEntity.get().getLastUpdateDate()).isNotEqualTo("date1");
@@ -227,82 +260,101 @@ public class ArchiveReferentialRepositoryTest {
 
     @Test
     public void updateLocationToReadyOnDiskAlreadyReadyOnDisk() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryBuildingOnDiskArchiveStorageLocation(), null, null, "date1"
+            "tarId1",
+            new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
+            null,
+            null,
+            "date1"
         );
         archiveReferentialRepository.insert(tapeArchiveReferentialEntity);
 
         // When
         archiveReferentialRepository.updateLocationToReadyOnDisk("tarId1", 10L, "digest1");
         archiveReferentialRepository.updateLocationToReadyOnDisk("tarId1", 10L, "digest1");
-
         // Then (no exception)
     }
 
     @Test
     public void updateLocationToReadyOnDiskNonExisting() {
-
         // Given
 
         // When / Then
-        assertThatThrownBy(() -> archiveReferentialRepository.updateLocationToReadyOnDisk("tarId1", 10L, "digest1"))
-            .isInstanceOf(ArchiveReferentialException.class);
+        assertThatThrownBy(
+            () -> archiveReferentialRepository.updateLocationToReadyOnDisk("tarId1", 10L, "digest1")
+        ).isInstanceOf(ArchiveReferentialException.class);
     }
 
     @Test
     public void updateLocationToOnTapeExisting() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryReadyOnDiskArchiveStorageLocation(), 10L, "digest1", "date1");
+            "tarId1",
+            new TapeLibraryReadyOnDiskArchiveStorageLocation(),
+            10L,
+            "digest1",
+            "date1"
+        );
         archiveReferentialRepository.insert(tapeArchiveReferentialEntity);
 
         // When
-        archiveReferentialRepository.updateLocationToOnTape("tarId1",
-            new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12));
+        archiveReferentialRepository.updateLocationToOnTape(
+            "tarId1",
+            new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12)
+        );
 
         // Then
         Optional<TapeArchiveReferentialEntity> tarReferentialEntity = archiveReferentialRepository.find("tarId1");
         assertThat(tarReferentialEntity.isPresent()).isTrue();
         assertThat(tarReferentialEntity.get().getArchiveId()).isEqualTo("tarId1");
         assertThat(tarReferentialEntity.get().getLocation()).isInstanceOf(
-            TapeLibraryOnTapeArchiveStorageLocation.class);
-        assertThat(((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getTapeCode())
-            .isEqualTo("tapeCode");
+            TapeLibraryOnTapeArchiveStorageLocation.class
+        );
         assertThat(
-            ((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getFilePosition())
-            .isEqualTo(12);
+            ((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getTapeCode()
+        ).isEqualTo("tapeCode");
+        assertThat(
+            ((TapeLibraryOnTapeArchiveStorageLocation) tarReferentialEntity.get().getLocation()).getFilePosition()
+        ).isEqualTo(12);
         assertThat(tarReferentialEntity.get().getLastUpdateDate()).isNotEqualTo("date1");
     }
 
     @Test
     public void updateLocationToOnTapeAlreadyOnTape() throws Exception {
-
         // Given
         TapeArchiveReferentialEntity tapeArchiveReferentialEntity = new TapeArchiveReferentialEntity(
-            "tarId1", new TapeLibraryReadyOnDiskArchiveStorageLocation(), 10L, "digest1", "date1");
+            "tarId1",
+            new TapeLibraryReadyOnDiskArchiveStorageLocation(),
+            10L,
+            "digest1",
+            "date1"
+        );
         archiveReferentialRepository.insert(tapeArchiveReferentialEntity);
 
         // When
-        archiveReferentialRepository.updateLocationToOnTape("tarId1",
-            new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12));
-        archiveReferentialRepository.updateLocationToOnTape("tarId1",
-            new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12));
-
+        archiveReferentialRepository.updateLocationToOnTape(
+            "tarId1",
+            new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12)
+        );
+        archiveReferentialRepository.updateLocationToOnTape(
+            "tarId1",
+            new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12)
+        );
         // Then (no exception)
     }
 
     @Test
     public void updateLocationToOnTapeNonExisting() {
-
         // Given
 
         // When / Then
         assertThatThrownBy(
-            () -> archiveReferentialRepository.updateLocationToOnTape("tarId1",
-                new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12)))
-            .isInstanceOf(ArchiveReferentialException.class);
+            () ->
+                archiveReferentialRepository.updateLocationToOnTape(
+                    "tarId1",
+                    new TapeLibraryOnTapeArchiveStorageLocation("tapeCode", 12)
+                )
+        ).isInstanceOf(ArchiveReferentialException.class);
     }
 }

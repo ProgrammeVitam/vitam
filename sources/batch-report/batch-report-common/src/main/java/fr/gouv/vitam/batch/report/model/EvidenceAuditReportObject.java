@@ -35,6 +35,7 @@ import java.util.Map;
  * EvidenceAuditReportObject class
  */
 public class EvidenceAuditReportObject {
+
     @JsonProperty("identifier")
     private String identifier;
 
@@ -56,10 +57,7 @@ public class EvidenceAuditReportObject {
     @JsonProperty("offersHashes")
     private Map<String, String> offersHashes;
 
-
-    EvidenceAuditReportObject() {
-
-    }
+    EvidenceAuditReportObject() {}
 
     @JsonCreator
     public EvidenceAuditReportObject(
@@ -69,7 +67,8 @@ public class EvidenceAuditReportObject {
         @JsonProperty("objectType") String objectType,
         @JsonProperty("securedHash") String securedHash,
         @JsonProperty("strategyId") String strategyId,
-        @JsonProperty("offersHashes") Map<String, String> offersHashes) {
+        @JsonProperty("offersHashes") Map<String, String> offersHashes
+    ) {
         this.identifier = identifier;
         this.evidenceStatus = evidenceStatus;
         this.message = message;
@@ -153,7 +152,6 @@ public class EvidenceAuditReportObject {
     public void setSecuredHash(String securedHash) {
         this.securedHash = securedHash;
     }
-
 
     /**
      * getter for strategyId

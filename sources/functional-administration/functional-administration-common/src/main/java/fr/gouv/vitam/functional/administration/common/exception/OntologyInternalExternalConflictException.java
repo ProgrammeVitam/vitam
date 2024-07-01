@@ -35,16 +35,13 @@ public class OntologyInternalExternalConflictException extends VitamException {
 
     private static final long serialVersionUID = 5667138701285198642L;
 
-
     public OntologyInternalExternalConflictException(String message) {
         super(message);
     }
 
-
     public OntologyInternalExternalConflictException(Throwable cause) {
         super(cause);
     }
-
 
     public OntologyInternalExternalConflictException(String message, Throwable cause) {
         super(message, cause);

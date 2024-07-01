@@ -35,26 +35,36 @@ import java.util.List;
  * Data structure representing global result from a 'createObject' request
  */
 public class StoredInfoResult {
+
     private String id;
     private String info;
     private String objectGroupId;
     private List<String> unitIds;
+
     @JsonProperty("creation_time")
     private String creationTime;
+
     @JsonProperty("last_access_time")
     private String lastAccessTime;
+
     @JsonProperty("last_checked_time")
     private String lastCheckedTime;
+
     @JsonProperty("last_modified_time")
     private String lastModifiedTime;
+
     @JsonProperty("strategy")
     private String strategy;
+
     @JsonProperty("nbCopy")
     private int nbCopy;
+
     @JsonProperty("offerIds")
     private List<String> offerIds;
+
     @JsonProperty("digestType")
     private String digestType;
+
     @JsonProperty("digest")
     private String digest;
 
@@ -270,5 +280,4 @@ public class StoredInfoResult {
     public String toString() {
         return JsonHandler.prettyPrint(this);
     }
-
 }

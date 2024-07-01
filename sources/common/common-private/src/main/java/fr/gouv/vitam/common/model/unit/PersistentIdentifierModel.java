@@ -42,7 +42,6 @@ import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE
 @XmlType(name = "PersistentIdentifier", namespace = UNIFIED_NAMESPACE)
 public class PersistentIdentifierModel {
 
-
     @JsonProperty("PersistentIdentifierType")
     @XmlElement(name = "PersistentIdentifierType", namespace = UNIFIED_NAMESPACE)
     private String persistentIdentifierType;
@@ -51,23 +50,19 @@ public class PersistentIdentifierModel {
     @XmlElement(name = "PersistentIdentifierOrigin", namespace = UNIFIED_NAMESPACE)
     private String persistentIdentifierOrigin;
 
-
     @JsonProperty("PersistentIdentifierReference")
     @XmlElement(name = "PersistentIdentifierReference", namespace = UNIFIED_NAMESPACE)
     private String persistentIdentifierReference;
-
 
     @JsonProperty("PersistentIdentifierContent")
     @XmlElement(name = "PersistentIdentifierContent", namespace = UNIFIED_NAMESPACE)
     private String persistentIdentifierContent;
 
-
     public String getPersistentIdentifierType() {
         return persistentIdentifierType;
     }
 
-    public void setPersistentIdentifierType(
-        String persistentIdentifierType) {
+    public void setPersistentIdentifierType(String persistentIdentifierType) {
         this.persistentIdentifierType = persistentIdentifierType;
     }
 

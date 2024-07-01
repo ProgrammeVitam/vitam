@@ -71,9 +71,10 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForUnitForSelect(JsonNode queryDsl,
-        AccessContractModel contract)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public static JsonNode applyAccessContractRestrictionForUnitForSelect(
+        JsonNode queryDsl,
+        AccessContractModel contract
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
         applyAccessContractRestriction(parser, contract, true, true);
@@ -89,9 +90,10 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForObjectGroupForSelect(JsonNode queryDsl,
-        AccessContractModel contract)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public static JsonNode applyAccessContractRestrictionForObjectGroupForSelect(
+        JsonNode queryDsl,
+        AccessContractModel contract
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
         applyAccessContractRestriction(parser, contract, false, true);
@@ -107,9 +109,10 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractExceptRuleRestrictionsForObjectGroupForSelect(JsonNode queryDsl,
-        AccessContractModel contract)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public static JsonNode applyAccessContractExceptRuleRestrictionsForObjectGroupForSelect(
+        JsonNode queryDsl,
+        AccessContractModel contract
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
         applyAccessContractRestriction(parser, contract, false, false);
@@ -125,9 +128,10 @@ public final class AccessContractRestrictionHelper {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    public static JsonNode applyAccessContractRestrictionForUnitForUpdate(JsonNode queryDsl,
-        AccessContractModel contract)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public static JsonNode applyAccessContractRestrictionForUnitForUpdate(
+        JsonNode queryDsl,
+        AccessContractModel contract
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateParserMultiple parser = new UpdateParserMultiple();
         parser.parse(queryDsl);
         applyAccessContractRestriction(parser, contract, true, true);
@@ -144,8 +148,12 @@ public final class AccessContractRestrictionHelper {
      * @return JsonNode contains restriction
      * @throws InvalidCreateOperationException
      */
-    private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
-        boolean isUnit, boolean applyRuleRestrictions) throws InvalidCreateOperationException {
+    private static void applyAccessContractRestriction(
+        RequestParserMultiple parser,
+        AccessContractModel contract,
+        boolean isUnit,
+        boolean applyRuleRestrictions
+    ) throws InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
 
@@ -186,8 +194,10 @@ public final class AccessContractRestrictionHelper {
         if (!contract.getEveryOriginatingAgency()) {
             Set<String> prodServices = contract.getOriginatingAgencies();
 
-            InQuery originatingAgencyRestriction =
-                in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]));
+            InQuery originatingAgencyRestriction = in(
+                ORIGINATING_AGENCIES.exactToken(),
+                prodServices.toArray(new String[0])
+            );
 
             Query restriction = isUnit
                 ? or().add(originatingAgencyRestriction, eq(UNITTYPE.exactToken(), HOLDING_UNIT.name()))
@@ -216,8 +226,10 @@ public final class AccessContractRestrictionHelper {
         BooleanQuery rulesRestrictionQuery = and();
         for (RuleType ruleType : contract.getRuleCategoryToFilter()) {
             String ruleFieldName =
-                BuilderToken.PROJECTIONARGS.COMPUTED_INHERITED_RULES.exactToken() + "." + ruleType.name() +
-                    ".MaxEndDate";
+                BuilderToken.PROJECTIONARGS.COMPUTED_INHERITED_RULES.exactToken() +
+                "." +
+                ruleType.name() +
+                ".MaxEndDate";
             CompareQuery maxEndDateExistsAndReached = lt(ruleFieldName, LocalDate.now().toString());
             rulesRestrictionQuery.add(maxEndDateExistsAndReached);
         }
@@ -247,8 +259,10 @@ public final class AccessContractRestrictionHelper {
             List<Query> queryList = new ArrayList<>(parser.getRequest().getQueries());
 
             Set<String> prodServices = contract.getOriginatingAgencies();
-            Query originatingAgencyRestriction =
-                in(ORIGINATING_AGENCIES.exactToken(), prodServices.toArray(new String[0]));
+            Query originatingAgencyRestriction = in(
+                ORIGINATING_AGENCIES.exactToken(),
+                prodServices.toArray(new String[0])
+            );
 
             if (queryList.isEmpty()) {
                 parser.getRequest().getQueries().add(originatingAgencyRestriction.setDepthLimit(0));
@@ -265,5 +279,4 @@ public final class AccessContractRestrictionHelper {
             return parser.getRequest().getFinalSelect();
         }
     }
-
 }

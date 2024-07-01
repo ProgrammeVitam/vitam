@@ -33,7 +33,6 @@ package fr.gouv.vitam.common.storage.s3;
  * @see https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
  */
 public enum AmazonS3APIErrorCodes {
-
     /**
      * Error for case when bucket already exists without acl
      */

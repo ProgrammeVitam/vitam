@@ -67,12 +67,19 @@ public class CustodialHistoryMapperTest {
     public void should_map_element_to_hashMap() throws Exception {
         // Given
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(getClass().getResourceAsStream(
-            "/element_unit_with_custodial_history.xml"));
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(
+            getClass().getResourceAsStream("/element_unit_with_custodial_history.xml")
+        );
 
         // When
-        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "", "operationId", "INGEST",
-            "sedaVersion");
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(
+            archiveUnitType,
+            "",
+            "",
+            "operationId",
+            "INGEST",
+            "sedaVersion"
+        );
 
         // Then
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
@@ -90,5 +97,4 @@ public class CustodialHistoryMapperTest {
         assertNotNull(custodialHistoryFile);
         assertTrue(custodialHistoryFile.getDataObjectGroupReferenceId().equals("ID0007"));
     }
-
 }

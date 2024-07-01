@@ -59,22 +59,20 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIdFiltersIT.class);
 
+    public static VitamServerTestRunner server1 = new VitamServerTestRunner(
+        VitamRequestIdFiltersIT.class,
+        new LocalhostClientFactory(1, "/server1")
+    );
 
-    public static VitamServerTestRunner
-        server1 =
-        new VitamServerTestRunner(VitamRequestIdFiltersIT.class, new LocalhostClientFactory(1, "/server1"));
-
-
-    public static VitamServerTestRunner
-        server2 =
-        new VitamServerTestRunner(VitamRequestIdFiltersIT.class, new LocalhostClientFactory(2, "/server2"));
-
+    public static VitamServerTestRunner server2 = new VitamServerTestRunner(
+        VitamRequestIdFiltersIT.class,
+        new LocalhostClientFactory(2, "/server2")
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
         server1.start();
         server2.start();
-
     }
 
     @AfterClass
@@ -87,7 +85,6 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
     public Set<Object> getResources() {
         return Sets.newHashSet(new HeaderIdContainerFilter(), new Server1Resource(), new Server2Resource());
     }
-
 
     /**
      * Test purpose : validate simple RequestId propagation between server 1 and 2 ; sequence :
@@ -104,8 +101,9 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
      */
     @Test
     public void testServer1ToServer2RequestIdPropagation() {
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId = client.doRequest("callWithRequestId");
             Assert.assertEquals("id-from-server-1", propagatedId);
         }
@@ -117,8 +115,9 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
     @Test
     public void testServer1ToServer2NoRequestIdSet() {
         // KWA TODO: explain a little what we do...
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId = client.doRequest("callWithoutRequestId");
             Assert.assertEquals("<REQUEST_ID_EMPTY>", propagatedId);
         }
@@ -132,14 +131,16 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
     public void testRequestIdCleanupBetweenRequests() {
         // KWA TODO: explain a little what we do...
         LOGGER.info("First request");
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId = client.doRequest("callWithRequestId");
             Assert.assertEquals("id-from-server-1", propagatedId);
         }
         LOGGER.info("Second request");
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId2 = client.doRequest("callWithoutRequestId");
             LOGGER.info("Assert");
             Assert.assertEquals("<REQUEST_ID_EMPTY>", propagatedId2);
@@ -153,8 +154,9 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
     @Test
     public void testServer1ToServer2RequestIdPropagationWithThreadPool() {
         // KWA TODO: explain a little what we do...
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId = client.doRequest("callWithThreadPoolRequestId");
             Assert.assertEquals("id-from-server-1-with-threadpool", propagatedId);
         }
@@ -165,8 +167,9 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
      */
     @Test
     public void testServer2DoNotPropagateHiSessionToCallerServer() {
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId = client.doRequest("callToGetRequestIdInResponse");
             Assert.assertEquals("id-from-server-1", propagatedId);
         }
@@ -177,13 +180,13 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, "header-1");
         headers.add(GlobalDataRest.X_REQUEST_ID, "header-2-should-not-be-taken");
-        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1
-            .getClient()) {
+        try (
+            LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server1.getClient()
+        ) {
             final String propagatedId = client.doRequest("directResponse", headers);
             Assert.assertEquals("header-1", propagatedId);
         }
     }
-
 
     /**
      * Implementation of test Server1 ; note : returned values from REST interfaces should serve to the validation of
@@ -197,8 +200,10 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
         public String setRequestIdAndCallServer2() throws VitamThreadAccessException {
             VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1");
             LOGGER.debug("RequestId set.");
-            try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
-                .getClient()) {
+            try (
+                LocalhostClientFactory.LocalhostClient client =
+                    (LocalhostClientFactory.LocalhostClient) server2.getClient()
+            ) {
                 return client.doRequest("failIfNoRequestId");
             }
         }
@@ -207,8 +212,10 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
         @Path("/callWithoutRequestId")
         public String justCallServer2() {
             LOGGER.debug("RequestId not set.");
-            try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
-                .getClient()) {
+            try (
+                LocalhostClientFactory.LocalhostClient client =
+                    (LocalhostClientFactory.LocalhostClient) server2.getClient()
+            ) {
                 return client.doRequest("failIfNoRequestId");
             }
         }
@@ -221,23 +228,25 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
             LOGGER.debug("RequestId set. Forwarding execution to ThreadPool.");
             final Future<String> future = VitamThreadPoolExecutor.getDefaultExecutor()
                 .submit(() -> {
-                        try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
-                            .getClient()) {
-                            return client.doRequest("failIfNoRequestId");
-                        }
+                    try (
+                        LocalhostClientFactory.LocalhostClient client =
+                            (LocalhostClientFactory.LocalhostClient) server2.getClient()
+                    ) {
+                        return client.doRequest("failIfNoRequestId");
                     }
-                );
+                });
             return future.get();
         }
-
 
         @GET
         @Path("/callToGetRequestIdInResponse")
         public String justCallServer2ForRequestIdInResponse() throws VitamThreadAccessException {
             LOGGER.debug("RequestId not set.");
             VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1");
-            try (LocalhostClientFactory.LocalhostClient client = (LocalhostClientFactory.LocalhostClient) server2
-                .getClient()) {
+            try (
+                LocalhostClientFactory.LocalhostClient client =
+                    (LocalhostClientFactory.LocalhostClient) server2.getClient()
+            ) {
                 client.doRequest("setRequestIdInResponse");
             }
 
@@ -253,16 +262,13 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
             return VitamThreadUtils.getVitamSession().getRequestId();
         }
 
-
-
         @GET
         @Path("/testWaitFiveSecond")
         @Consumes(MediaType.APPLICATION_JSON)
         public Response wait5second() {
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e) {
-            }
+            } catch (InterruptedException e) {}
             return Response.status(Response.Status.OK).build();
         }
 
@@ -274,10 +280,10 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
         }
     }
 
-
     @Path("/server2")
     public static class Server2Resource {
-        public final static String NO_REQUEST_ID_FOUND = "<REQUEST_ID_EMPTY>";
+
+        public static final String NO_REQUEST_ID_FOUND = "<REQUEST_ID_EMPTY>";
 
         @GET
         @Path("/failIfNoRequestId")
@@ -294,7 +300,5 @@ public class VitamRequestIdFiltersIT extends ResteasyTestApplication {
             VitamThreadUtils.getVitamSession().setRequestId("id-from-server-2");
             return "";
         }
-
     }
-
 }

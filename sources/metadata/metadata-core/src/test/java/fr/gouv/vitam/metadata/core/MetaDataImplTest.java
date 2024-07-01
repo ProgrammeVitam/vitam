@@ -59,6 +59,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -71,7 +72,6 @@ import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
-import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
@@ -95,11 +95,11 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollNumber;
-import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -125,8 +125,9 @@ import static org.mockito.Mockito.when;
 public class MetaDataImplTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private MetaDataImpl metaDataImpl;
     private DbRequest request;
@@ -146,12 +147,18 @@ public class MetaDataImplTest {
         "{ \"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {},\"$facets\": []}";
     private AdminManagementClient adminManagementClient;
 
-    private static JsonNode buildQueryJsonWithOptions(String query, String data)
-        throws InvalidParseOperationException {
-        return JsonHandler.getFromString(new StringBuilder()
-            .append("{ $roots : [ '' ], ").append("$query : [ ").append(query).append(" ], ").append("$data : ")
-            .append(data).append(" }")
-            .toString());
+    private static JsonNode buildQueryJsonWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler.getFromString(
+            new StringBuilder()
+                .append("{ $roots : [ '' ], ")
+                .append("$query : [ ")
+                .append(query)
+                .append(" ], ")
+                .append("$data : ")
+                .append(data)
+                .append(" }")
+                .toString()
+        );
     }
 
     private static String createLongString(int size) {
@@ -163,8 +170,9 @@ public class MetaDataImplTest {
     @BeforeClass
     public static void loadStaticResources() throws Exception {
         sampleObjectGroup = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILENAME));
-        sampleObjectGroupFiltered =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILTERED_FILENAME));
+        sampleObjectGroupFiltered = JsonHandler.getFromFile(
+            PropertiesUtils.findFile(SAMPLE_OBJECTGROUP_FILTERED_FILENAME)
+        );
     }
 
     @Before
@@ -182,15 +190,26 @@ public class MetaDataImplTest {
         when(adminManagementClient.findOntologies(any())).thenReturn(responseOK);
 
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
-        metaDataImpl =
-            new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, request,
-                100, 300, 100, 300, 100, 300, indexManager);
+        metaDataImpl = new MetaDataImpl(
+            mongoDbAccessFactory,
+            adminManagementClientFactory,
+            indexationHelper,
+            request,
+            100,
+            300,
+            100,
+            300,
+            100,
+            300,
+            indexManager
+        );
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
         Mockito.when(mongoDbAccessFactory.getMongoDatabase()).thenReturn(mongoDatabase);
-        Mockito.when(mongoDatabase.getCollection(MetaDataImpl.SNAPSHOT_COLLECTION, MetadataSnapshot.class))
-            .thenReturn(mongoCollection);
+        Mockito.when(mongoDatabase.getCollection(MetaDataImpl.SNAPSHOT_COLLECTION, MetadataSnapshot.class)).thenReturn(
+            mongoCollection
+        );
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -201,7 +220,6 @@ public class MetaDataImplTest {
 
     @Test
     public void givenInsertUnitThenOK() throws Exception {
-
         // Given
         JsonNode bulkUnitInsertRequest = new InsertMultiQuery().getFinalInsert();
 
@@ -236,7 +254,6 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
-
         when(request.execRequest(any(), anyList())).thenThrow(new InvalidParseOperationException(""));
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
@@ -252,14 +269,28 @@ public class MetaDataImplTest {
             new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
             new OntologyModel().setType(OntologyType.TEXT).setIdentifier("title")
         );
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList(), anyBoolean()))
-            .thenReturn(new UpdatedDocument("unitId",
+        when(
+            request.execUpdateRequest(
+                any(),
+                eq("unitId"),
+                eq(MetadataCollections.UNIT),
+                any(OntologyValidator.class),
+                any(UnitValidator.class),
+                anyList(),
+                anyBoolean()
+            )
+        ).thenReturn(
+            new UpdatedDocument(
+                "unitId",
                 JsonHandler.createObjectNode().put("x", "v1"),
-                JsonHandler.createObjectNode().put("x", "v2"), true));
+                JsonHandler.createObjectNode().put("x", "v2"),
+                true
+            )
+        );
         UpdateUnit result = metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
         assertThat(result.getUnitId()).isEqualTo("unitId");
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -288,8 +319,9 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_selectUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
         List<OntologyModel> ontologyModels = emptyList();
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
 
         metaDataImpl.selectUnitsById(JsonHandler.getFromString(""), "unitId");
     }
@@ -297,16 +329,18 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_updateUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
         List<OntologyModel> ontologyModels = emptyList();
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
         metaDataImpl.updateUnitById(JsonHandler.getFromString(""), "unitId", true);
     }
 
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         List<OntologyModel> ontologyModels = emptyList();
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
 
         final Result<MetadataDocument<?>> selectResult = new ResultDefault<>(FILTERARGS.UNITS);
         selectResult.addId("unitId", (float) 1);
@@ -316,12 +350,19 @@ public class MetaDataImplTest {
         unit.put("description", "description");
         selectResult.addFinal(unit);
 
-        when(request.execRequest(isA(RequestParserMultiple.class), eq(ontologyModels)))
-            .thenReturn(selectResult);
+        when(request.execRequest(isA(RequestParserMultiple.class), eq(ontologyModels))).thenReturn(selectResult);
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList(), anyBoolean()))
-            .thenThrow(new MetaDataExecutionException(""));
+        when(
+            request.execUpdateRequest(
+                any(),
+                eq("unitId"),
+                eq(MetadataCollections.UNIT),
+                any(OntologyValidator.class),
+                any(UnitValidator.class),
+                anyList(),
+                anyBoolean()
+            )
+        ).thenThrow(new MetaDataExecutionException(""));
         metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
     }
 
@@ -339,8 +380,9 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_updateUnitbyId_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         List<OntologyModel> ontologyModels = emptyList();
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
 
         final Result<MetadataDocument<?>> selectResult = new ResultDefault<>(FILTERARGS.UNITS);
         selectResult.addId("unitId", (float) 1);
@@ -350,12 +392,19 @@ public class MetaDataImplTest {
         unit.put("description", "description");
         selectResult.addFinal(unit);
 
-        when(request.execRequest(isA(RequestParserMultiple.class), eq(ontologyModels)))
-            .thenReturn(selectResult);
+        when(request.execRequest(isA(RequestParserMultiple.class), eq(ontologyModels))).thenReturn(selectResult);
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList(), anyBoolean()))
-            .thenThrow(new InvalidParseOperationException(""));
+        when(
+            request.execUpdateRequest(
+                any(),
+                eq("unitId"),
+                eq(MetadataCollections.UNIT),
+                any(OntologyValidator.class),
+                any(UnitValidator.class),
+                anyList(),
+                anyBoolean()
+            )
+        ).thenThrow(new InvalidParseOperationException(""));
         metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
     }
 
@@ -365,27 +414,35 @@ public class MetaDataImplTest {
         result.addId("ogId", 1f);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
         when(request.execRequest(any(), anyList())).thenReturn(result);
-        final MetadataResult metadataResult =
-            metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
+        final MetadataResult metadataResult = metaDataImpl.selectObjectGroupById(
+            JsonHandler.getFromString(QUERY),
+            "ogId"
+        );
         final JsonNode objectGroupDocument = metadataResult.getResults().iterator().next();
         boolean different = false;
         Iterator<Entry<String, JsonNode>> fields = objectGroupDocument.fields();
         while (fields.hasNext()) {
             Entry<String, JsonNode> entry = fields.next();
-            if (!sampleObjectGroupFiltered.has(entry.getKey()) ||
-                !sampleObjectGroupFiltered.get(entry.getKey()).asText().equals(entry.getValue().asText())) {
-                System.err
-                    .println("D: " + entry.getKey() + " : " + entry.getValue() + " " + entry.getValue().getNodeType());
+            if (
+                !sampleObjectGroupFiltered.has(entry.getKey()) ||
+                !sampleObjectGroupFiltered.get(entry.getKey()).asText().equals(entry.getValue().asText())
+            ) {
+                System.err.println(
+                    "D: " + entry.getKey() + " : " + entry.getValue() + " " + entry.getValue().getNodeType()
+                );
                 different = true;
             }
         }
         fields = sampleObjectGroupFiltered.fields();
         while (fields.hasNext()) {
             Entry<String, JsonNode> entry = fields.next();
-            if (!objectGroupDocument.has(entry.getKey()) ||
-                !objectGroupDocument.get(entry.getKey()).asText().equals(entry.getValue().asText())) {
-                System.err
-                    .println("S: " + entry.getKey() + " : " + entry.getValue() + " " + entry.getValue().getNodeType());
+            if (
+                !objectGroupDocument.has(entry.getKey()) ||
+                !objectGroupDocument.get(entry.getKey()).asText().equals(entry.getValue().asText())
+            ) {
+                System.err.println(
+                    "S: " + entry.getKey() + " : " + entry.getValue() + " " + entry.getValue().getNodeType()
+                );
                 different = true;
             }
         }
@@ -398,8 +455,9 @@ public class MetaDataImplTest {
             new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
             new OntologyModel().setType(OntologyType.TEXT).setIdentifier("title")
         );
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
 
         final JsonNode wantedDiff = JsonHandler.getFromFile(PropertiesUtils.findFile("wantedDiff.json"));
 
@@ -418,10 +476,19 @@ public class MetaDataImplTest {
 
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateQuery.json"));
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList(), anyBoolean()))
-            .thenReturn(
-                new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit), true));
+        when(
+            request.execUpdateRequest(
+                any(),
+                eq("unitId"),
+                eq(MetadataCollections.UNIT),
+                any(OntologyValidator.class),
+                any(UnitValidator.class),
+                anyList(),
+                anyBoolean()
+            )
+        ).thenReturn(
+            new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit), true)
+        );
 
         UpdateUnit result = metaDataImpl.updateUnitById(updateRequest, "unitId", true);
 
@@ -434,8 +501,9 @@ public class MetaDataImplTest {
             new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
             new OntologyModel().setType(OntologyType.TEXT).setIdentifier("title")
         );
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
+        );
 
         final Result<MetadataDocument<?>> updateResult = new ResultDefault<>(FILTERARGS.UNITS);
         updateResult.addId("unitId1", (float) 1);
@@ -449,30 +517,58 @@ public class MetaDataImplTest {
 
         when(request.execRequest(isA(SelectParserMultiple.class), eq(ontologyModels))).thenReturn(
             new ResultDefault<MetadataDocument<?>>(FILTERARGS.UNITS).addFinal(unit1Before),
-            new ResultDefault<MetadataDocument<?>>(FILTERARGS.UNITS).addFinal(unit2Before));
+            new ResultDefault<MetadataDocument<?>>(FILTERARGS.UNITS).addFinal(unit2Before)
+        );
 
-        when(request.execUpdateRequest(any(), any(), eq(MetadataCollections.UNIT), any(OntologyValidator.class),
-            any(UnitValidator.class), anyList(), anyBoolean()))
-            .thenReturn(
-                new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After),
-                    true),
-                new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After),
-                    true));
+        when(
+            request.execUpdateRequest(
+                any(),
+                any(),
+                eq(MetadataCollections.UNIT),
+                any(OntologyValidator.class),
+                any(UnitValidator.class),
+                anyList(),
+                anyBoolean()
+            )
+        ).thenReturn(
+            new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After), true),
+            new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After), true)
+        );
 
         // When
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateUnits.json"));
-        RequestResponseOK<UpdateUnit> requestResponse =
-            (RequestResponseOK<UpdateUnit>) metaDataImpl.updateUnits(updateRequest, true);
+        RequestResponseOK<UpdateUnit> requestResponse = (RequestResponseOK<UpdateUnit>) metaDataImpl.updateUnits(
+            updateRequest,
+            true
+        );
 
         // Then
         assertThat(requestResponse.getResults().stream())
-            .extracting(UpdateUnit::getUnitId, UpdateUnit::getKey, UpdateUnit::getMessage, UpdateUnit::getStatus,
-                UpdateUnit::getKey, UpdateUnit::getDiff)
+            .extracting(
+                UpdateUnit::getUnitId,
+                UpdateUnit::getKey,
+                UpdateUnit::getMessage,
+                UpdateUnit::getStatus,
+                UpdateUnit::getKey,
+                UpdateUnit::getDiff
+            )
             .containsExactlyInAnyOrder(
-                tuple("unitId1", UNIT_METADATA_UPDATE, "Update unit OK.", OK, UNIT_METADATA_UPDATE,
-                    "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""),
-                tuple("unitId2", UNIT_METADATA_UPDATE, "Update unit OK.", OK, UNIT_METADATA_UPDATE,
-                    "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\"")
+                tuple(
+                    "unitId1",
+                    UNIT_METADATA_UPDATE,
+                    "Update unit OK.",
+                    OK,
+                    UNIT_METADATA_UPDATE,
+                    "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""
+                ),
+                tuple(
+                    "unitId2",
+                    UNIT_METADATA_UPDATE,
+                    "Update unit OK.",
+                    OK,
+                    UNIT_METADATA_UPDATE,
+                    "-  \"field\" : \"value v1\"\n+  \"field\" : \"value v2\""
+                )
             );
     }
 
@@ -489,11 +585,24 @@ public class MetaDataImplTest {
         parameters.setCollectionName("fakeName");
         List<Integer> tenants = Collections.singletonList(0);
         parameters.setTenants(tenants);
-        ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils
-            .createTestIndexManager(tenants, emptyMap(), MappingLoaderTestUtils.getTestMappingLoader());
-        metaDataImpl =
-            new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, IndexationHelper.getInstance(),
-                request, 100, 300, 100, 300, 100, 300, indexManager);
+        ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils.createTestIndexManager(
+            tenants,
+            emptyMap(),
+            MappingLoaderTestUtils.getTestMappingLoader()
+        );
+        metaDataImpl = new MetaDataImpl(
+            mongoDbAccessFactory,
+            adminManagementClientFactory,
+            IndexationHelper.getInstance(),
+            request,
+            100,
+            300,
+            100,
+            300,
+            100,
+            300,
+            indexManager
+        );
         // When
         ReindexationResult result = metaDataImpl.reindex(parameters);
 
@@ -508,10 +617,10 @@ public class MetaDataImplTest {
 
     @Test
     public void reindexIOExceptionTest() throws Exception {
-        when(indexationHelper.reindex(any(), any(), any(), any(), any(), any(), any()))
-            .thenThrow(new DatabaseException("prb"));
-        when(indexationHelper.getFullKOResult(any(), any()))
-            .thenCallRealMethod();
+        when(indexationHelper.reindex(any(), any(), any(), any(), any(), any(), any())).thenThrow(
+            new DatabaseException("prb")
+        );
+        when(indexationHelper.getFullKOResult(any(), any())).thenCallRealMethod();
         MetadataCollections.UNIT.getVitamCollection().initialize(mock(MongoDatabase.class), false);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("Unit");
@@ -524,8 +633,10 @@ public class MetaDataImplTest {
         assertEquals(1, result.getIndexKO().size());
         assertNull(result.getIndexKO().get(0).getTenantGroup());
         assertEquals(tenants, result.getIndexKO().get(0).getTenants());
-        assertEquals("Cannot reindex collection UNIT for tenant 0. Unexpected error",
-            result.getIndexKO().get(0).getMessage());
+        assertEquals(
+            "Cannot reindex collection UNIT for tenant 0. Unexpected error",
+            result.getIndexKO().get(0).getMessage()
+        );
     }
 
     @Test(expected = DatabaseException.class)
@@ -543,14 +654,14 @@ public class MetaDataImplTest {
     @Test
     public void checkStreamUnits_OK() throws Exception {
         // Given
-        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(UnitsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(
+            UnitsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         MetadataSnapshot unitsScrollNumber = newMetadataSnapshot(UnitsScrollNumber.name(), 1);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
-        Mockito.when(findIterable.first())
-            .thenReturn(unitsScrollDate)
-            .thenReturn(unitsScrollNumber);
+        Mockito.when(findIterable.first()).thenReturn(unitsScrollDate).thenReturn(unitsScrollNumber);
         // When
         metaDataImpl.checkStreamUnits(1, (short) 3);
     }
@@ -561,8 +672,7 @@ public class MetaDataImplTest {
 
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
-        Mockito.when(findIterable.first())
-            .thenReturn(null);
+        Mockito.when(findIterable.first()).thenReturn(null);
         // When
         metaDataImpl.checkStreamUnits(1, (short) 3);
     }
@@ -570,14 +680,14 @@ public class MetaDataImplTest {
     @Test
     public void checkStreamUnits_limit_reach() throws Exception {
         // Given
-        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(UnitsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(
+            UnitsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         MetadataSnapshot unitsScrollNumber = newMetadataSnapshot(UnitsScrollNumber.name(), 3);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
-        Mockito.when(findIterable.first())
-            .thenReturn(unitsScrollDate)
-            .thenReturn(unitsScrollNumber);
+        Mockito.when(findIterable.first()).thenReturn(unitsScrollDate).thenReturn(unitsScrollNumber);
         // When
         assertThrows(MetaDataException.class, () -> metaDataImpl.checkStreamUnits(1, (short) 3));
     }
@@ -585,14 +695,14 @@ public class MetaDataImplTest {
     @Test
     public void checkStreamObjects_OK() throws Exception {
         // Given
-        MetadataSnapshot objectsScrollDate = newMetadataSnapshot(ObjectsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot objectsScrollDate = newMetadataSnapshot(
+            ObjectsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         MetadataSnapshot objectsScrollNumber = newMetadataSnapshot(ObjectsScrollNumber.name(), 1);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
-        Mockito.when(findIterable.first())
-            .thenReturn(objectsScrollDate)
-            .thenReturn(objectsScrollNumber);
+        Mockito.when(findIterable.first()).thenReturn(objectsScrollDate).thenReturn(objectsScrollNumber);
         // When
         metaDataImpl.checkStreamObjects(1, (short) 3);
     }
@@ -602,8 +712,7 @@ public class MetaDataImplTest {
         // Given
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
-        Mockito.when(findIterable.first())
-            .thenReturn(null);
+        Mockito.when(findIterable.first()).thenReturn(null);
         // When
         metaDataImpl.checkStreamObjects(1, (short) 3);
     }
@@ -611,14 +720,14 @@ public class MetaDataImplTest {
     @Test
     public void checkStreamObjects_limit_reach() throws Exception {
         // Given
-        MetadataSnapshot ObjectsScrollDate = newMetadataSnapshot(MetadataSnapshot.PARAMETERS.ObjectsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot ObjectsScrollDate = newMetadataSnapshot(
+            MetadataSnapshot.PARAMETERS.ObjectsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         MetadataSnapshot objectsScrollNumber = newMetadataSnapshot(ObjectsScrollNumber.name(), 3);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
-        Mockito.when(findIterable.first())
-            .thenReturn(ObjectsScrollDate)
-            .thenReturn(objectsScrollNumber);
+        Mockito.when(findIterable.first()).thenReturn(ObjectsScrollDate).thenReturn(objectsScrollNumber);
         // When
         assertThrows(MetaDataException.class, () -> metaDataImpl.checkStreamObjects(1, (short) 3));
     }
@@ -633,19 +742,28 @@ public class MetaDataImplTest {
         // When
         metaDataImpl.updateParameterStreamUnits(1);
         // Then
-        verify(mongoCollection, times(2))
-            .updateOne(firstArgument.capture(), secondArgument.capture(), thirdArgument.capture());
+        verify(mongoCollection, times(2)).updateOne(
+            firstArgument.capture(),
+            secondArgument.capture(),
+            thirdArgument.capture()
+        );
         BsonArray values = firstArgument.getValue().toBsonDocument().get("$and").asArray();
 
         assertEquals(1, values.get(0).asDocument().get(VitamDocument.TENANT_ID).asInt32().getValue());
-        assertEquals(UnitsScrollDate.name(),
-            values.get(1).asDocument().get(MetadataSnapshot.NAME).asString().getValue());
+        assertEquals(
+            UnitsScrollDate.name(),
+            values.get(1).asDocument().get(MetadataSnapshot.NAME).asString().getValue()
+        );
         BsonDocument secondArgumentDocument = secondArgument.getValue().toBsonDocument();
         assertThat(secondArgumentDocument.get("$setOnInsert").asDocument().get(VitamDocument.ID).asString().getValue())
-            .isNotEmpty().hasSize(36);
-        assertThat(secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue())
-            .isBetween(LocalDateUtil.getFormattedDateForMongo(startTime),
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            .isNotEmpty()
+            .hasSize(36);
+        assertThat(
+            secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue()
+        ).isBetween(
+            LocalDateUtil.getFormattedDateForMongo(startTime),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         assertThat(thirdArgument.getValue().isUpsert()).isTrue();
     }
 
@@ -659,19 +777,28 @@ public class MetaDataImplTest {
         // When
         metaDataImpl.updateParameterStreamObjects(1);
         // Then
-        verify(mongoCollection, times(2))
-            .updateOne(firstArgument.capture(), secondArgument.capture(), thirdArgument.capture());
+        verify(mongoCollection, times(2)).updateOne(
+            firstArgument.capture(),
+            secondArgument.capture(),
+            thirdArgument.capture()
+        );
         BsonArray values = firstArgument.getValue().toBsonDocument().get("$and").asArray();
 
         assertEquals(1, values.get(0).asDocument().get(VitamDocument.TENANT_ID).asInt32().getValue());
-        assertEquals(ObjectsScrollDate.name(),
-            values.get(1).asDocument().get(MetadataSnapshot.NAME).asString().getValue());
+        assertEquals(
+            ObjectsScrollDate.name(),
+            values.get(1).asDocument().get(MetadataSnapshot.NAME).asString().getValue()
+        );
         BsonDocument secondArgumentDocument = secondArgument.getValue().toBsonDocument();
         assertThat(secondArgumentDocument.get("$setOnInsert").asDocument().get(VitamDocument.ID).asString().getValue())
-            .isNotEmpty().hasSize(36);
-        assertThat(secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue())
-            .isBetween(LocalDateUtil.getFormattedDateForMongo(startTime),
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            .isNotEmpty()
+            .hasSize(36);
+        assertThat(
+            secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue()
+        ).isBetween(
+            LocalDateUtil.getFormattedDateForMongo(startTime),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         assertThat(thirdArgument.getValue().isUpsert()).isTrue();
     }
 

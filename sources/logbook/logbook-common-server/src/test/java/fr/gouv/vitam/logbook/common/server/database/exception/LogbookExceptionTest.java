@@ -70,5 +70,4 @@ public class LogbookExceptionTest {
         assertNotNull(new LogbookNotFoundException(exception));
         assertNotNull(new LogbookNotFoundException(MESSAGE, exception));
     }
-
 }

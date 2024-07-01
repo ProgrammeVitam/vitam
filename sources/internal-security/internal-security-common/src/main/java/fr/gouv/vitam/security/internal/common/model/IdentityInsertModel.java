@@ -35,8 +35,7 @@ public class IdentityInsertModel {
 
     private byte[] certificate;
 
-    public IdentityInsertModel() {
-    }
+    public IdentityInsertModel() {}
 
     public String getContextId() {
         return contextId;

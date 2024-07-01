@@ -40,8 +40,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LogbookParameterHelperTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @RunWithCustomExecutor
     @Test
@@ -50,15 +51,20 @@ public class LogbookParameterHelperTest {
         String evType = "evType";
 
         // Then
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(GUIDFactory.newEventGUID(0), evType, GUIDFactory.newEventGUID(0),
-                LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED), GUIDFactory.newEventGUID(0));
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            evType,
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED),
+            GUIDFactory.newEventGUID(0)
+        );
 
         // Then
-        assertThat(logbookParameters.getMapParameters()).containsEntry(LogbookParameterName.outcomeDetail,
-            "evType.STARTED");
+        assertThat(logbookParameters.getMapParameters()).containsEntry(
+            LogbookParameterName.outcomeDetail,
+            "evType.STARTED"
+        );
     }
-
 }

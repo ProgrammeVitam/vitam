@@ -79,7 +79,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -105,7 +104,6 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";
     private static final String SEDA_PARAMS = "transferNotificationActionHandler/SedaParams.json";
 
-
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
     private static final String LOGBOOK_OPERATION = "transferNotificationActionHandler/logbookOperationKO.json";
     private static final String LOGBOOK_LFC_AU = "transferNotificationActionHandler/logbookLifecycleAUKO.json";
@@ -115,11 +113,13 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
     private StorageClient storageClient;
     private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
+    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = mock(
+        LogbookLifeCyclesClientFactory.class
+    );
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
+    private static final LogbookOperationsClientFactory logbookOperationsClientFactory = mock(
+        LogbookOperationsClientFactory.class
+    );
     private LogbookOperationsClient logbookOperationsClient;
 
     private static final ValidationXsdUtils validationXsdUtils = mock(ValidationXsdUtils.class);
@@ -132,11 +132,14 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     @Before
     public void setUp() throws Exception {
         guid = GUIDFactory.newGUID();
-        params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-                .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8080")
+            .setUrlMetadata("http://localhost:8080")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId())
+            .setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
         workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
@@ -149,10 +152,14 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-            newArrayList(objectId));
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            newArrayList(objectId)
+        );
         action.setCurrentObjectId(objectId);
 
         when(validationXsdUtils.checkWithXSD(any(InputStream.class), anyString())).thenReturn(true);
@@ -166,8 +173,11 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.addOutputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
         action.addOutputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
         action.addOutputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
-        action
-            .addOutputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS), false);
+        action.addOutputResult(
+            4,
+            PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS),
+            false
+        );
         action.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
         action.addOutputResult(7, PropertiesUtils.getResourceFile(SEDA_PARAMS), false);
         action.reset();
@@ -180,29 +190,34 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.partialClose();
     }
 
-
     @Test
-    public void givenXMLCreationWhenValidButWithoutInfoFieldsInManifestThenResponseOK()
-        throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
-            logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
-
+    public void givenXMLCreationWhenValidButWithoutInfoFieldsInManifestThenResponseOK() throws Exception {
+        try (
+            TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
+                logbookOperationsClientFactory,
+                storageClientFactory,
+                validationXsdUtils
+            )
+        ) {
             doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(any());
-            when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleGOT())));
-            when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleAU())));
+            when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any())).thenReturn(
+                CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleGOT()))
+            );
+            when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any())).thenReturn(
+                CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleAU()))
+            );
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
             action.addInIOParameters(in);
             action.addOutIOParameters(out);
-            WorkerParameters parameters =
-                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-            final ItemStatus response = handler
-                .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()),
-                    action);
+            WorkerParameters parameters = params
+                .putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler.execute(
+                parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()),
+                action
+            );
             assertEquals(StatusCode.OK, response.getGlobalStatus());
             File atr = action.getNewLocalFile(ATR_PATH);
             String atrString = FileUtil.readFile(atr);
@@ -212,55 +227,57 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     }
 
     @Test
-    public void givenXMLCreationWhenProcessKOButWithoutInfoFieldsInManifestThenResponseATROK()
-        throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
-            logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
-
-            doReturn(getLogbookOperation()).when(logbookOperationsClient)
-                .selectOperationById(any());
-            when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleGOT())));
-            when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleAU())));
+    public void givenXMLCreationWhenProcessKOButWithoutInfoFieldsInManifestThenResponseATROK() throws Exception {
+        try (
+            TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
+                logbookOperationsClientFactory,
+                storageClientFactory,
+                validationXsdUtils
+            )
+        ) {
+            doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(any());
+            when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any())).thenReturn(
+                CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleGOT()))
+            );
+            when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any())).thenReturn(
+                CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleAU()))
+            );
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
             action.addInIOParameters(in);
             action.addOutIOParameters(out);
-            WorkerParameters parameters =
-                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-            final ItemStatus response = handler
-                .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()),
-                    action);
+            WorkerParameters parameters = params
+                .putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler.execute(
+                parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()),
+                action
+            );
             assertEquals(StatusCode.OK, response.getGlobalStatus());
             File atr = action.getNewLocalFile(ATR_PATH);
             assertTrue(FileUtil.readFile(atr).contains(SedaConstants.TAG_ARCHIVE_PROFILE));
         }
     }
 
-    private static JsonNode getLogbookOperation()
-        throws IOException, InvalidParseOperationException {
+    private static JsonNode getLogbookOperation() throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
-        final LogbookOperation lop =
-            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
+        final LogbookOperation lop = new LogbookOperation(
+            StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION))
+        );
         response.addResult(BsonHelper.fromDocumentToJsonNode(lop));
         return JsonHandler.toJsonNode(response);
     }
 
-    private static JsonNode getLogbookLifecycleGOT()
-        throws IOException, InvalidParseOperationException {
-        return BsonHelper.fromDocumentToJsonNode(new LogbookLifeCycleObjectGroup(
-            StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
+    private static JsonNode getLogbookLifecycleGOT() throws IOException, InvalidParseOperationException {
+        return BsonHelper.fromDocumentToJsonNode(
+            new LogbookLifeCycleObjectGroup(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
         );
     }
 
-    private static JsonNode getLogbookLifecycleAU()
-        throws IOException, InvalidParseOperationException {
+    private static JsonNode getLogbookLifecycleAU() throws IOException, InvalidParseOperationException {
         return BsonHelper.fromDocumentToJsonNode(
             new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU)))
         );
     }
-
 }

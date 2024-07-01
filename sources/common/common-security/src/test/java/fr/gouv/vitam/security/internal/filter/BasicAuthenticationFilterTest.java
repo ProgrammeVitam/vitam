@@ -53,7 +53,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-
 public class BasicAuthenticationFilterTest {
 
     /**
@@ -80,33 +79,29 @@ public class BasicAuthenticationFilterTest {
 
     @Before
     public void setup() {
-        when(resourceInfo.getResourceClass())
-            .thenReturn((Class) BasicAuthenticationFilterTest.class);
+        when(resourceInfo.getResourceClass()).thenReturn((Class) BasicAuthenticationFilterTest.class);
     }
 
     @Test
     public void checkEndpointAuthenticationFilterRegistration() throws Exception {
-
         // mock resource info.
-        when(resourceInfo.getResourceMethod())
-            .thenReturn(BasicAuthenticationFilterTest.class.getMethod("basedVitamAuthenticationMethod"));
+        when(resourceInfo.getResourceMethod()).thenReturn(
+            BasicAuthenticationFilterTest.class.getMethod("basedVitamAuthenticationMethod")
+        );
 
         // instanciate BasicAuthenticationFilter class
         BasicAuthenticationFilter instance = new BasicAuthenticationFilter(configuration);
         instance.configure(resourceInfo, featureContext);
 
-        verify(featureContext)
-            .register(endpointAuthenticationFilter.capture(), eq(Priorities.AUTHORIZATION + 10));
+        verify(featureContext).register(endpointAuthenticationFilter.capture(), eq(Priorities.AUTHORIZATION + 10));
         verifyNoMoreInteractions(featureContext);
         Assert.assertEquals(AUTHENTICATION_LEVEL, endpointAuthenticationFilter.getValue().getAuthentLevel());
     }
 
     @Test
     public void checkEndpointAuthenticationFilterRegistrationUnusedVitamAuthentication() throws Exception {
-
         // mock resource info.
-        when(resourceInfo.getResourceMethod())
-            .thenReturn(this.getClass().getMethod("UnusedVitamAuthenticationMethod"));
+        when(resourceInfo.getResourceMethod()).thenReturn(this.getClass().getMethod("UnusedVitamAuthenticationMethod"));
 
         // instanciate BasicAuthenticationFilter class
         BasicAuthenticationFilter instance = new BasicAuthenticationFilter(configuration);
@@ -123,5 +118,4 @@ public class BasicAuthenticationFilterTest {
     public void UnusedVitamAuthenticationMethod() {
         LOGGER.debug("No use of the Vitam basic authentication annotation.");
     }
-
 }

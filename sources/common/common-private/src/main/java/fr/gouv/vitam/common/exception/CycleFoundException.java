@@ -36,7 +36,6 @@ public class CycleFoundException extends VitamException {
      */
     private static final long serialVersionUID = -2684023194234768369L;
 
-
     /**
      * List of vertex in the cycle
      */
@@ -87,7 +86,6 @@ public class CycleFoundException extends VitamException {
     public CycleFoundException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 
     /**
      * Get the cycle's list of vertex

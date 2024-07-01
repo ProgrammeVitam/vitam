@@ -87,6 +87,7 @@ public class PreservationReportServiceTest {
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -108,23 +109,34 @@ public class PreservationReportServiceTest {
         // Given
         processId = "123456789";
         tenantId = 0;
-        PreservationReportEntry preservationReportEntry =
-            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
-                tenantId, "2018-11-15T11:13:20.986",
-                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "outcome - TEST", "griffinId", "preservationScenarioId");
+        PreservationReportEntry preservationReportEntry = new PreservationReportEntry(
+            "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq",
+            processId,
+            tenantId,
+            "2018-11-15T11:13:20.986",
+            PreservationStatus.OK,
+            "unitId",
+            "objectGroupId",
+            ANALYSE,
+            "VALID_ALL",
+            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq",
+            "",
+            "outcome - TEST",
+            "griffinId",
+            "preservationScenarioId"
+        );
         List<PreservationReportEntry> reports = new ArrayList<>();
         reports.add(preservationReportEntry);
 
         // When
-        ThrowingCallable appendPreservation =
-            () -> preservationReportService.appendEntries(processId, reports);
+        ThrowingCallable appendPreservation = () -> preservationReportService.appendEntries(processId, reports);
 
         // Then
         assertThatCode(appendPreservation).doesNotThrowAnyException();
 
-        ArgumentCaptor<ReportBody<AuditObjectGroupReportEntry>> reportBodyArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<AuditObjectGroupReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
         assertThat(reportBodyArgumentCaptor.getValue().getProcessId()).isEqualTo(processId);
         assertThat(reportBodyArgumentCaptor.getValue().getEntries()).isEqualTo(reports);
@@ -133,7 +145,6 @@ public class PreservationReportServiceTest {
 
     @Test
     public void should_check_report_existence_in_workspace_does_not_throw_any_exception() throws Exception {
-
         // Given / When
         ThrowingCallable checkReportExistence = () -> preservationReportService.isReportWrittenInWorkspace(processId);
 
@@ -144,12 +155,23 @@ public class PreservationReportServiceTest {
 
     @Test
     public void should_export_unit_to_workspace_does_not_throw_any_exception() throws Exception {
-
-        OperationSummary operationSummary =
-            new OperationSummary(tenantId, processId, "", "", "", "", JsonHandler.createObjectNode(),
-                JsonHandler.createObjectNode());
-        ReportSummary reportSummary =
-            new ReportSummary(null, null, ReportType.PRESERVATION, new ReportResults(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary = new OperationSummary(
+            tenantId,
+            processId,
+            "",
+            "",
+            "",
+            "",
+            JsonHandler.createObjectNode(),
+            JsonHandler.createObjectNode()
+        );
+        ReportSummary reportSummary = new ReportSummary(
+            null,
+            null,
+            ReportType.PRESERVATION,
+            new ReportResults(),
+            JsonHandler.createObjectNode()
+        );
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -164,24 +186,24 @@ public class PreservationReportServiceTest {
 
     @Test
     public void should_store_file_to_offers() throws Exception {
-
         // Given / When
         ThrowingCallable exportReport = () -> preservationReportService.storeReportToOffers(processId);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient)
-            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
-                eq(processId + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.REPORT),
+            eq(processId + JSONL_EXTENSION),
+            descriptionArgumentCaptor.capture()
+        );
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(processId);
-        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(
-            WORKSPACE_REPORT_URI);
+        assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);
     }
 
     @Test
     public void should_delete_does_not_throw_any_exception() throws Exception {
-
         // Given / When
         ThrowingCallable exportReport = () -> preservationReportService.cleanupReport(processId);
 

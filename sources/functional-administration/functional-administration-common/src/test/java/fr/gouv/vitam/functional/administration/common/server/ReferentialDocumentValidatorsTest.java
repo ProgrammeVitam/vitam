@@ -49,134 +49,146 @@ public class ReferentialDocumentValidatorsTest {
 
     @Test
     public void valid_AccessContract() throws Exception {
-
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.ACCESS_CONTRACT);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.ACCESS_CONTRACT
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESS_CONTRACT_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESS_CONTRACT_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_AccessionRegisterDetail() throws Exception {
-
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_AccessionRegisterSummary() throws Exception {
-
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_SUMMARY_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_SUMMARY_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_Agencies() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.AGENCIES);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.AGENCIES
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AGENCIES_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AGENCIES_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_Context() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.CONTEXT);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.CONTEXT
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(CONTEXT_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(CONTEXT_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_FileFormat() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.FORMATS);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.FORMATS
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_FORMAT_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_FORMAT_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_FileRules() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.RULES);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.RULES
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_RULES_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_RULES_OK_JSON_FILE))
+        );
     }
 
     @Test
     public void valid_IngestContract() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.INGEST_CONTRACT);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.INGEST_CONTRACT
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(INGEST_CONTRACT_OK_JSON_FILE))
+        );
     }
-
-
 
     @Test
     public void valid_Profile() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.PROFILE);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.PROFILE
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(PROFILE_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(PROFILE_OK_JSON_FILE))
+        );
     }
-
 
     @Test
     public void valid_SecurityProfile() throws Exception {
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.SECURITY_PROFILE);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.SECURITY_PROFILE
+        );
 
         // When / Then
         schemaValidator.validateDocument(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SECURITY_PROFILE_OK_JSON_FILE)));
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SECURITY_PROFILE_OK_JSON_FILE))
+        );
     }
-
 
     @Test
     public void valid_ManagementContract() {
-
         // Given
-        final DocumentValidator schemaValidator =
-            ReferentialDocumentValidators.getValidator(FunctionalAdminCollections.MANAGEMENT_CONTRACT);
+        final DocumentValidator schemaValidator = ReferentialDocumentValidators.getValidator(
+            FunctionalAdminCollections.MANAGEMENT_CONTRACT
+        );
 
         // When / Then
         assertThatCode(() -> {
             schemaValidator.validateDocument(
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MANAGEMENT_CONTRACT_OK_JSON_FILE)));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MANAGEMENT_CONTRACT_OK_JSON_FILE))
+            );
         }).doesNotThrowAnyException();
     }
 }

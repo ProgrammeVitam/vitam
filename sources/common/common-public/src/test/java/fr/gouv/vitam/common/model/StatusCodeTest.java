@@ -41,5 +41,4 @@ public class StatusCodeTest {
         assertThat(StatusCode.KO.getEquivalentHttpStatus()).isEqualTo(Response.Status.BAD_REQUEST);
         assertThat(StatusCode.FATAL.getEquivalentHttpStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR);
     }
-
 }

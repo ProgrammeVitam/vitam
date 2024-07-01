@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 
 public class StorageService {
+
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageService.class);
     private static final StorageStrategyProvider STRATEGY_PROVIDER =
@@ -104,32 +105,38 @@ public class StorageService {
             .setDescription(message);
     }
 
-    public RequestResponse<String> createAccessRequest(Integer tenantId, String strategyId,
-        String offerId, String objectId, DataCategory category)
-        throws StorageTechnicalException, StorageNotFoundException {
-
+    public RequestResponse<String> createAccessRequest(
+        Integer tenantId,
+        String strategyId,
+        String offerId,
+        String objectId,
+        DataCategory category
+    ) throws StorageTechnicalException, StorageNotFoundException {
         checkStoreDataParams(strategyId, objectId, category);
 
         Driver driver = getDriver(strategyId, offerId, true);
         try (Connection connection = driver.connect(offerId)) {
-            StorageAccessRequestCreationRequest storageAccessRequestCreationRequest
-                = new StorageAccessRequestCreationRequest(tenantId, category.getFolder(),
-                Collections.singletonList(objectId));
+            StorageAccessRequestCreationRequest storageAccessRequestCreationRequest =
+                new StorageAccessRequestCreationRequest(
+                    tenantId,
+                    category.getFolder(),
+                    Collections.singletonList(objectId)
+                );
 
             String accessRequestId = connection.createAccessRequest(storageAccessRequestCreationRequest);
-            return new RequestResponseOK<String>()
-                .setHttpCode(Status.OK.getStatusCode())
-                .addResult(accessRequestId);
-
+            return new RequestResponseOK<String>().setHttpCode(Status.OK.getStatusCode()).addResult(accessRequestId);
         } catch (StorageDriverException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
         }
     }
 
-    public VitamAsyncInputStreamResponse download(Integer tenantId, DataCategory dataCategory,
+    public VitamAsyncInputStreamResponse download(
+        Integer tenantId,
+        DataCategory dataCategory,
         String strategyId,
         String offerId,
-        String objectId) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
+        String objectId
+    ) throws StorageTechnicalException, StorageDriverException, StorageNotFoundException {
         ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_MANDATORY, objectId);
 
         final Driver driver = getDriver(strategyId, offerId, false);
@@ -138,19 +145,28 @@ public class StorageService {
             final StorageObjectRequest request = new StorageObjectRequest(tenantId, dataCategory.getFolder(), objectId);
             return new VitamAsyncInputStreamResponse(
                 connection.getObject(request).getObject(),
-                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                Status.OK,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE
+            );
         }
     }
 
-    public RequestResponse<AccessRequestStatus> checkAccessRequestStatus(Integer tenantId, String strategyId,
-        String offerId, String accessRequestId) throws StorageTechnicalException, StorageNotFoundException {
+    public RequestResponse<AccessRequestStatus> checkAccessRequestStatus(
+        Integer tenantId,
+        String strategyId,
+        String offerId,
+        String accessRequestId
+    ) throws StorageTechnicalException, StorageNotFoundException {
         ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_MANDATORY, accessRequestId);
 
         Driver driver = getDriver(strategyId, offerId, true);
 
         try (Connection connection = driver.connect(offerId)) {
-            Map<String, AccessRequestStatus> accessRequestStatusMap =
-                connection.checkAccessRequestStatuses(List.of(accessRequestId), tenantId, false);
+            Map<String, AccessRequestStatus> accessRequestStatusMap = connection.checkAccessRequestStatuses(
+                List.of(accessRequestId),
+                tenantId,
+                false
+            );
 
             return new RequestResponseOK<AccessRequestStatus>()
                 .setHttpCode(Status.OK.getStatusCode())
@@ -160,8 +176,12 @@ public class StorageService {
         }
     }
 
-    public RequestResponse<AccessRequestStatus> removeAccessRequest(Integer tenantId, String strategyId,
-        String offerId, String accessRequestId) throws StorageTechnicalException, StorageNotFoundException {
+    public RequestResponse<AccessRequestStatus> removeAccessRequest(
+        Integer tenantId,
+        String strategyId,
+        String offerId,
+        String accessRequestId
+    ) throws StorageTechnicalException, StorageNotFoundException {
         ParametersChecker.checkParameter(ACCESS_REQUEST_ID_IS_MANDATORY, accessRequestId);
 
         Driver driver = getDriver(strategyId, offerId, true);
@@ -169,8 +189,7 @@ public class StorageService {
         try (Connection connection = driver.connect(offerId)) {
             connection.removeAccessRequest(accessRequestId, tenantId, false);
 
-            return new RequestResponseOK<AccessRequestStatus>()
-                .setHttpCode(Status.OK.getStatusCode());
+            return new RequestResponseOK<AccessRequestStatus>().setHttpCode(Status.OK.getStatusCode());
         } catch (StorageDriverException e) {
             return buildError(VitamCode.STORAGE_OBJECT_NOT_FOUND, e.getMessage());
         }
@@ -184,12 +203,14 @@ public class StorageService {
             throw new StorageTechnicalException("No offer found in strategy " + strategyId);
         }
 
-        StorageOffer storageOffers = offerReferences.stream()
+        StorageOffer storageOffers = offerReferences
+            .stream()
             .map(StorageService::getStorageOffer)
             .filter(o -> o.getId().equals(offerId))
             .findFirst()
             .orElseThrow(
-                () -> new StorageTechnicalException("No such offer " + offerId + " in strategy " + strategyId));
+                () -> new StorageTechnicalException("No such offer " + offerId + " in strategy " + strategyId)
+            );
 
         if (mustBeAsyncDriver && !storageOffers.isAsyncRead()) {
             throw new StorageTechnicalException("Offer " + offerId + " does not support AsyncRead");
@@ -202,8 +223,7 @@ public class StorageService {
         }
     }
 
-    private void checkStoreDataParams(String strategyId, String dataId,
-        DataCategory category) {
+    private void checkStoreDataParams(String strategyId, String dataId, DataCategory category) {
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, dataId);
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);

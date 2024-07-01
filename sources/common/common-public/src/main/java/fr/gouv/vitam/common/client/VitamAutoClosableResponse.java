@@ -57,7 +57,6 @@ public class VitamAutoClosableResponse extends Response {
 
     @Override
     public void close() {
-
         if (autoClosableResponseInputStream != null && !autoClosableResponseInputStream.isClosed) {
             // An input stream of the response has been opened.
             // Do not close the response, since the inner input stream would also be closed.

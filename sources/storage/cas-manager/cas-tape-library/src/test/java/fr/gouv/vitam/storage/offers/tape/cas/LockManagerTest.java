@@ -37,7 +37,6 @@ public class LockManagerTest {
 
     @Test
     public void givenMultipleLockedUnlockedItemsThenOK() {
-
         // Given
         LockManager<String> instance = new LockManager<>();
 

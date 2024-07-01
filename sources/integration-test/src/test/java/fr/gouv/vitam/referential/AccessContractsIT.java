@@ -82,26 +82,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class AccessContractsIT extends VitamRuleRunner {
+
     private static final int TENANT_0 = 0;
     private static final String CONTRACT_RULE_ID = "contract_rule";
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(
-            RulesIT.class,
-            mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                AdminManagementMain.class,
-                ProcessManagementMain.class,
-                BatchReportMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        RulesIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            AdminManagementMain.class,
+            ProcessManagementMain.class,
+            BatchReportMain.class
+        )
+    );
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -132,29 +133,42 @@ public class AccessContractsIT extends VitamRuleRunner {
     public void should_desactivate_then_activate_access_contract() {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Update updateQuery = new Update();
-            updateQuery.addActions(UpdateActionHelper.set("Status", "INACTIVE"), UpdateActionHelper
-                    .set("DeactivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
-                UpdateActionHelper.unset("ActivationDate"));
-            RequestResponse<AccessContractModel> updatedAccessContract =
-                client.updateAccessContract("aName", updateQuery.getFinalUpdate());
+            updateQuery.addActions(
+                UpdateActionHelper.set("Status", "INACTIVE"),
+                UpdateActionHelper.set("DeactivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
+                UpdateActionHelper.unset("ActivationDate")
+            );
+            RequestResponse<AccessContractModel> updatedAccessContract = client.updateAccessContract(
+                "aName",
+                updateQuery.getFinalUpdate()
+            );
             assertTrue(updatedAccessContract.isOk());
 
             RequestResponse<AccessContractModel> contract = client.findAccessContractsByID("aName");
             assertTrue(contract.isOk());
             List<JsonNode> results = RequestResponseOK.getFromJsonNode(contract.toJsonNode()).getResults();
             assertEquals(1, results.size());
-            assertEquals(ActivationStatus.INACTIVE,
-                JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getStatus());
-
+            assertEquals(
+                ActivationStatus.INACTIVE,
+                JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getStatus()
+            );
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
             updateQuery.reset();
-            updateQuery.addActions(UpdateActionHelper.set("Status", "ACTIVE"), UpdateActionHelper
-                    .set("DeactivationDate", ""),
-                UpdateActionHelper.set("ActivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
-            assertThatCode(() -> client.updateAccessContract("aName", updateQuery.getFinalUpdate()))
-                .isInstanceOf(AdminManagementClientBadRequestException.class);
-        } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException | InvalidCreateOperationException e) {
+            updateQuery.addActions(
+                UpdateActionHelper.set("Status", "ACTIVE"),
+                UpdateActionHelper.set("DeactivationDate", ""),
+                UpdateActionHelper.set("ActivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            );
+            assertThatCode(() -> client.updateAccessContract("aName", updateQuery.getFinalUpdate())).isInstanceOf(
+                AdminManagementClientBadRequestException.class
+            );
+        } catch (
+            ReferentialNotFoundException
+            | InvalidParseOperationException
+            | AdminManagementClientServerException
+            | InvalidCreateOperationException e
+        ) {
             fail("Error retreiving access contract", e);
         }
     }
@@ -167,9 +181,12 @@ public class AccessContractsIT extends VitamRuleRunner {
             assertTrue(contract.isOk());
             List<JsonNode> results = RequestResponseOK.getFromJsonNode(contract.toJsonNode()).getResults();
             assertEquals(1, results.size());
-            assertThat(JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class)
-                .getRuleCategoryToFilter()).contains(RuleType.HoldRule);
-        } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException e) {
+            assertThat(
+                JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getRuleCategoryToFilter()
+            ).contains(RuleType.HoldRule);
+        } catch (
+            ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException e
+        ) {
             fail("Error retreiving access contract", e);
         }
     }
@@ -180,7 +197,8 @@ public class AccessContractsIT extends VitamRuleRunner {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Update updateMultiQuery = new Update();
             updateMultiQuery.setQuery(QueryHelper.in(AccessContractModel.TAG_NAME, "aName"));
-            updateMultiQuery.getActions()
+            updateMultiQuery
+                .getActions()
                 .add(new SetAction(AccessContractModel.RULE_CATEGORY_TO_FILTER, List.of(RuleType.HoldRule.name())));
             client.updateAccessContract("aName", updateMultiQuery.getFinalUpdate());
 
@@ -188,9 +206,15 @@ public class AccessContractsIT extends VitamRuleRunner {
             assertTrue(contract.isOk());
             List<JsonNode> results = RequestResponseOK.getFromJsonNode(contract.toJsonNode()).getResults();
             assertEquals(1, results.size());
-            assertThat(JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getRuleCategoryToFilter())
-                .contains(RuleType.HoldRule);
-        } catch (ReferentialNotFoundException | InvalidParseOperationException | AdminManagementClientServerException | InvalidCreateOperationException e) {
+            assertThat(
+                JsonHandler.getFromJsonNode(results.get(0), AccessContractModel.class).getRuleCategoryToFilter()
+            ).contains(RuleType.HoldRule);
+        } catch (
+            ReferentialNotFoundException
+            | InvalidParseOperationException
+            | AdminManagementClientServerException
+            | InvalidCreateOperationException e
+        ) {
             fail("Error retreiving access contract", e);
         }
     }

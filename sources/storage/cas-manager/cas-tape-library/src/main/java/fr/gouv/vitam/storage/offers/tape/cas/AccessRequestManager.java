@@ -105,28 +105,44 @@ public class AccessRequestManager {
         AccessRequestReferentialRepository accessRequestReferentialRepository,
         ArchiveCacheStorage archiveCacheStorage,
         BucketTopologyHelper bucketTopologyHelper,
-        QueueRepository readWriteQueue, int maxAccessRequestSize,
-        int accessRequestExpirationDelay, TimeUnit accessRequestExpirationUnit,
-        int accessRequestPurgeDelay, TimeUnit accessRequestPurgeUnit,
-        int accessRequestCleanupTaskIntervalDelay, TimeUnit accessRequestCleanupTaskIntervalUnit) {
-
-        ParametersChecker.checkParameter("Required parameters", objectReferentialRepository,
-            archiveReferentialRepository, accessRequestReferentialRepository, archiveCacheStorage,
-            bucketTopologyHelper);
+        QueueRepository readWriteQueue,
+        int maxAccessRequestSize,
+        int accessRequestExpirationDelay,
+        TimeUnit accessRequestExpirationUnit,
+        int accessRequestPurgeDelay,
+        TimeUnit accessRequestPurgeUnit,
+        int accessRequestCleanupTaskIntervalDelay,
+        TimeUnit accessRequestCleanupTaskIntervalUnit
+    ) {
+        ParametersChecker.checkParameter(
+            "Required parameters",
+            objectReferentialRepository,
+            archiveReferentialRepository,
+            accessRequestReferentialRepository,
+            archiveCacheStorage,
+            bucketTopologyHelper
+        );
         ParametersChecker.checkValue("Invalid maxAccessRequestSize", maxAccessRequestSize, 1);
         ParametersChecker.checkValue("Invalid maxAccessRequestSize", MAX_ACCESS_REQUEST_SIZE, maxAccessRequestSize);
         ParametersChecker.checkValue("Invalid accessRequestExpirationDelay", accessRequestExpirationDelay, 1);
         ParametersChecker.checkParameter("Invalid accessRequestExpirationUnit", accessRequestExpirationUnit);
         ParametersChecker.checkValue("Invalid accessRequestPurgeDelay", accessRequestPurgeDelay, 1);
         ParametersChecker.checkParameter("Invalid accessRequestPurgeUnit", accessRequestPurgeUnit);
-        if (accessRequestPurgeUnit.convert(accessRequestPurgeDelay, TimeUnit.NANOSECONDS) <
-            accessRequestExpirationUnit.convert(accessRequestExpirationDelay, TimeUnit.NANOSECONDS)) {
+        if (
+            accessRequestPurgeUnit.convert(accessRequestPurgeDelay, TimeUnit.NANOSECONDS) <
+            accessRequestExpirationUnit.convert(accessRequestExpirationDelay, TimeUnit.NANOSECONDS)
+        ) {
             throw new IllegalArgumentException("Access request purge cannot occur before access request expiration");
         }
-        ParametersChecker.checkValue("Invalid accessRequestCleanupTaskIntervalDelay",
-            accessRequestCleanupTaskIntervalDelay, 1);
-        ParametersChecker.checkParameter("Invalid accessRequestCleanupTaskIntervalUnit",
-            accessRequestCleanupTaskIntervalUnit);
+        ParametersChecker.checkValue(
+            "Invalid accessRequestCleanupTaskIntervalDelay",
+            accessRequestCleanupTaskIntervalDelay,
+            1
+        );
+        ParametersChecker.checkParameter(
+            "Invalid accessRequestCleanupTaskIntervalUnit",
+            accessRequestCleanupTaskIntervalUnit
+        );
 
         this.objectReferentialRepository = objectReferentialRepository;
         this.archiveReferentialRepository = archiveReferentialRepository;
@@ -146,14 +162,16 @@ public class AccessRequestManager {
 
     public void startExpirationHandler() {
         // Schedule access request cleaning task
-        this.cleanupScheduler.scheduleWithFixedDelay(this::accessRequestCleanupTask,
-            this.accessRequestCleanupTaskIntervalDelay, this.accessRequestCleanupTaskIntervalDelay,
-            this.accessRequestCleanupTaskIntervalUnit);
+        this.cleanupScheduler.scheduleWithFixedDelay(
+                this::accessRequestCleanupTask,
+                this.accessRequestCleanupTaskIntervalDelay,
+                this.accessRequestCleanupTaskIntervalDelay,
+                this.accessRequestCleanupTaskIntervalUnit
+            );
     }
 
     public String createAccessRequest(String containerName, List<String> objectNames)
         throws ContentAddressableStorageException {
-
         // Check params
         ParametersChecker.checkParameter("Required containerName", containerName);
         ParametersChecker.checkParameter("Required objectNames", objectNames);
@@ -162,14 +180,16 @@ public class AccessRequestManager {
         checkDuplicateObjectNames(objectNames);
 
         try {
-
             // Select objects stored in TARs, whose TARs are "on_tape", and not present in cache
-            List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk
-                = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
+            List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk = getUnavailableArchivesOnDiskForObjects(
+                containerName,
+                objectNames
+            );
 
             // Commit Access Request
             String accessRequestId = generateAccessRequestId();
-            List<String> unavailableArchiveIds = unavailableArchivesOnDisk.stream()
+            List<String> unavailableArchiveIds = unavailableArchivesOnDisk
+                .stream()
                 .map(TapeArchiveReferentialEntity::getArchiveId)
                 .collect(Collectors.toList());
             LocalDateTime now = LocalDateUtil.now();
@@ -179,8 +199,17 @@ public class AccessRequestManager {
             String purgeDate = unavailableArchiveIds.isEmpty() ? computePurgeDate(now) : null;
 
             TapeAccessRequestReferentialEntity accessRequest = new TapeAccessRequestReferentialEntity(
-                accessRequestId, containerName, objectNames, creationDate, readyDate, expirationDate, purgeDate,
-                unavailableArchiveIds, VitamThreadUtils.getVitamSession().getTenantId(), 0);
+                accessRequestId,
+                containerName,
+                objectNames,
+                creationDate,
+                readyDate,
+                expirationDate,
+                purgeDate,
+                unavailableArchiveIds,
+                VitamThreadUtils.getVitamSession().getTenantId(),
+                0
+            );
             this.accessRequestReferentialRepository.insert(accessRequest);
 
             // Create & schedule read orders
@@ -189,23 +218,25 @@ public class AccessRequestManager {
             addReadOrdersToQueue(readOrders);
 
             return accessRequestId;
-
-
-        } catch (AccessRequestReferentialException | QueueException | ArchiveReferentialException | ObjectReferentialException e) {
+        } catch (
+            AccessRequestReferentialException
+            | QueueException
+            | ArchiveReferentialException
+            | ObjectReferentialException e
+        ) {
             throw new ContentAddressableStorageServerException("An error occurred during access request creation.", e);
         }
     }
 
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws ContentAddressableStorageException {
-
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws ContentAddressableStorageException {
         for (String accessRequestId : accessRequestIds) {
             checkAccessRequestIdFormat(accessRequestId);
         }
 
         try {
-
             Set<String> accessRequestIdSet = new HashSet<>();
             accessRequestIds.forEach(accessRequestId -> {
                 if (!accessRequestIdSet.add(accessRequestId)) {
@@ -222,13 +253,20 @@ public class AccessRequestManager {
 
             Map<String, AccessRequestStatus> results = new HashMap<>();
             for (TapeAccessRequestReferentialEntity accessRequestEntity : accessRequestEntities) {
-
                 if (accessRequestEntity.getTenant() != tenantId && !skipTenantCheck) {
-                    LOGGER.warn("Illegal access to AccessRequestId " + accessRequestEntity.getRequestId()
-                        + " of tenant " + accessRequestEntity.getTenant() + " from tenant " + tenantId);
+                    LOGGER.warn(
+                        "Illegal access to AccessRequestId " +
+                        accessRequestEntity.getRequestId() +
+                        " of tenant " +
+                        accessRequestEntity.getTenant() +
+                        " from tenant " +
+                        tenantId
+                    );
                     results.putIfAbsent(accessRequestEntity.getRequestId(), AccessRequestStatus.NOT_FOUND);
-                } else if (accessRequestEntity.getExpirationDate() != null
-                    && accessRequestEntity.getExpirationDate().compareTo(now) < 0) {
+                } else if (
+                    accessRequestEntity.getExpirationDate() != null &&
+                    accessRequestEntity.getExpirationDate().compareTo(now) < 0
+                ) {
                     results.put(accessRequestEntity.getRequestId(), AccessRequestStatus.EXPIRED);
                 } else if (CollectionUtils.isEmpty(accessRequestEntity.getUnavailableArchiveIds())) {
                     results.put(accessRequestEntity.getRequestId(), AccessRequestStatus.READY);
@@ -241,10 +279,11 @@ public class AccessRequestManager {
             }
 
             return results;
-
         } catch (AccessRequestReferentialException e) {
             throw new ContentAddressableStorageServerException(
-                "An error occurred during access request status check by ids", e);
+                "An error occurred during access request status check by ids",
+                e
+            );
         }
     }
 
@@ -255,11 +294,9 @@ public class AccessRequestManager {
 
     public void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
-
         checkAccessRequestIdFormat(accessRequestId);
 
         try {
-
             Optional<TapeAccessRequestReferentialEntity> accessRequestEntity =
                 accessRequestReferentialRepository.findByRequestId(accessRequestId);
 
@@ -273,8 +310,14 @@ public class AccessRequestManager {
             boolean skipTenantCheck = skipTenantCheck(adminCrossTenantAccessRequestAllowed);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             if (accessRequestEntity.get().getTenant() != tenantId && !skipTenantCheck) {
-                LOGGER.warn("Illegal access to AccessRequestId " + accessRequestEntity.get().getRequestId()
-                    + " of tenant " + accessRequestEntity.get().getTenant() + " from tenant " + tenantId);
+                LOGGER.warn(
+                    "Illegal access to AccessRequestId " +
+                    accessRequestEntity.get().getRequestId() +
+                    " of tenant " +
+                    accessRequestEntity.get().getTenant() +
+                    " from tenant " +
+                    tenantId
+                );
                 return;
             }
 
@@ -282,10 +325,10 @@ public class AccessRequestManager {
             if (deleted) {
                 cancelReadOrder(accessRequestEntity.get());
             }
-
         } catch (AccessRequestReferentialException | QueueException | ArchiveReferentialException e) {
             throw new ContentAddressableStorageServerException(
-                "An error occurred during access request delete by id '" + accessRequestId + "'");
+                "An error occurred during access request delete by id '" + accessRequestId + "'"
+            );
         }
     }
 
@@ -300,7 +343,6 @@ public class AccessRequestManager {
      */
     public boolean checkObjectAvailability(String containerName, List<String> objectNames)
         throws ContentAddressableStorageException {
-
         // Check params
         ParametersChecker.checkParameter("Required containerName", containerName);
         ParametersChecker.checkParameter("Required objectNames", objectNames);
@@ -309,24 +351,32 @@ public class AccessRequestManager {
         checkDuplicateObjectNames(objectNames);
 
         try {
-
             // Check if there are objects stored in TARs, whose TARs are "on_tape", and not present in cache
-            List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk
-                = getUnavailableArchivesOnDiskForObjects(containerName, objectNames);
+            List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk = getUnavailableArchivesOnDiskForObjects(
+                containerName,
+                objectNames
+            );
 
             if (unavailableArchivesOnDisk.isEmpty()) {
-                LOGGER.debug("Immediate access is available for objects {} of container {}", objectNames,
-                    containerName);
+                LOGGER.debug(
+                    "Immediate access is available for objects {} of container {}",
+                    objectNames,
+                    containerName
+                );
                 return true;
             }
 
-            LOGGER.warn("One or more objects of container {} are not available for on disk. " +
-                "Object names: {}", containerName, objectNames);
+            LOGGER.warn(
+                "One or more objects of container {} are not available for on disk. " + "Object names: {}",
+                containerName,
+                objectNames
+            );
             return false;
-
         } catch (ArchiveReferentialException | ObjectReferentialException e) {
-            throw new ContentAddressableStorageServerException("An error occurred while checking object availability.",
-                e);
+            throw new ContentAddressableStorageServerException(
+                "An error occurred while checking object availability.",
+                e
+            );
         }
     }
 
@@ -336,28 +386,31 @@ public class AccessRequestManager {
         }
         if (objectsNames.size() > maxAccessRequestSize) {
             throw new ContentAddressableStorageBadRequestException(
-                "Request too large. Object count: " + objectsNames.size()
-                    + ", max: " + maxAccessRequestSize);
+                "Request too large. Object count: " + objectsNames.size() + ", max: " + maxAccessRequestSize
+            );
         }
     }
 
     private void checkDuplicateObjectNames(List<String> objectsNames)
         throws ContentAddressableStorageBadRequestException {
         Set<String> uniqueObjectNames = new HashSet<>();
-        Set<String> duplicateNames = objectsNames.stream()
+        Set<String> duplicateNames = objectsNames
+            .stream()
             .filter(objectName -> !uniqueObjectNames.add(objectName))
             .limit(10)
             .collect(Collectors.toSet());
 
         if (!duplicateNames.isEmpty()) {
-            throw new ContentAddressableStorageBadRequestException("Invalid request. Duplicate object names " +
-                duplicateNames + " in access request");
+            throw new ContentAddressableStorageBadRequestException(
+                "Invalid request. Duplicate object names " + duplicateNames + " in access request"
+            );
         }
     }
 
-    private List<TapeArchiveReferentialEntity> getUnavailableArchivesOnDiskForObjects(String containerName,
-        List<String> objectsIds) throws ObjectReferentialException, ArchiveReferentialException {
-
+    private List<TapeArchiveReferentialEntity> getUnavailableArchivesOnDiskForObjects(
+        String containerName,
+        List<String> objectsIds
+    ) throws ObjectReferentialException, ArchiveReferentialException {
         // Object access by object storage location :
         // - not found                 ==> Object can be accessed immediately (NOT_FOUND)
         // - input_files               ==> Object can be accessed immediately from disk (inputFiles/container/*)
@@ -378,13 +431,14 @@ public class AccessRequestManager {
         return filterArchivesPresentInCache(containerName, onTapeArchives);
     }
 
-    private Set<String> getTarIds(String containerName, List<String> objectNames)
-        throws ObjectReferentialException {
+    private Set<String> getTarIds(String containerName, List<String> objectNames) throws ObjectReferentialException {
+        List<TapeObjectReferentialEntity> objectReferentialEntities = objectReferentialRepository.bulkFind(
+            containerName,
+            new HashSet<>(objectNames)
+        );
 
-        List<TapeObjectReferentialEntity> objectReferentialEntities =
-            objectReferentialRepository.bulkFind(containerName, new HashSet<>(objectNames));
-
-        return objectReferentialEntities.stream()
+        return objectReferentialEntities
+            .stream()
             .filter(obj -> obj.getLocation() instanceof TapeLibraryTarObjectStorageLocation)
             .flatMap(obj -> ((TapeLibraryTarObjectStorageLocation) obj.getLocation()).getTarEntries().stream())
             .map(TarEntryDescription::getTarFileId)
@@ -393,36 +447,45 @@ public class AccessRequestManager {
 
     private List<TapeArchiveReferentialEntity> selectArchivesStoredOnTape(Collection<String> archiveIds)
         throws ArchiveReferentialException {
-
         HashSet<String> archiveIdSet = new HashSet<>(archiveIds);
 
         List<TapeArchiveReferentialEntity> archiveReferentialEntities =
             this.archiveReferentialRepository.bulkFind(archiveIdSet);
 
         if (archiveReferentialEntities.size() != archiveIds.size()) {
-            Set<String> foundArchiveIds = archiveReferentialEntities.stream()
-                .map(TapeArchiveReferentialEntity::getArchiveId).collect(Collectors.toSet());
+            Set<String> foundArchiveIds = archiveReferentialEntities
+                .stream()
+                .map(TapeArchiveReferentialEntity::getArchiveId)
+                .collect(Collectors.toSet());
             throw new IllegalStateException(
-                "Unknown archive ids: " + SetUtils.difference(archiveIdSet, foundArchiveIds));
+                "Unknown archive ids: " + SetUtils.difference(archiveIdSet, foundArchiveIds)
+            );
         }
 
         // Only return archives stored on tape
-        return archiveReferentialEntities.stream()
+        return archiveReferentialEntities
+            .stream()
             .filter(tarArchive -> tarArchive.getLocation() instanceof TapeLibraryOnTapeArchiveStorageLocation)
             .collect(Collectors.toList());
     }
 
-    private List<TapeArchiveReferentialEntity> filterArchivesPresentInCache(String containerName,
-        List<TapeArchiveReferentialEntity> onTapeArchives) {
-
+    private List<TapeArchiveReferentialEntity> filterArchivesPresentInCache(
+        String containerName,
+        List<TapeArchiveReferentialEntity> onTapeArchives
+    ) {
         String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(containerName);
-        return onTapeArchives.stream().filter(archiveEntity ->
-                !this.archiveCacheStorage.containsArchive(fileBucketId, archiveEntity.getArchiveId()))
+        return onTapeArchives
+            .stream()
+            .filter(
+                archiveEntity -> !this.archiveCacheStorage.containsArchive(fileBucketId, archiveEntity.getArchiveId())
+            )
             .collect(Collectors.toList());
     }
 
-    private List<ReadOrder> createReadOrders(String containerName,
-        List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk) {
+    private List<ReadOrder> createReadOrders(
+        String containerName,
+        List<TapeArchiveReferentialEntity> unavailableArchivesOnDisk
+    ) {
         List<ReadOrder> readOrders = new ArrayList<>();
         String fileBucketId = bucketTopologyHelper.getFileBucketFromContainerName(containerName);
         String bucketId = bucketTopologyHelper.getBucketFromFileBucket(fileBucketId);
@@ -432,9 +495,14 @@ public class AccessRequestManager {
             TapeLibraryOnTapeArchiveStorageLocation onTapeLocation =
                 (TapeLibraryOnTapeArchiveStorageLocation) archiveEntity.getLocation();
 
-            ReadOrder readOrder = new ReadOrder(onTapeLocation.getTapeCode(),
-                onTapeLocation.getFilePosition(), archiveEntity.getArchiveId(), bucketId,
-                fileBucketId, archiveEntity.getSize());
+            ReadOrder readOrder = new ReadOrder(
+                onTapeLocation.getTapeCode(),
+                onTapeLocation.getFilePosition(),
+                archiveEntity.getArchiveId(),
+                bucketId,
+                fileBucketId,
+                archiveEntity.getSize()
+            );
             readOrders.add(readOrder);
         }
         return readOrders;
@@ -446,15 +514,18 @@ public class AccessRequestManager {
             readWriteQueue.addIfAbsent(
                 Arrays.asList(
                     new QueryCriteria(ReadOrder.FILE_NAME, readOrder.getFileName(), QueryCriteriaOperator.EQ),
-                    new QueryCriteria(ReadOrder.MESSAGE_TYPE, QueueMessageType.ReadOrder.name(),
-                        QueryCriteriaOperator.EQ)),
-                readOrder);
+                    new QueryCriteria(
+                        ReadOrder.MESSAGE_TYPE,
+                        QueueMessageType.ReadOrder.name(),
+                        QueryCriteriaOperator.EQ
+                    )
+                ),
+                readOrder
+            );
         }
     }
 
-    public void updateAccessRequestWhenArchiveReady(String readyArchiveId)
-        throws AccessRequestReferentialException {
-
+    public void updateAccessRequestWhenArchiveReady(String readyArchiveId) throws AccessRequestReferentialException {
         List<TapeAccessRequestReferentialEntity> accessRequestEntities =
             this.accessRequestReferentialRepository.findByUnavailableArchiveId(readyArchiveId);
         for (TapeAccessRequestReferentialEntity accessRequestEntity : accessRequestEntities) {
@@ -462,11 +533,11 @@ public class AccessRequestManager {
         }
     }
 
-    private void updateAccessRequestWithReadyArchiveId(String readyArchiveId,
-        TapeAccessRequestReferentialEntity accessRequestEntity) throws AccessRequestReferentialException {
-
+    private void updateAccessRequestWithReadyArchiveId(
+        String readyArchiveId,
+        TapeAccessRequestReferentialEntity accessRequestEntity
+    ) throws AccessRequestReferentialException {
         for (int nbTry = 0; nbTry < MAX_RETRIES; nbTry++) {
-
             boolean updateSucceeded = tryUpdateAccessRequestWithReadyArchiveId(readyArchiveId, accessRequestEntity);
             if (updateSucceeded) {
                 return;
@@ -476,8 +547,8 @@ public class AccessRequestManager {
             Uninterruptibles.sleepUninterruptibly(RandomUtils.nextInt(10, 1000), TimeUnit.MILLISECONDS);
 
             // Retry update last access request
-            Optional<TapeAccessRequestReferentialEntity> refreshedAccessRequestEntity
-                = this.accessRequestReferentialRepository.findByRequestId(accessRequestEntity.getRequestId());
+            Optional<TapeAccessRequestReferentialEntity> refreshedAccessRequestEntity =
+                this.accessRequestReferentialRepository.findByRequestId(accessRequestEntity.getRequestId());
             if (refreshedAccessRequestEntity.isEmpty()) {
                 LOGGER.info("Request id " + accessRequestEntity.getRequestId() + " deleted meanwhile.");
                 return;
@@ -486,14 +557,22 @@ public class AccessRequestManager {
             accessRequestEntity = refreshedAccessRequestEntity.get();
         }
 
-        throw new AccessRequestReferentialException("Could not update accessRequest " +
-            accessRequestEntity.getRequestId() + ". Aborting after " + MAX_RETRIES + " unsuccessful retries");
+        throw new AccessRequestReferentialException(
+            "Could not update accessRequest " +
+            accessRequestEntity.getRequestId() +
+            ". Aborting after " +
+            MAX_RETRIES +
+            " unsuccessful retries"
+        );
     }
 
-    private boolean tryUpdateAccessRequestWithReadyArchiveId(String readyArchiveId,
-        TapeAccessRequestReferentialEntity accessRequestEntity)
-        throws AccessRequestReferentialException {
-        List<String> updatedUnavailableArchiveIds = accessRequestEntity.getUnavailableArchiveIds().stream()
+    private boolean tryUpdateAccessRequestWithReadyArchiveId(
+        String readyArchiveId,
+        TapeAccessRequestReferentialEntity accessRequestEntity
+    ) throws AccessRequestReferentialException {
+        List<String> updatedUnavailableArchiveIds = accessRequestEntity
+            .getUnavailableArchiveIds()
+            .stream()
             .filter(archiveId -> !archiveId.equals(readyArchiveId))
             .collect(Collectors.toList());
         int updatedVersion = accessRequestEntity.getVersion() + 1;
@@ -510,18 +589,25 @@ public class AccessRequestManager {
         }
 
         TapeAccessRequestReferentialEntity updatedAccessRequestEntity = new TapeAccessRequestReferentialEntity(
-            accessRequestEntity.getRequestId(), accessRequestEntity.getContainerName(),
-            accessRequestEntity.getObjectNames(), accessRequestEntity.getCreationDate(), updatedReadyDate,
-            updatedExpirationDate, updatedPurgeDate, updatedUnavailableArchiveIds, accessRequestEntity.getTenant(),
-            updatedVersion);
+            accessRequestEntity.getRequestId(),
+            accessRequestEntity.getContainerName(),
+            accessRequestEntity.getObjectNames(),
+            accessRequestEntity.getCreationDate(),
+            updatedReadyDate,
+            updatedExpirationDate,
+            updatedPurgeDate,
+            updatedUnavailableArchiveIds,
+            accessRequestEntity.getTenant(),
+            updatedVersion
+        );
 
         return this.accessRequestReferentialRepository.updateAccessRequest(
-            updatedAccessRequestEntity,
-            accessRequestEntity.getVersion());
+                updatedAccessRequestEntity,
+                accessRequestEntity.getVersion()
+            );
     }
 
     private void accessRequestCleanupTask() {
-
         String initialThreadName = Thread.currentThread().getName();
         try {
             Thread.currentThread().setName(initialThreadName + "-AccessRequestCleanupThread");
@@ -531,7 +617,6 @@ public class AccessRequestManager {
 
             // Delete expired access requests
             deleteExpiredAccessRequests();
-
         } catch (Exception e) {
             LOGGER.error("An error occurred during access request cleanup", e);
         } finally {
@@ -549,28 +634,31 @@ public class AccessRequestManager {
         // Deduplicate archiveIds
         Set<Pair<String, String>> fileBucketIdArchiveIdPairs = new HashSet<>();
         for (TapeAccessRequestReferentialEntity accessRequest : nonReadyAccessRequests) {
-            String fileBucketId = this.bucketTopologyHelper.getFileBucketFromContainerName(
-                accessRequest.getContainerName());
+            String fileBucketId =
+                this.bucketTopologyHelper.getFileBucketFromContainerName(accessRequest.getContainerName());
             for (String archiveId : accessRequest.getUnavailableArchiveIds()) {
                 fileBucketIdArchiveIdPairs.add(ImmutablePair.of(fileBucketId, archiveId));
             }
         }
 
-        List<String> actuallyReadyArchiveIds = fileBucketIdArchiveIdPairs.stream()
+        List<String> actuallyReadyArchiveIds = fileBucketIdArchiveIdPairs
+            .stream()
             .filter(i -> this.archiveCacheStorage.containsArchive(i.getLeft(), i.getRight()))
             .map(Pair::getRight)
             .collect(Collectors.toList());
 
         // Update access requests
         for (String actuallyReadyArchiveId : actuallyReadyArchiveIds) {
-            LOGGER.warn(" ArchiveId: " + actuallyReadyArchiveId +
-                "is actually ready. Fixing non updated access requests statuses");
+            LOGGER.warn(
+                " ArchiveId: " +
+                actuallyReadyArchiveId +
+                "is actually ready. Fixing non updated access requests statuses"
+            );
             updateAccessRequestWhenArchiveReady(actuallyReadyArchiveId);
         }
     }
 
     private void deleteExpiredAccessRequests() throws AccessRequestReferentialException {
-
         LOGGER.info("Cleaning-up expired access requests");
         List<TapeAccessRequestReferentialEntity> deletedAccessRequests =
             accessRequestReferentialRepository.cleanupAndGetExpiredAccessRequests();
@@ -581,7 +669,6 @@ public class AccessRequestManager {
 
     private void cancelReadOrder(TapeAccessRequestReferentialEntity deletedAccessRequest)
         throws QueueException, ArchiveReferentialException, AccessRequestReferentialException {
-
         Set<String> archiveIdsToCheck = new HashSet<>(deletedAccessRequest.getUnavailableArchiveIds());
 
         if (archiveIdsToCheck.isEmpty()) {
@@ -592,10 +679,16 @@ public class AccessRequestManager {
             accessRequestReferentialRepository.excludeArchiveIdsStillRequiredByAccessRequests(archiveIdsToCheck);
 
         for (String archiveId : archiveIdsToCancel) {
-            readWriteQueue.tryCancelIfNotStarted(Arrays.asList(
-                new QueryCriteria(ReadOrder.FILE_NAME, archiveId, QueryCriteriaOperator.EQ),
-                new QueryCriteria(ReadOrder.MESSAGE_TYPE, QueueMessageType.ReadOrder.name(),
-                    QueryCriteriaOperator.EQ)));
+            readWriteQueue.tryCancelIfNotStarted(
+                Arrays.asList(
+                    new QueryCriteria(ReadOrder.FILE_NAME, archiveId, QueryCriteriaOperator.EQ),
+                    new QueryCriteria(
+                        ReadOrder.MESSAGE_TYPE,
+                        QueueMessageType.ReadOrder.name(),
+                        QueryCriteriaOperator.EQ
+                    )
+                )
+            );
         }
 
         // Double check concurrent access request creation
@@ -606,7 +699,6 @@ public class AccessRequestManager {
 
     private void createReadOrderIfConcurrentAccessRequestCreated(String archiveId)
         throws AccessRequestReferentialException, ArchiveReferentialException, QueueException {
-
         List<TapeAccessRequestReferentialEntity> accessRequests =
             this.accessRequestReferentialRepository.findByUnavailableArchiveId(archiveId);
         if (accessRequests.isEmpty()) {
@@ -627,17 +719,21 @@ public class AccessRequestManager {
             throw new IllegalStateException("Archive id not found: " + archiveId);
         }
 
-        if (!(tapeArchiveReferentialEntity.get()
-            .getLocation() instanceof TapeLibraryOnTapeArchiveStorageLocation)) {
-            throw new IllegalStateException(
-                "Archive " + archiveId + " expected to be on tape");
+        if (!(tapeArchiveReferentialEntity.get().getLocation() instanceof TapeLibraryOnTapeArchiveStorageLocation)) {
+            throw new IllegalStateException("Archive " + archiveId + " expected to be on tape");
         }
 
         TapeLibraryOnTapeArchiveStorageLocation tapeLocation =
             (TapeLibraryOnTapeArchiveStorageLocation) tapeArchiveReferentialEntity.get().getLocation();
 
-        ReadOrder readOrder = new ReadOrder(tapeLocation.getTapeCode(), tapeLocation.getFilePosition(), archiveId,
-            bucket, fileBucketId, tapeArchiveReferentialEntity.get().getSize());
+        ReadOrder readOrder = new ReadOrder(
+            tapeLocation.getTapeCode(),
+            tapeLocation.getFilePosition(),
+            archiveId,
+            bucket,
+            fileBucketId,
+            tapeArchiveReferentialEntity.get().getSize()
+        );
         addReadOrdersToQueue(List.of(readOrder));
     }
 
@@ -659,12 +755,14 @@ public class AccessRequestManager {
 
     private String computeExpirationDate(LocalDateTime now) {
         return LocalDateUtil.getFormattedDateForMongo(
-            now.plus(this.accessRequestExpirationDelay, this.accessRequestExpirationUnit.toChronoUnit()));
+            now.plus(this.accessRequestExpirationDelay, this.accessRequestExpirationUnit.toChronoUnit())
+        );
     }
 
     private String computePurgeDate(LocalDateTime now) {
         return LocalDateUtil.getFormattedDateForMongo(
-            now.plus(this.accessRequestPurgeDelay, this.accessRequestPurgeUnit.toChronoUnit()));
+            now.plus(this.accessRequestPurgeDelay, this.accessRequestPurgeUnit.toChronoUnit())
+        );
     }
 
     /**
@@ -683,9 +781,7 @@ public class AccessRequestManager {
      * @param accessRequestId the Access Request Id to check
      * @throws IllegalArgumentException if Access Request format is invalid
      */
-    private static void checkAccessRequestIdFormat(String accessRequestId)
-        throws IllegalArgumentException {
-
+    private static void checkAccessRequestIdFormat(String accessRequestId) throws IllegalArgumentException {
         if (StringUtils.isEmpty(accessRequestId)) {
             throw new IllegalArgumentException("Invalid accessRequestId '" + accessRequestId + "'. Null or empty.");
         }

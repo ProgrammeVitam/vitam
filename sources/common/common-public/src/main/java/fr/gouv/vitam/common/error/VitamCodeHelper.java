@@ -80,10 +80,12 @@ public class VitamCodeHelper {
         if (code.length() != VITAM_CODE_SIZE || !VitamCodeHelper.isAlphanumericCode(code)) {
             throw new IllegalArgumentException("Code must have six characters alphanumerics");
         }
-        final ServiceName service =
-            ServiceName.getFromCode(code.substring(START_SERVICE_INDEX, END_SERVICE_START_DOMAIN_INDEX));
-        final DomainName domain =
-            DomainName.getFromCode(code.substring(END_SERVICE_START_DOMAIN_INDEX, END_DOMAIN_START_ITEM_INDEX));
+        final ServiceName service = ServiceName.getFromCode(
+            code.substring(START_SERVICE_INDEX, END_SERVICE_START_DOMAIN_INDEX)
+        );
+        final DomainName domain = DomainName.getFromCode(
+            code.substring(END_SERVICE_START_DOMAIN_INDEX, END_DOMAIN_START_ITEM_INDEX)
+        );
         final String item = code.substring(END_DOMAIN_START_ITEM_INDEX, END_ITEM_INDEX);
 
         return getFrom(service, domain, item);
@@ -101,14 +103,17 @@ public class VitamCodeHelper {
      */
     public static VitamCode getFrom(ServiceName service, DomainName domain, String item) {
         for (final VitamCode vitamCode : VitamCode.values()) {
-            if (vitamCode.getService().equals(service) && vitamCode.getDomain().equals(domain) && vitamCode.getItem()
-                .equals(item)) {
+            if (
+                vitamCode.getService().equals(service) &&
+                vitamCode.getDomain().equals(domain) &&
+                vitamCode.getItem().equals(item)
+            ) {
                 return vitamCode;
             }
         }
         throw new IllegalArgumentException(
-            "Cannot find VitamCode from {" + service.getCode() + domain.getCode() + item + "} " +
-                "code");
+            "Cannot find VitamCode from {" + service.getCode() + domain.getCode() + item + "} " + "code"
+        );
     }
 
     /**
@@ -274,8 +279,11 @@ public class VitamCodeHelper {
      * @param clasz the class type
      * @return the vitamError
      */
-    public static <T> VitamError<T> toVitamError(VitamCode vitamCode, String description,
-        @SuppressWarnings("unused") Class<T> clasz) {
+    public static <T> VitamError<T> toVitamError(
+        VitamCode vitamCode,
+        String description,
+        @SuppressWarnings("unused") Class<T> clasz
+    ) {
         return new VitamError<T>(VitamCodeHelper.getCode(vitamCode))
             .setContext(vitamCode.getService().getName())
             .setState(vitamCode.getDomain().getName())

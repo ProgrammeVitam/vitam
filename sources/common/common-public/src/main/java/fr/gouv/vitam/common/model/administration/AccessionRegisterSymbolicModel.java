@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.model.ModelConstants;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AccessionRegisterSymbolicModel {
+
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
 

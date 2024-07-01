@@ -51,6 +51,7 @@ import java.util.function.Consumer;
  * abstract class for multi query request
  */
 public abstract class RequestMultiple extends AbstractRequest {
+
     protected Set<String> roots = new HashSet<>();
     protected List<Query> queries = new ArrayList<>();
     protected List<Facet> facets = new ArrayList<>();
@@ -61,12 +62,14 @@ public abstract class RequestMultiple extends AbstractRequest {
      */
     public final RequestMultiple resetQueries() {
         if (queries != null) {
-            queries.forEach(new Consumer<Query>() {
-                @Override
-                public void accept(Query t) {
-                    t.clean();
+            queries.forEach(
+                new Consumer<Query>() {
+                    @Override
+                    public void accept(Query t) {
+                        t.clean();
+                    }
                 }
-            });
+            );
             queries.clear();
         }
         return this;
@@ -98,26 +101,22 @@ public abstract class RequestMultiple extends AbstractRequest {
      * @return this Request
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final RequestMultiple addQueries(final Query... queries)
-        throws InvalidCreateOperationException {
+    public final RequestMultiple addQueries(final Query... queries) throws InvalidCreateOperationException {
         for (final Query query : queries) {
             ParametersChecker.checkParameter("Query is a mandatory parameter", query);
             if (!query.isReady()) {
-                throw new InvalidCreateOperationException(
-                    "Query is not ready to be added: " + query.getCurrentQuery());
+                throw new InvalidCreateOperationException("Query is not ready to be added: " + query.getCurrentQuery());
             }
             this.queries.add(query);
         }
         return this;
     }
 
-
     @Override
     public RequestMultiple setQuery(Query query) throws InvalidCreateOperationException {
         ParametersChecker.checkParameter("Query is a mandatory parameter", query);
         if (!query.isReady()) {
-            throw new InvalidCreateOperationException(
-                "Query is not ready to be added: " + query.getCurrentQuery());
+            throw new InvalidCreateOperationException("Query is not ready to be added: " + query.getCurrentQuery());
         }
         queries = new ArrayList<>();
         queries.add(query);
@@ -129,8 +128,7 @@ public abstract class RequestMultiple extends AbstractRequest {
      * @return this Request
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final RequestMultiple addRoots(final String... roots)
-        throws InvalidParseOperationException {
+    public final RequestMultiple addRoots(final String... roots) throws InvalidParseOperationException {
         for (final String root : roots) {
             GlobalDatas.sanityParameterCheck(root);
             this.roots.add(root);
@@ -160,8 +158,7 @@ public abstract class RequestMultiple extends AbstractRequest {
             final ArrayNode rootNode = (ArrayNode) JsonHandler.getFromString(roots);
             return addRoots(rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException("Error while parsing Array of Roots",
-                e);
+            throw new InvalidParseOperationException("Error while parsing Array of Roots", e);
         }
     }
 
@@ -267,7 +264,6 @@ public abstract class RequestMultiple extends AbstractRequest {
         return false;
     }
 
-
     /**
      * default implements of getProjection
      */
@@ -302,8 +298,6 @@ public abstract class RequestMultiple extends AbstractRequest {
         return Collections.emptyList();
     }
 
-
-
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -314,6 +308,4 @@ public abstract class RequestMultiple extends AbstractRequest {
         builder.append(super.toString()).append("\n\tRoots: ").append(roots);
         return builder.toString();
     }
-
-
 }

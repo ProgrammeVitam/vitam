@@ -43,7 +43,6 @@ public class GriffinByFormatTest {
 
     @Test
     public void shouldGenerateGriffinByFormat() throws InvalidParseOperationException, FileNotFoundException {
-
         File resourceFile = PropertiesUtils.getResourceFile("preservation/preservation.json");
 
         GriffinByFormat griffinByFormat = getFromFile(resourceFile, GriffinByFormat.class);
@@ -52,6 +51,5 @@ public class GriffinByFormatTest {
         assertThat(griffinByFormat.getTimeOut()).isEqualTo(20);
         assertThat(griffinByFormat.getActionDetail().get(0).getType()).isEqualTo(ANALYSE);
         assertThat(griffinByFormat.getActionDetail().get(1).getType()).isEqualTo(GENERATE);
-
     }
 }

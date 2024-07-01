@@ -48,6 +48,7 @@ import java.util.Collection;
  * <p>
  */
 public class PaginationHelper {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PaginationHelper.class);
     private static final String PARAMETERS = "PaginationHelper parameters";
     private static final String RESULT_SESSION_ATTRIBUTE = "$results";
@@ -68,7 +69,6 @@ public class PaginationHelper {
      * @throws VitamException
      */
     public void setResult(String sessionId, JsonNode result) throws VitamException {
-
         ParametersChecker.checkParameter(PARAMETERS, sessionId, result);
         final Session session = getSession(sessionId);
         session.setAttribute(RESULT_SESSION_ATTRIBUTE, result);
@@ -81,16 +81,13 @@ public class PaginationHelper {
      * @throws VitamException
      */
     public JsonNode getResult(String sessionId, OffsetBasedPagination pagination) throws VitamException {
-
         final Session session = getSession(sessionId);
         final ObjectNode result = (ObjectNode) session.getAttribute(RESULT_SESSION_ATTRIBUTE);
         if (result != null) {
             return paginate(result, pagination);
         }
         return JsonHandler.createObjectNode();
-
     }
-
 
     /**
      * @param result
@@ -99,7 +96,6 @@ public class PaginationHelper {
      * @throws VitamException
      */
     public JsonNode getResult(JsonNode result, OffsetBasedPagination pagination) throws VitamException {
-
         final ObjectNode jsonResult = (ObjectNode) result;
         return paginate(jsonResult, pagination);
     }
@@ -125,12 +121,14 @@ public class PaginationHelper {
 
     public JsonNode paginate(ObjectNode result, OffsetBasedPagination pagination)
         throws InvalidParseOperationException {
-
         final ObjectNode jsonResult = (ObjectNode) JsonHandler.toJsonNode(result);
         JsonNode resultsPagination;
         if (pagination != null) {
-            resultsPagination = JsonHandler.getSubArrayNode((ArrayNode) jsonResult.get(JSON_NODE_RESULT),
-                pagination.getOffset(), pagination.getLimit());
+            resultsPagination = JsonHandler.getSubArrayNode(
+                (ArrayNode) jsonResult.get(JSON_NODE_RESULT),
+                pagination.getOffset(),
+                pagination.getLimit()
+            );
         } else {
             resultsPagination = jsonResult.get(JSON_NODE_RESULT);
         }
@@ -148,5 +146,4 @@ public class PaginationHelper {
 
         return jsonResult;
     }
-
 }

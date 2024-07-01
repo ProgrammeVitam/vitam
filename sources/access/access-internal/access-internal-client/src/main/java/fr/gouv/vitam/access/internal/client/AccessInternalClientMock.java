@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.access.internal.client;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -61,7 +60,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
  * Mock client implementation for access
  */
@@ -70,10 +68,13 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     @Override
-    public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
-        throws InvalidParseOperationException {
-        return new RequestResponseOK().addResult(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+    public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException {
+        return new RequestResponseOK()
+            .addResult(
+                JsonHandler.getFromString(
+                    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"
+                )
+            );
     }
 
     @Override
@@ -91,22 +92,33 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     @Override
     public RequestResponse<JsonNode> selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException {
-        return new RequestResponseOK().addResult(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return new RequestResponseOK()
+            .addResult(
+                JsonHandler.getFromString(
+                    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"
+                )
+            );
     }
 
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException {
-        return new RequestResponseOK().addResult(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return new RequestResponseOK()
+            .addResult(
+                JsonHandler.getFromString(
+                    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"
+                )
+            );
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
-        throws InvalidParseOperationException {
-        return new RequestResponseOK().addResult(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+    public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery) throws InvalidParseOperationException {
+        return new RequestResponseOK()
+            .addResult(
+                JsonHandler.getFromString(
+                    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"
+                )
+            );
     }
 
     /**
@@ -126,19 +138,26 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throw new IllegalStateException("Stop using mocks in production");
     }
 
-
     @Override
     public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException {
-        return new RequestResponseOK().addResult(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-                "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}"));
+        return new RequestResponseOK()
+            .addResult(
+                JsonHandler.getFromString(
+                    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
+                    "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}"
+                )
+            );
     }
 
     @Override
     public Response getObject(String objectGroupId, String usage, int version, String unitId) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
@@ -148,9 +167,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl, boolean isSliced,
-        boolean isCrossTenant)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
+    public RequestResponse<JsonNode> selectOperationById(
+        String processId,
+        JsonNode queryDsl,
+        boolean isSliced,
+        boolean isCrossTenant
+    ) throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
@@ -179,8 +201,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @Override
     public Response downloadTraceabilityFile(String operationId) {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
@@ -221,9 +247,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery)
-        throws InvalidParseOperationException {
-
+    public RequestResponse<JsonNode> selectObjects(JsonNode selectQuery) throws InvalidParseOperationException {
         JsonNode res;
         try {
             res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultGot.json"));
@@ -279,14 +303,18 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Optional<AccessRequestReference> createObjectAccessRequest(String idObjectGroup, String qualifier,
-        int version) {
+    public Optional<AccessRequestReference> createObjectAccessRequest(
+        String idObjectGroup,
+        String qualifier,
+        int version
+    ) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
     public List<StatusByAccessRequest> checkAccessRequestStatuses(
-        List<AccessRequestReference> accessRequestReferences) {
+        List<AccessRequestReference> accessRequestReferences
+    ) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 

@@ -47,8 +47,6 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 
-
-
 /**
  * This resource manage Agencys create, update, find, ...
  */
@@ -91,7 +89,6 @@ public class AgenciesResourceMock {
         return mock.post();
     }
 
-
     @Path(AGENCIES_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
@@ -103,8 +100,7 @@ public class AgenciesResourceMock {
     protected void consumeAndCloseStream(InputStream stream) {
         try {
             if (null != stream) {
-                while (stream.read() > 0) {
-                }
+                while (stream.read() > 0) {}
                 stream.close();
             }
         } catch (IOException e) {
@@ -112,4 +108,3 @@ public class AgenciesResourceMock {
         }
     }
 }
-

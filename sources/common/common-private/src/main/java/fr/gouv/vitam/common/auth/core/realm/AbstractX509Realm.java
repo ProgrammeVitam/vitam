@@ -38,8 +38,7 @@ import org.apache.shiro.realm.AuthorizingRealm;
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
-public abstract class AbstractX509Realm
-    extends AuthorizingRealm {
+public abstract class AbstractX509Realm extends AuthorizingRealm {
 
     private String grantedKeyStoreName;
     private String grantedKeyStorePassphrase;
@@ -52,8 +51,8 @@ public abstract class AbstractX509Realm
     }
 
     protected abstract X509AuthenticationInfo doGetX509AuthenticationInfo(
-        X509AuthenticationToken x509AuthenticationToken);
-
+        X509AuthenticationToken x509AuthenticationToken
+    );
 
     /**
      * @return the grantedKeyStoreName

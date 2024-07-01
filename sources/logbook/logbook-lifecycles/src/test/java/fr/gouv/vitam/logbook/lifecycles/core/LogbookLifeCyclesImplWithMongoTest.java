@@ -84,15 +84,16 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     static LogbookDbAccess mongoDbAccess;
     private static JunitHelper junitHelper;
 
@@ -106,101 +107,129 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private static final List<Integer> tenantList = Collections.singletonList(0);
 
     private static final ElasticsearchLogbookIndexManager indexManager =
-        LogbookCollectionsTestUtils.createTestIndexManager(
-            tenantList, Collections.emptyMap()
-        );
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     // ObjectGroup
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
 
-    private final static GUID eip = GUIDFactory.newEventGUID(tenantId);
-    private final static GUID iop = GUIDFactory.newEventGUID(tenantId);
-    private final static GUID ioL = GUIDFactory.newEventGUID(tenantId);
-    private final static GUID eip3 = GUIDFactory.newEventGUID(tenantId);
+    private static final GUID eip = GUIDFactory.newEventGUID(tenantId);
+    private static final GUID iop = GUIDFactory.newEventGUID(tenantId);
+    private static final GUID ioL = GUIDFactory.newEventGUID(tenantId);
+    private static final GUID eip3 = GUIDFactory.newEventGUID(tenantId);
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException, VitamException {
         junitHelper = JunitHelper.getInstance();
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
-        LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
-                esNodes);
+        LogbookConfiguration logbookConfiguration = new LogbookConfiguration(
+            nodes,
+            mongoRule.getMongoDatabase().getName(),
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes
+        );
         VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration, Collections::emptyList, indexManager);
 
         logbookLifeCyclesUnitParametersStart = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip.toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier, eip.toString());
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.objectIdentifier, ioL.toString());
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCyclesUnitParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetail, "outcomeDetail");
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         /**
          * Bad request
          */
         logbookLifeCyclesUnitParametersBAD = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
 
-        logbookLifeCyclesUnitParametersBAD.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip3.toString());
-        logbookLifeCyclesUnitParametersBAD.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCyclesUnitParametersBAD.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCyclesUnitParametersBAD.putParameterValue(LogbookParameterName.eventIdentifier, eip3.toString());
+        logbookLifeCyclesUnitParametersBAD.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCyclesUnitParametersBAD.putParameterValue(LogbookParameterName.objectIdentifier, ioL.toString());
 
         // *****************************object Group************************************
 
-
-        logbookLifeCyclesObjectGroupParametersStart =
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        logbookLifeCyclesObjectGroupParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.STARTED);
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip.toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            eip.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            ioL.toString()
+        );
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCyclesObjectGroupParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetail,
-            "outcomeDetail");
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            "outcomeDetail"
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         /**
          * Bad request
          */
         logbookLifeCyclesObjectGroupParametersBAD = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
 
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip3.toString());
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            eip3.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            ioL.toString()
+        );
     }
 
     @AfterClass
@@ -219,21 +248,25 @@ public class LogbookLifeCyclesImplWithMongoTest {
             logbookLifeCyclesImpl.createUnit(
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-                logbookLifeCyclesUnitParametersStart);
+                logbookLifeCyclesUnitParametersStart
+            );
 
             logbookLifeCyclesImpl.createUnit(
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-                logbookLifeCyclesUnitParametersStart);
+                logbookLifeCyclesUnitParametersStart
+            );
 
             fail("Should failed");
-        } catch (final LogbookAlreadyExistsException e) {
-        }
+        } catch (final LogbookAlreadyExistsException e) {}
 
         // get unit
         final LogbookLifeCycle logbookLifeCycle = logbookLifeCyclesImpl.selectLifeCycleById(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            null, false, LogbookCollections.LIFECYCLE_UNIT);
+            null,
+            false,
+            LogbookCollections.LIFECYCLE_UNIT
+        );
         assertNotNull(logbookLifeCycle);
     }
 
@@ -243,22 +276,27 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl.createUnit(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            logbookLifeCyclesUnitParametersStart);
+            logbookLifeCyclesUnitParametersStart
+        );
 
         // update unit ok
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "ModifiedoutcomeDetailMessage");
+        logbookLifeCyclesUnitParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "ModifiedoutcomeDetailMessage"
+        );
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.OK);
 
         logbookLifeCyclesImpl.updateUnit(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            logbookLifeCyclesUnitParametersStart);
+            logbookLifeCyclesUnitParametersStart
+        );
 
         // Commit the created lifeCycle
         logbookLifeCyclesImpl.commitUnit(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier)
+        );
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -279,7 +317,9 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.createUnit(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-            "bad_id", logbookLifeCyclesUnitParametersStart);
+            "bad_id",
+            logbookLifeCyclesUnitParametersStart
+        );
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -296,7 +336,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl.updateUnit(
             logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.objectIdentifier),
-            logbookLifeCyclesUnitParametersBAD);
+            logbookLifeCyclesUnitParametersBAD
+        );
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -306,8 +347,11 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectLifeCycles(JsonHandler.getFromString(select.getFinalSelect().toString()),
-            true, LogbookCollections.LIFECYCLE_UNIT);
+        logbookLifeCyclesImpl.selectLifeCycles(
+            JsonHandler.getFromString(select.getFinalSelect().toString()),
+            true,
+            LogbookCollections.LIFECYCLE_UNIT
+        );
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -332,26 +376,31 @@ public class LogbookLifeCyclesImplWithMongoTest {
         try {
             // Try to create two objects with the same objectIdentifier
             logbookLifeCyclesImpl.createObjectGroup(
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess
+                ),
                 logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-                logbookLifeCyclesObjectGroupParametersStart);
+                logbookLifeCyclesObjectGroupParametersStart
+            );
 
             logbookLifeCyclesImpl.createObjectGroup(
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess
+                ),
                 logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-                logbookLifeCyclesObjectGroupParametersStart);
+                logbookLifeCyclesObjectGroupParametersStart
+            );
 
             fail("Should fail");
-        } catch (final LogbookAlreadyExistsException e) {
-        }
-
+        } catch (final LogbookAlreadyExistsException e) {}
 
         // get objectgroup
         final LogbookLifeCycle logbookLifeCycle = logbookLifeCyclesImpl.selectLifeCycleById(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
+            null,
+            false,
+            LogbookCollections.LIFECYCLE_OBJECTGROUP
+        );
         assertNotNull(logbookLifeCycle);
     }
 
@@ -360,21 +409,26 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl.createObjectGroup(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            logbookLifeCyclesObjectGroupParametersStart);
+            logbookLifeCyclesObjectGroupParametersStart
+        );
 
         // update objectGroup ok
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "ModifiedoutcomeDetailMessage");
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "ModifiedoutcomeDetailMessage"
+        );
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
         logbookLifeCyclesImpl.updateObjectGroup(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
-            logbookLifeCyclesObjectGroupParametersStart);
+            logbookLifeCyclesObjectGroupParametersStart
+        );
 
         // Commit the created lifeCycle
         logbookLifeCyclesImpl.commitObjectGroup(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier)
+        );
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -382,8 +436,6 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.rollbackObjectGroup("notExist", "notExist");
     }
-
-
 
     @Test(expected = IllegalArgumentException.class)
     public void given_IncoherenceParameters_When_CreateObjectGroup_ThenThrow_IllegalArgumentException()
@@ -406,8 +458,11 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectLifeCycles(JsonHandler.getFromString(select.getFinalSelect().toString()), false,
-            LogbookCollections.LIFECYCLE_OBJECTGROUP);
+        logbookLifeCyclesImpl.selectLifeCycles(
+            JsonHandler.getFromString(select.getFinalSelect().toString()),
+            false,
+            LogbookCollections.LIFECYCLE_OBJECTGROUP
+        );
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -417,5 +472,4 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.selectLifeCycleById("notExist", null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
-
 }

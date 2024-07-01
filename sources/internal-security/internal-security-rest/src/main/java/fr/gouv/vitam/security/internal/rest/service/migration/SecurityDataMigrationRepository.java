@@ -53,35 +53,40 @@ public class SecurityDataMigrationRepository {
     private final MongoCollection<Document> personalCertificateCollection;
 
     public SecurityDataMigrationRepository(MongoDbAccess mongoDbAccess) {
+        this.identityCertificateCollection = mongoDbAccess
+            .getMongoDatabase()
+            .getCollection(IdentityRepository.CERTIFICATE_COLLECTION);
 
-        this.identityCertificateCollection = mongoDbAccess.getMongoDatabase().getCollection(
-            IdentityRepository.CERTIFICATE_COLLECTION);
-
-        this.personalCertificateCollection = mongoDbAccess.getMongoDatabase().getCollection(
-            PersonalRepository.PERSONAL_COLLECTION);
+        this.personalCertificateCollection = mongoDbAccess
+            .getMongoDatabase()
+            .getCollection(PersonalRepository.PERSONAL_COLLECTION);
     }
 
     public void migrateCertificatesData(CertificateStatus certificateStatus) {
-
         addCertificateStateField(identityCertificateCollection, certificateStatus);
         addCertificateStateField(personalCertificateCollection, certificateStatus);
-
     }
 
     /**
      * add field "Status" to certificate's document
      */
-    private void addCertificateStateField(MongoCollection<Document> certificateMongoCollection,
-        CertificateStatus certificateStatus) {
+    private void addCertificateStateField(
+        MongoCollection<Document> certificateMongoCollection,
+        CertificateStatus certificateStatus
+    ) {
+        LOGGER.info(
+            "About to migrate certificates for {} collection",
+            certificateMongoCollection.getNamespace().getFullName()
+        );
 
-        LOGGER.info("About to migrate certificates for {} collection",
-            certificateMongoCollection.getNamespace().getFullName());
+        certificateMongoCollection.updateMany(
+            exists(CertificateBaseModel.STATUS_TAG, false),
+            set(CertificateBaseModel.STATUS_TAG, certificateStatus.name())
+        );
 
-        certificateMongoCollection
-            .updateMany(exists(CertificateBaseModel.STATUS_TAG, false),
-                set(CertificateBaseModel.STATUS_TAG, certificateStatus.name()));
-
-        LOGGER.info("Certificate's record successfully migrated for {} collection",
-            certificateMongoCollection.getNamespace().getFullName());
+        LOGGER.info(
+            "Certificate's record successfully migrated for {} collection",
+            certificateMongoCollection.getNamespace().getFullName()
+        );
     }
 }

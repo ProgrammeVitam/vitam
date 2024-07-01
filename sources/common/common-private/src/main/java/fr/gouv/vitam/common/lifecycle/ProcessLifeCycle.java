@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.common.lifecycle;
 
-
 /**
  * Interface of the private class ServerIdentity
  */
 public interface ProcessLifeCycle {
-
     /**
      * This method is called when the server started
      * Start all process

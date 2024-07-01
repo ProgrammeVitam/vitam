@@ -66,8 +66,9 @@ public class TraceabilityJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -91,14 +92,15 @@ public class TraceabilityJobTest {
     @Test
     @RunWithCustomExecutor
     public void testStorageLogBackupOKThenSuccess() throws Exception {
-
         // Given
         AtomicInteger tenantId = new AtomicInteger();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
             tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
             return new RequestResponseOK<>();
-        }).when(logbookOperationsClient).traceability(any());
+        })
+            .when(logbookOperationsClient)
+            .traceability(any());
 
         // When
         callTraceability.execute(context);
@@ -113,14 +115,11 @@ public class TraceabilityJobTest {
     @Test
     @RunWithCustomExecutor
     public void testStorageLogBackupKOThenException() throws Exception {
-
         // Given
-        doThrow(new LogbookClientServerException("prb"))
-            .when(logbookOperationsClient).traceability(any());
+        doThrow(new LogbookClientServerException("prb")).when(logbookOperationsClient).traceability(any());
 
         // When / Then
-        assertThatThrownBy(() -> callTraceability.execute(context))
-            .isInstanceOf(JobExecutionException.class);
+        assertThatThrownBy(() -> callTraceability.execute(context)).isInstanceOf(JobExecutionException.class);
         verify(logbookOperationsClient).traceability(any());
     }
 }

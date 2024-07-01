@@ -54,24 +54,24 @@ import java.util.List;
  * Worker web server application
  */
 public class WorkerMain {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerMain.class);
 
     private static final String CONF_FILE_NAME = "ingest-internal.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.logbook.port";
 
-
     private final VitamStarter vitamStarter;
 
-    public WorkerMain(String configurationFile)
-        throws IOException {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+    public WorkerMain(String configurationFile) throws IOException {
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
 
         List<ServletContextListener> listeners = new ArrayList<>();
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final WorkerConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
+            final WorkerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
             listeners.add(new WorkerRegistrationListener(configuration));
         }
 
@@ -80,8 +80,14 @@ public class WorkerMain {
             Security.addProvider(provider);
         }
 
-        vitamStarter = new VitamStarter(WorkerConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, listeners, false);
+        vitamStarter = new VitamStarter(
+            WorkerConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class,
+            listeners,
+            false
+        );
     }
 
     /**
@@ -94,21 +100,22 @@ public class WorkerMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
 
             WorkerMain main = new WorkerMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(args[0])) {
-                final WorkerConfiguration configuration =
-                    PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
+                final WorkerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, WorkerConfiguration.class);
                 WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             // Register LogbookLifecycle
-            serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
+            serviceRegistry
+                .register(LogbookLifeCyclesClientFactory.getInstance())
                 // Workspace dependency
                 .register(WorkspaceClientFactory.getInstance())
                 // Metadata dependency
@@ -118,13 +125,15 @@ public class WorkerMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }
     }
-
 
     /**
      * Start application
@@ -161,5 +170,4 @@ public class WorkerMain {
     public VitamStarter getVitamStarter() {
         return vitamStarter;
     }
-
 }

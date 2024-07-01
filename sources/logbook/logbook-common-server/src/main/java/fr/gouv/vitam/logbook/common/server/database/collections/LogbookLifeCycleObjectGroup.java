@@ -35,13 +35,13 @@ import org.bson.Document;
  * Logbook LifeCycle ObjectGroup item
  */
 public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters> {
+
     private static final long serialVersionUID = -5894302547138497837L;
 
     /**
      * use for jackson serialization
      */
-    public LogbookLifeCycleObjectGroup() {
-    }
+    public LogbookLifeCycleObjectGroup() {}
 
     /**
      * Constructor from LogbookLifeCycleParameters
@@ -52,7 +52,6 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     public LogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters parameters) {
         super(parameters);
     }
-
 
     /**
      * Constructor for Codec
@@ -82,9 +81,7 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     }
 
     @Override
-    public VitamDocument<LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters>> newInstance(
-        JsonNode content) {
+    public VitamDocument<LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters>> newInstance(JsonNode content) {
         return new LogbookLifeCycleObjectGroup(content);
     }
-
 }

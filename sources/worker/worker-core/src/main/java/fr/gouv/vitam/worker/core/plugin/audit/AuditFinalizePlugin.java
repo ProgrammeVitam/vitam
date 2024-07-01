@@ -82,18 +82,17 @@ public class AuditFinalizePlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    AuditFinalizePlugin(AuditReportService auditReportService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    AuditFinalizePlugin(
+        AuditReportService auditReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.auditReportService = auditReportService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             generateAuditReportToWorkspace(param, handler);
 
             storeReportToOffers(param.getContainerName());
@@ -110,7 +109,6 @@ public class AuditFinalizePlugin extends ActionHandler {
 
     private void generateAuditReportToWorkspace(WorkerParameters param, HandlerIO handler)
         throws ProcessingStatusException, ProcessingException {
-
         if (auditReportService.isReportWrittenInWorkspace(param.getContainerName())) {
             // Already stored in workspace (idempotency)
             return;
@@ -144,8 +142,10 @@ public class AuditFinalizePlugin extends ActionHandler {
 
             ArrayNode events = (ArrayNode) logbookOperation.get("events");
             if (events.size() <= 2) {
-                throw new ProcessingStatusException(StatusCode.FATAL,
-                    "Could not generate report summary : not enougth events");
+                throw new ProcessingStatusException(
+                    StatusCode.FATAL,
+                    "Could not generate report summary : not enougth events"
+                );
             }
             JsonNode lastEvent = events.get(events.size() - 2);
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -155,11 +155,19 @@ public class AuditFinalizePlugin extends ActionHandler {
             String outDetail = lastEvent.get(LogbookEvent.OUT_DETAIL).asText();
             String outMsg = lastEvent.get(LogbookEvent.OUT_MESSG).asText();
             JsonNode evDetData = JsonHandler.getFromString(lastEvent.get(LogbookEvent.EV_DET_DATA).asText());
-            JsonNode rSI =
-                JsonHandler.getFromString(logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText());
-            OperationSummary operationSummary =
-                new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
-                    evDetData);
+            JsonNode rSI = JsonHandler.getFromString(
+                logbookOperation.get(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER).asText()
+            );
+            OperationSummary operationSummary = new OperationSummary(
+                tenantId,
+                evId,
+                evType,
+                outcome,
+                outDetail,
+                outMsg,
+                rSI,
+                evDetData
+            );
             return operationSummary;
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate report", e);
@@ -178,8 +186,10 @@ public class AuditFinalizePlugin extends ActionHandler {
     private JsonNode getLogbookOperation(String operationId) throws ProcessingStatusException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookResponse = client.selectOperationById(operationId);
-            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
-                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
+            if (
+                logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
+                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()
+            ) {
                 ArrayNode results = (ArrayNode) logbookResponse.get(RequestResponseOK.TAG_RESULTS);
                 if (results.size() > 0) {
                     return results.get(0);

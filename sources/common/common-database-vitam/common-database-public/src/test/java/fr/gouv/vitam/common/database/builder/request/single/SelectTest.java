@@ -70,6 +70,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SelectTest {
+
     @Test
     public void testAddLimitFilter() {
         final Select select = new Select();
@@ -161,8 +162,8 @@ public class SelectTest {
         assertTrue(select.query == null);
         try {
             select.setQuery(
-                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                    .setRelativeDepthLimit(5));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA")).setRelativeDepthLimit(5)
+            );
             assertNotNull(select.getQuery());
             select.setLimitFilter(10, 10);
             try {
@@ -199,15 +200,18 @@ public class SelectTest {
         final Select select = new Select();
         select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
         select.parseLimitFilter("{$limit : 5}");
-        assertEquals("{\"maclef1\":1,\"maclef2\":-1}",
-            select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString());
+        assertEquals(
+            "{\"maclef1\":1,\"maclef2\":-1}",
+            select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString()
+        );
         assertEquals("5", select.getFilter().get(SELECTFILTER.LIMIT.exactToken()).toString());
         select.resetFilter();
         select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");
         select.parseProjection("{$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }");
         assertTrue(select.getAllProjection());
         assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1}}", select.getProjection().toString());
-        final String s = "QUERY: Requests: \n" +
+        final String s =
+            "QUERY: Requests: \n" +
             "\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}\n" +
             "\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1}}";
         assertEquals(s, select.toString());
@@ -218,29 +222,35 @@ public class SelectTest {
         final Select select = new Select();
         select.setQuery(path("id1"));
         select.setQuery(
-            and().add(exists("mavar1"), missing("mavar2"), isNull("mavar3"),
-                or().add(in("mavar4", 1, 2).add("maval1"),
-                    nin("mavar5", "maval2").add(true)),
-                not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8),
-                    gte("mavar7", 8), lt("mavar7", 8)),
-                not().add(eq("mavar8", 5), ne("mavar9", "ab"),
-                    range("mavar10", 12, true, 20, true)),
-                matchPhrase("mavar11", "ceci est une phrase"),
-                matchPhrasePrefix("mavar11", "ceci est une phrase")
-                    .setMatchMaxExpansions(10),
-                flt("ceci est une phrase", "mavar12", "mavar13"),
-                mlt("ceci est une phrase", "mavar12", "mavar13"),
-                and().add(search("mavar13", "ceci est une phrase"),
-                    wildcard("mavar13", "ceci"),
-                    regex("mavar14", "^start?aa.*")),
-                and().add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")),
-                and().add(term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
-                    or().add(eq("mavar19", "abcd"),
-                        match("mavar18", "quelques mots"))),
-                regex("mavar14", "^start?aa.*")));
+            and()
+                .add(
+                    exists("mavar1"),
+                    missing("mavar2"),
+                    isNull("mavar3"),
+                    or().add(in("mavar4", 1, 2).add("maval1"), nin("mavar5", "maval2").add(true)),
+                    not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8), gte("mavar7", 8), lt("mavar7", 8)),
+                    not().add(eq("mavar8", 5), ne("mavar9", "ab"), range("mavar10", 12, true, 20, true)),
+                    matchPhrase("mavar11", "ceci est une phrase"),
+                    matchPhrasePrefix("mavar11", "ceci est une phrase").setMatchMaxExpansions(10),
+                    flt("ceci est une phrase", "mavar12", "mavar13"),
+                    mlt("ceci est une phrase", "mavar12", "mavar13"),
+                    and()
+                        .add(
+                            search("mavar13", "ceci est une phrase"),
+                            wildcard("mavar13", "ceci"),
+                            regex("mavar14", "^start?aa.*")
+                        ),
+                    and().add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")),
+                    and()
+                        .add(
+                            term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
+                            or().add(eq("mavar19", "abcd"), match("mavar18", "quelques mots"))
+                        ),
+                    regex("mavar14", "^start?aa.*")
+                )
+        );
         select.setLimitFilter(100, 1000).addHintFilter(FILTERARGS.CACHE.exactToken());
-        select.addOrderByAscFilter("maclef1")
-            .addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
+        select.addOrderByAscFilter("maclef1").addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
         select.addUsedProjection("#dua", "#all");
         assertNotNull(select.getFinalSelect());
         assertTrue(select.getAllProjection());

@@ -59,8 +59,13 @@ public class TapeArchiveReferentialEntity {
         // Empty constructor for deserialization
     }
 
-    public TapeArchiveReferentialEntity(String archiveId,
-        TapeLibraryArchiveStorageLocation location, Long size, String digestValue, String lastUpdateDate) {
+    public TapeArchiveReferentialEntity(
+        String archiveId,
+        TapeLibraryArchiveStorageLocation location,
+        Long size,
+        String digestValue,
+        String lastUpdateDate
+    ) {
         this.archiveId = archiveId;
         this.location = location;
         this.size = size;
@@ -68,9 +73,14 @@ public class TapeArchiveReferentialEntity {
         this.lastUpdateDate = lastUpdateDate;
     }
 
-    public TapeArchiveReferentialEntity(String archiveId,
-        TapeLibraryArchiveStorageLocation location, EntryType entryTape, Long size, String digestValue,
-        String lastUpdateDate) {
+    public TapeArchiveReferentialEntity(
+        String archiveId,
+        TapeLibraryArchiveStorageLocation location,
+        EntryType entryTape,
+        Long size,
+        String digestValue,
+        String lastUpdateDate
+    ) {
         this.archiveId = archiveId;
         this.location = location;
         this.entryTape = entryTape;
@@ -92,8 +102,7 @@ public class TapeArchiveReferentialEntity {
         return location;
     }
 
-    public TapeArchiveReferentialEntity setLocation(
-        TapeLibraryArchiveStorageLocation location) {
+    public TapeArchiveReferentialEntity setLocation(TapeLibraryArchiveStorageLocation location) {
         this.location = location;
         return this;
     }

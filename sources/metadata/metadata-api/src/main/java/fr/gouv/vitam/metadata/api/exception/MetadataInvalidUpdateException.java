@@ -45,7 +45,6 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
         super(message);
     }
 
-
     /**
      * Constructor
      *

@@ -73,5 +73,4 @@ public final class WorkerFactory {
     public Worker create() {
         return new WorkerImpl(pluginLoader);
     }
-
 }

@@ -35,6 +35,7 @@ import java.util.Date;
  * Compare Query
  */
 public class CompareQuery extends Query {
+
     private static final String IS_NOT_AN_COMPARE_QUERY = " is not an Compare Query";
     private static final String QUERY = "Query ";
 
@@ -50,8 +51,7 @@ public class CompareQuery extends Query {
      * @param value of variable
      * @throws InvalidCreateOperationException when not a compare query
      */
-    public CompareQuery(final QUERY compareQuery, final String variableName,
-        final long value)
+    public CompareQuery(final QUERY compareQuery, final String variableName, final long value)
         throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
@@ -67,8 +67,7 @@ public class CompareQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -80,8 +79,7 @@ public class CompareQuery extends Query {
      * @param value of variable
      * @throws InvalidCreateOperationException when not a compare query
      */
-    public CompareQuery(final QUERY compareQuery, final String variableName,
-        final double value)
+    public CompareQuery(final QUERY compareQuery, final String variableName, final double value)
         throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
@@ -96,8 +94,7 @@ public class CompareQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -109,8 +106,7 @@ public class CompareQuery extends Query {
      * @param value of variable
      * @throws InvalidCreateOperationException when not a compare query
      */
-    public CompareQuery(final QUERY compareQuery, final String variableName,
-        final String value)
+    public CompareQuery(final QUERY compareQuery, final String variableName, final String value)
         throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
@@ -125,8 +121,7 @@ public class CompareQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -138,8 +133,7 @@ public class CompareQuery extends Query {
      * @param value of variable
      * @throws InvalidCreateOperationException when not a compare query
      */
-    public CompareQuery(final QUERY compareQuery, final String variableName,
-        final Date value)
+    public CompareQuery(final QUERY compareQuery, final String variableName, final Date value)
         throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
@@ -154,8 +148,7 @@ public class CompareQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 
@@ -167,8 +160,7 @@ public class CompareQuery extends Query {
      * @param value of variable
      * @throws InvalidCreateOperationException when not a compare query
      */
-    public CompareQuery(final QUERY compareQuery, final String variableName,
-        final boolean value)
+    public CompareQuery(final QUERY compareQuery, final String variableName, final boolean value)
         throws InvalidCreateOperationException {
         super();
         switch (compareQuery) {
@@ -183,8 +175,7 @@ public class CompareQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY + compareQuery + IS_NOT_AN_COMPARE_QUERY);
         }
     }
 }

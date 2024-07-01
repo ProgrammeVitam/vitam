@@ -25,12 +25,10 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -48,8 +46,9 @@ import org.quartz.JobExecutionException;
 @DisallowConcurrentExecution
 public class ProcessObsoleteComputedInheritedRulesJob implements Job {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ProcessObsoleteComputedInheritedRulesJob.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ProcessObsoleteComputedInheritedRulesJob.class
+    );
 
     private final MetaDataClientFactory metaDataClientFactory;
 

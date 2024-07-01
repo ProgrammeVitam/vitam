@@ -41,13 +41,13 @@ public class ComputeInheritedRulesFinalizationPluginTest {
 
     @Test
     public void testCleanup() throws Exception {
-
         // Given
         BatchReportClientFactory batchReportClientFactory = mock(BatchReportClientFactory.class);
         BatchReportClient batchReportClient = mock(BatchReportClient.class);
         doReturn(batchReportClient).when(batchReportClientFactory).getClient();
-        ComputeInheritedRulesFinalizationPlugin instance =
-            new ComputeInheritedRulesFinalizationPlugin(batchReportClientFactory);
+        ComputeInheritedRulesFinalizationPlugin instance = new ComputeInheritedRulesFinalizationPlugin(
+            batchReportClientFactory
+        );
 
         WorkerParameters workerParameters = mock(WorkerParameters.class);
         HandlerIO handler = mock(HandlerIO.class);

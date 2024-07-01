@@ -51,8 +51,10 @@ import java.security.cert.CertificateException;
  * GenerateLifecycleTraceabilityAction Plugin
  */
 public abstract class GenerateLifecycleTraceabilityActionPlugin extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GenerateLifecycleTraceabilityActionPlugin.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        GenerateLifecycleTraceabilityActionPlugin.class
+    );
 
     private final TimestampGenerator timestampGenerator;
     private static final String VERIFY_TIMESTAMP_CONF_FILE = "verify-timestamp.conf";
@@ -66,19 +68,27 @@ public abstract class GenerateLifecycleTraceabilityActionPlugin extends ActionHa
         TimeStampSignature timeStampSignature;
         VerifyTimeStampActionConfiguration configuration = null;
         try {
-            configuration =
-                PropertiesUtils.readYaml(PropertiesUtils.findFile(VERIFY_TIMESTAMP_CONF_FILE),
-                    VerifyTimeStampActionConfiguration.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(VERIFY_TIMESTAMP_CONF_FILE),
+                VerifyTimeStampActionConfiguration.class
+            );
         } catch (IOException e) {
             LOGGER.error("Processing exception", e);
         }
         if (configuration != null) {
             try {
                 final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
-                timeStampSignature =
-                    new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
-            } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-                NoSuchAlgorithmException e) {
+                timeStampSignature = new TimeStampSignatureWithKeystore(
+                    file,
+                    configuration.getP12LogbookPassword().toCharArray()
+                );
+            } catch (
+                KeyStoreException
+                | CertificateException
+                | IOException
+                | UnrecoverableKeyException
+                | NoSuchAlgorithmException e
+            ) {
                 LOGGER.error("unable to instantiate TimeStampGenerator", e);
                 // FIXME: Make a specific exception ?
                 throw new RuntimeException(e);
@@ -95,14 +105,16 @@ public abstract class GenerateLifecycleTraceabilityActionPlugin extends ActionHa
      *
      * @param helper@throws TraceabilityException if any error occurs
      */
-    protected void generateLifecycleTraceabilityFile(LogbookTraceabilityHelper helper)
-        throws TraceabilityException {
-
+    protected void generateLifecycleTraceabilityFile(LogbookTraceabilityHelper helper) throws TraceabilityException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         File tmpFolder = PropertiesUtils.fileFromTmpFolder("secure");
 
-        TraceabilityService traceabilityService =
-            new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
+        TraceabilityService traceabilityService = new TraceabilityService(
+            timestampGenerator,
+            helper,
+            tenantId,
+            tmpFolder
+        );
 
         traceabilityService.secureData(VitamConfiguration.getDefaultStrategy());
     }

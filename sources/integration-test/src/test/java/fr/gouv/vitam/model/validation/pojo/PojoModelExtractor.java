@@ -45,7 +45,6 @@ public class PojoModelExtractor {
     }
 
     private List<PojoModel> extractPojoModels(Class clazz, String currentPath) {
-
         // List all fields recursively
         Class currentClazz = clazz;
         List<Field> fields = new ArrayList<>();
@@ -57,7 +56,6 @@ public class PojoModelExtractor {
         List<PojoModel> models = new ArrayList<>();
 
         for (Field field : fields) {
-
             field.setAccessible(true);
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
@@ -65,7 +63,6 @@ public class PojoModelExtractor {
 
             String fieldIdentifier = getFieldIdentifier(field);
             boolean isArray = isArray(field);
-
 
             Class<?> entryClass = getEntryClass(field);
 
@@ -83,7 +80,6 @@ public class PojoModelExtractor {
     }
 
     private PojoModelType getModelType(Class<?> currentClazz) {
-
         if (currentClazz == Boolean.class || currentClazz == boolean.class) {
             return PojoModelType.BOOLEAN;
         }
@@ -92,8 +88,13 @@ public class PojoModelExtractor {
             return PojoModelType.STRING;
         }
 
-        if (currentClazz == Long.class || currentClazz == long.class || currentClazz == Integer.class ||
-            currentClazz == int.class || currentClazz == BigInteger.class) {
+        if (
+            currentClazz == Long.class ||
+            currentClazz == long.class ||
+            currentClazz == Integer.class ||
+            currentClazz == int.class ||
+            currentClazz == BigInteger.class
+        ) {
             return PojoModelType.LONG;
         }
 
@@ -125,8 +126,11 @@ public class PojoModelExtractor {
         JsonProperty[] annotationsByType = field.getAnnotationsByType(JsonProperty.class);
         if (annotationsByType.length == 0) {
             throw new IllegalStateException(
-                "Missing JsonProperty annotation for field " + field.getName() + " for class " +
-                    field.getDeclaringClass().getCanonicalName());
+                "Missing JsonProperty annotation for field " +
+                field.getName() +
+                " for class " +
+                field.getDeclaringClass().getCanonicalName()
+            );
         }
         return annotationsByType[0].value();
     }

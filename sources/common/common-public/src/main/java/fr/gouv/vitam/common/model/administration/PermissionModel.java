@@ -68,7 +68,6 @@ public class PermissionModel {
         // empty constructor
     }
 
-
     @JsonProperty(ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
@@ -94,5 +93,4 @@ public class PermissionModel {
     public void setIngestContract(Set<String> ingestContract) {
         this.ingestContract = ingestContract;
     }
-
 }

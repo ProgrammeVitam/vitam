@@ -67,5 +67,4 @@ public class QualifiersModel {
     public void setVersions(List<VersionsModel> versions) {
         this.versions = versions;
     }
-
 }

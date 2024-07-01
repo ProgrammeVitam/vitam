@@ -43,26 +43,31 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.quartz.JobExecutionContext;
 
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class AuditdataConsistencyMongoEsJobTest {
+
     private static final int ADMIN_TENANT = 1;
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private MetaDataClient metaDataClient;
+    @Mock
+    private MetaDataClient metaDataClient;
 
-    @Mock private JobExecutionContext jobExecutionContext;
+    @Mock
+    private JobExecutionContext jobExecutionContext;
 
     private AuditDataConsistencyMongoEsJob auditdataConsistencyMongoEsJob;
 

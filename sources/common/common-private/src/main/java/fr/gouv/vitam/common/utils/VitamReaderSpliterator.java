@@ -62,8 +62,7 @@ public class VitamReaderSpliterator implements Spliterator<String> {
             if (line != null) {
                 action.accept(line);
                 return true;
-            } else
-                return false;
+            } else return false;
         } catch (IOException e) {
             LOGGER.error(e);
             return false;
@@ -84,5 +83,4 @@ public class VitamReaderSpliterator implements Spliterator<String> {
     public int characteristics() {
         return DISTINCT | NONNULL | IMMUTABLE;
     }
-
 }

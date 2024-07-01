@@ -34,8 +34,6 @@ public class TimeoutStopwatchTest {
 
     @Test
     public void TestDecreasingTimeout() throws Exception {
-
-
         TimeoutStopwatch timeoutStopwatch = new TimeoutStopwatch(1000);
 
         long remaining1 = timeoutStopwatch.getRemainingDelayInMilliseconds();

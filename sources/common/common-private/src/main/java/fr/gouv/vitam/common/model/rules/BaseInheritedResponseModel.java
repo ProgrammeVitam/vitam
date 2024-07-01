@@ -45,8 +45,7 @@ public abstract class BaseInheritedResponseModel {
         // Empty constructor for deserialization
     }
 
-    public BaseInheritedResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths) {
+    public BaseInheritedResponseModel(String unitId, String originatingAgency, List<List<String>> paths) {
         this.unitId = unitId;
         this.originatingAgency = originatingAgency;
         this.paths = paths;

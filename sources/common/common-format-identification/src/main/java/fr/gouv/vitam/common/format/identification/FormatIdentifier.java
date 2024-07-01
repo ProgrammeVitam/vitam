@@ -40,7 +40,6 @@ import java.util.List;
  * Format identifier interface
  */
 public interface FormatIdentifier {
-
     /**
      * Get format identifier status
      *
@@ -61,8 +60,5 @@ public interface FormatIdentifier {
      * @throws FormatIdentifierTechnicalException for any other technical exception
      */
     List<FormatIdentifierResponse> analysePath(Path pathToFile)
-        throws FileFormatNotFoundException, FormatIdentifierTechnicalException, FormatIdentifierBadRequestException,
-        FormatIdentifierNotFoundException;
-
+        throws FileFormatNotFoundException, FormatIdentifierTechnicalException, FormatIdentifierBadRequestException, FormatIdentifierNotFoundException;
 }
-

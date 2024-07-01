@@ -36,6 +36,7 @@ import java.util.Set;
  */
 @ApplicationPath("/")
 public abstract class ResteasyTestApplication extends Application {
+
     public static final String DEFAULT_XML_CONFIGURATION_FILE = "jetty-config-base-test.xml";
 
     @Override
@@ -77,13 +78,10 @@ public abstract class ResteasyTestApplication extends Application {
          */
         Response options();
 
-
-
         Response headContainer();
 
         Response headFolder();
     }
 
     public abstract Set<Object> getResources();
-
 }

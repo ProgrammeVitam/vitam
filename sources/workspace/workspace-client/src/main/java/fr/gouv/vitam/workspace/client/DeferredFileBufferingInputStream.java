@@ -49,12 +49,13 @@ public class DeferredFileBufferingInputStream extends ProxyInputStream {
     private File tmpFile;
     private boolean closed = false;
 
-    public DeferredFileBufferingInputStream(InputStream sourceInputStream, long sourceSize, int maxInMemoryBufferSize,
-        File tmpDirectory)
-        throws IOException {
-
+    public DeferredFileBufferingInputStream(
+        InputStream sourceInputStream,
+        long sourceSize,
+        int maxInMemoryBufferSize,
+        File tmpDirectory
+    ) throws IOException {
         super(null);
-
         try {
             ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(sourceInputStream, sourceSize);
 
@@ -64,10 +65,8 @@ public class DeferredFileBufferingInputStream extends ProxyInputStream {
             } else {
                 this.tmpFile = File.createTempFile(GUIDFactory.newGUID().toString(), ".tmp", tmpDirectory);
                 FileUtils.copyToFile(exactSizeInputStream, this.tmpFile);
-                this.in = new BufferedInputStream(
-                    Files.newInputStream(tmpFile.toPath(), StandardOpenOption.READ));
+                this.in = new BufferedInputStream(Files.newInputStream(tmpFile.toPath(), StandardOpenOption.READ));
             }
-
         } catch (IOException e) {
             IOUtils.closeQuietly(this.in);
             FileUtils.deleteQuietly(this.tmpFile);

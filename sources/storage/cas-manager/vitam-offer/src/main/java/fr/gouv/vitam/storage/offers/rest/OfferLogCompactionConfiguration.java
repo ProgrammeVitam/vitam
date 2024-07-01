@@ -33,6 +33,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 public class OfferLogCompactionConfiguration {
+
     private static final int MIN_COMPACTION_SIZE = 1_000;
     private static final int MAX_COMPACTION_SIZE = 200_000;
     private final long expirationValue;
@@ -43,7 +44,8 @@ public class OfferLogCompactionConfiguration {
     public OfferLogCompactionConfiguration(
         @JsonProperty("expirationValue") long expirationValue,
         @JsonProperty("expirationUnit") ChronoUnit expirationUnit,
-        @JsonProperty("compactionSize") int compactionSize) {
+        @JsonProperty("compactionSize") int compactionSize
+    ) {
         this.expirationValue = expirationValue;
         this.expirationUnit = expirationUnit;
         this.compactionSize = compactionSize;
@@ -52,7 +54,8 @@ public class OfferLogCompactionConfiguration {
     public void validateConf() {
         if (expirationValue <= 0) {
             throw new IllegalStateException(
-                "Invalid offer log compaction configuration. Negative expiration value " + expirationValue);
+                "Invalid offer log compaction configuration. Negative expiration value " + expirationValue
+            );
         }
 
         if (expirationUnit == null) {
@@ -61,8 +64,13 @@ public class OfferLogCompactionConfiguration {
 
         if (compactionSize > MAX_COMPACTION_SIZE || compactionSize < MIN_COMPACTION_SIZE) {
             throw new IllegalStateException(
-                "Invalid offer log compaction configuration. Invalid compaction size " + compactionSize +
-                    " expected between " + MIN_COMPACTION_SIZE + " and " + MAX_COMPACTION_SIZE);
+                "Invalid offer log compaction configuration. Invalid compaction size " +
+                compactionSize +
+                " expected between " +
+                MIN_COMPACTION_SIZE +
+                " and " +
+                MAX_COMPACTION_SIZE
+            );
         }
     }
 
@@ -80,14 +88,14 @@ public class OfferLogCompactionConfiguration {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         OfferLogCompactionConfiguration that = (OfferLogCompactionConfiguration) o;
-        return expirationValue == that.expirationValue &&
+        return (
+            expirationValue == that.expirationValue &&
             compactionSize == that.compactionSize &&
-            expirationUnit == that.expirationUnit;
+            expirationUnit == that.expirationUnit
+        );
     }
 
     @Override
@@ -97,10 +105,15 @@ public class OfferLogCompactionConfiguration {
 
     @Override
     public String toString() {
-        return "OfferLogCompactionConfiguration{" +
-            "expirationValue=" + expirationValue +
-            ", expirationUnit=" + expirationUnit +
-            ", compactionSize=" + compactionSize +
-            '}';
+        return (
+            "OfferLogCompactionConfiguration{" +
+            "expirationValue=" +
+            expirationValue +
+            ", expirationUnit=" +
+            expirationUnit +
+            ", compactionSize=" +
+            compactionSize +
+            '}'
+        );
     }
 }

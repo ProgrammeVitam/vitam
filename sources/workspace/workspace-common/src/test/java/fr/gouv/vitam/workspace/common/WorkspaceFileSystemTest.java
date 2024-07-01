@@ -112,7 +112,6 @@ public class WorkspaceFileSystemTest {
         storage.purgeContainer(CONTAINER_NAME);
     }
 
-
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException() throws Exception {
         storage.deleteContainer(CONTAINER_NAME, false);
@@ -219,13 +218,13 @@ public class WorkspaceFileSystemTest {
     public void givenFileNotFoundWhenGetObjectThenRaiseAnException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
 
-        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
     }
 
     @Test
     public void givenPutAtomicObjectThenGetObjectOK() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
@@ -240,33 +239,42 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenPutAtomicObjectWithSubDirectoriesThenGetObjectOK() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When
-        storage.putAtomicObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, getInputStream("file1.pdf"),
-            getLength("file1.pdf"));
+        storage.putAtomicObject(
+            CONTAINER_NAME,
+            FOLDER_NAME + "/" + OBJECT_NAME,
+            getInputStream("file1.pdf"),
+            getLength("file1.pdf")
+        );
 
         // Then
         assertThat(storage.isExistingObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME)).isTrue();
-        InputStream is =
-            (InputStream) storage.getObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, null, null).getEntity();
+        InputStream is = (InputStream) storage
+            .getObject(CONTAINER_NAME, FOLDER_NAME + "/" + OBJECT_NAME, null, null)
+            .getEntity();
         assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
     }
 
     @Test
     public void givenExistingFileWhenPutAtomicObjectThenException() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When / Then
         storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
 
-        assertThatThrownBy(() -> storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"),
-            getLength("file2.pdf")))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () ->
+                storage.putAtomicObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    getInputStream("file2.pdf"),
+                    getLength("file2.pdf")
+                )
+        ).isInstanceOf(ContentAddressableStorageException.class);
 
         assertThat(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME)).isTrue();
         InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null).getEntity();
@@ -275,7 +283,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenPutAtomicObjectThenFileExists() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
@@ -289,7 +296,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenDeletedAtomicObjectThenGetObjectNotExists() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
@@ -303,7 +309,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenDeletedAtomicObjectThenGetObjectThrowsException() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         storage.putAtomicObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"), getLength("file1.pdf"));
@@ -312,13 +317,13 @@ public class WorkspaceFileSystemTest {
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
 
         // Then
-        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
     }
 
     @Test
     public void givenExistingFileWhenGetObjectWithZeroOffsetAndNoSizeThenOK() throws Exception {
-
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
@@ -329,7 +334,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenExistingFileWhenGetObjectWithZeroOffsetAndMaxSizeThenOK() throws Exception {
-
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
@@ -340,7 +344,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenExistingFileWhenGetObjectWithOffsetAndSizeThenOK() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
@@ -360,7 +363,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenExistingFileWhenGetObjectWithOffsetAndNoMaxSizeThenOK() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
@@ -382,29 +384,35 @@ public class WorkspaceFileSystemTest {
     @Test
     public void givenContainerAlreadyExistAndFolderAlreadyExistAndSubFolderAlreadyExistWhenCheckListUriNotEmptyThenReturnTrue()
         throws IOException, Exception {
-
         // Given container exists
         storage.createContainer(SIP_CONTAINER);
 
         // Given a root folder "SIP_FOLDER", add manifest.xml to this root folder
-        final String manifestName =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
+        final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
         // Given a sub folder "CONTENT_FOLDER" add digital objects
-        final String contentSubFolder =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder = new StringBuilder()
+            .append(SIP_FOLDER)
+            .append(SLASH)
+            .append(CONTENT_FOLDER)
+            .toString();
         // workspace.createFolder(SIP_CONTAINER, contentSubFolder);
-        final String fileName1 =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append("file1.pdf").toString();
+        final String fileName1 = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append("file1.pdf")
+            .toString();
         storage.putObject(SIP_CONTAINER, fileName1, getInputStream("file1.pdf"));
-        final String fileName2 =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append("space - file2.pdf").toString();
+        final String fileName2 = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append("space - file2.pdf")
+            .toString();
         storage.putObject(SIP_CONTAINER, fileName2, getInputStream("file2.pdf"));
 
         // Then check that there is 2 URIs found recursively from the content folder
-        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).isNotNull()
-            .isNotEmpty();
+        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).isNotNull().isNotEmpty();
         assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).hasSize(2);
     }
 
@@ -416,32 +424,46 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException()
-        throws IOException, Exception {
+    public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException() throws IOException, Exception {
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
     }
 
     @Test(expected = ZipFilesNameNotAllowedException.class)
-    public void givenSIPWithNotAllowedFileOrDirectoryNameThenException()
-        throws Exception {
+    public void givenSIPWithNotAllowedFileOrDirectoryNameThenException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("KO_FILE_extension_caractere_special.zip"));
+        storage.uncompressObject(
+            CONTAINER_NAME,
+            SIP_FOLDER,
+            CommonMediaType.ZIP,
+            getInputStream("KO_FILE_extension_caractere_special.zip")
+        );
     }
 
     @Test
     public void givenSIPWithSubFoldersThanUncompressZipSucceeds() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("SIP_OK_SubFolders.zip"));
+        storage.uncompressObject(
+            CONTAINER_NAME,
+            SIP_FOLDER,
+            CommonMediaType.ZIP,
+            getInputStream("SIP_OK_SubFolders.zip")
+        );
 
         // Then
-        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
-            .resolve("Content").resolve("ID").resolve("13.txt")).exists().isRegularFile();
+        assertThat(
+            tempDir
+                .toPath()
+                .resolve(CONTAINER_NAME)
+                .resolve(SIP_FOLDER)
+                .resolve("Content")
+                .resolve("ID")
+                .resolve("13.txt")
+        )
+            .exists()
+            .isRegularFile();
 
         boolean existingObject = storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt");
         assertThat(existingObject).isTrue();
@@ -449,27 +471,29 @@ public class WorkspaceFileSystemTest {
         Response object = storage.getObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt", null, null);
         assertThat((InputStream) object.getEntity()).hasContent("test 1");
 
-        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER))
-            .containsExactlyInAnyOrder(
-                URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
-                URI.create(URLEncoder.encode("Content/ID/13.txt", StandardCharsets.UTF_8))
-            );
+        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER)).containsExactlyInAnyOrder(
+            URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
+            URI.create(URLEncoder.encode("Content/ID/13.txt", StandardCharsets.UTF_8))
+        );
     }
 
     @Test
     public void givenSIPWithPathTraversalThenException() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When / Then
-        assertThatThrownBy(() ->
-            storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-                getInputStream("SIP_KO_PathTraversalInFileName.zip"))
+        assertThatThrownBy(
+            () ->
+                storage.uncompressObject(
+                    CONTAINER_NAME,
+                    SIP_FOLDER,
+                    CommonMediaType.ZIP,
+                    getInputStream("SIP_KO_PathTraversalInFileName.zip")
+                )
         ).isInstanceOf(ZipFilesNameNotAllowedException.class);
 
-        assertThat(tempDir.toPath().resolve("BadFile.txt"))
-            .doesNotExist();
+        assertThat(tempDir.toPath().resolve("BadFile.txt")).doesNotExist();
 
         boolean existingObject = storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt");
         assertThat(existingObject).isFalse();
@@ -477,51 +501,72 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenSIPWithBackSlashThenException() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When / Then
-        assertThatThrownBy(() ->
-            storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-                getInputStream("SIP_KO_BackSlashInFileName.zip"))
+        assertThatThrownBy(
+            () ->
+                storage.uncompressObject(
+                    CONTAINER_NAME,
+                    SIP_FOLDER,
+                    CommonMediaType.ZIP,
+                    getInputStream("SIP_KO_BackSlashInFileName.zip")
+                )
         ).isInstanceOf(ZipFilesNameNotAllowedException.class);
 
-        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
-            .resolve("Content").resolve("ID").resolve("13.txt")).doesNotExist();
-        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
-            .resolve("Content").resolve("ID\\13.txt")).doesNotExist();
+        assertThat(
+            tempDir
+                .toPath()
+                .resolve(CONTAINER_NAME)
+                .resolve(SIP_FOLDER)
+                .resolve("Content")
+                .resolve("ID")
+                .resolve("13.txt")
+        ).doesNotExist();
+        assertThat(
+            tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER).resolve("Content").resolve("ID\\13.txt")
+        ).doesNotExist();
     }
 
     @Test
     public void givenSIPWithPlusSignInFileNameThenException() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When / Then
-        assertThatThrownBy(() ->
-            storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-                getInputStream("SIP_KO_PlusSignInFileName.zip"))
+        assertThatThrownBy(
+            () ->
+                storage.uncompressObject(
+                    CONTAINER_NAME,
+                    SIP_FOLDER,
+                    CommonMediaType.ZIP,
+                    getInputStream("SIP_KO_PlusSignInFileName.zip")
+                )
         ).isInstanceOf(ZipFilesNameNotAllowedException.class);
 
-        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
-            .resolve("Content").resolve("ID+13.txt")).doesNotExist();
+        assertThat(
+            tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER).resolve("Content").resolve("ID+13.txt")
+        ).doesNotExist();
     }
 
     @Test
     public void givenSIPWithAtSignInFileNameThenOK() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
 
         // When
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("SIP_OK_AtSignInFileName.zip"));
+        storage.uncompressObject(
+            CONTAINER_NAME,
+            SIP_FOLDER,
+            CommonMediaType.ZIP,
+            getInputStream("SIP_OK_AtSignInFileName.zip")
+        );
 
         // Then
-        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER)
-            .resolve("Content").resolve("ID@13.txt")).exists().isRegularFile();
+        assertThat(tempDir.toPath().resolve(CONTAINER_NAME).resolve(SIP_FOLDER).resolve("Content").resolve("ID@13.txt"))
+            .exists()
+            .isRegularFile();
 
         boolean existingObject = storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID@13.txt");
         assertThat(existingObject).isTrue();
@@ -529,50 +574,46 @@ public class WorkspaceFileSystemTest {
         Response object = storage.getObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID@13.txt", null, null);
         assertThat((InputStream) object.getEntity()).hasContent("test 1");
 
-        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER))
-            .containsExactlyInAnyOrder(
-                URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
-                URI.create(URLEncoder.encode("Content/ID@13.txt", StandardCharsets.UTF_8))
-            );
+        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER)).containsExactlyInAnyOrder(
+            URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
+            URI.create(URLEncoder.encode("Content/ID@13.txt", StandardCharsets.UTF_8))
+        );
     }
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException()
-        throws Exception {
+    public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.createFolder(CONTAINER_NAME, SIP_FOLDER);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
-    public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException()
-        throws Exception {
+    public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, null);
     }
 
     @Test
-    public void givenContainerAlreadyExisitsWhenUnzipObjectThenOk()
-        throws Exception {
+    public void givenContainerAlreadyExisitsWhenUnzipObjectThenOk() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
-
     }
 
     @Test(expected = ContentAddressableStorageCompressedFileException.class)
-    public void givenContainerAlreadyExisitsWhenUnzipObjectEmptyThenZipException()
-        throws IOException, Exception {
+    public void givenContainerAlreadyExisitsWhenUnzipObjectEmptyThenZipException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("empty_zip.zip"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("empty_zip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
-    public void givenContainerAlreadyExisitsWhenUnzipObjectNotZipThenZipException()
-        throws Exception {
+    public void givenContainerAlreadyExisitsWhenUnzipObjectNotZipThenZipException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("SIP_mauvais_format.pdf"));
+        storage.uncompressObject(
+            CONTAINER_NAME,
+            SIP_FOLDER,
+            CommonMediaType.ZIP,
+            getInputStream("SIP_mauvais_format.pdf")
+        );
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -581,15 +622,13 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageException.class)
-    public void givenTarGzSIPAndBadArchiveTypeWhenUncompressObjectThenRaiseAnException()
-        throws Exception {
+    public void givenTarGzSIPAndBadArchiveTypeWhenUncompressObjectThenRaiseAnException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream(SIP_TAR_GZ));
     }
 
     @Test
-    public void givenTarGzSIPAndArchiveTypeWhenUncompressObjectThenExtractOK()
-        throws Exception {
+    public void givenTarGzSIPAndArchiveTypeWhenUncompressObjectThenExtractOK() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.XGZIP, getInputStream(SIP_TAR_GZ));
         Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
@@ -599,21 +638,23 @@ public class WorkspaceFileSystemTest {
     public void givenZipSIPAndArchiveTypeWhenManifestFileNamePersonalizedThenRenamedToManifestDotXmlOK()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("personalized_manifest_file_name.zip"));
+        storage.uncompressObject(
+            CONTAINER_NAME,
+            SIP_FOLDER,
+            CommonMediaType.ZIP,
+            getInputStream("personalized_manifest_file_name.zip")
+        );
         Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenTarGzSIPAndUnsupportedArchiveTypeWhenUncompressObjectThenRaiseException()
-        throws Exception {
+    public void givenTarGzSIPAndUnsupportedArchiveTypeWhenUncompressObjectThenRaiseException() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, "unsupported", getInputStream(SIP_TAR_GZ));
     }
 
     @Test
-    public void givenTarGzSIPArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
-        throws Exception {
+    public void givenTarGzSIPArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.XGZIP, getInputStream(SIP_TAR_GZ));
         Assert.assertTrue(storage.isExistingContainer(CONTAINER_NAME));
@@ -621,8 +662,7 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void givenTarArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
-        throws Exception {
+    public void givenTarArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.TAR, getInputStream(SIP_TAR));
         Assert.assertTrue(storage.isExistingContainer(CONTAINER_NAME));
@@ -631,7 +671,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void should_compress_container_name() throws Exception {
-
         // Given
         String fileName = "result.zip";
         storage.createContainer(CONTAINER_NAME);
@@ -650,18 +689,20 @@ public class WorkspaceFileSystemTest {
         assertThat(zipPath).exists();
 
         ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();
-        ArchiveInputStream archiveInputStream = archiveStreamFactory
-            .createArchiveInputStream(ArchiveStreamFactory.ZIP, new FileInputStream(zipPath.toString()));
+        ArchiveInputStream archiveInputStream = archiveStreamFactory.createArchiveInputStream(
+            ArchiveStreamFactory.ZIP,
+            new FileInputStream(zipPath.toString())
+        );
 
         List<ArchiveEntry> entries = findArchiveEntries(archiveInputStream);
-        assertThat(entries).extracting("name", "size")
+        assertThat(entries)
+            .extracting("name", "size")
             .containsExactlyInAnyOrder(tuple("folder1/1.txt", 7L), tuple("folder1/2.txt", 8L), tuple("3.txt", 6L));
         assertThat(entries).extracting("name").containsExactlyInAnyOrder("folder1/1.txt", "folder1/2.txt", "3.txt");
     }
 
     @Test
     public void should_compress_container_name_into_another_container() throws Exception {
-
         // Given
         String fileName = "targetDir/result.zip";
         storage.createContainer(CONTAINER_NAME);
@@ -683,18 +724,20 @@ public class WorkspaceFileSystemTest {
         assertThat(zipPath).exists();
 
         ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();
-        ArchiveInputStream archiveInputStream = archiveStreamFactory
-            .createArchiveInputStream(ArchiveStreamFactory.ZIP, new FileInputStream(zipPath.toString()));
+        ArchiveInputStream archiveInputStream = archiveStreamFactory.createArchiveInputStream(
+            ArchiveStreamFactory.ZIP,
+            new FileInputStream(zipPath.toString())
+        );
 
         List<ArchiveEntry> entries = findArchiveEntries(archiveInputStream);
-        assertThat(entries).extracting("name", "size")
+        assertThat(entries)
+            .extracting("name", "size")
             .containsExactlyInAnyOrder(tuple("folder1/1.txt", 7L), tuple("folder1/2.txt", 8L), tuple("3.txt", 6L));
         assertThat(entries).extracting("name").containsExactlyInAnyOrder("folder1/1.txt", "folder1/2.txt", "3.txt");
     }
 
     @Test
     public void purgeOldFilesInContainerShouldNotDeleteNewFiles() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         String folder1 = "folder1";
@@ -713,7 +756,6 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void purgeOldFilesInContainerShouldDeleteOldFiles() throws Exception {
-
         // Given
         storage.createContainer(CONTAINER_NAME);
         String folder1 = "folder1";
@@ -728,10 +770,12 @@ public class WorkspaceFileSystemTest {
         storage.purgeOldFilesInContainer(CONTAINER_NAME, new TimeToLive(1, ChronoUnit.SECONDS));
 
         // Then
-        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME + "/" + folder1, "1.txt", null, null))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
-        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, "2.txt", null, null))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME + "/" + folder1, "1.txt", null, null)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
+        assertThatThrownBy(() -> storage.getObject(CONTAINER_NAME, "2.txt", null, null)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
     }
 
     @Test
@@ -742,20 +786,31 @@ public class WorkspaceFileSystemTest {
         final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
-        final String contentSubFolder =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder = new StringBuilder()
+            .append(SIP_FOLDER)
+            .append(SLASH)
+            .append(CONTENT_FOLDER)
+            .toString();
 
-        final String file1Path =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
+        final String file1Path = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append(file1Name)
+            .toString();
         storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
 
-        final String file2Path =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
+        final String file2Path = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append(file2Name)
+            .toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
 
         // When
-        Map<String, FileParams> filesWithParamsResult =
-            storage.getFilesWithParamsFromFolder(SIP_CONTAINER, contentSubFolder);
+        Map<String, FileParams> filesWithParamsResult = storage.getFilesWithParamsFromFolder(
+            SIP_CONTAINER,
+            contentSubFolder
+        );
 
         // Then
         assertThat(filesWithParamsResult).isNotNull().isNotEmpty();
@@ -770,15 +825,24 @@ public class WorkspaceFileSystemTest {
         final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
-        final String contentSubFolder =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder = new StringBuilder()
+            .append(SIP_FOLDER)
+            .append(SLASH)
+            .append(CONTENT_FOLDER)
+            .toString();
 
-        final String file1Path =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
+        final String file1Path = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append(file1Name)
+            .toString();
         storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
 
-        final String file2Path =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
+        final String file2Path = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append(file2Name)
+            .toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
 
         // When
@@ -793,20 +857,31 @@ public class WorkspaceFileSystemTest {
         final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
-        final String contentSubFolder =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder = new StringBuilder()
+            .append(SIP_FOLDER)
+            .append(SLASH)
+            .append(CONTENT_FOLDER)
+            .toString();
 
-        final String file1Path =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append(file1Name).toString();
+        final String file1Path = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append(file1Name)
+            .toString();
         storage.putObject(SIP_CONTAINER, file1Path, getInputStream(file1Name));
 
-        final String file2Path =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append(file2Name).toString();
+        final String file2Path = new StringBuilder()
+            .append(contentSubFolder)
+            .append(SLASH)
+            .append(file2Name)
+            .toString();
         storage.putObject(SIP_CONTAINER, file2Path, getInputStream(file2Name));
 
         // When
-        Map<String, FileParams> filesWithParamsResult =
-            storage.getFilesWithParamsFromFolder(SIP_CONTAINER, "wrongFolder");
+        Map<String, FileParams> filesWithParamsResult = storage.getFilesWithParamsFromFolder(
+            SIP_CONTAINER,
+            "wrongFolder"
+        );
 
         // Then
         assertThat(filesWithParamsResult).isNotNull().isEmpty();
@@ -821,5 +896,4 @@ public class WorkspaceFileSystemTest {
         }
         return entries;
     }
-
 }

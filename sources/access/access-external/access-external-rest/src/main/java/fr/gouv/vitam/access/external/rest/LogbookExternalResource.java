@@ -107,27 +107,35 @@ public class LogbookExternalResource {
             LOGGER.error("Client exception while trying to search operations: ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(INVALID_ARGUMENT, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
                 .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             status = Status.UNAUTHORIZED;
             return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
                 .build();
-
         }
     }
 
@@ -143,9 +151,10 @@ public class LogbookExternalResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = LOGBOOKOPERATIONS_ID_READ, description = "Récupérer le journal d'une opération donnée")
-    public Response getOperationById(@PathParam("id_op") String operationId,
-        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
-
+    public Response getOperationById(
+        @PathParam("id_op") String operationId,
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl
+    ) {
         Status status;
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(operationId);
@@ -156,27 +165,39 @@ public class LogbookExternalResource {
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(INVALID_ARGUMENT, e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
                 .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                .toResponse();
         }
     }
 
@@ -189,12 +210,15 @@ public class LogbookExternalResource {
      */
     @GET
     @Path("/logbookunitlifecycles/{id_lc}")
-    @Secured(permission = LOGBOOKUNITLIFECYCLES_ID_READ,
-        description = "Récupérer le journal de cycle de vie d'une unité archivistique")
+    @Secured(
+        permission = LOGBOOKUNITLIFECYCLES_ID_READ,
+        description = "Récupérer le journal de cycle de vie d'une unité archivistique"
+    )
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
-        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
-
+    public Response getUnitLifeCycleById(
+        @PathParam("id_lc") String unitLifeCycleId,
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl
+    ) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
@@ -204,24 +228,36 @@ public class LogbookExternalResource {
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error("Client exception while trying to get lifecycle unit by id: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get lifecycle unit by id: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(INVALID_ARGUMENT, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_PERMISSION, e.getLocalizedMessage())
-                .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_PERMISSION,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                .toResponse();
         }
     }
 
@@ -234,46 +270,57 @@ public class LogbookExternalResource {
      */
     @GET
     @Path("/logbookobjectslifecycles/{id_lc}")
-    @Secured(permission = LOGBOOKOBJECTSLIFECYCLES_ID_READ,
-        description = "Récupérer le journal de cycle de vie d'un groupe d'objet")
+    @Secured(
+        permission = LOGBOOKOBJECTSLIFECYCLES_ID_READ,
+        description = "Récupérer le journal de cycle de vie d'un groupe d'objet"
+    )
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
-        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
-
+    public Response getObjectGroupLifeCycleById(
+        @PathParam("id_lc") String objectGroupLifeCycleId,
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl
+    ) {
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            RequestResponse<JsonNode> result =
-                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
+            RequestResponse<JsonNode> result = client.selectObjectGroupLifeCycleById(
+                objectGroupLifeCycleId,
+                select.getFinalSelect()
+            );
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error("Client exception while trying to get object group lifecycle by id: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get object group lifecycle by id: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(INVALID_ARGUMENT, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_PERMISSION,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_PERMISSION,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.UNAUTHORIZED.getStatusCode())
+                .toResponse();
         }
     }
-
-
 }

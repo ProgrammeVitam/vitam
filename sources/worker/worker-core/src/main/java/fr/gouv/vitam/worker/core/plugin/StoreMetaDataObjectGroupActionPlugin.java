@@ -77,8 +77,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(StoreMetaDataObjectGroupActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        StoreMetaDataObjectGroupActionPlugin.class
+    );
 
     private static final String JSON = ".json";
     private static final String OG_METADATA_STORAGE = "OG_METADATA_STORAGE";
@@ -88,15 +89,19 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
     private final StorageClientFactory storageClientFactory;
 
     public StoreMetaDataObjectGroupActionPlugin() {
-        this(MetaDataClientFactory.getInstance(),
+        this(
+            MetaDataClientFactory.getInstance(),
             LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    public StoreMetaDataObjectGroupActionPlugin(MetaDataClientFactory metaDataClientFactory,
+    public StoreMetaDataObjectGroupActionPlugin(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -104,17 +109,16 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handlerIO) {
-
-        List<String> objectGroupIds = params.getObjectNameList().stream()
+        List<String> objectGroupIds = params
+            .getObjectNameList()
+            .stream()
             .map(metadataFilename -> StringUtils.substringBeforeLast(metadataFilename, "."))
             .collect(Collectors.toList());
 
         try {
-
             storeDocumentsWithLfc(params, handlerIO, objectGroupIds);
 
             return this.getItemStatuses(objectGroupIds, StatusCode.OK);
-
         } catch (VitamException e) {
             LOGGER.error("An error occurred during object group storage", e);
             return this.getItemStatuses(objectGroupIds, StatusCode.FATAL);
@@ -132,16 +136,18 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
 
     public void storeDocumentsWithLfc(WorkerParameters params, HandlerIO handlerIO, List<String> objectGroupIds)
         throws VitamException {
-        MultiValuedMap<String, String> objectGroupIdsByStrategie =
-            saveDocumentWithLfcInWorkspace(handlerIO, objectGroupIds);
+        MultiValuedMap<String, String> objectGroupIdsByStrategie = saveDocumentWithLfcInWorkspace(
+            handlerIO,
+            objectGroupIds
+        );
 
         saveDocumentWithLfcInStorage(params.getContainerName(), objectGroupIdsByStrategie);
     }
 
-    private MultiValuedMap<String, String> saveDocumentWithLfcInWorkspace(HandlerIO handlerIO,
-        List<String> objectGroupIds)
-        throws VitamException {
-
+    private MultiValuedMap<String, String> saveDocumentWithLfcInWorkspace(
+        HandlerIO handlerIO,
+        List<String> objectGroupIds
+    ) throws VitamException {
         // Get metadata
         Stopwatch loadGOT = Stopwatch.createStarted();
         MultiValuedMap<String, String> objectGroupIdsByStrategie = new HashSetValuedHashMap<>();
@@ -161,7 +167,6 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
             .log("STP_OG_STORING", "OG_METADATA_STORAGE", "loadLFC", loadLFC.elapsed(TimeUnit.MILLISECONDS));
 
         for (String guid : objectGroupIds) {
-
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getGotWithLFC(gots.get(guid), lfc.get(guid));
             // transfer json to workspace
@@ -171,11 +176,20 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
                 InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 Stopwatch storeWorkspace = Stopwatch.createStarted();
 
-                handlerIO.transferInputStreamToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName,
-                    is, null, false);
+                handlerIO.transferInputStreamToWorkspace(
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + fileName,
+                    is,
+                    null,
+                    false
+                );
 
-                PerformanceLogger.getInstance().log("STP_OG_STORING", "OG_METADATA_STORAGE", "storeWorkspace",
-                    storeWorkspace.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance()
+                    .log(
+                        "STP_OG_STORING",
+                        "OG_METADATA_STORAGE",
+                        "storeWorkspace",
+                        storeWorkspace.elapsed(TimeUnit.MILLISECONDS)
+                    );
             } catch (ProcessingException e) {
                 throw new WorkspaceClientServerException("Could not backup file for " + guid, e);
             }
@@ -183,10 +197,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
         return objectGroupIdsByStrategie;
     }
 
-    private Map<String, JsonNode> getObjectGroupsByIdsRaw(List<String> documentIds)
-        throws VitamException {
-
-
+    private Map<String, JsonNode> getObjectGroupsByIdsRaw(List<String> documentIds) throws VitamException {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupsByIdsRaw(documentIds);
             if (!requestResponse.isOk()) {
@@ -201,31 +212,26 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
         }
     }
 
-    private Map<String, JsonNode> getRawLogbookLifeCycleByIds(List<String> documentIds)
-        throws VitamException {
-
+    private Map<String, JsonNode> getRawLogbookLifeCycleByIds(List<String> documentIds) throws VitamException {
         try (LogbookLifeCyclesClient logbookClient = logbookLifeCyclesClientFactory.getClient()) {
-
             List<JsonNode> results = logbookClient.getRawObjectGroupLifeCycleByIds(documentIds);
             return mapById(results);
         }
     }
 
-    private void saveDocumentWithLfcInStorage(String containerName,
-        MultiValuedMap<String, String> objectGroupIdsByStrategies)
-        throws VitamException {
-
+    private void saveDocumentWithLfcInStorage(
+        String containerName,
+        MultiValuedMap<String, String> objectGroupIdsByStrategies
+    ) throws VitamException {
         Stopwatch storeStorage = Stopwatch.createStarted();
 
         for (String strategy : objectGroupIdsByStrategies.keySet()) {
-
             List<String> workspaceURIs = new ArrayList<>();
             List<String> objectNames = new ArrayList<>();
 
             Collection<String> objectGroupIds = objectGroupIdsByStrategies.get(strategy);
 
             for (String objectGroupId : objectGroupIds) {
-
                 String filename = objectGroupId + JSON;
                 String workspaceURI = IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + filename;
 
@@ -234,7 +240,11 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
             }
 
             BulkObjectStoreRequest request = new BulkObjectStoreRequest(
-                containerName, workspaceURIs, DataCategory.OBJECTGROUP, objectNames);
+                containerName,
+                workspaceURIs,
+                DataCategory.OBJECTGROUP,
+                objectNames
+            );
 
             try (StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.bulkStoreFilesFromWorkspace(strategy, request);
@@ -244,8 +254,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
             }
         }
 
-        PerformanceLogger.getInstance().log("STP_OG_STORING", "OG_METADATA_STORAGE", "storeStorage",
-            storeStorage.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance()
+            .log("STP_OG_STORING", "OG_METADATA_STORAGE", "storeStorage", storeStorage.elapsed(TimeUnit.MILLISECONDS));
     }
 
     private List<ItemStatus> getItemStatuses(List<String> objectGroupIds, StatusCode statusCode) {
@@ -257,10 +267,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends ActionHandler {
     }
 
     private Map<String, JsonNode> mapById(List<JsonNode> results) {
-        return results.stream()
-            .collect(Collectors.toMap(
-                entry -> entry.get(MetadataDocument.ID).textValue(),
-                entry -> entry
-            ));
+        return results
+            .stream()
+            .collect(Collectors.toMap(entry -> entry.get(MetadataDocument.ID).textValue(), entry -> entry));
     }
 }

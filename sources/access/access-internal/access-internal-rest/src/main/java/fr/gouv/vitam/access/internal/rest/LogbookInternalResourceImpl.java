@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.access.internal.rest;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -153,21 +152,28 @@ public class LogbookInternalResourceImpl {
     }
 
     @VisibleForTesting
-    LogbookInternalResourceImpl(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory, StorageClientFactory storageClientFactory,
-        WorkspaceClientFactory workspaceClientFactory, AdminManagementClientFactory adminManagementClientFactory,
+    LogbookInternalResourceImpl(
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        StorageClientFactory storageClientFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory,
         MetaDataClientFactory metaDataClientFactory,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
-        accessModule = new AccessInternalModuleImpl(logbookLifeCyclesClientFactory, logbookOperationsClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory
+    ) {
+        accessModule = new AccessInternalModuleImpl(
+            logbookLifeCyclesClientFactory,
+            logbookOperationsClientFactory,
             storageClientFactory,
-            workspaceClientFactory, adminManagementClientFactory,
-            metaDataClientFactory);
+            workspaceClientFactory,
+            adminManagementClientFactory,
+            metaDataClientFactory
+        );
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
         LOGGER.debug("LogbookExternalResource initialized");
     }
-
 
     /**
      * @param operationId the operation id
@@ -178,9 +184,12 @@ public class LogbookInternalResourceImpl {
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl,
+    public Response getOperationById(
+        @PathParam("id_op") String operationId,
+        JsonNode queryDsl,
         @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
-        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant) {
+        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant
+    ) {
         Status status;
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryDsl);
@@ -202,7 +211,6 @@ public class LogbookInternalResourceImpl {
         }
     }
 
-
     /**
      * GET with request in body
      *
@@ -213,8 +221,11 @@ public class LogbookInternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response selectOperation(JsonNode query, @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
-        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant) {
+    public Response selectOperation(
+        JsonNode query,
+        @HeaderParam(LogbookDataRest.X_SLICED_OPERATIONS) boolean sliced,
+        @HeaderParam(LogbookDataRest.X_CROSS_TENANT) boolean crossTenant
+    ) {
         Status status;
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             // Check correctness of request
@@ -251,18 +262,20 @@ public class LogbookInternalResourceImpl {
             SanityChecker.checkJsonAll(queryDsl);
             Select unitQuery = new Select();
             unitQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), unitLifeCycleId));
-            JsonNode unitResult =
-                accessModule.selectUnit(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForUnitForSelect(unitQuery.getFinalSelect(),
-                        VitamThreadUtils.getVitamSession().getContract()));
+            JsonNode unitResult = accessModule.selectUnit(
+                AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(
+                    unitQuery.getFinalSelect(),
+                    VitamThreadUtils.getVitamSession().getContract()
+                )
+            );
             if (unitResult.get("$hits").get("total").toString().equals("0")) {
                 return Response.status(Status.UNAUTHORIZED.getStatusCode())
-                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé"))
+                    .build();
             }
 
             final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
             return Response.status(OK).entity(result).build();
-
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
@@ -295,13 +308,16 @@ public class LogbookInternalResourceImpl {
             SanityChecker.checkJsonAll(queryDsl);
             Select gotQuery = new Select();
             gotQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), objectGroupLifeCycleId));
-            final JsonNode gotResult = accessModule
-                .selectObjects(AccessContractRestrictionHelper
-                    .applyAccessContractRestrictionForObjectGroupForSelect(gotQuery.getFinalSelect(),
-                        VitamThreadUtils.getVitamSession().getContract()));
+            final JsonNode gotResult = accessModule.selectObjects(
+                AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroupForSelect(
+                    gotQuery.getFinalSelect(),
+                    VitamThreadUtils.getVitamSession().getContract()
+                )
+            );
             if (gotResult.get("$hits").get("total").toString().equals("0")) {
                 return Response.status(Status.UNAUTHORIZED.getStatusCode())
-                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé"))
+                    .build();
             }
 
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
@@ -322,25 +338,34 @@ public class LogbookInternalResourceImpl {
     }
 
     private InputStream getErrorStream(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         try {
-            return JsonHandler.writeToInpustream(new VitamError(status.name())
-                .setHttpCode(status.getStatusCode()).setContext(LOGBOOK_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
+            return JsonHandler.writeToInpustream(
+                new VitamError(status.name())
+                    .setHttpCode(status.getStatusCode())
+                    .setContext(LOGBOOK_MODULE)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(aMessage)
+            );
         } catch (InvalidParseOperationException e) {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
     }
 
     private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
 
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(LOGBOOK_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setContext(LOGBOOK_MODULE)
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
     @POST
@@ -352,42 +377,55 @@ public class LogbookInternalResourceImpl {
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+        try (
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            final LogbookOperationParameters parameters =
-                LogbookParameterHelper.newLogbookOperationParameters(
-                    GUIDReader.getGUID(operationId),
-                    LINKED_CHECK.getEventType(),
-                    GUIDReader.getGUID(operationId),
-                    LogbookTypeProcess.AUDIT,
-                    StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(LINKED_CHECK.getEventType(), StatusCode.STARTED),
-                    GUIDReader.getGUID(operationId));
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
+            final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                LINKED_CHECK.getEventType(),
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.AUDIT,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(LINKED_CHECK.getEventType(), StatusCode.STARTED),
+                GUIDReader.getGUID(operationId)
+            );
 
             logbookOperationsClient.create(parameters);
             workspaceClient.createContainer(operationId);
 
-            workspaceClient.putObject(operationId, OperationContextMonitor.OperationContextFileName,
-                writeToInpustream(OperationContextModel.get(query)));
+            workspaceClient.putObject(
+                operationId,
+                OperationContextMonitor.OperationContextFileName,
+                writeToInpustream(OperationContextModel.get(query))
+            );
 
             // store original query in workspace
             workspaceClient.putObject(operationId, WorkspaceConstants.QUERY, JsonHandler.writeToInpustream(query));
 
             processingClient.initVitamProcess(operationId, LINKED_CHECK.name());
 
-            RequestResponse<ItemStatus> response =
-                processingClient.executeOperationProcess(operationId, LINKED_CHECK.name(), RESUME.getValue());
+            RequestResponse<ItemStatus> response = processingClient.executeOperationProcess(
+                operationId,
+                LINKED_CHECK.name(),
+                RESUME.getValue()
+            );
             return response.toResponse();
         } catch (BadRequestException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
             return Response.status(BAD_REQUEST).entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
-        } catch (InvalidGuidOperationException | LogbookClientException |
-            ContentAddressableStorageServerException | InvalidParseOperationException |
-            InternalServerException | VitamClientException e) {
+        } catch (
+            InvalidGuidOperationException
+            | LogbookClientException
+            | ContentAddressableStorageServerException
+            | InvalidParseOperationException
+            | InternalServerException
+            | VitamClientException e
+        ) {
             LOGGER.error(e);
-            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
                 .build();
         }
     }
@@ -400,25 +438,22 @@ public class LogbookInternalResourceImpl {
     @Path("/traceability/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadTraceabilityOperation(@PathParam("idOperation") String operationId) {
-
         // Get the TRACEABILITY operation
         LogbookOperation operationToCheck = null;
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
-
             final SelectParserSingle parser = new SelectParserSingle();
             Select select = new Select();
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
 
-            RequestResponseOK requestResponseOK =
-                RequestResponseOK.getFromJsonNode(
-                    logbookOperationsClient.selectOperationById(operationId));
+            RequestResponseOK requestResponseOK = RequestResponseOK.getFromJsonNode(
+                logbookOperationsClient.selectOperationById(operationId)
+            );
 
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation == null || foundOperation.size() != 1) {
                 // More than operation found return BAD_REQUEST response
-                return Response.status(BAD_REQUEST)
-                    .entity(getErrorStream(BAD_REQUEST, "Operation not found")).build();
+                return Response.status(BAD_REQUEST).entity(getErrorStream(BAD_REQUEST, "Operation not found")).build();
             }
 
             operationToCheck = new LogbookOperation(foundOperation.get(0));
@@ -428,56 +463,67 @@ public class LogbookInternalResourceImpl {
             if (!LogbookTypeProcess.TRACEABILITY.equals(LogbookTypeProcess.valueOf(operationType))) {
                 // It wasn't a traceability operation
                 return Response.status(BAD_REQUEST)
-                    .entity(getErrorStream(BAD_REQUEST, "Not a traceability operation")).build();
+                    .entity(getErrorStream(BAD_REQUEST, "Not a traceability operation"))
+                    .build();
             }
         } catch (final LogbookClientNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             // More than operation found return BAD_REQUEST response
-            return Response.status(BAD_REQUEST)
-                .entity(getErrorStream(BAD_REQUEST, "Operation not found")).build();
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException |
-            IllegalArgumentException e) {
+            return Response.status(BAD_REQUEST).entity(getErrorStream(BAD_REQUEST, "Operation not found")).build();
+        } catch (
+            InvalidParseOperationException
+            | InvalidCreateOperationException
+            | LogbookClientException
+            | IllegalArgumentException e
+        ) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorStream(INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
 
         // A valid operation found : download the related file
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromString((String) operationToCheck.get(eventDetailData.getDbname()),
-                    TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(
+                (String) operationToCheck.get(eventDetailData.getDbname()),
+                TraceabilityEvent.class
+            );
             String fileName = traceabilityEvent.getFileName();
 
             // Get zip file
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
             AccessLogInfoModel logInfo = AccessLogUtils.getNoLogAccessLog();
-            final Response response =
-                storageClient
-                    .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, dataCategory, logInfo);
+            final Response response = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                dataCategory,
+                logInfo
+            );
             if (response.getStatus() == OK.getStatusCode()) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
                 headers.put(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileName);
-                return new VitamAsyncInputStreamResponse(response,
-                    OK, headers);
+                return new VitamAsyncInputStreamResponse(response, OK, headers);
             } else {
                 Status status = (Status) response.getStatusInfo();
                 storageClient.consumeAnyEntityAndClose(response);
                 return Response.status(status).build();
             }
-
-        } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            StorageServerClientException
+            | StorageNotFoundException
+            | InvalidParseOperationException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorStream(INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
     private DataCategory getDataCategory(TraceabilityEvent traceabilityEvent) {
-
         if (traceabilityEvent.getLogType() == null) {
             throw new IllegalStateException("Missing traceability event type");
         }
@@ -493,7 +539,4 @@ public class LogbookInternalResourceImpl {
                 throw new IllegalStateException("Invalid traceability event type " + traceabilityEvent.getLogType());
         }
     }
-
-
-
 }

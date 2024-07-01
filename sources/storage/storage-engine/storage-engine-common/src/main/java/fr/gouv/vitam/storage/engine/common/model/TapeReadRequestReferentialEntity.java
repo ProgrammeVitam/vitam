@@ -35,6 +35,7 @@ import java.util.Map;
 
 // MongoDB doc limit is 16Mo => should define the adequate bulk size (read threshold)
 public class TapeReadRequestReferentialEntity {
+
     public static final String ID = "_id";
     public static final String TAR_LOCATIONS = "tarLocation";
     public static final String FILES = "files";
@@ -54,7 +55,6 @@ public class TapeReadRequestReferentialEntity {
     @JsonProperty(TAR_LOCATIONS)
     private Map<String, TarLocation> tarLocations = new HashMap<>();
 
-
     @JsonProperty(FILES)
     private List<FileInTape> files;
 
@@ -64,19 +64,21 @@ public class TapeReadRequestReferentialEntity {
     @JsonProperty(EXPIRE_DATE)
     private String expireDate;
 
-
     public TapeReadRequestReferentialEntity() {
         // Empty constructor for deserialization
     }
 
-    public TapeReadRequestReferentialEntity(String requestId, String containerName,
-        Map<String, TarLocation> tarLocations, List<FileInTape> files) {
+    public TapeReadRequestReferentialEntity(
+        String requestId,
+        String containerName,
+        Map<String, TarLocation> tarLocations,
+        List<FileInTape> files
+    ) {
         this.requestId = requestId;
         this.containerName = containerName;
         this.tarLocations = tarLocations;
         this.files = files;
     }
-
 
     public String getRequestId() {
         return requestId;
@@ -128,14 +130,13 @@ public class TapeReadRequestReferentialEntity {
 
     @JsonProperty(IS_EXPIRED)
     public Boolean isExpired() {
-        return expireDate == null ?
-            false :
-            LocalDateUtil.now().isAfter(LocalDateUtil.parseMongoFormattedDate(expireDate));
+        return expireDate == null
+            ? false
+            : LocalDateUtil.now().isAfter(LocalDateUtil.parseMongoFormattedDate(expireDate));
     }
 
     @JsonProperty(IS_COMPLETED)
     public boolean isCompleted() {
         return tarLocations.values().stream().filter(o -> TarLocation.DISK.equals(o)).count() == tarLocations.size();
     }
-
 }

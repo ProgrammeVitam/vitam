@@ -48,10 +48,13 @@ public class SipTool {
     public static final String REPLACEMENT_NAME = "_REPLACE_ME_NAME_";
     public static final String REPLACEMENT_VALUE = "_REPLACE_ME_VALUE_";
 
-
-
-    public static Path copyAndModifyManifestInZip(Path zipPath, String text1, String replacement1, String text2,
-        String replacement2) throws IOException {
+    public static Path copyAndModifyManifestInZip(
+        Path zipPath,
+        String text1,
+        String replacement1,
+        String text2,
+        String replacement2
+    ) throws IOException {
         File tempFile = Files.createTempFile(GUIDFactory.newGUID().toString(), ".zip").toFile();
         try (InputStream zipFile = new FileInputStream(zipPath.toFile())) {
             Files.copy(zipFile, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -71,11 +74,10 @@ public class SipTool {
 
     static void streamCopy(Path src, Path dst, String text1, String replacement1, String text2, String replacement2)
         throws IOException {
-        try (BufferedReader br = new BufferedReader(
-            new InputStreamReader(Files.newInputStream(src)));
-            BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(Files.newOutputStream(dst)))) {
-
+        try (
+            BufferedReader br = new BufferedReader(new InputStreamReader(Files.newInputStream(src)));
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(dst)))
+        ) {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.replace(text1, replacement1);

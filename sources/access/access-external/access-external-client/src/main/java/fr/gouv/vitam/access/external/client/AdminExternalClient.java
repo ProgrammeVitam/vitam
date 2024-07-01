@@ -68,7 +68,6 @@ import java.io.InputStream;
  * Admin External Client Interface
  */
 public interface AdminExternalClient extends BasicClient, OperationStatusClient {
-
     /**
      * checkRules<br>
      * <br>
@@ -79,8 +78,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return response including InputStream
      * @throws VitamClientException
      */
-    Response checkRules(VitamContext vitamContext, InputStream rules)
-        throws VitamClientException;
+    Response checkRules(VitamContext vitamContext, InputStream rules) throws VitamClientException;
 
     /**
      * checkFormats<br>
@@ -92,8 +90,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return response including InputStream
      * @throws VitamClientException
      */
-    Response checkFormats(VitamContext vitamContext, InputStream formats)
-        throws VitamClientException;
+    Response checkFormats(VitamContext vitamContext, InputStream formats) throws VitamClientException;
 
     /**
      * Find formats.
@@ -114,8 +111,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of rules
      * @throws VitamClientException
      */
-    RequestResponse<FileRulesModel> findRules(VitamContext vitamContext, JsonNode select)
-        throws VitamClientException;
+    RequestResponse<FileRulesModel> findRules(VitamContext vitamContext, JsonNode select) throws VitamClientException;
 
     /**
      * Find entry contracts.
@@ -125,10 +121,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of ingest contrats
      * @throws VitamClientException
      */
-    RequestResponse<IngestContractModel> findIngestContracts(VitamContext vitamContext,
-        JsonNode select)
+    RequestResponse<IngestContractModel> findIngestContracts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
-
 
     /**
      * Find access contracts.
@@ -138,10 +132,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of access contrats
      * @throws VitamClientException
      */
-    RequestResponse<AccessContractModel> findAccessContracts(VitamContext vitamContext,
-        JsonNode select)
+    RequestResponse<AccessContractModel> findAccessContracts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
-
 
     /**
      * Find management contracts.
@@ -151,10 +143,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of management contrats
      * @throws VitamClientException
      */
-    RequestResponse<ManagementContractModel> findManagementContracts(VitamContext vitamContext,
-        JsonNode select)
+    RequestResponse<ManagementContractModel> findManagementContracts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
-
 
     /**
      * Find contexts.
@@ -164,8 +154,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of contexts
      * @throws VitamClientException
      */
-    RequestResponse<ContextModel> findContexts(VitamContext vitamContext, JsonNode select)
-        throws VitamClientException;
+    RequestResponse<ContextModel> findContexts(VitamContext vitamContext, JsonNode select) throws VitamClientException;
 
     /**
      * Find profiles.
@@ -175,8 +164,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of profiles
      * @throws VitamClientException
      */
-    RequestResponse<ProfileModel> findProfiles(VitamContext vitamContext, JsonNode select)
-        throws VitamClientException;
+    RequestResponse<ProfileModel> findProfiles(VitamContext vitamContext, JsonNode select) throws VitamClientException;
 
     /**
      * Find accession registers.
@@ -186,8 +174,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of accession registers
      * @throws VitamClientException
      */
-    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
-        VitamContext vitamContext, JsonNode select)
+    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -199,8 +186,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<AccessionRegisterDetailModel> findAccessionRegisterDetails(
-        VitamContext vitamContext, JsonNode select)
-        throws VitamClientException;
+        VitamContext vitamContext,
+        JsonNode select
+    ) throws VitamClientException;
 
     /**
      * Find accession registers symbolic.
@@ -211,8 +199,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(
-        VitamContext vitamContext, JsonNode select)
-        throws VitamClientException;
+        VitamContext vitamContext,
+        JsonNode select
+    ) throws VitamClientException;
 
     /**
      * Find archive unit profiles
@@ -222,8 +211,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of archive unit profiles
      * @throws VitamClientException
      */
-    RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(
-        VitamContext vitamContext, JsonNode query)
+    RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfiles(VitamContext vitamContext, JsonNode query)
         throws VitamClientException;
 
     /**
@@ -238,10 +226,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id,
-        JsonNode query)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+    RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id, JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException;
 
     /**
      * create a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are
@@ -317,8 +303,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateAccessContract(VitamContext vitamContext, String accessContractId,
-        JsonNode queryDsl)
+    RequestResponse updateAccessContract(VitamContext vitamContext, String accessContractId, JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
@@ -331,8 +316,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateIngestContract(VitamContext vitamContext, String ingestContractId,
-        JsonNode queryDsl)
+    RequestResponse updateIngestContract(VitamContext vitamContext, String ingestContractId, JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
@@ -345,10 +329,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateManagementContract(VitamContext vitamContext, String managementContractId,
-        JsonNode queryDsl)
+    RequestResponse updateManagementContract(VitamContext vitamContext, String managementContractId, JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
-
 
     /**
      * Update the given archive unit profile by query DSL
@@ -383,7 +365,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse createProfiles(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException;
 
-
     /**
      * Save profile file (xsd, rng, ...) corresponding to the profile metadata. As the id of profile metadata is
      * required, this method should be called after creation of profile metadata
@@ -397,10 +378,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse createProfileFile(VitamContext vitamContext, String profileMetadataId,
-        InputStream profile)
+    RequestResponse createProfileFile(VitamContext vitamContext, String profileMetadataId, InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException;
-
 
     /**
      * Download the profile file according to profileMetadataId
@@ -467,8 +446,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws AccessExternalClientServerException
      * @throws AccessUnauthorizedException
      */
-    Response downloadTraceabilityOperationFile(VitamContext vitamContext,
-        String operationId)
+    Response downloadTraceabilityOperationFile(VitamContext vitamContext, String operationId)
         throws AccessExternalClientServerException, AccessUnauthorizedException;
 
     /**
@@ -482,7 +460,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException;
 
-
     /**
      * Find a format by its id.
      *
@@ -491,8 +468,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return a format
      * @throws VitamClientException
      */
-    RequestResponse<FileFormatModel> findFormatById(VitamContext vitamContext,
-        String formatId)
+    RequestResponse<FileFormatModel> findFormatById(VitamContext vitamContext, String formatId)
         throws VitamClientException;
 
     /**
@@ -503,8 +479,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return a rule
      * @throws VitamClientException
      */
-    RequestResponse<FileRulesModel> findRuleById(VitamContext vitamContext, String ruleId)
-        throws VitamClientException;
+    RequestResponse<FileRulesModel> findRuleById(VitamContext vitamContext, String ruleId) throws VitamClientException;
 
     /**
      * Find an entry contract by its id.
@@ -514,10 +489,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return an ingest contract
      * @throws VitamClientException
      */
-    RequestResponse<IngestContractModel> findIngestContractById(VitamContext vitamContext,
-        String contractId)
+    RequestResponse<IngestContractModel> findIngestContractById(VitamContext vitamContext, String contractId)
         throws VitamClientException;
-
 
     /**
      * Find an access contracts by its id.
@@ -527,10 +500,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return an access contract
      * @throws VitamClientException
      */
-    RequestResponse<AccessContractModel> findAccessContractById(VitamContext vitamContext,
-        String contractId)
+    RequestResponse<AccessContractModel> findAccessContractById(VitamContext vitamContext, String contractId)
         throws VitamClientException;
-
 
     /**
      * Find an management contracts by its id.
@@ -540,10 +511,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return an access contract
      * @throws VitamClientException
      */
-    RequestResponse<ManagementContractModel> findManagementContractById(VitamContext vitamContext,
-        String contractId)
+    RequestResponse<ManagementContractModel> findManagementContractById(VitamContext vitamContext, String contractId)
         throws VitamClientException;
-
 
     /**
      * Find a context by its id
@@ -553,8 +522,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return a context
      * @throws VitamClientException
      */
-    RequestResponse<ContextModel> findContextById(VitamContext vitamContext,
-        String contextId)
+    RequestResponse<ContextModel> findContextById(VitamContext vitamContext, String contextId)
         throws VitamClientException;
 
     /**
@@ -565,8 +533,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return a profile
      * @throws VitamClientException
      */
-    RequestResponse<ProfileModel> findProfileById(VitamContext vitamContext,
-        String profileId)
+    RequestResponse<ProfileModel> findProfileById(VitamContext vitamContext, String profileId)
         throws VitamClientException;
 
     /**
@@ -578,8 +545,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
-        VitamContext vitamContext, String accessionRegisterId)
-        throws VitamClientException;
+        VitamContext vitamContext,
+        String accessionRegisterId
+    ) throws VitamClientException;
 
     /**
      * Find agencies
@@ -599,8 +567,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return an agency
      * @throws VitamClientException
      */
-    RequestResponse<AgenciesModel> findAgencyByID(
-        VitamContext vitamContext, String agencyById)
+    RequestResponse<AgenciesModel> findAgencyByID(VitamContext vitamContext, String agencyById)
         throws VitamClientException;
 
     /**
@@ -611,8 +578,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return an archive unit profile
      * @throws VitamClientException
      */
-    RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfileById(
-        VitamContext vitamContext, String id)
+    RequestResponse<ArchiveUnitProfileModel> findArchiveUnitProfileById(VitamContext vitamContext, String id)
         throws VitamClientException;
 
     /**
@@ -624,8 +590,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return Response status ok or vitam error
      * @throws VitamClientException
      */
-    RequestResponse updateSecurityProfile(VitamContext vitamContext, String securityProfileId,
-        JsonNode queryDsl)
+    RequestResponse updateSecurityProfile(VitamContext vitamContext, String securityProfileId, JsonNode queryDsl)
         throws VitamClientException;
 
     /**
@@ -636,8 +601,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of security profiles
      * @throws VitamClientException
      */
-    RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext,
-        JsonNode select)
+    RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -648,8 +612,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return a security profile
      * @throws VitamClientException
      */
-    RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext,
-        String securityProfileId)
+    RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext, String securityProfileId)
         throws VitamClientException;
 
     /**
@@ -672,8 +635,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of operations details
      * @throws VitamClientException
      */
-    RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
-        ProcessQuery query)
+    RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext, ProcessQuery query)
         throws VitamClientException;
 
     /**
@@ -686,9 +648,11 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return the status
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> updateOperationActionProcess(VitamContext vitamContext,
-        String action, String operationId)
-        throws VitamClientException;
+    RequestResponse<ItemStatus> updateOperationActionProcess(
+        VitamContext vitamContext,
+        String action,
+        String operationId
+    ) throws VitamClientException;
 
     /**
      * @param vitamContext the vitam context
@@ -696,8 +660,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return the details of the operation
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
-        VitamContext vitamContext, String operationId)
+    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(VitamContext vitamContext, String operationId)
         throws VitamClientException;
 
     /**
@@ -709,8 +672,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      * @throws IllegalArgumentException
      */
-    RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext,
-        String operationId)
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext, String operationId)
         throws VitamClientException, IllegalArgumentException;
 
     /**
@@ -719,7 +681,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException;
-
 
     /**
      * create a set of agencies
@@ -760,7 +721,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse createRules(VitamContext vitamContext, InputStream rules, String filename)
         throws AccessExternalClientException, InvalidParseOperationException;
 
-
     /**
      * create a set of security profiles
      *
@@ -783,8 +743,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return the rulesReport
      * @throws VitamClientException
      */
-    Response downloadDistributionReport(VitamContext vitamContext, String opId)
-        throws VitamClientException;
+    Response downloadDistributionReport(VitamContext vitamContext, String opId) throws VitamClientException;
 
     /**
      * Download batch reports
@@ -794,8 +753,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return batch report file
      * @throws VitamClientException
      */
-    Response downloadBatchReport(VitamContext vitamContext, String opId)
-        throws VitamClientException;
+    Response downloadBatchReport(VitamContext vitamContext, String opId) throws VitamClientException;
 
     /**
      * Download rules report
@@ -805,8 +763,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return the rulesReport
      * @throws VitamClientException
      */
-    Response downloadRulesReport(VitamContext vitamContext, String opId)
-        throws VitamClientException;
+    Response downloadRulesReport(VitamContext vitamContext, String opId) throws VitamClientException;
 
     /**
      * Download Csv referential Agencies
@@ -816,8 +773,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return Agecsv referential
      * @throws VitamClientException vitamClientException
      */
-    Response downloadAgenciesCsvAsStream(VitamContext vitamContext, String opId)
-        throws VitamClientException;
+    Response downloadAgenciesCsvAsStream(VitamContext vitamContext, String opId) throws VitamClientException;
 
     /**
      * Download Csv referential Rules
@@ -827,9 +783,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return Rules csv referential
      * @throws VitamClientException vitamClientException
      */
-    Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId)
-        throws VitamClientException;
-
+    Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId) throws VitamClientException;
 
     /**
      * checkAgencies<br>
@@ -841,8 +795,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return response including InputStream
      * @throws VitamClientException
      */
-    Response checkAgencies(VitamContext vitamContext, InputStream agencies)
-        throws VitamClientException;
+    Response checkAgencies(VitamContext vitamContext, InputStream agencies) throws VitamClientException;
 
     /**
      * launch a traceability audit for the request
@@ -852,8 +805,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return RequestResponse
      * @throws VitamClientException The Exception
      */
-    RequestResponse<JsonNode> evidenceAudit(VitamContext vitamContext, JsonNode queryDsl)
-        throws VitamClientException;
+    RequestResponse<JsonNode> evidenceAudit(VitamContext vitamContext, JsonNode queryDsl) throws VitamClientException;
 
     /**
      * launch a rectification audit for the operation id
@@ -863,9 +815,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return RequestResponse
      * @throws VitamClientException The Exception
      */
-    RequestResponse rectificationAudit(VitamContext vitamContext, String operationId)
-        throws VitamClientException;
-
+    RequestResponse rectificationAudit(VitamContext vitamContext, String operationId) throws VitamClientException;
 
     /**
      * launch probative value process
@@ -877,7 +827,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      */
     RequestResponse exportProbativeValue(VitamContext vitamContext, ProbativeValueRequest probativeValueRequest)
         throws VitamClientException;
-
 
     /**
      * Create a ArchiveUnitProfile after passing the validation steps. If profiles are json and valid, they are stored
@@ -899,7 +848,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse createArchiveUnitProfile(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException;
 
-
     /**
      * Find ontologies
      *
@@ -908,10 +856,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return list of ontologies
      * @throws VitamClientException
      */
-    RequestResponse<OntologyModel> findOntologies(
-        VitamContext vitamContext, JsonNode query)
+    RequestResponse<OntologyModel> findOntologies(VitamContext vitamContext, JsonNode query)
         throws VitamClientException;
-
 
     /**
      * Find an ontology by its id.
@@ -921,8 +867,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return an ontology
      * @throws VitamClientException
      */
-    RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id)
-        throws VitamClientException;
+    RequestResponse<OntologyModel> findOntologyById(VitamContext vitamContext, String id) throws VitamClientException;
 
     /**
      * Import a set of ontologies metadata. </BR>
@@ -945,15 +890,13 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream ontologies)
         throws InvalidParseOperationException, AccessExternalClientException;
 
-
     RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String filName)
         throws VitamClientException, AccessExternalClientException;
 
     RequestResponse importPreservationScenario(VitamContext vitamContext, InputStream scenarioStream, String filName)
         throws VitamClientException, AccessExternalClientException;
 
-    RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id)
-        throws VitamClientException;
+    RequestResponse<GriffinModel> findGriffinById(VitamContext vitamContext, String id) throws VitamClientException;
 
     RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
         throws VitamClientException;
@@ -961,8 +904,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
-    RequestResponse<GriffinModel> findGriffin(VitamContext vitamContext, JsonNode select)
-        throws VitamClientException;
+    RequestResponse<GriffinModel> findGriffin(VitamContext vitamContext, JsonNode select) throws VitamClientException;
 
     /**
      * Create external logbook operation entry <br>
@@ -973,8 +915,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @return RequestResponse status of the insertion
      * @throws LogbookExternalClientException
      */
-    RequestResponse createExternalOperation(VitamContext vitamContext,
-        LogbookOperationParameters logbookOperationparams)
-        throws LogbookExternalClientException;
-
+    RequestResponse createExternalOperation(
+        VitamContext vitamContext,
+        LogbookOperationParameters logbookOperationparams
+    ) throws LogbookExternalClientException;
 }

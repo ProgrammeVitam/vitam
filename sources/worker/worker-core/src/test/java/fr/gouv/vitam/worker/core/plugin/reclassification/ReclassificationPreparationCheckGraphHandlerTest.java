@@ -72,8 +72,9 @@ import static org.mockito.Mockito.doReturn;
 public class ReclassificationPreparationCheckGraphHandlerTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -83,6 +84,7 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
@@ -106,19 +108,22 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
 
         String objectId = GUIDFactory.newGUID().toString();
-        parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(operationId)
+        parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(operationId)
             .setObjectNameList(Lists.newArrayList(objectId))
-            .setObjectName(objectId).setCurrentStep("StepName");
+            .setObjectName(objectId)
+            .setCurrentStep("StepName");
 
-        reclassificationPreparationCheckGraphHandler =
-            new ReclassificationPreparationCheckGraphHandler(metaDataClientFactory,
-                unitGraphInfoLoader, 1000);
+        reclassificationPreparationCheckGraphHandler = new ReclassificationPreparationCheckGraphHandler(
+            metaDataClientFactory,
+            unitGraphInfoLoader,
+            1000
+        );
     }
 
     @Test
     public void execute_GivenNotFoundUnitsThenExpectFatal() throws Exception {
-
         // Given
         HashSetValuedHashMap<String, String> attachments = new HashSetValuedHashMap<>();
         attachments.put("id1", "id2");
@@ -140,15 +145,16 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        ReclassificationEventDetails eventDetails =
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
+        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getError()).isEqualTo(COULD_NOT_LOAD_UNITS);
         assertThat(eventDetails.getNotFoundUnits()).containsExactlyInAnyOrder("id1", "id3", "id5");
     }
 
     @Test
     public void execute_GivenIllegalUnitTypeAttachmentThenExpectKO() throws Exception {
-
         // Given
         HashSetValuedHashMap<String, String> attachments = new HashSetValuedHashMap<>();
         attachments.put("id1", "id2");
@@ -170,13 +176,12 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
-            .isEqualTo(INVALID_UNIT_TYPE_ATTACHMENTS);
+            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError()
+        ).isEqualTo(INVALID_UNIT_TYPE_ATTACHMENTS);
     }
 
     @Test
     public void execute_GraphCycleThenExpectKO() throws Exception {
-
         // Given : Reclassification with cycle in target graph
         /*
          *     1                  1
@@ -210,15 +215,16 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        ReclassificationEventDetails eventDetails =
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class);
+        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getError()).isEqualTo(CANNOT_APPLY_RECLASSIFICATION_REQUEST_CYCLE_DETECTED);
         assertThat(eventDetails.getUnitsWithCycles()).containsExactlyInAnyOrder("id2", "id3", "id4");
     }
 
     @Test
     public void execute_validGraphThenExpectOK() throws Exception {
-
         // Given : basic attachment & detachment without cycles
         /*
          *     1  2               1   3
@@ -247,8 +253,12 @@ public class ReclassificationPreparationCheckGraphHandlerTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
-    private void addUnitGraph(Map<String, UnitGraphInfo> unitGraphInfoMap, String unitId, UnitType unitType,
-        String... up) {
+    private void addUnitGraph(
+        Map<String, UnitGraphInfo> unitGraphInfoMap,
+        String unitId,
+        UnitType unitType,
+        String... up
+    ) {
         UnitGraphInfo unit = new UnitGraphInfo();
         unit.setId(unitId);
         unit.setUnitType(unitType);

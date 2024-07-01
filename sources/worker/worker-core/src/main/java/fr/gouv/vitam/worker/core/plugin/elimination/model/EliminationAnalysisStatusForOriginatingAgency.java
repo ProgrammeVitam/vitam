@@ -27,12 +27,14 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 public enum EliminationAnalysisStatusForOriginatingAgency {
-    DESTROY, /* Destroyable */
-    KEEP, /* Not destroyable, no conflict */
-    FINAL_ACTION_INCONSISTENCY; /* Not destroyable with conflict */
+    DESTROY,/* Destroyable */
+    KEEP,/* Not destroyable, no conflict */
+    FINAL_ACTION_INCONSISTENCY;/* Not destroyable with conflict */
 
-    public static EliminationAnalysisStatusForOriginatingAgency getValue(boolean isDestroyable,
-        boolean isFinalActionInconsistency) {
+    public static EliminationAnalysisStatusForOriginatingAgency getValue(
+        boolean isDestroyable,
+        boolean isFinalActionInconsistency
+    ) {
         if (isDestroyable) {
             return DESTROY;
         }

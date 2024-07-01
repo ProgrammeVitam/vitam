@@ -54,6 +54,4 @@ public class AccessionRegisterException extends ReferentialException {
     public AccessionRegisterException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }
-

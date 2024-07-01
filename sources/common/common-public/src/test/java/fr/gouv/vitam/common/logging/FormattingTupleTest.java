@@ -36,6 +36,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 
 public class FormattingTupleTest {
+
     private static final String NON_SENSICAL_EMPTY_OR_NULL_ARGUMENT_ARRAY = "non-sensical empty or null argument array";
 
     @Test
@@ -79,13 +80,13 @@ public class FormattingTupleTest {
         try {
             FormattingTuple.trimmedCopy(objectArray0);
             fail("Expecting exception: IllegalStateException");
-        } catch (final IllegalStateException e) {// NOSONAR
+        } catch (final IllegalStateException e) { // NOSONAR
             // Ignore
         }
         try {
             FormattingTuple.trimmedCopy((Object[]) null);
             fail("Expecting exception: IllegalStateException");
-        } catch (final IllegalStateException e) {// NOSONAR
+        } catch (final IllegalStateException e) { // NOSONAR
             // Ignore
         }
     }

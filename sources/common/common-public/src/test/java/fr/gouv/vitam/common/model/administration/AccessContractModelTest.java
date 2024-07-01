@@ -45,7 +45,6 @@ public class AccessContractModelTest {
 
     @Test
     public void testConstructor() {
-
         AccessContractModel contract = new AccessContractModel();
         final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
         String name = "aName";
@@ -64,7 +63,8 @@ public class AccessContractModelTest {
             .setId(id)
             .setTenant(TENANT_ID)
             .setName(name)
-            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setDescription(description)
+            .setStatus(ActivationStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(creationdate)
             .setActivationdate(activationdate)

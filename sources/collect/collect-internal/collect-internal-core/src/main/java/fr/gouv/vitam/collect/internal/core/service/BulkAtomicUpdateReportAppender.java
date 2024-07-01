@@ -45,7 +45,6 @@ public class BulkAtomicUpdateReportAppender {
     }
 
     public List<BulkAtomicUpdateResult> exportResults() {
-
         List<BulkAtomicUpdateResult> results = new ArrayList<>(resultByQueryIndexMap.size());
         for (int i = 0; i < resultByQueryIndexMap.size(); i++) {
             if (!resultByQueryIndexMap.containsKey(i)) {

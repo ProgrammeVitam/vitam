@@ -44,8 +44,8 @@ public class BasicVitamServerTest {
     private static final String JETTY_CONFIG_FILE_KO2 = "jetty-test-ko2.xml";
     private static final String JETTY_CONFIG_FILE_KO_NOTFOUND = "jetty-test-notFound.xml";
 
-
     private static class MyRunner extends Thread {
+
         BasicVitamServer server;
 
         MyRunner(BasicVitamServer server) {
@@ -61,7 +61,6 @@ public class BasicVitamServerTest {
                 // ignore
             }
         }
-
     }
 
     @Test
@@ -72,23 +71,19 @@ public class BasicVitamServerTest {
         try {
             server.configure(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-        }
+        } catch (final VitamApplicationServerException e) {}
         try {
             server.setHandler(null);
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             server.startAndJoin();
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-        }
+        } catch (final VitamApplicationServerException e) {}
         try {
             server.stop();
             fail(SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final VitamApplicationServerException e) {
-        }
+        } catch (final VitamApplicationServerException e) {}
         assertNotNull(server.getServer());
         final MyRunner myRunner = new MyRunner(server);
         assertFalse(server.isConfigured());
@@ -106,7 +101,6 @@ public class BasicVitamServerTest {
 
     @Test
     public final void testStartingServerWithCorrectConfig() {
-
         try {
             final JunitHelper junitHelper = JunitHelper.getInstance();
             final int port = junitHelper.findAvailablePort();
@@ -127,7 +121,6 @@ public class BasicVitamServerTest {
             assertTrue(server.isStopped());
             server.getServer().destroy();
             junitHelper.releasePort(port);
-
         } catch (final VitamApplicationServerException e) {
             assertTrue(false);
         }
@@ -135,7 +128,6 @@ public class BasicVitamServerTest {
 
     @Test
     public final void testNotStartServerWithConfigFailed() {
-
         try {
             final BasicVitamServer server = new BasicVitamServer(JETTY_CONFIG_FILE_KO1);
             assertTrue(server.isConfigured());
@@ -148,7 +140,6 @@ public class BasicVitamServerTest {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
             server.getServer().destroy();
-
         } catch (final VitamApplicationServerException e) {
             assertFalse(false);
         }

@@ -56,6 +56,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
  * EvidenceAuditListSecuredFiles class
  */
 public class EvidenceAuditListSecuredFiles extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditListSecuredFiles.class);
 
     private static final String EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD =
@@ -64,16 +65,13 @@ public class EvidenceAuditListSecuredFiles extends ActionHandler {
     private static final String FILE_NAME = "FileName";
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD);
 
-        List<URI> uriListObjectsWorkspace =
-            handlerIO.getUriList(handlerIO.getContainerName(), DATA);
+        List<URI> uriListObjectsWorkspace = handlerIO.getUriList(handlerIO.getContainerName(), DATA);
         Map<String, List<String>> securedFilenameList = new HashMap<>();
 
         try {
-
             for (URI element : uriListObjectsWorkspace) {
                 File file = handlerIO.getFileFromWorkspace(DATA + File.separator + element.getPath());
 
@@ -98,18 +96,21 @@ public class EvidenceAuditListSecuredFiles extends ActionHandler {
                 JsonHandler.writeAsFile(me.getValue(), file);
                 handlerIO.transferFileToWorkspace("fileNames" + "/" + me.getKey(), file, true, false);
             }
-
-        } catch (ContentAddressableStorageNotFoundException | InvalidParseOperationException | ContentAddressableStorageServerException | IOException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException
+            | InvalidParseOperationException
+            | ContentAddressableStorageServerException
+            | IOException e
+        ) {
             LOGGER.error(e);
 
             return itemStatus.increment(StatusCode.FATAL);
-
         }
 
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD)
-            .setItemsStatus(EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD, itemStatus);
+        return new ItemStatus(EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD).setItemsStatus(
+            EVIDENCE_AUDIT_LIST_SECURED_FILES_TO_DOWNLOAD,
+            itemStatus
+        );
     }
-
-
 }

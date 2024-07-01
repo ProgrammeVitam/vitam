@@ -68,6 +68,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class IngestAccessionRegisterActionHandlerTest {
+
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
     private static final String FAKE_URL = "http://localhost:8080";
     IngestAccessionRegisterActionHandler accessionRegisterHandler;
@@ -78,9 +79,9 @@ public class IngestAccessionRegisterActionHandlerTest {
     private static final Integer TENANT_ID = 0;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     MetaDataClient metaDataClient = mock(MetaDataClient.class);
     MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
@@ -92,10 +93,13 @@ public class IngestAccessionRegisterActionHandlerTest {
     public void setUp() throws Exception {
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
-        params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                .setCurrentStep("currentStep").setContainerName(guid.getId());
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         String objectId = "manifest";
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
@@ -124,9 +128,9 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
-
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString())).thenReturn(
+            originatingAgencies
+        );
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -135,14 +139,16 @@ public class IngestAccessionRegisterActionHandlerTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
-        accessionRegisterHandler =
-            new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new IngestAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
-        RequestResponse<AccessionRegisterDetailModel> res =
-            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenReturn(res);
+        RequestResponse<AccessionRegisterDetailModel> res = new RequestResponseOK<
+            AccessionRegisterDetailModel
+        >().setHttpCode(201);
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(res);
 
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -166,12 +172,13 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString())).thenReturn(
+            originatingAgencies
+        );
 
-
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenThrow(
+            new AdminManagementClientServerException("AdminManagementClientServerException")
+        );
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -180,8 +187,10 @@ public class IngestAccessionRegisterActionHandlerTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
-        accessionRegisterHandler =
-            new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new IngestAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -189,7 +198,6 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         // Then
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-
     }
 
     @Test
@@ -207,13 +215,14 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString())).thenReturn(
+            originatingAgencies
+        );
 
-        RequestResponse<AccessionRegisterDetailModel> res =
-            new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(201);
-        when(adminManagementClient.createOrUpdateAccessionRegister(any()))
-            .thenReturn(res);
+        RequestResponse<AccessionRegisterDetailModel> res = new RequestResponseOK<
+            AccessionRegisterDetailModel
+        >().setHttpCode(201);
+        when(adminManagementClient.createOrUpdateAccessionRegister(any())).thenReturn(res);
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -222,8 +231,10 @@ public class IngestAccessionRegisterActionHandlerTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
-        accessionRegisterHandler =
-            new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new IngestAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -231,7 +242,6 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-
     }
 
     @Test
@@ -249,8 +259,9 @@ public class IngestAccessionRegisterActionHandlerTest {
 
         reset(metaDataClient);
         reset(adminManagementClient);
-        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString())).thenThrow(
+            new MetaDataClientServerException("MetaDataClientServerException")
+        );
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();
@@ -259,8 +270,10 @@ public class IngestAccessionRegisterActionHandlerTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
-        accessionRegisterHandler =
-            new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new IngestAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
         // When
         final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
@@ -285,8 +298,10 @@ public class IngestAccessionRegisterActionHandlerTest {
         handlerIO.addOutputResult(0, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.reset();
         handlerIO.addInIOParameters(in);
-        accessionRegisterHandler =
-            new IngestAccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        accessionRegisterHandler = new IngestAccessionRegisterActionHandler(
+            metaDataClientFactory,
+            adminManagementClientFactory
+        );
         assertEquals(IngestAccessionRegisterActionHandler.getId(), HANDLER_ID);
 
         // When
@@ -295,5 +310,4 @@ public class IngestAccessionRegisterActionHandlerTest {
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-
 }

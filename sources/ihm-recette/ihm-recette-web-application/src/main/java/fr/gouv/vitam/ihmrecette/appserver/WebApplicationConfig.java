@@ -88,8 +88,13 @@ public class WebApplicationConfig extends DbConfigurationImpl {
      * @param clusterName elastic search cluster name
      * @param elasticsearchNodes nodes elastic search
      */
-    public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, MappingLoader mappingLoader) {
+    public WebApplicationConfig(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes,
+        MappingLoader mappingLoader
+    ) {
         super(mongoDbNodes, dbName);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
@@ -288,8 +293,7 @@ public class WebApplicationConfig extends DbConfigurationImpl {
         return functionalAdminAdmin;
     }
 
-    public void setFunctionalAdminAdmin(
-        FunctionalAdminAdmin functionalAdminAdmin) {
+    public void setFunctionalAdminAdmin(FunctionalAdminAdmin functionalAdminAdmin) {
         this.functionalAdminAdmin = functionalAdminAdmin;
     }
 
@@ -298,7 +302,8 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     }
 
     public void setElasticsearchExternalMetadataMappings(
-        List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
+        List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings
+    ) {
         this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
     }
 
@@ -324,8 +329,7 @@ public class WebApplicationConfig extends DbConfigurationImpl {
         return elasticsearchNodes;
     }
 
-    public WebApplicationConfig setElasticsearchNodes(
-        List<ElasticsearchNode> elasticsearchNodes) {
+    public WebApplicationConfig setElasticsearchNodes(List<ElasticsearchNode> elasticsearchNodes) {
         this.elasticsearchNodes = elasticsearchNodes;
         return this;
     }
@@ -335,9 +339,9 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     }
 
     public WebApplicationConfig setFunctionalAdminIndexationConfiguration(
-        FunctionalAdminIndexationConfiguration functionalAdminIndexationConfiguration) {
-        this.functionalAdminIndexationConfiguration =
-            functionalAdminIndexationConfiguration;
+        FunctionalAdminIndexationConfiguration functionalAdminIndexationConfiguration
+    ) {
+        this.functionalAdminIndexationConfiguration = functionalAdminIndexationConfiguration;
         return this;
     }
 
@@ -346,7 +350,8 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     }
 
     public WebApplicationConfig setMetadataIndexationConfiguration(
-        MetadataIndexationConfiguration metadataIndexationConfiguration) {
+        MetadataIndexationConfiguration metadataIndexationConfiguration
+    ) {
         this.metadataIndexationConfiguration = metadataIndexationConfiguration;
         return this;
     }
@@ -356,7 +361,8 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     }
 
     public WebApplicationConfig setLogbookIndexationConfiguration(
-        LogbookIndexationConfiguration logbookIndexationConfiguration) {
+        LogbookIndexationConfiguration logbookIndexationConfiguration
+    ) {
         this.logbookIndexationConfiguration = logbookIndexationConfiguration;
         return this;
     }

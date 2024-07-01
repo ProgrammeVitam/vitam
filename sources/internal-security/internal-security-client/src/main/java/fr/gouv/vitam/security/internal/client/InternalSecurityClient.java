@@ -28,11 +28,9 @@ package fr.gouv.vitam.security.internal.client;
 
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
-import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 
 import java.util.Optional;
 
@@ -40,7 +38,6 @@ import java.util.Optional;
  * InternalSecurityClient Interface
  */
 public interface InternalSecurityClient extends BasicClient {
-
     /**
      * Find Identity
      *

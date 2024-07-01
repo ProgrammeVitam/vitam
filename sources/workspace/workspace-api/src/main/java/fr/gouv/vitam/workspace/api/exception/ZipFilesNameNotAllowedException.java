@@ -30,6 +30,7 @@ package fr.gouv.vitam.workspace.api.exception;
  * Thrown when there is an not allowed file or folder name in the zip
  */
 public class ZipFilesNameNotAllowedException extends ContentAddressableStorageException {
+
     private static final long serialVersionUID = -1L;
 
     /**
@@ -59,5 +60,4 @@ public class ZipFilesNameNotAllowedException extends ContentAddressableStorageEx
     public ZipFilesNameNotAllowedException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

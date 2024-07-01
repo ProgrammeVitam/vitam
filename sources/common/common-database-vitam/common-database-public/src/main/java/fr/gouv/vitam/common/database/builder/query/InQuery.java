@@ -42,6 +42,7 @@ import java.util.Set;
  * In and Nin queries
  */
 public class InQuery extends Query {
+
     private static final String IS_NOT_AN_IN_QUERY = " is not an In Query";
     private static final String QUERY2 = "Query ";
     private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
@@ -73,15 +74,15 @@ public class InQuery extends Query {
             case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+                    );
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
                 } catch (final InvalidParseOperationException e) {
                     throw new InvalidCreateOperationException(e);
                 }
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
                 longVals = new HashSet<>();
@@ -91,8 +92,7 @@ public class InQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
     }
 
@@ -112,15 +112,15 @@ public class InQuery extends Query {
             case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+                    );
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
                 } catch (final InvalidParseOperationException e) {
                     throw new InvalidCreateOperationException(e);
                 }
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
                 doubleVals = new HashSet<>();
@@ -130,8 +130,7 @@ public class InQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
     }
 
@@ -151,7 +150,8 @@ public class InQuery extends Query {
             case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+                    );
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
@@ -159,8 +159,7 @@ public class InQuery extends Query {
                 } catch (final InvalidParseOperationException e) {
                     throw new InvalidCreateOperationException(e);
                 }
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
                 stringVals = new HashSet<>();
@@ -170,8 +169,7 @@ public class InQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + " is not an In or Search Query");
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + " is not an In or Search Query");
         }
     }
 
@@ -191,15 +189,15 @@ public class InQuery extends Query {
             case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+                    );
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
                 } catch (final InvalidParseOperationException e) {
                     throw new InvalidCreateOperationException(e);
                 }
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 final String sdate = LocalDateUtil.fromDate(value).toString();
                 array.add(GlobalDatas.getDate(value));
@@ -210,8 +208,7 @@ public class InQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + " is not an In or Search Query");
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + " is not an In or Search Query");
         }
     }
 
@@ -231,15 +228,15 @@ public class InQuery extends Query {
             case NIN:
                 if (variableName == null || variableName.trim().isEmpty()) {
                     throw new InvalidCreateOperationException(
-                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                        QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+                    );
                 }
                 try {
                     GlobalDatas.sanityParameterCheck(variableName);
                 } catch (final InvalidParseOperationException e) {
                     throw new InvalidCreateOperationException(e);
                 }
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 array.add(value);
                 booleanVals = new HashSet<>();
@@ -249,8 +246,7 @@ public class InQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
     }
 
@@ -266,8 +262,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -277,8 +272,7 @@ public class InQuery extends Query {
         switch (inQuery) {
             case IN:
             case NIN:
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 stringVals = new HashSet<>();
                 for (final String value : values) {
@@ -295,8 +289,7 @@ public class InQuery extends Query {
                 currentObject = array;
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         currentTokenQUERY = inQuery;
         setReady(true);
@@ -314,8 +307,7 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + inQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -325,8 +317,7 @@ public class InQuery extends Query {
         switch (inQuery) {
             case IN:
             case NIN:
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
                 stringVals = new HashSet<>();
                 for (final Date value : values) {
@@ -339,8 +330,7 @@ public class InQuery extends Query {
                 currentObject = array;
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         currentTokenQUERY = inQuery;
         setReady(true);
@@ -358,20 +348,19 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         if (inQuery != QUERY.IN && inQuery != QUERY.NIN) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+            throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
         } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
-        final ObjectNode sub =
-            ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+        final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
         final ArrayNode array = sub.putArray(variableName.trim());
         longVals = new HashSet<>();
         for (final long value : values) {
@@ -397,20 +386,19 @@ public class InQuery extends Query {
         throws InvalidCreateOperationException {
         super();
         if (inQuery != QUERY.IN && inQuery != QUERY.NIN) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+            throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
         } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
-        final ObjectNode sub =
-            ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+        final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
         final ArrayNode array = sub.putArray(variableName.trim());
         doubleVals = new HashSet<>();
         for (final double value : values) {
@@ -432,25 +420,23 @@ public class InQuery extends Query {
      * @param values of variable
      * @throws InvalidCreateOperationException when can not create Query
      */
-    public InQuery(final QUERY inQuery, final String variableName,
-        final boolean... values)
+    public InQuery(final QUERY inQuery, final String variableName, final boolean... values)
         throws InvalidCreateOperationException {
         super();
         if (inQuery != QUERY.IN && inQuery != QUERY.NIN) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
+            throw new InvalidCreateOperationException(QUERY2 + inQuery + IS_NOT_AN_IN_QUERY);
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
         } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
-        final ObjectNode sub =
-            ((ObjectNode) currentObject).putObject(inQuery.exactToken());
+        final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
         final ArrayNode array = sub.putArray(variableName.trim());
         booleanVals = new HashSet<>();
         for (final boolean value : values) {
@@ -492,11 +478,11 @@ public class InQuery extends Query {
      * @return the InQuery
      * @throws InvalidCreateOperationException when can not add value
      */
-    public final InQuery add(final String... inValue)
-        throws InvalidCreateOperationException {
+    public final InQuery add(final String... inValue) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.IN && currentTokenQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -523,11 +509,11 @@ public class InQuery extends Query {
      * @return the InQuery
      * @throws InvalidCreateOperationException when can not add value
      */
-    public final InQuery add(final Date... inValue)
-        throws InvalidCreateOperationException {
+    public final InQuery add(final Date... inValue) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.IN && currentTokenQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -550,11 +536,11 @@ public class InQuery extends Query {
      * @return the InQuery
      * @throws InvalidCreateOperationException when can not add value
      */
-    public final InQuery add(final long... inValue)
-        throws InvalidCreateOperationException {
+    public final InQuery add(final long... inValue) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.IN && currentTokenQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (longVals == null) {
@@ -576,11 +562,11 @@ public class InQuery extends Query {
      * @return the InQuery
      * @throws InvalidCreateOperationException when can not add value
      */
-    public final InQuery add(final double... inValue)
-        throws InvalidCreateOperationException {
+    public final InQuery add(final double... inValue) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.IN && currentTokenQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (doubleVals == null) {
@@ -602,11 +588,11 @@ public class InQuery extends Query {
      * @return the InQuery
      * @throws InvalidCreateOperationException when can not add value
      */
-    public final InQuery add(final boolean... inValue)
-        throws InvalidCreateOperationException {
+    public final InQuery add(final boolean... inValue) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.IN && currentTokenQUERY != QUERY.NIN) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY);
+                CANNOT_ADD_AN_IN_VALUE_SINCE_THIS_IS_NOT_AN_IN_QUERY + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (booleanVals == null) {

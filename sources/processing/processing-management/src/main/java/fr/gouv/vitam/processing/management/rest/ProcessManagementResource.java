@@ -100,7 +100,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private final ProcessMonitoring processMonitoring;
     private final AtomicLong runningWorkflows = new AtomicLong(0L);
 
-
     public ProcessLifeCycle getProcessLifeCycle() {
         return processManagement;
     }
@@ -134,7 +133,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     }
 
     private VitamError getErrorEntity(Status status, String msg, String description) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
             .setContext(WORKFLOW)
             .setState("code_vitam")
             .setMessage(msg)
@@ -171,10 +171,10 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkflowDefinitions() {
         try {
-            List<WorkFlow> workflowDefinitions =
-                new ArrayList<>(processManagement.getWorkflowDefinitions().values());
+            List<WorkFlow> workflowDefinitions = new ArrayList<>(processManagement.getWorkflowDefinitions().values());
             RequestResponseOK<WorkFlow> response = new RequestResponseOK<>();
-            response.addAllResults(workflowDefinitions)
+            response
+                .addAllResults(workflowDefinitions)
                 .setHits(workflowDefinitions.size(), 0, workflowDefinitions.size(), workflowDefinitions.size())
                 .setHttpCode(Status.OK.getStatusCode());
             return Response.status(Status.OK).entity(response).build();
@@ -184,16 +184,17 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.WORKFLOW_DEFINITION_ERROR, e.getLocalizedMessage()))
                 .build();
         }
-
     }
-
 
     @Path("workflows/{workfowId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkflowDetails(@PathParam("workfowId") String workfowId) {
         try {
-            Optional<WorkFlow> optionalWorkflow = processManagement.getWorkflowDefinitions().values().stream()
+            Optional<WorkFlow> optionalWorkflow = processManagement
+                .getWorkflowDefinitions()
+                .values()
+                .stream()
                 .filter(workFlow -> StringUtils.equals(workFlow.getId(), workfowId))
                 .findFirst();
             if (optionalWorkflow.isPresent()) {
@@ -225,13 +226,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id, ProcessingEntry process) {
-
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
         ParametersChecker.checkParameter(ERR_PROCESS_INPUT_ISMANDATORY, process);
         final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        final WorkerParameters workParams = WorkerParametersFactory
-            .newWorkerParameters()
+        final WorkerParameters workParams = WorkerParametersFactory.newWorkerParameters()
             .setContainerName(process.getContainer())
             .setRequestId(reqId)
             .setProcessId(process.getContainer())
@@ -241,8 +240,10 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             workParams.setMap(process.getExtraParams());
         }
 
-        ParametersChecker.checkParameter("actionId is a mandatory parameter",
-            headers.getRequestHeader(GlobalDataRest.X_ACTION));
+        ParametersChecker.checkParameter(
+            "actionId is a mandatory parameter",
+            headers.getRequestHeader(GlobalDataRest.X_ACTION)
+        );
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
@@ -258,7 +259,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     // Initialize the process to start
                     ProcessWorkflow pw = processManagement.init(workParams, process.getWorkflow());
                     return buildResponse(Status.CREATED, pw);
-
                 case NEXT:
                     // Start process in step by step mode
                     itemStatus = processManagement.next(workParams, tenantId);
@@ -267,30 +267,50 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                     // Start process in continue mode
                     itemStatus = processManagement.resume(workParams, tenantId, true);
                     break;
-
                 default:
-                    return this.buildResponse(Status.CONFLICT,
-                        getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction, "The action " + xAction +
-                            " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"));
+                    return this.buildResponse(
+                            Status.CONFLICT,
+                            getErrorEntity(
+                                Status.CONFLICT,
+                                "NOT_ALLOWED_ACTION " + xAction,
+                                "The action " +
+                                xAction +
+                                " is not allowed! Only INIT, NEXT and RESUME are allowed for this endpoint"
+                            )
+                        );
             }
 
             return this.buildResponse(itemStatus);
-
         } catch (StateNotAllowedException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.CONFLICT,
-                getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction,
-                    "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.CONFLICT,
+                    getErrorEntity(
+                        Status.CONFLICT,
+                        "NOT_ALLOWED_ACTION " + xAction,
+                        "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()
+                    )
+                );
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.PRECONDITION_FAILED,
-                getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :" + xAction,
-                    "The action " + xAction + " cause an error :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.PRECONDITION_FAILED,
+                    getErrorEntity(
+                        Status.PRECONDITION_FAILED,
+                        "Error processing the action :" + xAction,
+                        "The action " + xAction + " cause an error :" + e.getMessage()
+                    )
+                );
         } catch (final Exception e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
-                getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :" + xAction,
-                    "The action " + xAction + " cause an internal error :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.INTERNAL_SERVER_ERROR,
+                    getErrorEntity(
+                        Status.INTERNAL_SERVER_ERROR,
+                        "Internal error while processing the action :" + xAction,
+                        "The action " + xAction + " cause an internal error :" + e.getMessage()
+                    )
+                );
         }
     }
 
@@ -304,11 +324,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
-
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try {
             final ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(id, tenantId);
-            ItemStatus itemStatus = new ItemStatus(id).setGlobalState(processWorkflow.getState())
+            ItemStatus itemStatus = new ItemStatus(id)
+                .setGlobalState(processWorkflow.getState())
                 .increment(processWorkflow.getStatus());
 
             RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<>();
@@ -321,26 +341,48 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_CONTEXT_ID, processWorkflow.getLogbookTypeProcess())
                 .entity(responseOK)
                 .build();
-
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, "Error while find ProcessWorkflow",
-                    "The parameter id expected not null, id :" + id + " >> Error : " + e.getMessage()))
+                .entity(
+                    getErrorEntity(
+                        Status.PRECONDITION_FAILED,
+                        "Error while find ProcessWorkflow",
+                        "The parameter id expected not null, id :" + id + " >> Error : " + e.getMessage()
+                    )
+                )
                 .build();
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorEntity(Status.NOT_FOUND, "Error while find ProcessWorkflow",
-                    "ProcessWorkflow not found with tenant :" + tenantId + " and with id:" + id + " >> Error : " +
-                        e.getMessage()))
+                .entity(
+                    getErrorEntity(
+                        Status.NOT_FOUND,
+                        "Error while find ProcessWorkflow",
+                        "ProcessWorkflow not found with tenant :" +
+                        tenantId +
+                        " and with id:" +
+                        id +
+                        " >> Error : " +
+                        e.getMessage()
+                    )
+                )
                 .build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Error while find ProcessWorkflow",
-                    "ProcessWorkflow with tenant :" + tenantId + " and with id:" + id + " >> Error : " +
-                        e.getMessage()))
+                .entity(
+                    getErrorEntity(
+                        Status.INTERNAL_SERVER_ERROR,
+                        "Error while find ProcessWorkflow",
+                        "ProcessWorkflow with tenant :" +
+                        tenantId +
+                        " and with id:" +
+                        id +
+                        " >> Error : " +
+                        e.getMessage()
+                    )
+                )
                 .build();
         }
     }
@@ -356,26 +398,24 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
-
-        ParametersChecker.checkParameter("actionId is a mandatory parameter",
-            headers.getRequestHeader(GlobalDataRest.X_ACTION));
+        ParametersChecker.checkParameter(
+            "actionId is a mandatory parameter",
+            headers.getRequestHeader(GlobalDataRest.X_ACTION)
+        );
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        final WorkerParameters workParams = WorkerParametersFactory
-            .newWorkerParameters()
+        final WorkerParameters workParams = WorkerParametersFactory.newWorkerParameters()
             .setContainerName(id)
             .setRequestId(reqId)
             .setProcessId(id)
-
             .setUrlMetadata(config.getUrlMetadata())
             .setUrlWorkspace(config.getUrlWorkspace());
 
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
 
         try {
-
             final ProcessAction action = ProcessAction.getProcessAction(xAction);
 
             ItemStatus itemStatus;
@@ -383,44 +423,61 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 case NEXT:
                     itemStatus = processManagement.next(workParams, tenantId);
                     break;
-
                 case RESUME:
                     itemStatus = processManagement.resume(workParams, tenantId, false);
                     break;
-
                 case REPLAY:
                     itemStatus = processManagement.replay(workParams, tenantId);
                     break;
-
                 case PAUSE:
                     itemStatus = processManagement.pause(workParams.getContainerName(), tenantId);
 
                     break;
                 default:
-                    return this.buildResponse(Status.CONFLICT,
-                        getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction, "The action " + xAction +
-                            " is not allowed! Only INIT, NEXT, REPLAY and RESUME are allowed for this endpoint"));
+                    return this.buildResponse(
+                            Status.CONFLICT,
+                            getErrorEntity(
+                                Status.CONFLICT,
+                                "NOT_ALLOWED_ACTION " + xAction,
+                                "The action " +
+                                xAction +
+                                " is not allowed! Only INIT, NEXT, REPLAY and RESUME are allowed for this endpoint"
+                            )
+                        );
             }
 
             return this.buildResponse(itemStatus);
-
         } catch (StateNotAllowedException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.CONFLICT,
-                getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION " + xAction,
-                    "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.CONFLICT,
+                    getErrorEntity(
+                        Status.CONFLICT,
+                        "NOT_ALLOWED_ACTION " + xAction,
+                        "The action " + xAction + " is not allowed! The engine exception is :" + e.getMessage()
+                    )
+                );
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.PRECONDITION_FAILED,
-                getErrorEntity(Status.PRECONDITION_FAILED, "Error processing the action :" + xAction,
-                    "The action " + xAction + " cause an error :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.PRECONDITION_FAILED,
+                    getErrorEntity(
+                        Status.PRECONDITION_FAILED,
+                        "Error processing the action :" + xAction,
+                        "The action " + xAction + " cause an error :" + e.getMessage()
+                    )
+                );
         } catch (final Exception e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
-                getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action :" + xAction,
-                    "The action " + xAction + " cause an internal error :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.INTERNAL_SERVER_ERROR,
+                    getErrorEntity(
+                        Status.INTERNAL_SERVER_ERROR,
+                        "Internal error while processing the action :" + xAction,
+                        "The action " + xAction + " cause an internal error :" + e.getMessage()
+                    )
+                );
         }
-
     }
 
     /**
@@ -437,24 +494,38 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try {
-
             final ItemStatus itemStatus = processManagement.cancel(id, tenantId);
             return this.buildResponse(itemStatus);
-
         } catch (StateNotAllowedException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.CONFLICT,
-                getErrorEntity(Status.CONFLICT, "NOT_ALLOWED_ACTION  CANCEL",
-                    "The action cancel is not allowed! The engine exception is :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.CONFLICT,
+                    getErrorEntity(
+                        Status.CONFLICT,
+                        "NOT_ALLOWED_ACTION  CANCEL",
+                        "The action cancel is not allowed! The engine exception is :" + e.getMessage()
+                    )
+                );
         } catch (final ProcessingException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.NOT_FOUND, getErrorEntity(Status.NOT_FOUND,
-                "Error processing the action : CANCEL", "The action cancel cause an error :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.NOT_FOUND,
+                    getErrorEntity(
+                        Status.NOT_FOUND,
+                        "Error processing the action : CANCEL",
+                        "The action cancel cause an error :" + e.getMessage()
+                    )
+                );
         } catch (final Exception e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.INTERNAL_SERVER_ERROR,
-                getErrorEntity(Status.INTERNAL_SERVER_ERROR, "Internal error while processing the action : CANCEL",
-                    "The action cancel cause an internal error :" + e.getMessage()));
+            return this.buildResponse(
+                    Status.INTERNAL_SERVER_ERROR,
+                    getErrorEntity(
+                        Status.INTERNAL_SERVER_ERROR,
+                        "Internal error while processing the action : CANCEL",
+                        "The action cancel cause an internal error :" + e.getMessage()
+                    )
+                );
         }
     }
 
@@ -475,7 +546,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
             Response.ResponseBuilder builder = Response.status(Status.ACCEPTED);
             if (ProcessState.COMPLETED.equals(processWorkflow.getState())) {
                 builder.status(Status.OK);
-
             } else {
                 builder.status(Status.ACCEPTED);
             }
@@ -485,7 +555,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, processWorkflow.getStatus())
                 .header(GlobalDataRest.X_CONTEXT_ID, processWorkflow.getLogbookTypeProcess())
                 .build();
-
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).build();
@@ -510,15 +579,14 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProcessWorkflow(ProcessQuery query) {
         try {
-
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             List<ProcessDetail> processDetails = processManagement.getFilteredProcess(query, tenantId);
             RequestResponseOK<ProcessDetail> response = new RequestResponseOK<>(JsonHandler.toJsonNode(query));
-            response.addAllResults(processDetails)
+            response
+                .addAllResults(processDetails)
                 .setHits(processDetails.size(), 0, processDetails.size(), processDetails.size())
                 .setHttpCode(Status.OK.getStatusCode());
             return Response.status(Status.OK).entity(response).build();
-
         } catch (Exception e) {
             LOGGER.error("Error while finding existing workflow process: ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -526,7 +594,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 .build();
         }
     }
-
 
     /**
      * Pause the processes specified by ProcessPause info
@@ -539,21 +606,20 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response forcePause(ProcessPause info) {
-
         try {
             processManagement.forcePause(info);
 
             RequestResponseOK<ProcessPause> response = new RequestResponseOK<>();
-            response.addResult(info)
-                .setHttpCode(Status.OK.getStatusCode());
+            response.addResult(info).setHttpCode(Status.OK.getStatusCode());
             return Response.status(Status.OK).entity(response).build();
         } catch (ProcessingException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.BAD_REQUEST,
-                getErrorEntity(Status.BAD_REQUEST, "Error while set force pause", e.getMessage()));
+            return this.buildResponse(
+                    Status.BAD_REQUEST,
+                    getErrorEntity(Status.BAD_REQUEST, "Error while set force pause", e.getMessage())
+                );
         }
     }
-
 
     /**
      * Remove the pause for the processes specified by ProcessPause info
@@ -566,17 +632,17 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeForcePause(ProcessPause info) {
-
         try {
             processManagement.removeForcePause(info);
             RequestResponseOK<ProcessPause> response = new RequestResponseOK<>();
-            response.addResult(info)
-                .setHttpCode(Status.OK.getStatusCode());
+            response.addResult(info).setHttpCode(Status.OK.getStatusCode());
             return Response.status(Status.OK).entity(response).build();
         } catch (ProcessingException e) {
             LOGGER.error(e);
-            return this.buildResponse(Status.BAD_REQUEST,
-                getErrorEntity(Status.BAD_REQUEST, "Error while remove force pause", e.getMessage()));
+            return this.buildResponse(
+                    Status.BAD_REQUEST,
+                    getErrorEntity(Status.BAD_REQUEST, "Error while remove force pause", e.getMessage())
+                );
         }
     }
 }

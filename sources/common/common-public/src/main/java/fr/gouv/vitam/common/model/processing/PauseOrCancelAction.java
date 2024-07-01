@@ -58,5 +58,5 @@ public enum PauseOrCancelAction {
     /**
      * When the step is finished without pause nor cancel, the current step will be marked as ACTION_COMPLETE
      */
-    ACTION_COMPLETE
+    ACTION_COMPLETE,
 }

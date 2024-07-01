@@ -25,12 +25,10 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -71,7 +69,13 @@ public class StoreGraphJob implements Job {
             LOGGER.info("Process of storing graph in progress...");
             metaDataClient.storeGraph();
             LOGGER.info("End of process storing graph");
-        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
+        } catch (
+            InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | MetaDataNotFoundException e
+        ) {
             throw new JobExecutionException(e);
         }
     }

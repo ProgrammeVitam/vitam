@@ -89,7 +89,6 @@ public class FileBucketTarCreatorTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-
     @Mock
     ObjectReferentialRepository objectReferentialRepository;
 
@@ -123,156 +122,312 @@ public class FileBucketTarCreatorTest {
 
     @Test
     public void processMessageWithoutSegmentationNorRotation() throws Exception {
-
         List<ObjectToWrite> objectsToWrite = asList(
-            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file2", "0_unit", new NullInputStream(250_000), 250_000,
-                singletonList(new SegmentInfo(250_000L, 0)), 0),
-            new ObjectToWrite("file3", "0_objectGroup", new ByteArrayInputStream("test data 3".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0,
-                singletonList(new SegmentInfo(0L, 0)), 0),
-            new ObjectToWrite("file5", "0_objectGroup", new ByteArrayInputStream("test data 5".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0)
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new ByteArrayInputStream("test data 1".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file2",
+                "0_unit",
+                new NullInputStream(250_000),
+                250_000,
+                singletonList(new SegmentInfo(250_000L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file3",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 3".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0, singletonList(new SegmentInfo(0L, 0)), 0),
+            new ObjectToWrite(
+                "file5",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 5".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            )
         );
         int expectedSealedTarCount = 0;
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
+        runProcessMessageTest(
+            objectsToWrite,
+            expectedSealedTarCount,
+            expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds,
+            500_000L,
+            1_000_000L
+        );
     }
 
     @Test
     public void processMessageMultipleVersions() throws Exception {
-
         List<ObjectToWrite> objectsToWrite = asList(
-            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file1", "0_unit", new NullInputStream(250_000), 250_000,
-                singletonList(new SegmentInfo(250_000L, 0)), 0),
-            new ObjectToWrite("file1", "0_unit", new NullInputStream(0), 0,
-                singletonList(new SegmentInfo(0L, 0)), 0),
-            new ObjectToWrite("file1", "0_unit", new NullInputStream(10), 10,
-                singletonList(new SegmentInfo(10L, 0)), 0)
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new ByteArrayInputStream("test data 1".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new NullInputStream(250_000),
+                250_000,
+                singletonList(new SegmentInfo(250_000L, 0)),
+                0
+            ),
+            new ObjectToWrite("file1", "0_unit", new NullInputStream(0), 0, singletonList(new SegmentInfo(0L, 0)), 0),
+            new ObjectToWrite("file1", "0_unit", new NullInputStream(10), 10, singletonList(new SegmentInfo(10L, 0)), 0)
         );
 
         int expectedSealedTarCount = 0;
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
+        runProcessMessageTest(
+            objectsToWrite,
+            expectedSealedTarCount,
+            expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds,
+            500_000L,
+            1_000_000L
+        );
     }
 
     @Test
     public void processMessageWithMultipleSegmentsWithoutRotation() throws Exception {
-
         List<ObjectToWrite> objectsToWrite = asList(
-            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file2", "0_unit", new NullInputStream(250_000), 250_000,
-                asList(new SegmentInfo(100_000L, 0), new SegmentInfo(100_000L, 0), new SegmentInfo(50_000L, 0)), 0),
-            new ObjectToWrite("file3", "0_objectGroup", new ByteArrayInputStream("test data 3".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0,
-                singletonList(new SegmentInfo(0L, 0)), 0),
-            new ObjectToWrite("file5", "0_objectGroup", new ByteArrayInputStream("test data 5".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0)
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new ByteArrayInputStream("test data 1".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file2",
+                "0_unit",
+                new NullInputStream(250_000),
+                250_000,
+                asList(new SegmentInfo(100_000L, 0), new SegmentInfo(100_000L, 0), new SegmentInfo(50_000L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file3",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 3".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0, singletonList(new SegmentInfo(0L, 0)), 0),
+            new ObjectToWrite(
+                "file5",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 5".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            )
         );
         int expectedSealedTarCount = 0;
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds, 100_000L, 1_000_000L);
+        runProcessMessageTest(
+            objectsToWrite,
+            expectedSealedTarCount,
+            expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds,
+            100_000L,
+            1_000_000L
+        );
     }
 
     @Test
     public void processMessageWithRotation() throws Exception {
-
         List<ObjectToWrite> objectsToWrite = asList(
-            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file2", "0_unit", new NullInputStream(250_000), 250_000,
-                asList(new SegmentInfo(100_000L, 0), new SegmentInfo(100_000L, 1), new SegmentInfo(50_000L, 1)), 0),
-            new ObjectToWrite("file3", "0_objectGroup", new ByteArrayInputStream("test data 3".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 1)), 0),
-            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0,
-                singletonList(new SegmentInfo(0L, 1)), 0),
-            new ObjectToWrite("file5", "0_objectGroup", new ByteArrayInputStream("test data 5".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 1)), 0)
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new ByteArrayInputStream("test data 1".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file2",
+                "0_unit",
+                new NullInputStream(250_000),
+                250_000,
+                asList(new SegmentInfo(100_000L, 0), new SegmentInfo(100_000L, 1), new SegmentInfo(50_000L, 1)),
+                0
+            ),
+            new ObjectToWrite(
+                "file3",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 3".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 1)),
+                0
+            ),
+            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0, singletonList(new SegmentInfo(0L, 1)), 0),
+            new ObjectToWrite(
+                "file5",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 5".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 1)),
+                0
+            )
         );
         int expectedSealedTarCount = 1;
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds, 100_000L, 200_000L);
-
+        runProcessMessageTest(
+            objectsToWrite,
+            expectedSealedTarCount,
+            expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds,
+            100_000L,
+            200_000L
+        );
     }
 
     @Test
     public void processMessageRotationAfterTimeout() throws Exception {
-
         List<ObjectToWrite> objectsToWrite = asList(
-            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 10),
-            new ObjectToWrite("file2", "0_unit", new ByteArrayInputStream("test data 2".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 1)), 10)
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new ByteArrayInputStream("test data 1".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                10
+            ),
+            new ObjectToWrite(
+                "file2",
+                "0_unit",
+                new ByteArrayInputStream("test data 2".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 1)),
+                10
+            )
         );
         int expectedSealedTarCount = 2;
         int expectedTmpTarCount = 0;
         int tarBufferingTimeoutInSeconds = 5;
 
-        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
+        runProcessMessageTest(
+            objectsToWrite,
+            expectedSealedTarCount,
+            expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds,
+            500_000L,
+            1_000_000L
+        );
     }
 
     @Test
     public void initializeOnBootstrapThenProcessMessages() throws Exception {
-
         List<ObjectToWrite> objectsToWrite = asList(
-            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file2", "0_unit", new NullInputStream(250_000), 250_000,
-                singletonList(new SegmentInfo(250_000L, 0)), 0),
-            new ObjectToWrite("file3", "0_objectGroup", new ByteArrayInputStream("test data 3".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0),
-            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0,
-                singletonList(new SegmentInfo(0L, 0)), 0),
-            new ObjectToWrite("file5", "0_objectGroup", new ByteArrayInputStream("test data 5".getBytes()), 11,
-                singletonList(new SegmentInfo(11L, 0)), 0)
+            new ObjectToWrite(
+                "file1",
+                "0_unit",
+                new ByteArrayInputStream("test data 1".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file2",
+                "0_unit",
+                new NullInputStream(250_000),
+                250_000,
+                singletonList(new SegmentInfo(250_000L, 0)),
+                0
+            ),
+            new ObjectToWrite(
+                "file3",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 3".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            ),
+            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0, singletonList(new SegmentInfo(0L, 0)), 0),
+            new ObjectToWrite(
+                "file5",
+                "0_objectGroup",
+                new ByteArrayInputStream("test data 5".getBytes()),
+                11,
+                singletonList(new SegmentInfo(11L, 0)),
+                0
+            )
         );
         int expectedSealedTarCount = 0;
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
+        runProcessMessageTest(
+            objectsToWrite,
+            expectedSealedTarCount,
+            expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds,
+            500_000L,
+            1_000_000L
+        );
     }
 
-
-    private void runProcessMessageTest(List<ObjectToWrite> objectsToWrite, int expectedSealedTarCount,
+    private void runProcessMessageTest(
+        List<ObjectToWrite> objectsToWrite,
+        int expectedSealedTarCount,
         int expectedTmpTarCount,
-        int tarBufferingTimeoutInSeconds, long maxTarEntrySize, long maxTarFileSize)
-        throws IOException, QueueProcessingException, InterruptedException, ArchiveReferentialException,
-        ObjectReferentialException {
+        int tarBufferingTimeoutInSeconds,
+        long maxTarEntrySize,
+        long maxTarFileSize
+    )
+        throws IOException, QueueProcessingException, InterruptedException, ArchiveReferentialException, ObjectReferentialException {
         String bucketId = "test";
         String fileBucketId = "test-metadata";
 
-        Path fileBucketStoragePath =
-            LocalFileUtils.fileBuckedInputFilePath(inputTarStoragePath.toString(), fileBucketId);
+        Path fileBucketStoragePath = LocalFileUtils.fileBuckedInputFilePath(
+            inputTarStoragePath.toString(),
+            fileBucketId
+        );
         Files.createDirectories(fileBucketStoragePath);
 
         FileBucketTarCreator fileBucketTarCreator = new FileBucketTarCreator(
-            basicFileStorage, objectReferentialRepository, archiveReferentialRepository,
-            writeOrderCreator, bucketId, fileBucketId, tarBufferingTimeoutInSeconds,
-            TimeUnit.SECONDS, inputTarStoragePath.toString(),
-            maxTarEntrySize, maxTarFileSize);
+            basicFileStorage,
+            objectReferentialRepository,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            bucketId,
+            fileBucketId,
+            tarBufferingTimeoutInSeconds,
+            TimeUnit.SECONDS,
+            inputTarStoragePath.toString(),
+            maxTarEntrySize,
+            maxTarFileSize
+        );
 
-        doAnswer((args) -> null).when(basicFileStorage).deleteFile(any(), any());
+        doAnswer(args -> null).when(basicFileStorage).deleteFile(any(), any());
 
         fileBucketTarCreator.startListener();
 
@@ -283,17 +438,28 @@ public class FileBucketTarCreatorTest {
             Digest digest = new Digest(digestType);
             InputStream digestInputStream = digest.getDigestInputStream(objectToWrite.inputStream);
 
-            String storageId = basicFileStorage.writeFile(objectToWrite.containerName, objectToWrite.objectName,
-                digestInputStream, objectToWrite.size);
+            String storageId = basicFileStorage.writeFile(
+                objectToWrite.containerName,
+                objectToWrite.objectName,
+                digestInputStream,
+                objectToWrite.size
+            );
 
             String digestValue = digest.digestHex();
 
             storageIds.add(storageId);
             objectDigests.add(digestValue);
 
-            fileBucketTarCreator.processMessage(new InputFileToProcessMessage(
-                objectToWrite.containerName, objectToWrite.objectName, storageId, objectToWrite.size, digestValue,
-                digestType.getName()));
+            fileBucketTarCreator.processMessage(
+                new InputFileToProcessMessage(
+                    objectToWrite.containerName,
+                    objectToWrite.objectName,
+                    storageId,
+                    objectToWrite.size,
+                    digestValue,
+                    digestType.getName()
+                )
+            );
 
             Thread.sleep(1000L * objectToWrite.sleepDelayInSeconds);
         }
@@ -301,30 +467,34 @@ public class FileBucketTarCreatorTest {
         // Then
 
         // Verify tar file creation & tar referential insertion
-        assertThat(inputTarStoragePath.resolve(fileBucketId).toFile().list())
-            .hasSize(expectedSealedTarCount + expectedTmpTarCount);
+        assertThat(inputTarStoragePath.resolve(fileBucketId).toFile().list()).hasSize(
+            expectedSealedTarCount + expectedTmpTarCount
+        );
 
-        ArgumentCaptor<TapeArchiveReferentialEntity> tarReferentialEntityArgumentCaptor =
-            ArgumentCaptor.forClass(TapeArchiveReferentialEntity.class);
-        verify(archiveReferentialRepository, times(expectedSealedTarCount + expectedTmpTarCount))
-            .insert(tarReferentialEntityArgumentCaptor.capture());
+        ArgumentCaptor<TapeArchiveReferentialEntity> tarReferentialEntityArgumentCaptor = ArgumentCaptor.forClass(
+            TapeArchiveReferentialEntity.class
+        );
+        verify(archiveReferentialRepository, times(expectedSealedTarCount + expectedTmpTarCount)).insert(
+            tarReferentialEntityArgumentCaptor.capture()
+        );
         verifyNoMoreInteractions(archiveReferentialRepository);
         List<TapeArchiveReferentialEntity> tarReferentialEntities = tarReferentialEntityArgumentCaptor.getAllValues();
 
         Map<String, Path> tarIdToTarFile = new HashMap<>();
         for (int i = 0; i < expectedSealedTarCount + expectedTmpTarCount; i++) {
-
             TapeArchiveReferentialEntity tarReferentialEntity = tarReferentialEntities.get(i);
             boolean shouldBeSealed = i < expectedSealedTarCount;
 
-            Path tarFilePath = inputTarStoragePath.resolve(fileBucketId).resolve(tarReferentialEntity.getArchiveId() +
-                (shouldBeSealed ? "" : LocalFileUtils.TMP_EXTENSION));
+            Path tarFilePath = inputTarStoragePath
+                .resolve(fileBucketId)
+                .resolve(tarReferentialEntity.getArchiveId() + (shouldBeSealed ? "" : LocalFileUtils.TMP_EXTENSION));
 
             tarIdToTarFile.put(tarReferentialEntity.getArchiveId(), tarFilePath);
 
             assertThat(tarFilePath).exists();
-            assertThat(tarReferentialEntity.getLocation())
-                .isInstanceOf(TapeLibraryBuildingOnDiskArchiveStorageLocation.class);
+            assertThat(tarReferentialEntity.getLocation()).isInstanceOf(
+                TapeLibraryBuildingOnDiskArchiveStorageLocation.class
+            );
             assertThat(tarReferentialEntity.getSize()).isNull();
             assertThat(tarReferentialEntity.getDigestValue()).isNull();
             assertThat(tarReferentialEntity.getLastUpdateDate()).isNotNull();
@@ -338,24 +508,27 @@ public class FileBucketTarCreatorTest {
             ArgumentCaptor<TapeLibraryTarObjectStorageLocation> objectStorageLocationArgumentCaptor =
                 ArgumentCaptor.forClass(TapeLibraryTarObjectStorageLocation.class);
 
-            verify(objectReferentialRepository)
-                .updateStorageLocation(eq(objectToWrite.containerName), eq(objectToWrite.objectName),
-                    eq(storageIds.get(i)),
-                    objectStorageLocationArgumentCaptor.capture());
+            verify(objectReferentialRepository).updateStorageLocation(
+                eq(objectToWrite.containerName),
+                eq(objectToWrite.objectName),
+                eq(storageIds.get(i)),
+                objectStorageLocationArgumentCaptor.capture()
+            );
 
             TapeLibraryTarObjectStorageLocation objectStorageLocation = objectStorageLocationArgumentCaptor.getValue();
             assertThat(objectStorageLocation.getTarEntries()).hasSize(objectsToWrite.get(i).expectedSegments.size());
 
             List<TarEntryDescription> objectTarEntries = new ArrayList<>();
             for (int entryIndex = 0; entryIndex < objectToWrite.expectedSegments.size(); entryIndex++) {
-
                 TarEntryDescription tarEntry = objectStorageLocation.getTarEntries().get(entryIndex);
 
                 assertThat(tarEntry.getSize()).isEqualTo(objectToWrite.expectedSegments.get(entryIndex).size);
                 assertThat(tarEntry.getTarFileId()).isEqualTo(
-                    tarReferentialEntities.get(objectToWrite.expectedSegments.get(entryIndex).tarIndex).getArchiveId());
-                assertThat(tarEntry.getEntryName())
-                    .isEqualTo(objectToWrite.containerName + "/" + storageIds.get(i) + "-" + entryIndex);
+                    tarReferentialEntities.get(objectToWrite.expectedSegments.get(entryIndex).tarIndex).getArchiveId()
+                );
+                assertThat(tarEntry.getEntryName()).isEqualTo(
+                    objectToWrite.containerName + "/" + storageIds.get(i) + "-" + entryIndex
+                );
 
                 objectTarEntries.add(tarEntry);
             }
@@ -365,12 +538,10 @@ public class FileBucketTarCreatorTest {
 
         // Verify segments digests
         for (int i = 0; i < tarEntries.size(); i++) {
-
             List<TarEntryDescription> fileTarEntries = tarEntries.get(i);
             Digest digest = new Digest(digestType);
             OutputStream digestOutputStream = digest.getDigestOutputStream(NullOutputStream.NULL_OUTPUT_STREAM);
             for (TarEntryDescription fileTarEntry : fileTarEntries) {
-
                 Path tarFilePath = tarIdToTarFile.get(fileTarEntry.getTarFileId());
 
                 // Verify segment digest
@@ -389,8 +560,7 @@ public class FileBucketTarCreatorTest {
 
         // Verify tar write order for sealed tar files
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
-        verify(writeOrderCreator, times(expectedSealedTarCount)).
-            addToQueue(writeOrderArgCaptor.capture());
+        verify(writeOrderCreator, times(expectedSealedTarCount)).addToQueue(writeOrderArgCaptor.capture());
 
         List<WriteOrder> allValues = writeOrderArgCaptor.getAllValues();
         for (int i = 0; i < allValues.size(); i++) {
@@ -400,49 +570,64 @@ public class FileBucketTarCreatorTest {
             Path tarFilePath = tarIdToTarFile.get(tarReferentialEntity.getArchiveId());
             assertThat(writeOrder.getBucket()).isEqualTo(bucketId);
             assertThat(writeOrder.getFileBucketId()).isEqualTo(fileBucketId);
-            assertThat(writeOrder.getDigest())
-                .isEqualTo(new Digest(digestType).update(tarFilePath.toFile()).digestHex());
+            assertThat(writeOrder.getDigest()).isEqualTo(
+                new Digest(digestType).update(tarFilePath.toFile()).digestHex()
+            );
             assertThat(writeOrder.getSize()).isEqualTo(tarFilePath.toFile().length());
             assertThat(writeOrder.getArchiveId()).isEqualTo(tarReferentialEntity.getArchiveId());
-            assertThat(inputTarStoragePath.resolve(writeOrder.getFilePath()).toAbsolutePath())
-                .isEqualTo(tarFilePath.toAbsolutePath());
+            assertThat(inputTarStoragePath.resolve(writeOrder.getFilePath()).toAbsolutePath()).isEqualTo(
+                tarFilePath.toAbsolutePath()
+            );
         }
         verifyNoMoreInteractions(writeOrderCreator);
     }
 
     @Test
     public void testReadTarAndCheckExistence() throws Exception {
-
         // Given
 
         // Populate
         String bucketId = "test";
         String fileBucketId = "test-metadata";
 
-        Path fileBucketStoragePath =
-            LocalFileUtils.fileBuckedInputFilePath(inputTarStoragePath.toString(), fileBucketId);
+        Path fileBucketStoragePath = LocalFileUtils.fileBuckedInputFilePath(
+            inputTarStoragePath.toString(),
+            fileBucketId
+        );
         Files.createDirectories(fileBucketStoragePath);
 
         FileBucketTarCreator fileBucketTarCreator = new FileBucketTarCreator(
-            basicFileStorage, objectReferentialRepository, archiveReferentialRepository,
-            writeOrderCreator, bucketId, fileBucketId, 60,
-            TimeUnit.SECONDS, inputTarStoragePath.toString(),
-            10_000, 45_000);
+            basicFileStorage,
+            objectReferentialRepository,
+            archiveReferentialRepository,
+            writeOrderCreator,
+            bucketId,
+            fileBucketId,
+            60,
+            TimeUnit.SECONDS,
+            inputTarStoragePath.toString(),
+            10_000,
+            45_000
+        );
 
         Digest digest = new Digest(DigestType.SHA512);
-        String unitGuidStorageId1 =
-            basicFileStorage.writeFile("0_unit", "unitGuid1", digest.getDigestInputStream(new NullInputStream(60_000L)),
-                60_000L);
+        String unitGuidStorageId1 = basicFileStorage.writeFile(
+            "0_unit",
+            "unitGuid1",
+            digest.getDigestInputStream(new NullInputStream(60_000L)),
+            60_000L
+        );
         fileBucketTarCreator.processMessage(
-            new InputFileToProcessMessage("0_unit", "obj1", unitGuidStorageId1, 60_000, digest.digestHex(), "SHA-512"));
+            new InputFileToProcessMessage("0_unit", "obj1", unitGuidStorageId1, 60_000, digest.digestHex(), "SHA-512")
+        );
 
-        ArgumentCaptor<TapeArchiveReferentialEntity> tarReferentialEntityArgumentCaptor =
-            ArgumentCaptor.forClass(TapeArchiveReferentialEntity.class);
-        verify(archiveReferentialRepository, times(2))
-            .insert(tarReferentialEntityArgumentCaptor.capture());
+        ArgumentCaptor<TapeArchiveReferentialEntity> tarReferentialEntityArgumentCaptor = ArgumentCaptor.forClass(
+            TapeArchiveReferentialEntity.class
+        );
+        verify(archiveReferentialRepository, times(2)).insert(tarReferentialEntityArgumentCaptor.capture());
         verifyNoMoreInteractions(archiveReferentialRepository);
-        List<TapeArchiveReferentialEntity> tapeArchiveReferentialEntities
-            = tarReferentialEntityArgumentCaptor.getAllValues();
+        List<TapeArchiveReferentialEntity> tapeArchiveReferentialEntities =
+            tarReferentialEntityArgumentCaptor.getAllValues();
 
         // Ensure 1 sealed tar (ready_on_disk) & 1 temp file (building_on_disk)
         String sealedTar1 = tapeArchiveReferentialEntities.get(0).getArchiveId();
@@ -470,16 +655,19 @@ public class FileBucketTarCreatorTest {
 
         assertThat(tar1InputStream).isPresent();
         assertThat(tar1InputStream.get()).hasSameContentAs(
-            new FileInputStream(inputTarStoragePath.resolve(fileBucketId).resolve(sealedTar1).toFile()));
+            new FileInputStream(inputTarStoragePath.resolve(fileBucketId).resolve(sealedTar1).toFile())
+        );
 
         assertThat(tar2InputStream).isPresent();
         assertThat(tar2InputStream.get()).hasSameContentAs(
-            new FileInputStream(inputTarStoragePath.resolve(fileBucketId).resolve(tmpTarId2 + ".tmp").toFile()));
+            new FileInputStream(inputTarStoragePath.resolve(fileBucketId).resolve(tmpTarId2 + ".tmp").toFile())
+        );
 
         assertThat(unknownTarInputStream).isEmpty();
     }
 
     private static class ObjectToWrite {
+
         final String objectName;
         final String containerName;
         final InputStream inputStream;
@@ -487,8 +675,14 @@ public class FileBucketTarCreatorTest {
         final List<SegmentInfo> expectedSegments;
         final int sleepDelayInSeconds;
 
-        ObjectToWrite(String objectName, String containerName, InputStream inputStream, long size,
-            List<SegmentInfo> expectedSegmentSizes, int sleepDelayInSeconds) {
+        ObjectToWrite(
+            String objectName,
+            String containerName,
+            InputStream inputStream,
+            long size,
+            List<SegmentInfo> expectedSegmentSizes,
+            int sleepDelayInSeconds
+        ) {
             this.objectName = objectName;
             this.containerName = containerName;
             this.inputStream = inputStream;
@@ -498,8 +692,8 @@ public class FileBucketTarCreatorTest {
         }
     }
 
-
     private static class SegmentInfo {
+
         long size;
         int tarIndex;
 

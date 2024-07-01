@@ -33,9 +33,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  */
 public class ProfileNotFoundException extends VitamException {
 
-
     private static final long serialVersionUID = -8759869194114350122L;
-
 
     /**
      * @param message associated message

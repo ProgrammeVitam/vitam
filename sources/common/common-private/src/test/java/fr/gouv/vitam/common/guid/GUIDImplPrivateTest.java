@@ -47,10 +47,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@SuppressWarnings({"javadoc"})
+@SuppressWarnings({ "javadoc" })
 public class GUIDImplPrivateTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GUIDImplPrivateTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDImplPrivateTest.class);
 
     private static final int VERSION = 1 & 0x1F;
     private static int NB = 100000;
@@ -136,8 +136,16 @@ public class GUIDImplPrivateTest {
         for (int i = 1; i < n; i++) {
             assertTrue(!ids[i - 1].equals(ids[i]));
         }
-        LOGGER.info("B32: " + (stop - start) + " vsHex: " + (stop2 - start2) + " vsB32: " + (stop4 - start4) +
-            " vxHex: " + (stop5 - start5));
+        LOGGER.info(
+            "B32: " +
+            (stop - start) +
+            " vsHex: " +
+            (stop2 - start2) +
+            " vsB32: " +
+            (stop4 - start4) +
+            " vxHex: " +
+            (stop5 - start5)
+        );
     }
 
     @Test
@@ -284,7 +292,7 @@ public class GUIDImplPrivateTest {
             UUIDArray[i] = new GUIDImplPrivate();
         }
         final long stop = System.currentTimeMillis();
-        LOGGER.info("TimeSequential = " + (stop - start) + " so " + n * 1000 / (stop - start) + " UUID22s/s");
+        LOGGER.info("TimeSequential = " + (stop - start) + " so " + (n * 1000) / (stop - start) + " UUID22s/s");
 
         for (int i = 0; i < n; i++) {
             UUIDs.add(UUIDArray[i]);
@@ -300,8 +308,8 @@ public class GUIDImplPrivateTest {
         final byte[] uuid = new byte[4];
         for (int src = 0; src < NB; src++) {
             uuid[1] = (byte) (src & 0xFF);
-            uuid[2] = (byte) (src >> 8 & 0xFF);
-            uuid[3] = (byte) (src >> 16 & 0xFF);
+            uuid[2] = (byte) ((src >> 8) & 0xFF);
+            uuid[3] = (byte) ((src >> 16) & 0xFF);
             int count = (uuid[3] & 0xFF) << 16;
             count |= (uuid[2] & 0xFF) << 8;
             count |= uuid[1] & 0xFF;
@@ -347,6 +355,7 @@ public class GUIDImplPrivateTest {
     }
 
     private static class Generator extends Thread {
+
         private final GUIDImplPrivate[] UUIDs;
         int base;
         int n;
@@ -393,7 +402,8 @@ public class GUIDImplPrivateTest {
         assertEquals(UUIDs.length, UUIDSet.size());
         UUIDSet.clear();
         LOGGER.info(
-            "TimeConcurrent = " + (stop - start) + " so " + UUIDs.length * 1000 / (stop - start) + " UUID22s/s");
+            "TimeConcurrent = " + (stop - start) + " so " + (UUIDs.length * 1000) / (stop - start) + " UUID22s/s"
+        );
         final TreeSet<GUIDImplPrivate> set = new TreeSet<>();
         for (final GUIDImplPrivate uuid : UUIDs) {
             set.add(uuid);
@@ -429,37 +439,37 @@ public class GUIDImplPrivateTest {
         try {
             new GUIDImplPrivate(-1, 2, 3, false);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(0x1FF, 2, 3, false);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, -2, 3, false);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, 0x4FFFFFFF, 3, false);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, 2, -3, false);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, 2, 0x80000000, false);
             fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR
+        } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         final GUID guid = GUIDFactory.newEventGUID(2);

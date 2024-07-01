@@ -64,7 +64,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-
 /**
  * Integration tests using docker instances with storage swift/keystone API V2 & V3
  */
@@ -75,7 +74,6 @@ public class SwiftV2V3ITTest {
     private static final String PROVIDER_V2 = "openstack-swift-v2";
     private static final String PROVIDER_V3 = "openstack-swift-v3";
     private ContentAddressableStorage swift;
-
 
     private String containerName;
     private String objectName;
@@ -177,49 +175,42 @@ public class SwiftV2V3ITTest {
         StorageConfiguration configurationSwift = createConfigurationV3();
         SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
         swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 2000L);
-        VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService
-            = new VitamSwiftObjectStorageService(swiftKeystoneFactoryV3);
+        VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService = new VitamSwiftObjectStorageService(
+            swiftKeystoneFactoryV3
+        );
 
         swift.createContainer("container");
         swift.putObject("container", "objName", new NullInputStream(5000), DigestType.SHA512, 5000L);
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
-            .doesNotThrowAnyException();
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap())
+        ).doesNotThrowAnyException();
 
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001",
-                Collections.emptyMap()))
-            .doesNotThrowAnyException();
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001", Collections.emptyMap())
+        ).doesNotThrowAnyException();
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002",
-                Collections.emptyMap()))
-            .doesNotThrowAnyException();
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002", Collections.emptyMap())
+        ).doesNotThrowAnyException();
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003",
-                Collections.emptyMap()))
-            .doesNotThrowAnyException();
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003", Collections.emptyMap())
+        ).doesNotThrowAnyException();
         // WHEN
         swift.deleteObject("container", "objName");
 
-
         // THEN
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap())
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001",
-                Collections.emptyMap()))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000001", Collections.emptyMap())
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002",
-                Collections.emptyMap()))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000002", Collections.emptyMap())
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003",
-                Collections.emptyMap()))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName/00000003", Collections.emptyMap())
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
-
 
     @Test
     public void delete_small_object() throws Exception {
@@ -227,47 +218,52 @@ public class SwiftV2V3ITTest {
         StorageConfiguration configurationSwift = createConfigurationV3();
         SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configurationSwift);
         swift = new Swift(swiftKeystoneFactoryV3, configurationSwift, 2000L);
-        VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService
-            = new VitamSwiftObjectStorageService(swiftKeystoneFactoryV3);
+        VitamSwiftObjectStorageService lowLevelSwiftObjectStorageService = new VitamSwiftObjectStorageService(
+            swiftKeystoneFactoryV3
+        );
 
         swift.createContainer("container");
         swift.putObject("container", "objName", new NullInputStream(1000), DigestType.SHA512, 1000L);
         assertThatCode(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
-            .doesNotThrowAnyException();
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap())
+        ).doesNotThrowAnyException();
 
         // WHEN
         swift.deleteObject("container", "objName");
 
         // THEN
         assertThatThrownBy(
-            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap()))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+            () -> lowLevelSwiftObjectStorageService.getMetadata("container", "objName", Collections.emptyMap())
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     private void mainScenario(ContentAddressableStorage swift) throws Exception {
-
         assertThat(swift.isExistingContainer(containerName)).isFalse();
 
         assertThat(swift.isExistingObject(containerName, objectName)).isFalse();
 
-        assertThatThrownBy(() -> swift.deleteObject(containerName, objectName),
-            "Delete object in a container that does not exists")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.deleteObject(containerName, objectName),
+            "Delete object in a container that does not exists"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        assertThatThrownBy(() -> {
-            InputStream stream = getInputStream("file1.pdf");
-            swift.putObject(containerName, objectName, stream, DigestType.SHA512, 6_906L);
-        }, "Try to upload a file in a container that does not exists")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> {
+                InputStream stream = getInputStream("file1.pdf");
+                swift.putObject(containerName, objectName, stream, DigestType.SHA512, 6_906L);
+            },
+            "Try to upload a file in a container that does not exists"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        assertThatThrownBy(() -> swift.getObject(containerName, objectName),
-            "Try to download a file from a container that does not exists")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObject(containerName, objectName),
+            "Try to download a file from a container that does not exists"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        assertThatThrownBy(() -> swift.getObjectDigest(containerName, objectName, DigestType.SHA512, false),
-            "Compute digest of object from a container that does not exist")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(containerName, objectName, DigestType.SHA512, false),
+            "Compute digest of object from a container that does not exist"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         assertThatCode(() -> swift.createContainer(containerName)).doesNotThrowAnyException();
 
@@ -280,13 +276,15 @@ public class SwiftV2V3ITTest {
 
         assertThat(swift.isExistingObject(containerName, objectName)).isFalse();
 
-        assertThatThrownBy(() -> swift.getObjectDigest(containerName, objectName, DigestType.SHA512, false),
-            "Compute digest of object that does not exists")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(containerName, objectName, DigestType.SHA512, false),
+            "Compute digest of object that does not exists"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        assertThatThrownBy(() -> swift.getObject(containerName, objectName),
-            "Try to download a file that does not exists")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObject(containerName, objectName),
+            "Try to download a file that does not exists"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // upload a file
         InputStream file1Stream = getInputStream("file1.pdf");
@@ -301,15 +299,17 @@ public class SwiftV2V3ITTest {
             assertThat(is).hasSameContentAs(new FileInputStream(resourceFile));
         }
 
-        assertThatThrownBy(() -> swift.getObjectMetadata(containerName, "nonExistObject", false),
-            "Try to get metadata of file that does not exists")
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectMetadata(containerName, "nonExistObject", false),
+            "Try to get metadata of file that does not exists"
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // get an existing file's metadata
         MetadatasObject metadatasObject = swift.getObjectMetadata(containerName, objectName, false);
         assertThat(metadatasObject.getFileSize()).isEqualTo(6_906L);
         assertThat(metadatasObject.getDigest()).isEqualTo(
-            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418");
+            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418"
+        );
         assertThat(metadatasObject.getObjectName()).isEqualTo(objectName);
         assertThat(metadatasObject.getType()).isEqualTo(containerName.split("_")[1]);
 
@@ -319,13 +319,15 @@ public class SwiftV2V3ITTest {
         // compute digest of object that does exists
         String computedDigest = swift.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
         assertThat(computedDigest).isEqualTo(
-            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418");
+            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418"
+        );
 
         assertThatCode(() -> swift.deleteObject(containerName, objectName)).doesNotThrowAnyException();
 
         // delete an non existing file > idempotent
-        assertThatThrownBy(() -> swift.deleteObject(containerName, objectName))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> swift.deleteObject(containerName, objectName)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
 
         swift.close();
     }
@@ -358,7 +360,6 @@ public class SwiftV2V3ITTest {
     }
 
     private void swift_api_v3_listing_scenario(Swift swift) throws Exception {
-
         // Given
         int nbIter = 2;
         assertThatCode(() -> swift.createContainer(containerName)).doesNotThrowAnyException();
@@ -368,7 +369,6 @@ public class SwiftV2V3ITTest {
 
         // upload multiple times the same file1 on first container
         for (int i = 0; i < (nbIter * 10 + 5); i++) {
-
             try (InputStream file1Stream = getInputStream("file1.pdf")) {
                 swift.putObject(containerName, objectName + i, file1Stream, DigestType.SHA512, 6_906L);
             }
@@ -394,10 +394,13 @@ public class SwiftV2V3ITTest {
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
         verify(objectListingListener, times(nbIter * 10 + 5)).handleObjectEntry(objectEntryArgumentCaptor.capture());
 
-        objectEntryArgumentCaptor.getAllValues()
+        objectEntryArgumentCaptor
+            .getAllValues()
             .forEach(capturedObjectEntry -> assertThat(capturedObjectEntry.getSize()).isEqualTo(6906L));
 
-        Set<String> capturedFileNames = objectEntryArgumentCaptor.getAllValues().stream()
+        Set<String> capturedFileNames = objectEntryArgumentCaptor
+            .getAllValues()
+            .stream()
             .map(ObjectEntry::getObjectId)
             .collect(Collectors.toSet());
         Set<String> expectedFileNames = IntStream.range(0, nbIter * 10 + 5)
@@ -409,5 +412,4 @@ public class SwiftV2V3ITTest {
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
     }
-
 }

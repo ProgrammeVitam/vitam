@@ -46,10 +46,8 @@ public class VitamServerLifeCycle implements Listener {
         this.processLifeCycle = processLifeCycle;
     }
 
-
     @Override
-    public void lifeCycleStarting(LifeCycle event) {
-    }
+    public void lifeCycleStarting(LifeCycle event) {}
 
     @Override
     public void lifeCycleStarted(LifeCycle event) {
@@ -57,8 +55,7 @@ public class VitamServerLifeCycle implements Listener {
     }
 
     @Override
-    public void lifeCycleFailure(LifeCycle event, Throwable cause) {
-    }
+    public void lifeCycleFailure(LifeCycle event, Throwable cause) {}
 
     @Override
     public void lifeCycleStopping(LifeCycle event) {
@@ -66,6 +63,5 @@ public class VitamServerLifeCycle implements Listener {
     }
 
     @Override
-    public void lifeCycleStopped(LifeCycle event) {
-    }
+    public void lifeCycleStopped(LifeCycle event) {}
 }

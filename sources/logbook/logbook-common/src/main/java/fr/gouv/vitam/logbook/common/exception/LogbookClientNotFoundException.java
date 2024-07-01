@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.common.exception;
  * Exception indicating a resource requested by a client was not found on the server.
  */
 public class LogbookClientNotFoundException extends LogbookClientException {
+
     private static final long serialVersionUID = -8759869194114350122L;
 
     /**

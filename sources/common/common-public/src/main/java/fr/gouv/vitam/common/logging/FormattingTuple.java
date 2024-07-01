@@ -40,8 +40,7 @@ class FormattingTuple {
         this(message, null, null);
     }
 
-    FormattingTuple(final String message, final Object[] argArray,
-        final Throwable throwable) {
+    FormattingTuple(final String message, final Object[] argArray, final Throwable throwable) {
         this.message = message;
         this.throwable = throwable;
         if (throwable == null) {

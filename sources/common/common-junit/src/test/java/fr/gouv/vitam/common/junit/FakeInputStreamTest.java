@@ -83,7 +83,5 @@ public class FakeInputStreamTest {
             assertEquals(len - 1, fakeInputStream.available());
             assertEquals(1, fakeInputStream.readCount());
         }
-
     }
-
 }

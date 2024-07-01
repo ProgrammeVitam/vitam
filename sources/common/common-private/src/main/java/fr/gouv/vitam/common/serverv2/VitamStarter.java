@@ -98,12 +98,13 @@ public class VitamStarter {
      * @param businessApplication business application
      * @param adminApplication admin application
      */
-    public VitamStarter(Class<? extends VitamApplicationConfiguration> configurationType,
+    public VitamStarter(
+        Class<? extends VitamApplicationConfiguration> configurationType,
         String configurationFile,
         Class<? extends Application> businessApplication,
-        Class<? extends Application> adminApplication) {
+        Class<? extends Application> adminApplication
+    ) {
         this(configurationType, configurationFile, businessApplication, adminApplication, null, false);
-
     }
 
     /**
@@ -115,12 +116,14 @@ public class VitamStarter {
      * @param adminApplication admin application
      * @param customListeners list of custom listeners
      */
-    public VitamStarter(Class<? extends VitamApplicationConfiguration> configurationType,
+    public VitamStarter(
+        Class<? extends VitamApplicationConfiguration> configurationType,
         String configurationFile,
         Class<? extends Application> businessApplication,
         Class<? extends Application> adminApplication,
-        List<ServletContextListener> customListeners, boolean deployStaticResources) {
-
+        List<ServletContextListener> customListeners,
+        boolean deployStaticResources
+    ) {
         this.businessApplication = businessApplication;
         this.adminApplication = adminApplication;
         this.configurationType = configurationType;
@@ -131,8 +134,10 @@ public class VitamStarter {
 
     protected final void configure(String configurationFile) {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final VitamApplicationConfiguration buildConfiguration =
-                PropertiesUtils.readYaml(yamlIS, getConfigurationType());
+            final VitamApplicationConfiguration buildConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                getConfigurationType()
+            );
             configure(buildConfiguration, configurationFile);
         } catch (final IOException e) {
             LOGGER.error(e);
@@ -149,7 +154,6 @@ public class VitamStarter {
      */
     private final void configure(VitamApplicationConfiguration configuration, String configurationFile) {
         try {
-
             configureVitamParameters();
 
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
@@ -162,7 +166,7 @@ public class VitamStarter {
                     final ResourceHandler staticContentHandler = new ResourceHandler();
                     staticContentHandler.setDirectoriesListed(true);
                     staticContentHandler.setDirAllowed(true);
-                    staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
+                    staticContentHandler.setWelcomeFiles(new String[] { "index.html" });
                     staticContentHandler.setResourceBase(staticResourcesUrl.toString());
                     final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
                     staticContext.setHandler(staticContentHandler);
@@ -184,7 +188,6 @@ public class VitamStarter {
 
             final String jettyConfig = configuration.getJettyConfig();
 
-
             LOGGER.info(role + " starts with jetty config");
             vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
             vitamServer.configure(applicationHandlers);
@@ -199,14 +202,15 @@ public class VitamStarter {
      */
     protected void configureVitamParameters() {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+            final VitamConfigurationParameters vitamConfigurationParameters = PropertiesUtils.readYaml(
+                yamlIS,
+                VitamConfigurationParameters.class
+            );
 
             VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
             VitamConfiguration.setEnvironmentName(vitamConfigurationParameters.getEnvironmentName());
-
         } catch (final IOException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the " + role + " Application Server", e);
@@ -230,7 +234,8 @@ public class VitamStarter {
         servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
 
         final ServletContextHandler context = new ServletContextHandler(
-            configuration.isEnableSession() ? ServletContextHandler.SESSIONS : ServletContextHandler.NO_SESSIONS);
+            configuration.isEnableSession() ? ServletContextHandler.SESSIONS : ServletContextHandler.NO_SESSIONS
+        );
 
         context.addServlet(servletHolder, "/*");
 
@@ -239,17 +244,33 @@ public class VitamStarter {
         }
         // Authorization Filter
         if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
-            context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+            context.addFilter(
+                AuthorizationFilter.class,
+                "/*",
+                EnumSet.of(
+                    DispatcherType.INCLUDE,
+                    DispatcherType.REQUEST,
+                    DispatcherType.FORWARD,
+                    DispatcherType.ERROR,
+                    DispatcherType.ASYNC
+                )
+            );
         }
 
-        context.setVirtualHosts(new String[] {"@business"});
+        context.setVirtualHosts(new String[] { "@business" });
 
         if (configuration.isEnableXsrFilter()) {
-            context.addFilter(XSRFFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+            context.addFilter(
+                XSRFFilter.class,
+                "/*",
+                EnumSet.of(
+                    DispatcherType.INCLUDE,
+                    DispatcherType.REQUEST,
+                    DispatcherType.FORWARD,
+                    DispatcherType.ERROR,
+                    DispatcherType.ASYNC
+                )
+            );
         }
 
         if (configuration.isAuthentication()) {
@@ -271,11 +292,11 @@ public class VitamStarter {
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         context.addServlet(servletHolder, "/*");
 
-        context.setVirtualHosts(new String[] {"@admin"});
+        context.setVirtualHosts(new String[] { "@admin" });
 
         // no shiro, only internal network
         if (customListeners != null && !customListeners.isEmpty()) {
-            customListeners.forEach((listener) -> {
+            customListeners.forEach(listener -> {
                 context.addEventListener(listener);
             });
         }
@@ -285,7 +306,6 @@ public class VitamStarter {
     }
 
     private void addShiroFilter(ServletContextHandler context) throws VitamApplicationServerException {
-
         File shiroFile = null;
         try {
             shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
@@ -295,10 +315,17 @@ public class VitamStarter {
         }
         context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
         context.addEventListener(new EnvironmentLoaderListener());
-        context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
-            DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-
+        context.addFilter(
+            ShiroFilter.class,
+            "/*",
+            EnumSet.of(
+                DispatcherType.INCLUDE,
+                DispatcherType.REQUEST,
+                DispatcherType.FORWARD,
+                DispatcherType.ERROR,
+                DispatcherType.ASYNC
+            )
+        );
     }
 
     private void addTenantFilter(ServletContextHandler context, List<Integer> tenantList)
@@ -307,15 +334,22 @@ public class VitamStarter {
         try {
             JsonNode node = JsonHandler.toJsonNode(tenantList);
             context.setInitParameter(GlobalDataRest.TENANT_LIST, JsonHandler.unprettyPrint(node));
-            context.addFilter(TenantFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+            context.addFilter(
+                TenantFilter.class,
+                "/*",
+                EnumSet.of(
+                    DispatcherType.INCLUDE,
+                    DispatcherType.REQUEST,
+                    DispatcherType.FORWARD,
+                    DispatcherType.ERROR,
+                    DispatcherType.ASYNC
+                )
+            );
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
             throw new VitamApplicationServerException(e.getMessage());
         }
     }
-
 
     /**
      * Run method, start and join the server

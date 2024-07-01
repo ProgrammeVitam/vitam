@@ -36,12 +36,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-
 /**
  * Implementation of VitamResources which handle common tasks for all sub-implementation
  */
 @Path("/")
 public class ApplicationStatusResource {
+
     /**
      * Status for Application resource path
      */
@@ -76,7 +76,6 @@ public class ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Unsecured
     public Response status() {
-
         if (statusService.getResourcesStatus()) {
             return Response.status(Status.NO_CONTENT).build();
         } else {
@@ -96,5 +95,4 @@ public class ApplicationStatusResource {
     public Response getServerTenants() {
         return Response.status(Status.OK).entity(VitamConfiguration.getTenants()).build();
     }
-
 }

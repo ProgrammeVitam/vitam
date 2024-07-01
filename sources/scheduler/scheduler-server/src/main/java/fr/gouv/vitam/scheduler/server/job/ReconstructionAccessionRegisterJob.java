@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -76,17 +75,14 @@ public class ReconstructionAccessionRegisterJob implements Job {
     }
 
     private List<ReconstructionRequestItem> getReconstructionItems() {
-
         List<ReconstructionRequestItem> reconstructionRequestItems = new ArrayList<>();
 
-        VitamConfiguration.getTenants().forEach(tenant -> {
-            reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterDetail", tenant));
-            reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterSymbolic", tenant));
-        });
+        VitamConfiguration.getTenants()
+            .forEach(tenant -> {
+                reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterDetail", tenant));
+                reconstructionRequestItems.add(new ReconstructionRequestItem("AccessionRegisterSymbolic", tenant));
+            });
 
         return reconstructionRequestItems;
     }
-
-
-
 }

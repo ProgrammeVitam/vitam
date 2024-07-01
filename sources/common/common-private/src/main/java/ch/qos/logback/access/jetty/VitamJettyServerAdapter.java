@@ -37,8 +37,7 @@ import java.util.Map;
 
 public class VitamJettyServerAdapter extends JettyServerAdapter {
 
-    public VitamJettyServerAdapter(Request jettyRequest,
-        Response jettyResponse) {
+    public VitamJettyServerAdapter(Request jettyRequest, Response jettyResponse) {
         super(jettyRequest, jettyResponse);
     }
 

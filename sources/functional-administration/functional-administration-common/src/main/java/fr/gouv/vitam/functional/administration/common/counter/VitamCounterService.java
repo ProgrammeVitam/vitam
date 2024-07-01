@@ -89,9 +89,11 @@ public class VitamCounterService {
      * @param externalIdentifiers
      * @throws VitamException
      */
-    public VitamCounterService(MongoDbAccessAdminImpl dbConfiguration, List<Integer> tenants,
-        Map<Integer, List<String>> externalIdentifiers)
-        throws VitamException {
+    public VitamCounterService(
+        MongoDbAccessAdminImpl dbConfiguration,
+        List<Integer> tenants,
+        Map<Integer, List<String>> externalIdentifiers
+    ) throws VitamException {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, tenants);
         ArrayList<SequenceType> sequences = new ArrayList<>();
         this.externalIdentifiers = new HashMap<>();
@@ -101,20 +103,21 @@ public class VitamCounterService {
         sequences.forEach(i -> collections.put(i, i.getCollection()));
         this.tenants = new HashSet<>(tenants);
 
-
         initSequences();
         initExternalIds(externalIdentifiers);
     }
 
     private void initExternalIds(Map<Integer, List<String>> externalIdentifiers) {
-        if (externalIdentifiers != null)
-            for (Map.Entry<Integer, List<String>> identifiers : externalIdentifiers.entrySet()) {
-                List<FunctionalAdminCollections> functionalAdminCollections = new ArrayList<>();
-                for (String collection : identifiers.getValue()) {
-                    functionalAdminCollections.add(FunctionalAdminCollections.valueOf(collection));
-                }
-                this.externalIdentifiers.put(identifiers.getKey(), functionalAdminCollections);
+        if (externalIdentifiers != null) for (Map.Entry<
+            Integer,
+            List<String>
+        > identifiers : externalIdentifiers.entrySet()) {
+            List<FunctionalAdminCollections> functionalAdminCollections = new ArrayList<>();
+            for (String collection : identifiers.getValue()) {
+                functionalAdminCollections.add(FunctionalAdminCollections.valueOf(collection));
             }
+            this.externalIdentifiers.put(identifiers.getKey(), functionalAdminCollections);
+        }
     }
 
     /**
@@ -127,7 +130,6 @@ public class VitamCounterService {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     try {
                         for (Map.Entry<SequenceType, FunctionalAdminCollections> entry : collections.entrySet()) {
-
                             SequenceType sequenceType = entry.getKey();
 
                             if (canCreateSequenceForTenant(tenantId, sequenceType)) {
@@ -140,7 +142,6 @@ public class VitamCounterService {
                     }
                 });
             }
-
         } catch (Exception e) {
             throw new VitamException(e);
         }
@@ -155,9 +156,7 @@ public class VitamCounterService {
      * @return
      */
     private boolean canCreateSequenceForTenant(Integer tenantId, SequenceType sequenceType) {
-
-        if (sequenceType.getCollection().isMultitenant())
-            return true;
+        if (sequenceType.getCollection().isMultitenant()) return true;
 
         return Objects.equals(tenantId, VitamConfiguration.getAdminTenant());
     }
@@ -165,8 +164,7 @@ public class VitamCounterService {
     private void createSequenceIfNotExists(Integer tenantId, String sequenceName)
         throws InvalidCreateOperationException, VitamException {
         JsonNode query = generateQuery(tenantId, sequenceName);
-        try (DbRequestResult result =
-            mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
+        try (DbRequestResult result = mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
             if (!result.hasResult()) {
                 createSequence(tenantId, sequenceName);
             }
@@ -187,8 +185,7 @@ public class VitamCounterService {
      * @param sequenceNAme
      * @throws VitamException
      */
-    private void createSequence(Integer tenant, String sequenceNAme)
-        throws VitamException {
+    private void createSequence(Integer tenant, String sequenceNAme) throws VitamException {
         ObjectNode node = JsonHandler.createObjectNode();
         node.put(VitamSequence.NAME, sequenceNAme);
         node.put(VitamSequence.COUNTER, 0);
@@ -198,7 +195,6 @@ public class VitamCounterService {
         mongoAccess.insertDocument(firstSequence, FunctionalAdminCollections.VITAM_SEQUENCE).close();
     }
 
-
     /**
      * Atomically find a sequence  and update it.
      *
@@ -207,12 +203,10 @@ public class VitamCounterService {
      * @return the sequence concatenated with it name the name
      * @throws ReferentialException
      */
-    public String getNextSequenceAsString(Integer tenant, SequenceType sequenceType)
-        throws ReferentialException {
+    public String getNextSequenceAsString(Integer tenant, SequenceType sequenceType) throws ReferentialException {
         Integer sequence = getNextSequence(tenant, sequenceType);
         return sequenceType.getName() + "-" + String.format("%06d", sequence);
     }
-
 
     /**
      * Atomically find a sequence  and update it.
@@ -243,7 +237,6 @@ public class VitamCounterService {
         return getNextSequenceDocument(tenant, sequenceType, sequenceType.getBackupSequenceName());
     }
 
-
     /**
      * Atomically find a sequence and update it, returning updated document.
      *
@@ -260,9 +253,7 @@ public class VitamCounterService {
         incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
         Bson query;
         if (sequenceType.getCollection().isMultitenant()) {
-            query = and(
-                eq(VitamSequence.NAME, name),
-                eq(VitamDocument.TENANT_ID, tenant));
+            query = and(eq(VitamSequence.NAME, name), eq(VitamDocument.TENANT_ID, tenant));
         } else {
             query = eq(VitamSequence.NAME, name);
         }
@@ -274,9 +265,9 @@ public class VitamCounterService {
                 .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
 
             if (result == null) {
-                throw new ReferentialException(String
-                    .format("Not sequence for tenant= %d and sequence= %s",
-                        tenant, name));
+                throw new ReferentialException(
+                    String.format("Not sequence for tenant= %d and sequence= %s", tenant, name)
+                );
             }
 
             return ((VitamSequence) result);
@@ -314,21 +305,26 @@ public class VitamCounterService {
     public VitamSequence getSequenceDocument(Integer tenant, SequenceType sequenceType) throws ReferentialException {
         Bson query;
         if (sequenceType.getCollection().isMultitenant()) {
-            query = and(
-                eq(VitamSequence.NAME, sequenceType.getName()),
-                eq(VitamDocument.TENANT_ID, tenant));
+            query = and(eq(VitamSequence.NAME, sequenceType.getName()), eq(VitamDocument.TENANT_ID, tenant));
         } else {
             query = eq(VitamSequence.NAME, sequenceType.getName());
         }
 
         try {
-            final Collection<VitamSequence> result =
-                FunctionalAdminCollections.VITAM_SEQUENCE.<VitamSequence>getCollection().find(query)
-                    .sort(descending("Counter")).limit(1).into(new ArrayList<>());
+            final Collection<VitamSequence> result = FunctionalAdminCollections.VITAM_SEQUENCE.<
+                VitamSequence
+            >getCollection()
+                .find(query)
+                .sort(descending("Counter"))
+                .limit(1)
+                .into(new ArrayList<>());
             if (result.isEmpty()) {
                 throw new ReferentialException(
-                    "Document not found collection : " + FunctionalAdminCollections.VITAM_SEQUENCE.getName() +
-                        " sequence: " + sequenceType.getName());
+                    "Document not found collection : " +
+                    FunctionalAdminCollections.VITAM_SEQUENCE.getName() +
+                    " sequence: " +
+                    sequenceType.getName()
+                );
             }
             return result.iterator().next();
         } catch (final Exception e) {

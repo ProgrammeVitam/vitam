@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import javax.ws.rs.core.Response.Status;
 
 public class AdminExternalClientException extends VitamClientException {
+
     private final Status status;
     private final VitamError<?> vitamError;
 

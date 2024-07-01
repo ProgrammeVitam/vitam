@@ -55,6 +55,7 @@ import java.util.Properties;
  * Workspace Driver Implementation
  */
 public class DriverImpl extends AbstractDriver {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 
     private static final String DRIVER_NAME = "DefaultOfferDriver";
@@ -62,8 +63,8 @@ public class DriverImpl extends AbstractDriver {
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
 
-
     static class DriverClientFactory extends VitamClientFactory<ConnectionImpl> {
+
         final Properties parameters;
 
         DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
@@ -76,7 +77,6 @@ public class DriverImpl extends AbstractDriver {
         public ConnectionImpl getClient() {
             return new ConnectionImpl(DRIVER_NAME, this);
         }
-
     }
 
     /**
@@ -95,10 +95,11 @@ public class DriverImpl extends AbstractDriver {
         return DRIVER_IMPL;
     }
 
-
     @Override
-    protected VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(StorageOffer offer,
-        Properties parameters) {
+    protected VitamClientFactoryInterface<? extends AbstractConnection> addInternalOfferAsFactory(
+        StorageOffer offer,
+        Properties parameters
+    ) {
         return new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
     }
 
@@ -110,10 +111,15 @@ public class DriverImpl extends AbstractDriver {
         VitamClientFactoryInterface<? extends AbstractConnection> factory = connectionFactories.get(offerId);
         if (factory == null) {
             LOGGER.error("Driver {} has no Offer named {}", getName(), offerId);
-            StorageNotFoundException exception =
-                new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offerId);
-            throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
-                exception.getMessage(), false, exception);
+            StorageNotFoundException exception = new StorageNotFoundException(
+                "Driver " + getName() + " has no Offer named " + offerId
+            );
+            throw new StorageDriverException(
+                "Driver " + getName() + " with Offer " + offerId,
+                exception.getMessage(),
+                false,
+                exception
+            );
         }
 
         return factory.getClient();
@@ -129,8 +135,12 @@ public class DriverImpl extends AbstractDriver {
                 List<SSLKey> truststoreList = new ArrayList<>();
                 keystoreList.add(new SSLKey(param.get("keyStore-keyPath"), param.get("keyStore-keyPassword")));
                 truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
-                return new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
-                    new SSLConfiguration(keystoreList, truststoreList));
+                return new SecureClientConfigurationImpl(
+                    url.getHost(),
+                    url.getPort(),
+                    true,
+                    new SSLConfiguration(keystoreList, truststoreList)
+                );
             } else {
                 return new ClientConfigurationImpl(url.getHost(), url.getPort());
             }
@@ -153,5 +163,4 @@ public class DriverImpl extends AbstractDriver {
     public int getMinorVersion() {
         return 0;
     }
-
 }

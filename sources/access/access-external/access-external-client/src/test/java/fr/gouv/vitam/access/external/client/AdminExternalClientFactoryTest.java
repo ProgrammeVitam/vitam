@@ -39,11 +39,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AdminExternalClientFactoryTest {
+
     @Before
     public void initFileConfiguration() {
-        AdminExternalClientFactory
-            .changeMode(AdminExternalClientFactory.changeConfigurationFile("access-external-client-test.conf"));
-
+        AdminExternalClientFactory.changeMode(
+            AdminExternalClientFactory.changeConfigurationFile("access-external-client-test.conf")
+        );
     }
 
     @Test
@@ -51,57 +52,44 @@ public class AdminExternalClientFactoryTest {
         try {
             AdminExternalClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
             AdminExternalClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             AdminExternalClientFactory.changeMode(new ClientConfigurationImpl());
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         AdminExternalClientFactory.changeMode((SecureClientConfiguration) null);
 
-        final AdminExternalClient client =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final AdminExternalClient client2 =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client2 = AdminExternalClientFactory.getInstance().getClient();
         assertNotNull(client2);
         assertNotSame(client, client2);
 
         AdminExternalClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AdminExternalClient client3 =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client3 = AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AdminExternalClientRest);
-
     }
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final AdminExternalClient client =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AdminExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminExternalClientFactory.getInstance().getVitamClientType());
 
         AdminExternalClientFactory.changeMode((SecureClientConfiguration) null);
-        final AdminExternalClient client2 =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client2 = AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof AdminExternalClientMock);
         assertEquals(VitamClientType.MOCK, AdminExternalClientFactory.getInstance().getVitamClientType());
 
         AdminExternalClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AdminExternalClient client3 =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client3 = AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AdminExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminExternalClientFactory.getInstance().getVitamClientType());
     }
@@ -116,8 +104,7 @@ public class AdminExternalClientFactoryTest {
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        AdminExternalClientFactory.changeMode(
-            AdminExternalClientFactory.changeConfigurationFile("tmp"));
+        AdminExternalClientFactory.changeMode(AdminExternalClientFactory.changeConfigurationFile("tmp"));
         final AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AdminExternalClientMock);
         assertEquals(VitamClientType.MOCK, AdminExternalClientFactory.getInstance().getVitamClientType());
@@ -125,8 +112,7 @@ public class AdminExternalClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final AdminExternalClient client =
-            AdminExternalClientFactory.getInstance().getClient();
+        final AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof AdminExternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminExternalClientFactory.getInstance().getVitamClientType());
     }

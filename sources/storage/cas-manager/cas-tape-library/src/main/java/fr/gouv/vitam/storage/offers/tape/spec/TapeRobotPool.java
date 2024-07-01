@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import java.util.concurrent.TimeUnit;
 
 public interface TapeRobotPool {
-
     /**
      * Retrieves and removes the head of this pool, waiting if necessary
      * until an element becomes available.
@@ -57,7 +56,6 @@ public interface TapeRobotPool {
      * @throws InterruptedException
      */
     void pushRobotService(TapeRobotService tapeRobotService) throws InterruptedException;
-
 
     String getLibraryIdentifier();
 }

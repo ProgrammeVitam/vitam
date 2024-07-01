@@ -58,10 +58,16 @@ public class AccessExternalMain {
      * @param configurationFile
      */
     public AccessExternalMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(AccessExternalConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            AccessExternalConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class
+        );
     }
 
     /**
@@ -73,11 +79,15 @@ public class AccessExternalMain {
      * @param testAdminApplication
      */
     @VisibleForTesting
-    public AccessExternalMain(String configurationFile,
+    public AccessExternalMain(
+        String configurationFile,
         Class<? extends Application> testBusinessApplication,
-        Class<? extends Application> testAdminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+        Class<? extends Application> testAdminApplication
+    ) {
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
         if (null == testBusinessApplication) {
             testBusinessApplication = BusinessApplication.class;
         }
@@ -85,8 +95,12 @@ public class AccessExternalMain {
         if (null == testAdminApplication) {
             testAdminApplication = AdminApplication.class;
         }
-        vitamStarter = new VitamStarter(AccessExternalConfiguration.class, configurationFile,
-            testBusinessApplication, testAdminApplication);
+        vitamStarter = new VitamStarter(
+            AccessExternalConfiguration.class,
+            configurationFile,
+            testBusinessApplication,
+            testAdminApplication
+        );
     }
 
     /**
@@ -98,8 +112,9 @@ public class AccessExternalMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
             AccessExternalMain main = new AccessExternalMain(args[0]);
             // Not useful for Storage but instantiate here VitamServiceRegistry if needed
@@ -110,8 +125,11 @@ public class AccessExternalMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }

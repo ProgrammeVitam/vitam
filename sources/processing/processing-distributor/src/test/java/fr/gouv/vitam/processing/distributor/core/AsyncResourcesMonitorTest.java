@@ -75,8 +75,9 @@ import static org.mockito.Mockito.when;
 public class AsyncResourcesMonitorTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -89,6 +90,7 @@ public class AsyncResourcesMonitorTest {
 
     @Mock
     private ScheduledExecutorService scheduledExecutor;
+
     private Runnable registeredTask;
 
     private AsyncResourcesMonitor asyncResourcesMonitor;
@@ -97,10 +99,12 @@ public class AsyncResourcesMonitorTest {
     public void setup() throws Exception {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             registeredTask = args.getArgument(0);
             return null;
-        }).when(scheduledExecutor).scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
+        })
+            .when(scheduledExecutor)
+            .scheduleWithFixedDelay(any(), anyLong(), anyLong(), any());
 
         VitamConfiguration.setAdminTenant(1);
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -109,28 +113,42 @@ public class AsyncResourcesMonitorTest {
     }
 
     @Test
-    public void givenAsyncResourcesWhenAllStatusesReadyThenAsyncCallbackCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenAllStatusesReadyThenAsyncCallbackCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
-            eq(true)
-        )).thenReturn(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY,
-            "accessRequestId3", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
+                eq(true)
+            )
+        ).thenReturn(
+            Map.of(
+                "accessRequestId1",
+                AccessRequestStatus.READY,
+                "accessRequestId2",
+                AccessRequestStatus.READY,
+                "accessRequestId3",
+                AccessRequestStatus.READY
+            )
+        );
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")
-        ), alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId1", "offerId1")
+            ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -142,28 +160,42 @@ public class AsyncResourcesMonitorTest {
     }
 
     @Test
-    public void givenAsyncResourcesWhenOneStatusNotReadyThenCallbackNotCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenOneStatusNotReadyThenCallbackNotCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
-            eq(true)
-        ))
-            .thenReturn(
-                Map.of("accessRequestId1", AccessRequestStatus.READY, "accessRequestId2", AccessRequestStatus.NOT_READY,
-                    "accessRequestId3", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
+                eq(true)
+            )
+        ).thenReturn(
+            Map.of(
+                "accessRequestId1",
+                AccessRequestStatus.READY,
+                "accessRequestId2",
+                AccessRequestStatus.NOT_READY,
+                "accessRequestId3",
+                AccessRequestStatus.READY
+            )
+        );
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")
-        ), alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId1", "offerId1")
+            ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -175,28 +207,42 @@ public class AsyncResourcesMonitorTest {
     }
 
     @Test
-    public void givenAsyncResourcesWhenOneStatusNotFoundThenCallbackCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenOneStatusNotFoundThenCallbackCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
-            eq(true)
-        )).thenReturn(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY,
-            "accessRequestId3", AccessRequestStatus.NOT_FOUND));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
+                eq(true)
+            )
+        ).thenReturn(
+            Map.of(
+                "accessRequestId1",
+                AccessRequestStatus.READY,
+                "accessRequestId2",
+                AccessRequestStatus.READY,
+                "accessRequestId3",
+                AccessRequestStatus.NOT_FOUND
+            )
+        );
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")
-        ), alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId1", "offerId1")
+            ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -208,33 +254,59 @@ public class AsyncResourcesMonitorTest {
     }
 
     @Test
-    public void givenAsyncResourcesWhenAllStatusReadyForAllStrategiesInSameBulkThenAsyncCallback()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenAllStatusReadyForAllStrategiesInSameBulkThenAsyncCallback() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eq(List.of("accessRequestId1")), eq(true)))
-            .thenReturn(Map.of("accessRequestId1", AccessRequestStatus.READY));
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId2"), eq("offerId1"),
-            eq(List.of("accessRequestId2")), eq(true)))
-            .thenReturn(Map.of("accessRequestId2", AccessRequestStatus.READY));
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId3"), eq("offerId1"),
-            eq(List.of("accessRequestId3")), eq(true)))
-            .thenReturn(Map.of("accessRequestId3", AccessRequestStatus.READY));
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq(null),
-            eq(List.of("accessRequestId4")), eq(true)))
-            .thenReturn(Map.of("accessRequestId4", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId1")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId1", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId2"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId2")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId2", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId3"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId3")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId3", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq(null),
+                eq(List.of("accessRequestId4")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId4", AccessRequestStatus.READY));
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId2", "offerId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId3", "offerId1"),
-            "accessRequestId4", new AccessRequestContext("strategyId1")
-        ), alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId2", "offerId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId3", "offerId1"),
+                "accessRequestId4",
+                new AccessRequestContext("strategyId1")
+            ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -242,42 +314,78 @@ public class AsyncResourcesMonitorTest {
         verify(bulkCallback).notifyWorkflow();
 
         // Expected one invocation per strategy
-        verify(storageClient, times(1)).checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1"), eq(true));
-        verify(storageClient, times(1)).checkAccessRequestStatuses(eq("strategyId2"), eq("offerId1"),
-            eqUnorderedList("accessRequestId2"), eq(true));
-        verify(storageClient, times(1)).checkAccessRequestStatuses(eq("strategyId3"), eq("offerId1"),
-            eqUnorderedList("accessRequestId3"), eq(true));
-        verify(storageClient, times(1)).checkAccessRequestStatuses(eq("strategyId1"), eq(null),
-            eqUnorderedList("accessRequestId4"), eq(true));
+        verify(storageClient, times(1)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId1"),
+            eq(true)
+        );
+        verify(storageClient, times(1)).checkAccessRequestStatuses(
+            eq("strategyId2"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId2"),
+            eq(true)
+        );
+        verify(storageClient, times(1)).checkAccessRequestStatuses(
+            eq("strategyId3"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId3"),
+            eq(true)
+        );
+        verify(storageClient, times(1)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq(null),
+            eqUnorderedList("accessRequestId4"),
+            eq(true)
+        );
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
     }
 
     @Test
-    public void givenAsyncResourcesWhenAStatusNotReadyForOneStrategiesInSameBulkThenNoAsyncCallback()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenAStatusNotReadyForOneStrategiesInSameBulkThenNoAsyncCallback() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eq(List.of("accessRequestId1")), eq(true)))
-            .thenReturn(Map.of("accessRequestId1", AccessRequestStatus.READY));
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId2"), eq("offerId1"),
-            eq(List.of("accessRequestId2")), eq(true)))
-            .thenReturn(Map.of("accessRequestId2", AccessRequestStatus.NOT_READY));
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId3"), eq("offerId1"),
-            eq(List.of("accessRequestId3")), eq(true)))
-            .thenReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId1")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId1", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId2"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId2")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId2", AccessRequestStatus.NOT_READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId3"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId3")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY));
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId2", "offerId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId3", "offerId1")
-        ), alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId2", "offerId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId3", "offerId1")
+            ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -285,31 +393,56 @@ public class AsyncResourcesMonitorTest {
         verifyNoMoreInteractions(bulkCallback);
 
         // Expected 3 invocations per strategy
-        verify(storageClient, times(3)).checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1"), eq(true));
-        verify(storageClient, times(3)).checkAccessRequestStatuses(eq("strategyId2"), eq("offerId1"),
-            eqUnorderedList("accessRequestId2"), eq(true));
-        verify(storageClient, times(3)).checkAccessRequestStatuses(eq("strategyId3"), eq("offerId1"),
-            eqUnorderedList("accessRequestId3"), eq(true));
+        verify(storageClient, times(3)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId1"),
+            eq(true)
+        );
+        verify(storageClient, times(3)).checkAccessRequestStatuses(
+            eq("strategyId2"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId2"),
+            eq(true)
+        );
+        verify(storageClient, times(3)).checkAccessRequestStatuses(
+            eq("strategyId3"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId3"),
+            eq(true)
+        );
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
     }
 
     @Test
-    public void givenAsyncResourcesWhenStatusReadyForSomeBulksThenOnlyTheseBulksAsyncCallback()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenStatusReadyForSomeBulksThenOnlyTheseBulksAsyncCallback() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"), eq(true)
-        )).thenReturn(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY,
-            "accessRequestId3", AccessRequestStatus.NOT_READY));
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eq(List.of("accessRequestId3")), eq(true)))
-            .thenReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
+                eq(true)
+            )
+        ).thenReturn(
+            Map.of(
+                "accessRequestId1",
+                AccessRequestStatus.READY,
+                "accessRequestId2",
+                AccessRequestStatus.READY,
+                "accessRequestId3",
+                AccessRequestStatus.NOT_READY
+            )
+        );
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId3")),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY));
 
         // When
         AsyncResourceCallback bulkCallback1 = mock(AsyncResourceCallback.class);
@@ -317,12 +450,24 @@ public class AsyncResourcesMonitorTest {
         AsyncResourceCallback bulkCallback3 = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId1", alwaysAlive, bulkCallback1);
-        watchAsyncResourcesBulk(Map.of("accessRequestId2", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId1", alwaysAlive, bulkCallback2);
-        watchAsyncResourcesBulk(Map.of("accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId2", alwaysAlive, bulkCallback3);
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId1",
+            alwaysAlive,
+            bulkCallback1
+        );
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId2", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId1",
+            alwaysAlive,
+            bulkCallback2
+        );
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId2",
+            alwaysAlive,
+            bulkCallback3
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -331,35 +476,52 @@ public class AsyncResourcesMonitorTest {
         verify(bulkCallback2).notifyWorkflow();
         verifyNoMoreInteractions(bulkCallback3);
 
-        verify(storageClient, times(1)).checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"), eq(true));
-        verify(storageClient, times(2)).checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eq(List.of("accessRequestId3")), eq(true));
+        verify(storageClient, times(1)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
+            eq(true)
+        );
+        verify(storageClient, times(2)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq("offerId1"),
+            eq(List.of("accessRequestId3")),
+            eq(true)
+        );
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
     }
 
     @Test
-    public void givenAsyncResourcesWhenOneStatusMissingThenCallbackNotCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenOneStatusMissingThenCallbackNotCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"), eq(true)
-        )).thenReturn(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId3"),
+                eq(true)
+            )
+        ).thenReturn(
+            Map.of("accessRequestId1", AccessRequestStatus.READY, "accessRequestId2", AccessRequestStatus.READY)
+        );
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of(
-            "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId2", new AccessRequestContext("strategyId1", "offerId1"),
-            "accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")
-        ), alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId3",
+                new AccessRequestContext("strategyId1", "offerId1")
+            ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -371,21 +533,28 @@ public class AsyncResourcesMonitorTest {
     }
 
     @Test
-    public void givenAsyncResourcesWhenOneStatusNullThenCallbackNotCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenOneStatusNullThenCallbackNotCalled() throws Exception {
         // Given
         Map<String, AccessRequestStatus> resultMap = new HashMap<>();
         resultMap.put("accessRequestId1", null);
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eq(List.of("accessRequestId1")), eq(true))).thenReturn(resultMap);
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId1")),
+                eq(true)
+            )
+        ).thenReturn(resultMap);
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
-            alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -397,20 +566,26 @@ public class AsyncResourcesMonitorTest {
     }
 
     @Test
-    public void givenAsyncResourcesStorageExceptionThenCallbackNotCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesStorageExceptionThenCallbackNotCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eq(List.of("accessRequestId1")), eq(true)))
-            .thenThrow(new StorageServerClientException("Something bad happened"));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eq(List.of("accessRequestId1")),
+                eq(true)
+            )
+        ).thenThrow(new StorageServerClientException("Something bad happened"));
 
         // When
         AsyncResourceCallback bulkCallback = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
-            alwaysAlive, bulkCallback);
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -419,20 +594,21 @@ public class AsyncResourcesMonitorTest {
         verify(storageClient, times(3)).checkAccessRequestStatuses(any(), any(), any(), anyBoolean());
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
-
     }
 
     @Test
-    public void givenAsyncResourcesWhenSameAccessRequestDifferentBulkThenCallbackCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenSameAccessRequestDifferentBulkThenCallbackCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId1"), eq(true)
-        )).thenReturn(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId1"),
+                eq(true)
+            )
+        ).thenReturn(
+            Map.of("accessRequestId1", AccessRequestStatus.READY, "accessRequestId2", AccessRequestStatus.READY)
+        );
 
         // When
         AsyncResourceCallback bulkCallback1 = mock(AsyncResourceCallback.class);
@@ -440,12 +616,24 @@ public class AsyncResourcesMonitorTest {
         AsyncResourceCallback bulkCallback3 = mock(AsyncResourceCallback.class);
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
-        watchAsyncResourcesBulk(Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId1", alwaysAlive, bulkCallback1);
-        watchAsyncResourcesBulk(Map.of("accessRequestId2", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId1", alwaysAlive, bulkCallback2);
-        watchAsyncResourcesBulk(Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId2", alwaysAlive, bulkCallback3);
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId1",
+            alwaysAlive,
+            bulkCallback1
+        );
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId2", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId1",
+            alwaysAlive,
+            bulkCallback2
+        );
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId1", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId2",
+            alwaysAlive,
+            bulkCallback3
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -454,24 +642,36 @@ public class AsyncResourcesMonitorTest {
         verify(bulkCallback2).notifyWorkflow();
         verify(bulkCallback3).notifyWorkflow();
 
-        verify(storageClient, times(1)).checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId1"), eq(true));
+        verify(storageClient, times(1)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId1", "accessRequestId2", "accessRequestId1"),
+            eq(true)
+        );
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
     }
 
     @Test
-    public void givenAsyncResourcesWhenWorkflowPausedOrCanceledThenCallbackCalled()
-        throws Exception {
-
+    public void givenAsyncResourcesWhenWorkflowPausedOrCanceledThenCallbackCalled() throws Exception {
         // Given
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq(null),
-            eqUnorderedList("accessRequestId1"), eq(true)
-        )).thenReturn(Map.of("accessRequestId1", AccessRequestStatus.NOT_READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq(null),
+                eqUnorderedList("accessRequestId1"),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId1", AccessRequestStatus.NOT_READY));
 
-        when(storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId3"), eq(true)
-        )).thenReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY));
+        when(
+            storageClient.checkAccessRequestStatuses(
+                eq("strategyId1"),
+                eq("offerId1"),
+                eqUnorderedList("accessRequestId3"),
+                eq(true)
+            )
+        ).thenReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY));
         WorkflowInterruptionChecker workflow1Interrupted = () -> false;
         WorkflowInterruptionChecker workflow2Alive = () -> true;
 
@@ -479,12 +679,23 @@ public class AsyncResourcesMonitorTest {
         AsyncResourceCallback bulkCallback1 = mock(AsyncResourceCallback.class);
         AsyncResourceCallback bulkCallback2 = mock(AsyncResourceCallback.class);
 
-        watchAsyncResourcesBulk(Map.of(
-                "accessRequestId1", new AccessRequestContext("strategyId1", "offerId1"),
-                "accessRequestId2", new AccessRequestContext("strategyId1")),
-            "requestId1", workflow1Interrupted, bulkCallback1);
-        watchAsyncResourcesBulk(Map.of("accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")),
-            "requestId2", workflow2Alive, bulkCallback2);
+        watchAsyncResourcesBulk(
+            Map.of(
+                "accessRequestId1",
+                new AccessRequestContext("strategyId1", "offerId1"),
+                "accessRequestId2",
+                new AccessRequestContext("strategyId1")
+            ),
+            "requestId1",
+            workflow1Interrupted,
+            bulkCallback1
+        );
+        watchAsyncResourcesBulk(
+            Map.of("accessRequestId3", new AccessRequestContext("strategyId1", "offerId1")),
+            "requestId2",
+            workflow2Alive,
+            bulkCallback2
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
@@ -493,30 +704,32 @@ public class AsyncResourcesMonitorTest {
         verifyZeroInteractions(bulkCallback2);
 
         // Ensure access request of interrupted workflow never checked
-        verify(storageClient, times(3)).checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"),
-            eqUnorderedList("accessRequestId3"), eq(true));
+        verify(storageClient, times(3)).checkAccessRequestStatuses(
+            eq("strategyId1"),
+            eq("offerId1"),
+            eqUnorderedList("accessRequestId3"),
+            eq(true)
+        );
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
     }
 
     @Test
-    public void givenLargeAsyncResourceBulksWhenAllStatusesReadyThenAsyncCallbackCalled()
-        throws Exception {
-
+    public void givenLargeAsyncResourceBulksWhenAllStatusesReadyThenAsyncCallbackCalled() throws Exception {
         // Given
         Set<String> accessRequestIds = IntStream.rangeClosed(1, VitamConfiguration.getBatchSize() + 1)
             .mapToObj(i -> "accessRequestId" + i)
             .collect(Collectors.toSet());
 
-        when(storageClient.checkAccessRequestStatuses(
-            eq("strategyId1"), eq("offerId1"),
-            anyList(), eq(true)
-        )).thenAnswer(args -> {
+        when(
+            storageClient.checkAccessRequestStatuses(eq("strategyId1"), eq("offerId1"), anyList(), eq(true))
+        ).thenAnswer(args -> {
             List<String> argAccessRequestIds = args.getArgument(2);
-            return argAccessRequestIds.stream().collect(Collectors.toMap(
-                accessRequestId -> accessRequestId,
-                accessRequestId -> AccessRequestStatus.READY
-            ));
+            return argAccessRequestIds
+                .stream()
+                .collect(
+                    Collectors.toMap(accessRequestId -> accessRequestId, accessRequestId -> AccessRequestStatus.READY)
+                );
         });
 
         // When
@@ -524,44 +737,66 @@ public class AsyncResourcesMonitorTest {
         WorkflowInterruptionChecker alwaysAlive = () -> true;
 
         watchAsyncResourcesBulk(
-            accessRequestIds.stream().collect(Collectors.toMap(
-                accessRequestId -> accessRequestId,
-                accessRequestId -> new AccessRequestContext("strategyId1", "offerId1")
-            )), alwaysAlive, bulkCallback);
+            accessRequestIds
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        accessRequestId -> accessRequestId,
+                        accessRequestId -> new AccessRequestContext("strategyId1", "offerId1")
+                    )
+                ),
+            alwaysAlive,
+            bulkCallback
+        );
 
         simulateBackgroundScheduledTasksRun3xTimes();
 
         // Then
         verify(bulkCallback).notifyWorkflow();
         ArgumentCaptor<List<String>> checkedAccessRequestIdArgumentCaptor = ArgumentCaptor.forClass(List.class);
-        verify(storageClient, times(2)).checkAccessRequestStatuses(any(), any(),
-            checkedAccessRequestIdArgumentCaptor.capture(), eq(true));
+        verify(storageClient, times(2)).checkAccessRequestStatuses(
+            any(),
+            any(),
+            checkedAccessRequestIdArgumentCaptor.capture(),
+            eq(true)
+        );
 
         assertThat(checkedAccessRequestIdArgumentCaptor.getAllValues().get(0)).hasSize(
-            VitamConfiguration.getBatchSize());
+            VitamConfiguration.getBatchSize()
+        );
         assertThat(checkedAccessRequestIdArgumentCaptor.getAllValues().get(1)).hasSize(1);
-        assertThat(ListUtils.union(
-            checkedAccessRequestIdArgumentCaptor.getAllValues().get(0),
-            checkedAccessRequestIdArgumentCaptor.getAllValues().get(1)
-        )).containsExactlyInAnyOrderElementsOf(accessRequestIds);
+        assertThat(
+            ListUtils.union(
+                checkedAccessRequestIdArgumentCaptor.getAllValues().get(0),
+                checkedAccessRequestIdArgumentCaptor.getAllValues().get(1)
+            )
+        ).containsExactlyInAnyOrderElementsOf(accessRequestIds);
 
         verify(storageClient, atLeastOnce()).close();
         verifyNoMoreInteractions(storageClient);
     }
 
-    private void watchAsyncResourcesBulk(Map<String, AccessRequestContext> asyncResources,
-        WorkflowInterruptionChecker livenessChecker, AsyncResourceCallback callback) {
+    private void watchAsyncResourcesBulk(
+        Map<String, AccessRequestContext> asyncResources,
+        WorkflowInterruptionChecker livenessChecker,
+        AsyncResourceCallback callback
+    ) {
         watchAsyncResourcesBulk(asyncResources, "requestId", livenessChecker, callback);
     }
 
-    private void watchAsyncResourcesBulk(Map<String, AccessRequestContext> asyncResources,
+    private void watchAsyncResourcesBulk(
+        Map<String, AccessRequestContext> asyncResources,
         String requestId,
-        WorkflowInterruptionChecker workflowInterruptionChecker, AsyncResourceCallback callback) {
+        WorkflowInterruptionChecker workflowInterruptionChecker,
+        AsyncResourceCallback callback
+    ) {
         asyncResourcesMonitor.watchAsyncResourcesForBulk(
             asyncResources,
             requestId,
             GUIDFactory.newGUID().getId(),
-            workflowInterruptionChecker, callback);
+            workflowInterruptionChecker,
+            callback
+        );
     }
 
     private void simulateBackgroundScheduledTasksRun3xTimes() throws InterruptedException {

@@ -63,18 +63,21 @@ import static org.mockito.Mockito.mock;
 
 public class LogbookMongoDbAccessImplTest {
 
-    private final static List<Class<?>> classList =
-        List.of(LogbookOperation.class, LogbookLifeCycleUnit.class, LogbookLifeCycleObjectGroup.class,
-            LogbookLifeCycleUnitInProcess.class, LogbookLifeCycleObjectGroupInProcess.class
-        );
+    private static final List<Class<?>> classList = List.of(
+        LogbookOperation.class,
+        LogbookLifeCycleUnit.class,
+        LogbookLifeCycleObjectGroup.class,
+        LogbookLifeCycleUnitInProcess.class,
+        LogbookLifeCycleObjectGroupInProcess.class
+    );
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(classList));
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(classList));
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final ElasticsearchLogbookIndexManager indexManager =
         LogbookCollectionsTestUtils.createTestIndexManager(Collections.emptyList(), Collections.emptyMap());
@@ -94,10 +97,13 @@ public class LogbookMongoDbAccessImplTest {
         LogbookCollectionsTestUtils.afterTestClass(indexManager, true);
     }
 
-    private final LogbookMongoDbAccessImpl logbookMongoDbAccess =
-        new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true,
-            mock(LogbookElasticsearchAccess.class), Collections::emptyList);
-
+    private final LogbookMongoDbAccessImpl logbookMongoDbAccess = new LogbookMongoDbAccessImpl(
+        mongoRule.getMongoClient(),
+        "vitam-test",
+        true,
+        mock(LogbookElasticsearchAccess.class),
+        Collections::emptyList
+    );
 
     @Test
     @RunWithCustomExecutor
@@ -105,29 +111,37 @@ public class LogbookMongoDbAccessImplTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         GUID guidLFC = GUIDFactory.newEventGUID(0);
-        LogbookLifeCycleUnitParameters
-            masterLFC =
-            (LogbookLifeCycleUnitParameters) getLogbookLifecyleParameters(GUIDFactory.newObjectGroupGUID(0), guidLFC);
+        LogbookLifeCycleUnitParameters masterLFC = (LogbookLifeCycleUnitParameters) getLogbookLifecyleParameters(
+            GUIDFactory.newObjectGroupGUID(0),
+            guidLFC
+        );
         logbookMongoDbAccess.createLogbookLifeCycleUnit(
-            masterLFC.getParameterValue(LogbookParameterName.eventIdentifierProcess), masterLFC);
+            masterLFC.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            masterLFC
+        );
 
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk = new ArrayList<>();
         List<LogbookLifeCycleParameters> lifeCycleParameters = Lists.newArrayList();
-        lifeCycleParameters
-            .add(getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0)));
-        lifeCycleParameters
-            .add(getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0)));
+        lifeCycleParameters.add(
+            getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0))
+        );
+        lifeCycleParameters.add(
+            getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0))
+        );
 
         logbookLifeCycleParametersBulk.add(new LogbookLifeCycleParametersBulk(guidLFC.toString(), lifeCycleParameters));
 
         // When
-        logbookMongoDbAccess.updateLogbookLifeCycleBulk(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS,
-            logbookLifeCycleParametersBulk);
+        logbookMongoDbAccess.updateLogbookLifeCycleBulk(
+            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS,
+            logbookLifeCycleParametersBulk
+        );
 
         // Then
-        FindIterable<LogbookLifeCycleUnitInProcess> id =
-            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.<LogbookLifeCycleUnitInProcess>getCollection()
-                .find(eq("_id", guidLFC.toString()));
+        FindIterable<LogbookLifeCycleUnitInProcess> id = LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.<
+            LogbookLifeCycleUnitInProcess
+        >getCollection()
+            .find(eq("_id", guidLFC.toString()));
         LogbookLifeCycleUnitInProcess lifeCycle = Iterables.getOnlyElement(id);
 
         assertThat(lifeCycle.getList("events", Document.class)).hasSize(2);
@@ -138,17 +152,25 @@ public class LogbookMongoDbAccessImplTest {
      * @param objectIdentifierLFC
      * @return parameters
      */
-    private LogbookLifeCycleParameters getLogbookLifecyleParameters(GUID eventIdentifierProcess,
-        GUID objectIdentifierLFC) {
+    private LogbookLifeCycleParameters getLogbookLifecyleParameters(
+        GUID eventIdentifierProcess,
+        GUID objectIdentifierLFC
+    ) {
         GUID eventIdentifierLFC = GUIDFactory.newEventGUID(0);
         String eventTypeLFC = "logbook lifecycle unit version test";
         LogbookTypeProcess eventTypeProcessLFC = LogbookTypeProcess.INGEST_TEST;
         StatusCode outcomeLFC = StatusCode.OK;
         String outcomeDetailLFC = StatusCode.OK.name();
         String outcomeDetailMessageLFC = StatusCode.OK.name();
-        return LogbookParameterHelper.newLogbookLifeCycleUnitParameters
-            (eventIdentifierLFC, eventTypeLFC, eventIdentifierProcess, eventTypeProcessLFC, outcomeLFC,
-                outcomeDetailLFC, outcomeDetailMessageLFC, objectIdentifierLFC);
-
+        return LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+            eventIdentifierLFC,
+            eventTypeLFC,
+            eventIdentifierProcess,
+            eventTypeProcessLFC,
+            outcomeLFC,
+            outcomeDetailLFC,
+            outcomeDetailMessageLFC,
+            objectIdentifierLFC
+        );
     }
 }

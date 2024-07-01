@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-
 /**
  * Workspace Action enum
  */
@@ -42,5 +41,5 @@ public enum WorkspaceAction {
     /**
      * Interrupt action
      */
-    INTERRUPT
+    INTERRUPT,
 }

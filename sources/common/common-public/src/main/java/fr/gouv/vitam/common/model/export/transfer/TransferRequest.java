@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 
 public class TransferRequest {
+
     @JsonProperty("dataObjectVersionToExport")
     private DataObjectVersions dataObjectVersionToExport;
 
@@ -49,10 +50,7 @@ public class TransferRequest {
     @JsonProperty("sedaVersion")
     private String sedaVersion;
 
-
-    public TransferRequest() {
-    }
-
+    public TransferRequest() {}
 
     public TransferRequest(JsonNode dslRequest) {
         this.dslRequest = dslRequest;

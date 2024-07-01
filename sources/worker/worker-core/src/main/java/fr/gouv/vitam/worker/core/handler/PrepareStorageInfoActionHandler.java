@@ -58,8 +58,8 @@ import java.util.Map.Entry;
  * PrepareStorageInfoActionHandler Handler.<br>
  */
 public class PrepareStorageInfoActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PrepareStorageInfoActionHandler.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PrepareStorageInfoActionHandler.class);
 
     private static final String HANDLER_ID = "PREPARE_STORAGE_INFO";
 
@@ -73,7 +73,6 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
      */
     public PrepareStorageInfoActionHandler() {
         this(StorageClientFactory.getInstance());
-
     }
 
     /**
@@ -103,45 +102,68 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
 
             Map<String, JsonNode> storageCapacityNodeByStrategyId = new HashMap<>();
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageCapacityNodeByStrategyId.put(VitamConfiguration.getDefaultStrategy(),
-                    storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy()));
+                storageCapacityNodeByStrategyId.put(
+                    VitamConfiguration.getDefaultStrategy(),
+                    storageClient.getStorageInformation(VitamConfiguration.getDefaultStrategy())
+                );
                 if (managementContract != null && managementContract.getStorage() != null) {
-                    if (managementContract.getStorage().getUnitStrategy() != null && !storageCapacityNodeByStrategyId
-                        .containsKey(managementContract.getStorage().getUnitStrategy())) {
-                        storageCapacityNodeByStrategyId.put(managementContract.getStorage().getUnitStrategy(),
-                            storageClient.getStorageInformation(managementContract.getStorage().getUnitStrategy()));
+                    if (
+                        managementContract.getStorage().getUnitStrategy() != null &&
+                        !storageCapacityNodeByStrategyId.containsKey(managementContract.getStorage().getUnitStrategy())
+                    ) {
+                        storageCapacityNodeByStrategyId.put(
+                            managementContract.getStorage().getUnitStrategy(),
+                            storageClient.getStorageInformation(managementContract.getStorage().getUnitStrategy())
+                        );
                     }
-                    if (managementContract.getStorage().getObjectGroupStrategy() != null
-                        && !storageCapacityNodeByStrategyId
-                        .containsKey(managementContract.getStorage().getObjectGroupStrategy())) {
-                        storageCapacityNodeByStrategyId.put(managementContract.getStorage().getObjectGroupStrategy(),
+                    if (
+                        managementContract.getStorage().getObjectGroupStrategy() != null &&
+                        !storageCapacityNodeByStrategyId.containsKey(
+                            managementContract.getStorage().getObjectGroupStrategy()
+                        )
+                    ) {
+                        storageCapacityNodeByStrategyId.put(
+                            managementContract.getStorage().getObjectGroupStrategy(),
                             storageClient.getStorageInformation(
-                                managementContract.getStorage().getObjectGroupStrategy()));
+                                managementContract.getStorage().getObjectGroupStrategy()
+                            )
+                        );
                     }
-                    if (managementContract.getStorage().getObjectStrategy() != null && !storageCapacityNodeByStrategyId
-                        .containsKey(managementContract.getStorage().getObjectStrategy())) {
-                        storageCapacityNodeByStrategyId.put(managementContract.getStorage().getObjectStrategy(),
-                            storageClient
-                                .getStorageInformation(managementContract.getStorage().getObjectStrategy()));
+                    if (
+                        managementContract.getStorage().getObjectStrategy() != null &&
+                        !storageCapacityNodeByStrategyId.containsKey(
+                            managementContract.getStorage().getObjectStrategy()
+                        )
+                    ) {
+                        storageCapacityNodeByStrategyId.put(
+                            managementContract.getStorage().getObjectStrategy(),
+                            storageClient.getStorageInformation(managementContract.getStorage().getObjectStrategy())
+                        );
                     }
                 }
             }
 
             ObjectNode strategiesInformation = JsonHandler.createObjectNode();
             for (Entry<String, JsonNode> stategyStorageCapacities : storageCapacityNodeByStrategyId.entrySet()) {
-                final StorageInformation[] storageInformation =
-                    JsonHandler.getFromJsonNode(stategyStorageCapacities.getValue().get("capacities"),
-                        StorageInformation[].class);
-                strategiesInformation.set(stategyStorageCapacities.getKey(),
-                    generateStorageInfoNode(stategyStorageCapacities.getKey(), storageInformation));
+                final StorageInformation[] storageInformation = JsonHandler.getFromJsonNode(
+                    stategyStorageCapacities.getValue().get("capacities"),
+                    StorageInformation[].class
+                );
+                strategiesInformation.set(
+                    stategyStorageCapacities.getKey(),
+                    generateStorageInfoNode(stategyStorageCapacities.getKey(), storageInformation)
+                );
             }
 
             storeStrategiesStorageInfo(handlerIO, strategiesInformation);
 
             itemStatus.increment(StatusCode.OK);
-
-        } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
-            InvalidParseOperationException e) {
+        } catch (
+            ProcessingException
+            | StorageNotFoundClientException
+            | StorageServerClientException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -173,9 +195,10 @@ public class PrepareStorageInfoActionHandler extends ActionHandler {
 
     private ManagementContractModel loadManagementContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        ContractsDetailsModel contractsDetailsModel =
-            JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
-                ContractsDetailsModel.class);
+        ContractsDetailsModel contractsDetailsModel = JsonHandler.getFromFile(
+            (File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
+            ContractsDetailsModel.class
+        );
         return contractsDetailsModel.getManagementContractModel();
     }
 

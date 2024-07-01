@@ -45,8 +45,7 @@ public class IngestWorkflowConstants {
      * Prefix of file containing mapping between all BinaryDataObjects' seda ID and BinaryDataObjects vitam guid of an
      * object group.
      */
-    public static final String DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX =
-        "DATA_OBJECT_ID_TO_GUID_MAP_";
+    public static final String DATA_OBJECT_ID_TO_GUID_MAP_FILE_NAME_PREFIX = "DATA_OBJECT_ID_TO_GUID_MAP_";
     /**
      * Prefix of file containing mapping between BinaryDataObjects' seda ID and object group's seda ID.
      */
@@ -55,8 +54,7 @@ public class IngestWorkflowConstants {
     /**
      * Prefix of file containing mapping between all object GUID and its URI
      */
-    public static final String OBJECT_GUID_TO_URI_MAP_FILE_NAME_PREFIX =
-        "OBJECT_GUID_TO_URI_";
+    public static final String OBJECT_GUID_TO_URI_MAP_FILE_NAME_PREFIX = "OBJECT_GUID_TO_URI_";
     /**
      * Prefix of file containing mapping between object group's seda ID and archive units' seda ID.
      */
@@ -149,7 +147,5 @@ public class IngestWorkflowConstants {
 
     public static final String LOGBOOK_OG_FILE_SUFFIX = "_logbook_OG";
 
-    private IngestWorkflowConstants() {
-    }
-
+    private IngestWorkflowConstants() {}
 }

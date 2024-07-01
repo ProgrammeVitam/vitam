@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * Tape drive that read and write in the tape cartridge
  */
 public class TapeDriveConf {
+
     private Integer index;
     private String device;
     private String mtPath = "mt";

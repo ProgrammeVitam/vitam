@@ -34,6 +34,7 @@ import java.util.List;
 
 // MongoDB doc limit is 16Mo => should define the adequate bulk size (read threshold)
 public class TapeAccessRequestReferentialEntity {
+
     public static final String ID = "_id";
     public static final String CONTAINER_NAME = "containerName";
     public static final String OBJECT_NAMES = "objectNames";
@@ -55,24 +56,24 @@ public class TapeAccessRequestReferentialEntity {
     private final List<String> objectNames;
 
     @JsonProperty(CREATION_DATE)
-    @JsonInclude()
+    @JsonInclude
     private final String creationDate;
 
     @JsonProperty(READY_DATE)
-    @JsonInclude()
+    @JsonInclude
     private final String readyDate;
 
     @JsonProperty(EXPIRATION_DATE)
-    @JsonInclude()
+    @JsonInclude
     private final String expirationDate;
 
     @JsonProperty(PURGE_DATE)
-    @JsonInclude()
+    @JsonInclude
     private final String purgeDate;
 
     // List of TarIds not yet available on disk
     @JsonProperty(UNAVAILABLE_ARCHIVE_IDS)
-    @JsonInclude()
+    @JsonInclude
     private final List<String> unavailableArchiveIds;
 
     @JsonProperty(TENANT)
@@ -92,7 +93,8 @@ public class TapeAccessRequestReferentialEntity {
         @JsonProperty(PURGE_DATE) String purgeDate,
         @JsonProperty(UNAVAILABLE_ARCHIVE_IDS) List<String> unavailableArchiveIds,
         @JsonProperty(TENANT) int tenant,
-        @JsonProperty(VERSION) int version) {
+        @JsonProperty(VERSION) int version
+    ) {
         this.requestId = requestId;
         this.containerName = containerName;
         this.objectNames = objectNames;

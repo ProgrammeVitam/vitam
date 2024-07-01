@@ -123,8 +123,12 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      * @param clusterName eslasticsearch cluster name
      * @param elasticsearchNodes elasticsearch nodes
      */
-    public LogbookConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes) {
+    public LogbookConfiguration(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes
+    ) {
         super(mongoDbNodes, dbName);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
@@ -143,8 +147,15 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      * @param dbUserName db authencation user
      * @param dbPassword db authencation password
      */
-    public LogbookConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {
+    public LogbookConfiguration(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes,
+        boolean dbAuthentication,
+        String dbUserName,
+        String dbPassword
+    ) {
         super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         ParametersChecker.checkParameter("elasticsearch cluster name is a mandatory parameter", clusterName);
         ParametersChecker.checkParameter("elasticsearch nodes are a mandatory parameter", elasticsearchNodes);
@@ -152,13 +163,10 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         this.elasticsearchNodes = elasticsearchNodes;
     }
 
-
     /**
      * LogbookConfiguration empty constructor for YAMLFactory
      */
-    public LogbookConfiguration() {
-    }
-
+    public LogbookConfiguration() {}
 
     /**
      * @return password of p12
@@ -216,7 +224,6 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         this.processingUrl = processingUrl;
     }
 
-
     /**
      * @return the clusterName
      */
@@ -249,14 +256,12 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         return this;
     }
 
-
     /**
      * @return the alertEvents
      */
     public List<LogbookEvent> getAlertEvents() {
         return alertEvents;
     }
-
 
     /**
      * @param alertEvents to set
@@ -364,7 +369,8 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     }
 
     public LogbookConfiguration setOperationTraceabilityMaxRenewalDelayUnit(
-        ChronoUnit operationTraceabilityMaxRenewalDelayUnit) {
+        ChronoUnit operationTraceabilityMaxRenewalDelayUnit
+    ) {
         this.operationTraceabilityMaxRenewalDelayUnit = operationTraceabilityMaxRenewalDelayUnit;
         return this;
     }
@@ -397,8 +403,7 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         return logbookTenantIndexation;
     }
 
-    public LogbookConfiguration setLogbookTenantIndexation(
-        LogbookIndexationConfiguration logbookTenantIndexation) {
+    public LogbookConfiguration setLogbookTenantIndexation(LogbookIndexationConfiguration logbookTenantIndexation) {
         this.logbookTenantIndexation = logbookTenantIndexation;
         return this;
     }

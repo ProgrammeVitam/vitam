@@ -71,7 +71,7 @@ public class WebApplicationResourceTest {
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
 
     final int TENANT_ID = 0;
-    final static String tokenCSRF = XSRFHelper.generateCSRFToken();
+    static final String tokenCSRF = XSRFHelper.generateCSRFToken();
 
     private static IhmRecetteMainWithoutMongo application;
     private UserInterfaceTransactionManager userInterfaceTransactionManager;
@@ -83,8 +83,7 @@ public class WebApplicationResourceTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
-        final WebApplicationConfig realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
+        final WebApplicationConfig realAdminConfig = PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
         realAdminConfig.setSipDirectory(Thread.currentThread().getContextClassLoader().getResource("sip").getPath());
         realAdminConfig.setAuthentication(false);
         realAdminConfig.setEnableSession(true);
@@ -104,9 +103,7 @@ public class WebApplicationResourceTest {
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
-
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
     }
 
@@ -128,27 +125,36 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws Exception {
-
         VitamContext context = new VitamContext(TENANT_ID);
         context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        when(
-            userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
-            .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation, LogbookOperation.class));
-        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
-            .expect().statusCode(Status.OK.getStatusCode()).when().get("/stat/" + FAKE_OPERATION_ID);
+        when(userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context)).thenReturn(
+            RequestResponseOK.getFromJsonNode(sampleLogbookOperation, LogbookOperation.class)
+        );
+        given()
+            .param("id_op", FAKE_OPERATION_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/stat/" + FAKE_OPERATION_ID);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
-        throws Exception {
+    public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException() throws Exception {
         VitamContext context = new VitamContext(TENANT_ID);
         context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        when(
-            userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
-            .thenThrow(RuntimeException.class);
-        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
-            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        when(userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context)).thenThrow(
+            RuntimeException.class
+        );
+        given()
+            .param("id_op", FAKE_OPERATION_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE)
+            .expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
             .get("/stat/" + FAKE_OPERATION_ID);
     }
 
@@ -159,7 +165,12 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSecureMode() {
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/securemode").then()
+        given()
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/securemode")
+            .then()
             .body(equalTo("[\"x509\"]"));
     }
 

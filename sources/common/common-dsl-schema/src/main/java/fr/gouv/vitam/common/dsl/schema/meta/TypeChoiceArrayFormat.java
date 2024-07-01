@@ -49,14 +49,12 @@ public class TypeChoiceArrayFormat extends Format {
      * Accessor for Jackson
      * set the map of the json types allowed for the object.
      */
-    public void setItemchoices(
-        Map<JsonTypeName, Format> itemChoices) {
+    public void setItemchoices(Map<JsonTypeName, Format> itemChoices) {
         this.itemChoices = itemChoices;
     }
 
     @Override
     public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
-
         if (!node.isArray()) {
             validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
             return;
@@ -91,8 +89,7 @@ public class TypeChoiceArrayFormat extends Format {
         builder.append("{");
         boolean notFirst = false;
         for (Map.Entry<JsonTypeName, Format> entry : itemChoices.entrySet()) {
-            if (notFirst)
-                builder.append("}[]|{");
+            if (notFirst) builder.append("}[]|{");
             builder.append(entry.getKey());
             builder.append("-> ");
             builder.append(entry.getValue().debugInfo());
@@ -101,5 +98,4 @@ public class TypeChoiceArrayFormat extends Format {
         builder.append("}[]");
         return builder.toString();
     }
-
 }

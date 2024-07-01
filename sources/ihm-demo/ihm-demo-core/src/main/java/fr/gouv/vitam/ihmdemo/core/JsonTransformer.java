@@ -67,8 +67,6 @@ public final class JsonTransformer {
     private static final String UNEXPECTED_EXCEPTION_DURING_CSV_FILE_GENERATION =
         "An unexpected error occurred during CSV file generation process";
 
-
-
     private JsonTransformer() {
         // empty constructor
     }
@@ -127,8 +125,10 @@ public final class JsonTransformer {
         if (finalInfo != null && finalInfo.get("LastModified") != null) {
             objectNode.put("LastModified", finalInfo.get("LastModified").asText());
         }
-        if (object.get("FormatIdentification") != null &&
-            object.get("FormatIdentification").get("FormatLitteral") != null) {
+        if (
+            object.get("FormatIdentification") != null &&
+            object.get("FormatIdentification").get("FormatLitteral") != null
+        ) {
             objectNode.put("FormatLitteral", object.get("FormatIdentification").get("FormatLitteral").asText());
         }
         if (finalInfo != null && finalInfo.get("Filename") != null) {
@@ -191,23 +191,22 @@ public final class JsonTransformer {
      */
     public static ByteArrayOutputStream buildLogbookStatCsvFile(JsonNode logbookOperation)
         throws VitamException, IOException {
-
         final ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
         try (Writer csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream));) {
-
             // Total execution time
             final String startOperationTimeStr = logbookOperation.get(EVENT_DATE_TIME_FIELD).asText();
 
-            final List<JsonNode> events =
-                IteratorUtils.toList(logbookOperation.get(EVENTS_FIELD).iterator());
+            final List<JsonNode> events = IteratorUtils.toList(logbookOperation.get(EVENTS_FIELD).iterator());
 
             // Last event
             final JsonNode lastEvent = events.get(events.size() - 1);
             final String endOperationTimeStr = lastEvent.get(EVENT_DATE_TIME_FIELD).asText();
 
             // Generate CSV report
-            final CSVPrinter csvPrinter = new CSVPrinter(csvWriter,
-                CSVFormat.newFormat(SEMI_COLON_SEPARATOR).withRecordSeparator(RECORD_SEPARATOR));
+            final CSVPrinter csvPrinter = new CSVPrinter(
+                csvWriter,
+                CSVFormat.newFormat(SEMI_COLON_SEPARATOR).withRecordSeparator(RECORD_SEPARATOR)
+            );
 
             final List<String> header = IteratorUtils.toList(lastEvent.fieldNames());
             header.add(START_EVENT_DATETIME_HEADER);

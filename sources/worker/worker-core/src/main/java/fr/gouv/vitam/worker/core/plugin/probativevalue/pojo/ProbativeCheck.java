@@ -39,8 +39,8 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 
-
 public class ProbativeCheck {
+
     private final String name;
     private final String details;
     private final ChecksType type;
@@ -63,7 +63,8 @@ public class ProbativeCheck {
         @JsonProperty("destinationComparable") String destinationComparable,
         @JsonProperty("action") ChecksAction action,
         @JsonProperty("item") CheckedItem item,
-        @JsonProperty("status") StatusCode status) {
+        @JsonProperty("status") StatusCode status
+    ) {
         this.name = name;
         this.details = details;
         this.type = type;
@@ -77,8 +78,12 @@ public class ProbativeCheck {
     }
 
     @JsonIgnore
-    public static ProbativeCheck from(ChecksInformation information, String source, String destination,
-        StatusCode status) {
+    public static ProbativeCheck from(
+        ChecksInformation information,
+        String source,
+        String destination,
+        StatusCode status
+    ) {
         return new ProbativeCheck(
             information.name(),
             information.explanation,

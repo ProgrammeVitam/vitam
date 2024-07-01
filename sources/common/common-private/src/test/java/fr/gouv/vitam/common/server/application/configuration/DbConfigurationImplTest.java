@@ -54,60 +54,51 @@ public class DbConfigurationImplTest {
             nodes.add(new MongoDbNode(host, -16));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode((String) null, port));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             dbConfiguration0.setDbName("");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             dbConfiguration0.setDbName((String) null);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("", port));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(host, 0));
             dbConfiguration0.setMongoDbNodes(nodes);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("", 265));
             dbConfiguration0 = new DbConfigurationImpl(nodes, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("AAA", -265));
             dbConfiguration0 = new DbConfigurationImpl(nodes, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode("AAA", 265));
             dbConfiguration0 = new DbConfigurationImpl(nodes, "");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) {// NOSONAR ignore
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR ignore
     }
 
     @Test

@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
  * Abstract client class for all vitam client
  */
 public class DefaultClient extends AbstractCommonClient {
+
     /**
      * Constructor using given scheme (http)
      *

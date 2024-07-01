@@ -69,10 +69,8 @@ public class ExactSizeInputStream extends FilterInputStream {
         }
     }
 
-
     @Override
     public int read() throws IOException {
-
         // EOF already reached
         if (isEOF) {
             return EOF;
@@ -91,7 +89,6 @@ public class ExactSizeInputStream extends FilterInputStream {
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-
         if (off < 0 || len < 0 || off + len > b.length) {
             throw new IllegalArgumentException();
         }
@@ -132,8 +129,7 @@ public class ExactSizeInputStream extends FilterInputStream {
     }
 
     @Override
-    public synchronized void mark(int readlimit) {
-    }
+    public synchronized void mark(int readlimit) {}
 
     @Override
     public synchronized void reset() throws IOException {

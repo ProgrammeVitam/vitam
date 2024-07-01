@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Pop Action: $pop : { name : -1/1 }
  */
 public class PopAction extends Action {
+
     protected PopAction() {
         super();
     }
@@ -44,8 +45,7 @@ public class PopAction extends Action {
      * @param way -1 for first, 1 for last
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public PopAction(final String variableName, final int way)
-        throws InvalidCreateOperationException {
+    public PopAction(final String variableName, final int way) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.POP, variableName, way);
         currentUPDATEACTION = UPDATEACTION.POP;

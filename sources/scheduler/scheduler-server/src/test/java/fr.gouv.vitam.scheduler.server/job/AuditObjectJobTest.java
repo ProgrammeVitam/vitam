@@ -74,30 +74,43 @@ import static org.mockito.Mockito.when;
 
 public class AuditObjectJobTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    @Mock private ProcessingManagementClientFactory processingManagementClientFactory;
+    @Mock
+    private ProcessingManagementClientFactory processingManagementClientFactory;
 
-    @Mock private AdminManagementClientFactory adminManagementClientFactory;
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
 
-    @Mock private MetaDataClient metaDataClient;
+    @Mock
+    private MetaDataClient metaDataClient;
 
-    @Mock private LogbookOperationsClient logbookOperationsClient;
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
 
-    @Mock private AdminManagementClient adminManagementClient;
+    @Mock
+    private AdminManagementClient adminManagementClient;
 
-    @Mock private ProcessingManagementClient processingManagementClient;
+    @Mock
+    private ProcessingManagementClient processingManagementClient;
 
-    @Mock private JobExecutionContext context;
+    @Mock
+    private JobExecutionContext context;
 
-    @InjectMocks private AuditObjectJob auditObjectJob;
+    @InjectMocks
+    private AuditObjectJob auditObjectJob;
 
     @Before
     public void setup() {
@@ -106,12 +119,17 @@ public class AuditObjectJobTest {
         Mockito.reset(adminManagementClient);
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
-        auditObjectJob = new AuditObjectJob(metaDataClientFactory, logbookOperationsClientFactory,
-            processingManagementClientFactory, adminManagementClientFactory);
+        auditObjectJob = new AuditObjectJob(
+            metaDataClientFactory,
+            logbookOperationsClientFactory,
+            processingManagementClientFactory,
+            adminManagementClientFactory
+        );
         VitamConfiguration.setAdminTenant(1);
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
-        when(context.getMergedJobDataMap()).thenReturn(new JobDataMap(Map.of("operationsDelayInMinutes", 5,
-            "auditType", "Integrity")));
+        when(context.getMergedJobDataMap()).thenReturn(
+            new JobDataMap(Map.of("operationsDelayInMinutes", 5, "auditType", "Integrity"))
+        );
     }
 
     @Before
@@ -127,23 +145,28 @@ public class AuditObjectJobTest {
     public void testLaunchAuditByTenantIdWithLastUpdateDate() throws Exception {
         VitamConfiguration.setTenants(List.of(0));
 
-        JsonNode unit =
-            JsonHandler.getFromString("{\"#id\": \"UNIT_ID\", \"#approximate_update_date\": \"UNIT_TIME\"}");
+        JsonNode unit = JsonHandler.getFromString(
+            "{\"#id\": \"UNIT_ID\", \"#approximate_update_date\": \"UNIT_TIME\"}"
+        );
         JsonNode nonEmptyRequestResponseOK = JsonHandler.toJsonNode(new RequestResponseOK<>().addResult(unit));
         when(metaDataClient.selectUnits(any())).thenReturn(nonEmptyRequestResponseOK);
 
         when(logbookOperationsClient.selectOperation(any())).thenReturn(
-            JsonHandler.toJsonNode(new RequestResponseOK<>()));
+            JsonHandler.toJsonNode(new RequestResponseOK<>())
+        );
 
         when(processingManagementClient.getOperationProcessStatus(any())).thenReturn(
-            new ItemStatus().setGlobalState(ProcessState.COMPLETED));
+            new ItemStatus().setGlobalState(ProcessState.COMPLETED)
+        );
 
         // Call the execute method of IntegrityAuditJob
         auditObjectJob.execute(context);
 
         // Assert that the expected methods were called with the correct arguments
         verify(adminManagementClient, times(1)).launchAuditWorkflow(
-            ArgumentMatchers.argThat(AuditObjectJobTest::notUsingLastAuditDate), eq(false));
+            ArgumentMatchers.argThat(AuditObjectJobTest::notUsingLastAuditDate),
+            eq(false)
+        );
         verify(adminManagementClient, never()).launchAuditWorkflow(any(), eq(true));
     }
 
@@ -152,32 +175,35 @@ public class AuditObjectJobTest {
     public void testLaunchAuditByTenantIdWithNoLastUpdateDate() throws Exception {
         VitamConfiguration.setTenants(List.of(0));
 
-
         LogbookOperation logbookOperation = new LogbookOperation();
         LogbookEventOperation event = new LogbookEventOperation();
         event.setEvType("LIST_OBJECTGROUP_ID");
         event.setEvDetData("{\"Last_Update_Date\": \"DATE\"}");
         logbookOperation.setEvents(List.of(event));
         when(logbookOperationsClient.selectOperation(any())).thenReturn(
-            JsonHandler.toJsonNode(new RequestResponseOK<>().addResult(logbookOperation)));
+            JsonHandler.toJsonNode(new RequestResponseOK<>().addResult(logbookOperation))
+        );
 
-        JsonNode unit =
-            JsonHandler.getFromString("{\"#id\": \"UNIT_ID\", \"#approximate_update_date\": \"UNIT_TIME\"}");
+        JsonNode unit = JsonHandler.getFromString(
+            "{\"#id\": \"UNIT_ID\", \"#approximate_update_date\": \"UNIT_TIME\"}"
+        );
         JsonNode nonEmptyRequestResponseOK = JsonHandler.toJsonNode(new RequestResponseOK<>().addResult(unit));
 
         // Mock the behavior of getUnitsToAudit to return a non-empty result
         when(metaDataClient.selectUnits(any())).thenReturn(nonEmptyRequestResponseOK);
 
-
         when(processingManagementClient.getOperationProcessStatus(any())).thenReturn(
-            new ItemStatus().setGlobalState(ProcessState.COMPLETED));
+            new ItemStatus().setGlobalState(ProcessState.COMPLETED)
+        );
 
         // Call the execute method of IntegrityAuditJob
         auditObjectJob.execute(context);
 
         // Assert that the expected methods were called with the correct arguments
         verify(adminManagementClient, times(1)).launchAuditWorkflow(
-            ArgumentMatchers.argThat(AuditObjectJobTest::usingLastAuditDate), eq(false));
+            ArgumentMatchers.argThat(AuditObjectJobTest::usingLastAuditDate),
+            eq(false)
+        );
         verify(adminManagementClient, never()).launchAuditWorkflow(any(), eq(true));
     }
 

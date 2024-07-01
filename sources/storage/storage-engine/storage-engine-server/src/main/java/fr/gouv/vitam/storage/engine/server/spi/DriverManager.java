@@ -86,8 +86,10 @@ public class DriverManager {
             // default mapper, use changeDriverMapper
             mapper = Optional.ofNullable(FileDriverMapper.getInstance());
         } catch (final StorageDriverMapperException exc) {
-            LOGGER.warn("The driver mapper is not initialize. Association driver and offer will not be load and " +
-                "modification will not be save. Change the mapper.");
+            LOGGER.warn(
+                "The driver mapper is not initialize. Association driver and offer will not be load and " +
+                "modification will not be save. Change the mapper."
+            );
         }
         final URLClassLoader ucl = getUrlClassLoader();
         ServiceLoader<Driver> loadedDrivers;
@@ -117,26 +119,30 @@ public class DriverManager {
                         parameters.putAll(offer.getParameters());
                         driver.addOffer(offer, parameters);
                     } else {
-                        LOGGER
-                            .warn("Disabled Offer %s will not be add to driver's offer %s", offerId, driver.getName());
+                        LOGGER.warn(
+                            "Disabled Offer %s will not be add to driver's offer %s",
+                            offerId,
+                            driver.getName()
+                        );
                     }
                 }
             } catch (final StorageException exc) {
-                LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}",
-                    driver.getClass().getName(), exc);
+                LOGGER.warn(
+                    "The driver mapper failed to load offers IDs for driver name {}",
+                    driver.getClass().getName(),
+                    exc
+                );
             }
         }
     }
 
-    private static void addOffersToDriver(Driver driver, List<String> offersIds)
-        throws StorageDriverMapperException {
+    private static void addOffersToDriver(Driver driver, List<String> offersIds) throws StorageDriverMapperException {
         ParametersChecker.checkParameter("Offers id list cannot be null", offersIds);
         for (final String offerId : offersIds) {
             boolean done;
             try {
                 //consider all offer including inactive ones
-                StorageOffer offer =
-                    StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId, true);
+                StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId, true);
                 final Properties parameters = new Properties();
                 parameters.putAll(offer.getParameters());
                 done = driver.addOffer(offer, parameters);
@@ -147,7 +153,10 @@ public class DriverManager {
             if (!done) {
                 LOGGER.warn(
                     "Cannot append to the driver {} with name {} the offer ID {}, offer already define",
-                    driver, driver.getClass().getName(), offerId);
+                    driver,
+                    driver.getClass().getName(),
+                    offerId
+                );
             }
         }
         persistAddOffers(offersIds, driver.getClass().getName());
@@ -160,8 +169,7 @@ public class DriverManager {
      * @return this
      */
     public static Driver addDriver(Driver driver) {
-        if (null == driver)
-            throw new IllegalArgumentException("Driver parameter mustn't be null");
+        if (null == driver) throw new IllegalArgumentException("Driver parameter mustn't be null");
         if (drivers.containsKey(driver.getClass().getName())) {
             throw new IllegalArgumentException("Driver already exists");
         }
@@ -181,8 +189,11 @@ public class DriverManager {
             try {
                 configuration = PropertiesUtils.readYaml(conf, DriverManagerConfiguration.class);
             } catch (final IOException exc) {
-                LOGGER.warn("cannot read configuration file for storage driver. Only use standard class loader " +
-                    "(systemClassLoader)", exc);
+                LOGGER.warn(
+                    "cannot read configuration file for storage driver. Only use standard class loader " +
+                    "(systemClassLoader)",
+                    exc
+                );
             }
             if (configuration != null) {
                 final File dir = new File(configuration.getDriverLocation());
@@ -225,13 +236,18 @@ public class DriverManager {
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      */
     public static void addOfferToDriver(String name, String offerId) throws StorageDriverMapperException {
-
         Driver selectedDriver = null;
         for (String driverName : drivers.keySet()) {
             final Driver driver = drivers.get(driverName);
             if (driver.hasOffer(offerId) && !driverName.equals(name)) {
-                throw new StorageDriverMapperException("The offer " + offerId + " already attached to the driver " +
-                    driverName + " => can't attach offer to the driver " + name);
+                throw new StorageDriverMapperException(
+                    "The offer " +
+                    offerId +
+                    " already attached to the driver " +
+                    driverName +
+                    " => can't attach offer to the driver " +
+                    name
+                );
             }
 
             if (driverName.equals(name)) {
@@ -244,9 +260,7 @@ public class DriverManager {
             list.add(offerId);
             addOffersToDriver(selectedDriver, list);
         }
-
     }
-
 
     /**
      * Add offer to a driver
@@ -256,14 +270,18 @@ public class DriverManager {
      * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
      */
     public static void addOffersToDriver(String name, List<String> offerIds) throws StorageDriverMapperException {
-
         for (String driverName : drivers.keySet()) {
             final Driver driver = drivers.get(driverName);
             for (final String s : offerIds) {
                 if (driver.hasOffer(s) && !driverName.equals(name)) {
                     throw new StorageDriverMapperException(
-                        "The offer " + s + " already attached to the driver " + driverName +
-                            " => can't attach offer to the driver " + name);
+                        "The offer " +
+                        s +
+                        " already attached to the driver " +
+                        driverName +
+                        " => can't attach offer to the driver " +
+                        name
+                    );
                 }
             }
             if (driverName.equals(name)) {
@@ -271,7 +289,6 @@ public class DriverManager {
                 break;
             }
         }
-
     }
 
     /**
@@ -312,8 +329,6 @@ public class DriverManager {
         throw new StorageDriverNotFoundException("No suitable driver for offer ID : " + offerId);
     }
 
-
-
     private static void persistAddOffers(List<String> offersIds, String driverName)
         throws StorageDriverMapperException {
         if (mapper.isPresent()) {
@@ -327,5 +342,4 @@ public class DriverManager {
             mapper.get().removeOffersTo(offersIds, driverName);
         }
     }
-
 }

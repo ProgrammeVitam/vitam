@@ -45,30 +45,24 @@ public class JunitHelperTest {
         try {
             junitFindAvailablePort0.isListeningOn("znN>", -4608);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn("znN>", 65536);
             fail("Expecting exception: IllegalArgumentException");
-
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn(-4608);
             fail("Expecting exception: IllegalArgumentException");
-
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn(65536);
             fail("Expecting exception: IllegalArgumentException");
-
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         assertFalse(junitFindAvailablePort0.isListeningOn("znN>", 1025));
     }
 
     private static class ToNotAllocate {
+
         private ToNotAllocate() {
             throw new UnsupportedOperationException();
         }

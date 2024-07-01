@@ -31,5 +31,5 @@ package fr.gouv.vitam.common.model.administration;
  */
 public enum ProfileFormat {
     XSD,
-    RNG
+    RNG,
 }

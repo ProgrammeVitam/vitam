@@ -29,13 +29,19 @@ package fr.gouv.vitam.storage.engine.common.model;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    property = TapeLibraryObjectStorageLocation.TYPE)
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = TapeLibraryInputFileObjectStorageLocation.class, name = TapeLibraryObjectStorageLocation.INPUT_FILE),
-    @JsonSubTypes.Type(value = TapeLibraryTarObjectStorageLocation.class, name = TapeLibraryObjectStorageLocation.TAR)
-})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = TapeLibraryObjectStorageLocation.TYPE)
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(
+            value = TapeLibraryInputFileObjectStorageLocation.class,
+            name = TapeLibraryObjectStorageLocation.INPUT_FILE
+        ),
+        @JsonSubTypes.Type(
+            value = TapeLibraryTarObjectStorageLocation.class,
+            name = TapeLibraryObjectStorageLocation.TAR
+        ),
+    }
+)
 public abstract class TapeLibraryObjectStorageLocation {
 
     public static final String TYPE = "type";

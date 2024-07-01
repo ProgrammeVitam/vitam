@@ -58,9 +58,12 @@ public final class GaugeUtils {
      * @param supplier a side-effect-free / non-blocking function returning the gauge value on demand
      * @return A custom gauge collector
      */
-    public static Collector createCustomGauge(String name, String help, Map<String, String> labels,
-        Supplier<Double> supplier) {
-
+    public static Collector createCustomGauge(
+        String name,
+        String help,
+        Map<String, String> labels,
+        Supplier<Double> supplier
+    ) {
         List<String> labelNames = new ArrayList<>(labels.keySet());
         List<String> labelValues = new ArrayList<>(labels.values());
         return new DynamicGauge(name, help, labelNames, () -> Map.of(labelValues, supplier.get()));
@@ -73,9 +76,12 @@ public final class GaugeUtils {
      * @param metricsSupplier a side-effect-free / non-blocking function returning the gauge value per label values
      * @return A custom gauge collector
      */
-    public static Collector createCustomGauge(String name, String help, List<String> labelNames,
-        Supplier<Map<List<String>, Double>> metricsSupplier) {
+    public static Collector createCustomGauge(
+        String name,
+        String help,
+        List<String> labelNames,
+        Supplier<Map<List<String>, Double>> metricsSupplier
+    ) {
         return new DynamicGauge(name, help, labelNames, metricsSupplier);
     }
 }
-

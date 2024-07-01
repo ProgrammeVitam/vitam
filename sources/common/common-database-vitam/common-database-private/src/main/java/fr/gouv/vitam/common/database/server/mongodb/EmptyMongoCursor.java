@@ -78,5 +78,4 @@ public class EmptyMongoCursor<TResult> implements MongoCursor<TResult> {
     public ServerAddress getServerAddress() {
         return null;
     }
-
 }

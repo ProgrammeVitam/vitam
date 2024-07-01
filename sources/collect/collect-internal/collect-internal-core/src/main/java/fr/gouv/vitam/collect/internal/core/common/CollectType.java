@@ -32,5 +32,5 @@ public enum CollectType {
     SENT,
     WAITING_ACK,
     ACK_OK,
-    ACK_ERROR
+    ACK_ERROR,
 }

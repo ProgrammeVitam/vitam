@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.internal.common.exception;
 import fr.gouv.vitam.common.exception.VitamClientException;
 
 public class IngestInternalClientConflictException extends VitamClientException {
+
     private static final long serialVersionUID = -544990974532693321L;
 
     public IngestInternalClientConflictException(String message) {

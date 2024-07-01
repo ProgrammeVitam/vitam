@@ -142,27 +142,29 @@ import static org.junit.Assert.assertNull;
 public class DataMigrationIT extends VitamRuleRunner {
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(
-            DataMigrationIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                AccessExternalMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        DataMigrationIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            AccessExternalMain.class
+        )
+    );
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String JSON_EXTENSION = ".json";
     private static final Integer TENANT_ID = 0;
@@ -189,14 +191,14 @@ public class DataMigrationIT extends VitamRuleRunner {
         // Metadata migration service interface - replace non existing client
         final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
-        Retrofit retrofit_admin_management =
-            new Retrofit.Builder().client(okHttpClient).baseUrl(ADMIN_MANAGEMENT_URL)
-                .addConverterFactory(JacksonConverterFactory.create()).build();
+        Retrofit retrofit_admin_management = new Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(ADMIN_MANAGEMENT_URL)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
 
-        metadataAdminDataMigrationService =
-            retrofit_admin_management.create(MetadataAdminDataMigrationService.class);
+        metadataAdminDataMigrationService = retrofit_admin_management.create(MetadataAdminDataMigrationService.class);
     }
-
 
     public static void prepareVitamSession() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -221,18 +223,19 @@ public class DataMigrationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_IT);
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
-        runAfterMongo(Sets.newHashSet(
-            MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-            LogbookCollections.OPERATION.getName(),
-            LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
-
-        ));
+        runAfterMongo(
+            Sets.newHashSet(
+                MetadataCollections.UNIT.getName(),
+                MetadataCollections.OBJECTGROUP.getName(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                LogbookCollections.OPERATION.getName(),
+                LogbookCollections.LIFECYCLE_UNIT.getName(),
+                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+                LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
+            )
+        );
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
@@ -242,9 +245,11 @@ public class DataMigrationIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
             ElasticsearchIndexAlias.ofCrossTenantCollection(
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+            ),
             ElasticsearchIndexAlias.ofCrossTenantCollection(
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName()
+            )
         );
     }
 
@@ -253,8 +258,9 @@ public class DataMigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_failedAuthn() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Response<Map<Integer, String>>
-            response = metadataAdminDataMigrationService.metadataDataMigration("BAD TOKEN").execute();
+        Response<Map<Integer, String>> response = metadataAdminDataMigrationService
+            .metadataDataMigration("BAD TOKEN")
+            .execute();
         assertThat(response.isSuccessful()).isFalse();
     }
 
@@ -263,8 +269,9 @@ public class DataMigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_emptyDataSet() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Response<Map<Integer, String>> response =
-            metadataAdminDataMigrationService.metadataDataMigration(getBasicAuthnToken()).execute();
+        Response<Map<Integer, String>> response = metadataAdminDataMigrationService
+            .metadataDataMigration(getBasicAuthnToken())
+            .execute();
 
         assertThat(response.isSuccessful()).isTrue();
         assertNotNull(response.body());
@@ -287,8 +294,9 @@ public class DataMigrationIT extends VitamRuleRunner {
         List<JsonNode> unitsBefore = getMetadata(MetadataCollections.UNIT);
 
         // When
-        Response<Map<Integer, String>> response =
-            metadataAdminDataMigrationService.metadataDataMigration(getBasicAuthnToken()).execute();
+        Response<Map<Integer, String>> response = metadataAdminDataMigrationService
+            .metadataDataMigration(getBasicAuthnToken())
+            .execute();
         assertThat(response.isSuccessful()).isTrue();
         assertNotNull(response.body());
 
@@ -297,24 +305,28 @@ public class DataMigrationIT extends VitamRuleRunner {
         // Then
         waitMigration();
 
-
         List<JsonNode> unitsAfter = getMetadata(MetadataCollections.UNIT);
         dumpDataSet(unitsAfter, unitsBefore);
-
 
         assertMetadataEquals(unitsBefore, unitsAfter);
 
         List<JsonNode> rawUnitLifeCycles;
-        try (LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance()
-            .getClient()) {
-            List<String> unitIds =
-                unitsAfter.stream().map(unit -> unit.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList());
+        try (
+            LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
+        ) {
+            List<String> unitIds = unitsAfter
+                .stream()
+                .map(unit -> unit.get(VitamFieldsHelper.id()).asText())
+                .collect(Collectors.toList());
             rawUnitLifeCycles = logbookLifeCyclesClient.getRawUnitLifeCycleByIds(unitIds);
         }
 
         for (JsonNode rawUnitLFC : rawUnitLifeCycles) {
-            String lastEventType =
-                rawUnitLFC.get("events").get(rawUnitLFC.get("events").size() - 1).get("evType").asText();
+            String lastEventType = rawUnitLFC
+                .get("events")
+                .get(rawUnitLFC.get("events").size() - 1)
+                .get("evType")
+                .asText();
             assertThat(lastEventType).isEqualTo(MigrationUnits.LFC_UPDATE_MIGRATION_UNITS);
         }
 
@@ -344,29 +356,33 @@ public class DataMigrationIT extends VitamRuleRunner {
         unit.put(VitamFieldsHelper.approximateUpdateDate(), "#TIMESTAMP#");
     }
 
-
-
     @Test
     @RunWithCustomExecutor
     public void startAccessionRegisterDetailsCollectionMigrationWithNoComments() throws Exception {
         // Given
-        Pair<AccessionRegisterDetailModel, JsonNode> acRegDetBeforeUpdateWithDslQUery =
-            getAcRegDetBeforeMigration("migration_v5/1_UNIT_1_GOT_WITH_EMPTY_COMMENT.zip");
+        Pair<AccessionRegisterDetailModel, JsonNode> acRegDetBeforeUpdateWithDslQUery = getAcRegDetBeforeMigration(
+            "migration_v5/1_UNIT_1_GOT_WITH_EMPTY_COMMENT.zip"
+        );
 
         // Run Migration
-        DataMigrationBody dataMigrationBody =
-            new DataMigrationBody(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                List.of(OB_ID_IN, COMMENT), JsonHandler.toJsonNode(acRegDetBeforeUpdateWithDslQUery.getLeft()));
-        Response<Void> response =
-            metadataAdminDataMigrationService.runtCollectionMigration(dataMigrationBody).execute();
+        DataMigrationBody dataMigrationBody = new DataMigrationBody(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            List.of(OB_ID_IN, COMMENT),
+            JsonHandler.toJsonNode(acRegDetBeforeUpdateWithDslQUery.getLeft())
+        );
+        Response<Void> response = metadataAdminDataMigrationService
+            .runtCollectionMigration(dataMigrationBody)
+            .execute();
 
         // Then
         assertThat(response.isSuccessful()).isTrue();
-        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate = adminExternalClient
-            .findAccessionRegisterDetails(VITAM_CONTEXT, acRegDetBeforeUpdateWithDslQUery.getRight());
+        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate =
+            adminExternalClient.findAccessionRegisterDetails(
+                VITAM_CONTEXT,
+                acRegDetBeforeUpdateWithDslQUery.getRight()
+            );
         AccessionRegisterDetailModel acRegDetAfterUpdate =
-            ((RequestResponseOK<AccessionRegisterDetailModel>)
-                acRegDetResponseAfterUpdate).getResults().get(0);
+            ((RequestResponseOK<AccessionRegisterDetailModel>) acRegDetResponseAfterUpdate).getResults().get(0);
         assertEquals(IB_ID_IN_EXAMPLE, acRegDetAfterUpdate.getObIdIn());
         assertNull(acRegDetAfterUpdate.getComment());
     }
@@ -375,23 +391,29 @@ public class DataMigrationIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void startAccessionRegisterDetailsCollectionMigration_withMultipleComments() throws Exception {
         // Given
-        Pair<AccessionRegisterDetailModel, JsonNode> acRegDetBeforeUpdateWithDslQUery =
-            getAcRegDetBeforeMigration("migration_v5/1_UNIT_1_GOT_WITH_MULTIPLE_COMMENTS.zip");
+        Pair<AccessionRegisterDetailModel, JsonNode> acRegDetBeforeUpdateWithDslQUery = getAcRegDetBeforeMigration(
+            "migration_v5/1_UNIT_1_GOT_WITH_MULTIPLE_COMMENTS.zip"
+        );
 
         // Run Migration
-        DataMigrationBody dataMigrationBody =
-            new DataMigrationBody(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                List.of(OB_ID_IN, COMMENT), JsonHandler.toJsonNode(acRegDetBeforeUpdateWithDslQUery.getLeft()));
-        Response<Void> response =
-            metadataAdminDataMigrationService.runtCollectionMigration(dataMigrationBody).execute();
+        DataMigrationBody dataMigrationBody = new DataMigrationBody(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            List.of(OB_ID_IN, COMMENT),
+            JsonHandler.toJsonNode(acRegDetBeforeUpdateWithDslQUery.getLeft())
+        );
+        Response<Void> response = metadataAdminDataMigrationService
+            .runtCollectionMigration(dataMigrationBody)
+            .execute();
 
         // Then
         assertThat(response.isSuccessful()).isTrue();
-        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate = adminExternalClient
-            .findAccessionRegisterDetails(VITAM_CONTEXT, acRegDetBeforeUpdateWithDslQUery.getRight());
+        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseAfterUpdate =
+            adminExternalClient.findAccessionRegisterDetails(
+                VITAM_CONTEXT,
+                acRegDetBeforeUpdateWithDslQUery.getRight()
+            );
         AccessionRegisterDetailModel acRegDetAfterUpdate =
-            ((RequestResponseOK<AccessionRegisterDetailModel>)
-                acRegDetResponseAfterUpdate).getResults().get(0);
+            ((RequestResponseOK<AccessionRegisterDetailModel>) acRegDetResponseAfterUpdate).getResults().get(0);
         assertEquals(IB_ID_IN_EXAMPLE, acRegDetAfterUpdate.getObIdIn());
         assertEquals(2, acRegDetAfterUpdate.getComment().size());
     }
@@ -404,12 +426,11 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         JsonNode queryDslByOpi = getQueryDslByOpi(operationId);
 
-        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseBeforeUpdate = adminExternalClient
-            .findAccessionRegisterDetails(VITAM_CONTEXT, queryDslByOpi);
+        RequestResponse<AccessionRegisterDetailModel> acRegDetResponseBeforeUpdate =
+            adminExternalClient.findAccessionRegisterDetails(VITAM_CONTEXT, queryDslByOpi);
 
         AccessionRegisterDetailModel acRegDetBeforeUpdate =
-            ((RequestResponseOK<AccessionRegisterDetailModel>)
-                acRegDetResponseBeforeUpdate).getResults().get(0);
+            ((RequestResponseOK<AccessionRegisterDetailModel>) acRegDetResponseBeforeUpdate).getResults().get(0);
 
         // Simulate update in comment ( wich is already done in migration playbook ) to avoid update identical document Exception in Mongo
         acRegDetBeforeUpdate.setObIdIn(IB_ID_IN_EXAMPLE);
@@ -425,9 +446,13 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     private void waitMigration() throws IOException {
-        for (int nbtimes = 0; (nbtimes <= VitamServerRunner.NB_TRY &&
-            (metadataAdminDataMigrationService.checkDataMigration(getBasicAuthnToken()).execute().code() !=
-                javax.ws.rs.core.Response.Status.OK.getStatusCode())); nbtimes++) {
+        for (
+            int nbtimes = 0;
+            (nbtimes <= VitamServerRunner.NB_TRY &&
+                (metadataAdminDataMigrationService.checkDataMigration(getBasicAuthnToken()).execute().code() !=
+                    javax.ws.rs.core.Response.Status.OK.getStatusCode()));
+            nbtimes++
+        ) {
             try {
                 TimeUnit.MILLISECONDS.sleep(VitamServerRunner.SLEEP_TIME);
             } catch (InterruptedException e) {
@@ -437,9 +462,7 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     private void checkStoredUnit(JsonNode unit, JsonNode lfc)
-        throws StorageNotFoundException, StorageServerClientException,
-        StorageUnavailableDataFromAsyncOfferClientException {
-
+        throws StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
 
         JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
@@ -448,9 +471,12 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         javax.ws.rs.core.Response response = null;
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
-            response =
-                client.getContainerAsync("default", unit.get(MetadataDocument.ID).asText() + JSON_EXTENSION, UNIT,
-                    AccessLogUtils.getNoLogAccessLog());
+            response = client.getContainerAsync(
+                "default",
+                unit.get(MetadataDocument.ID).asText() + JSON_EXTENSION,
+                UNIT,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream storedInputStream = response.readEntity(InputStream.class);
 
             assertThat(storedInputStream).hasSameContentAs(expectedStoredDocument);
@@ -460,23 +486,30 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     private void checkReport(String operationId, List<JsonNode> units)
-        throws StorageNotFoundException, StorageServerClientException, InvalidParseOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
-
+        throws StorageNotFoundException, StorageServerClientException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         javax.ws.rs.core.Response response = null;
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
-            response =
-                client.getContainerAsync("default", operationId + JSON_EXTENSION, DataCategory.REPORT,
-                    AccessLogUtils.getNoLogAccessLog());
+            response = client.getContainerAsync(
+                "default",
+                operationId + JSON_EXTENSION,
+                DataCategory.REPORT,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream storedInputStream = response.readEntity(InputStream.class);
 
             ObjectNode expectedReport = JsonHandler.createObjectNode();
-            expectedReport.set("units", JsonHandler.toJsonNode(
-                units.stream().map(unit -> unit.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList())));
+            expectedReport.set(
+                "units",
+                JsonHandler.toJsonNode(
+                    units.stream().map(unit -> unit.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList())
+                )
+            );
 
-            JsonAssert.assertJsonEquals(expectedReport, JsonHandler.getFromInputStream(storedInputStream),
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
-
+            JsonAssert.assertJsonEquals(
+                expectedReport,
+                JsonHandler.getFromInputStream(storedInputStream),
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
+            );
         } finally {
             StreamUtils.consumeAnyEntityAndClose(response);
         }
@@ -484,40 +517,39 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     private Map<String, JsonNode> mapById(FindIterable<Document> units) {
         Map<String, JsonNode> rawUnitsById;
-        rawUnitsById = IterableUtils.toList(units).stream()
+        rawUnitsById = IterableUtils.toList(units)
+            .stream()
             .map(doc -> {
                 try {
                     return BsonHelper.fromDocumentToJsonNode(doc);
                 } catch (InvalidParseOperationException e) {
                     throw new RuntimeException(e);
                 }
-            }).collect(Collectors.toMap(doc -> doc.get(MetadataDocument.ID).asText(), doc -> doc));
+            })
+            .collect(Collectors.toMap(doc -> doc.get(MetadataDocument.ID).asText(), doc -> doc));
         return rawUnitsById;
     }
 
     private void assertMetadataEquals(List<JsonNode> before, List<JsonNode> after) {
-
         Map<String, JsonNode> mdByIdBefore = mapByField(before, VitamFieldsHelper.id());
         Map<String, JsonNode> mdByIdAfter = mapByField(after, VitamFieldsHelper.id());
 
         assertThat(mdByIdAfter.keySet()).isEqualTo(mdByIdBefore.keySet());
         for (String id : mdByIdBefore.keySet()) {
-            JsonAssert.assertJsonEquals(mdByIdAfter.get(id), mdByIdBefore.get(id),
-                JsonAssert.whenIgnoringPaths("#version", "#operations"));
+            JsonAssert.assertJsonEquals(
+                mdByIdAfter.get(id),
+                mdByIdBefore.get(id),
+                JsonAssert.whenIgnoringPaths("#version", "#operations")
+            );
         }
     }
 
     private Map<String, JsonNode> mapByField(List<JsonNode> metadata, String field) {
-        return metadata.stream()
-            .collect(Collectors.toMap(
-                md -> md.get(field).asText(),
-                md -> md
-            ));
+        return metadata.stream().collect(Collectors.toMap(md -> md.get(field).asText(), md -> md));
     }
 
     private List<JsonNode> getMetadata(MetadataCollections unit)
-        throws InvalidCreateOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        InvalidParseOperationException, MetaDataClientServerException {
+        throws InvalidCreateOperationException, MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException, MetaDataClientServerException {
         try (MetaDataClient client = MetaDataClientFactory.getInstance().getClient()) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
             selectMultiQuery.addQueries(eq(VitamFieldsHelper.tenant(), TENANT_ID));
@@ -527,8 +559,7 @@ public class DataMigrationIT extends VitamRuleRunner {
             } else {
                 result = client.selectObjectGroups(selectMultiQuery.getFinalSelect());
             }
-            RequestResponseOK<JsonNode> fromJsonNode =
-                RequestResponseOK.getFromJsonNode(result);
+            RequestResponseOK<JsonNode> fromJsonNode = RequestResponseOK.getFromJsonNode(result);
             return fromJsonNode.getResults();
         }
     }
@@ -542,7 +573,6 @@ public class DataMigrationIT extends VitamRuleRunner {
     }
 
     public interface MetadataAdminDataMigrationService {
-
         @POST("/adminmanagement/v1/startMigration")
         Call<Map<Integer, String>> metadataDataMigration(@Header("Authorization") String basicAuthnToken);
 
@@ -551,6 +581,5 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         @PUT("/adminmanagement/v1/collectionMigration")
         Call<Void> runtCollectionMigration(@Body DataMigrationBody dataMigrationBody);
-
     }
 }

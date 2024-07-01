@@ -36,6 +36,7 @@ import java.util.function.Supplier;
  * This task is responsible of sending files to the workspace
  */
 public class WorkspaceTransferTask implements Supplier<Boolean> {
+
     private HandlerIO handlerIO;
     private WorkspaceQueue task;
 
@@ -50,13 +51,21 @@ public class WorkspaceTransferTask implements Supplier<Boolean> {
         try {
             switch (task.getAction()) {
                 case TRANSFER:
-                    handlerIO
-                        .transferInputStreamToWorkspace(task.getWorkspacePath(), task.getSourceFile(),
-                            task.getFilePath(), false);
+                    handlerIO.transferInputStreamToWorkspace(
+                        task.getWorkspacePath(),
+                        task.getSourceFile(),
+                        task.getFilePath(),
+                        false
+                    );
                     break;
                 case UNZIP:
-                    handlerIO.unzipInputStreamOnWorkspace(handlerIO.getContainerName(), task.getFolderName(),
-                        task.getMediaType(), task.getSourceFile(), false);
+                    handlerIO.unzipInputStreamOnWorkspace(
+                        handlerIO.getContainerName(),
+                        task.getFolderName(),
+                        task.getMediaType(),
+                        task.getSourceFile(),
+                        false
+                    );
                     break;
                 default:
                     return Boolean.FALSE;

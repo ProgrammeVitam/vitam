@@ -32,16 +32,25 @@ public class AccessLogStructure {
 
     private final String applicativeContextId;
     private final String accessContractId;
-    private final String xRequestId; /* Useless because writable in log ? */
-    private final String ingestId; /* Kezako ? */
+    private final String xRequestId;/* Useless because writable in log ? */
+    private final String ingestId;/* Kezako ? */
     private final String objectId;
-    private final String archiveUnitId; /* is it needed ? Is it mandatory ? */
-    private final String objectType; /* container ? */
+    private final String archiveUnitId;/* is it needed ? Is it mandatory ? */
+    private final String objectType;/* container ? */
     private final Long objectSize;
     private final Date responseDate;
 
-    public AccessLogStructure(String applicativeContextId, String accessContractId, String xRequestId,
-        String objectId, Long objectSize, Date responseDate, String objectType, String ingestId, String archiveUnitId) {
+    public AccessLogStructure(
+        String applicativeContextId,
+        String accessContractId,
+        String xRequestId,
+        String objectId,
+        Long objectSize,
+        Date responseDate,
+        String objectType,
+        String ingestId,
+        String archiveUnitId
+    ) {
         this.applicativeContextId = applicativeContextId;
         this.accessContractId = accessContractId;
         this.xRequestId = xRequestId;

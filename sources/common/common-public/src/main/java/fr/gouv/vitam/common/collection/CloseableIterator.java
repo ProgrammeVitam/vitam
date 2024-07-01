@@ -35,5 +35,4 @@ import java.util.Iterator;
  *
  * @param <E> Data type of the iterator
  */
-public interface CloseableIterator<E> extends Iterator<E>, VitamAutoCloseable {
-}
+public interface CloseableIterator<E> extends Iterator<E>, VitamAutoCloseable {}

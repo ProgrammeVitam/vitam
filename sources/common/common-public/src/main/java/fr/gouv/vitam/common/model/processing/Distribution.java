@@ -154,5 +154,4 @@ public class Distribution {
         this.bulkSize = bulkSize;
         return this;
     }
-
 }

@@ -56,7 +56,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-
 public class WorkspaceClientContainerTest extends ResteasyTestApplication {
 
     protected static WorkspaceClient client;
@@ -64,11 +63,11 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
     private static final String CONTAINER_NAME = "myContainer" + GUIDFactory.newGUID().toString();
     static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
 
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(WorkspaceClientContainerTest.class, factory);
-
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        WorkspaceClientContainerTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -124,8 +123,10 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
         @DELETE
         @Path("{containerName}/old_files")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response purgeOldFilesInContainer(@PathParam("containerName") String containerName,
-            TimeToLive timeToLive) {
+        public Response purgeOldFilesInContainer(
+            @PathParam("containerName") String containerName,
+            TimeToLive timeToLive
+        ) {
             return expectedResponse.delete();
         }
     }
@@ -210,8 +211,7 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void givenSuccessWhenPurgeOldFilesInContainerThenReturnOk()
-        throws ContentAddressableStorageServerException {
+    public void givenSuccessWhenPurgeOldFilesInContainerThenReturnOk() throws ContentAddressableStorageServerException {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.purgeOldFilesInContainer(CONTAINER_NAME, new TimeToLive(10, ChronoUnit.MINUTES));
     }

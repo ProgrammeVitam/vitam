@@ -37,13 +37,14 @@ public final class ArchiveCacheMetrics {
     }
 
     public static void initializeMetrics(ArchiveCacheStorage archiveCacheStorage) {
-
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_CACHE_MAX_CAPACITY,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_CACHE_MAX_CAPACITY,
             "Max cache capacity for vitam tape offer",
             () -> (double) archiveCacheStorage.getMaxStorageSpace()
         ).register();
 
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_USED_CACHE_CAPACITY,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_USED_CACHE_CAPACITY,
             "Current cache usage for vitam tape offer",
             () -> (double) archiveCacheStorage.getCurrentStorageSpaceUsage()
         ).register();

@@ -32,6 +32,5 @@ import com.google.common.cache.LoadingCache;
  *
  */
 public interface VitamCache<T, V> {
-
     LoadingCache<T, V> getCache();
 }

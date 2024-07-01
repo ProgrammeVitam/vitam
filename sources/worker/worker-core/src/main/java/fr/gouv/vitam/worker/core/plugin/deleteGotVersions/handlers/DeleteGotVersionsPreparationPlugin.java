@@ -100,9 +100,8 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "DELETE_GOT_VERSIONS_PREPARATION";
     public static final String FIRST_BINARY_MASTER = BINARY_MASTER.getName() + "_1";
 
-    public static final String FIRST_PHYSICAL_MASTER= PHYSICAL_MASTER.getName() + "_1";
+    public static final String FIRST_PHYSICAL_MASTER = PHYSICAL_MASTER.getName() + "_1";
     public static final String DISTRIBUTION_FILE_OG = "distributionFileOG.jsonl";
-
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final DeleteGotVersionsReportService reportService;
@@ -112,17 +111,17 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public DeleteGotVersionsPreparationPlugin(MetaDataClientFactory metaDataClientFactory,
-        DeleteGotVersionsReportService reportService) {
+    public DeleteGotVersionsPreparationPlugin(
+        MetaDataClientFactory metaDataClientFactory,
+        DeleteGotVersionsReportService reportService
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.reportService = reportService;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
-
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
             // Validate Request
             DeleteGotVersionsRequest deleteGotVersionsRequest = loadRequest(handler);
             Pair<StatusCode, String> requestValidation = validateRequest(deleteGotVersionsRequest);
@@ -133,15 +132,22 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
             }
 
             // Get generated unitsByGot InputStream
-            InputStream unitsByGotInputStream =
-                PluginHelper.createUnitsByGotFile(metaDataClient, deleteGotVersionsRequest, handler);
+            InputStream unitsByGotInputStream = PluginHelper.createUnitsByGotFile(
+                metaDataClient,
+                deleteGotVersionsRequest,
+                handler
+            );
 
             // Create objectGroupWithDetails distribution file
-            createObjectGroupDistributionFile(handler, deleteGotVersionsRequest, param, unitsByGotInputStream,
-                metaDataClient);
+            createObjectGroupDistributionFile(
+                handler,
+                deleteGotVersionsRequest,
+                param,
+                unitsByGotInputStream,
+                metaDataClient
+            );
 
             return buildItemStatus(PLUGIN_NAME, OK);
-
         } catch (Exception e) {
             LOGGER.error(String.format("Delete got versions preparation failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
@@ -149,41 +155,59 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         }
     }
 
-    private void createObjectGroupDistributionFile(HandlerIO handler, DeleteGotVersionsRequest deleteGotVersionsRequest,
-        WorkerParameters param, InputStream unitsByGotInputStream, MetaDataClient metaDataClient)
-        throws VitamException, ProcessingStatusException, IOException {
+    private void createObjectGroupDistributionFile(
+        HandlerIO handler,
+        DeleteGotVersionsRequest deleteGotVersionsRequest,
+        WorkerParameters param,
+        InputStream unitsByGotInputStream,
+        MetaDataClient metaDataClient
+    ) throws VitamException, ProcessingStatusException, IOException {
         File objectGroupsIdsFile = handler.getNewLocalFile("object_groups_to_update.jsonl");
-        try (OutputStream outputStream = new FileOutputStream(objectGroupsIdsFile);
-            JsonLineGenericIterator<JsonNode> jsonLineIterator =
-                new JsonLineGenericIterator<>(unitsByGotInputStream, new TypeReference<>() {
-                });
-            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
-            Iterator<List<JsonNode>> jsonLineIteratorPartition =
-                Iterators.partition(jsonLineIterator, VitamConfiguration.getBatchSize());
+        try (
+            OutputStream outputStream = new FileOutputStream(objectGroupsIdsFile);
+            JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+                unitsByGotInputStream,
+                new TypeReference<>() {}
+            );
+            JsonLineWriter writer = new JsonLineWriter(outputStream)
+        ) {
+            Iterator<List<JsonNode>> jsonLineIteratorPartition = Iterators.partition(
+                jsonLineIterator,
+                VitamConfiguration.getBatchSize()
+            );
             while (jsonLineIteratorPartition.hasNext()) {
-                List<UnitsByGotModel> unitsByGot =
-                    getFromJsonNodeList(jsonLineIteratorPartition.next(), new TypeReference<>() {
-                    });
-                Map<String, Set<String>> unitsByGotConvertedMap =
-                    unitsByGot.stream()
-                        .collect(Collectors.toMap(UnitsByGotModel::getGotId, UnitsByGotModel::getUnitIds));
+                List<UnitsByGotModel> unitsByGot = getFromJsonNodeList(
+                    jsonLineIteratorPartition.next(),
+                    new TypeReference<>() {}
+                );
+                Map<String, Set<String>> unitsByGotConvertedMap = unitsByGot
+                    .stream()
+                    .collect(Collectors.toMap(UnitsByGotModel::getGotId, UnitsByGotModel::getUnitIds));
                 String[] gotIds = unitsByGot.stream().map(UnitsByGotModel::getGotId).toArray(String[]::new);
-                Map<String, ObjectGroupResponse> objectGroupRowsPartition =
-                    PluginHelper.getObjectGroups(gotIds, metaDataClient);
+                Map<String, ObjectGroupResponse> objectGroupRowsPartition = PluginHelper.getObjectGroups(
+                    gotIds,
+                    metaDataClient
+                );
                 if (objectGroupRowsPartition == null || objectGroupRowsPartition.isEmpty()) {
                     throw new IllegalStateException("No objects Group found in database!");
                 }
                 Map<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> objectGroupRowsForReport =
                     new HashMap<>();
                 objectGroupRowsPartition.forEach((gotId, objectGroupResponse) -> {
-                    List<ObjectGroupToDeleteReportEntry> gotWIthDetailsForDistribution =
-                        generateGotWithDetails(objectGroupResponse, deleteGotVersionsRequest);
-                    objectGroupRowsForReport
-                        .put(Pair.of(gotId, unitsByGotConvertedMap.get(gotId)),
-                            gotWIthDetailsForDistribution);
+                    List<ObjectGroupToDeleteReportEntry> gotWIthDetailsForDistribution = generateGotWithDetails(
+                        objectGroupResponse,
+                        deleteGotVersionsRequest
+                    );
+                    objectGroupRowsForReport.put(
+                        Pair.of(gotId, unitsByGotConvertedMap.get(gotId)),
+                        gotWIthDetailsForDistribution
+                    );
                     try {
-                        JsonLineModel jsonLineModel =
-                            new JsonLineModel(gotId, null, toJsonNode(gotWIthDetailsForDistribution));
+                        JsonLineModel jsonLineModel = new JsonLineModel(
+                            gotId,
+                            null,
+                            toJsonNode(gotWIthDetailsForDistribution)
+                        );
                         writer.addEntry(jsonLineModel);
                     } catch (IOException | InvalidParseOperationException e) {
                         throw new RuntimeException("Problem occured when writing data to distribution file", e);
@@ -198,86 +222,120 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         handler.transferFileToWorkspace(DISTRIBUTION_FILE_OG, objectGroupsIdsFile, true, false);
     }
 
-    private void createReport(WorkerParameters param,
-        Map<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> objectGroupRawsGlobal)
-        throws ProcessingStatusException {
+    private void createReport(
+        WorkerParameters param,
+        Map<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> objectGroupRawsGlobal
+    ) throws ProcessingStatusException {
         final Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         List<Object> deleteGotVersionsReportEntries = new ArrayList<>();
-        for (Entry<Pair<String, Set<String>>, List<ObjectGroupToDeleteReportEntry>> entry : objectGroupRawsGlobal
-            .entrySet()) {
+        for (Entry<
+            Pair<String, Set<String>>,
+            List<ObjectGroupToDeleteReportEntry>
+        > entry : objectGroupRawsGlobal.entrySet()) {
             deleteGotVersionsReportEntries.add(
-                new DeleteGotVersionsReportEntry(entry.getKey().getLeft(), param.getRequestId(), tenantId,
-                    now().toString(), entry.getKey().getLeft(), entry.getKey().getRight(),
-                    entry.getValue(), null));
+                new DeleteGotVersionsReportEntry(
+                    entry.getKey().getLeft(),
+                    param.getRequestId(),
+                    tenantId,
+                    now().toString(),
+                    entry.getKey().getLeft(),
+                    entry.getKey().getRight(),
+                    entry.getValue(),
+                    null
+                )
+            );
         }
         if (!deleteGotVersionsReportEntries.isEmpty()) {
             reportService.appendEntries(param.getContainerName(), deleteGotVersionsReportEntries);
         }
     }
 
-    public List<ObjectGroupToDeleteReportEntry> generateGotWithDetails(ObjectGroupResponse objectGroup,
-        DeleteGotVersionsRequest deleteGotVersionsRequest) {
+    public List<ObjectGroupToDeleteReportEntry> generateGotWithDetails(
+        ObjectGroupResponse objectGroup,
+        DeleteGotVersionsRequest deleteGotVersionsRequest
+    ) {
         List<ObjectGroupToDeleteReportEntry> objectGroupReportEntries = new ArrayList<>();
         List<QualifiersModel> qualifiers = objectGroup.getQualifiers();
-        Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers.stream()
+        Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers
+            .stream()
             .filter(elmt -> elmt.getQualifier().equals(deleteGotVersionsRequest.getUsageName()))
             .findFirst();
 
         if (optionalQualifierToUpdate.isEmpty()) {
-            final String errorMsg = String.format("No qualifier of Object group matches with %s usage",
-                deleteGotVersionsRequest.getUsageName());
+            final String errorMsg = String.format(
+                "No qualifier of Object group matches with %s usage",
+                deleteGotVersionsRequest.getUsageName()
+            );
             objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
             return objectGroupReportEntries;
         }
 
         QualifiersModel qualifierToUpdate = optionalQualifierToUpdate.get();
         if (qualifierToUpdate.getVersions() == null || qualifierToUpdate.getVersions().isEmpty()) {
-            final String errorMsg =
-                String.format("No versions associated to the qualifier of Object group for the %s usage",
-                    deleteGotVersionsRequest.getUsageName());
+            final String errorMsg = String.format(
+                "No versions associated to the qualifier of Object group for the %s usage",
+                deleteGotVersionsRequest.getUsageName()
+            );
             objectGroupReportEntries.add(new ObjectGroupToDeleteReportEntry(KO, errorMsg, null));
             return objectGroupReportEntries;
         }
 
         List<VersionsModelCustomized> deletedVersions = new ArrayList<>();
         for (Integer version : deleteGotVersionsRequest.getSpecificVersions()) {
-            Optional<VersionsModel> specificVersionModel =
-                qualifierToUpdate.getVersions().stream().filter(elmt -> elmt.getDataObjectVersion().equals(
-                    deleteGotVersionsRequest.getUsageName() + "_" + version)).findFirst();
+            Optional<VersionsModel> specificVersionModel = qualifierToUpdate
+                .getVersions()
+                .stream()
+                .filter(
+                    elmt -> elmt.getDataObjectVersion().equals(deleteGotVersionsRequest.getUsageName() + "_" + version)
+                )
+                .findFirst();
 
             if (deleteGotVersionsRequest.getUsageName().equals(PHYSICAL_MASTER.getName())) {
                 String msgError = checkPhysicalCase(qualifiers, deleteGotVersionsRequest, version);
                 if (!msgError.isEmpty()) {
-                    ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                        new ObjectGroupToDeleteReportEntry(WARNING, msgError, null);
+                    ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
+                        WARNING,
+                        msgError,
+                        null
+                    );
                     objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                     continue;
                 }
             }
 
             if (specificVersionModel.isEmpty()) {
-                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                    new ObjectGroupToDeleteReportEntry(WARNING,
-                        String.format("Qualifier with this specific version %s is inexistant!", version), null);
+                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
+                    WARNING,
+                    String.format("Qualifier with this specific version %s is inexistant!", version),
+                    null
+                );
                 objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                 continue;
             }
 
             VersionsModel versionModelToDelete = specificVersionModel.get();
             if (checkForbiddenVersion(versionModelToDelete)) {
-                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                    new ObjectGroupToDeleteReportEntry(WARNING,
-                        String.format("Qualifier with forbidden version %s has been detected!", version), null);
+                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
+                    WARNING,
+                    String.format("Qualifier with forbidden version %s has been detected!", version),
+                    null
+                );
                 objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                 continue;
             }
 
-            if (!versionModelToDelete.getDataObjectVersion().equals(FIRST_PHYSICAL_MASTER) &&
-                checkLastUsageVersion(deleteGotVersionsRequest.getUsageName(), qualifierToUpdate, version)) {
-                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                    new ObjectGroupToDeleteReportEntry(WARNING,
-                        String.format("The last version of %s usage cannot be deleted.",
-                            deleteGotVersionsRequest.getUsageName()), null);
+            if (
+                !versionModelToDelete.getDataObjectVersion().equals(FIRST_PHYSICAL_MASTER) &&
+                checkLastUsageVersion(deleteGotVersionsRequest.getUsageName(), qualifierToUpdate, version)
+            ) {
+                ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
+                    WARNING,
+                    String.format(
+                        "The last version of %s usage cannot be deleted.",
+                        deleteGotVersionsRequest.getUsageName()
+                    ),
+                    null
+                );
                 objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
                 continue;
             }
@@ -286,8 +344,11 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         }
 
         if (!deletedVersions.isEmpty()) {
-            ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
-                new ObjectGroupToDeleteReportEntry(OK, null, deletedVersions);
+            ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry = new ObjectGroupToDeleteReportEntry(
+                OK,
+                null,
+                deletedVersions
+            );
             objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
         }
 
@@ -308,8 +369,7 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
     }
 
     private boolean checkLastUsageVersion(String usageName, QualifiersModel qualifierToUpdate, Integer version) {
-        qualifierToUpdate.getVersions()
-            .sort(Comparator.comparingInt(this::extractVersionFromVersionModel));
+        qualifierToUpdate.getVersions().sort(Comparator.comparingInt(this::extractVersionFromVersionModel));
         VersionsModel lastVersion = Iterables.getLast(qualifierToUpdate.getVersions());
         return lastVersion.getDataObjectVersion().equals(usageName + "_" + version);
     }
@@ -318,15 +378,19 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         return Integer.parseInt(objectVersion.getDataObjectVersion().split("_")[1]);
     }
 
-    private String checkPhysicalCase(List<QualifiersModel> qualifiers,
-        DeleteGotVersionsRequest deleteGotVersionsRequest, int version) {
+    private String checkPhysicalCase(
+        List<QualifiersModel> qualifiers,
+        DeleteGotVersionsRequest deleteGotVersionsRequest,
+        int version
+    ) {
         final String USAGE_NAME = deleteGotVersionsRequest.getUsageName();
         final String BINARY_MASTER_NAME = BINARY_MASTER.getName();
         final String QUALIFIER_REQUIRED_ERROR_MSG = "Qualifier %s required for removing that %s usage";
         final String VERSION_REQUIRED_ERROR_MSG = "Qualifier %s with version %d required for removing that %s usage";
 
         if (version == 1) {
-            Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers.stream()
+            Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers
+                .stream()
                 .filter(qualifier -> qualifier.getQualifier().equals(BINARY_MASTER_NAME))
                 .findFirst();
 
@@ -335,7 +399,9 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
             }
 
             QualifiersModel binaryMasterQualifier = optionalQualifierToUpdate.get();
-            Optional<VersionsModel> optionalBinaryMasterVersion = binaryMasterQualifier.getVersions().stream()
+            Optional<VersionsModel> optionalBinaryMasterVersion = binaryMasterQualifier
+                .getVersions()
+                .stream()
                 .filter(versionModel -> versionModel.getDataObjectVersion().equals(FIRST_BINARY_MASTER))
                 .findFirst();
             if (optionalBinaryMasterVersion.isEmpty()) {
@@ -350,13 +416,18 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
     }
 
     private Pair<StatusCode, String> validateRequest(DeleteGotVersionsRequest deleteGotVersionsRequest) {
-        if (Arrays.stream(DataObjectVersionType.values())
-            .noneMatch(elmt -> elmt.getName().equals(deleteGotVersionsRequest.getUsageName()))) {
+        if (
+            Arrays.stream(DataObjectVersionType.values()).noneMatch(
+                elmt -> elmt.getName().equals(deleteGotVersionsRequest.getUsageName())
+            )
+        ) {
             return Pair.of(KO, "Usage name is unknown.");
         }
 
-        if (deleteGotVersionsRequest.getSpecificVersions() == null ||
-            deleteGotVersionsRequest.getSpecificVersions().isEmpty()) {
+        if (
+            deleteGotVersionsRequest.getSpecificVersions() == null ||
+            deleteGotVersionsRequest.getSpecificVersions().isEmpty()
+        ) {
             return Pair.of(KO, "Specific versions list is empty.");
         }
 
@@ -367,8 +438,10 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
     }
 
     private boolean isVersionsDuplicated(DeleteGotVersionsRequest deleteGotVersionsRequest) {
-        return deleteGotVersionsRequest.getSpecificVersions().stream().distinct().count() !=
-            deleteGotVersionsRequest.getSpecificVersions().size();
+        return (
+            deleteGotVersionsRequest.getSpecificVersions().stream().distinct().count() !=
+            deleteGotVersionsRequest.getSpecificVersions().size()
+        );
     }
 
     private DeleteGotVersionsRequest loadRequest(HandlerIO handler)
@@ -378,8 +451,8 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
     }
 }
 
-
 class UnitsByGotModel {
+
     @JsonProperty("id")
     public String gotId;
 
@@ -391,8 +464,7 @@ class UnitsByGotModel {
         this.unitIds = unitIds;
     }
 
-    public UnitsByGotModel() {
-    }
+    public UnitsByGotModel() {}
 
     public String getGotId() {
         return gotId;

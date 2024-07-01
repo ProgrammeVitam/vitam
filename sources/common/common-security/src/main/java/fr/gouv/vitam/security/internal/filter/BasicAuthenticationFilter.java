@@ -70,25 +70,34 @@ public class BasicAuthenticationFilter implements DynamicFeature {
      */
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext featureContext) {
-
         // retrieve @VitamAuthentication annotation.
         VitamAuthentication authentication = resourceInfo.getResourceMethod().getAnnotation(VitamAuthentication.class);
         if (authentication == null) {
-            LOGGER.debug(String
-                .format("Ignore @%s non annotated method %s for the class %s", VitamAuthentication.class.getName(),
-                    resourceInfo.getResourceMethod().getName(), resourceInfo.getResourceClass().getName()));
+            LOGGER.debug(
+                String.format(
+                    "Ignore @%s non annotated method %s for the class %s",
+                    VitamAuthentication.class.getName(),
+                    resourceInfo.getResourceMethod().getName(),
+                    resourceInfo.getResourceClass().getName()
+                )
+            );
             return;
         }
 
-        LOGGER
-            .debug(String.format(
+        LOGGER.debug(
+            String.format(
                 "Registering VitamAuthentication filters with '%s' authentication level for %s annotated method %s.%s",
-                authentication.authentLevel(), VitamAuthentication.class.getName(),
-                resourceInfo.getResourceClass().getName(), resourceInfo.getResourceMethod().getName()));
+                authentication.authentLevel(),
+                VitamAuthentication.class.getName(),
+                resourceInfo.getResourceClass().getName(),
+                resourceInfo.getResourceMethod().getName()
+            )
+        );
 
         // register the authentication filter.
-        featureContext
-            .register(new EndpointAuthenticationFilter(authentication.authentLevel(), configuration),
-                Priorities.AUTHORIZATION + 10);
+        featureContext.register(
+            new EndpointAuthenticationFilter(authentication.authentLevel(), configuration),
+            Priorities.AUTHORIZATION + 10
+        );
     }
 }

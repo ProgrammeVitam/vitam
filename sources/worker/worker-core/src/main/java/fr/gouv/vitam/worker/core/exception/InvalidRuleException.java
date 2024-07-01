@@ -37,7 +37,6 @@ public class InvalidRuleException extends ProcessingException {
     private final UnitRulesComputeStatus unitRulesComputeStatus;
     private final String objectId;
 
-
     /**
      * @param status the UnitRuleComputeStatus of the error
      * @param cause the exception cause

@@ -74,22 +74,20 @@ public class ReclassificationDistributionService {
     private final MetaDataImpl metaData;
 
     public ReclassificationDistributionService(MetaDataImpl metaData) {
-        this(WorkspaceClientFactory.getInstance(),
-            metaData);
+        this(WorkspaceClientFactory.getInstance(), metaData);
     }
 
     @VisibleForTesting
-    ReclassificationDistributionService(
-        WorkspaceClientFactory workspaceClientFactory,
-        MetaDataImpl metaData) {
+    ReclassificationDistributionService(WorkspaceClientFactory workspaceClientFactory, MetaDataImpl metaData) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.metaData = metaData;
     }
 
-    public void exportReclassificationChildNodes(Set<String> unitIds, String unitsToUpdateJsonLineFileName,
-        String objectGroupsToUpdateJsonLineFileName)
-        throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
-
+    public void exportReclassificationChildNodes(
+        Set<String> unitIds,
+        String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName
+    ) throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
         SelectMultiQuery select = createSelectRequest(unitIds);
         Iterator<JsonNode> iterator = executeSelectAsIterator(select);
 
@@ -97,21 +95,28 @@ public class ReclassificationDistributionService {
         File tempObjectGroupReportFile = null;
 
         try {
+            tempUnitReportFile = File.createTempFile(
+                UNIT_LIST_TMP_FILE_PREFIX,
+                JSONL_EXTENSION,
+                new File(VitamConfiguration.getVitamTmpFolder())
+            );
+            tempObjectGroupReportFile = File.createTempFile(
+                OBJECT_GROUP_LIST_TMP_FILE_PREFIX,
+                JSONL_EXTENSION,
+                new File(VitamConfiguration.getVitamTmpFolder())
+            );
 
-            tempUnitReportFile = File.createTempFile(UNIT_LIST_TMP_FILE_PREFIX, JSONL_EXTENSION,
-                new File(VitamConfiguration.getVitamTmpFolder()));
-            tempObjectGroupReportFile = File.createTempFile(OBJECT_GROUP_LIST_TMP_FILE_PREFIX, JSONL_EXTENSION,
-                new File(VitamConfiguration.getVitamTmpFolder()));
-
-            try (JsonLineWriter unitReportWriter = new JsonLineWriter(new FileOutputStream(tempUnitReportFile));
+            try (
+                JsonLineWriter unitReportWriter = new JsonLineWriter(new FileOutputStream(tempUnitReportFile));
                 JsonLineWriter objectGroupReportWriter = new JsonLineWriter(
-                    new FileOutputStream(tempObjectGroupReportFile))) {
+                    new FileOutputStream(tempObjectGroupReportFile)
+                )
+            ) {
                 appendEntries(iterator, unitReportWriter, objectGroupReportWriter);
             }
 
             storeIntoWorkspace(unitsToUpdateJsonLineFileName, tempUnitReportFile);
             storeIntoWorkspace(objectGroupsToUpdateJsonLineFileName, tempObjectGroupReportFile);
-
         } finally {
             FileUtils.deleteQuietly(tempUnitReportFile);
             FileUtils.deleteQuietly(tempObjectGroupReportFile);
@@ -120,7 +125,6 @@ public class ReclassificationDistributionService {
 
     private SelectMultiQuery createSelectRequest(Set<String> unitIds)
         throws InvalidCreateOperationException, InvalidParseOperationException {
-
         SelectMultiQuery select = new SelectMultiQuery();
 
         // Select units
@@ -140,7 +144,8 @@ public class ReclassificationDistributionService {
     }
 
     private Iterator<JsonNode> executeSelectAsIterator(SelectMultiQuery select) {
-        ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(select,
+        ScrollSpliterator<JsonNode> scrollRequest = new ScrollSpliterator<>(
+            select,
             query -> {
                 try {
                     final MetadataResult metadataResult = metaData.selectUnitsByQuery(query.getFinalSelect());
@@ -148,18 +153,29 @@ public class ReclassificationDistributionService {
                         .addAllResults(metadataResult.getResults())
                         .addAllFacetResults(metadataResult.getFacetResults())
                         .setHits(metadataResult.getHits());
-                } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException | VitamDBException | BadRequestException | MetaDataNotFoundException e) {
+                } catch (
+                    MetaDataExecutionException
+                    | MetaDataDocumentSizeException
+                    | InvalidParseOperationException
+                    | VitamDBException
+                    | BadRequestException
+                    | MetaDataNotFoundException e
+                ) {
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-            VitamConfiguration.getElasticSearchScrollLimit());
+            },
+            VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            VitamConfiguration.getElasticSearchScrollLimit()
+        );
 
         return new SpliteratorIterator<>(scrollRequest);
     }
 
-    private void appendEntries(Iterator<JsonNode> iterator, JsonLineWriter unitReportWriter,
-        JsonLineWriter objectGroupReportWriter) throws IOException {
-
+    private void appendEntries(
+        Iterator<JsonNode> iterator,
+        JsonLineWriter unitReportWriter,
+        JsonLineWriter objectGroupReportWriter
+    ) throws IOException {
         // Used to avoid duplicates
         String lastObjectGroupId = null;
 
@@ -167,8 +183,9 @@ public class ReclassificationDistributionService {
             JsonNode doc = iterator.next();
 
             String id = doc.get(VitamFieldsHelper.id()).textValue();
-            String objectGroupId =
-                doc.has(VitamFieldsHelper.object()) ? doc.get(VitamFieldsHelper.object()).textValue() : null;
+            String objectGroupId = doc.has(VitamFieldsHelper.object())
+                ? doc.get(VitamFieldsHelper.object()).textValue()
+                : null;
 
             unitReportWriter.addEntry(new JsonLineModel(id));
 
@@ -181,13 +198,12 @@ public class ReclassificationDistributionService {
     }
 
     private void storeIntoWorkspace(String filename, File file) throws IOException {
-
-        try (WorkspaceClient client = workspaceClientFactory.getClient();
-            InputStream inputStream = new FileInputStream(file)) {
-
+        try (
+            WorkspaceClient client = workspaceClientFactory.getClient();
+            InputStream inputStream = new FileInputStream(file)
+        ) {
             String containerName = VitamThreadUtils.getVitamSession().getRequestId();
             client.putObject(containerName, filename, inputStream);
-
         } catch (ContentAddressableStorageServerException e) {
             throw new IOException("Could not store file to workspace", e);
         }

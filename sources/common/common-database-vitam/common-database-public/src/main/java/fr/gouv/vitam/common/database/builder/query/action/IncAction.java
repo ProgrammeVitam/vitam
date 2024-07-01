@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Inc Action: $inc : { name : value }
  */
 public class IncAction extends Action {
+
     protected IncAction() {
         super();
     }
@@ -44,8 +45,7 @@ public class IncAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public IncAction(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public IncAction(final String variableName, final long value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.INC, variableName, value);
         currentUPDATEACTION = UPDATEACTION.INC;
@@ -61,5 +61,4 @@ public class IncAction extends Action {
     public IncAction(final String variableName) throws InvalidCreateOperationException {
         this(variableName, 1);
     }
-
 }

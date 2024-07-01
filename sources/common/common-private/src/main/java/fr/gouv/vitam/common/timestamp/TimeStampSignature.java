@@ -38,7 +38,6 @@ import java.security.cert.CertificateEncodingException;
  * an external service
  */
 public interface TimeStampSignature {
-
     /**
      * @param request time stamp request
      * @return time stamp response
@@ -48,5 +47,4 @@ public interface TimeStampSignature {
      */
     TimeStampResponse sign(TimeStampRequest request)
         throws OperatorCreationException, TSPException, CertificateEncodingException;
-
 }

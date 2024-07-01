@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 
 public interface TapeDriveService {
-
     TapeReadWriteService getReadWriteService();
 
     TapeDriveCommandService getDriveCommandService();

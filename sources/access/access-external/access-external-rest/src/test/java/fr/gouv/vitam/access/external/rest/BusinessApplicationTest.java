@@ -81,20 +81,33 @@ public class BusinessApplicationTest extends Application {
 
     public void prepare() {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(ACCESS_CONF)) {
-            final AccessExternalConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, AccessExternalConfiguration.class);
+            final AccessExternalConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                AccessExternalConfiguration.class
+            );
             SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
             SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
-            final AccessExternalResource accessExternalResource =
-                new AccessExternalResource(secureEndpointRegistry, accessInternalClientFactory, configuration);
-            final AccessExternalResourceV2 accessExternalResourceV2 =
-                new AccessExternalResourceV2(secureEndpointRegistry, accessInternalClientFactory, configuration);
-            final LogbookExternalResource logbookExternalResource =
-                new LogbookExternalResource(accessInternalClientFactory);
-            final AdminManagementExternalResource adminManagementExternalResource =
-                new AdminManagementExternalResource(vitamStatusService, secureEndpointRegistry,
-                    adminManagementClientFactory, ingestInternalClientFactory, accessInternalClientFactory);
+            final AccessExternalResource accessExternalResource = new AccessExternalResource(
+                secureEndpointRegistry,
+                accessInternalClientFactory,
+                configuration
+            );
+            final AccessExternalResourceV2 accessExternalResourceV2 = new AccessExternalResourceV2(
+                secureEndpointRegistry,
+                accessInternalClientFactory,
+                configuration
+            );
+            final LogbookExternalResource logbookExternalResource = new LogbookExternalResource(
+                accessInternalClientFactory
+            );
+            final AdminManagementExternalResource adminManagementExternalResource = new AdminManagementExternalResource(
+                vitamStatusService,
+                secureEndpointRegistry,
+                adminManagementClientFactory,
+                ingestInternalClientFactory,
+                accessInternalClientFactory
+            );
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

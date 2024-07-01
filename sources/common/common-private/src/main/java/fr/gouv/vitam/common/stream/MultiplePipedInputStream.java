@@ -104,11 +104,8 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
         }
     }
 
-    protected final void copy()
-        throws IOException {
-
+    protected final void copy() throws IOException {
         try (BoundedByteBuffer.Writer writer = boundedByteBuffer.getWriter()) {
-
             // Buffer size should not be greater than buffer size.
             byte[] buffer = new byte[VitamConfiguration.getChunkSize()];
 
@@ -117,7 +114,6 @@ public class MultiplePipedInputStream implements VitamAutoCloseable {
                 writer.write(buffer, 0, n);
             }
             writer.writeEOF();
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IOException("Interrupted thread", e);

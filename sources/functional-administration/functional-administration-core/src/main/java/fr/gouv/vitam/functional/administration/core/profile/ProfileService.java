@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.profile;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -45,8 +44,6 @@ import java.util.List;
  * This service manages the creation, update, find, ... profiles
  */
 public interface ProfileService extends VitamAutoCloseable {
-
-
     /**
      * Create a collections of profile After passing the validation steps. If all the profiles are valid, they are
      * stored in the collection and indexed. </BR>
@@ -63,7 +60,6 @@ public interface ProfileService extends VitamAutoCloseable {
      */
     RequestResponse<ProfileModel> createProfiles(List<ProfileModel> profileModelList) throws VitamException;
 
-
     /**
      * 1. Check that the document with given id exists else return VitamError
      * 2. Check that the document is (xsd, rng, ...) valid format else return VitamError
@@ -75,8 +71,7 @@ public interface ProfileService extends VitamAutoCloseable {
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException thrown if the profiles could not be imported
      */
-    RequestResponse<ProfileModel> importProfileFile(String profileIdentifier,
-        InputStream profileFile)
+    RequestResponse<ProfileModel> importProfileFile(String profileIdentifier, InputStream profileFile)
         throws VitamException;
 
     /**
@@ -128,7 +123,6 @@ public interface ProfileService extends VitamAutoCloseable {
      */
     ProfileModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
-
     /**
      * find Profile by QueryDsl
      *
@@ -139,5 +133,4 @@ public interface ProfileService extends VitamAutoCloseable {
      */
     RequestResponseOK<ProfileModel> findProfiles(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;
-
 }

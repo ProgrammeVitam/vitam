@@ -43,5 +43,4 @@ public class AccessInternalExceptionTest {
         assertNotNull(new AccessInternalException(new Exception()).getCause());
         assertNotNull(new AccessInternalException("test", new Exception()).getCause());
     }
-
 }

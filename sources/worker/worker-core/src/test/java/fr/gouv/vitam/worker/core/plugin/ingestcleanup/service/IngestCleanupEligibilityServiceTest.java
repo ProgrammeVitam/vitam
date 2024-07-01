@@ -64,22 +64,25 @@ import static org.mockito.Mockito.when;
 
 public class IngestCleanupEligibilityServiceTest {
 
-    private final static String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
+    private static final String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -94,18 +97,19 @@ public class IngestCleanupEligibilityServiceTest {
 
     @Test
     public void givenNoChildUnitsThenCheckChildUnitsFromOtherIngestsReturnsOK() throws Exception {
-
         // Given
-        JsonNode unitIds = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit1"),
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit2"),
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit3")
-        )).toJsonNode();
+        JsonNode unitIds = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit1"),
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit2"),
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit3")
+                )
+            )
+            .toJsonNode();
         JsonNode childUnits = new RequestResponseOK<JsonNode>().toJsonNode();
 
-        when(metaDataClient.selectUnits(any()))
-            .thenReturn(unitIds)
-            .thenReturn(childUnits);
+        when(metaDataClient.selectUnits(any())).thenReturn(unitIds).thenReturn(childUnits);
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
 
@@ -122,22 +126,27 @@ public class IngestCleanupEligibilityServiceTest {
 
     @Test
     public void givenChildUnitsThenCheckChildUnitsFromOtherIngestsReturnsKO() throws Exception {
-
         // Given
-        JsonNode unitIds = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit1"),
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit2"),
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit3")
-        )).toJsonNode();
-        JsonNode childUnits1 = new RequestResponseOK<JsonNode>().addAllResults(Collections.singletonList(
-            JsonHandler.createObjectNode().set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add("unit2"))
-        )).toJsonNode();
+        JsonNode unitIds = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit1"),
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit2"),
+                    JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit3")
+                )
+            )
+            .toJsonNode();
+        JsonNode childUnits1 = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Collections.singletonList(
+                    JsonHandler.createObjectNode()
+                        .set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add("unit2"))
+                )
+            )
+            .toJsonNode();
         JsonNode childUnits2 = new RequestResponseOK<JsonNode>().toJsonNode();
 
-        when(metaDataClient.selectUnits(any()))
-            .thenReturn(unitIds)
-            .thenReturn(childUnits1)
-            .thenReturn(childUnits2);
+        when(metaDataClient.selectUnits(any())).thenReturn(unitIds).thenReturn(childUnits1).thenReturn(childUnits2);
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
 
@@ -154,22 +163,27 @@ public class IngestCleanupEligibilityServiceTest {
         verify(metaDataClient, times(3)).selectUnits(queryCaptor.capture());
         checkQueryEquals(queryCaptor.getAllValues().get(0), "IngestCleanup/Eligibility/selectUnitIdsQuery.json");
         checkQueryEquals(queryCaptor.getAllValues().get(1), "IngestCleanup/Eligibility/selectChildUnitsQuery.json");
-        checkQueryEquals(queryCaptor.getAllValues().get(2),
-            "IngestCleanup/Eligibility/selectChildUnitsQueryRemaining.json");
+        checkQueryEquals(
+            queryCaptor.getAllValues().get(2),
+            "IngestCleanup/Eligibility/selectChildUnitsQueryRemaining.json"
+        );
     }
 
     @Test
     public void givenNoUnitUpdatesThenCheckUnitUpdatesFromOtherOperationsOK() throws Exception {
-
         // Given
-        JsonNode unitIds = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "unit1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "unit2")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID))
-        )).toJsonNode();
+        JsonNode unitIds = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "unit1")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "unit2")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID))
+                )
+            )
+            .toJsonNode();
         when(metaDataClient.selectUnits(any())).thenReturn(unitIds);
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
@@ -186,18 +200,23 @@ public class IngestCleanupEligibilityServiceTest {
 
     @Test
     public void givenUnitUpdatesThenCheckUnitUpdatesFromOtherOperationsWarning() throws Exception {
-
         // Given
         String anotherOperationId = "aecaaaaaachipxsgaamxmalhi4ovibiaaaar";
-        JsonNode unitIds = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "unit1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "unit2")
-                .set(VitamFieldsHelper.operations(),
-                    JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
-        )).toJsonNode();
+        JsonNode unitIds = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "unit1")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "unit2")
+                        .set(
+                            VitamFieldsHelper.operations(),
+                            JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId)
+                        )
+                )
+            )
+            .toJsonNode();
         when(metaDataClient.selectUnits(any())).thenReturn(unitIds);
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
@@ -217,16 +236,19 @@ public class IngestCleanupEligibilityServiceTest {
 
     @Test
     public void givenNoObjectGroupUpdatesThenCheckObjectGroupUpdatesFromOtherOperationsOK() throws Exception {
-
         // Given
-        JsonNode objectGroups = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID))
-        )).toJsonNode();
+        JsonNode objectGroups = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "og1")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "og1")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID))
+                )
+            )
+            .toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
@@ -238,31 +260,45 @@ public class IngestCleanupEligibilityServiceTest {
         assertThat(cleanupReportManager.getGlobalStatus()).isEqualTo(StatusCode.OK);
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
+        checkQueryEquals(
+            queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json"
+        );
         verifyZeroInteractions(logbookOperationsClient);
     }
 
     @Test
     public void givenIngestObjectGroupUpdatesThenCheckObjectGroupUpdatesFromOtherOperationsKO() throws Exception {
-
         // Given
         String anotherOperationId = "aecaaaaaachipxsgaamxmalhi4ovibiaaaar";
-        JsonNode objectGroups = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(),
-                    JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
-        )).toJsonNode();
+        JsonNode objectGroups = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "og1")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "og1")
+                        .set(
+                            VitamFieldsHelper.operations(),
+                            JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId)
+                        )
+                )
+            )
+            .toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
 
-        doReturn(new RequestResponseOK<JsonNode>().addAllResults(Collections.singletonList(
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), anotherOperationId))).toJsonNode())
-            .when(logbookOperationsClient).selectOperation(any());
+        doReturn(
+            new RequestResponseOK<JsonNode>()
+                .addAllResults(
+                    Collections.singletonList(
+                        JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), anotherOperationId)
+                    )
+                )
+                .toJsonNode()
+        )
+            .when(logbookOperationsClient)
+            .selectOperation(any());
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
 
@@ -277,34 +313,42 @@ public class IngestCleanupEligibilityServiceTest {
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
+        checkQueryEquals(
+            queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json"
+        );
 
         ArgumentCaptor<JsonNode> logbookQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(logbookOperationsClient).selectOperation(logbookQueryCaptor.capture());
-        checkQueryEquals(logbookQueryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json");
+        checkQueryEquals(
+            logbookQueryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json"
+        );
     }
 
     @Test
     public void givenNonIngestObjectGroupUpdatesThenCheckObjectGroupUpdatesFromOtherOperationsWarning()
         throws Exception {
-
         // Given
         String anotherOperationId = "aecaaaaaachipxsgaamxmalhi4ovibiaaaar";
-        JsonNode objectGroups = new RequestResponseOK<JsonNode>().addAllResults(Arrays.asList(
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
-            JsonHandler.createObjectNode()
-                .put(VitamFieldsHelper.id(), "og1")
-                .set(VitamFieldsHelper.operations(),
-                    JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId))
-        )).toJsonNode();
+        JsonNode objectGroups = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Arrays.asList(
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "og1")
+                        .set(VitamFieldsHelper.operations(), JsonHandler.createArrayNode().add(INGEST_OPERATION_ID)),
+                    JsonHandler.createObjectNode()
+                        .put(VitamFieldsHelper.id(), "og1")
+                        .set(
+                            VitamFieldsHelper.operations(),
+                            JsonHandler.createArrayNode().add(INGEST_OPERATION_ID).add(anotherOperationId)
+                        )
+                )
+            )
+            .toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
 
-        doReturn(new RequestResponseOK<JsonNode>().toJsonNode())
-            .when(logbookOperationsClient).selectOperation(any());
+        doReturn(new RequestResponseOK<JsonNode>().toJsonNode()).when(logbookOperationsClient).selectOperation(any());
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
 
@@ -319,18 +363,21 @@ public class IngestCleanupEligibilityServiceTest {
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json");
+        checkQueryEquals(
+            queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectObjectGroupOperationsQuery.json"
+        );
 
         ArgumentCaptor<JsonNode> logbookQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(logbookOperationsClient).selectOperation(logbookQueryCaptor.capture());
-        checkQueryEquals(logbookQueryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json");
+        checkQueryEquals(
+            logbookQueryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectIngestLogbookOperationsQuery.json"
+        );
     }
 
     @Test
     public void givenNoAttachmentsThenCheckObjectAttachmentsToExistingObjectGroupsOK() throws Exception {
-
         // Given
         JsonNode objectGroups = new RequestResponseOK<JsonNode>().toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
@@ -344,17 +391,20 @@ public class IngestCleanupEligibilityServiceTest {
         assertThat(cleanupReportManager.getGlobalStatus()).isEqualTo(StatusCode.OK);
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json");
+        checkQueryEquals(
+            queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json"
+        );
     }
 
     @Test
     public void givenAttachmentsThenCheckObjectAttachmentsToExistingObjectGroupsKO() throws Exception {
-
         // Given
-        JsonNode objectGroups = new RequestResponseOK<JsonNode>().addAllResults(Collections.singletonList(
-            JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "og_updated_1")
-        )).toJsonNode();
+        JsonNode objectGroups = new RequestResponseOK<JsonNode>()
+            .addAllResults(
+                Collections.singletonList(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "og_updated_1"))
+            )
+            .toJsonNode();
         when(metaDataClient.selectObjectGroups(any())).thenReturn(objectGroups);
 
         CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(INGEST_OPERATION_ID);
@@ -366,14 +416,18 @@ public class IngestCleanupEligibilityServiceTest {
         assertThat(cleanupReportManager.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(cleanupReportManager.getCleanupReport().getObjectGroups()).containsOnlyKeys("og_updated_1");
         assertThat(
-            cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getErrors()).isNotEmpty();
+            cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getErrors()
+        ).isNotEmpty();
         assertThat(
-            cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getWarnings()).isNull();
+            cleanupReportManager.getCleanupReport().getObjectGroups().get("og_updated_1").getWarnings()
+        ).isNull();
 
         ArgumentCaptor<JsonNode> queryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         verify(metaDataClient, times(1)).selectObjectGroups(queryCaptor.capture());
-        checkQueryEquals(queryCaptor.getAllValues().get(0),
-            "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json");
+        checkQueryEquals(
+            queryCaptor.getAllValues().get(0),
+            "IngestCleanup/Eligibility/selectAttachmentToObjectGroupsQuery.json"
+        );
     }
 
     private void checkQueryEquals(JsonNode expectedJsonNode, String resourceFile)

@@ -31,8 +31,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-
 public class DatabaseConflictExceptionTest {
+
     @Test
     public final void testFileFormatException() {
         assertEquals("", new DatabaseConflictException("").getMessage());

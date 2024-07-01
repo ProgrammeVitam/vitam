@@ -39,11 +39,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LogbookReconstructionMetricsCacheTest {
 
-    @Rule public LogicalClockRule logicalClock = new LogicalClockRule();
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     @Test
     public void getFreshlyReconstructed() {
-
         // Given
         LogbookReconstructionMetricsCache cache = new LogbookReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -58,7 +58,6 @@ public class LogbookReconstructionMetricsCacheTest {
 
     @Test
     public void getMetricAfterDelay() {
-
         // Given
         LogbookReconstructionMetricsCache cache = new LogbookReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -74,7 +73,6 @@ public class LogbookReconstructionMetricsCacheTest {
 
     @Test
     public void getMetricAfterExpiration() {
-
         // Given
         LogbookReconstructionMetricsCache cache = new LogbookReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -90,7 +88,6 @@ public class LogbookReconstructionMetricsCacheTest {
 
     @Test
     public void getUpdatedMetric() {
-
         // Given
         LogbookReconstructionMetricsCache cache = new LogbookReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
@@ -108,33 +105,26 @@ public class LogbookReconstructionMetricsCacheTest {
 
     @Test
     public void testComplex() {
-
         // Given
         LogbookReconstructionMetricsCache cache = new LogbookReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
 
         // When
         cache.registerLastReconstructedDocumentDate(0, LocalDateUtil.now());
-        cache.registerLastReconstructedDocumentDate(2,
-            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES));
+        cache.registerLastReconstructedDocumentDate(2, LocalDateUtil.now().minus(2, ChronoUnit.MINUTES));
 
         logicalClock.logicalSleep(9, ChronoUnit.MINUTES);
 
         cache.registerLastReconstructedDocumentDate(0, LocalDateUtil.now());
-        cache.registerLastReconstructedDocumentDate(1,
-            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES));
-        cache.registerLastReconstructedDocumentDate(3,
-            LocalDateUtil.now().minus(30, ChronoUnit.MINUTES));
+        cache.registerLastReconstructedDocumentDate(1, LocalDateUtil.now().minus(15, ChronoUnit.MINUTES));
+        cache.registerLastReconstructedDocumentDate(3, LocalDateUtil.now().minus(30, ChronoUnit.MINUTES));
 
         logicalClock.logicalSleep(2, ChronoUnit.MINUTES);
 
         // Then
-        assertThat(cache.getLogbookOperationReconstructionLatency(0)).isEqualTo(
-            Duration.of(2, ChronoUnit.MINUTES));
+        assertThat(cache.getLogbookOperationReconstructionLatency(0)).isEqualTo(Duration.of(2, ChronoUnit.MINUTES));
         assertThat(cache.getLogbookOperationReconstructionLatency(2)).isNull();
-        assertThat(cache.getLogbookOperationReconstructionLatency(1)).isEqualTo(
-            Duration.of(17, ChronoUnit.MINUTES));
-        assertThat(cache.getLogbookOperationReconstructionLatency(3)).isEqualTo(
-            Duration.of(32, ChronoUnit.MINUTES));
+        assertThat(cache.getLogbookOperationReconstructionLatency(1)).isEqualTo(Duration.of(17, ChronoUnit.MINUTES));
+        assertThat(cache.getLogbookOperationReconstructionLatency(3)).isEqualTo(Duration.of(32, ChronoUnit.MINUTES));
     }
 }

@@ -81,8 +81,8 @@ public class UpdateTest {
         assertNull(update.query);
         try {
             update.setQuery(
-                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                    .setRelativeDepthLimit(5));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA")).setRelativeDepthLimit(5)
+            );
             assertNotNull(update.query);
             update.resetQuery();
             assertFalse(update.query.getCurrentQuery().fields().hasNext());
@@ -147,7 +147,5 @@ public class UpdateTest {
             "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tActions: \n{\"$inc\":{\"var2\":2}}";
         update.addActions(new IncAction("var2", 2));
         assertEquals(s, update.toString());
-
     }
-
 }

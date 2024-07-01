@@ -45,12 +45,15 @@ import static org.junit.Assert.assertTrue;
 public class ObjectGroupTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private final int IntTest = 12345;
     String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
-    private final String go = "{\"_id\":\"" + groupGUID +
+    private final String go =
+        "{\"_id\":\"" +
+        groupGUID +
         "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\", \"Description\" : \"Test\"}}, \"title\":\"title1\"}";
 
     @Test

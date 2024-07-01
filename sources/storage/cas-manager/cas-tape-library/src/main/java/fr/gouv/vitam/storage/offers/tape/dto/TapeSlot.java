@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * StorageElement
  */
 public class TapeSlot {
+
     private Integer index;
     private TapeCartridge tape;
     private TapeSlotType storageElementType;

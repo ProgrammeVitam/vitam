@@ -55,5 +55,4 @@ public interface AdminClient extends BasicClient {
      * @throws VitamClientException
      */
     VitamError adminAutotest() throws VitamClientException;
-
 }

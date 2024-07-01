@@ -37,7 +37,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class EvidenceResourceMock {

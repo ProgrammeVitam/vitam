@@ -37,7 +37,6 @@ public class ElasticsearchHelper {
         // Empty constructor
     }
 
-
     /**
      * @param query QueryBuilder query
      * @return the String representation of the QueryBuilder

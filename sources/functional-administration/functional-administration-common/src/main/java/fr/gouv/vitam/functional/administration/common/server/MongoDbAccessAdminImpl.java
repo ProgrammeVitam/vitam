@@ -81,9 +81,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
      * @param indexManager
      * @param ontologyLoader
      */
-    protected MongoDbAccessAdminImpl(MongoClient mongoClient, String dbname, boolean recreate,
+    protected MongoDbAccessAdminImpl(
+        MongoClient mongoClient,
+        String dbname,
+        boolean recreate,
         ElasticsearchFunctionalAdminIndexManager indexManager,
-        OntologyLoader ontologyLoader) {
+        OntologyLoader ontologyLoader
+    ) {
         super(mongoClient, dbname);
         this.indexManager = indexManager;
         for (final FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
@@ -103,15 +107,24 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         throws DocumentAlreadyExistsException, ReferentialException, SchemaValidationException {
         try {
             final DbRequestSingle dbrequest = new DbRequestSingle(
-                collection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
+                collection.getVitamCollection(),
+                this.ontologyLoader,
+                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null)
+            );
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
 
             DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
             return dbrequest.execute(insertquery, version, documentValidator);
-        } catch (MongoBulkWriteException | MongoWriteException | InvalidParseOperationException | BadRequestException | DatabaseException |
-            InvalidCreateOperationException | VitamDBException e) {
+        } catch (
+            MongoBulkWriteException
+            | MongoWriteException
+            | InvalidParseOperationException
+            | BadRequestException
+            | DatabaseException
+            | InvalidCreateOperationException
+            | VitamDBException e
+        ) {
             if (DbRequestHelper.isDuplicateKeyError(e)) {
                 throw new DocumentAlreadyExistsException("Documents already exists: Duplicate Key", e);
             }
@@ -126,8 +139,8 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         throws DatabaseException {
         long count;
         if (collection.isMultitenant()) {
-            final Document filter =
-                new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
+            final Document filter = new Document()
+                .append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             count = collection.getCollection().countDocuments(filter);
         } else {
             count = collection.getCollection().countDocuments();
@@ -136,17 +149,24 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader,
-                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
+            final DbRequestSingle dbrequest = new DbRequestSingle(
+                collection.getVitamCollection(),
+                this.ontologyLoader,
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null)
+            );
             try (DbRequestResult result = dbrequest.execute(delete)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
                 }
 
                 return result;
-            } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
-                VitamDBException | SchemaValidationException e) {
+            } catch (
+                InvalidParseOperationException
+                | BadRequestException
+                | InvalidCreateOperationException
+                | VitamDBException
+                | SchemaValidationException e
+            ) {
                 throw new DatabaseException("Delete document exception", e);
             }
         }
@@ -157,11 +177,10 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @VisibleForTesting
     public DbRequestResult deleteCollectionForTesting(FunctionalAdminCollections collection)
         throws DatabaseException, SchemaValidationException {
-
         long count;
         if (collection.isMultitenant()) {
-            final Document filter =
-                new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
+            final Document filter = new Document()
+                .append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             count = collection.getCollection().countDocuments(filter);
         } else {
             count = collection.getCollection().countDocuments();
@@ -171,20 +190,27 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         }
         if (count > 0) {
             Delete delete = new Delete();
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
+            final DbRequestSingle dbrequest = new DbRequestSingle(
+                collection.getVitamCollection(),
+                this.ontologyLoader,
+                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null)
+            );
             try (DbRequestResult result = dbrequest.execute(delete)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
                 }
                 if (result.getCount() != count) {
                     throw new DatabaseException(
-                        String.format("%s: Delete %s from %s elements", collection.getName(),
-                            result.getCount(), count));
+                        String.format("%s: Delete %s from %s elements", collection.getName(), result.getCount(), count)
+                    );
                 }
                 return result;
-            } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
-                VitamDBException e) {
+            } catch (
+                InvalidParseOperationException
+                | BadRequestException
+                | InvalidCreateOperationException
+                | VitamDBException e
+            ) {
                 throw new DatabaseException("Delete document exception", e);
             }
         }
@@ -201,8 +227,10 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     public VitamDocument<?> getDocumentByUniqueId(String id, FunctionalAdminCollections collection, String field) {
         if (collection.isMultitenant()) {
             Integer tenantId = ParameterHelper.getTenantParameter();
-            return (VitamDocument<?>) collection.getCollection().find(and(eq(field, id),
-                eq(VitamDocument.TENANT_ID, tenantId))).first();
+            return (VitamDocument<?>) collection
+                .getCollection()
+                .find(and(eq(field, id), eq(VitamDocument.TENANT_ID, tenantId)))
+                .first();
         }
         return (VitamDocument<?>) collection.getCollection().find(eq(field, id)).first();
     }
@@ -213,11 +241,20 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         try {
             final SelectParserSingle parser = new SelectParserSingle(collection.getVarNameAdapater());
             parser.parse(select);
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
+            final DbRequestSingle dbrequest = new DbRequestSingle(
+                collection.getVitamCollection(),
+                this.ontologyLoader,
+                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null)
+            );
             return dbrequest.execute(parser.getRequest());
-        } catch (final DatabaseException | BadRequestException | InvalidParseOperationException |
-            InvalidCreateOperationException | VitamDBException | SchemaValidationException e) {
+        } catch (
+            final DatabaseException
+            | BadRequestException
+            | InvalidParseOperationException
+            | InvalidCreateOperationException
+            | VitamDBException
+            | SchemaValidationException e
+        ) {
             throw new ReferentialException("find Document Exception", e);
         }
     }
@@ -228,8 +265,11 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         try {
             final DeleteParserSingle parser = new DeleteParserSingle(collection.getVarNameAdapater());
             parser.parse(delete);
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
+            final DbRequestSingle dbrequest = new DbRequestSingle(
+                collection.getVitamCollection(),
+                this.ontologyLoader,
+                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null)
+            );
             return dbrequest.execute(parser.getRequest());
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new BadRequestException(e);
@@ -244,8 +284,11 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         try {
             final UpdateParserSingle parser = new UpdateParserSingle(collection.getVarNameAdapater());
             parser.parse(update);
-            final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null));
+            final DbRequestSingle dbrequest = new DbRequestSingle(
+                collection.getVitamCollection(),
+                this.ontologyLoader,
+                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null)
+            );
             DocumentValidator documentValidator = ReferentialDocumentValidators.getValidator(collection);
             final DbRequestResult result = dbrequest.execute(parser.getRequest(), documentValidator);
             if (result.getDiffs().size() == 0) {
@@ -260,21 +303,31 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
-        FunctionalAdminCollections vitamCollection) throws DatabaseException {
-        final DbRequestSingle dbRequest =
-            new DbRequestSingle(vitamCollection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(vitamCollection).resolveIndexName(null));
+    public void replaceDocument(
+        JsonNode document,
+        String identifierValue,
+        String identifierKey,
+        FunctionalAdminCollections vitamCollection
+    ) throws DatabaseException {
+        final DbRequestSingle dbRequest = new DbRequestSingle(
+            vitamCollection.getVitamCollection(),
+            this.ontologyLoader,
+            indexManager.getElasticsearchIndexAliasResolver(vitamCollection).resolveIndexName(null)
+        );
 
         dbRequest.replaceDocument(document, identifierValue, identifierKey, vitamCollection.getVitamCollection());
     }
 
-    public void replaceDocuments(Map<String, JsonNode> documentByIdentifier, String identifierKey,
-        FunctionalAdminCollections vitamCollection) throws DatabaseException {
-
-        final DbRequestSingle dbRequest =
-            new DbRequestSingle(vitamCollection.getVitamCollection(), this.ontologyLoader,
-                indexManager.getElasticsearchIndexAliasResolver(vitamCollection).resolveIndexName(null));
+    public void replaceDocuments(
+        Map<String, JsonNode> documentByIdentifier,
+        String identifierKey,
+        FunctionalAdminCollections vitamCollection
+    ) throws DatabaseException {
+        final DbRequestSingle dbRequest = new DbRequestSingle(
+            vitamCollection.getVitamCollection(),
+            this.ontologyLoader,
+            indexManager.getElasticsearchIndexAliasResolver(vitamCollection).resolveIndexName(null)
+        );
 
         dbRequest.replaceDocuments(documentByIdentifier, identifierKey, vitamCollection.getVitamCollection());
     }
@@ -290,5 +343,4 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         throws ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         return insertDocuments(JsonHandler.createArrayNode().add(json), collection);
     }
-
 }

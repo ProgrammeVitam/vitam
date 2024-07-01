@@ -28,6 +28,7 @@
 package fr.gouv.vitam.common.model.processing;
 
 public class LazyFile {
+
     private String path;
     private boolean optional;
 

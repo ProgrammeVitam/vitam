@@ -80,7 +80,8 @@ public class PreservationExtractionAUPlugin extends ActionHandler {
 
             List<ItemStatus> itemStatuses = new ArrayList<>();
             for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
-                List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
+                List<OutputExtra> outputExtras = workflowBatchResult
+                    .getOutputExtras()
                     .stream()
                     .filter(o -> !o.isInError() && o.isOkAndExtractedAu())
                     .collect(Collectors.toList());
@@ -91,9 +92,12 @@ public class PreservationExtractionAUPlugin extends ActionHandler {
                     itemStatuses.add(itemStatus);
                     continue;
                 }
-                ExtractedMetadata extractedMetadata =
-                    mergeExtractedMetadata(workflowBatchResult.getGotId(), handler.getContainerName(), outputExtras,
-                        workflowBatchResult.getUnitsForExtractionAU());
+                ExtractedMetadata extractedMetadata = mergeExtractedMetadata(
+                    workflowBatchResult.getGotId(),
+                    handler.getContainerName(),
+                    outputExtras,
+                    workflowBatchResult.getUnitsForExtractionAU()
+                );
                 extractedMetadataList.add(extractedMetadata);
                 itemStatuses.add(buildItemStatusWithMessage(ITEM_ID, OK, "Insert in batch Report OK."));
             }
@@ -111,10 +115,15 @@ public class PreservationExtractionAUPlugin extends ActionHandler {
         }
     }
 
-    private ExtractedMetadata mergeExtractedMetadata(String ogId, String processId, List<OutputExtra> outputExtras,
-        List<String> unitsForExtractedAU) {
+    private ExtractedMetadata mergeExtractedMetadata(
+        String ogId,
+        String processId,
+        List<OutputExtra> outputExtras,
+        List<String> unitsForExtractedAU
+    ) {
         // We sadly choose to merge value when there are several extraction for units, we select the last one.
-        var extractedMetadata = outputExtras.stream()
+        var extractedMetadata = outputExtras
+            .stream()
             .flatMap(output -> output.getOutput().getExtractedMetadataAU().entrySet().stream())
             .filter(e -> Objects.nonNull(e.getValue()))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (v1, v2) -> v2));

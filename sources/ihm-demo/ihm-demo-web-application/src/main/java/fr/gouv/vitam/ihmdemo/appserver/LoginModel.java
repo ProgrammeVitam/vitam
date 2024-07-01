@@ -35,7 +35,6 @@ import java.util.List;
  *
  */
 
-
 /**
  * Login Model class
  */
@@ -58,10 +57,12 @@ public class LoginModel {
      * @param tokenCSRF the csrf token
      */
     @JsonCreator
-    public LoginModel(@JsonProperty("userName") String userName,
+    public LoginModel(
+        @JsonProperty("userName") String userName,
         @JsonProperty("permissions") List<String> permissions,
         @JsonProperty("sessionTimeout") long sessionTimeout,
-        @JsonProperty("tokenCSRF") String tokenCSRF) {
+        @JsonProperty("tokenCSRF") String tokenCSRF
+    ) {
         this.userName = userName;
         this.permissions = permissions;
         this.sessionTimeout = sessionTimeout;

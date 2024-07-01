@@ -68,12 +68,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsActionPluginTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @InjectMocks
     private DeleteGotVersionsActionPlugin deleteGotVersionsActionPlugin;
@@ -108,24 +110,27 @@ public class DeleteGotVersionsActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenIntermediaryVersionThenReturnOK() throws Exception {
-        DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(2));
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            new Select().getFinalSelect(),
+            BINARY_MASTER.getName(),
+            List.of(2)
+        );
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream(DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON),
-                    RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
         when(metaDataClient.getObjectGroupsByIdsRaw(any())).thenReturn(metadataResponse);
-        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest"))
-            .thenReturn(toJsonNode(deleteGotVersionsRequest));
+        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest")).thenReturn(
+            toJsonNode(deleteGotVersionsRequest)
+        );
 
         when(metaDataClient.getObjectGroupsByIdsRaw(any())).thenReturn(metadataResponse);
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
 
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
@@ -137,22 +142,25 @@ public class DeleteGotVersionsActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenFirstAndIntermediaryVersionThenReturnWarning() throws Exception {
-        DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(1, 2));
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            new Select().getFinalSelect(),
+            BINARY_MASTER.getName(),
+            List.of(1, 2)
+        );
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream(DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON),
-                    RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
         when(metaDataClient.getObjectGroupsByIdsRaw(any())).thenReturn(metadataResponse);
-        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest"))
-            .thenReturn(toJsonNode(deleteGotVersionsRequest));
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest")).thenReturn(
+            toJsonNode(deleteGotVersionsRequest)
+        );
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_AND_WARNING_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
 
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
@@ -164,22 +172,25 @@ public class DeleteGotVersionsActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenFirstAndLastVersionThenReturnWarning() throws Exception {
-        DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(1, 3));
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            new Select().getFinalSelect(),
+            BINARY_MASTER.getName(),
+            List.of(1, 3)
+        );
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream(DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON),
-                    RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(DELETE_GOT_VERSIONS_OBJECT_GROUP_RESULT_JSON),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
         when(metaDataClient.getObjectGroupsByIdsRaw(any())).thenReturn(metadataResponse);
-        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest"))
-            .thenReturn(toJsonNode(deleteGotVersionsRequest));
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest")).thenReturn(
+            toJsonNode(deleteGotVersionsRequest)
+        );
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(WARNING_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
 
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);
@@ -191,21 +202,25 @@ public class DeleteGotVersionsActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenEmptyQualifierVersionsToCheckIdempotencyThenReturnOk() throws Exception {
-        DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(2));
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            new Select().getFinalSelect(),
+            BINARY_MASTER.getName(),
+            List.of(2)
+        );
 
-        RequestResponseOK<JsonNode> metadataResponse =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EMPTY_QUALIFIER_VERSIONS_RESULTS_LIST),
-                RequestResponseOK.class, JsonNode.class);
+        RequestResponseOK<JsonNode> metadataResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(EMPTY_QUALIFIER_VERSIONS_RESULTS_LIST),
+            RequestResponseOK.class,
+            JsonNode.class
+        );
         when(metaDataClient.getObjectGroupsByIdsRaw(any())).thenReturn(metadataResponse);
-        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest"))
-            .thenReturn(toJsonNode(deleteGotVersionsRequest));
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(handlerIO.getJsonFromWorkspace("deleteGotVersionsRequest")).thenReturn(
+            toJsonNode(deleteGotVersionsRequest)
+        );
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
 
         List<ItemStatus> itemStatusList = deleteGotVersionsActionPlugin.executeList(params, handlerIO);

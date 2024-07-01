@@ -65,13 +65,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-
 public class CheckArchiveProfileActionHandlerTest {
 
     private static final AdminManagementClient adminClient = mock(AdminManagementClient.class);
 
-    private static final AdminManagementClientFactory adminManagementClientFactory =
-        mock(AdminManagementClientFactory.class);
+    private static final AdminManagementClientFactory adminManagementClientFactory = mock(
+        AdminManagementClientFactory.class
+    );
     private GUID guid;
     private static final Integer TENANT_ID = 0;
     private static final String FAKE_URL = "http://localhost:8083";
@@ -81,14 +81,17 @@ public class CheckArchiveProfileActionHandlerTest {
     private static final String MANIFEST_OK = "checkProfil/manifest_ok.xml";
     private static final String MANIFEST_KO = "checkProfil/manifest_ko.xml";
 
-    private static final CheckArchiveProfileActionHandler handler =
-        new CheckArchiveProfileActionHandler(adminManagementClientFactory);
+    private static final CheckArchiveProfileActionHandler handler = new CheckArchiveProfileActionHandler(
+        adminManagementClientFactory
+    );
 
     @Rule
     public TempFolderRule tempFolderRule = new TempFolderRule();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final HandlerIO handlerIO = mock(HandlerIO.class);
 
@@ -98,32 +101,37 @@ public class CheckArchiveProfileActionHandlerTest {
         reset(adminClient);
         reset(handlerIO);
         when(adminManagementClientFactory.getClient()).thenReturn(adminClient);
-
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileOKThenReturnResponseOK()
-        throws Exception {
+    public void givenProdileOKThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                .setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         assertEquals(CheckArchiveProfileActionHandler.getId(), HANDLER_ID);
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
-        when(handlerIO.getInputStreamFromWorkspace(
-            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
-            .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
 
-        when(adminClient.findProfiles(any()))
-            .thenReturn(createProfileRNG("Profil20.rng"));
+        when(adminClient.findProfiles(any())).thenReturn(createProfileRNG("Profil20.rng"));
 
-        Response mockResponse = new AbstractMockClient
-            .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        Response mockResponse = new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            PropertiesUtils.getResourceAsStream(PROFIL),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
 
         when(adminClient.downloadProfileFile(any())).thenReturn(mockResponse);
 
@@ -133,27 +141,33 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileKOThenReturnResponseKO()
-        throws Exception {
+    public void givenProdileKOThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         assertEquals(CheckArchiveProfileActionHandler.getId(), HANDLER_ID);
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
-        when(handlerIO.getInputStreamFromWorkspace(
-            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
-            .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
 
-        when(adminClient.findProfiles(any()))
-            .thenReturn(createProfileRNG("Profil20.rng"));
+        when(adminClient.findProfiles(any())).thenReturn(createProfileRNG("Profil20.rng"));
 
-        Response mockResponse = new AbstractMockClient
-            .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        Response mockResponse = new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            PropertiesUtils.getResourceAsStream(PROFIL),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
 
         when(adminClient.downloadProfileFile(any())).thenReturn(mockResponse);
 
@@ -164,27 +178,33 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileWithoutPathThenReturnResponseKO()
-        throws Exception {
+    public void givenProdileWithoutPathThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-                .setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         assertEquals(CheckArchiveProfileActionHandler.getId(), HANDLER_ID);
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
-        when(handlerIO.getInputStreamFromWorkspace(
-            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
-            .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
 
-        when(adminClient.findProfiles(any()))
-            .thenReturn(createProfileRNG(""));
+        when(adminClient.findProfiles(any())).thenReturn(createProfileRNG(""));
 
-        Response mockResponse = new AbstractMockClient
-            .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        Response mockResponse = new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            PropertiesUtils.getResourceAsStream(PROFIL),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
 
         when(adminClient.downloadProfileFile(any())).thenReturn(mockResponse);
 

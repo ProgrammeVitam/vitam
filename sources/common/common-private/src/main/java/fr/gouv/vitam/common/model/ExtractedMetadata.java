@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ExtractedMetadata {
+
     public static final String PROCESS_ID = "processId";
     public static final String UNIT_IDS = "unitIds";
     public static final String METADATA = "metadata";
@@ -46,9 +47,13 @@ public class ExtractedMetadata {
     private final Map<String, Object> metadata;
 
     @JsonCreator
-    public ExtractedMetadata(@JsonProperty(ID) String id, @JsonProperty(PROCESS_ID) String processId,
-        @JsonProperty(TENANT) int tenant, @JsonProperty(UNIT_IDS) List<String> unitIds,
-        @JsonProperty(METADATA) Map<String, Object> metadata) {
+    public ExtractedMetadata(
+        @JsonProperty(ID) String id,
+        @JsonProperty(PROCESS_ID) String processId,
+        @JsonProperty(TENANT) int tenant,
+        @JsonProperty(UNIT_IDS) List<String> unitIds,
+        @JsonProperty(METADATA) Map<String, Object> metadata
+    ) {
         this.id = id;
         this.processId = processId;
         this.tenant = tenant;

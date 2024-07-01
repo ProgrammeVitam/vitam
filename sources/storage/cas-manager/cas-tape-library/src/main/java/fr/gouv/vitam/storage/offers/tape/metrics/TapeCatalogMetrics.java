@@ -50,35 +50,47 @@ public class TapeCatalogMetrics {
     }
 
     public static void initializeMetrics(TapeCatalogRepository tapeCatalogRepository) {
-
         Collector collector = new Collector() {
             @Override
             public List<MetricFamilySamples> collect() {
-
                 try {
-
                     Map<TapeState, Integer> stats = tapeCatalogRepository.countByState();
 
                     List<MetricFamilySamples> mfs = new ArrayList<>();
 
-                    mfs.add(new GaugeMetricFamily(VitamMetricsNames.VITAM_TAPE_OFFER_EMPTY_STATE_TAPE,
-                        "Total number of tapes with EMPTY state",
-                        stats.getOrDefault(TapeState.EMPTY, 0)));
+                    mfs.add(
+                        new GaugeMetricFamily(
+                            VitamMetricsNames.VITAM_TAPE_OFFER_EMPTY_STATE_TAPE,
+                            "Total number of tapes with EMPTY state",
+                            stats.getOrDefault(TapeState.EMPTY, 0)
+                        )
+                    );
 
-                    mfs.add(new GaugeMetricFamily(VitamMetricsNames.VITAM_TAPE_OFFER_OPEN_STATE_TAPE,
-                        "Total number of tapes with OPEN state",
-                        stats.getOrDefault(TapeState.OPEN, 0)));
+                    mfs.add(
+                        new GaugeMetricFamily(
+                            VitamMetricsNames.VITAM_TAPE_OFFER_OPEN_STATE_TAPE,
+                            "Total number of tapes with OPEN state",
+                            stats.getOrDefault(TapeState.OPEN, 0)
+                        )
+                    );
 
-                    mfs.add(new GaugeMetricFamily(VitamMetricsNames.VITAM_TAPE_OFFER_FULL_STATE_TAPE,
-                        "Total number of tapes with FULL state",
-                        stats.getOrDefault(TapeState.FULL, 0)));
+                    mfs.add(
+                        new GaugeMetricFamily(
+                            VitamMetricsNames.VITAM_TAPE_OFFER_FULL_STATE_TAPE,
+                            "Total number of tapes with FULL state",
+                            stats.getOrDefault(TapeState.FULL, 0)
+                        )
+                    );
 
-                    mfs.add(new GaugeMetricFamily(VitamMetricsNames.VITAM_TAPE_OFFER_CONFLICT_STATE_TAPE,
-                        "Total number of tapes with CONFLICT state",
-                        stats.getOrDefault(TapeState.CONFLICT, 0)));
+                    mfs.add(
+                        new GaugeMetricFamily(
+                            VitamMetricsNames.VITAM_TAPE_OFFER_CONFLICT_STATE_TAPE,
+                            "Total number of tapes with CONFLICT state",
+                            stats.getOrDefault(TapeState.CONFLICT, 0)
+                        )
+                    );
 
                     return mfs;
-
                 } catch (TapeCatalogException e) {
                     LOGGER.error("Could not get tape catalog stats", e);
                     return emptyList();

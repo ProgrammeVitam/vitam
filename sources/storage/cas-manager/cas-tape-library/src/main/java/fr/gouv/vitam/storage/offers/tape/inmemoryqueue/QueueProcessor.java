@@ -58,13 +58,11 @@ public abstract class QueueProcessor<T> {
     }
 
     private void workerTask() {
-
         String initialThreadName = Thread.currentThread().getName();
         try {
             Thread.currentThread().setName(workerName);
 
             processMessages();
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             LOGGER.error("Interrupted thread. Shutdown...", e);
@@ -74,46 +72,49 @@ public abstract class QueueProcessor<T> {
     }
 
     private void processMessages() throws InterruptedException {
-
         T message = queue.take();
 
         do {
-
             try {
-
                 processMessage(message);
 
                 // Take next message
                 message = queue.take();
-
             } catch (RuntimeException ex) {
-
-                throw new IllegalStateException("Unexpected exception occurred during message processing " +
-                    JsonHandler.unprettyPrint(message) + ". Shutting down...", ex);
-
+                throw new IllegalStateException(
+                    "Unexpected exception occurred during message processing " +
+                    JsonHandler.unprettyPrint(message) +
+                    ". Shutting down...",
+                    ex
+                );
             } catch (QueueProcessingException ex) {
-
                 switch (ex.getRetryPolicy()) {
-
                     case FATAL_SHUTDOWN:
-
-                        throw new IllegalStateException("Fatal exception occurred during message processing " +
-                            JsonHandler.unprettyPrint(message) + ". Shutting down...", ex);
-
+                        throw new IllegalStateException(
+                            "Fatal exception occurred during message processing " +
+                            JsonHandler.unprettyPrint(message) +
+                            ". Shutting down...",
+                            ex
+                        );
                     case DROP_MESSAGE:
-                        LOGGER.error("Non recoverable exception occurred during message processing " +
-                            JsonHandler.unprettyPrint(message), ex);
+                        LOGGER.error(
+                            "Non recoverable exception occurred during message processing " +
+                            JsonHandler.unprettyPrint(message),
+                            ex
+                        );
 
                         // Take next message
                         message = queue.take();
 
                         break;
-
                     case RETRY:
-                        LOGGER.error("Exception occurred during message processing " +
-                            JsonHandler.unprettyPrint(message) + ". Will retry right away", ex);
+                        LOGGER.error(
+                            "Exception occurred during message processing " +
+                            JsonHandler.unprettyPrint(message) +
+                            ". Will retry right away",
+                            ex
+                        );
                         break;
-
                     default:
                         throw new IllegalStateException("Unexpected retry policy " + ex.getRetryPolicy(), ex);
                 }

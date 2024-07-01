@@ -65,14 +65,14 @@ import java.util.Iterator;
 import static fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils.loadRequestJsonFromWorkspace;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 /**
  * Elimination analysis preparation handler.
  */
 public class EliminationAnalysisPreparationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationAnalysisPreparationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EliminationAnalysisPreparationHandler.class
+    );
 
     private static final String ELIMINATION_ANALYSIS_PREPARATION = "ELIMINATION_ANALYSIS_PREPARATION";
     private static final String COULD_NOT_PARSE_DATE_FROM_REQUEST = "Could not not parse date from request";
@@ -87,9 +87,7 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
      * Default constructor
      */
     public EliminationAnalysisPreparationHandler() {
-        this(
-            MetaDataClientFactory.getInstance(),
-            new EliminationAnalysisService());
+        this(MetaDataClientFactory.getInstance(), new EliminationAnalysisService());
     }
 
     /***
@@ -98,17 +96,15 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
     @VisibleForTesting
     EliminationAnalysisPreparationHandler(
         MetaDataClientFactory metaDataClientFactory,
-        EliminationAnalysisService eliminationAnalysisService) {
+        EliminationAnalysisService eliminationAnalysisService
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.eliminationAnalysisService = eliminationAnalysisService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             EliminationRequestBody eliminationRequestBody = loadRequestJsonFromWorkspace(handler);
 
             process(eliminationRequestBody, param, handler);
@@ -117,57 +113,58 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setExpirationDate(eliminationRequestBody.getDate());
             return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, StatusCode.OK, eventDetails);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination analysis preparation failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ANALYSIS_PREPARATION, e.getStatusCode(), e.getEventDetails());
         }
     }
 
-    private void process(EliminationRequestBody eliminationRequestBody,
-        WorkerParameters param, HandlerIO handler)
+    private void process(EliminationRequestBody eliminationRequestBody, WorkerParameters param, HandlerIO handler)
         throws ProcessingStatusException {
-
         LocalDate expirationDate = getExpirationDate(eliminationRequestBody);
         SelectMultiQuery request = getRequest(eliminationRequestBody.getDslRequest());
 
         File unitDistributionFile = null;
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
             ScrollSpliterator<JsonNode> unitScrollSpliterator =
                 ScrollSpliteratorHelper.getUnitWithInheritedRulesScrollSpliterator(request, client);
 
-            Iterator<JsonNode> unitIterator =
-                new SpliteratorIterator<>(unitScrollSpliterator);
+            Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(unitScrollSpliterator);
 
             unitDistributionFile = handler.getNewLocalFile(UNITS_JSONL_FILE);
 
             try (JsonLineWriter unitWriter = new JsonLineWriter(new FileOutputStream(unitDistributionFile))) {
-
                 while (unitIterator.hasNext()) {
-
                     JsonNode unit = unitIterator.next();
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
 
-                    EliminationAnalysisResult eliminationAnalysisResult = EliminationUtils
-                        .computeEliminationAnalysisForUnitWithInheritedRules(unit, eliminationAnalysisService, param,
-                            expirationDate);
+                    EliminationAnalysisResult eliminationAnalysisResult =
+                        EliminationUtils.computeEliminationAnalysisForUnitWithInheritedRules(
+                            unit,
+                            eliminationAnalysisService,
+                            param,
+                            expirationDate
+                        );
 
                     if (eliminationAnalysisResult.getGlobalStatus() != EliminationGlobalStatus.KEEP) {
-
-                        JsonLineModel entry = new JsonLineModel(unitId, null,
-                            JsonHandler.toJsonNode(eliminationAnalysisResult));
+                        JsonLineModel entry = new JsonLineModel(
+                            unitId,
+                            null,
+                            JsonHandler.toJsonNode(eliminationAnalysisResult)
+                        );
                         unitWriter.addEntry(entry);
                     }
                 }
             }
 
             handler.transferFileToWorkspace(UNITS_JSONL_FILE, unitDistributionFile, true, false);
-
         } catch (IOException | ProcessingException | InvalidParseOperationException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not generate unit and/or object group distributions", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not generate unit and/or object group distributions",
+                e
+            );
         } finally {
             FileUtils.deleteQuietly(unitDistributionFile);
         }
@@ -187,9 +184,7 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
     }
 
     private SelectMultiQuery getRequest(JsonNode dslRequest) throws ProcessingStatusException {
-
         try {
-
             SelectParserMultiple selectParser = new SelectParserMultiple();
             selectParser.parse(dslRequest);
             SelectMultiQuery request = selectParser.getRequest();
@@ -199,13 +194,12 @@ public class EliminationAnalysisPreparationHandler extends ActionHandler {
             request.addUsedProjection(
                 VitamFieldsHelper.id(),
                 VitamFieldsHelper.originatingAgency(),
-                VitamFieldsHelper.unitType());
+                VitamFieldsHelper.unitType()
+            );
 
             return request;
-
         } catch (InvalidParseOperationException e) {
-            EliminationEventDetails eventDetails = new EliminationEventDetails()
-                .setError(COULD_NOT_PARSE_DSL_REQUEST);
+            EliminationEventDetails eventDetails = new EliminationEventDetails().setError(COULD_NOT_PARSE_DSL_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);
         }
     }

@@ -44,10 +44,18 @@ public class IhmRecetteMainWithoutMongo {
     private final VitamStarter vitamStarter;
 
     public IhmRecetteMainWithoutMongo(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            ServerApplicationWithoutMongo.class, AdminApplication.class, Lists.newArrayList(), false);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            WebApplicationConfig.class,
+            configurationFile,
+            ServerApplicationWithoutMongo.class,
+            AdminApplication.class,
+            Lists.newArrayList(),
+            false
+        );
     }
 
     public void start() throws VitamApplicationServerException {

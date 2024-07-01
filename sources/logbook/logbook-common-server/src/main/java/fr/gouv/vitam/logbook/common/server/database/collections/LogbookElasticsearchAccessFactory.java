@@ -32,12 +32,10 @@ import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManag
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
-
 /**
  * ElasticsearchAccess Factory
  */
 public class LogbookElasticsearchAccessFactory {
-
 
     /**
      * Creation of one ElasticsearchAccess
@@ -48,12 +46,17 @@ public class LogbookElasticsearchAccessFactory {
      * @throws LogbookException if error in create LogbookElasticsearchAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public LogbookElasticsearchAccess create(LogbookConfiguration configuration,
-        ElasticsearchLogbookIndexManager indexManager) throws LogbookException {
+    public LogbookElasticsearchAccess create(
+        LogbookConfiguration configuration,
+        ElasticsearchLogbookIndexManager indexManager
+    ) throws LogbookException {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         try {
-            return new LogbookElasticsearchAccess(configuration.getClusterName(),
-                configuration.getElasticsearchNodes(), indexManager);
+            return new LogbookElasticsearchAccess(
+                configuration.getClusterName(),
+                configuration.getElasticsearchNodes(),
+                indexManager
+            );
         } catch (final VitamException e) {
             throw new LogbookException(e);
         }

@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
-import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -69,13 +68,16 @@ public class BusinessApplicationTest extends Application {
         SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
         SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
-        final CollectExternalResource collectExternalResource =
-            new CollectExternalResource(secureEndpointRegistry);
+        final CollectExternalResource collectExternalResource = new CollectExternalResource(secureEndpointRegistry);
         final TransactionExternalResource transactionExternalResource = new TransactionExternalResource(
-            collectInternalClientFactory, ingestExternalClientFactory, null);
+            collectInternalClientFactory,
+            ingestExternalClientFactory,
+            null
+        );
 
-        final ProjectExternalResource projectExternalResource =
-            new ProjectExternalResource(collectInternalClientFactory);
+        final ProjectExternalResource projectExternalResource = new ProjectExternalResource(
+            collectInternalClientFactory
+        );
         singletons = new HashSet<>();
         singletons.addAll(commonBusinessApplication.getResources());
         singletons.add(collectExternalResource);

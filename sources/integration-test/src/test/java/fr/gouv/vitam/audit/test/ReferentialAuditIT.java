@@ -72,15 +72,12 @@ public class ReferentialAuditIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ReferentialAuditIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                AdminManagementMain.class,
-                WorkspaceMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ReferentialAuditIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(AdminManagementMain.class, WorkspaceMain.class, StorageMain.class, DefaultOfferMain.class)
+    );
 
     @Test
     @RunWithCustomExecutor
@@ -88,10 +85,8 @@ public class ReferentialAuditIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // import profil
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-            JsonNode profilesJsonNode =
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROFILE_FILE));
-            List<ProfileModel> listProfiles = JsonHandler.getFromJsonNode(profilesJsonNode, new TypeReference<>() {
-            });
+            JsonNode profilesJsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROFILE_FILE));
+            List<ProfileModel> listProfiles = JsonHandler.getFromJsonNode(profilesJsonNode, new TypeReference<>() {});
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
             adminManagementClient.createProfiles(listProfiles);
         } catch (FileNotFoundException | ReferentialException | InvalidParseOperationException e) {
@@ -100,11 +95,16 @@ public class ReferentialAuditIT extends VitamRuleRunner {
         // launch audit
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
-            adminManagementClient
-                .launchReferentialAudit(new AuditReferentialOptions(FunctionalAdminCollections.PROFILE.name()));
+            adminManagementClient.launchReferentialAudit(
+                new AuditReferentialOptions(FunctionalAdminCollections.PROFILE.name())
+            );
         } catch (AdminManagementClientServerException e) {
-            fail(String.format("Error on running audit on admin collection %s",
-                FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name()));
+            fail(
+                String.format(
+                    "Error on running audit on admin collection %s",
+                    FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name()
+                )
+            );
         }
     }
 
@@ -113,11 +113,11 @@ public class ReferentialAuditIT extends VitamRuleRunner {
     public void should_run_audit_on_AUP() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-            JsonNode profilesJsonNode =
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AUP_FILE));
-            List<ArchiveUnitProfileModel> archiveUnitProfiles =
-                JsonHandler.getFromJsonNode(profilesJsonNode, new TypeReference<>() {
-                });
+            JsonNode profilesJsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AUP_FILE));
+            List<ArchiveUnitProfileModel> archiveUnitProfiles = JsonHandler.getFromJsonNode(
+                profilesJsonNode,
+                new TypeReference<>() {}
+            );
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
             adminManagementClient.createArchiveUnitProfiles(archiveUnitProfiles);
         } catch (FileNotFoundException | ReferentialException | InvalidParseOperationException e) {
@@ -126,10 +126,15 @@ public class ReferentialAuditIT extends VitamRuleRunner {
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
             adminManagementClient.launchReferentialAudit(
-                new AuditReferentialOptions(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name()));
+                new AuditReferentialOptions(FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name())
+            );
         } catch (AdminManagementClientServerException e) {
-            fail(String.format("Error on running audit on admin collection %s",
-                FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name()));
+            fail(
+                String.format(
+                    "Error on running audit on admin collection %s",
+                    FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name()
+                )
+            );
         }
     }
 

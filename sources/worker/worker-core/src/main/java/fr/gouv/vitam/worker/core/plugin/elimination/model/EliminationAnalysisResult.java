@@ -52,10 +52,13 @@ public class EliminationAnalysisResult {
         // Empty constructor for deserialization
     }
 
-    public EliminationAnalysisResult(String operationId,
-        EliminationGlobalStatus globalStatus, Set<String> destroyableOriginatingAgencies,
+    public EliminationAnalysisResult(
+        String operationId,
+        EliminationGlobalStatus globalStatus,
+        Set<String> destroyableOriginatingAgencies,
         Set<String> nonDestroyableOriginatingAgencies,
-        List<EliminationExtendedInfo> extendedInfo) {
+        List<EliminationExtendedInfo> extendedInfo
+    ) {
         this.operationId = operationId;
         this.globalStatus = globalStatus;
         this.destroyableOriginatingAgencies = destroyableOriginatingAgencies;

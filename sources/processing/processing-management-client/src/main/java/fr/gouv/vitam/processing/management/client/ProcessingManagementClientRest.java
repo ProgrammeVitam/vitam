@@ -72,6 +72,7 @@ import static javax.ws.rs.core.Response.Status.fromStatusCode;
  * Processing Management Client
  */
 class ProcessingManagementClientRest extends DefaultClient implements ProcessingManagementClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
 
     private static final String ERR_CONTAINER_IS_MANDATORY = "Container is mandatory";
@@ -111,18 +112,21 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withJson();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-        } catch (VitamClientInternalException | ForbiddenClientException | ConflictClientException | AccessUnauthorizedException e) {
+        } catch (
+            VitamClientInternalException
+            | ForbiddenClientException
+            | ConflictClientException
+            | AccessUnauthorizedException e
+        ) {
             throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         } catch (PreconditionFailedClientException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
         }
     }
 
-
     @Override
     public RequestResponse<ItemStatus> executeOperationProcess(String operationId, String workflowId, String actionId)
         throws InternalServerException, VitamClientException {
-
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
         ParametersChecker.checkParameter("workflow is a mandatory parameter", workflowId);
@@ -136,7 +140,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ConflictClientException | WorkflowNotFoundException | PreconditionFailedClientException | BadRequestException | ForbiddenClientException e) {
+        } catch (
+            ConflictClientException
+            | WorkflowNotFoundException
+            | PreconditionFailedClientException
+            | BadRequestException
+            | ForbiddenClientException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -153,7 +163,13 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException | PreconditionFailedClientException e) {
+        } catch (
+            ForbiddenClientException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | ConflictClientException
+            | PreconditionFailedClientException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -162,9 +178,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     public ItemStatus getOperationProcessStatus(String operationId)
         throws InternalServerException, BadRequestException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        VitamRequestBuilder request = head()
-            .withPath(OPERATION_URI + "/" + operationId)
-            .withJsonAccept();
+        VitamRequestBuilder request = head().withPath(OPERATION_URI + "/" + operationId).withJsonAccept();
         Response response = null;
         try {
             response = make(request);
@@ -178,7 +192,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
                 response.close();
             }
-
         }
     }
 
@@ -193,13 +206,17 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id)
         throws InternalServerException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        VitamRequestBuilder request = get()
-            .withPath(OPERATION_URI + "/" + id)
-            .withJsonAccept();
+        VitamRequestBuilder request = get().withPath(OPERATION_URI + "/" + id).withJsonAccept();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException | PreconditionFailedClientException e) {
+        } catch (
+            ForbiddenClientException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | ConflictClientException
+            | PreconditionFailedClientException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -208,13 +225,17 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id)
         throws InternalServerException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        VitamRequestBuilder request = delete()
-            .withPath(OPERATION_URI + "/" + id)
-            .withJsonAccept();
+        VitamRequestBuilder request = delete().withPath(OPERATION_URI + "/" + id).withJsonAccept();
         try (Response response = make((request))) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
-        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException | PreconditionFailedClientException e) {
+        } catch (
+            ForbiddenClientException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | ConflictClientException
+            | PreconditionFailedClientException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
@@ -232,15 +253,26 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withJson();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-        } catch (final VitamClientInternalException | AccessUnauthorizedException | ConflictClientException |
-            WorkflowNotFoundException | PreconditionFailedClientException | ForbiddenClientException e) {
+        } catch (
+            final VitamClientInternalException
+            | AccessUnauthorizedException
+            | ConflictClientException
+            | WorkflowNotFoundException
+            | PreconditionFailedClientException
+            | ForbiddenClientException e
+        ) {
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
         } catch (BadRequestException e) {
             throw new ProcessingBadRequestException(BAD_REQUEST_EXCEPTION, e);
         } catch (InternalServerException e) {
             throw new VitamClientInternalException(
-                "Internal error while trying to register worker : family (" + familyId + "), workerId (" +
-                    workerId + "", e);
+                "Internal error while trying to register worker : family (" +
+                familyId +
+                "), workerId (" +
+                workerId +
+                "",
+                e
+            );
         }
     }
 
@@ -253,8 +285,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             .withJsonAccept();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
-        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException |
-            PreconditionFailedClientException | AccessUnauthorizedException | InternalServerException e) {
+        } catch (
+            ForbiddenClientException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | ConflictClientException
+            | PreconditionFailedClientException
+            | AccessUnauthorizedException
+            | InternalServerException e
+        ) {
             throw new ProcessingBadRequestException(e);
         } catch (final VitamClientInternalException e) {
             throw new ProcessingBadRequestException(INTERNAL_SERVER_ERROR.getReasonPhrase(), e);
@@ -263,43 +302,54 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException {
-        VitamRequestBuilder request = get()
-            .withPath(OPERATION_URI)
-            .withBody(query)
-            .withJson();
+        VitamRequestBuilder request = get().withPath(OPERATION_URI).withBody(query).withJson();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
-        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException |
-            PreconditionFailedClientException | InternalServerException e) {
+        } catch (
+            ForbiddenClientException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | ConflictClientException
+            | PreconditionFailedClientException
+            | InternalServerException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
 
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions() throws VitamClientException {
-        VitamRequestBuilder request = get()
-            .withPath(WORKFLOWS_URI)
-            .withJsonAccept();
+        VitamRequestBuilder request = get().withPath(WORKFLOWS_URI).withJsonAccept();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);
-        } catch (ForbiddenClientException | WorkflowNotFoundException | BadRequestException | ConflictClientException |
-            PreconditionFailedClientException | IllegalStateException | InternalServerException e) {
+        } catch (
+            ForbiddenClientException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | ConflictClientException
+            | PreconditionFailedClientException
+            | IllegalStateException
+            | InternalServerException e
+        ) {
             throw new VitamClientInternalException(e);
         }
     }
 
     @Override
     public Optional<WorkFlow> getWorkflowDetails(String workflowIdentifier) throws VitamClientException {
-        VitamRequestBuilder request = get()
-            .withPath(WORKFLOWS_URI + "/" + workflowIdentifier)
-            .withJsonAccept();
+        VitamRequestBuilder request = get().withPath(WORKFLOWS_URI + "/" + workflowIdentifier).withJsonAccept();
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return Optional.of(response.readEntity(WorkFlow.class));
-        } catch (ForbiddenClientException | BadRequestException | PreconditionFailedClientException |
-            InternalServerException | ConflictClientException e) {
+        } catch (
+            ForbiddenClientException
+            | BadRequestException
+            | PreconditionFailedClientException
+            | InternalServerException
+            | ConflictClientException e
+        ) {
             throw new VitamClientInternalException(e);
         } catch (WorkflowNotFoundException e) {
             return Optional.empty();
@@ -308,40 +358,48 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     public RequestResponse<ProcessPause> forcePause(ProcessPause info) throws ProcessingException {
-        VitamRequestBuilder request = post()
-            .withPath(FORCE_PAUSE_URI)
-            .withBody(info)
-            .withJson();
+        VitamRequestBuilder request = post().withPath(FORCE_PAUSE_URI).withBody(info).withJson();
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
-        } catch (VitamClientInternalException | WorkflowNotFoundException | BadRequestException | AccessUnauthorizedException |
-            ForbiddenClientException | ConflictClientException | PreconditionFailedClientException | InternalServerException e) {
+        } catch (
+            VitamClientInternalException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | AccessUnauthorizedException
+            | ForbiddenClientException
+            | ConflictClientException
+            | PreconditionFailedClientException
+            | InternalServerException e
+        ) {
             throw new ProcessingException(e);
         }
     }
 
     @Override
     public RequestResponse<ProcessPause> removeForcePause(ProcessPause info) throws ProcessingException {
-        VitamRequestBuilder request = post()
-            .withPath(REMOVE_FORCE_PAUSE_URI)
-            .withBody(info)
-            .withJson();
+        VitamRequestBuilder request = post().withPath(REMOVE_FORCE_PAUSE_URI).withBody(info).withJson();
 
         try (Response response = make(request)) {
             checkWithSpecificException(response);
             return RequestResponse.parseFromResponse(response, ProcessPause.class);
-        } catch (VitamClientInternalException | WorkflowNotFoundException | BadRequestException | AccessUnauthorizedException |
-            ForbiddenClientException | ConflictClientException | PreconditionFailedClientException | InternalServerException e) {
+        } catch (
+            VitamClientInternalException
+            | WorkflowNotFoundException
+            | BadRequestException
+            | AccessUnauthorizedException
+            | ForbiddenClientException
+            | ConflictClientException
+            | PreconditionFailedClientException
+            | InternalServerException e
+        ) {
             throw new ProcessingException(e.getMessage(), e);
         }
     }
 
     private void checkWithSpecificException(Response response)
-        throws WorkflowNotFoundException, BadRequestException, AccessUnauthorizedException, ForbiddenClientException,
-        ConflictClientException, VitamClientInternalException, PreconditionFailedClientException,
-        InternalServerException {
+        throws WorkflowNotFoundException, BadRequestException, AccessUnauthorizedException, ForbiddenClientException, ConflictClientException, VitamClientInternalException, PreconditionFailedClientException, InternalServerException {
         final Status status = fromStatusCode(response.getStatus());
 
         if (SUCCESSFUL.equals(status.getFamily())) {
@@ -352,13 +410,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             case NOT_FOUND:
                 throw new WorkflowNotFoundException(status.getReasonPhrase());
             case BAD_REQUEST:
-                String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                String reason = (response.hasEntity())
+                    ? response.readEntity(String.class)
                     : Response.Status.BAD_REQUEST.getReasonPhrase();
                 throw new BadRequestException(reason);
             case UNAUTHORIZED:
                 throw new AccessUnauthorizedException("Contract not found ");
             case FORBIDDEN:
-                reason = (response.hasEntity()) ? response.readEntity(String.class)
+                reason = (response.hasEntity())
+                    ? response.readEntity(String.class)
                     : Response.Status.BAD_REQUEST.getReasonPhrase();
                 throw new ForbiddenClientException(reason);
             case PRECONDITION_FAILED:
@@ -369,11 +429,12 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
                 throw new InternalServerException(INTERNAL_SERVER_ERROR.getReasonPhrase());
             default:
                 throw new VitamClientInternalException(
-                    String.format("Error with the response, get status: '%d' and reason '%s'.", status,
-                        status.getReasonPhrase()));
+                    String.format(
+                        "Error with the response, get status: '%d' and reason '%s'.",
+                        status,
+                        status.getReasonPhrase()
+                    )
+                );
         }
-
     }
-
-
 }

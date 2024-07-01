@@ -65,6 +65,4 @@ public class MissingAccessContractIdException extends VitamException {
     public MissingAccessContractIdException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }
-

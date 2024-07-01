@@ -46,39 +46,47 @@ public class ElasticsearchFunctionalAdminIndexManager {
 
     private final Map<FunctionalAdminCollections, ElasticsearchIndexSettings> elasticsearchIndexSettingsMap;
 
-    public ElasticsearchFunctionalAdminIndexManager(
-        AdminManagementConfiguration configuration) {
-
+    public ElasticsearchFunctionalAdminIndexManager(AdminManagementConfiguration configuration) {
         FunctionalAdminIndexationConfiguration indexationConfiguration = configuration.getIndexationConfiguration();
 
-        Map<FunctionalAdminCollections, CollectionConfiguration> collectionConfigurationMap =
-            Arrays.stream(FunctionalAdminCollections.values())
-                .collect(Collectors.toMap(
-                    functionalAdminCollection -> functionalAdminCollection,
-                    functionalAdminCollection -> new CollectionConfiguration()
+        Map<FunctionalAdminCollections, CollectionConfiguration> collectionConfigurationMap = Arrays.stream(
+            FunctionalAdminCollections.values()
+        ).collect(
+            Collectors.toMap(
+                functionalAdminCollection -> functionalAdminCollection,
+                functionalAdminCollection ->
+                    new CollectionConfiguration()
                         .setNumberOfShards(
                             indexationConfiguration.getCollectionConfiguration(functionalAdminCollection) != null &&
-                                indexationConfiguration.getCollectionConfiguration(functionalAdminCollection)
-                                    .getNumberOfShards() != null ?
-                                indexationConfiguration.getCollectionConfiguration(functionalAdminCollection)
-                                    .getNumberOfShards() :
-                                indexationConfiguration.getDefaultConfiguration().getNumberOfShards()
+                                indexationConfiguration
+                                        .getCollectionConfiguration(functionalAdminCollection)
+                                        .getNumberOfShards() !=
+                                    null
+                                ? indexationConfiguration
+                                    .getCollectionConfiguration(functionalAdminCollection)
+                                    .getNumberOfShards()
+                                : indexationConfiguration.getDefaultConfiguration().getNumberOfShards()
                         )
                         .setNumberOfReplicas(
                             indexationConfiguration.getCollectionConfiguration(functionalAdminCollection) != null &&
-                                indexationConfiguration.getCollectionConfiguration(functionalAdminCollection)
-                                    .getNumberOfReplicas() != null ?
-                                indexationConfiguration.getCollectionConfiguration(functionalAdminCollection)
-                                    .getNumberOfReplicas() :
-                                indexationConfiguration.getDefaultConfiguration().getNumberOfReplicas()
+                                indexationConfiguration
+                                        .getCollectionConfiguration(functionalAdminCollection)
+                                        .getNumberOfReplicas() !=
+                                    null
+                                ? indexationConfiguration
+                                    .getCollectionConfiguration(functionalAdminCollection)
+                                    .getNumberOfReplicas()
+                                : indexationConfiguration.getDefaultConfiguration().getNumberOfReplicas()
                         )
-                ));
+            )
+        );
 
         this.elasticsearchIndexSettingsMap = buildElasticsearchIndexSettingsMap(collectionConfigurationMap);
     }
 
     private static Map<FunctionalAdminCollections, ElasticsearchIndexSettings> buildElasticsearchIndexSettingsMap(
-        Map<FunctionalAdminCollections, CollectionConfiguration> collectionConfigurationMap) {
+        Map<FunctionalAdminCollections, CollectionConfiguration> collectionConfigurationMap
+    ) {
         Map<FunctionalAdminCollections, ElasticsearchIndexSettings> elasticsearchIndexSettingsMap = new HashMap<>();
         for (FunctionalAdminCollections functionalAdminCollection : FunctionalAdminCollections.values()) {
             if (functionalAdminCollection == FunctionalAdminCollections.VITAM_SEQUENCE) {
@@ -95,7 +103,7 @@ public class ElasticsearchFunctionalAdminIndexManager {
     }
 
     public ElasticsearchIndexAliasResolver getElasticsearchIndexAliasResolver(FunctionalAdminCollections collection) {
-        return (tenant) -> ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getVitamCollection().getName());
+        return tenant -> ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getVitamCollection().getName());
     }
 
     public ElasticsearchIndexSettings getElasticsearchIndexSettings(FunctionalAdminCollections collection) {
@@ -105,8 +113,9 @@ public class ElasticsearchFunctionalAdminIndexManager {
     private static Supplier<String> getMappingLoader(FunctionalAdminCollections collection) {
         return () -> {
             try {
-                return ElasticsearchUtil
-                    .transferJsonToMapping(collection.getElasticsearchCollection().getMappingAsInputStream());
+                return ElasticsearchUtil.transferJsonToMapping(
+                    collection.getElasticsearchCollection().getMappingAsInputStream()
+                );
             } catch (IOException e) {
                 throw new VitamFatalRuntimeException("Could not load mapping file for collection " + collection);
             }

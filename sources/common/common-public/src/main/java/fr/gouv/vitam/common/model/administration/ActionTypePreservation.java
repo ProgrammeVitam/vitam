@@ -32,5 +32,5 @@ public enum ActionTypePreservation {
     IDENTIFY,
     ANALYSE,
     EXTRACT,
-    EXTRACT_AU
+    EXTRACT_AU,
 }

@@ -79,11 +79,11 @@ public class StoreContextBuilder {
      * @return ContentAddressableStorage : by default fileSystem or
      * openstack-swift if it is configured
      */
-    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration,
-        MongoDatabase mongoDatabase)
-        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException,
-        IllegalPathException {
-
+    public static ContentAddressableStorage newStoreContext(
+        StorageConfiguration configuration,
+        MongoDatabase mongoDatabase
+    )
+        throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException, IllegalPathException {
         if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             // TODO: keep keystone V1 authent ? No openstack4j keystone V1 authentication implementation, so we have
             // to keep jcloud or anything else
@@ -106,7 +106,5 @@ public class StoreContextBuilder {
             // by default file system
             return new FileSystem(configuration);
         }
-
     }
-
 }

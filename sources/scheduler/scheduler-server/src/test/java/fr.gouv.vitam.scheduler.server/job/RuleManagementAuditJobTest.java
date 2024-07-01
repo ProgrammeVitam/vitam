@@ -67,8 +67,9 @@ public class RuleManagementAuditJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -92,14 +93,15 @@ public class RuleManagementAuditJobTest {
     @Test
     @RunWithCustomExecutor
     public void testRuleAuditOKThenSuccess() throws Exception {
-
         // Given
         AtomicInteger tenantId = new AtomicInteger();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
             tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
             return new RequestResponseOK<JsonNode>();
-        }).when(adminManagementClient).launchRuleAudit(any());
+        })
+            .when(adminManagementClient)
+            .launchRuleAudit(any());
 
         // When
         ruleManagementAuditJob.execute(context);
@@ -114,14 +116,11 @@ public class RuleManagementAuditJobTest {
     @Test
     @RunWithCustomExecutor
     public void testRuleAuditKOThenException() throws Exception {
-
         // Given
-        doThrow(new AdminManagementClientServerException("prb"))
-            .when(adminManagementClient).launchRuleAudit(any());
+        doThrow(new AdminManagementClientServerException("prb")).when(adminManagementClient).launchRuleAudit(any());
 
         // When / Then
-        assertThatThrownBy(() -> ruleManagementAuditJob.execute(context))
-            .isInstanceOf(JobExecutionException.class);
+        assertThatThrownBy(() -> ruleManagementAuditJob.execute(context)).isInstanceOf(JobExecutionException.class);
         verify(adminManagementClient).launchRuleAudit(any());
     }
 }

@@ -62,18 +62,30 @@ public class ProcessWorkFlowsCleaner implements Runnable {
     private final ProcessDataManagement processDataManagement;
 
     public ProcessWorkFlowsCleaner(ProcessManagement processManagement, TimeUnit timeunit) {
-        this(processManagement, WorkspaceProcessDataManagement.getInstance(),
-            WorkspaceClientFactory.getInstance(), timeunit);
+        this(
+            processManagement,
+            WorkspaceProcessDataManagement.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            timeunit
+        );
     }
 
     @VisibleForTesting
-    public ProcessWorkFlowsCleaner(ProcessManagement processManagement, ProcessDataManagement processDataManagement,
-        WorkspaceClientFactory workspaceClientFactory, TimeUnit timeunit) {
+    public ProcessWorkFlowsCleaner(
+        ProcessManagement processManagement,
+        ProcessDataManagement processDataManagement,
+        WorkspaceClientFactory workspaceClientFactory,
+        TimeUnit timeunit
+    ) {
         this.processManagement = processManagement;
         this.processDataManagement = processDataManagement;
         this.workspaceClientFactory = workspaceClientFactory;
-        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
-            .scheduleAtFixedRate(this, period, period, timeunit);
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(
+            this,
+            period,
+            period,
+            timeunit
+        );
     }
 
     @Override
@@ -103,9 +115,10 @@ public class ProcessWorkFlowsCleaner implements Runnable {
             if (isCleanable(element.getValue())) {
                 try {
                     processDataManagement.removeOperationContainer(element.getValue(), workspaceClientFactory);
-                    processDataManagement
-                        .removeProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
-                            element.getKey());
+                    processDataManagement.removeProcessWorkflow(
+                        VitamConfiguration.getWorkspaceWorkflowsFolder(),
+                        element.getKey()
+                    );
 
                     // remove from workFlowList
                     map.remove(element.getKey());
@@ -113,8 +126,12 @@ public class ProcessWorkFlowsCleaner implements Runnable {
                     // remove from state machine
                     processManagement.getProcessMonitorList().remove(element.getKey());
                 } catch (ProcessingStorageWorkspaceException e) {
-                    LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}",
-                        VitamConfiguration.getWorkspaceWorkflowsFolder(), element.getKey(), e);
+                    LOGGER.error(
+                        "cannot delete workflow file for serverID {} and asyncID {}",
+                        VitamConfiguration.getWorkspaceWorkflowsFolder(),
+                        element.getKey(),
+                        e
+                    );
                 }
             }
         }
@@ -122,9 +139,10 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     // Check if the workflow is cleanable
     private boolean isCleanable(ProcessWorkflow workflow) {
-        return workflow.getState().equals(ProcessState.COMPLETED)
-            && workflow.getProcessCompletedDate() != null &&
-            workflow.getProcessCompletedDate().isBefore(timeLimit);
+        return (
+            workflow.getState().equals(ProcessState.COMPLETED) &&
+            workflow.getProcessCompletedDate() != null &&
+            workflow.getProcessCompletedDate().isBefore(timeLimit)
+        );
     }
-
 }

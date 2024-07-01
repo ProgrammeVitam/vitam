@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  */
 public class IngestResponseTest {
+
     private final String cause = "cause";
     private final String message = "message";
     private final String containerGuid = "containerGuid";
@@ -67,10 +68,17 @@ public class IngestResponseTest {
     public void givenIngestResponseNotNull_whenInstantiateWithAttributes_thenReturnTrue() {
         final IngestResponse ingestResponse = new IngestResponse();
 
-        ingestResponse.setCause(cause).setMessage(message).setContainerGuid(containerGuid).setSedaGuid(sedaGuid)
-            .setErrorOccured(errorOccured).setNumberOfNumericalObject(numberOfNumericalObject)
-            .setNumericalObject(numberOfNumericalObject).setNumberOfElements(numberOfElements)
-            .setGuidNumObjList(guidNumObjList).addGuidNumericObject(sedaGuid);
+        ingestResponse
+            .setCause(cause)
+            .setMessage(message)
+            .setContainerGuid(containerGuid)
+            .setSedaGuid(sedaGuid)
+            .setErrorOccured(errorOccured)
+            .setNumberOfNumericalObject(numberOfNumericalObject)
+            .setNumericalObject(numberOfNumericalObject)
+            .setNumberOfElements(numberOfElements)
+            .setGuidNumObjList(guidNumObjList)
+            .addGuidNumericObject(sedaGuid);
 
         assertThat(ingestResponse.getCause()).isEqualTo(cause);
         assertThat(ingestResponse.getContainerGuid()).isEqualTo(containerGuid);

@@ -51,13 +51,15 @@ public final class LogbookMongoDbAccessFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static LogbookMongoDbAccessImpl create(LogbookConfiguration configuration, OntologyLoader ontologyLoader,
-        ElasticsearchLogbookIndexManager indexManager) {
+    public static LogbookMongoDbAccessImpl create(
+        LogbookConfiguration configuration,
+        OntologyLoader ontologyLoader,
+        ElasticsearchLogbookIndexManager indexManager
+    ) {
         ParametersChecker.checkParameter("configuration", configuration);
         LogbookElasticsearchAccess esClient;
         try {
             esClient = new LogbookElasticsearchAccessFactory().create(configuration, indexManager);
-
         } catch (final LogbookException e1) {
             throw new IllegalArgumentException(e1);
         }

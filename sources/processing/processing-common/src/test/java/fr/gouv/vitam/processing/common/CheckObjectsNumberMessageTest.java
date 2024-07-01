@@ -34,6 +34,7 @@ import static org.junit.Assert.assertEquals;
  * Check ObjectsNumber Message Test
  */
 public class CheckObjectsNumberMessageTest {
+
     private static final String COUNT_DIGITAL_OBJECT_CONSISTENT = "Conformité du nombre d'objets numériques";
     private static final String DUPLICATED_DIGITAL_OBJECT_WORKSPACE = "Objet numérique dupliqué trouvé dans le SIP: ";
     private static final String LIST_OF_UNDECLARED_DIGITAL_OBJECT = "Liste des objets numériques non déclarés: ";
@@ -47,25 +48,35 @@ public class CheckObjectsNumberMessageTest {
 
     @Test
     public void testCheckObjectsNumberMessage() {
-        assertEquals(COUNT_DIGITAL_OBJECT_CONSISTENT,
-            CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_CONSISTENT.getMessage());
-        assertEquals(DUPLICATED_DIGITAL_OBJECT_WORKSPACE,
-            CheckObjectsNumberMessage.DUPLICATED_DIGITAL_OBJECT_WORKSPACE.getMessage());
-        assertEquals(LIST_OF_UNDECLARED_DIGITAL_OBJECT,
-            CheckObjectsNumberMessage.LIST_OF_UNDECLARED_DIGITAL_OBJECT.getMessage());
+        assertEquals(
+            COUNT_DIGITAL_OBJECT_CONSISTENT,
+            CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_CONSISTENT.getMessage()
+        );
+        assertEquals(
+            DUPLICATED_DIGITAL_OBJECT_WORKSPACE,
+            CheckObjectsNumberMessage.DUPLICATED_DIGITAL_OBJECT_WORKSPACE.getMessage()
+        );
+        assertEquals(
+            LIST_OF_UNDECLARED_DIGITAL_OBJECT,
+            CheckObjectsNumberMessage.LIST_OF_UNDECLARED_DIGITAL_OBJECT.getMessage()
+        );
         assertEquals(COUNT_DIGITAL_OBJECT_SIP, CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_SIP.getMessage());
-        assertEquals(COUNT_DIGITAL_OBJECT_MANIFEST,
-            CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage());
-        assertEquals(NOT_FOUND_DIGITAL_OBJECT_MANIFEST,
-            CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage());
-        assertEquals(NOT_FOUND_DIGITAL_OBJECT_WORKSPACE,
-            CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage());
-
+        assertEquals(
+            COUNT_DIGITAL_OBJECT_MANIFEST,
+            CheckObjectsNumberMessage.COUNT_DIGITAL_OBJECT_MANIFEST.getMessage()
+        );
+        assertEquals(
+            NOT_FOUND_DIGITAL_OBJECT_MANIFEST,
+            CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_MANIFEST.getMessage()
+        );
+        assertEquals(
+            NOT_FOUND_DIGITAL_OBJECT_WORKSPACE,
+            CheckObjectsNumberMessage.NOT_FOUND_DIGITAL_OBJECT_WORKSPACE.getMessage()
+        );
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void valueOfCheckObjectsNumberError() {
         CheckObjectsNumberMessage.valueOf("test");
     }
-
 }

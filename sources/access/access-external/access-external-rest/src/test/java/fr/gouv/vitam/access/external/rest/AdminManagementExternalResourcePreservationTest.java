@@ -61,12 +61,23 @@ public class AdminManagementExternalResourcePreservationTest {
 
     public @Rule MockitoRule mockitoJUnit = MockitoJUnit.rule();
 
-    @Mock private AdminManagementClientFactory managementClientFactory;
-    @Mock private IngestInternalClientFactory ingestInternalClientFactory;
-    @Mock private AccessInternalClientFactory accessInternalClientFactory;
-    @Mock private AdminManagementClient adminManagementClient;
-    @Mock private IngestInternalClient ingestInternalClient;
-    @Mock private AccessInternalClient accessInternalClient;
+    @Mock
+    private AdminManagementClientFactory managementClientFactory;
+
+    @Mock
+    private IngestInternalClientFactory ingestInternalClientFactory;
+
+    @Mock
+    private AccessInternalClientFactory accessInternalClientFactory;
+
+    @Mock
+    private AdminManagementClient adminManagementClient;
+
+    @Mock
+    private IngestInternalClient ingestInternalClient;
+
+    @Mock
+    private AccessInternalClient accessInternalClient;
 
     private AdminManagementExternalResource externalResource;
 
@@ -78,8 +89,13 @@ public class AdminManagementExternalResourcePreservationTest {
 
         SecureEndpointRegistry registry = mock(SecureEndpointRegistry.class);
         VitamStatusService statusService = mock(VitamStatusService.class);
-        externalResource = new AdminManagementExternalResource(statusService, registry, managementClientFactory,
-            ingestInternalClientFactory, accessInternalClientFactory);
+        externalResource = new AdminManagementExternalResource(
+            statusService,
+            registry,
+            managementClientFactory,
+            ingestInternalClientFactory,
+            accessInternalClientFactory
+        );
     }
 
     @Test
@@ -118,8 +134,9 @@ public class AdminManagementExternalResourcePreservationTest {
     public void shouldImportPreservationScenario()
         throws AdminManagementClientServerException, InvalidParseOperationException {
         //Given
-        when(adminManagementClient.importPreservationScenarios(any()))
-            .thenReturn(new RequestResponseOK().setHttpCode(200));
+        when(adminManagementClient.importPreservationScenarios(any())).thenReturn(
+            new RequestResponseOK().setHttpCode(200)
+        );
         //when
         Response response = externalResource.importPreservationScenario(getFromString("{\"test\":\"test\"}"));
         //then
@@ -132,13 +149,13 @@ public class AdminManagementExternalResourcePreservationTest {
     }
 
     @Test
-    public void shouldGetPreservationScenario()
-        throws Exception {
+    public void shouldGetPreservationScenario() throws Exception {
         //Given
         PreservationScenarioModel scenario = new PreservationScenarioModel();
         scenario.setName("preservation");
-        RequestResponse<PreservationScenarioModel> requestResponse =
-            new RequestResponseOK<PreservationScenarioModel>().addResult(scenario);
+        RequestResponse<PreservationScenarioModel> requestResponse = new RequestResponseOK<
+            PreservationScenarioModel
+        >().addResult(scenario);
 
         //when
         when(adminManagementClient.findPreservationByID("id")).thenReturn(requestResponse);

@@ -55,7 +55,6 @@ public enum ProcessAction {
      */
     START("start");
 
-
     private String value;
 
     /**
@@ -91,6 +90,4 @@ public enum ProcessAction {
         }
         return null;
     }
-
-
 }

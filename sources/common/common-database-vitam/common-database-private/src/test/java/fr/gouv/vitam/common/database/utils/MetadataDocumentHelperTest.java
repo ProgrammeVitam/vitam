@@ -112,5 +112,4 @@ public class MetadataDocumentHelperTest {
             MetadataDocumentHelper.getStrategyIdFromUnit(unitJson);
         }).isInstanceOf(IllegalArgumentException.class);
     }
-
 }

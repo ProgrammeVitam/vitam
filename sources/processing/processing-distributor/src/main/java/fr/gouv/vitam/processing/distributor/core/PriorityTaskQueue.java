@@ -81,14 +81,12 @@ public class PriorityTaskQueue<T> {
 
         lock.lock();
         try {
-
             while (regularQueue.size() == maxRegularQueueSize) {
                 notFullRegularQueue.await();
             }
 
             regularQueue.add(entry);
             notEmpty.signal();
-
         } finally {
             lock.unlock();
         }
@@ -104,10 +102,8 @@ public class PriorityTaskQueue<T> {
 
         lock.lock();
         try {
-
             priorityQueue.add(entry);
             notEmpty.signal();
-
         } finally {
             lock.unlock();
         }
@@ -122,7 +118,6 @@ public class PriorityTaskQueue<T> {
      * @throws InterruptedException if caller thread is interrupted
      */
     public T take() throws InterruptedException {
-
         lock.lock();
         try {
             while (priorityQueue.isEmpty() && regularQueue.isEmpty()) {
@@ -136,7 +131,6 @@ public class PriorityTaskQueue<T> {
             T result = regularQueue.remove();
             notFullRegularQueue.signal();
             return result;
-
         } finally {
             lock.unlock();
         }

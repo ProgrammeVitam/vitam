@@ -27,5 +27,5 @@
 package fr.gouv.vitam.worker.core.plugin.transfer.reply;
 
 public enum TransferReplyUnitStatus {
-    ALREADY_DELETED;
+    ALREADY_DELETED,
 }

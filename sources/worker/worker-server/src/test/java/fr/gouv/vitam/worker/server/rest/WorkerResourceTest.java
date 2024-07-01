@@ -79,7 +79,6 @@ public class WorkerResourceTest {
     private static final String WORKER_STATUS_URI = BasicClient.STATUS_URL;
     private static final String WORKER_STEP_URI = "/tasks";
 
-
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static File newWorkerConf;
@@ -91,7 +90,6 @@ public class WorkerResourceTest {
 
     private static final String WORKER_CONF = "worker-test.conf";
 
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         worker = Mockito.mock(WorkerImpl.class);
@@ -102,17 +100,20 @@ public class WorkerResourceTest {
         final File workerFile = PropertiesUtils.findFile(WORKER_CONF);
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(workerFile, WorkerConfiguration.class);
         // -1 to ignore register
-        realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")
-            .setRegisterDelay(1).setRegisterRetry(-1).setProcessingUrl("http://localhost:8888")
-            .setUrlMetadata("http://localhost:8888").setUrlWorkspace("http://localhost:8888");
+        realWorker
+            .setRegisterServerPort(serverPort)
+            .setRegisterServerHost("localhost")
+            .setRegisterDelay(1)
+            .setRegisterRetry(-1)
+            .setProcessingUrl("http://localhost:8888")
+            .setUrlMetadata("http://localhost:8888")
+            .setUrlWorkspace("http://localhost:8888");
 
         newWorkerConf = File.createTempFile("test", WORKER_CONF, workerFile.getParentFile());
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
 
-
         RestAssured.port = serverPort;
         RestAssured.basePath = WORKER_RESOURCE_URI;
-
 
         try {
             BusinessApplication.mock = worker;
@@ -121,8 +122,7 @@ public class WorkerResourceTest {
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Worker Application Server", e);
+            throw new IllegalStateException("Cannot start the Worker Application Server", e);
         }
     }
 
@@ -146,22 +146,29 @@ public class WorkerResourceTest {
 
     @Test
     public final void testSubmitEmptyStepThenBadRequest() {
-        given().contentType(ContentType.JSON).body("").when()
-            .post(WORKER_STEP_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body("")
+            .when()
+            .post(WORKER_STEP_URI)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testSubmitIncorrectStepThenBadRequest() {
         // since resteasy -> 500 is thrown
-        given().contentType(ContentType.JSON).body(BODY_TEST_NOT_JSON).when()
-            .post(WORKER_STEP_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(BODY_TEST_NOT_JSON)
+            .when()
+            .post(WORKER_STEP_URI)
+            .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
     public final void testSubmitStepOK() throws IOException, IllegalArgumentException, ProcessingException {
-
         final ItemStatus itemStatus = new ItemStatus("ID");
         itemStatus.setMessage("message");
         final StatusCode status = StatusCode.OK;
@@ -171,11 +178,15 @@ public class WorkerResourceTest {
 
         when(worker.run(any(), any())).thenReturn(responses);
 
-        final InputStream stream =
-            PropertiesUtils.getResourceAsStream("descriptionStep.json");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("descriptionStep.json");
         final String body = StreamUtils.toString(stream);
 
-        given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .post(WORKER_STEP_URI)
+            .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
@@ -184,11 +195,15 @@ public class WorkerResourceTest {
         Mockito.reset(worker);
         when(worker.run(any(), any())).thenThrow(new HandlerNotFoundException(""));
 
-        final InputStream stream =
-            PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
         final String body = StreamUtils.toString(stream);
 
-        given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .post(WORKER_STEP_URI)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -198,26 +213,31 @@ public class WorkerResourceTest {
         Mockito.reset(worker);
         when(worker.run(any(), any())).thenThrow(new ProcessingException(""));
 
-        final InputStream stream =
-            PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("descriptionStep_wrong_handler.json");
         final String body = StreamUtils.toString(stream);
 
-        given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .post(WORKER_STEP_URI)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testSubmitStepAsyncDataUnavailableOK()
         throws IOException, IllegalArgumentException, ProcessingException, InvalidParseOperationException {
-        Map<AccessRequestContext, List<String>> accessRequestIdByContext =
-            new TreeMap<>(Comparator.comparing(AccessRequestContext::getStrategyId).thenComparing(
-                (s1, s2) -> {
-                    return StringUtils.compare(s1.getOfferId(), s2.getOfferId());
-                }
-            ));
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext = new TreeMap<>(
+            Comparator.comparing(AccessRequestContext::getStrategyId).thenComparing((s1, s2) -> {
+                return StringUtils.compare(s1.getOfferId(), s2.getOfferId());
+            })
+        );
 
-        accessRequestIdByContext.put(new AccessRequestContext("strategyId", "offerId"),
-            List.of("AccessRequestId1", "AccessRequestId2"));
+        accessRequestIdByContext.put(
+            new AccessRequestContext("strategyId", "offerId"),
+            List.of("AccessRequestId1", "AccessRequestId2")
+        );
         accessRequestIdByContext.put(new AccessRequestContext("strategyId", null), List.of("AccessRequestId3"));
         ProcessingRetryAsyncException prae = new ProcessingRetryAsyncException(accessRequestIdByContext);
 
@@ -225,17 +245,21 @@ public class WorkerResourceTest {
 
         when(worker.run(any(), any())).thenThrow(prae);
 
-        final InputStream stream =
-            PropertiesUtils.getResourceAsStream("descriptionStep.json");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("descriptionStep.json");
         final String body = StreamUtils.toString(stream);
 
-        JsonNode responseBody = given().contentType(ContentType.JSON).body(body).when().post(WORKER_STEP_URI).then()
-            .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode()).extract().body()
+        JsonNode responseBody = given()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .when()
+            .post(WORKER_STEP_URI)
+            .then()
+            .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
+            .extract()
+            .body()
             .as(JsonNode.class);
 
-        List<WorkerAccessRequest> accessRequests =
-            JsonHandler.getFromJsonNode(responseBody, new TypeReference<>() {
-            });
+        List<WorkerAccessRequest> accessRequests = JsonHandler.getFromJsonNode(responseBody, new TypeReference<>() {});
         assertThat(accessRequests.size()).isEqualTo(3);
         assertThat(accessRequests.get(0).getStrategyId()).isEqualTo("strategyId");
         assertThat(accessRequests.get(0).getOfferId()).isEqualTo(null);
@@ -247,6 +271,4 @@ public class WorkerResourceTest {
         assertThat(accessRequests.get(2).getOfferId()).isEqualTo("offerId");
         assertThat(accessRequests.get(2).getAccessRequestId()).isEqualTo("AccessRequestId2");
     }
-
 }
-

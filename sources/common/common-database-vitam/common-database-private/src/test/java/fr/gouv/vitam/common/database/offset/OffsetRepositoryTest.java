@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffsetRepositoryTest {
 
-    private final static String COLLECTION_NAME = "Offset" + GUIDFactory.newGUID().getId();
+    private static final String COLLECTION_NAME = "Offset" + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), COLLECTION_NAME);
@@ -116,5 +116,4 @@ public class OffsetRepositoryTest {
         // Then
         assertThat(offset).isEqualTo(12);
     }
-
 }

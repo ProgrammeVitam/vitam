@@ -71,13 +71,13 @@ import java.util.Set;
  * Mock client implementation for metadata
  */
 public class MetaDataClientMock extends AbstractMockClient implements MetaDataClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientMock.class);
     public static final String STOP_USING_MOCKS_IN_PRODUCTION = "Stop using mocks in production";
 
     @Override
     public JsonNode insertUnitBulk(BulkUnitInsertRequest request)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         JsonNode jsonNode = ClientMockResultHelper.getMetaDataResult().toJsonNode();
         arrayNode.add(jsonNode);
@@ -86,8 +86,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public JsonNode selectUnits(JsonNode selectQuery)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         JsonNode res = null;
         try {
             res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json"));
@@ -99,12 +98,12 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public List<RequestResponseOK<JsonNode>> selectUnitsBulk(List<JsonNode> selectQueryBulk)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         List<RequestResponseOK<JsonNode>> res = null;
         try {
             RequestResponseOK<JsonNode> result = RequestResponseOK.getFromJsonNode(
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json")));
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json"))
+            );
             res = Collections.singletonList(result);
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
@@ -114,8 +113,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public JsonNode selectUnitbyId(JsonNode selectQuery, String unitId)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         JsonNode res = null;
         try {
             res = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("result.json"));
@@ -127,29 +125,25 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetadataInvalidSelectException, MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
     public JsonNode updateUnitById(JsonNode updateQuery, String unitId)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
     public JsonNode insertObjectGroup(JsonNode insertQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
     @Override
     public JsonNode insertObjectGroups(List<JsonNode> insertQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
@@ -167,8 +161,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public JsonNode selectObjectGroups(JsonNode selectQuery)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
@@ -245,21 +238,20 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
 
     @Override
     public RequestResponse<JsonNode> updateUnitBulk(JsonNode updateQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
     }
 
     @Override
     public RequestResponse<JsonNode> atomicUpdateBulk(List<JsonNode> updateQueries)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         RequestResponse<JsonNode> res = null;
         try {
             JsonNode result = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("resultUpdate.json"));
             List<JsonNode> nodeList = new ArrayList<JsonNode>();
             nodeList.add(result);
-            res = new RequestResponseOK<JsonNode>().addAllResults(nodeList)
+            res = new RequestResponseOK<JsonNode>()
+                .addAllResults(nodeList)
                 .setHttpCode(Response.Status.OK.getStatusCode());
         } catch (FileNotFoundException e) {
             LOGGER.error(e);
@@ -268,16 +260,21 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions,
-        Map<String, DurationData> rulesToDurationData)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(
+        List<String> unitsIds,
+        RuleActions actions,
+        Map<String, DurationData> rulesToDurationData
+    )
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult();
     }
 
     @Override
-    public void exportReclassificationChildNodes(Set<String> ids, String unitsToUpdateJsonLineFileName,
-        String objectGroupsToUpdateJsonLineFileName) {
+    public void exportReclassificationChildNodes(
+        Set<String> ids,
+        String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName
+    ) {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 

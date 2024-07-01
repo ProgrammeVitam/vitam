@@ -34,8 +34,7 @@ public class FileParams {
     @JsonProperty("size")
     private long size;
 
-    public FileParams() {
-    }
+    public FileParams() {}
 
     public FileParams(long size) {
         this.size = size;

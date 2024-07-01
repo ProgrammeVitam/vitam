@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-import fr.gouv.vitam.common.model.VitamConstants;
-
 /**
  * Enum StatusCode
  *
@@ -134,7 +132,6 @@ public enum OutcomeMessage {
      */
     STORAGE_OFFER_SPACE_OK("Succès de la vérification de la disponibilité de l’offre de stockage"),
 
-
     /**
      * KO logbook lifecycle
      */
@@ -223,8 +220,9 @@ public enum OutcomeMessage {
     /**
      * File format referentiel search error
      */
-    FILE_FORMAT_REFERENTIAL_ERROR("Une erreur est survenue lors de la recherche du format de fichier dans le " +
-        "réferentiel Vitam"),
+    FILE_FORMAT_REFERENTIAL_ERROR(
+        "Une erreur est survenue lors de la recherche du format de fichier dans le " + "réferentiel Vitam"
+    ),
 
     /**
      * File format object wrong file path
@@ -286,7 +284,6 @@ public enum OutcomeMessage {
      */
     ATR_OK("Notification envoyée");
 
-
     private String value;
 
     private OutcomeMessage(String value) {
@@ -301,5 +298,4 @@ public enum OutcomeMessage {
     public String value() {
         return value;
     }
-
 }

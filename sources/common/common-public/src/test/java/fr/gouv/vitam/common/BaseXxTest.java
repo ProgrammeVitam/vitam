@@ -62,7 +62,6 @@ public class BaseXxTest {
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void testFromBase16() throws IOException {
         BaseXx.getFromBase16(null);
@@ -131,5 +130,4 @@ public class BaseXxTest {
         assertNotNull(bytes);
         assertTrue(Arrays.equals(bytes, "VitamTest16".getBytes()));
     }
-
 }

@@ -94,8 +94,10 @@ public class FakeDriverImpl extends AbstractDriver {
     private final Map<String, FakeConnectionImpl> fakeConnection = new ConcurrentHashMap<>();
 
     @Override
-    protected VitamClientFactoryInterface<FakeConnectionImpl> addInternalOfferAsFactory(final StorageOffer offer,
-        final Properties parameters) {
+    protected VitamClientFactoryInterface<FakeConnectionImpl> addInternalOfferAsFactory(
+        final StorageOffer offer,
+        final Properties parameters
+    ) {
         return new VitamClientFactoryInterface<>() {
             private final StorageOffer offerf = offer;
 
@@ -145,8 +147,7 @@ public class FakeDriverImpl extends AbstractDriver {
             }
 
             @Override
-            public VitamClientFactoryInterface<?> setVitamClientType(
-                VitamClientType vitamClientType) {
+            public VitamClientFactoryInterface<?> setVitamClientType(VitamClientType vitamClientType) {
                 return null;
             }
 
@@ -169,7 +170,6 @@ public class FakeDriverImpl extends AbstractDriver {
             public void resume(Client client, boolean chunk) {
                 // Empty
             }
-
         };
     }
 
@@ -214,7 +214,6 @@ public class FakeDriverImpl extends AbstractDriver {
         R apply(T t) throws StorageDriverException;
     }
 
-
     public class FakeConnectionImpl extends AbstractConnection {
 
         private final String offerId;
@@ -225,18 +224,27 @@ public class FakeDriverImpl extends AbstractDriver {
             this.offerId = offerId;
 
             // Default getObjectFunction
-            getObjectFunction = (objectRequest) -> {
-                if (this.offerId.equals("myTapeOffer1") &&
-                    objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")) {
+            getObjectFunction = objectRequest -> {
+                if (
+                    this.offerId.equals("myTapeOffer1") &&
+                    objectRequest.getGuid().equals("MyUnavailableFromAsyncOfferObjectId")
+                ) {
                     throw new StorageDriverUnavailableDataFromAsyncOfferException("any", "msg");
                 }
 
                 MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
                 headers.add(VitamHttpHeader.X_CONTENT_LENGTH.getName(), "4");
-                return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(),
+                return new StorageGetResult(
+                    objectRequest.getTenantId(),
+                    objectRequest.getType(),
                     objectRequest.getGuid(),
-                    new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                        MediaType.APPLICATION_OCTET_STREAM_TYPE, headers));
+                    new AbstractMockClient.FakeInboundResponse(
+                        Status.OK,
+                        new ByteArrayInputStream("test".getBytes()),
+                        MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                        headers
+                    )
+                );
             };
         }
 
@@ -244,8 +252,7 @@ public class FakeDriverImpl extends AbstractDriver {
             return offerId;
         }
 
-        public void setGetObjectFunction(
-            ThrowableFunction<StorageObjectRequest, StorageGetResult> getObjectFunction) {
+        public void setGetObjectFunction(ThrowableFunction<StorageObjectRequest, StorageGetResult> getObjectFunction) {
             this.getObjectFunction = getObjectFunction;
         }
 
@@ -258,7 +265,6 @@ public class FakeDriverImpl extends AbstractDriver {
 
             return new StorageCapacityResult(tenantId, 1000000);
         }
-
 
         @Override
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
@@ -274,41 +280,55 @@ public class FakeDriverImpl extends AbstractDriver {
                 return "myAccessRequestId2";
             }
             throw new IllegalStateException(
-                "createAccessRequest should not be invoked with sync offer '" + this.offerId + "'");
+                "createAccessRequest should not be invoked with sync offer '" + this.offerId + "'"
+            );
         }
 
         @Override
-        public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds, int tenant,
-            boolean adminCrossTenantAccessRequestAllowed) {
+        public Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+            List<String> accessRequestIds,
+            int tenant,
+            boolean adminCrossTenantAccessRequestAllowed
+        ) {
             if (this.offerId.equals("myTapeOffer1")) {
-
                 if (!adminCrossTenantAccessRequestAllowed) {
                     throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to be set");
                 }
 
-                return accessRequestIds.stream().collect(Collectors.toMap(
-                    accessRequestId -> accessRequestId,
-                    accessRequestId -> AccessRequestStatus.READY
-                ));
+                return accessRequestIds
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            accessRequestId -> accessRequestId,
+                            accessRequestId -> AccessRequestStatus.READY
+                        )
+                    );
             }
             if (this.offerId.equals("myTapeOffer2")) {
-
                 if (adminCrossTenantAccessRequestAllowed) {
                     throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to not be set");
                 }
 
-                return accessRequestIds.stream().collect(Collectors.toMap(
-                    accessRequestId -> accessRequestId,
-                    accessRequestId -> AccessRequestStatus.NOT_READY
-                ));
+                return accessRequestIds
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            accessRequestId -> accessRequestId,
+                            accessRequestId -> AccessRequestStatus.NOT_READY
+                        )
+                    );
             }
             throw new IllegalStateException(
-                "checkAccessRequestStatuses should not be invoked with sync offer '" + this.offerId + "'");
+                "checkAccessRequestStatuses should not be invoked with sync offer '" + this.offerId + "'"
+            );
         }
 
         @Override
-        public void removeAccessRequest(String accessRequestId, int tenant,
-            boolean adminCrossTenantAccessRequestAllowed) {
+        public void removeAccessRequest(
+            String accessRequestId,
+            int tenant,
+            boolean adminCrossTenantAccessRequestAllowed
+        ) {
             if (!adminCrossTenantAccessRequestAllowed) {
                 throw new IllegalStateException("expected adminCrossTenantAccessRequestAllowed flag to be set");
             }
@@ -316,7 +336,8 @@ public class FakeDriverImpl extends AbstractDriver {
                 return;
             }
             throw new IllegalStateException(
-                "removeAccessRequest should not be invoked with sync offer '" + this.offerId + "'");
+                "removeAccessRequest should not be invoked with sync offer '" + this.offerId + "'"
+            );
         }
 
         @Override
@@ -328,15 +349,21 @@ public class FakeDriverImpl extends AbstractDriver {
                 return false;
             }
             throw new IllegalStateException(
-                "checkObjectAvailability should not be invoked with sync offer '" + this.offerId + "'");
+                "checkObjectAvailability should not be invoked with sync offer '" + this.offerId + "'"
+            );
         }
 
         @Override
         public StoragePutResult putObject(StoragePutRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
+                return new StoragePutResult(
+                    objectRequest.getTenantId(),
+                    objectRequest.getType(),
                     objectRequest.getGuid(),
-                    objectRequest.getGuid(), "different_digest_hash", 0);
+                    objectRequest.getGuid(),
+                    "different_digest_hash",
+                    0
+                );
             }
 
             if (("fail-offer-" + offerId).equals(objectRequest.getGuid())) {
@@ -352,9 +379,14 @@ public class FakeDriverImpl extends AbstractDriver {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
-                    return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
+                    return new StoragePutResult(
+                        objectRequest.getTenantId(),
+                        objectRequest.getType(),
                         objectRequest.getGuid(),
-                        objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)), bytes.length);
+                        objectRequest.getGuid(),
+                        BaseXx.getBase16(messageDigest.digest(bytes)),
+                        bytes.length
+                    );
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), "Digest or Storage Put in error", false, e);
                 }
@@ -368,10 +400,12 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) {
-
-            return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
-                objectRequest.getGuid(), true);
-
+            return new StorageRemoveResult(
+                objectRequest.getTenantId(),
+                objectRequest.getType(),
+                objectRequest.getGuid(),
+                true
+            );
         }
 
         @Override
@@ -382,13 +416,16 @@ public class FakeDriverImpl extends AbstractDriver {
         @Override
         public StorageMetadataResult getMetadatas(StorageGetMetadataRequest request) {
             return new StorageMetadataResult(
-                new StorageMetadataResult(request.getGuid(), request.getType(), "digest", 1234L, "now", "now"));
+                new StorageMetadataResult(request.getGuid(), request.getType(), "digest", 1234L, "now", "now")
+            );
         }
 
         @Override
         public StorageBulkMetadataResult getBulkMetadata(StorageGetBulkMetadataRequest request) {
             return new StorageBulkMetadataResult(
-                request.getGuids().stream()
+                request
+                    .getGuids()
+                    .stream()
                     .map(objectId -> new StorageBulkMetadataResultEntry(objectId, "digest-" + objectId, 50L))
                     .collect(Collectors.toList())
             );
@@ -396,9 +433,9 @@ public class FakeDriverImpl extends AbstractDriver {
 
         @Override
         public CloseableIterator<ObjectEntry> listObjects(StorageListRequest request) {
-            return CloseableIteratorUtils.toCloseableIterator(IteratorUtils.singletonListIterator(
-                new ObjectEntry("objectId", 100L)
-            ));
+            return CloseableIteratorUtils.toCloseableIterator(
+                IteratorUtils.singletonListIterator(new ObjectEntry("objectId", 100L))
+            );
         }
 
         @Override
@@ -420,5 +457,4 @@ public class FakeDriverImpl extends AbstractDriver {
             return Response.status(Response.Status.OK).build();
         }
     }
-
 }

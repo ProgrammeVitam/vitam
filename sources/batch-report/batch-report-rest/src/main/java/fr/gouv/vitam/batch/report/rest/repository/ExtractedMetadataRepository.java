@@ -46,7 +46,8 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 public class ExtractedMetadataRepository {
-    public final static String COLLECTION_NAME = "ExtractedMetadata";
+
+    public static final String COLLECTION_NAME = "ExtractedMetadata";
 
     private final MongoCollection<Document> extractedMetadataForAuCollection;
 
@@ -55,7 +56,8 @@ public class ExtractedMetadataRepository {
     }
 
     public void addExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadatas) {
-        List<UpdateOneModel<Document>> extractedMetadataDocuments = extractedMetadatas.stream()
+        List<UpdateOneModel<Document>> extractedMetadataDocuments = extractedMetadatas
+            .stream()
             .map(this::toUpdateModel)
             .collect(Collectors.toList());
 
@@ -73,19 +75,21 @@ public class ExtractedMetadataRepository {
         return new UpdateOneModel<>(
             filter,
             new Document("$set", pojoToBson(metadata)),
-            new UpdateOptions().upsert(true));
+            new UpdateOptions().upsert(true)
+        );
     }
 
     public MongoCursor<ExtractedMetadata> getExtractedMetadataByProcessId(String processId, int tenant) {
-        return extractedMetadataForAuCollection.find(
-                and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)))
+        return extractedMetadataForAuCollection
+            .find(and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)))
             .map(this::bsonToPojo)
             .cursor();
     }
 
     public void deleteExtractedMetadataByProcessId(String processId, int tenant) {
         extractedMetadataForAuCollection.deleteMany(
-            and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant)));
+            and(eq(ExtractedMetadata.PROCESS_ID, processId), eq(ExtractedMetadata.TENANT, tenant))
+        );
     }
 
     private Document pojoToBson(ExtractedMetadata metadata) {

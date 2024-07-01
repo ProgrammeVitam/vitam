@@ -37,11 +37,9 @@ public class ChangesHistory {
 
     private final String objectPathForHistory;
 
-
     public ChangesHistory(String objectPathForHistory) {
         this.objectPathForHistory = objectPathForHistory;
     }
-
 
     public void addHistory(JsonNode unitBeforeUpdate, JsonNode unitAfterUpdate) {
         final JsonNode objectToHistory = JsonHandler.findNode(unitBeforeUpdate, objectPathForHistory);
@@ -56,7 +54,6 @@ public class ChangesHistory {
         }
     }
 
-
     private long getUnitVersion(JsonNode unitBeforeUpdate) {
         JsonNode versionNode = unitBeforeUpdate.path(UNIT_VERSION);
         if (versionNode.isMissingNode()) {
@@ -65,5 +62,4 @@ public class ChangesHistory {
 
         return versionNode.asLong();
     }
-
 }

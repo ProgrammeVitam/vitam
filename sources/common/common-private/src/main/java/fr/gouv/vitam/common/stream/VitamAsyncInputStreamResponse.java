@@ -76,6 +76,7 @@ import java.util.Set;
  * </code>
  */
 public class VitamAsyncInputStreamResponse extends Response {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamAsyncInputStreamResponse.class);
     private final Response response;
     private final InputStream inputStream;
@@ -301,6 +302,4 @@ public class VitamAsyncInputStreamResponse extends Response {
     public String getHeaderString(String name) {
         return response.getHeaderString(name);
     }
-
-
 }

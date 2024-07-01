@@ -37,5 +37,5 @@ public enum StorageLogbookOutcome {
     /**
      * To be used when one storage operation in status KO
      */
-    KO
+    KO,
 }

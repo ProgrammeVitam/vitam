@@ -54,5 +54,4 @@ public class AdminApplication extends ConfigurationApplication {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

@@ -56,12 +56,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class StorageTestUtils {
 
     public static Digest writeFileToOffers(String objectId, int size)
-        throws ContentAddressableStorageServerException, StorageAlreadyExistsClientException,
-        StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException {
-
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-
+        throws ContentAddressableStorageServerException, StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException {
+        try (
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()
+        ) {
             String container = GUIDFactory.newGUID().getId();
             workspaceClient.createContainer(container);
 
@@ -75,7 +74,11 @@ public class StorageTestUtils {
             description.setWorkspaceContainerGUID(container);
             description.setWorkspaceObjectURI(objectId);
             storageClient.storeFileFromWorkspace(
-                VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, objectId, description);
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.OBJECT,
+                objectId,
+                description
+            );
 
             workspaceClient.deleteContainer(container, true);
 
@@ -91,14 +94,15 @@ public class StorageTestUtils {
 
     public static LogbookOperation getLogbookOperation(String operationId)
         throws LogbookClientException, InvalidParseOperationException {
-
         try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
-            JsonNode result =
-                logbookClient.selectOperationById(operationId);
-            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK =
-                RequestResponseOK.getFromJsonNode(result);
+            JsonNode result = logbookClient.selectOperationById(operationId);
+            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(
+                result
+            );
             return JsonHandler.getFromJsonNode(
-                logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+                logbookOperationVersionModelResponseOK.getFirstResult(),
+                LogbookOperation.class
+            );
         }
     }
 }

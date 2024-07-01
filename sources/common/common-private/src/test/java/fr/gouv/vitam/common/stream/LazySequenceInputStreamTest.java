@@ -44,7 +44,6 @@ public class LazySequenceInputStreamTest {
 
     @Test
     public void testEmptyIterator() {
-
         // Given
         Iterator<InputStream> inputStreamIterator = IteratorUtils.emptyIterator();
 
@@ -57,7 +56,6 @@ public class LazySequenceInputStreamTest {
 
     @Test
     public void testSingleEmptyStreamIterator() {
-
         // Given
         Iterator<InputStream> inputStreamIterator = List.of(InputStream.nullInputStream()).iterator();
 
@@ -70,7 +68,6 @@ public class LazySequenceInputStreamTest {
 
     @Test
     public void testSingleStreamIterator() {
-
         // Given
         Iterator<InputStream> inputStreamIterator = List.of(
             (InputStream) new ByteArrayInputStream("data".getBytes())
@@ -85,7 +82,6 @@ public class LazySequenceInputStreamTest {
 
     @Test
     public void testMultipleStreamIterators() {
-
         // Given
         Iterator<InputStream> inputStreamIterator = List.of(
             new ByteArrayInputStream("my".getBytes()),
@@ -104,7 +100,6 @@ public class LazySequenceInputStreamTest {
 
     @Test
     public void testMultipleLargeStreamIterators() throws IOException {
-
         // Given
         Iterator<InputStream> inputStreamIterator = List.<InputStream>of(
             new NullInputStream(10_000_000L),
@@ -115,20 +110,21 @@ public class LazySequenceInputStreamTest {
         LazySequenceInputStream lazySequenceInputStream = new LazySequenceInputStream(inputStreamIterator);
 
         // Then
-        assertThat(lazySequenceInputStream).hasSameContentAs(new ExactSizeInputStream(
-            new NullInputStream(30_000_000L), 30_000_000L));
+        assertThat(lazySequenceInputStream).hasSameContentAs(
+            new ExactSizeInputStream(new NullInputStream(30_000_000L), 30_000_000L)
+        );
     }
 
     @Test
     public void testMultipleStreamIteratorLaziness() throws IOException {
-
         // Given
         AtomicInteger nbLoadedInputStreams = new AtomicInteger(0);
         Iterator<InputStream> inputStreamIterator = IntStream.range(0, 7)
             .<InputStream>mapToObj(i -> {
                 nbLoadedInputStreams.incrementAndGet();
                 return new ByteArrayInputStream(Integer.toString(i).getBytes());
-            }).iterator();
+            })
+            .iterator();
 
         // When
         LazySequenceInputStream lazySequenceInputStream = new LazySequenceInputStream(inputStreamIterator);

@@ -37,7 +37,6 @@ public class VitamResourceBundle extends PropertyResourceBundle {
         super(reader);
     }
 
-
     @Override
     protected void setParent(ResourceBundle parent) {
         super.setParent(parent);

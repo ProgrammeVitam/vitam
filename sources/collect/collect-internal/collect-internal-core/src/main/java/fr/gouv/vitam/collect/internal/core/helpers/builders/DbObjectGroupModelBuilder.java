@@ -57,13 +57,18 @@ public class DbObjectGroupModelBuilder {
         return this;
     }
 
-    public DbObjectGroupModelBuilder withQualifiers(String versionId, String fileName, DataObjectVersionType usage,
-        Integer version) {
-        this.qualifiers = Collections.singletonList(new DbQualifiersModelBuilder()
-            .withUsage(usage)
-            .withVersion(versionId, fileName, usage, version)
-            .withNbc(1)
-            .build()
+    public DbObjectGroupModelBuilder withQualifiers(
+        String versionId,
+        String fileName,
+        DataObjectVersionType usage,
+        Integer version
+    ) {
+        this.qualifiers = Collections.singletonList(
+            new DbQualifiersModelBuilder()
+                .withUsage(usage)
+                .withVersion(versionId, fileName, usage, version)
+                .withNbc(1)
+                .build()
         );
         return this;
     }

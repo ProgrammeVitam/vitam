@@ -108,7 +108,6 @@ public class PronomParser {
         String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
         try (InputStream xmlPronom = new FileInputStream(xmlPronomFile)) {
-
             final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
 
             final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
@@ -133,7 +132,6 @@ public class PronomParser {
                                 }
                             }
                         } else if (qName.equalsIgnoreCase(TAG_FILEFORMAT)) {
-
                             fileFormatModel = new FileFormatModel()
                                 .setVersionPronom(pronomVersion)
                                 .setCreatedDate(creationDate)
@@ -168,13 +166,11 @@ public class PronomParser {
                             idToPUID.put(id, fileFormatModel.getPuid());
                         } else if (qName.equalsIgnoreCase(TAG_EXTENSION)) {
                             bExtension = true;
-
                         } else if (qName.equalsIgnoreCase(TAG_HASPRIORITYOVERFILEFORMATID)) {
                             bPriorityOverId = true;
                         }
 
                         break;
-
                     case XMLStreamConstants.CHARACTERS:
                         final Characters characters = event.asCharacters();
                         if (bExtension && bFileFormat) {
@@ -188,7 +184,6 @@ public class PronomParser {
                         }
 
                         break;
-
                     case XMLStreamConstants.END_ELEMENT:
                         final EndElement endElement = event.asEndElement();
                         qName = endElement.getName().getLocalPart();
@@ -215,7 +210,6 @@ public class PronomParser {
     }
 
     private static void validateSchema(File xmlPronomFile) throws InvalidFileFormatParseException {
-
         try (FileInputStream fis = new FileInputStream(xmlPronomFile)) {
             if (!ValidationXsdUtils.getInstance().checkWithXSD(fis, "DROID_SignatureFile_Vitam.xsd")) {
                 throw new InvalidFileFormatParseException("Schema validation failed for xml file format");

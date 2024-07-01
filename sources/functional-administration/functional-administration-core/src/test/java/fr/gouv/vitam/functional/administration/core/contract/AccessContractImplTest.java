@@ -119,19 +119,21 @@ import static org.mockito.Mockito.when;
 
 public class AccessContractImplTest {
 
-
     private static final String NEW_NAME = "New Name";
 
     private static final String NAME = "Name";
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(AccessContract.class, Agencies.class));
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(AccessContract.class, Agencies.class)
+    );
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -146,7 +148,6 @@ public class AccessContractImplTest {
     static FunctionalBackupService functionalBackupService;
     static VitamCounterService vitamCounterService;
 
-
     static ContractService<AccessContractModel> accessContractService;
 
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
@@ -155,25 +156,31 @@ public class AccessContractImplTest {
     @Before
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
-
     }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Collections
-                    .singletonList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
-                indexManager),
-            Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT, FunctionalAdminCollections.AGENCIES));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(
+                ElasticsearchRule.VITAM_CLUSTER,
+                Collections.singletonList(
+                    new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+                ),
+                indexManager
+            ),
+            Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT, FunctionalAdminCollections.AGENCIES)
+        );
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
 
-        dbImpl =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        dbImpl = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
         tenants.add(EXTERNAL_TENANT);
@@ -190,36 +197,39 @@ public class AccessContractImplTest {
 
         functionalBackupService = mock(FunctionalBackupService.class);
 
-        accessContractService =
-            new AccessContractImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager),
-                vitamCounterService, metaDataClientMock, logbookOperationsClientMock, functionalBackupService);
+        accessContractService = new AccessContractImpl(
+            MongoDbAccessAdminFactory.create(
+                new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList,
+                indexManager
+            ),
+            vitamCounterService,
+            metaDataClientMock,
+            logbookOperationsClientMock,
+            functionalBackupService
+        );
         final File fileAgencies = PropertiesUtils.getResourceFile("agencies-contract.csv");
 
-        final Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final Thread thread = VitamThreadFactory.getInstance()
+            .newThread(() -> {
+                try {
+                    VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)));
+                    insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)));
 
-                VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)));
-            } catch (VitamException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
+                    VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+                    insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)));
+                } catch (VitamException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
 
         thread.start();
         thread.join();
-
     }
 
-
     private static void insertDocuments(List<AgenciesModel> agenciesToInsert)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
-        DocumentAlreadyExistsException {
-
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
         for (final AgenciesModel agency : agenciesToInsert) {
@@ -228,7 +238,6 @@ public class AccessContractImplTest {
         if (!agenciesToInsert.isEmpty()) {
             dbImpl.insertDocuments(agenciesNodeToPersist, AGENCIES, 0).close();
         }
-
     }
 
     @AfterClass
@@ -236,7 +245,6 @@ public class AccessContractImplTest {
         FunctionalAdminCollectionsTestUtils.afterTestClass(true);
         accessContractService.close();
     }
-
 
     @After
     public void afterTest() {
@@ -246,17 +254,18 @@ public class AccessContractImplTest {
         reset(metaDataClientMock);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestWellFormedContractThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
@@ -264,22 +273,29 @@ public class AccessContractImplTest {
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("AC-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("AC-000");
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(CONTRACT_BACKUP_EVENT), eq(
-            FunctionalAdminCollections.ACCESS_CONTRACT), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(CONTRACT_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.ACCESS_CONTRACT),
+            any()
+        );
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
     }
 
     @Test
@@ -287,32 +303,37 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestMissingNameReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_missingName.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
 
         verifyNoMoreInteractions(functionalBackupService);
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
-
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
@@ -321,33 +342,38 @@ public class AccessContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         accessContractModelList.get(0).setId(GUIDFactory.newGUID().getId());
         RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("AccessContract service error");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("AccessContract service error");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventDetailData))
-            .contains("accessContractCheck").contains("Id must be null when creating contracts (aName)");
+            .contains("accessContractCheck")
+            .contains("Id must be null when creating contracts (aName)");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -355,24 +381,21 @@ public class AccessContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
         RequestResponse<AccessContractModel> response = accessContractService.createContracts(accessContractModelList);
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
-
         // unset ids
-        accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
+        accessContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {});
         response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isTrue();
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -389,8 +412,9 @@ public class AccessContractImplTest {
          * String q = "{ \"$query\" : [ { \"$eq\" : { \"_id\" : \"fake_id\" } } ] }"; JsonNode queryDsl =
          * JsonHandler.getFromString(q);
          */
-        final RequestResponseOK<AccessContractModel> accessContractModelList =
-            accessContractService.findContracts(queryDsl);
+        final RequestResponseOK<AccessContractModel> accessContractModelList = accessContractService.findContracts(
+            queryDsl
+        );
 
         assertThat(accessContractModelList.getResults()).isEmpty();
     }
@@ -403,23 +427,25 @@ public class AccessContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq(NAME, documentName));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
-        final RequestResponseOK<AccessContractModel> accessContractModelList2 =
-            accessContractService.findContracts(queryDsl);
+        final RequestResponseOK<AccessContractModel> accessContractModelList2 = accessContractService.findContracts(
+            queryDsl
+        );
         assertThat(accessContractModelList2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
             assertEquals(ActivationStatus.ACTIVE, accessContractModel.getStatus());
@@ -428,8 +454,10 @@ public class AccessContractImplTest {
         // Test update for access contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive =
-            UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set(
+            "Status",
+            ActivationStatus.INACTIVE.toString()
+        );
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
 
@@ -439,9 +467,10 @@ public class AccessContractImplTest {
         updateParser.parse(update.getFinalUpdate());
         final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
-
-        RequestResponse<AccessContractModel> updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<AccessContractModel> updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         final RequestResponseOK<AccessContractModel> accessContractModelListForassert =
@@ -460,14 +489,15 @@ public class AccessContractImplTest {
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
         final Update updateStatusActive = new Update();
         updateStatusActive.setQuery(QueryHelper.eq(NAME, documentName));
-        updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-            setActionLastUpdateActive);
+        updateStatusActive.addActions(
+            setActionStatusActive,
+            setActionDesactivationDateActive,
+            setActionLastUpdateActive
+        );
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         final JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
 
-
         accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
-
 
         final RequestResponseOK<AccessContractModel> accessContractModelListForassert2 =
             accessContractService.findContracts(queryDsl);
@@ -479,11 +509,12 @@ public class AccessContractImplTest {
         }
 
         // we try to update access contract with same value -> Bad Request
-        RequestResponse<AccessContractModel> responseUpdate =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslStatusActive);
+        RequestResponse<AccessContractModel> responseUpdate = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslStatusActive
+        );
         assertThat(responseUpdate.isOk()).isTrue();
         assertEquals(200, responseUpdate.getStatus());
-
     }
 
     @Test
@@ -495,15 +526,16 @@ public class AccessContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
@@ -519,19 +551,27 @@ public class AccessContractImplTest {
         // Test update for access contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
-        final SetAction setActionStatusInactive =
-            UpdateActionHelper.set("Status", ActivationStatus.INACTIVE.toString());
+        final SetAction setActionStatusInactive = UpdateActionHelper.set(
+            "Status",
+            ActivationStatus.INACTIVE.toString()
+        );
         final SetAction setActionName = UpdateActionHelper.set(NAME, NEW_NAME);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
         final Update update = new Update();
         update.setQuery(QueryHelper.eq(NAME, documentName));
-        update.addActions(setActionName, setActionStatusInactive, setActionDesactivationDateInactive,
-            setActionLastUpdateInactive);
+        update.addActions(
+            setActionName,
+            setActionStatusInactive,
+            setActionDesactivationDateInactive,
+            setActionLastUpdateInactive
+        );
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
-        RequestResponse<AccessContractModel> updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<AccessContractModel> updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertThat(updateContractStatus).isNotExactlyInstanceOf(VitamError.class);
 
         final Select newSelect = new Select();
@@ -576,14 +616,15 @@ public class AccessContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestTenantOwner() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -595,7 +636,6 @@ public class AccessContractImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         final AccessContractModel one = accessContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -604,9 +644,7 @@ public class AccessContractImplTest {
 
         assertThat(one.getTenant()).isNotNull();
         assertThat(one.getTenant()).isEqualTo(Integer.valueOf(TENANT_ID));
-
     }
-
 
     /**
      * Access contract of tenant 1, try to get the same contract with id mongo but with tenant 2 This sgould not return
@@ -617,14 +655,15 @@ public class AccessContractImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestNotTenantOwner() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -636,26 +675,25 @@ public class AccessContractImplTest {
         final String id1 = acm.getId();
         assertThat(id1).isNotNull();
 
-
         VitamThreadUtils.getVitamSession().setTenantId(2);
 
         final AccessContractModel one = accessContractService.findByIdentifier(id1);
 
         assertThat(one).isNull();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestfindByIdentifier() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -667,7 +705,6 @@ public class AccessContractImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         final AccessContractModel one = accessContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -675,34 +712,39 @@ public class AccessContractImplTest {
         assertThat(one.getName()).isEqualTo(acm.getName());
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestImportExternalIdentifierKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.EMPTY_REQUIRED_FIELD.KO");
     }
 
     @Test
@@ -710,21 +752,23 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestImportExternalIdentifier() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok_Identifier.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
         assertThat(response.isOk()).isTrue();
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestFindAllThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RequestResponseOK<AccessContractModel> accessContractModelList =
-            accessContractService.findContracts(JsonHandler.createObjectNode());
+        final RequestResponseOK<AccessContractModel> accessContractModelList = accessContractService.findContracts(
+            JsonHandler.createObjectNode()
+        );
         assertThat(accessContractModelList.getResults()).isEmpty();
     }
 
@@ -733,11 +777,13 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestFindAllThenReturnTwoContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -752,15 +798,16 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestFindByName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
-
 
         final AccessContractModel acm = accessContractModelList.iterator().next();
         assertThat(acm).isNotNull();
@@ -771,27 +818,23 @@ public class AccessContractImplTest {
         final String name = acm.getName();
         assertThat(name).isNotNull();
 
-
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq("Identifier", acm.getIdentifier()));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-
-        final RequestResponseOK<AccessContractModel> accessContractModelListFound =
-            accessContractService.findContracts(queryDsl);
+        final RequestResponseOK<AccessContractModel> accessContractModelListFound = accessContractService.findContracts(
+            queryDsl
+        );
         assertThat(accessContractModelListFound.getResults()).hasSize(1);
 
         final AccessContractModel acmFound = accessContractModelListFound.getResults().iterator().next();
         assertThat(acmFound).isNotNull();
 
-
         assertThat(acmFound.getId()).isEqualTo(id1);
         assertThat(acmFound.getName()).isEqualTo(name);
-
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -800,30 +843,36 @@ public class AccessContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_root_units.json");
 
         when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
         assertThat(response.toString()).contains("RootUnits (GUID1,GUID2,GUID3) not found in database");
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
 
     @Test
@@ -838,32 +887,37 @@ public class AccessContractImplTest {
 
         when(metaDataClientMock.selectUnits(any())).thenReturn(res.toJsonNode());
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
         assertThat(response.toString()).contains("RootUnits (GUID2) not found in database");
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -871,24 +925,26 @@ public class AccessContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok_root_units.json");
 
-
         RequestResponseOK<JsonNode> res = new RequestResponseOK<>();
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID1"));
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID2"));
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
 
         when(metaDataClientMock.selectUnits(any())).thenReturn(res.toJsonNode());
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults()).hasSize(2);
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
-        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
-            .contains("aName1");
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName()).contains(
+            "aName1"
+        );
     }
 
     @Test
@@ -897,89 +953,108 @@ public class AccessContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_empty_root_units.json");
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults()).hasSize(2);
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
-        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
-            .contains("aName1");
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName()).contains(
+            "aName1"
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestNotExistingExcludedRootUnits() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File fileContracts =
-            PropertiesUtils.getResourceFile("contracts_access_not_exists_excluded_root_units.json");
+        final File fileContracts = PropertiesUtils.getResourceFile(
+            "contracts_access_not_exists_excluded_root_units.json"
+        );
 
         when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
         assertThat(response.toString()).contains("RootUnits (GUID1,GUID2,GUID3) not found in database");
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
-
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestNotExistingBothRootUnitsAndExcludedRootUnits() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File fileContracts =
-            PropertiesUtils.getResourceFile("contracts_access_not_existing_rootunits_and_excludedrootunits.json");
+        final File fileContracts = PropertiesUtils.getResourceFile(
+            "contracts_access_not_existing_rootunits_and_excludedrootunits.json"
+        );
 
         when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isFalse();
-        assertEquals(((VitamError<AccessContractModel>) response).getErrors().get(0).getMessage(),
-            "STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
-        assertThat(response.toString())
-            .contains("ExcludedRootUnits and RootUnits (GUID11,GUID22,GUID33,GUID1,GUID2,GUID3) not found in database");
+        assertEquals(
+            ((VitamError<AccessContractModel>) response).getErrors().get(0).getMessage(),
+            "STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO"
+        );
+        assertThat(response.toString()).contains(
+            "ExcludedRootUnits and RootUnits (GUID11,GUID22,GUID33,GUID1,GUID2,GUID3) not found in database"
+        );
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO");
     }
 
     @Test
@@ -994,17 +1069,20 @@ public class AccessContractImplTest {
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
 
         when(metaDataClientMock.selectUnits(any())).thenReturn(res.toJsonNode());
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults()).hasSize(2);
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
-        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
-            .contains("aName1");
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName()).contains(
+            "aName1"
+        );
     }
 
     @Test
@@ -1012,30 +1090,35 @@ public class AccessContractImplTest {
     public void givenAccessContractsTestOriginatingAgenciesNotExistsThenKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_agencies.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
         assertThat(response.isOk()).isFalse();
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor =
-            ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.AGENCY_NOT_FOUND.KO");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -1047,15 +1130,16 @@ public class AccessContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_no_agencies.json");
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(1);
-
 
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
@@ -1073,16 +1157,20 @@ public class AccessContractImplTest {
         UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         List<String> agencies = new ArrayList<>();
         agencies.add("FR_ORG_AGEN");
-        final SetAction setActionStatusInactive =
-            UpdateActionHelper.set(AccessContractModel.ORIGINATING_AGENCIES, agencies);
+        final SetAction setActionStatusInactive = UpdateActionHelper.set(
+            AccessContractModel.ORIGINATING_AGENCIES,
+            agencies
+        );
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
         Update update = new Update();
         update.setQuery(QueryHelper.eq(NAME, documentName));
         update.addActions(setActionStatusInactive, setActionLastUpdateInactive);
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
-        RequestResponse<AccessContractModel> updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<AccessContractModel> updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertThat(updateContractStatus.isOk()).isTrue();
 
         updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
@@ -1090,14 +1178,16 @@ public class AccessContractImplTest {
         agencies.add("NotExistingOriginatingAgencies");
         update = new Update();
         update.setQuery(QueryHelper.eq(NAME, documentName));
-        update.addActions(UpdateActionHelper.set(AccessContractModel.ORIGINATING_AGENCIES, agencies),
-            UpdateActionHelper.set("LastUpdate", now));
+        update.addActions(
+            UpdateActionHelper.set(AccessContractModel.ORIGINATING_AGENCIES, agencies),
+            UpdateActionHelper.set("LastUpdate", now)
+        );
         updateParser.parse(update.getFinalUpdate());
-        updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(),
-                updateParser.getRequest().getFinalUpdate());
+        updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            updateParser.getRequest().getFinalUpdate()
+        );
         assertThat(updateContractStatus.isOk()).isFalse();
-
     }
 
     @Test
@@ -1108,11 +1198,13 @@ public class AccessContractImplTest {
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
-            });
-        final RequestResponse<AccessContractModel> response =
-            accessContractService.createContracts(accessContractModelList);
+        final List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelList
+        );
 
         final RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
@@ -1122,8 +1214,9 @@ public class AccessContractImplTest {
         parser.parse(select.getFinalSelect());
         parser.addCondition(QueryHelper.eq(NAME, documentName));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
-        final RequestResponseOK<AccessContractModel> accessContractModelList2 =
-            accessContractService.findContracts(queryDsl);
+        final RequestResponseOK<AccessContractModel> accessContractModelList2 = accessContractService.findContracts(
+            queryDsl
+        );
         assertThat(accessContractModelList2.getResults()).isNotEmpty();
         for (final AccessContractModel accessContractModel : accessContractModelList2.getResults()) {
             assertEquals(ActivationStatus.ACTIVE, accessContractModel.getStatus());
@@ -1138,15 +1231,20 @@ public class AccessContractImplTest {
         updateParser.parse(update.getFinalUpdate());
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
-        RequestResponse<AccessContractModel> updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        RequestResponse<AccessContractModel> updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslForUpdate
+        );
         assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         List<VitamError<AccessContractModel>> errors =
             ((VitamError<AccessContractModel>) updateContractStatus).getErrors();
-        assertThat(errors.get(0).getDescription().equals(
-            "The Access contract status must be ACTIVE or INACTIVE but not INVALID_STATUS")).isTrue();
-
+        assertThat(
+            errors
+                .get(0)
+                .getDescription()
+                .equals("The Access contract status must be ACTIVE or INACTIVE but not INVALID_STATUS")
+        ).isTrue();
 
         // Test unset lastUpdate
         final UnsetAction unsetActionLastUpdate = UpdateActionHelper.unset("LastUpdate");
@@ -1157,13 +1255,14 @@ public class AccessContractImplTest {
         updateParser2.parse(update2.getFinalUpdate());
         final JsonNode queryDslForUpdate2 = updateParser2.getRequest().getFinalUpdate();
 
-        updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate2);
+        updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslForUpdate2
+        );
         assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         String errorDescription = ((VitamError<AccessContractModel>) updateContractStatus).getDescription();
-        assertThat(errorDescription.contains(
-            "object has missing required properties ([\\\"LastUpdate\\\"])")).isTrue();
+        assertThat(errorDescription.contains("object has missing required properties ([\\\"LastUpdate\\\"])")).isTrue();
 
         // Test invalid property
         final SetAction setActionInvalidProperty = UpdateActionHelper.set("InvalidProp", "prop value");
@@ -1174,14 +1273,18 @@ public class AccessContractImplTest {
         updateParser3.parse(update3.getFinalUpdate());
         final JsonNode queryDslForUpdate3 = updateParser3.getRequest().getFinalUpdate();
 
-        updateContractStatus =
-            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate3);
+        updateContractStatus = accessContractService.updateContract(
+            accessContractModelList.get(0).getIdentifier(),
+            queryDslForUpdate3
+        );
         assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         errorDescription = ((VitamError<AccessContractModel>) updateContractStatus).getDescription();
-        assertThat(errorDescription.contains(
-            "object instance has properties which are not allowed by the schema: [\\\"InvalidProp\\\"]")).isTrue();
-
+        assertThat(
+            errorDescription.contains(
+                "object instance has properties which are not allowed by the schema: [\\\"InvalidProp\\\"]"
+            )
+        ).isTrue();
     }
 
     @Test
@@ -1191,16 +1294,18 @@ public class AccessContractImplTest {
 
         // Given
         File fileContractsKO = PropertiesUtils.getResourceFile("KO_contract_access_usage_inexistant.json");
-        List<AccessContractModel> accessContractModelListKO = JsonHandler.getFromFileAsTypeReference(fileContractsKO,
-            new TypeReference<>() {
-            });
-        RequestResponseOK<FunctionalOperationModel> tempsResult = new RequestResponseOK<FunctionalOperationModel>()
-            .addResult(
-                new FunctionalOperationModel().setEvId("evId").setEvDateTime("evDateTime").setEvType("evType"));
+        List<AccessContractModel> accessContractModelListKO = JsonHandler.getFromFileAsTypeReference(
+            fileContractsKO,
+            new TypeReference<>() {}
+        );
+        RequestResponseOK<FunctionalOperationModel> tempsResult = new RequestResponseOK<
+            FunctionalOperationModel
+        >().addResult(new FunctionalOperationModel().setEvId("evId").setEvDateTime("evDateTime").setEvType("evType"));
         when(logbookOperationsClientMock.selectOperationById(any())).thenReturn(tempsResult.toJsonNode());
         // When
-        RequestResponse<AccessContractModel> response = accessContractService
-            .createContracts(accessContractModelListKO);
+        RequestResponse<AccessContractModel> response = accessContractService.createContracts(
+            accessContractModelListKO
+        );
 
         // Then
         assertThat(response).isInstanceOf(VitamError.class);
@@ -1208,21 +1313,24 @@ public class AccessContractImplTest {
         assertThat(response.toString()).contains("Document schema validation failed");
         assertThat(response.toString()).contains("toto");
 
-        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor
-            .forClass(LogbookOperationParameters.class);
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
         verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
         verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
-        List<LogbookOperationParameters> allLogbookOperationParameters = logbookOperationParametersCaptor
-            .getAllValues();
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
         assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
         assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
-        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT");
-        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_ACCESS_CONTRACT.BAD_REQUEST.KO");
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_ACCESS_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_ACCESS_CONTRACT.BAD_REQUEST.KO");
     }
-
 }

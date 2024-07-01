@@ -107,12 +107,25 @@ public class WorkerParametersFactory {
      * @return the new instance of WorkerParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
-    public static DefaultWorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName,
-        String currentStep, List<String> objectNameList, String urlMetadata,
-        String urlWorkspace) {
-        ParametersChecker.checkParameter("Parameters cannot be null or empty", processId, stepUniqId, containerName,
-            currentStep, objectNameList,
-            urlMetadata, urlWorkspace);
+    public static DefaultWorkerParameters newWorkerParameters(
+        String processId,
+        String stepUniqId,
+        String containerName,
+        String currentStep,
+        List<String> objectNameList,
+        String urlMetadata,
+        String urlWorkspace
+    ) {
+        ParametersChecker.checkParameter(
+            "Parameters cannot be null or empty",
+            processId,
+            stepUniqId,
+            containerName,
+            currentStep,
+            objectNameList,
+            urlMetadata,
+            urlWorkspace
+        );
         final DefaultWorkerParameters parameters = new DefaultWorkerParameters(initMandatoriesParameters(null));
         parameters.putParameterValue(WorkerParameterName.processId, processId);
         parameters.putParameterValue(WorkerParameterName.stepUniqId, stepUniqId);
@@ -139,13 +152,11 @@ public class WorkerParametersFactory {
      * @param mandatoryFieldsToAdd the mandatory fields to add to default ones
      * @return the new Set of parameter names
      */
-    private static Set<WorkerParameterName> initMandatoriesParameters(
-        Set<WorkerParameterName> mandatoryFieldsToAdd) {
+    private static Set<WorkerParameterName> initMandatoriesParameters(Set<WorkerParameterName> mandatoryFieldsToAdd) {
         final Set<WorkerParameterName> mandatory = new HashSet<>(genericMandatories);
         if (mandatoryFieldsToAdd != null) {
             mandatory.addAll(mandatoryFieldsToAdd);
         }
         return Collections.unmodifiableSet(mandatory);
     }
-
 }

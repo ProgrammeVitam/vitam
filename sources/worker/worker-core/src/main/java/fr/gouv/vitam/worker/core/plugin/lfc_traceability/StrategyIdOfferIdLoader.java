@@ -47,7 +47,6 @@ public class StrategyIdOfferIdLoader {
     }
 
     public List<String> getOfferIds(String strategyId) throws ProcessingException {
-
         if (offerIdsByStrategyId.containsKey(strategyId)) {
             return offerIdsByStrategyId.get(strategyId);
         }

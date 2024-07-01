@@ -60,14 +60,15 @@ public class VitamServerLifeCycleTest {
         doAnswer(o -> {
             semaphore.release();
             return o;
-        }).when(plc).startProcess();
+        })
+            .when(plc)
+            .startProcess();
 
         new VitamServerLifeCycle(plc).lifeCycleStarted(mock(LifeCycle.class));
         semaphore.tryAcquire(1, TimeUnit.SECONDS);
 
         // As startProcess is called in the executor, wait until startProcess be called by the executor
         verify(plc).startProcess();
-
     }
 
     @Test

@@ -67,8 +67,9 @@ public class ElementMapperTest {
     @Test
     public void should_map_element_to_hashMap() throws Exception {
         // Given
-        Content content = (Content) unmarshaller.unmarshal(getClass().getResourceAsStream(
-            "/element_with_complex_data.xml"));
+        Content content = (Content) unmarshaller.unmarshal(
+            getClass().getResourceAsStream("/element_with_complex_data.xml")
+        );
 
         // When
         Map<String, Object> map = ElementMapper.toMap(content.elements);
@@ -78,10 +79,11 @@ public class ElementMapperTest {
         assertThat(map.get("metadata")).isNotNull();
         assertThat(map.get("locator")).isNotNull();
         assertThat((List<String>) map.get("locator")).containsExactlyInAnyOrder("tata", "toto");
-        List<Map<String,Object>> metadata = (List<Map<String, Object>>) map.get("metadata");
+        List<Map<String, Object>> metadata = (List<Map<String, Object>>) map.get("metadata");
         assertThat(metadata).hasSize(2);
 
-        assertThat(metadata.get(0)).containsEntry("Addressee", newArrayList("a"))
+        assertThat(metadata.get(0))
+            .containsEntry("Addressee", newArrayList("a"))
             .containsEntry("Addressee2", newArrayList("a", "b"));
 
         assertThat(metadata.get(1)).containsEntry("Addressee", newArrayList("c"));
@@ -90,8 +92,9 @@ public class ElementMapperTest {
     @Test
     public void should_map_element_to_hashMap_free_tags() throws Exception {
         // Given
-        Content content = (Content) unmarshaller.unmarshal(getClass().getResourceAsStream(
-            "/element_with_complex_free_data.xml"));
+        Content content = (Content) unmarshaller.unmarshal(
+            getClass().getResourceAsStream("/element_with_complex_free_data.xml")
+        );
 
         // When
         Map<String, Object> map = ElementMapper.toMap(content.elements);
@@ -100,11 +103,11 @@ public class ElementMapperTest {
         assertThat(map).hasSize(7);
         assertThat(map.get("DataInTestTab0")).isNotNull();
         assertThat(map.get("Description")).isNotNull();
-        List<Map<String,String>> dataInTestTab0 = (List<Map<String,String>>) map.get("DataInTestTab0");
+        List<Map<String, String>> dataInTestTab0 = (List<Map<String, String>>) map.get("DataInTestTab0");
         assertThat(dataInTestTab0).hasSize(1);
         assertThat(
-            dataInTestTab0.toString()
-                .equals("[{DataInTestTab1=[{DataInTestTab2=[{DataInTestTab3=[f, g, h, i, j]}]}]}]"));
+            dataInTestTab0.toString().equals("[{DataInTestTab1=[{DataInTestTab2=[{DataInTestTab3=[f, g, h, i, j]}]}]}]")
+        );
         assertThat((List<String>) map.get("DataInTestNum")).containsExactlyInAnyOrder("1", "20");
     }
 
@@ -113,18 +116,18 @@ public class ElementMapperTest {
         // Given
         String xml =
             "<Content>" +
-                "<Titles>" +
-                "<EmptyValueA></EmptyValueA>" +
-                "<EmptyValueB></EmptyValueB>" +
-                "<ValueC>" +
-                "<Argument></Argument>" +
-                "<MyTitles>" +
-                "<Argument></Argument>" +
-                "<RealTiTle>Batman</RealTiTle>" +
-                "</MyTitles>" +
-                "</ValueC>" +
-                "</Titles>" +
-                "</Content>";
+            "<Titles>" +
+            "<EmptyValueA></EmptyValueA>" +
+            "<EmptyValueB></EmptyValueB>" +
+            "<ValueC>" +
+            "<Argument></Argument>" +
+            "<MyTitles>" +
+            "<Argument></Argument>" +
+            "<RealTiTle>Batman</RealTiTle>" +
+            "</MyTitles>" +
+            "</ValueC>" +
+            "</Titles>" +
+            "</Content>";
         Content content = getXMLFromString(xml, Content.class);
 
         // When
@@ -132,12 +135,13 @@ public class ElementMapperTest {
 
         // Then
         assertThat(elements.toString()).isEqualTo(
-            "{Titles=[{EmptyValueB=[], EmptyValueA=[], ValueC=[{Argument=[], MyTitles=[{RealTiTle=[Batman], Argument=[]}]}]}]}");
+            "{Titles=[{EmptyValueB=[], EmptyValueA=[], ValueC=[{Argument=[], MyTitles=[{RealTiTle=[Batman], Argument=[]}]}]}]}"
+        );
     }
 
     private <T> T getXMLFromString(String input, Class<T> clazz) throws Exception {
-        XMLStreamReader parser =
-            XMLInputFactoryUtils.newInstance().createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
+        XMLStreamReader parser = XMLInputFactoryUtils.newInstance()
+            .createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
         JAXBElement<T> element = unmarshaller.unmarshal(parser, clazz);
         return element.getValue();
     }
@@ -147,7 +151,5 @@ public class ElementMapperTest {
 
         @XmlAnyElement(lax = true)
         private List<Object> elements;
-
     }
-
 }

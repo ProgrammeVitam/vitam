@@ -58,5 +58,4 @@ public class FormatIdentifierInfo {
     public String getSoftwareName() {
         return softwareName;
     }
-
 }

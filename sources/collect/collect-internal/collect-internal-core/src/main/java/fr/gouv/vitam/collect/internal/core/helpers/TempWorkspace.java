@@ -42,13 +42,16 @@ import java.io.InputStream;
 import java.nio.file.Files;
 
 public class TempWorkspace implements AutoCloseable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FluxService.class);
     private final File tmpFolder;
 
     public TempWorkspace() throws IOException {
         try {
-            File tmpFolder = SafeFileChecker
-                .checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), GUIDFactory.newGUID().getId());
+            File tmpFolder = SafeFileChecker.checkSafeFilePath(
+                VitamConfiguration.getVitamTmpFolder(),
+                GUIDFactory.newGUID().getId()
+            );
             if (!tmpFolder.mkdirs()) {
                 throw new VitamRuntimeException("Cannot create tmp folder: " + tmpFolder.getAbsoluteFile());
             }

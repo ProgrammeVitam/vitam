@@ -164,7 +164,6 @@ public class StorageLogService implements StorageLog {
     }
 
     private void append(Integer tenant, StorageLogStructure parameters, Boolean isWriteOperation) throws IOException {
-
         if (isWriteOperation) {
             synchronized (writeLockers.get(tenant)) {
                 writeOperationLogAppenders.get(tenant).append(parameters);
@@ -178,7 +177,6 @@ public class StorageLogService implements StorageLog {
 
     @Override
     public List<LogInformation> rotateLogFile(Integer tenant, boolean isWriteOperation) throws IOException {
-
         if (isWriteOperation) {
             synchronized (writeLockers.get(tenant)) {
                 writeOperationLogAppenders.get(tenant).close();
@@ -186,7 +184,6 @@ public class StorageLogService implements StorageLog {
                 writeOperationLogAppenders.put(tenant, createAppender(tenant, isWriteOperation));
                 return storageLogToBackup;
             }
-
         } else {
             synchronized (accessLockers.get(tenant)) {
                 accessOperationLogAppenders.get(tenant).close();
@@ -198,7 +195,6 @@ public class StorageLogService implements StorageLog {
     }
 
     public void initializeStorageLogs() throws IOException {
-
         for (Integer tenant : tenants) {
             writeOperationLogAppenders.put(tenant, createAppender(tenant, true));
             accessOperationLogAppenders.put(tenant, createAppender(tenant, false));

@@ -62,9 +62,11 @@ public abstract class CommonReportService<T> {
 
     protected CommonReportService(ReportType reportType) {
         this(
-            reportType, BatchReportClientFactory.getInstance(),
+            reportType,
+            BatchReportClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
@@ -72,19 +74,17 @@ public abstract class CommonReportService<T> {
         ReportType reportType,
         BatchReportClientFactory batchReportClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         this.reportType = reportType;
         this.batchReportClientFactory = batchReportClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
         this.storageClientFactory = storageClientFactory;
     }
 
-    public void appendEntries(String processId, List<T> entries)
-        throws ProcessingStatusException {
-
+    public void appendEntries(String processId, List<T> entries) throws ProcessingStatusException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-            ReportBody<T> reportBody =
-                new ReportBody<>(processId, reportType, entries);
+            ReportBody<T> reportBody = new ReportBody<>(processId, reportType, entries);
             batchReportClient.appendReportEntries(reportBody);
         } catch (VitamClientInternalException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not append entries into report", e);
@@ -122,9 +122,15 @@ public abstract class CommonReportService<T> {
             ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(),
-                DataCategory.REPORT, containerName + JSONL_EXTENSION, description);
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT,
+                containerName + JSONL_EXTENSION,
+                description
+            );
+        } catch (
+            StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not store report to offers", e);
         }
     }
@@ -133,8 +139,11 @@ public abstract class CommonReportService<T> {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.cleanupReport(processId, reportType);
         } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not cleanup report entries (" + processId + ")", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not cleanup report entries (" + processId + ")",
+                e
+            );
         }
     }
 }

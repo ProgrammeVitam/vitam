@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -65,9 +64,10 @@ public class ReconstructionOperationJob implements Job {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(adminTenant));
-            List<ReconstructionRequestItem> reconstructionItems =
-                VitamConfiguration.getTenants().stream().map(ReconstructionRequestItem::new)
-                    .collect(Collectors.toList());
+            List<ReconstructionRequestItem> reconstructionItems = VitamConfiguration.getTenants()
+                .stream()
+                .map(ReconstructionRequestItem::new)
+                .collect(Collectors.toList());
             try (LogbookOperationsClient client = this.logbookOperationsClientFactory.getClient()) {
                 LOGGER.info("Reconstruction operation in progress...");
                 client.reconstructCollection(reconstructionItems);

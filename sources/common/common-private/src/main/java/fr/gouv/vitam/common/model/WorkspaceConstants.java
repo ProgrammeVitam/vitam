@@ -76,5 +76,4 @@ public class WorkspaceConstants {
     private WorkspaceConstants() {
         // Do nothing
     }
-
 }

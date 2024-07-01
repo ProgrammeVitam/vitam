@@ -32,7 +32,6 @@ package fr.gouv.vitam.common.model;
  * different constants status code for workflow , action handler and process
  */
 public enum LifeCycleStatusCode {
-
     /**
      * LIFE_CYCLE_COMMITTED : indicates that the lifeCycle has been committed
      */
@@ -41,5 +40,5 @@ public enum LifeCycleStatusCode {
     /**
      * LIFE_CYCLE_IN_PROCESS : indicates that the lifeCycle hasn't been committed yet
      */
-    LIFE_CYCLE_IN_PROCESS
+    LIFE_CYCLE_IN_PROCESS,
 }

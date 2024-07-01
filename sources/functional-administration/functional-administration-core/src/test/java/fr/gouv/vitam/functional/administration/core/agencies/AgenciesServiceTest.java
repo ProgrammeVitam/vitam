@@ -112,23 +112,31 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class AgenciesServiceTest {
 
     private static final String AGENCIES_REPORT = "AGENCIES_REPORT";
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final Integer TENANT_ID = 1;
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Agencies.class, AccessContract.class),
-            PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(Agencies.class, AccessContract.class),
+        PREFIX + Agencies.class.getSimpleName(),
+        PREFIX + AccessContract.class.getSimpleName()
+    );
+
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final String ACCESS_CONTRACT_ID = GUIDFactory.newGUID().toString();
-    private static final String ACCESS_CONTRACT = "{ \"_tenant\": 1,\n" +
-        "    \"_id\": \"" + ACCESS_CONTRACT_ID + "\", \n " +
+    private static final String ACCESS_CONTRACT =
+        "{ \"_tenant\": 1,\n" +
+        "    \"_id\": \"" +
+        ACCESS_CONTRACT_ID +
+        "\", \n " +
         "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
         "    \"Identifier\": \"AC-000018\",\n" +
         "    \"Description\": \"aDescription of the contract\",\n" +
@@ -153,7 +161,9 @@ public class AgenciesServiceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -169,7 +179,6 @@ public class AgenciesServiceTest {
     @Mock
     private ContractService<AccessContractModel> accessContractService;
 
-
     private AgenciesService agencyService;
 
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
@@ -181,18 +190,25 @@ public class AgenciesServiceTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(MongoRule.MONGO_HOST, MongoRule.getDataBasePort()));
 
-        dbImpl =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        dbImpl = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager),
-            Lists.newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT,
+            Lists.newArrayList(
+                FunctionalAdminCollections.AGENCIES,
+                FunctionalAdminCollections.ACCESS_CONTRACT,
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY
+            )
+        );
 
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
@@ -213,8 +229,10 @@ public class AgenciesServiceTest {
         resetAgencies();
         File agencyFile = PropertiesUtils.findFile("agency.json");
         dbImpl.insertDocument(JsonHandler.getFromFile(agencyFile), AGENCIES).close();
-        VitamDocument<?> contrat =
-            dbImpl.getDocumentById(ACCESS_CONTRACT_ID, FunctionalAdminCollections.ACCESS_CONTRACT);
+        VitamDocument<?> contrat = dbImpl.getDocumentById(
+            ACCESS_CONTRACT_ID,
+            FunctionalAdminCollections.ACCESS_CONTRACT
+        );
         if (contrat == null) {
             JsonNode contractToPersist = JsonHandler.getFromString(ACCESS_CONTRACT);
             dbImpl.insertDocument(contractToPersist, FunctionalAdminCollections.ACCESS_CONTRACT).close();
@@ -223,15 +241,17 @@ public class AgenciesServiceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(any())).thenReturn(getJsonResult(StatusCode.OK.name()));
 
-        when(accessContractService.findContracts(any(JsonNode.class)))
-            .thenReturn(new RequestResponseOK<>());
+        when(accessContractService.findContracts(any(JsonNode.class))).thenReturn(new RequestResponseOK<>());
     }
 
     @After
     public void afterTest() {
         FunctionalAdminCollectionsTestUtils.afterTest(
-            com.google.common.collect.Lists
-                .newArrayList(FunctionalAdminCollections.AGENCIES, FunctionalAdminCollections.ACCESS_CONTRACT));
+            com.google.common.collect.Lists.newArrayList(
+                FunctionalAdminCollections.AGENCIES,
+                FunctionalAdminCollections.ACCESS_CONTRACT
+            )
+        );
         reset(functionalBackupService);
     }
 
@@ -243,13 +263,21 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies.csv")), "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agencies.csv")),
+            "MY-FILE-NAME"
+        );
         // Then
         assertThat(response.isOk()).isTrue();
 
@@ -257,7 +285,6 @@ public class AgenciesServiceTest {
 
         assertThat(report.getInsertedAgencies()).containsOnly("AG-000001", "AG-000002", "AG-000003");
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -267,14 +294,21 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies_delete.csv")),
-                "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agencies_delete.csv")),
+            "MY-FILE-NAME"
+        );
         // Then
         assertThat(response.isOk()).isTrue();
 
@@ -290,13 +324,21 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies2.csv")), "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agencies2.csv")),
+            "MY-FILE-NAME"
+        );
         // Then
         assertThat(response.isOk()).isTrue();
 
@@ -319,14 +361,21 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies_no_changes.csv")),
-                "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agencies_no_changes.csv")),
+            "MY-FILE-NAME"
+        );
 
         // Then
         assertTrue(response.isOk());
@@ -344,14 +393,21 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies_empty_line.csv")),
-                "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agencies_empty_line.csv")),
+            "MY-FILE-NAME"
+        );
         // Then
         assertTrue(response instanceof VitamError);
         assertThat(reportPath.toFile()).doesNotExist();
@@ -365,16 +421,25 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
-        when(accessContractService.findContracts(any(JsonNode.class)))
-            .thenReturn(new RequestResponseOK<AccessContractModel>().addResult(new AccessContractModel()));
+        when(accessContractService.findContracts(any(JsonNode.class))).thenReturn(
+            new RequestResponseOK<AccessContractModel>().addResult(new AccessContractModel())
+        );
 
         // When
-        RequestResponse<AgenciesModel> response = agencyService
-            .importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agencies2.csv")), "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agencies2.csv")),
+            "MY-FILE-NAME"
+        );
         // Then
         assertTrue(response.isOk());
         verify(manager).logEventWarning(any(GUID.class), eq("IMPORT_AGENCIES.USED_CONTRACT"));
@@ -385,8 +450,7 @@ public class AgenciesServiceTest {
     public void should_not_throw_exception_check_file() throws Exception {
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(any()))
-            .thenReturn(getJsonResult(StatusCode.OK.name()));
+        when(logbookOperationsclient.selectOperation(any())).thenReturn(getJsonResult(StatusCode.OK.name()));
 
         File file = PropertiesUtils.getResourceFile("agencies_delete.csv");
         agencyService.parseFile(file);
@@ -400,15 +464,21 @@ public class AgenciesServiceTest {
         doAnswer(arguments -> {
             Files.copy(arguments.<InputStream>getArgument(0), reportPath);
             return null;
-        }).when(functionalBackupService)
-            .saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT), eq(DataCategory.REPORT),
-                endsWith(".json"));
-
+        })
+            .when(functionalBackupService)
+            .saveFile(
+                any(InputStream.class),
+                any(GUID.class),
+                eq(AGENCIES_REPORT),
+                eq(DataCategory.REPORT),
+                endsWith(".json")
+            );
 
         // When
-        RequestResponse<AgenciesModel> response =
-            agencyService.importAgencies(new FileInputStream(PropertiesUtils.getResourceFile("agenciesDUPLICATE.csv")),
-                "MY-FILE-NAME");
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(
+            new FileInputStream(PropertiesUtils.getResourceFile("agenciesDUPLICATE.csv")),
+            "MY-FILE-NAME"
+        );
         // Then
         assertThat(response.isOk()).isTrue();
 
@@ -416,58 +486,76 @@ public class AgenciesServiceTest {
         AgenciesReport agenciesReport = JsonHandler.getFromJsonNode(report, AgenciesReport.class);
 
         assertThat(agenciesReport.getUpdatedAgencies()).containsOnly("AG-000000");
-        assertThat(agenciesReport.getInsertedAgencies()).containsOnly("AG-000006", "AG-000005", "AG-000004",
-            "AG-000003", "AG-000002", "AG-000001");
-        assertThat(agenciesReport.getAgenciesToImport()).containsOnly("AG-000006", "AG-000005", "AG-000004",
-            "AG-000003", "AG-000002", "AG-000001", "AG-000000");
+        assertThat(agenciesReport.getInsertedAgencies()).containsOnly(
+            "AG-000006",
+            "AG-000005",
+            "AG-000004",
+            "AG-000003",
+            "AG-000002",
+            "AG-000001"
+        );
+        assertThat(agenciesReport.getAgenciesToImport()).containsOnly(
+            "AG-000006",
+            "AG-000005",
+            "AG-000004",
+            "AG-000003",
+            "AG-000002",
+            "AG-000001",
+            "AG-000000"
+        );
     }
 
     private JsonNode getJsonResult(String outcome) throws Exception {
-        return JsonHandler.getFromString(String.format("{\n" +
-            "     \"httpCode\": 200,\n" +
-            "     \"$hits\": {\n" +
-            "          \"total\": 1,\n" +
-            "          \"offset\": 0,\n" +
-            "          \"limit\": 1,\n" +
-            "          \"size\": 1\n" +
-            "     },\n" +
-            "     \"$results\": [\n" +
-            "          {\n" +
-            "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
-            "               \"events\": [\n" +
-            "                    {\n" +
-            "                         \"outcome\": \"%s\"\n" +
-            "                    }\n" +
-            "               ],\n" +
-            "               \"_v\": 0,\n" +
-            "               \"_tenant\": %d\n" +
-            "          }\n" +
-            "     ],\n" +
-            "     \"$context\": {\n" +
-            "          \"$query\": {\n" +
-            "               \"$eq\": {\n" +
-            "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
-            "               }\n" +
-            "          },\n" +
-            "          \"$filter\": {\n" +
-            "               \"$limit\": 1,\n" +
-            "               \"$orderby\": {\n" +
-            "                    \"evDateTime\": -1\n" +
-            "               }\n" +
-            "          },\n" +
-            "          \"$projection\": {\n" +
-            "               \"$fields\": {\n" +
-            "                    \"#id\": 1,\n" +
-            "                    \"events.outcome\": 1\n" +
-            "               }\n" +
-            "          }\n" +
-            "     }\n" +
-            "}", outcome, AgenciesServiceTest.TENANT_ID));
+        return JsonHandler.getFromString(
+            String.format(
+                "{\n" +
+                "     \"httpCode\": 200,\n" +
+                "     \"$hits\": {\n" +
+                "          \"total\": 1,\n" +
+                "          \"offset\": 0,\n" +
+                "          \"limit\": 1,\n" +
+                "          \"size\": 1\n" +
+                "     },\n" +
+                "     \"$results\": [\n" +
+                "          {\n" +
+                "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
+                "               \"events\": [\n" +
+                "                    {\n" +
+                "                         \"outcome\": \"%s\"\n" +
+                "                    }\n" +
+                "               ],\n" +
+                "               \"_v\": 0,\n" +
+                "               \"_tenant\": %d\n" +
+                "          }\n" +
+                "     ],\n" +
+                "     \"$context\": {\n" +
+                "          \"$query\": {\n" +
+                "               \"$eq\": {\n" +
+                "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
+                "               }\n" +
+                "          },\n" +
+                "          \"$filter\": {\n" +
+                "               \"$limit\": 1,\n" +
+                "               \"$orderby\": {\n" +
+                "                    \"evDateTime\": -1\n" +
+                "               }\n" +
+                "          },\n" +
+                "          \"$projection\": {\n" +
+                "               \"$fields\": {\n" +
+                "                    \"#id\": 1,\n" +
+                "                    \"events.outcome\": 1\n" +
+                "               }\n" +
+                "          }\n" +
+                "     }\n" +
+                "}",
+                outcome,
+                AgenciesServiceTest.TENANT_ID
+            )
+        );
     }
 
     private void resetAgencies()
-        throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-        BadRequestException, SchemaValidationException {
+        throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException, BadRequestException, SchemaValidationException {
         List<Agencies> agencies = getAllAgencies();
         if (!agencies.isEmpty()) {
             String[] agenciesId = agencies.stream().map(Agencies::getIdentifier).toArray(String[]::new);
@@ -475,9 +563,13 @@ public class AgenciesServiceTest {
             select.setQuery(in(Agencies.IDENTIFIER, agenciesId));
             dbImpl.deleteDocument(select.getFinalSelect(), AGENCIES);
         }
-        agencyService =
-            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService,
-                manager, accessContractService);
+        agencyService = new AgenciesService(
+            dbImpl,
+            vitamCounterService,
+            functionalBackupService,
+            manager,
+            accessContractService
+        );
     }
 
     private Agencies findDocumentById(String id)
@@ -487,8 +579,7 @@ public class AgenciesServiceTest {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(parser.getRequest().getFinalSelect());
         parser.addCondition(QueryHelper.eq(AgenciesModel.TAG_IDENTIFIER, id));
-        DbRequestResult result =
-            dbImpl.findDocuments(parser.getRequest().getFinalSelect(), AGENCIES);
+        DbRequestResult result = dbImpl.findDocuments(parser.getRequest().getFinalSelect(), AGENCIES);
         parser.parse(new Select().getFinalSelect());
 
         final List<Agencies> list = result.getDocuments(Agencies.class);
@@ -502,8 +593,7 @@ public class AgenciesServiceTest {
         SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(parser.getRequest().getFinalSelect());
 
-        DbRequestResult result =
-            dbImpl.findDocuments(parser.getRequest().getFinalSelect(), AGENCIES);
+        DbRequestResult result = dbImpl.findDocuments(parser.getRequest().getFinalSelect(), AGENCIES);
         parser.parse(new Select().getFinalSelect());
         return result.getDocuments(Agencies.class);
     }

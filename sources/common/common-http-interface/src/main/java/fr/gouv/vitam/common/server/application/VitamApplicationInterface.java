@@ -36,7 +36,9 @@ import fr.gouv.vitam.common.server.application.configuration.VitamApplicationCon
  * @param <A> The VitamApplicationInterface final class
  * @param <C> The VitamApplicationConfigurationInterface final class
  */
-public interface VitamApplicationInterface<A extends VitamApplicationInterface<A, C>, C extends VitamApplicationConfigurationInterface> {
+public interface VitamApplicationInterface<
+    A extends VitamApplicationInterface<A, C>, C extends VitamApplicationConfigurationInterface
+> {
     /**
      * retrieve the vitam server
      *

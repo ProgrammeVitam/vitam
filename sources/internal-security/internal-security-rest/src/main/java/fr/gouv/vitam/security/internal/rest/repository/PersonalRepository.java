@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.repository;
 
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -53,7 +52,8 @@ import static com.mongodb.client.model.Filters.eq;
 /**
  * store Personal certificate in mongo.
  */
-public class PersonalRepository implements CertificateRepository, CertificateCRLCheckStateUpdater<PersonalCertificateModel> {
+public class PersonalRepository
+    implements CertificateRepository, CertificateCRLCheckStateUpdater<PersonalCertificateModel> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalRepository.class);
 
@@ -81,7 +81,6 @@ public class PersonalRepository implements CertificateRepository, CertificateCRL
      */
     public void createPersonalCertificate(PersonalCertificateModel personalCertificateModel)
         throws InvalidParseOperationException {
-
         String json = JsonHandler.writeAsString(personalCertificateModel);
 
         personnalCollection.insertOne(Document.parse(json));
@@ -96,11 +95,12 @@ public class PersonalRepository implements CertificateRepository, CertificateCRL
      */
     public Optional<PersonalCertificateModel> findPersonalCertificateByHash(String hash)
         throws InvalidParseOperationException {
-
         FindIterable<Document> models = personnalCollection.find(
             and(
                 eq(PersonalCertificateModel.TAG_HASH, hash),
-                eq(PersonalCertificateModel.STATUS_TAG, CertificateStatus.VALID.name())));
+                eq(PersonalCertificateModel.STATUS_TAG, CertificateStatus.VALID.name())
+            )
+        );
 
         Document first = models.first();
 
@@ -113,7 +113,9 @@ public class PersonalRepository implements CertificateRepository, CertificateCRL
 
     public List<PersonalCertificateModel> findAll() throws InvalidParseOperationException {
         List<PersonalCertificateModel> result = new ArrayList<>();
-        FindIterable<Document> models = personnalCollection.find().projection(Projections.exclude(IdentityModel.CERTIFICATE_TAG));
+        FindIterable<Document> models = personnalCollection
+            .find()
+            .projection(Projections.exclude(IdentityModel.CERTIFICATE_TAG));
         for (Document model : models) {
             result.add(BsonHelper.fromDocumentToObject(model, PersonalCertificateModel.class));
         }
@@ -126,7 +128,6 @@ public class PersonalRepository implements CertificateRepository, CertificateCRL
      * @param hash
      */
     public void deletePersonalCertificate(String hash) {
-
         DeleteResult deleteResult = personnalCollection.deleteOne(eq(PersonalCertificateModel.TAG_HASH, hash));
         LOGGER.debug("Deleted document count: " + deleteResult.getDeletedCount());
     }
@@ -145,8 +146,7 @@ public class PersonalRepository implements CertificateRepository, CertificateCRL
      */
     @Override
     public void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus) {
-        crlRepositoryHelper
-            .updateCertificateState(certificatesToUpdate, certificateStatus);
+        crlRepositoryHelper.updateCertificateState(certificatesToUpdate, certificateStatus);
     }
 
     /**

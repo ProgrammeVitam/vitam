@@ -43,9 +43,7 @@ public class Properties {
     @JsonIgnore
     private Map<String, PropertyValue> propertyNameToPropertyValue = new HashMap<>();
 
-
-    public Properties() {
-    }
+    public Properties() {}
 
     public Properties(Map<String, PropertyValue> propertyNameToPropertyValue) {
         this.propertyNameToPropertyValue = propertyNameToPropertyValue;

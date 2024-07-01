@@ -65,7 +65,6 @@ public class TransferRequestParameters {
     @JsonProperty(TRANSFERRING_AGENCY)
     private String transferringAgency; // ArchiveTransfer only
 
-
     public String getArchivalAgreement() {
         return archivalAgreement;
     }

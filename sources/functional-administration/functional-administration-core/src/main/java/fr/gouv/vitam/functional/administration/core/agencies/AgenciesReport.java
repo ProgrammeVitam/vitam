@@ -54,13 +54,11 @@ public class AgenciesReport {
 
     public static final String ERRORS = "Errors";
 
-
     @JsonProperty(AGENCIES_TO_IMPORT)
     private List<String> agenciesToImport;
 
     @JsonProperty(INSERTED_AGENCIES)
     private List<String> insertedAgencies;
-
 
     @JsonProperty(UPDATED_AGENCIES)
     private List<String> updatedAgencies;
@@ -79,7 +77,6 @@ public class AgenciesReport {
 
     @JsonProperty(ERRORS)
     private HashMap<String, Object> errors;
-
 
     public List<String> getAgenciesToImport() {
         return agenciesToImport;

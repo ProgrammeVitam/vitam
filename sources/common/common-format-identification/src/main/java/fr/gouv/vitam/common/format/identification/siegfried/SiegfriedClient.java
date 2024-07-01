@@ -38,7 +38,6 @@ import java.nio.file.Path;
  * Siegfried client interface
  */
 public interface SiegfriedClient extends MockOrRestClient {
-
     /**
      * Call siegfried instance to analyse the given file and format a Json response
      *
@@ -60,5 +59,4 @@ public interface SiegfriedClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> status(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
-
 }

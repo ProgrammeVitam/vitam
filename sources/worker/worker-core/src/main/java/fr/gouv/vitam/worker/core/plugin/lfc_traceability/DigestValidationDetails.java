@@ -39,8 +39,15 @@ public class DigestValidationDetails {
     private final boolean hasInconsistencies;
     private final boolean hasError;
 
-    public DigestValidationDetails(String strategyId, Set<String> offerIds, String globalDigest,
-        String digestInDb, Map<String, String> digestByOfferId, boolean hasInconsistencies, boolean hasError) {
+    public DigestValidationDetails(
+        String strategyId,
+        Set<String> offerIds,
+        String globalDigest,
+        String digestInDb,
+        Map<String, String> digestByOfferId,
+        boolean hasInconsistencies,
+        boolean hasError
+    ) {
         this.strategyId = strategyId;
         this.offerIds = offerIds;
         this.globalDigest = globalDigest;

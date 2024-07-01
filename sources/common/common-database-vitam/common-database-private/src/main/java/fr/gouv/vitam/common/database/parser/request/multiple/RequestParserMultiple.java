@@ -56,15 +56,14 @@ import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
  * Partial Request Parser (common base): { $roots: root, $query : query, $filter : filter }
  */
 public abstract class RequestParserMultiple extends AbstractParser<RequestMultiple> {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(RequestParserMultiple.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestParserMultiple.class);
 
     private static final int DEFAULT_RELATIVE_DEPTH = 1000;
     /**
      * Last computed Depth
      */
     protected int lastDepth = 0;
-
 
     /**
      * Constructor for Internal API
@@ -94,8 +93,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         lastDepth = 0;
         hasFullTextQuery = false;
         if (rootNode == null || rootNode.isMissingNode()) {
-            throw new InvalidParseOperationException(
-                "The current Node is missing(empty): RequestRoot");
+            throw new InvalidParseOperationException("The current Node is missing(empty): RequestRoot");
         }
 
         /*
@@ -116,8 +114,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @param query containing only the JSON query part (no filter neither roots)
      * @throws InvalidParseOperationException if query could not parse to JSON
      */
-    protected void parseQueryOnly(final String query)
-        throws InvalidParseOperationException {
+    protected void parseQueryOnly(final String query) throws InvalidParseOperationException {
         GlobalDatasParser.sanityRequestCheck(query);
         sourceRequest = query;
         if (request != null) {
@@ -129,8 +126,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         hasFullTextQuery = false;
         rootNode = JsonHandler.getFromString(query);
         if (rootNode.isMissingNode()) {
-            throw new InvalidParseOperationException(
-                "The current Node is missing(empty): RequestRoot");
+            throw new InvalidParseOperationException("The current Node is missing(empty): RequestRoot");
         }
         // Not as array and no filter
         rootParse(JsonHandler.createArrayNode());
@@ -144,8 +140,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @param rootNode JsonNode the root of the request
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void rootParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void rootParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -153,8 +148,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         try {
             request.addRoots((ArrayNode) rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Roots: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Roots: " + rootNode, e);
         }
     }
 
@@ -164,8 +158,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @param rootNode JsonNode The filter of the request
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void filterParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void filterParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -175,8 +168,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             parseOrderByFilter(rootNode);
             request.setFilter(rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Filter: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Filter: " + rootNode, e);
         }
     }
 
@@ -186,8 +178,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @param rootNode JsonNode the query of the request
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void queryParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void queryParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -201,7 +192,8 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
                     analyzeRootQuery(level);
                     if (i == 1 && request.getQueries().get(i).getQUERY() == QUERY.PATH) {
                         throw new InvalidParseOperationException(
-                            "Parse in error for Query since PATH is only allowed as first query: " + (i + 1));
+                            "Parse in error for Query since PATH is only allowed as first query: " + (i + 1)
+                        );
                     }
                     i++;
                 }
@@ -210,8 +202,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
                 analyzeRootQuery(rootNode);
             }
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Query: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Query: " + rootNode, e);
         }
     }
 
@@ -224,8 +215,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @throws InvalidCreateOperationException if could not create query in JSON
      */
     protected void analyzeRootQuery(final JsonNode command)
-        throws InvalidParseOperationException,
-        InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         if (command == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }
@@ -238,8 +228,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         boolean isDepth = false;
         // first verify if exactdepth is set
         if (command.has(QUERYARGS.EXACTDEPTH.exactToken())) {
-            final JsonNode jdepth =
-                ((ObjectNode) command).remove(QUERYARGS.EXACTDEPTH.exactToken());
+            final JsonNode jdepth = ((ObjectNode) command).remove(QUERYARGS.EXACTDEPTH.exactToken());
             if (jdepth != null) {
                 exactdepth = jdepth.asInt();
                 if (exactdepth == -1) {
@@ -249,8 +238,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             }
             ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
         } else if (command.has(QUERYARGS.DEPTH.exactToken())) {
-            final JsonNode jdepth =
-                ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
+            final JsonNode jdepth = ((ObjectNode) command).remove(QUERYARGS.DEPTH.exactToken());
             if (jdepth != null) {
                 relativedepth = jdepth.asInt();
                 isDepth = true;
@@ -264,13 +252,11 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             return;
         }
         // now single element
-        final Entry<String, JsonNode> queryItem =
-            JsonHandler.checkUnicity("RootRequest", command);
+        final Entry<String, JsonNode> queryItem = JsonHandler.checkUnicity("RootRequest", command);
         Query query = null;
         if (queryItem.getKey().equalsIgnoreCase(QUERY.PATH.exactToken())) {
             if (isDepth) {
-                throw new InvalidParseOperationException(
-                    "Invalid combined command Depth and Path: " + command);
+                throw new InvalidParseOperationException("Invalid combined command Depth and Path: " + command);
             }
             final int prevDepth = lastDepth;
             final ArrayNode array = (ArrayNode) queryItem.getValue();
@@ -289,13 +275,18 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
             } else if (relativedepth != 0) {
                 lastDepth += relativedepth;
             }
-            LOGGER.debug("Depth step: {}:{}:{}:{}:{}", lastDepth, lastDepth - prevDepth,
-                relativedepth, exactdepth, isDepth);
+            LOGGER.debug(
+                "Depth step: {}:{}:{}:{}:{}",
+                lastDepth,
+                lastDepth - prevDepth,
+                relativedepth,
+                exactdepth,
+                isDepth
+            );
         }
 
         if (adapter.metadataAdapter()) {
-            QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery),
-                exactdepth, relativedepth);
+            QueryDepthHelper.HELPER.setDepths(query.setFullText(hasFullTextCurrentQuery), exactdepth, relativedepth);
         } else {
             query.setFullText(hasFullTextCurrentQuery);
             if (exactdepth != 0) {
@@ -328,7 +319,6 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
     public final int getLastDepth() {
         return lastDepth;
     }
-
 
     /**
      * @return True if the hint contains cache
@@ -400,8 +390,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @return the limit
      */
     public String getFinalScrollId() {
-        final JsonNode node = request.getFilter()
-            .get(SELECTFILTER.SCROLL_ID.exactToken());
+        final JsonNode node = request.getFilter().get(SELECTFILTER.SCROLL_ID.exactToken());
         if (node != null) {
             return node.asText();
         }
@@ -414,12 +403,10 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * @return ScrollTimeout
      */
     public int getFinalScrollTimeout() {
-        final JsonNode node = request.getFilter()
-            .get(SELECTFILTER.SCROLL_TIMEOUT.exactToken());
+        final JsonNode node = request.getFilter().get(SELECTFILTER.SCROLL_TIMEOUT.exactToken());
         if (node != null) {
             return node.asInt();
         }
         return 0;
     }
-
 }

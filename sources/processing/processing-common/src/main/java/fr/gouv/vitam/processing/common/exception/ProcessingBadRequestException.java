@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
 public class ProcessingBadRequestException extends ProcessingException {
+
     private static final long serialVersionUID = -8063612680088096556L;
 
     /**

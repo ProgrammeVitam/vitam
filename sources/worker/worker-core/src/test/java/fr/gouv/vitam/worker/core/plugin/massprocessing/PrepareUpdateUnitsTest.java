@@ -68,8 +68,9 @@ public class PrepareUpdateUnitsTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -94,15 +95,18 @@ public class PrepareUpdateUnitsTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/PrepareUpdateUnits/query.json"));
+            getClass().getResourceAsStream("/PrepareUpdateUnits/query.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
 
         given(metaDataClient.selectUnits(any())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/PrepareUpdateUnits/metadataResult.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/PrepareUpdateUnits/metadataResult.json"))
+        );
 
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath())
+        );
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
@@ -129,14 +133,16 @@ public class PrepareUpdateUnitsTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         JsonNode queryNode = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/PrepareUpdateUnits/query.json"));
+            getClass().getResourceAsStream("/PrepareUpdateUnits/query.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryNode);
 
         given(metaDataClient.selectUnits(any())).willThrow(MetaDataClientServerException.class);
 
         File distributionFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_FILE_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath()));
+            new ProcessingUri(UriPrefix.WORKSPACE, distributionFile.getPath())
+        );
         given(handlerIO.getNewLocalFile(distributionFile.getPath())).willReturn(distributionFile);
 
         // when
@@ -146,5 +152,4 @@ public class PrepareUpdateUnitsTest {
         assertThat(itemStatus).isNotNull();
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
-
 }

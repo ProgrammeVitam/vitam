@@ -76,17 +76,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TransferNotificationActionHandlerATROKFileTest {
-    private static final String ARCHIVE_ID_TO_GUID_MAP =
-        "ARCHIVE_ID_TO_GUID_MAP_obj.json";
-    private static final String DATA_OBJECT_ID_TO_GUID_MAP =
-        "DATA_OBJECT_ID_TO_GUID_MAP_obj.json";
-    private static final String DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP =
-        "DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json";
+
+    private static final String ARCHIVE_ID_TO_GUID_MAP = "ARCHIVE_ID_TO_GUID_MAP_obj.json";
+    private static final String DATA_OBJECT_ID_TO_GUID_MAP = "DATA_OBJECT_ID_TO_GUID_MAP_obj.json";
+    private static final String DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP = "DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json";
     private static final String DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP =
         "DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_obj.json";
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
-    private static final String OBJECT_GROUP_ID_TO_GUID_MAP =
-        "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
+    private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String SEDA_PARAMS = "transferNotificationActionHandler/SedaParams.json";
 
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
@@ -95,11 +92,13 @@ public class TransferNotificationActionHandlerATROKFileTest {
     private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
     private StorageClient storageClient;
     private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
+    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = mock(
+        LogbookLifeCyclesClientFactory.class
+    );
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
+    private static final LogbookOperationsClientFactory logbookOperationsClientFactory = mock(
+        LogbookOperationsClientFactory.class
+    );
     private LogbookOperationsClient logbookOperationsClient;
 
     private static final ValidationXsdUtils validationXsdUtils = mock(ValidationXsdUtils.class);
@@ -113,11 +112,14 @@ public class TransferNotificationActionHandlerATROKFileTest {
     @Before
     public void setUp() throws Exception {
         guid = GUIDFactory.newGUID();
-        params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-                .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq2203");
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8080")
+            .setUrlMetadata("http://localhost:8080")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId())
+            .setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq2203");
 
         String objectId = "objectId";
 
@@ -133,9 +135,13 @@ public class TransferNotificationActionHandlerATROKFileTest {
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-            newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
 
         when(validationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
@@ -153,8 +159,9 @@ public class TransferNotificationActionHandlerATROKFileTest {
         handlerIO.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
         handlerIO.addOutputResult(7, PropertiesUtils.getResourceFile(SEDA_PARAMS), false);
 
-        File existingGOTGUIDToNewGotGUIDInAttachmentFile =
-            handlerIO.getNewLocalFile("existingGOTGUIDToNewGotGUIDInAttachmentFile");
+        File existingGOTGUIDToNewGotGUIDInAttachmentFile = handlerIO.getNewLocalFile(
+            "existingGOTGUIDToNewGotGUIDInAttachmentFile"
+        );
         JsonHandler.writeAsFile(JsonHandler.createObjectNode(), existingGOTGUIDToNewGotGUIDInAttachmentFile);
         handlerIO.addOutputResult(6, existingGOTGUIDToNewGotGUIDInAttachmentFile, false);
 
@@ -169,21 +176,26 @@ public class TransferNotificationActionHandlerATROKFileTest {
     }
 
     @Test
-    public void givenXMLCreationWhenValidThenResponseOK_and_objectGroupGuid_OK()
-        throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
-            logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
+    public void givenXMLCreationWhenValidThenResponseOK_and_objectGroupGuid_OK() throws Exception {
+        try (
+            TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
+                logbookOperationsClientFactory,
+                storageClientFactory,
+                validationXsdUtils
+            )
+        ) {
             final InputStream xmlFile;
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             handlerIO.reset();
             handlerIO.addInIOParameters(in);
             handlerIO.addOutIOParameters(out);
-            WorkerParameters parameters =
-                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            WorkerParameters parameters = params
+                .putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
 
             when(logbookOperationsClient.selectOperationById(any())).thenReturn(
-                new LogbookOperationsClientMock().selectOperationById("opi"));
+                new LogbookOperationsClientMock().selectOperationById("opi")
+            );
             final ItemStatus response = handler.execute(parameters, handlerIO);
 
             try {
@@ -201,13 +213,17 @@ public class TransferNotificationActionHandlerATROKFileTest {
 
             while (true) {
                 final XMLEvent event = reader.nextEvent();
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart().equals("DataObjectGroupSystemId")) {
+                if (
+                    event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals("DataObjectGroupSystemId")
+                ) {
                     objectGroupGuid = reader.getElementText();
                     count++;
                 }
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart().equals("DataObjectSystemId")) {
+                if (
+                    event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals("DataObjectSystemId")
+                ) {
                     objectGuid = reader.getElementText();
                     count++;
                 }
@@ -215,7 +231,6 @@ public class TransferNotificationActionHandlerATROKFileTest {
                     break;
                 }
             }
-
 
             JsonNode guidOG = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
             JsonNode guidObj = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP));

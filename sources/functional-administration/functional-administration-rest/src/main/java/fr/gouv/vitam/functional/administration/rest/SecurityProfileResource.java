@@ -105,26 +105,28 @@ public class SecurityProfileResource {
         ParametersChecker.checkParameter(SECURITY_PROFILE_JSON_IS_MANDATORY_PARAMETER, securityProfileModelList);
 
         try {
-            RequestResponse<SecurityProfileModel> requestResponse =
-                securityProfileService.createSecurityProfiles(securityProfileModelList);
+            RequestResponse<SecurityProfileModel> requestResponse = securityProfileService.createSecurityProfiles(
+                securityProfileModelList
+            );
 
             if (!requestResponse.isOk()) {
                 ((VitamError<SecurityProfileModel>) requestResponse).setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                        Response.Status.BAD_REQUEST.getStatusCode()
+                    );
                 return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -139,20 +141,17 @@ public class SecurityProfileResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findSecurityProfiles(JsonNode queryDsl) {
-
         try {
+            RequestResponseOK<SecurityProfileModel> securityProfileModelList = securityProfileService
+                .findSecurityProfiles(queryDsl)
+                .setQuery(queryDsl);
 
-            RequestResponseOK<SecurityProfileModel> securityProfileModelList =
-                securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
-
-            return Response.status(Response.Status.OK)
-                .entity(securityProfileModelList)
-                .build();
-
+            return Response.status(Response.Status.OK).entity(securityProfileModelList).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -167,25 +166,22 @@ public class SecurityProfileResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findSecurityProfileByIdentifier(@PathParam("id") String identifier) {
-
         try {
-
             final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
             parser.parse(new Select().getFinalSelect());
             parser.addCondition(QueryHelper.eq(SecurityProfile.IDENTIFIER, identifier));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-            RequestResponseOK<SecurityProfileModel> securityProfileModelList =
-                securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
+            RequestResponseOK<SecurityProfileModel> securityProfileModelList = securityProfileService
+                .findSecurityProfiles(queryDsl)
+                .setQuery(queryDsl);
 
-            return Response.status(Response.Status.OK)
-                .entity(securityProfileModelList)
-                .build();
-
+            return Response.status(Response.Status.OK).entity(securityProfileModelList).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                .build();
         }
     }
 
@@ -194,31 +190,34 @@ public class SecurityProfileResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateSecurityProfile(@PathParam("id") String identifier, JsonNode queryDsl) {
-
         try {
-
-            RequestResponse<SecurityProfileModel> requestResponse =
-                securityProfileService.updateSecurityProfile(identifier, queryDsl);
+            RequestResponse<SecurityProfileModel> requestResponse = securityProfileService.updateSecurityProfile(
+                identifier,
+                queryDsl
+            );
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 ((VitamError<SecurityProfileModel>) requestResponse).setHttpCode(
-                    Response.Status.NOT_FOUND.getStatusCode());
+                        Response.Status.NOT_FOUND.getStatusCode()
+                    );
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
             } else if (!requestResponse.isOk()) {
                 ((VitamError<SecurityProfileModel>) requestResponse).setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                        Response.Status.BAD_REQUEST.getStatusCode()
+                    );
                 return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Response.Status.OK).entity(requestResponse).build();
             }
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -229,11 +228,10 @@ public class SecurityProfileResource {
      * @return Response
      */
     Response deleteSecurityProfile(String securityProfileId) {
-
         try {
-
-            RequestResponse<SecurityProfileModel> requestResponse =
-                securityProfileService.deleteSecurityProfile(securityProfileId);
+            RequestResponse<SecurityProfileModel> requestResponse = securityProfileService.deleteSecurityProfile(
+                securityProfileId
+            );
             if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
                 return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
             }
@@ -245,15 +243,16 @@ public class SecurityProfileResource {
             }
 
             return Response.status(Response.Status.NO_CONTENT).entity(requestResponse).build();
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Response.Status.BAD_REQUEST)
-                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.BAD_REQUEST, exp.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+                .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null))
+                .build();
         }
     }
 
@@ -266,11 +265,15 @@ public class SecurityProfileResource {
      * @return
      */
     private VitamError<SecurityProfileModel> getErrorEntity(Response.Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError<SecurityProfileModel>(aCode).setHttpCode(status.getStatusCode()).setContext(ADMIN_MODULE)
-            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        return new VitamError<SecurityProfileModel>(aCode)
+            .setHttpCode(status.getStatusCode())
+            .setContext(ADMIN_MODULE)
+            .setState("code_vitam")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 }

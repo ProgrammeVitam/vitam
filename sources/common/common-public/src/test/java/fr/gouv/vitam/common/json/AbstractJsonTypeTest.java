@@ -42,11 +42,11 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 
 public class AbstractJsonTypeTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(AbstractJsonType.class);
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractJsonType.class);
 
     private static class TestClass extends AbstractJsonType {
+
         String a;
 
         @JsonGetter
@@ -84,5 +84,4 @@ public class AbstractJsonTypeTest {
             // ignore: write right access
         }
     }
-
 }

@@ -42,21 +42,17 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ReclassificationFinalizationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationFinalizationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReclassificationFinalizationHandler.class);
 
     private static final String RECLASSIFICATION_FINALIZATION = "RECLASSIFICATION_FINALIZATION";
 
     /**
      * Default constructor
      */
-    public ReclassificationFinalizationHandler() {
-    }
+    public ReclassificationFinalizationHandler() {}
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         // Nothing to cleanup
 
         LOGGER.info("Reclassification finalization succeeded");

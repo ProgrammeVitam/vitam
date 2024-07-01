@@ -49,23 +49,28 @@ public class StorageLogbookParameters implements StorageLogStructure {
     private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY =
         "Mandatory parameters can not be null or empty";
 
-    private static final Set<StorageLogbookParameterName> mandatoryParametersForCreate =
-        new HashSet<>(Arrays.asList(StorageLogbookParameterName.objectIdentifier,
+    private static final Set<StorageLogbookParameterName> mandatoryParametersForCreate = new HashSet<>(
+        Arrays.asList(
+            StorageLogbookParameterName.objectIdentifier,
             StorageLogbookParameterName.digest,
             StorageLogbookParameterName.digestAlgorithm,
             StorageLogbookParameterName.size,
             StorageLogbookParameterName.agentIdentifiers,
             StorageLogbookParameterName.dataCategory,
             StorageLogbookParameterName.eventType,
-            StorageLogbookParameterName.outcome));
+            StorageLogbookParameterName.outcome
+        )
+    );
 
-    private static final Set<StorageLogbookParameterName> mandatoryParametersForDelete =
-        new HashSet<>(Arrays.asList(StorageLogbookParameterName.objectIdentifier,
+    private static final Set<StorageLogbookParameterName> mandatoryParametersForDelete = new HashSet<>(
+        Arrays.asList(
+            StorageLogbookParameterName.objectIdentifier,
             StorageLogbookParameterName.agentIdentifiers,
             StorageLogbookParameterName.dataCategory,
             StorageLogbookParameterName.eventType,
-            StorageLogbookParameterName.outcome));
-
+            StorageLogbookParameterName.outcome
+        )
+    );
 
     @JsonIgnore
     private final Map<StorageLogbookParameterName, String> mapParameters = new TreeMap<>();
@@ -81,10 +86,16 @@ public class StorageLogbookParameters implements StorageLogStructure {
         this.mapParameters.putAll(mapParameters);
     }
 
-    public static StorageLogbookParameters createLogParameters(String objectIdentifier,
-        String dataCategory, String digest, String digestAlgorithm, String size, String agentIdentifiers,
+    public static StorageLogbookParameters createLogParameters(
+        String objectIdentifier,
+        String dataCategory,
+        String digest,
+        String digestAlgorithm,
+        String size,
+        String agentIdentifiers,
         String agentIdentifierRequester,
-        StorageLogbookOutcome outcome) {
+        StorageLogbookOutcome outcome
+    ) {
         final Map<StorageLogbookParameterName, String> mandatoryParameters = new TreeMap<>();
         mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         mandatoryParameters.put(StorageLogbookParameterName.outcome, outcome.name());
@@ -95,24 +106,25 @@ public class StorageLogbookParameters implements StorageLogStructure {
         mandatoryParameters.put(StorageLogbookParameterName.digestAlgorithm, digestAlgorithm);
         mandatoryParameters.put(StorageLogbookParameterName.size, size);
         mandatoryParameters.put(StorageLogbookParameterName.eventType, "CREATE");
-        mandatoryParameters.put(StorageLogbookParameterName.xRequestId,
-            VitamThreadUtils.getVitamSession().getRequestId());
+        mandatoryParameters.put(
+            StorageLogbookParameterName.xRequestId,
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
         mandatoryParameters.put(StorageLogbookParameterName.agentIdentifiers, agentIdentifiers);
-        mandatoryParameters
-            .put(StorageLogbookParameterName.tenantId, ParameterHelper.getTenantParameter().toString());
+        mandatoryParameters.put(StorageLogbookParameterName.tenantId, ParameterHelper.getTenantParameter().toString());
         mandatoryParameters.put(StorageLogbookParameterName.agentIdentifierRequester, agentIdentifierRequester);
 
         return buildCreateLogParameters(mandatoryParameters);
     }
 
-    static StorageLogbookParameters buildCreateLogParameters(
-        Map<StorageLogbookParameterName, String> mapParameters) {
+    static StorageLogbookParameters buildCreateLogParameters(Map<StorageLogbookParameterName, String> mapParameters) {
         checkMandatoryParameters(mapParameters, mandatoryParametersForCreate);
         return new StorageLogbookParameters(mapParameters);
     }
 
     public static StorageLogbookParameters buildDeleteLogParameters(
-        Map<StorageLogbookParameterName, String> mapParameters) {
+        Map<StorageLogbookParameterName, String> mapParameters
+    ) {
         checkMandatoryParameters(mapParameters, mandatoryParametersForDelete);
         return new StorageLogbookParameters(mapParameters);
     }
@@ -157,9 +169,10 @@ public class StorageLogbookParameters implements StorageLogStructure {
      * @return true if mandatories parameters are ok
      * @throws IllegalArgumentException thrown when one parameter is empty or null
      */
-    private static void checkMandatoryParameters(Map<StorageLogbookParameterName, String> mapParameters,
-        Set<StorageLogbookParameterName> mandatoryParameters)
-        throws IllegalArgumentException {
+    private static void checkMandatoryParameters(
+        Map<StorageLogbookParameterName, String> mapParameters,
+        Set<StorageLogbookParameterName> mandatoryParameters
+    ) throws IllegalArgumentException {
         for (final StorageLogbookParameterName s : mandatoryParameters) {
             ParametersChecker.checkParameter(MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY, mapParameters.get(s));
         }

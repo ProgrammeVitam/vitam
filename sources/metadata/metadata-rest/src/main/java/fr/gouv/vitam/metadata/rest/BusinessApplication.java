@@ -70,23 +70,27 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            MetaDataConfiguration metaDataConfiguration =
-                PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+            MetaDataConfiguration metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
 
             // Validate configuration
             MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
 
-            MappingLoader mappingLoader =
-                new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
+            MappingLoader mappingLoader = new MappingLoader(
+                metaDataConfiguration.getElasticsearchExternalMetadataMappings()
+            );
 
             // Elasticsearch configuration
-            ElasticsearchMetadataIndexManager indexManager =
-                new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
-                    mappingLoader);
+            ElasticsearchMetadataIndexManager indexManager = new ElasticsearchMetadataIndexManager(
+                metaDataConfiguration,
+                VitamConfiguration.getTenants(),
+                mappingLoader
+            );
 
             MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(
-                metaDataConfiguration, indexManager);
+                metaDataConfiguration,
+                indexManager
+            );
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
@@ -100,17 +104,28 @@ public class BusinessApplication extends Application {
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
                 metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
-                indexManager);
+                indexManager
+            );
 
             MetadataRuleService metadataRuleService = new MetadataRuleService(metadata);
-            MetadataResource metaDataResource =
-                new MetadataResource(metadata, metadataRuleService, metaDataConfiguration);
+            MetadataResource metaDataResource = new MetadataResource(
+                metadata,
+                metadataRuleService,
+                metaDataConfiguration
+            );
             MetadataRawResource metadataRawResource = new MetadataRawResource(vitamRepositoryProvider);
-            MetadataManagementResource metadataManagementResource =
-                new MetadataManagementResource(vitamRepositoryProvider, metadata,
-                    metaDataConfiguration, indexManager);
+            MetadataManagementResource metadataManagementResource = new MetadataManagementResource(
+                vitamRepositoryProvider,
+                metadata,
+                metaDataConfiguration,
+                indexManager
+            );
             MetadataReconstructionResource metadataReconstructionResource = new MetadataReconstructionResource(
-                vitamRepositoryProvider, offsetRepository, metaDataConfiguration, indexManager);
+                vitamRepositoryProvider,
+                offsetRepository,
+                metaDataConfiguration,
+                indexManager
+            );
             final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 
             singletons = new HashSet<>();
@@ -130,5 +145,4 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

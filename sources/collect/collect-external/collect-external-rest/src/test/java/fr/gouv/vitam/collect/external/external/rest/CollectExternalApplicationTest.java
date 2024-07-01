@@ -44,6 +44,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class CollectExternalApplicationTest {
+
     private CollectExternalMain application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
@@ -58,9 +59,7 @@ public class CollectExternalApplicationTest {
     @After
     public void tearDown() throws Exception {
         try {
-            if (application != null && application.getVitamServer() != null &&
-                application.getVitamServer() != null) {
-
+            if (application != null && application.getVitamServer() != null && application.getVitamServer() != null) {
                 application.stop();
             }
         } catch (Exception e) {
@@ -99,9 +98,7 @@ public class CollectExternalApplicationTest {
 
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        application =
-            new CollectExternalMain("collect-external-test.conf", BusinessApplicationTest.class,
-                null);
+        application = new CollectExternalMain("collect-external-test.conf", BusinessApplicationTest.class, null);
         application.start();
 
         given()
@@ -145,13 +142,11 @@ public class CollectExternalApplicationTest {
             .put("/transactions")
             .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
-
     }
 
     @Test
     public void shouldActivateShiroFilter() throws VitamException {
         application = new CollectExternalMain("src/test/resources/collect-external-test-ssl.conf");
         assertThatCode(() -> application.start()).doesNotThrowAnyException();
-
     }
 }

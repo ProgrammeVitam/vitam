@@ -37,6 +37,7 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class DistributorIndex {
+
     /**
      * By default when not level exists, the value is _no_level
      */
@@ -66,11 +67,16 @@ public class DistributorIndex {
      */
     private boolean levelFinished = false;
 
-    public DistributorIndex() {
-    }
+    public DistributorIndex() {}
 
-    public DistributorIndex(String level, int offset, ItemStatus itemStatus, String requestId, String stepId,
-        List<String> remainingElements) {
+    public DistributorIndex(
+        String level,
+        int offset,
+        ItemStatus itemStatus,
+        String requestId,
+        String stepId,
+        List<String> remainingElements
+    ) {
         this.level = level;
         this.offset = offset;
         this.itemStatus = itemStatus;

@@ -156,7 +156,6 @@ public final class ParametersChecker {
         }
     }
 
-
     public static void checkDateParam(String errorMessage, String date) {
         if (date == null) {
             throw new IllegalArgumentException(errorMessage);
@@ -189,8 +188,7 @@ public final class ParametersChecker {
      * @param mandatories the set of mandatories field
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
-    public static <T extends Enum<T>> void checkNullOrEmptyParameter(T key, String value,
-        Set<T> mandatories) {
+    public static <T extends Enum<T>> void checkNullOrEmptyParameter(T key, String value, Set<T> mandatories) {
         ParametersChecker.checkParameter("Key parameter", key);
         if (mandatories.contains(key)) {
             ParametersChecker.checkParameter(key.name(), value);
@@ -204,8 +202,7 @@ public final class ParametersChecker {
      * @param mandatories the set of mandatories field
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
-    public static <T extends Enum<T>> void checkNullOrEmptyParameters(Map<T, String> parameters,
-        Set<T> mandatories) {
+    public static <T extends Enum<T>> void checkNullOrEmptyParameters(Map<T, String> parameters, Set<T> mandatories) {
         ParametersChecker.checkParameter("Check Or null parameter", parameters, mandatories);
         for (final T key : mandatories) {
             if (Strings.isNullOrEmpty(parameters.get(key))) {
@@ -220,7 +217,7 @@ public final class ParametersChecker {
      * @param parameter the template of vitam parameter
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <T extends VitamParameter> void checkNullOrEmptyParameters(T parameter) {
         ParametersChecker.checkParameter("Check Or null parameter", parameter);
         checkNullOrEmptyParameters(parameter.getMapParameters(), parameter.getMandatoriesParameters());
@@ -232,7 +229,7 @@ public final class ParametersChecker {
      * @param parameters the template of vitam parameter
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <T extends VitamParameter> void checkNullOrEmptyParameters(T... parameters) {
         ParametersChecker.checkParameter("Check Or null parameter", parameters);
         for (T parameter : parameters) {

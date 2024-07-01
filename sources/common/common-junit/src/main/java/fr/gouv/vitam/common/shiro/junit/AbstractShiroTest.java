@@ -46,8 +46,7 @@ public abstract class AbstractShiroTest {
     /**
      * Constructor.
      */
-    public AbstractShiroTest() {
-    }
+    public AbstractShiroTest() {}
 
     /**
      * Allows subclasses to set the currently executing {@link Subject} instance.

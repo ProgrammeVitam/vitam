@@ -53,7 +53,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class WorkspaceProcessDataManagementTest {
 
     private WorkspaceClient workspaceClient;
@@ -82,15 +81,17 @@ public class WorkspaceProcessDataManagementTest {
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void createContainerTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient)
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
             .createContainer(anyString());
         processDataManagement.createProcessContainer();
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void isProcessContainerExistTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).isExistingContainer
-            (anyString());
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
+            .isExistingContainer(anyString());
         processDataManagement.isProcessContainerExist();
     }
 
@@ -108,15 +109,17 @@ public class WorkspaceProcessDataManagementTest {
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void createFolderTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).createFolder(anyString(),
-            anyString());
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
+            .createFolder(anyString(), anyString());
         processDataManagement.createFolder("folder");
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void isFolderExistsTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).isExistingFolder
-            (anyString(), anyString());
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
+            .isExistingFolder(anyString(), anyString());
         processDataManagement.isFolderExist("folder");
     }
 
@@ -136,8 +139,9 @@ public class WorkspaceProcessDataManagementTest {
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void removeFolderTestException() throws Exception {
         doReturn(true).when(workspaceClient).isExistingFolder(anyString(), anyString());
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).deleteFolder(anyString(),
-            anyString());
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
+            .deleteFolder(anyString(), anyString());
         processDataManagement.removeFolder("folder");
     }
 
@@ -171,21 +175,24 @@ public class WorkspaceProcessDataManagementTest {
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
         processWorkflow.setTenantId(0);
         processWorkflow.setOperationId("operationId");
-        return Response.status(Response.Status.OK).entity(new ByteArrayInputStream
-            (JsonHandler.writeAsString(processWorkflow).getBytes())).build();
+        return Response.status(Response.Status.OK)
+            .entity(new ByteArrayInputStream(JsonHandler.writeAsString(processWorkflow).getBytes()))
+            .build();
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void getProcessWokflowTestKO() throws Exception {
-        doReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build()).when(workspaceClient).getObject
-            (anyString(), anyString());
+        doReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build())
+            .when(workspaceClient)
+            .getObject(anyString(), anyString());
         processDataManagement.getProcessWorkflow("folder", "asyncId");
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void getProcessWorkflowTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).getObject(anyString(),
-            anyString());
+        doThrow(new ContentAddressableStorageServerException("fail"))
+            .when(workspaceClient)
+            .getObject(anyString(), anyString());
         processDataManagement.getProcessWorkflow("folder", "asyncId");
     }
 
@@ -200,7 +207,8 @@ public class WorkspaceProcessDataManagementTest {
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void removeProcessWorkflowTestKO() throws Exception {
         doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
-        doThrow(new ContentAddressableStorageServerException("Exception")).when(workspaceClient)
+        doThrow(new ContentAddressableStorageServerException("Exception"))
+            .when(workspaceClient)
             .isExistingObject(anyString(), anyString());
         processDataManagement.removeProcessWorkflow("folder", "asyncId");
     }
@@ -214,16 +222,21 @@ public class WorkspaceProcessDataManagementTest {
         processWorkflow.setOperationId(operationId);
 
         when(workspaceClient.isExistingContainer(operationId)).thenReturn(true);
-        when(workspaceClient.isExistingObject(ProcessDataManagement.PROCESS_CONTAINER,
-            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json")).thenReturn(true);
-
+        when(
+            workspaceClient.isExistingObject(
+                ProcessDataManagement.PROCESS_CONTAINER,
+                ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json"
+            )
+        ).thenReturn(true);
 
         boolean result = processDataManagement.removeOperationContainer(processWorkflow, workspaceClientFactory);
 
         assertTrue(result);
         verify(workspaceClient).deleteContainer(operationId, true);
-        verify(workspaceClient).deleteObject(ProcessDataManagement.PROCESS_CONTAINER,
-            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json");
+        verify(workspaceClient).deleteObject(
+            ProcessDataManagement.PROCESS_CONTAINER,
+            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json"
+        );
     }
 
     @Test
@@ -236,8 +249,7 @@ public class WorkspaceProcessDataManagementTest {
 
         ContentAddressableStorageServerException exception = new ContentAddressableStorageServerException("Exception");
 
-        when(workspaceClient.isExistingContainer(operationId)).thenThrow(
-            exception);
+        when(workspaceClient.isExistingContainer(operationId)).thenThrow(exception);
 
         boolean result = processDataManagement.removeOperationContainer(processWorkflow, workspaceClientFactory);
 
@@ -255,13 +267,19 @@ public class WorkspaceProcessDataManagementTest {
 
         ContentAddressableStorageServerException exception = new ContentAddressableStorageServerException("Exception");
 
-        when(workspaceClient.isExistingObject(ProcessDataManagement.PROCESS_CONTAINER,
-            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json")).thenThrow(exception);
+        when(
+            workspaceClient.isExistingObject(
+                ProcessDataManagement.PROCESS_CONTAINER,
+                ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json"
+            )
+        ).thenThrow(exception);
 
         boolean result = processDataManagement.removeOperationContainer(processWorkflow, workspaceClientFactory);
 
         assertFalse(result);
-        verify(workspaceClient, never()).deleteObject(ProcessDataManagement.PROCESS_CONTAINER,
-            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json");
+        verify(workspaceClient, never()).deleteObject(
+            ProcessDataManagement.PROCESS_CONTAINER,
+            ProcessDataManagement.DISTRIBUTOR_INDEX + "/" + operationId + ".json"
+        );
     }
 }

@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.client.exception;
  * Worker NotFound Client Exception
  */
 public class WorkerNotFoundClientException extends WorkerClientException {
+
     private static final long serialVersionUID = -6677247730199737637L;
 
     /**

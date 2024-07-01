@@ -32,7 +32,6 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Formats messages according to very simple substitution rules. Substitutions can be made 1, 2 or more arguments.
  * <p/>
@@ -93,6 +92,7 @@ import java.util.Map;
  * Inspired from Netty
  */
 final class MessageFormatter {
+
     static final char DELIM_START = '{';
     static final char DELIM_STOP = '}';
     static final String DELIM_STR = "{}";
@@ -120,7 +120,7 @@ final class MessageFormatter {
      * @return The formatted message
      */
     static final FormattingTuple format(final String messagePattern, final Object arg) {
-        return arrayFormat(messagePattern, new Object[] {arg});
+        return arrayFormat(messagePattern, new Object[] { arg });
     }
 
     /**
@@ -140,9 +140,8 @@ final class MessageFormatter {
      * @param argB The argument to be substituted in place of the second formatting anchor
      * @return The formatted message
      */
-    static final FormattingTuple format(final String messagePattern, final Object argA,
-        final Object argB) {
-        return arrayFormat(messagePattern, new Object[] {argA, argB});
+    static final FormattingTuple format(final String messagePattern, final Object argA, final Object argB) {
+        return arrayFormat(messagePattern, new Object[] { argA, argB });
     }
 
     static final Throwable getThrowableCandidate(final Object[] argArray) {
@@ -165,9 +164,7 @@ final class MessageFormatter {
      * @param argArray An array of arguments to be substituted in place of formatting anchors
      * @return The formatted message
      */
-    static final FormattingTuple arrayFormat(final String messagePattern,
-        final Object[] argArray) {
-
+    static final FormattingTuple arrayFormat(final String messagePattern, final Object[] argArray) {
         final Throwable throwableCandidate = getThrowableCandidate(argArray);
 
         if (messagePattern == null) {
@@ -184,20 +181,17 @@ final class MessageFormatter {
 
         int l;
         for (l = 0; l < argArray.length; l++) {
-
             j = messagePattern.indexOf(DELIM_STR, i);
 
             if (j == -1) {
                 // no more variables
                 if (i == 0) {
                     // this is a simple string
-                    return new FormattingTuple(messagePattern, argArray,
-                        throwableCandidate);
+                    return new FormattingTuple(messagePattern, argArray, throwableCandidate);
                 } else {
                     // add the tail string which contains no variables and return the result.
                     sbuild.append(messagePattern.substring(i, messagePattern.length()));
-                    return new FormattingTuple(sbuild.toString(), argArray,
-                        throwableCandidate);
+                    return new FormattingTuple(sbuild.toString(), argArray, throwableCandidate);
                 }
             } else {
                 if (isEscapedDelimeter(messagePattern, j)) {
@@ -211,15 +205,13 @@ final class MessageFormatter {
                         // itself escaped: "abc x:\\{}"
                         // we have to consume one backward slash
                         sbuild.append(messagePattern.substring(i, j - 1));
-                        deeplyAppendParameter(sbuild, argArray[l],
-                            new HashMap<Object[], Void>());
+                        deeplyAppendParameter(sbuild, argArray[l], new HashMap<Object[], Void>());
                         i = j + 2;
                     }
                 } else {
                     // normal case
                     sbuild.append(messagePattern.substring(i, j));
-                    deeplyAppendParameter(sbuild, argArray[l],
-                        new HashMap<Object[], Void>());
+                    deeplyAppendParameter(sbuild, argArray[l], new HashMap<Object[], Void>());
                     i = j + 2;
                 }
             }
@@ -233,8 +225,7 @@ final class MessageFormatter {
         }
     }
 
-    static final boolean isEscapedDelimeter(final String messagePattern,
-        final int delimeterStartIndex) {
+    static final boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
         ParametersChecker.checkParameterNullOnly("Must not be null", messagePattern);
         if (delimeterStartIndex == 0) {
             return false;
@@ -242,16 +233,21 @@ final class MessageFormatter {
         return messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;
     }
 
-    static final boolean isDoubleEscaped(final String messagePattern,
-        final int delimeterStartIndex) {
+    static final boolean isDoubleEscaped(final String messagePattern, final int delimeterStartIndex) {
         ParametersChecker.checkParameterNullOnly("Must not be null", messagePattern);
-        return delimeterStartIndex >= 2 && delimeterStartIndex - 2 > messagePattern.length() &&
-            messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;
+        return (
+            delimeterStartIndex >= 2 &&
+            delimeterStartIndex - 2 > messagePattern.length() &&
+            messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR
+        );
     }
 
     // special treatment of array values was suggested by 'lizongbo'
-    static final void deeplyAppendParameter(final StringBuilder sbuild, final Object o,
-        final Map<Object[], Void> seenMap) {
+    static final void deeplyAppendParameter(
+        final StringBuilder sbuild,
+        final Object o,
+        final Map<Object[], Void> seenMap
+    ) {
         if (o == null) {
             sbuild.append("null");
             return;
@@ -290,14 +286,20 @@ final class MessageFormatter {
         } catch (final Exception t) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(t);
             SysErrLogger.FAKE_LOGGER.syserr(
-                "SLF4J: Failed toString() invocation on an object of type [" + o.getClass().getName() + ']' +
-                    t.getMessage());
+                "SLF4J: Failed toString() invocation on an object of type [" +
+                o.getClass().getName() +
+                ']' +
+                t.getMessage()
+            );
             sbuild.append("[FAILED toString()]");
         }
     }
 
-    private static final void objectArrayAppend(final StringBuilder sbuild, final Object[] a,
-        final Map<Object[], Void> seenMap) {
+    private static final void objectArrayAppend(
+        final StringBuilder sbuild,
+        final Object[] a,
+        final Map<Object[], Void> seenMap
+    ) {
         sbuild.append('[');
         if (!seenMap.containsKey(a)) {
             seenMap.put(a, null);

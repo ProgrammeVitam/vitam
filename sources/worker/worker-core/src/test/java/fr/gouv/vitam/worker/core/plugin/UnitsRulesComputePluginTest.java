@@ -83,9 +83,9 @@ import static org.mockito.Mockito.when;
 public class UnitsRulesComputePluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String ARCHIVE_UNIT_RULE = "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE.json";
     private static final String ARCHIVE_UNIT_RULE_MGT_ONLY =
@@ -93,7 +93,7 @@ public class UnitsRulesComputePluginTest {
     private static final String ARBO_MD_RG_COMPLEXE_ROOT = "unitsRulesComputePlugin/ARBO_MD_RG_COMPLEXE_ROOT.json";
     private static final String ARBO_MD_NON_EXISTING_RULE = "unitsRulesComputePlugin/ARBO_MD_NON_EXISTING_RULE.json";
     private static final String AU_SIP_MGT_MD_OK1 = "unitsRulesComputePlugin/AU_SIP_MGT_MD_OK1.json";
-    private final static String FAKE_URL = "http://localhost:1111";
+    private static final String FAKE_URL = "http://localhost:1111";
     private static final String CHECK_RULES_TASK_ID = "UNITS_RULES_COMPUTE";
     private static final String CHECK_UNKNOWN_TASK = "UNKNOWN";
     private InputStream input;
@@ -104,6 +104,7 @@ public class UnitsRulesComputePluginTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private Integer tenantId = 0;
 
     @Rule
@@ -127,9 +128,7 @@ public class UnitsRulesComputePluginTest {
     @Mock
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
-
     private UnitsRulesComputePlugin plugin;
-
 
     @Before
     public void setUp() throws Exception {
@@ -141,20 +140,21 @@ public class UnitsRulesComputePluginTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
         plugin = new UnitsRulesComputePlugin(adminManagementClientFactory);
-        action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, GUIDFactory.newGUID().toString(),
-                GUIDFactory.newGUID().toString(),
-                com.google.common.collect.Lists.newArrayList());
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            GUIDFactory.newGUID().toString(),
+            GUIDFactory.newGUID().toString(),
+            com.google.common.collect.Lists.newArrayList()
+        );
 
         input = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE);
         archiveUnit = JsonHandler.getFromInputStream(input);
 
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
         action.addInIOParameters(in);
     }
-
 
     @After
     public void tearDown() throws IOException {
@@ -173,17 +173,20 @@ public class UnitsRulesComputePluginTest {
         action.getInput().add(archiveUnit);
 
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
-        when(adminManagementClient.getRuleByID("ID101"))
-            .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
+        when(adminManagementClient.getRuleByID("ID101")).thenReturn(
+            getRulesInReferential("ID101", "ClassificationRule")
+        );
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "AccessRule"));
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -197,38 +200,40 @@ public class UnitsRulesComputePluginTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKO() throws Exception {
-
         action.getInput().clear();
         action.getInput().add(archiveUnit);
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialPartial());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-
     }
 
     @Test
     public void givenWorkspaceExistAndEmptyRulesButManagementRulesWhenExecuteThenReturnResponseOK() throws Exception {
-
-        JsonNode archiveUnit_MGT_only =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY));
+        JsonNode archiveUnit_MGT_only = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY)
+        );
         action.getInput().clear();
         action.getInput().add(archiveUnit_MGT_only);
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -248,17 +253,22 @@ public class UnitsRulesComputePluginTest {
         action.getInput().add(archiveUnit);
 
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
-        when(adminManagementClient.getRuleByID("ID101"))
-            .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
+        when(adminManagementClient.getRuleByID("ID101")).thenReturn(
+            getRulesInReferential("ID101", "ClassificationRule")
+        );
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "AccessRule"));
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        when(workspaceClient.getObject(any(), any()))
-            .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
+        when(workspaceClient.getObject(any(), any())).thenReturn(
+            Response.status(Status.OK).entity(archiveUnit).build()
+        );
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
@@ -273,24 +283,31 @@ public class UnitsRulesComputePluginTest {
     public void givenArboMdRgComplexeROOTWhenExecuteThenReturnResponseOK() throws Exception {
         reset(adminManagementClient);
 
-        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT));
+        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT)
+        );
         action.getInput().clear();
         action.getInput().add(archiveUnit_ARBO_MD_RG_COMPLEXE);
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForArboMdRgComplexe());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode accessRule0 =
-            archiveUnit_ARBO_MD_RG_COMPLEXE.get("ArchiveUnit").get("_mgt").get("AccessRule").get("Rules").get(0);
+        JsonNode accessRule0 = archiveUnit_ARBO_MD_RG_COMPLEXE
+            .get("ArchiveUnit")
+            .get("_mgt")
+            .get("AccessRule")
+            .get("Rules")
+            .get(0);
         assertNotNull(accessRule0);
         assertNotNull(accessRule0.get("EndDate"));
         assertEquals("2120-01-01", accessRule0.get("EndDate").asText());
@@ -300,30 +317,32 @@ public class UnitsRulesComputePluginTest {
     public void givenNonExistingRuleWhenExecuteThenReturnResponseKO() throws Exception {
         reset(adminManagementClient);
 
-        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE));
+        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE)
+        );
         action.getInput().clear();
         action.getInput().add(archiveUnit_ARBO_MD_RG_COMPLEXE);
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForNonExistingRule());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         ItemStatus task = response.getItemsStatus().get(CHECK_UNKNOWN_TASK);
         assertEquals(task.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
         assertEquals(task.getSubTaskStatus().entrySet().size(), 1);
-        assertEquals(task.getSubTaskStatus().entrySet().iterator().next().getValue().getData("eventDetailData"),
-            "{\"evDetTechData\":\"Rule RULE-THAT-DOES-NOT-EXIST does not exist\"}");
-
+        assertEquals(
+            task.getSubTaskStatus().entrySet().iterator().next().getValue().getData("eventDetailData"),
+            "{\"evDetTechData\":\"Rule RULE-THAT-DOES-NOT-EXIST does not exist\"}"
+        );
     }
-
-
 
     @RunWithCustomExecutor
     @Test
@@ -333,23 +352,28 @@ public class UnitsRulesComputePluginTest {
         action.getInput().add(archiveUnit);
 
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
-        when(adminManagementClient.getRuleByID("ID101"))
-            .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
+        when(adminManagementClient.getRuleByID("ID101")).thenReturn(
+            getRulesInReferential("ID101", "ClassificationRule")
+        );
         // Should be AccessRule
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "StorageRule"));
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(),
-            "REF_INCONSISTENCY");
+        assertEquals(
+            response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(),
+            "REF_INCONSISTENCY"
+        );
     }
 
     @RunWithCustomExecutor
@@ -358,33 +382,42 @@ public class UnitsRulesComputePluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         reset(adminManagementClient);
 
-        JsonNode archiveUnit_MGT_MD =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1));
+        JsonNode archiveUnit_MGT_MD = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1)
+        );
         action.getInput().clear();
         action.getInput().add(archiveUnit_MGT_MD);
         saveWorkspacePutObject("Units/objectName");
 
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
-        when(adminManagementClient.getRuleByID("ID101"))
-            .thenReturn(getRulesInReferential("ID101", "DisseminationRule"));
+        when(adminManagementClient.getRuleByID("ID101")).thenReturn(
+            getRulesInReferential("ID101", "DisseminationRule")
+        );
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "ReuseRule"));
-        when(adminManagementClient.getRuleByID("ID103"))
-            .thenReturn(getRulesInReferential("ID103", "ClassificationRule"));
+        when(adminManagementClient.getRuleByID("ID103")).thenReturn(
+            getRulesInReferential("ID103", "ClassificationRule")
+        );
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForAuMgtMdOk());
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName"))
+            .setObjectName("objectName")
+            .setCurrentStep("currentStep")
+            .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode storageRule1 =
-            archiveUnit_MGT_MD.get("ArchiveUnit").get("_mgt").get("StorageRule").get("Rules").get(1);
+        JsonNode storageRule1 = archiveUnit_MGT_MD
+            .get("ArchiveUnit")
+            .get("_mgt")
+            .get("StorageRule")
+            .get("Rules")
+            .get(1);
         assertNotNull(storageRule1);
         assertNotNull(storageRule1.get("EndDate"));
         assertEquals("2016-04-10", storageRule1.get("EndDate").asText());
@@ -393,17 +426,27 @@ public class UnitsRulesComputePluginTest {
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
             InputStream inputStream = invocation.getArgument(2);
-            java.nio.file.Path file =
-                java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
-                    action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+            java.nio.file.Path file = java.nio.file.Paths.get(
+                System.getProperty("vitam.tmp.folder") +
+                "/" +
+                action.getContainerName() +
+                "_" +
+                action.getWorkerId() +
+                "/" +
+                filename.replaceAll("/", "_")
+            );
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.eq(filename),
+                org.mockito.ArgumentMatchers.any(InputStream.class)
+            );
     }
 
     private JsonNode getRulesInReferential(String ruleId, String ruleType) {
-
         final ArrayNode root = JsonHandler.createArrayNode();
         root.add(createRule(ruleId, ruleType, "3", RuleMeasurementEnum.MONTH.getType()));
         final ObjectNode rule = JsonHandler.createObjectNode();
@@ -412,7 +455,6 @@ public class UnitsRulesComputePluginTest {
     }
 
     private JsonNode getRulesInReferential() {
-
         final ArrayNode root = JsonHandler.createArrayNode();
         root.add(createRule("ID420", "StorageRule", "3", RuleMeasurementEnum.MONTH.getType()));
         root.add(createRule("ID470", "ClassificationRule", "2", RuleMeasurementEnum.DAY.getType()));
@@ -424,7 +466,6 @@ public class UnitsRulesComputePluginTest {
     }
 
     private JsonNode getRulesInReferentialForAuMgtMdOk() {
-
         final ArrayNode root = JsonHandler.createArrayNode();
         root.add(createRule("ID017", "StorageRule", "3", RuleMeasurementEnum.MONTH.getType()));
         root.add(createRule("ID018", "AppraisalRule", "2", RuleMeasurementEnum.DAY.getType()));
@@ -443,7 +484,6 @@ public class UnitsRulesComputePluginTest {
     }
 
     private JsonNode getRulesInReferentialForArboMdRgComplexe() {
-
         final ArrayNode root = JsonHandler.createArrayNode();
         root.add(createRule("R1", "StorageRule", "1", RuleMeasurementEnum.YEAR.getType()));
         root.add(createRule("R6", "StorageRule", "6", RuleMeasurementEnum.YEAR.getType()));
@@ -455,7 +495,6 @@ public class UnitsRulesComputePluginTest {
     }
 
     private JsonNode getRulesInReferentialForNonExistingRule() {
-
         final ArrayNode root = JsonHandler.createArrayNode();
         root.add(createRule("R1", "StorageRule", "1", RuleMeasurementEnum.YEAR.getType()));
 
@@ -470,7 +509,6 @@ public class UnitsRulesComputePluginTest {
         accessRule.put(FileRules.RULEDESCRIPTION, "rule content");
         accessRule.put(FileRules.RULEDURATION, "2");
         accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.DAY.getType());
-
 
         final ObjectNode reuseRule2 = JsonHandler.createObjectNode();
         reuseRule2.put(FileRules.RULEID, "ID019");

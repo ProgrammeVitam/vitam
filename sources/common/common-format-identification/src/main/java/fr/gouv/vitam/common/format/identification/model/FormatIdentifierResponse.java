@@ -93,5 +93,4 @@ public class FormatIdentifierResponse {
     public String getMatchedNamespace() {
         return matchedNamespace;
     }
-
 }

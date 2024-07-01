@@ -56,8 +56,7 @@ public class DbFormatIdentificationModel {
         this.formatId = formatId;
     }
 
-    public DbFormatIdentificationModel() {
-    }
+    public DbFormatIdentificationModel() {}
 
     public String getFormatLitteral() {
         return formatLitteral;
@@ -93,15 +92,15 @@ public class DbFormatIdentificationModel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         DbFormatIdentificationModel that = (DbFormatIdentificationModel) o;
-        return Objects.equals(formatLitteral, that.formatLitteral)
-            && Objects.equals(mimeType, that.mimeType)
-            && Objects.equals(formatId, that.formatId)
-            && Objects.equals(encoding, that.encoding);
+        return (
+            Objects.equals(formatLitteral, that.formatLitteral) &&
+            Objects.equals(mimeType, that.mimeType) &&
+            Objects.equals(formatId, that.formatId) &&
+            Objects.equals(encoding, that.encoding)
+        );
     }
 
     @Override

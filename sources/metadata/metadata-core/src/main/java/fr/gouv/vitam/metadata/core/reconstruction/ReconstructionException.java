@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Exception used for Reconstruction service
  */
 public class ReconstructionException extends VitamException {
+
     public ReconstructionException(Throwable cause) {
         super(cause);
     }

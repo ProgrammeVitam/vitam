@@ -48,6 +48,7 @@ import java.util.List;
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class ProfileResourceMock {
+
     private final ResteasyTestApplication.ExpectedResults mock;
 
     public static final String PROFILE_URI = "/profiles";
@@ -68,8 +69,11 @@ public class ProfileResourceMock {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importProfileFile(@Context UriInfo uri, @PathParam("id") String profileMetadataId,
-        InputStream profileFile) {
+    public Response importProfileFile(
+        @Context UriInfo uri,
+        @PathParam("id") String profileMetadataId,
+        InputStream profileFile
+    ) {
         return mock.put();
     }
 
@@ -80,7 +84,6 @@ public class ProfileResourceMock {
     public Response updateProfileFile(@PathParam("id") String profileMetadataId, JsonNode queryDsl) {
         return mock.put();
     }
-
 
     @GET
     @Path(PROFILE_URI + "/{id}")

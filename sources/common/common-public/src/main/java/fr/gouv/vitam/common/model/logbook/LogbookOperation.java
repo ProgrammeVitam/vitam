@@ -101,7 +101,6 @@ public class LogbookOperation extends LogbookEventOperation {
         this.id = id;
     }
 
-
     /**
      * @return the tenant
      */
@@ -160,16 +159,16 @@ public class LogbookOperation extends LogbookEventOperation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         LogbookOperation operation = (LogbookOperation) o;
-        return Objects.equals(id, operation.id) &&
+        return (
+            Objects.equals(id, operation.id) &&
             Objects.equals(tenant, operation.tenant) &&
             Objects.equals(agIdApp, operation.agIdApp) &&
             Objects.equals(evIdAppSession, operation.evIdAppSession) &&
-            Objects.equals(events, operation.events);
+            Objects.equals(events, operation.events)
+        );
     }
 
     @Override

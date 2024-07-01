@@ -51,21 +51,24 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class CheckVersionActionHandlerTest {
 
     private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
     private CheckVersionActionHandler handlerVersion = new CheckVersionActionHandler(sedaUtilsFactory);
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("objectName.json"))
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("CheckVersionActionHandlerTest");
-    private final HandlerIOImpl handlerIO =
-        new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectNameList(Lists.newArrayList("objectName.json"))
+        .setObjectName("objectName.json")
+        .setCurrentStep("currentStep")
+        .setContainerName("CheckVersionActionHandlerTest");
+    private final HandlerIOImpl handlerIO = new HandlerIOImpl(
+        "CheckVersionActionHandlerTest",
+        "workerId",
+        com.google.common.collect.Lists.newArrayList()
+    );
 
     @Before
     public void setUp() throws Exception {
@@ -94,8 +97,7 @@ public class CheckVersionActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
-        throws ProcessingException {
+    public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning() throws ProcessingException {
         Map<String, Map<String, String>> versionMap = new HashMap<>();
         final Map<String, String> invalidVersionMap = new HashMap<>();
         final Map<String, String> validVersionMap = new HashMap<>();
@@ -109,19 +111,17 @@ public class CheckVersionActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal()
-        throws ProcessingException {
+    public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal() throws ProcessingException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
-
     @Test
-    public void givenWrongAlgorithmThenReturnResponseError()
-        throws ProcessingException {
-        Mockito.doThrow(new SedaUtilsException(new ProcessingException(""))).when(sedaUtils)
+    public void givenWrongAlgorithmThenReturnResponseError() throws ProcessingException {
+        Mockito.doThrow(new SedaUtilsException(new ProcessingException("")))
+            .when(sedaUtils)
             .checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.management.client;
 
-
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -49,7 +48,6 @@ import java.util.Optional;
  * Processing Management Client
  */
 public interface ProcessingManagementClient extends MockOrRestClient {
-
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
      * thrown.
@@ -71,8 +69,7 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @param workerId the id of the worker to be registered
      * @throws ProcessingBadRequestException if the worker or the family does not exist
      */
-    void unregisterWorker(String familyId, String workerId)
-        throws ProcessingBadRequestException;
+    void unregisterWorker(String familyId, String workerId) throws ProcessingBadRequestException;
 
     /**
      * Retrieve all the workflow definitions.
@@ -89,15 +86,12 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      */
     Optional<WorkFlow> getWorkflowDetails(String WorkflowIdentifier) throws VitamClientException;
 
-
     /**
      * Removed the forced pause on the tenant and/or the type of process
      *
      * @param info
      */
     RequestResponse<ProcessPause> removeForcePause(ProcessPause info) throws ProcessingException;
-
-
 
     /**
      * Add a forced pause on the tenant and/or the type of process
@@ -156,7 +150,6 @@ public interface ProcessingManagementClient extends MockOrRestClient {
     RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, VitamClientException;
 
-
     /**
      * ExecuteOperationProcess : execute an operation processing
      * Other than INIT process, only operation id and action id are required
@@ -195,6 +188,5 @@ public interface ProcessingManagementClient extends MockOrRestClient {
      * @return All details of the operations
      * @throws VitamClientException
      */
-    RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query)
-        throws VitamClientException;
+    RequestResponse<ProcessDetail> listOperationsDetails(ProcessQuery query) throws VitamClientException;
 }

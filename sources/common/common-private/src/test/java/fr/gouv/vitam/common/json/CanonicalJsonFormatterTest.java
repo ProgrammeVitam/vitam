@@ -41,11 +41,12 @@ public class CanonicalJsonFormatterTest {
 
     @Test
     public void whenSerializeCheckBinaryData() throws Exception {
-
         String inputJson = "json_canonicalization/test_input.json";
         String expectedOutput = "json_canonicalization/expected_output.json";
-        try (InputStream is = PropertiesUtils.getResourceAsStream(inputJson);
-            InputStream expectedInputStream = PropertiesUtils.getResourceAsStream(expectedOutput)) {
+        try (
+            InputStream is = PropertiesUtils.getResourceAsStream(inputJson);
+            InputStream expectedInputStream = PropertiesUtils.getResourceAsStream(expectedOutput)
+        ) {
             JsonNode jsonNode = JsonHandler.getFromInputStream(is);
 
             InputStream resultInputStream = CanonicalJsonFormatter.serialize(jsonNode);
@@ -55,14 +56,12 @@ public class CanonicalJsonFormatterTest {
 
     @Test
     public void whenSerializeCheckDataParsing() throws Exception {
-
         String inputJson = "json_canonicalization/test_input.json";
         JsonNode initialJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(inputJson));
         JsonNode canonicalJson = JsonHandler.getFromInputStream(CanonicalJsonFormatter.serialize(initialJson));
 
         JsonAssert.assertJsonEquals(initialJson.toString(), canonicalJson.toString());
     }
-
 
     @Test
     public void testSerializeBinary() {

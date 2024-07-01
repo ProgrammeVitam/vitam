@@ -58,8 +58,7 @@ public class DistributionReportModel {
      * @param id
      * @param status
      */
-    public DistributionReportModel(String id,
-        DistributionStatus status) {
+    public DistributionReportModel(String id, DistributionStatus status) {
         this.id = id;
         this.status = status;
     }

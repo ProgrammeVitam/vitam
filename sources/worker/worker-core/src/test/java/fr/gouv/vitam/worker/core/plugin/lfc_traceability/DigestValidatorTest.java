@@ -53,21 +53,26 @@ public class DigestValidatorTest {
     private static final String DIGEST_1 = "digest1";
     private static final String DIGEST_2 = "digest2";
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private AlertService alertService;
+    @Mock
+    private AlertService alertService;
 
     @Test
     public void validateMetadataValidSingleOffer() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, DIGEST_1);
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateMetadataDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
@@ -83,7 +88,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateMetadataValidMultipleOffers() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, DIGEST_1);
@@ -91,8 +95,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateMetadataDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
@@ -108,7 +116,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateMetadataMissingOfferDigest() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, null);
@@ -116,8 +123,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateMetadataDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
@@ -135,7 +146,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateMetadataAllOfferDigestKO() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, null);
@@ -143,9 +153,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
-
+        DigestValidationDetails digestValidationDetails = instance.validateObjectDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         //Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
@@ -163,7 +176,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateMetadataInvalidOfferDigest() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, DIGEST_1);
@@ -171,8 +183,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateMetadataDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateMetadataDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
@@ -188,18 +204,20 @@ public class DigestValidatorTest {
         verifyNoMoreInteractions(alertService);
     }
 
-
     @Test
     public void validateObjectValidSingleOffer() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, DIGEST_1);
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateObjectDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
@@ -215,7 +233,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateObjectValidMultipleOffers() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, DIGEST_1);
@@ -223,8 +240,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateObjectDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isFalse();
@@ -240,7 +261,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateObjectMissingOfferDigest() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, null);
@@ -248,8 +268,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateObjectDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
@@ -274,9 +298,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
-
+        DigestValidationDetails digestValidationDetails = instance.validateObjectDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         //Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
@@ -292,7 +319,6 @@ public class DigestValidatorTest {
 
     @Test
     public void validateObjectInvalidOfferDigest() throws ProcessingStatusException {
-
         // Given
         Map<String, String> offerDigests = new HashMap<>();
         offerDigests.put(OFFER_1, DIGEST_1);
@@ -300,8 +326,12 @@ public class DigestValidatorTest {
         DigestValidator instance = new DigestValidator(alertService);
 
         // When
-        DigestValidationDetails digestValidationDetails =
-            instance.validateObjectDigest("id", VitamConfiguration.getDefaultStrategy(), DIGEST_1, offerDigests);
+        DigestValidationDetails digestValidationDetails = instance.validateObjectDigest(
+            "id",
+            VitamConfiguration.getDefaultStrategy(),
+            DIGEST_1,
+            offerDigests
+        );
 
         // Then
         assertThat(digestValidationDetails.hasInconsistencies()).isTrue();
@@ -317,9 +347,13 @@ public class DigestValidatorTest {
         verifyNoMoreInteractions(alertService);
     }
 
-    private void checkStats(DigestValidator instance, int nbMetadataOK, int nbMetadataWarnings,
-        int nbObjectOK, int nbObjectWarnings) {
-
+    private void checkStats(
+        DigestValidator instance,
+        int nbMetadataOK,
+        int nbMetadataWarnings,
+        int nbObjectOK,
+        int nbObjectWarnings
+    ) {
         assertThat(instance.getMetadataValidationStatistics().getNbOK()).isEqualTo(nbMetadataOK);
         assertThat(instance.getMetadataValidationStatistics().getNbWarnings()).isEqualTo(nbMetadataWarnings);
 

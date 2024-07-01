@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.offers.tape.dto;
  * MagneticTapeCartridge
  */
 public class TapeCartridge {
+
     private String volumeTag;
     private String alternateVolumeTag;
     private Integer slotIndex;

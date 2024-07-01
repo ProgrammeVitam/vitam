@@ -41,6 +41,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  * IndexUnit Handler
  */
 public class RollBackActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RollBackActionHandler.class);
     private static final String HANDLER_ID = "ROLL_BACK";
 

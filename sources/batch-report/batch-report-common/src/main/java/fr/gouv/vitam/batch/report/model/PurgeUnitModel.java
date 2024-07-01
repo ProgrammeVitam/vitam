@@ -58,8 +58,7 @@ public class PurgeUnitModel {
         // Empty constructor for deserialization
     }
 
-    public PurgeUnitModel(String processId, int tenant, String creationDateTime,
-        PurgeUnitReportEntry metadata) {
+    public PurgeUnitModel(String processId, int tenant, String creationDateTime, PurgeUnitReportEntry metadata) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
@@ -100,21 +99,21 @@ public class PurgeUnitModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
+        if (o == this) return true;
         if (!(o instanceof PurgeUnitModel)) {
             return false;
         }
         PurgeUnitModel purgeUnitModel = (PurgeUnitModel) o;
 
-        return Objects.equals(getTenant(), purgeUnitModel.getTenant())
-            && Objects.equals(getProcessId(), purgeUnitModel.getProcessId())
-            && Objects.equals(getMetadataId(this), getMetadataId(purgeUnitModel));
+        return (
+            Objects.equals(getTenant(), purgeUnitModel.getTenant()) &&
+            Objects.equals(getProcessId(), purgeUnitModel.getProcessId()) &&
+            Objects.equals(getMetadataId(this), getMetadataId(purgeUnitModel))
+        );
     }
 
     private static String getMetadataId(PurgeUnitModel purgeUnitModel) {
-        if (purgeUnitModel.getMetadata() == null
-            || StringUtils.isEmpty(purgeUnitModel.getMetadata().getId())) {
+        if (purgeUnitModel.getMetadata() == null || StringUtils.isEmpty(purgeUnitModel.getMetadata().getId())) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 

@@ -44,9 +44,11 @@ public class AuditReportService extends CommonReportService<AuditObjectGroupRepo
     }
 
     @VisibleForTesting
-    public AuditReportService(BatchReportClientFactory reportFactory,
+    public AuditReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.AUDIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

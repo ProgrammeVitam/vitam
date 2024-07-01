@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.dsl.schema.ValidationException;
  * Validator for Dsl queries.
  */
 public interface DslValidator {
-
     /**
      * Validate a dsl query
      *

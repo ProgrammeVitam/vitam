@@ -48,5 +48,4 @@ public class IOParameterTest {
         assertEquals(param.getUri().getPrefix(), UriPrefix.WORKSPACE);
         assertEquals(param.getName(), IN);
     }
-
 }

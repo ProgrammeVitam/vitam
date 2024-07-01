@@ -78,17 +78,19 @@ public class BoundedByteBufferTest {
         simpleTest(10, 10 * 1024 * 1024);
     }
 
-    private void simpleTest(int readerCount, int size)
-        throws Exception {
-
+    private void simpleTest(int readerCount, int size) throws Exception {
         // Given
-        ExecutorService executorService =
-            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService = Executors.newFixedThreadPool(
+            1 + readerCount,
+            VitamThreadFactory.getInstance()
+        );
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
 
         // When
-        CompletableFuture<Digest> writtenDigestFuture =
-            CompletableFuture.supplyAsync(() -> writeRandomData(size, instance), executorService);
+        CompletableFuture<Digest> writtenDigestFuture = CompletableFuture.supplyAsync(
+            () -> writeRandomData(size, instance),
+            executorService
+        );
         List<CompletableFuture<Digest>> readDigestFutures = new ArrayList<>();
         for (int i = 0; i < readerCount; i++) {
             InputStream reader = instance.getReader(i);
@@ -110,7 +112,6 @@ public class BoundedByteBufferTest {
 
     @Test
     public void testBrokenWriter() throws Exception {
-
         testBrokenWriter(1, 0);
         testBrokenWriter(1, 100);
         testBrokenWriter(1, 1024);
@@ -120,15 +121,18 @@ public class BoundedByteBufferTest {
     }
 
     private void testBrokenWriter(int readerCount, int sizeBeforeBrokenStream) throws InterruptedException {
-
         // Given
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
-        ExecutorService executorService =
-            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService = Executors.newFixedThreadPool(
+            1 + readerCount,
+            VitamThreadFactory.getInstance()
+        );
 
         // When
-        CompletableFuture<Digest> writtenDigestFuture =
-            CompletableFuture.supplyAsync(() -> writeBrokenData(sizeBeforeBrokenStream, instance), executorService);
+        CompletableFuture<Digest> writtenDigestFuture = CompletableFuture.supplyAsync(
+            () -> writeBrokenData(sizeBeforeBrokenStream, instance),
+            executorService
+        );
         List<CompletableFuture<Digest>> readDigestFutures = new ArrayList<>();
         for (int i = 0; i < readerCount; i++) {
             InputStream reader = instance.getReader(i);
@@ -136,12 +140,14 @@ public class BoundedByteBufferTest {
         }
 
         // Then
-        assertThatThrownBy(() -> writtenDigestFuture.get(1, TimeUnit.MINUTES))
-            .hasRootCauseInstanceOf(IOException.class);
+        assertThatThrownBy(() -> writtenDigestFuture.get(1, TimeUnit.MINUTES)).hasRootCauseInstanceOf(
+            IOException.class
+        );
 
         for (CompletableFuture<Digest> readDigestFuture : readDigestFutures) {
-            assertThatThrownBy(() -> readDigestFuture.get(1, TimeUnit.MINUTES))
-                .hasRootCauseInstanceOf(IOException.class);
+            assertThatThrownBy(() -> readDigestFuture.get(1, TimeUnit.MINUTES)).hasRootCauseInstanceOf(
+                IOException.class
+            );
         }
 
         instance.close();
@@ -152,21 +158,24 @@ public class BoundedByteBufferTest {
 
     @Test
     public void givenPartialReaderFailureThenOtherReadersShouldCompleteSuccessfully() throws Exception {
-
         int size = 1_000_000;
         int readerCount = 3;
         int failingReaderIndex = 1;
 
         // Given
-        ExecutorService executorService =
-            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService = Executors.newFixedThreadPool(
+            1 + readerCount,
+            VitamThreadFactory.getInstance()
+        );
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
 
         instance.getReader(failingReaderIndex).close();
 
         // When
-        CompletableFuture<Digest> writtenDigestFuture =
-            CompletableFuture.supplyAsync(() -> writeRandomData(size, instance), executorService);
+        CompletableFuture<Digest> writtenDigestFuture = CompletableFuture.supplyAsync(
+            () -> writeRandomData(size, instance),
+            executorService
+        );
         List<CompletableFuture<Digest>> readDigestFutures = new ArrayList<>();
         for (int i = 0; i < readerCount; i++) {
             InputStream reader = instance.getReader(i);
@@ -177,8 +186,9 @@ public class BoundedByteBufferTest {
         Digest writtenDigest = writtenDigestFuture.get(1, TimeUnit.MINUTES);
         for (int i = 0; i < readerCount; i++) {
             if (i == failingReaderIndex) {
-                assertThatThrownBy(() -> readDigestFutures.get(failingReaderIndex).get(1, TimeUnit.MINUTES))
-                    .hasRootCauseInstanceOf(IOException.class);
+                assertThatThrownBy(
+                    () -> readDigestFutures.get(failingReaderIndex).get(1, TimeUnit.MINUTES)
+                ).hasRootCauseInstanceOf(IOException.class);
             } else {
                 Digest readDigest = readDigestFutures.get(i).get(1, TimeUnit.MINUTES);
                 assertThat(writtenDigest.digestHex()).isEqualTo(readDigest.digestHex());
@@ -193,26 +203,30 @@ public class BoundedByteBufferTest {
 
     @Test
     public void givenAllReadersFailThenWriterShouldFail() throws Exception {
-
         int size = 1_000_000_000;
         int readerCount = 3;
 
         // Given
-        ExecutorService executorService =
-            Executors.newFixedThreadPool(1 + readerCount, VitamThreadFactory.getInstance());
+        ExecutorService executorService = Executors.newFixedThreadPool(
+            1 + readerCount,
+            VitamThreadFactory.getInstance()
+        );
         BoundedByteBuffer instance = new BoundedByteBuffer(BUFFER_SIZE, readerCount);
 
         // When
-        CompletableFuture<Digest> writtenDigestFuture =
-            CompletableFuture.supplyAsync(() -> writeRandomData(size, instance), executorService);
+        CompletableFuture<Digest> writtenDigestFuture = CompletableFuture.supplyAsync(
+            () -> writeRandomData(size, instance),
+            executorService
+        );
         for (int i = 0; i < readerCount; i++) {
             InputStream reader = instance.getReader(i);
             CompletableFuture.supplyAsync(() -> failReadStream(reader), executorService);
         }
 
         // Then
-        assertThatThrownBy(() -> writtenDigestFuture.get(1, TimeUnit.MINUTES))
-            .hasRootCauseInstanceOf(IOException.class);
+        assertThatThrownBy(() -> writtenDigestFuture.get(1, TimeUnit.MINUTES)).hasRootCauseInstanceOf(
+            IOException.class
+        );
 
         instance.close();
 

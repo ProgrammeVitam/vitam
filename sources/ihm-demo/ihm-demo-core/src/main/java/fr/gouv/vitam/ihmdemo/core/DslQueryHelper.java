@@ -80,7 +80,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
-
 /**
  * Helper class to create DSL queries
  */
@@ -200,8 +199,7 @@ public class DslQueryHelper {
         return instance;
     }
 
-    public DslQueryHelper() {
-    }
+    public DslQueryHelper() {}
 
     /**
      * generate the DSL query after receiving the search criteria
@@ -235,12 +233,10 @@ public class DslQueryHelper {
                     case ONTOLOGY_NAME:
                         realSortField = "ApiField";
                         break;
-
                     case PROFILE_IDENTIFIER:
                     case ARCHIVE_UNIT_PROFILE_IDENTIFIER:
                         realSortField = "Identifier";
                         break;
-
                     default:
                 }
 
@@ -253,42 +249,39 @@ public class DslQueryHelper {
                 final String searchValue = (String) entry.getValue();
                 switch (searchKeys) {
                     case DEFAULT_EVENT_TYPE_PROCESS:
-                        query.add(or().add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS),
-                            eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS_TEST)));
+                        query.add(
+                            or()
+                                .add(
+                                    eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS),
+                                    eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS_TEST)
+                                )
+                        );
                         break;
-
                     case OBJECT_IDENTIFIER_INCOME:
                         query.add(eq("events.obIdIn", searchValue));
                         break;
-
                     case FORMAT:
                         query.add(exists(PUID));
                         break;
-
                     case FORMAT_NAME:
                         if (!searchValue.trim().isEmpty()) {
                             query.add(match("Name", searchValue));
                         }
                         break;
-
                     case RULE_VALUE:
                         if (!searchValue.trim().isEmpty()) {
                             query.add(match(RULE_VALUE, searchValue));
                         }
                         break;
-
                     case ACCESSION_REGISTER:
                         query.add(exists(ORIGINATING_AGENCY));
                         break;
-
                     case ORIGINATING_AGENCY:
                         query.add(eq(ORIGINATING_AGENCY, searchValue));
                         break;
-
                     case RULES:
                         query.add(exists(RULEVALUE));
                         break;
-
                     case RULETYPE:
                         if (searchValue.contains(ALL)) {
                             break;
@@ -305,7 +298,6 @@ public class DslQueryHelper {
                             query.add(eq("RuleType", searchValue));
                         }
                         break;
-
                     case EVENTID:
                         if ("all".equals(searchValue)) {
                             query.add(exists(EVENT_ID_PROCESS));
@@ -313,7 +305,6 @@ public class DslQueryHelper {
                             query.add(eq(EVENT_ID_PROCESS, searchValue));
                         }
                         break;
-
                     case EVENTTYPE:
                         if (!searchValue.isEmpty()) {
                             if ("all".equals(searchValue)) {
@@ -331,18 +322,18 @@ public class DslQueryHelper {
                     case TRACEABILITY_OK:
                         // FIXME : check if it is normal that the end event is a step event for a traceability
                         if ("true".equals(searchValue)) {
-                            InQuery checkStatus = in(EVENT_OUT_DETAIL,
+                            InQuery checkStatus = in(
+                                EVENT_OUT_DETAIL,
                                 "STP_OP_SECURISATION.OK",
                                 "STP_STORAGE_SECURISATION.OK",
                                 "STP_STORAGE_SECURISATION.WARNING",
                                 "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
                                 "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING",
                                 "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK",
-                                "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.WARNING");
+                                "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.WARNING"
+                            );
                             ExistsQuery hasFilename = exists("events.evDetData.FileName");
-                            query
-                                .add(checkStatus)
-                                .add(hasFilename);
+                            query.add(checkStatus).add(hasFilename);
                         }
                         break;
                     case TRACEABILITY_ID:
@@ -366,7 +357,6 @@ public class DslQueryHelper {
                             query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
                         }
                         break;
-
                     case INGEST_START_DATE:
                         if (!searchValue.isEmpty()) {
                             query.add(gte(EVENT_DATE_TIME, searchValue));
@@ -377,14 +367,12 @@ public class DslQueryHelper {
                             query.add(lte(EVENT_DATE_TIME, searchValue));
                         }
                         break;
-
                     case ONTOLOGY_TYPE:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Type"));
                         } else if (!searchValue.isEmpty()) {
                             query.add(match("Type", searchValue));
                         }
-
                     case AGENCY_NAME:
                     case CONTEXT_NAME:
                     case CONTRACT_NAME:
@@ -398,21 +386,13 @@ public class DslQueryHelper {
                             query.add(match("Name", searchValue));
                         }
                         break;
-
                     case ONTOLOGY_NAME:
                         if ("all".equals(searchValue)) {
-                            query.add(or()
-                                .add(exists("ApiField"))
-                                .add(exists("SedaField"))
-                            );
+                            query.add(or().add(exists("ApiField")).add(exists("SedaField")));
                         } else if (!searchValue.isEmpty()) {
-                            query.add(or()
-                                .add(eq("ApiField", searchValue))
-                                .add(eq("SedaField", searchValue))
-                            );
+                            query.add(or().add(eq("ApiField", searchValue)).add(eq("SedaField", searchValue)));
                         }
                         break;
-
                     case AGENCY_ID:
                     case CONTRACT_ID:
                     case CONTEXT_ID:
@@ -425,7 +405,6 @@ public class DslQueryHelper {
                             query.add(eq("Identifier", searchValue));
                         }
                         break;
-
                     case PROFILE_IDENTIFIER:
                     case ARCHIVE_UNIT_PROFILE_IDENTIFIER:
                         if ("all".equals(searchValue)) {
@@ -440,8 +419,6 @@ public class DslQueryHelper {
                         }
                 }
             }
-
-
         }
         if (queryOr != null) {
             query.add(queryOr);
@@ -460,7 +437,6 @@ public class DslQueryHelper {
 
     public JsonNode createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-
         final SelectMultiQuery select = new SelectMultiQuery();
 
         // AND by default
@@ -517,7 +493,6 @@ public class DslQueryHelper {
      */
     public JsonNode createGetByIdDSLSelectMultipleQuery(Map<String, String> projectionCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-
         final SelectMultiQuery select = new SelectMultiQuery();
 
         for (final Entry<String, String> entry : projectionCriteriaMap.entrySet()) {
@@ -546,7 +521,6 @@ public class DslQueryHelper {
      */
     public JsonNode createSelectElasticsearchDSLQuery(Map<String, Object> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-
         final SelectMultiQuery select = new SelectMultiQuery();
         final BooleanQuery andQuery = and();
         BooleanQuery nestedSubQuery = null;
@@ -579,49 +553,68 @@ public class DslQueryHelper {
             if (searchKeys.startsWith(FACETS_PREFIX)) {
                 List<FacetItem> facetSettings = (List<FacetItem>) searchValue;
                 for (int i = 0; i < facetSettings.size(); i++) {
-                    FacetItem facetItem = JsonHandler
-                        .getFromString(JsonHandler.writeAsString(facetSettings.get(i)), FacetItem.class);
+                    FacetItem facetItem = JsonHandler.getFromString(
+                        JsonHandler.writeAsString(facetSettings.get(i)),
+                        FacetItem.class
+                    );
 
                     if (facetItem.getFacetType() != null) {
                         switch (facetItem.getFacetType()) {
                             case TERMS:
-                                select.addFacets(new TermsFacet(facetItem.getName(), facetItem.getField(),
-                                    facetItem.getSubobject(), facetItem.getSize(), facetItem.getOrder()));
+                                select.addFacets(
+                                    new TermsFacet(
+                                        facetItem.getName(),
+                                        facetItem.getField(),
+                                        facetItem.getSubobject(),
+                                        facetItem.getSize(),
+                                        facetItem.getOrder()
+                                    )
+                                );
                                 break;
-
                             case DATE_RANGE:
-                                List<RangeFacetValue> ranges = facetItem.getRanges().stream()
+                                List<RangeFacetValue> ranges = facetItem
+                                    .getRanges()
+                                    .stream()
                                     .map(range -> new RangeFacetValue(range.getDateMin(), range.getDateMax()))
                                     .collect(Collectors.toList());
 
                                 select.addFacets(
-                                    new DateRangeFacet(facetItem.getName(), facetItem.getField(),
-                                        facetItem.getSubobject(), facetItem.getFormat(), ranges));
+                                    new DateRangeFacet(
+                                        facetItem.getName(),
+                                        facetItem.getField(),
+                                        facetItem.getSubobject(),
+                                        facetItem.getFormat(),
+                                        ranges
+                                    )
+                                );
                                 break;
-
                             case FILTERS:
                                 Map<String, Query> filters = new HashMap<>();
-                                facetItem.getFilters().forEach(filter -> {
-                                    if (filter.getQuery().get(EXISTS) != null) {
-                                        try {
-                                            filters.put(filter.getName(),
-                                                QueryHelper.exists(filter.getQuery().get(EXISTS).asText()));
-                                        } catch (InvalidCreateOperationException e) {
-                                            LOGGER.error(e);
+                                facetItem
+                                    .getFilters()
+                                    .forEach(filter -> {
+                                        if (filter.getQuery().get(EXISTS) != null) {
+                                            try {
+                                                filters.put(
+                                                    filter.getName(),
+                                                    QueryHelper.exists(filter.getQuery().get(EXISTS).asText())
+                                                );
+                                            } catch (InvalidCreateOperationException e) {
+                                                LOGGER.error(e);
+                                            }
+                                        } else if (filter.getQuery().get(MISSING) != null) {
+                                            try {
+                                                filters.put(
+                                                    filter.getName(),
+                                                    QueryHelper.missing(filter.getQuery().get(MISSING).asText())
+                                                );
+                                            } catch (InvalidCreateOperationException e) {
+                                                LOGGER.error(e);
+                                            }
                                         }
-                                    } else if (filter.getQuery().get(MISSING) != null) {
-                                        try {
-                                            filters.put(filter.getName(),
-                                                QueryHelper.missing(filter.getQuery().get(MISSING).asText()));
-                                        } catch (InvalidCreateOperationException e) {
-                                            LOGGER.error(e);
-                                        }
-                                    }
-
-                                });
+                                    });
                                 select.addFacets(new FiltersFacet(facetItem.getName(), filters));
                                 break;
-
                             default:
                                 break;
                         }
@@ -777,10 +770,15 @@ public class DslQueryHelper {
             }
 
             if (searchKeys.equalsIgnoreCase(REQUEST_FACET_PREFIX)) {
-                RequestFacetItem requestFacetItem = JsonHandler
-                    .getFromString(JsonHandler.writeAsString(searchValue), RequestFacetItem.class);
-                if (requestFacetItem != null && requestFacetItem.getField() != null &&
-                    requestFacetItem.getValue() != null) {
+                RequestFacetItem requestFacetItem = JsonHandler.getFromString(
+                    JsonHandler.writeAsString(searchValue),
+                    RequestFacetItem.class
+                );
+                if (
+                    requestFacetItem != null &&
+                    requestFacetItem.getField() != null &&
+                    requestFacetItem.getValue() != null
+                ) {
                     switch (requestFacetItem.getField()) {
                         case ELIMINATION_DESTROYABLE_ORIGINATING_AGENCY_TAG:
                         case ELIMINATION_NON_DESTROYABLE_ORIGINATING_AGENCY_TAG:
@@ -796,14 +794,17 @@ public class DslQueryHelper {
                             final String[] values = requestFacetItem.getValue().split("-");
                             if (values.length == 2) {
                                 advancedFacetQuery = true;
-                                andQuery.add(gte(requestFacetItem.getField(), values[0]),
-                                    lte(requestFacetItem.getField(), values[1]));
+                                andQuery.add(
+                                    gte(requestFacetItem.getField(), values[0]),
+                                    lte(requestFacetItem.getField(), values[1])
+                                );
                             }
                             break;
-
                         default:
-                            if (requestFacetItem.getField().startsWith(TITLE) ||
-                                requestFacetItem.getField().startsWith(DESCRIPTION)) {
+                            if (
+                                requestFacetItem.getField().startsWith(TITLE) ||
+                                requestFacetItem.getField().startsWith(DESCRIPTION)
+                            ) {
                                 andQuery.add(exists(requestFacetItem.getField()));
                             }
                             if (requestFacetItem.getField().startsWith(LANGUAGE)) {
@@ -830,8 +831,12 @@ public class DslQueryHelper {
         }
 
         if (searchCriteriaMap.get("fieldArchiveUnit") != null) {
-            andQuery.add(eq(((String) searchCriteriaMap.get("fieldArchiveUnit")),
-                ((String) searchCriteriaMap.get("valueArchiveUnit"))));
+            andQuery.add(
+                eq(
+                    ((String) searchCriteriaMap.get("fieldArchiveUnit")),
+                    ((String) searchCriteriaMap.get("valueArchiveUnit"))
+                )
+            );
         }
 
         // US 509:start AND end date must be filled.
@@ -901,10 +906,10 @@ public class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap,
-        Map<String, JsonNode> updateRules)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-
+    public JsonNode createUpdateByIdDSLQuery(
+        Map<String, JsonNode> searchCriteriaMap,
+        Map<String, JsonNode> updateRules
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
 
         for (final Entry<String, JsonNode> entry : searchCriteriaMap.entrySet()) {
@@ -936,7 +941,6 @@ public class DslQueryHelper {
     }
 
     public ObjectNode createMassiveUpdateDSLBaseQuery(JsonNode modifiedFields) {
-
         JsonNode query = modifiedFields.get("query");
         JsonNode threshold = modifiedFields.get("threshold");
 
@@ -1009,7 +1013,6 @@ public class DslQueryHelper {
 
     private BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)
         throws InvalidCreateOperationException {
-
         LOGGER.debug("in createSearchUntisQueryByDate / beginDate:" + startDate + "/ endDate:" + endDate);
 
         final BooleanQuery query = or();
@@ -1027,7 +1030,6 @@ public class DslQueryHelper {
         }
         LOGGER.debug("in createSearchUntisQueryByDate / query:" + query.toString());
         return query;
-
     }
 
     public JsonNode createSearchQueryAccessionRegister(Map<String, Object> options)
@@ -1073,7 +1075,6 @@ public class DslQueryHelper {
      * @return jsonQuery for adminClient
      */
     public JsonNode createSelectAndUpdateDSLQuery(Map<String, Object> optionsMap) {
-
         // Select part
         ArrayNode queryArray = JsonHandler.createArrayNode();
         ObjectNode query = JsonHandler.createObjectNode();

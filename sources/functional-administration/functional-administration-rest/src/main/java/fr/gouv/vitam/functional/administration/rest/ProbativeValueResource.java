@@ -115,36 +115,38 @@ public class ProbativeValueResource {
     public ProbativeValueResource(
         ProcessingManagementClientFactory processingManagementClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
     }
 
-
-    ProbativeValueResource() {  /*nothing to do   */}
+    ProbativeValueResource() {
+        /*nothing to do   */
+    }
 
     private void createProbativeOperation(String operationId)
-        throws
-        LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException,
-        LogbookClientAlreadyExistsException {
-
+        throws LogbookClientServerException, InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-            final LogbookOperationParameters initParameters =
-                LogbookParameterHelper.newLogbookOperationParameters(
-                    GUIDReader.getGUID(operationId),
-                    "EXPORT_PROBATIVE_VALUE",
-                    GUIDReader.getGUID(operationId),
-                    LogbookTypeProcess.AUDIT,
-                    StatusCode.STARTED,
-                    VitamLogbookMessages.getLabelOp("EXPORT_PROBATIVE_VALUE.STARTED") + " : " +
-                        GUIDReader.getGUID(operationId),
-                    GUIDReader.getGUID(operationId));
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDReader.getGUID(operationId),
+                "EXPORT_PROBATIVE_VALUE",
+                GUIDReader.getGUID(operationId),
+                LogbookTypeProcess.AUDIT,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getLabelOp("EXPORT_PROBATIVE_VALUE.STARTED") +
+                " : " +
+                GUIDReader.getGUID(operationId),
+                GUIDReader.getGUID(operationId)
+            );
 
             ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode()
                 .put("AccessContract", getVitamSession().getContractId());
-            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                rightsStatementIdentifier.toString());
+            initParameters.putParameterValue(
+                LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString()
+            );
 
             client.create(initParameters);
         }
@@ -155,72 +157,87 @@ public class ProbativeValueResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response exportProbativeValue(ProbativeValueRequest probativeValueRequest) {
-
         Response.Status status;
         LOGGER.debug("DEBUG: start selectUnits {}", probativeValueRequest.getDslQuery());
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         try {
             checkEmptyQuery(probativeValueRequest.getDslQuery());
 
-            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            try (
+                ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
-                AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-
+                AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()
+            ) {
                 Select select = new Select();
-                Query query =
-                    QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
+                Query query = QueryHelper.eq(
+                    AccessContract.IDENTIFIER,
+                    VitamThreadUtils.getVitamSession().getContractId()
+                );
                 select.setQuery(query);
                 AccessContractModel accessContractModel =
-                    ((RequestResponseOK<AccessContractModel>) adminManagementClient
-                        .findAccessContracts(select.getFinalSelect())).getResults().get(0);
+                    ((RequestResponseOK<AccessContractModel>) adminManagementClient.findAccessContracts(
+                            select.getFinalSelect()
+                        )).getResults()
+                        .get(0);
 
                 workspaceClient.createContainer(operationId);
 
                 createProbativeOperation(operationId);
 
                 // store original query in workspace
-                workspaceClient
-                    .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
-                        OperationContextModel.get(probativeValueRequest)));
+                workspaceClient.putObject(
+                    operationId,
+                    OperationContextMonitor.OperationContextFileName,
+                    writeToInpustream(OperationContextModel.get(probativeValueRequest))
+                );
 
-
-                JsonNode finalQuery = AccessContractRestrictionHelper.
-                    applyAccessContractRestrictionForUnitForSelect(probativeValueRequest.getDslQuery(),
-                        accessContractModel);
-
+                JsonNode finalQuery = AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(
+                    probativeValueRequest.getDslQuery(),
+                    accessContractModel
+                );
 
                 workspaceClient.putObject(operationId, "request", JsonHandler.writeToInpustream(probativeValueRequest));
 
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
-
                 // compress file to backup
-                OperationContextMonitor
-                    .compressInWorkspace(workspaceClientFactory, operationId,
-                        Contexts.EXPORT_PROBATIVE_VALUE.getLogbookTypeProcess(),
-                        OperationContextMonitor.OperationContextFileName);
-
+                OperationContextMonitor.compressInWorkspace(
+                    workspaceClientFactory,
+                    operationId,
+                    Contexts.EXPORT_PROBATIVE_VALUE.getLogbookTypeProcess(),
+                    OperationContextMonitor.OperationContextFileName
+                );
 
                 processingClient.initVitamProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name());
 
-                RequestResponse<ItemStatus> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, Contexts.EXPORT_PROBATIVE_VALUE.name(),
-                        ProcessAction.RESUME.getValue());
+                RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
+                    operationId,
+                    Contexts.EXPORT_PROBATIVE_VALUE.name(),
+                    ProcessAction.RESUME.getValue()
+                );
                 return jsonNodeRequestResponse.toResponse();
-
-            } catch (ContentAddressableStorageServerException | OperationContextException |
-                VitamClientException | LogbookClientServerException | InternalServerException |
-                InvalidGuidOperationException e) {
+            } catch (
+                ContentAddressableStorageServerException
+                | OperationContextException
+                | VitamClientException
+                | LogbookClientServerException
+                | InternalServerException
+                | InvalidGuidOperationException e
+            ) {
                 LOGGER.error("Error while exporting probative value", e);
 
                 return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
-
-            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | AdminManagementClientServerException e) {
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+                    .build();
+            } catch (
+                LogbookClientBadRequestException
+                | LogbookClientAlreadyExistsException
+                | AdminManagementClientServerException e
+            ) {
                 return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                    .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
+                    .build();
             }
-
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -230,30 +247,35 @@ public class ProbativeValueResource {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY);
         }
-
     }
-
 
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError(VitamCodeHelper.getCode(vitamCode))
+                            .setContext(vitamCode.getService().getName())
+                            .setState(vitamCode.getDomain().getName())
+                            .setMessage(vitamCode.getMessage())
+                            .setDescription(vitamCode.getMessage())
+                    )
+                    .toString()
+            )
             .build();
     }
 
     private VitamError getErrorEntity(Response.Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
-
-
-    private void checkEmptyQuery(JsonNode queryDsl)
-        throws InvalidParseOperationException, BadRequestException {
+    private void checkEmptyQuery(JsonNode queryDsl) throws InvalidParseOperationException, BadRequestException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl.deepCopy());
         if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {

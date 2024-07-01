@@ -60,7 +60,6 @@ public class TapeCatalogResourceTest {
     @Mock
     private TapeCatalogService tapeCatalogService;
 
-
     @Test
     public void shouldFindTape() throws Exception {
         // Given
@@ -72,8 +71,9 @@ public class TapeCatalogResourceTest {
         Response result = tapeCatalogResource.getTape(id);
 
         // Then
-        assertThat(((RequestResponseOK<JsonNode>) result.getEntity()).getResults().get(0))
-            .isEqualTo(JsonHandler.toJsonNode(tapeCatalog));
+        assertThat(((RequestResponseOK<JsonNode>) result.getEntity()).getResults().get(0)).isEqualTo(
+            JsonHandler.toJsonNode(tapeCatalog)
+        );
     }
 
     private TapeCatalog getTapeModel(String id) {

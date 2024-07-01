@@ -43,57 +43,44 @@ public class AdminManagementClientFactoryTest {
         try {
             AdminManagementClientFactory.changeMode(new ClientConfigurationImpl(null, 10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         try {
             AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("localhost", -10));
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             AdminManagementClientFactory.changeMode(new ClientConfigurationImpl());
             fail("Should raized an exception");
-        } catch (final IllegalArgumentException e) {
-
-        }
+        } catch (final IllegalArgumentException e) {}
 
         AdminManagementClientFactory.changeMode(null);
 
-        final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final AdminManagementClient client2 =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client2 = AdminManagementClientFactory.getInstance().getClient();
         assertNotNull(client2);
         assertNotSame(client, client2);
 
         AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AdminManagementClient client3 =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client3 = AdminManagementClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AdminManagementClientRest);
-
     }
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         assertTrue(client instanceof AdminManagementClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminManagementClientFactory.getInstance().getVitamClientType());
 
         AdminManagementClientFactory.changeMode(null);
-        final AdminManagementClient client2 =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client2 = AdminManagementClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof AdminManagementClientMock);
         assertEquals(VitamClientType.MOCK, AdminManagementClientFactory.getInstance().getVitamClientType());
 
         AdminManagementClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final AdminManagementClient client3 =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client3 = AdminManagementClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof AdminManagementClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminManagementClientFactory.getInstance().getVitamClientType());
     }
@@ -107,8 +94,7 @@ public class AdminManagementClientFactoryTest {
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        AdminManagementClientFactory.changeMode(
-            AdminManagementClientFactory.changeConfigurationFile("tmp"));
+        AdminManagementClientFactory.changeMode(AdminManagementClientFactory.changeConfigurationFile("tmp"));
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         assertTrue(client instanceof AdminManagementClientMock);
         assertEquals(VitamClientType.MOCK, AdminManagementClientFactory.getInstance().getVitamClientType());
@@ -116,8 +102,7 @@ public class AdminManagementClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final AdminManagementClient client =
-            AdminManagementClientFactory.getInstance().getClient();
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         assertTrue(client instanceof AdminManagementClientRest);
         assertEquals(VitamClientType.PRODUCTION, AdminManagementClientFactory.getInstance().getVitamClientType());
     }

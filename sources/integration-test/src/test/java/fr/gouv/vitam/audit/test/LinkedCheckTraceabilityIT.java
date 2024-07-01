@@ -120,22 +120,24 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     private static final String CONTEXT_ID = "Context_IT";
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(LinkedCheckTraceabilityIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                BatchReportMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        LinkedCheckTraceabilityIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            BatchReportMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            ProcessManagementMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class
+        )
+    );
 
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();
@@ -179,10 +181,14 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("vitamResults").get("OK").asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertEquals(StatusCode.OK.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
-        assertEquals(OPERATION.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
+        assertEquals(
+            StatusCode.OK.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText()
+        );
+        assertEquals(
+            OPERATION.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText()
+        );
     }
 
     @Test
@@ -206,10 +212,14 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("vitamResults").get("OK").asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbStorage").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertEquals(StatusCode.OK.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
-        assertEquals(STORAGE.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
+        assertEquals(
+            StatusCode.OK.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText()
+        );
+        assertEquals(
+            STORAGE.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText()
+        );
     }
 
     @Test
@@ -240,10 +250,14 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("vitamResults").get("OK").asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbUnitLFC").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertEquals(StatusCode.OK.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
-        assertEquals(UNIT_LIFECYCLE.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
+        assertEquals(
+            StatusCode.OK.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText()
+        );
+        assertEquals(
+            UNIT_LIFECYCLE.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText()
+        );
     }
 
     @Test
@@ -274,10 +288,14 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("vitamResults").get("OK").asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbGotLFC").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertEquals(StatusCode.OK.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
-        assertEquals(OBJECTGROUP_LIFECYCLE.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
+        assertEquals(
+            StatusCode.OK.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText()
+        );
+        assertEquals(
+            OBJECTGROUP_LIFECYCLE.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText()
+        );
     }
 
     @Test
@@ -297,8 +315,10 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         List<JsonNode> report = VitamTestHelper.getReports(opId);
         assertEquals(report.size(), 3);
         assertEquals(ReportStatus.WARNING.name(), report.get(0).get(LogbookEvent.OUTCOME).asText());
-        assertEquals(String.format("%s.%s", ProcessDistributor.OBJECTS_LIST_EMPTY, StatusCode.WARNING),
-            report.get(0).get(LogbookEvent.OUT_DETAIL).asText());
+        assertEquals(
+            String.format("%s.%s", ProcessDistributor.OBJECTS_LIST_EMPTY, StatusCode.WARNING),
+            report.get(0).get(LogbookEvent.OUT_DETAIL).asText()
+        );
         assertEquals(ReportType.TRACEABILITY.name(), report.get(1).get("reportType").asText());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
     }
@@ -317,8 +337,10 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         List<JsonNode> report = VitamTestHelper.getReports(opId);
         assertEquals(report.size(), 3);
         assertEquals(ReportStatus.WARNING.name(), report.get(0).get(LogbookEvent.OUTCOME).asText());
-        assertEquals(String.format("%s.%s", ProcessDistributor.OBJECTS_LIST_EMPTY, StatusCode.WARNING),
-            report.get(0).get(LogbookEvent.OUT_DETAIL).asText());
+        assertEquals(
+            String.format("%s.%s", ProcessDistributor.OBJECTS_LIST_EMPTY, StatusCode.WARNING),
+            report.get(0).get(LogbookEvent.OUT_DETAIL).asText()
+        );
         assertEquals(ReportType.TRACEABILITY.name(), report.get(1).get("reportType").asText());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
     }
@@ -353,8 +375,10 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbStorage").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertThat(report.subList(3, 5)).extracting(
-                t -> t.get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText())
+        assertThat(report.subList(3, 5))
+            .extracting(
+                t -> t.get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText()
+            )
             .contains(STORAGE.name(), OPERATION.name());
         assertThat(report.subList(3, 5))
             .extracting(t -> t.get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText())
@@ -385,25 +409,30 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         assertEquals(1, report.get(1).get("vitamResults").get(StatusCode.KO.name()).asInt());
         assertEquals(1, report.get(1).get("extendedInfo").get("nbOperations").asInt());
         assertEquals(JsonHandler.unprettyPrint(query), JsonHandler.unprettyPrint(report.get(2).get("query")));
-        assertEquals(OPERATION.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText());
-        assertEquals(StatusCode.KO.name(),
-            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText());
+        assertEquals(
+            OPERATION.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.OPERATION_TYPE).asText()
+        );
+        assertEquals(
+            StatusCode.KO.name(),
+            report.get(3).get(TraceabilityObjectModel.METADATA).get(TraceabilityReportEntry.STATUS).asText()
+        );
     }
 
     private void updateHash(String secureTenantOpId) {
         try {
-            Document operation =
-                LogbookCollections.OPERATION.getCollection().find(eq("_id", secureTenantOpId)).first();
-            LogbookOperation logbookOperation =
-                BsonHelper.fromDocumentToObject(operation, LogbookOperation.class);
+            Document operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", secureTenantOpId)).first();
+            LogbookOperation logbookOperation = BsonHelper.fromDocumentToObject(operation, LogbookOperation.class);
             ObjectNode evData = (ObjectNode) JsonHandler.getFromString(logbookOperation.getEvDetData());
             evData.put("Hash", "fake");
             logbookOperation.setEvDetData(JsonHandler.unprettyPrint(evData));
             logbookOperation.getEvents().get(1).setEvDetData(JsonHandler.unprettyPrint(evData));
             logbookOperation.getEvents().get(2).setEvDetData(JsonHandler.unprettyPrint(evData));
-            LogbookCollections.OPERATION.getCollection().updateMany(eq("_id", secureTenantOpId),
-                new Document("$set", VitamDocument.parse(JsonHandler.unprettyPrint(logbookOperation))));
+            LogbookCollections.OPERATION.getCollection()
+                .updateMany(
+                    eq("_id", secureTenantOpId),
+                    new Document("$set", VitamDocument.parse(JsonHandler.unprettyPrint(logbookOperation)))
+                );
         } catch (InvalidParseOperationException e) {
             fail("Error while parsing json", e);
         }
@@ -440,8 +469,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            RequestResponseOK<StorageLogTraceabilityResult> response =
-                storageClient.storageLogTraceability(Collections.singletonList(TENANT_ID));
+            RequestResponseOK<StorageLogTraceabilityResult> response = storageClient.storageLogTraceability(
+                Collections.singletonList(TENANT_ID)
+            );
             return response.getResults().get(0).getOperationId();
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             fail("Error while securing data", e);
@@ -454,8 +484,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     private String secureGOTLFCData() {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        try (LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
-            .getClient()) {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
             RequestResponseOK<String> response = logbookOperationsClient.traceabilityLfcObjectGroup();
             String opId = response.getResults().get(0);
             waitOperation(opId);
@@ -469,8 +500,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     private String secureUnitLFCData() {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        try (LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
-            .getClient()) {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
             RequestResponseOK<String> response = logbookOperationsClient.traceabilityLfcUnit();
             String opId = response.getResults().get(0);
             waitOperation(opId);
@@ -486,8 +518,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            RequestResponseOK<TenantLogbookOperationTraceabilityResult> response
-                = client.traceability(Collections.singletonList(TENANT_ID));
+            RequestResponseOK<TenantLogbookOperationTraceabilityResult> response = client.traceability(
+                Collections.singletonList(TENANT_ID)
+            );
             assertThat(response.getResults().size()).isEqualTo(1);
             return response.getResults().get(0).getOperationId();
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
@@ -510,12 +543,9 @@ public class LinkedCheckTraceabilityIT extends VitamRuleRunner {
     }
 
     private String injectTestLogbookOperation() {
-
         String id = GUIDFactory.newGUID().getId();
         VitamThreadUtils.getVitamSession().setRequestId(id);
-        try (AdminManagementClient adminManagementClient =
-            AdminManagementClientFactory.getInstance().getClient()) {
-
+        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
             SecurityProfileModel securityProfileModel = new SecurityProfileModel();
             securityProfileModel.setIdentifier("Identifier" + id);
             securityProfileModel.setName("Name" + id);

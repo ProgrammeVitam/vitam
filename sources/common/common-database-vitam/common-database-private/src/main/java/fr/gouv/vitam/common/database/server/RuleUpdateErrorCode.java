@@ -28,8 +28,6 @@
 package fr.gouv.vitam.common.database.server;
 
 public enum RuleUpdateErrorCode {
-
     HOLD_END_DATE_BEFORE_START_DATE,
     HOLD_END_DATE_ONLY_ALLOWED_FOR_HOLD_RULE_WITH_UNDEFINED_DURATION,
-
 }

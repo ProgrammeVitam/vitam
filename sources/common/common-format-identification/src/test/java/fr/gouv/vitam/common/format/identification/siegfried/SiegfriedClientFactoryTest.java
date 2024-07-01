@@ -62,12 +62,10 @@ public class SiegfriedClientFactoryTest {
         }
         SiegfriedClientFactory.changeMode(null);
 
-        final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final SiegfriedClient client2 =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client2 = SiegfriedClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
@@ -75,20 +73,17 @@ public class SiegfriedClientFactoryTest {
 
     @Test
     public void changeDefaultClientTypeTest() {
-        final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client instanceof SiegfriedClientRest);
         assertEquals(VitamClientType.PRODUCTION, SiegfriedClientFactory.getInstance().getVitamClientType());
 
         SiegfriedClientFactory.changeMode(null);
-        final SiegfriedClient client2 =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client2 = SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof SiegfriedClientMock);
         assertEquals(VitamClientType.MOCK, SiegfriedClientFactory.getInstance().getVitamClientType());
 
         SiegfriedClientFactory.changeMode("server", 1025);
-        final SiegfriedClient client3 =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client3 = SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof SiegfriedClientRest);
         assertEquals(VitamClientType.PRODUCTION, SiegfriedClientFactory.getInstance().getVitamClientType());
     }
@@ -104,10 +99,8 @@ public class SiegfriedClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final SiegfriedClient client =
-            SiegfriedClientFactory.getInstance().getClient();
+        final SiegfriedClient client = SiegfriedClientFactory.getInstance().getClient();
         assertTrue(client instanceof SiegfriedClientRest);
         assertEquals(VitamClientType.PRODUCTION, SiegfriedClientFactory.getInstance().getVitamClientType());
     }
-
 }

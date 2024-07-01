@@ -41,7 +41,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
-
 /**
  * Authorization Wrapper
  */
@@ -57,16 +56,17 @@ public class RequestAuthorizationValidator {
     }
 
     @VisibleForTesting
-    RequestAuthorizationValidator(
-        AlertService alertService) {
+    RequestAuthorizationValidator(AlertService alertService) {
         this.warningTimestampNotificationHandler = new ThrottlingAlertService(
             alertService,
             "Timestamp check failed. Please ensure NTP service is properly configured on all Vitam servers",
-            VitamConfiguration.getRequestTimeAlertThrottlingDelay());
+            VitamConfiguration.getRequestTimeAlertThrottlingDelay()
+        );
         this.criticalTimestampNotificationHandler = new ThrottlingAlertService(
             alertService,
             "Critical Timestamp check failed. Please ensure NTP service is properly configured on all Vitam servers",
-            VitamConfiguration.getRequestTimeAlertThrottlingDelay());
+            VitamConfiguration.getRequestTimeAlertThrottlingDelay()
+        );
     }
 
     /**
@@ -76,21 +76,27 @@ public class RequestAuthorizationValidator {
      */
     public boolean checkAuthorizationHeaders(HttpServletRequest request) {
         // FIXME : getRequestURI() may contain extra content (query string & co) that may bypass authorization checks
-        if (request.getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH) ||
-            request.getRequestURI().endsWith(VitamConfiguration.STATUS_URL)) {
+        if (
+            request.getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH) ||
+            request.getRequestURI().endsWith(VitamConfiguration.STATUS_URL)
+        ) {
             return true;
         }
         return checkHeadersValues(request);
     }
 
     private boolean checkHeadersValues(HttpServletRequest request) {
-
         final String platformId = request.getHeader(GlobalDataRest.X_PLATFORM_ID);
         final String timestamp = request.getHeader(GlobalDataRest.X_TIMESTAMP);
 
         if (Strings.isNullOrEmpty(platformId) || Strings.isNullOrEmpty(timestamp)) {
-            LOGGER.error(String.format("Illegal request. Missing %s and/or %s headers",
-                GlobalDataRest.X_PLATFORM_ID, GlobalDataRest.X_TIMESTAMP));
+            LOGGER.error(
+                String.format(
+                    "Illegal request. Missing %s and/or %s headers",
+                    GlobalDataRest.X_PLATFORM_ID,
+                    GlobalDataRest.X_TIMESTAMP
+                )
+            );
             return false;
         }
 
@@ -130,8 +136,13 @@ public class RequestAuthorizationValidator {
         String uri = request.getRequestURI();
         uri = URLDecoder.decode(uri, StandardCharsets.UTF_8);
         final String httpMethod = request.getMethod();
-        final String code = URLCodec.encodeURL(httpMethod, uri, timestamp, VitamConfiguration.getSecret(),
-            VitamConfiguration.getSecurityDigestType());
+        final String code = URLCodec.encodeURL(
+            httpMethod,
+            uri,
+            timestamp,
+            VitamConfiguration.getSecret(),
+            VitamConfiguration.getSecurityDigestType()
+        );
         if (code.equals(platformId)) {
             return true;
         }

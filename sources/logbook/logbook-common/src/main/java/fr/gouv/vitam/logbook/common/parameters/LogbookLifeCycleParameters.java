@@ -50,5 +50,4 @@ public class LogbookLifeCycleParameters extends AbstractParameters {
     public LogbookLifeCycleParameters(Map<String, String> map) {
         super(map);
     }
-
 }

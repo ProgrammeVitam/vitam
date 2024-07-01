@@ -77,8 +77,14 @@ public class ContractLogbookService {
     private final String collectionType;
     private final String contractCheckKey;
 
-    public ContractLogbookService(LogbookOperationsClient logbookClient, GUID eip, String contractsImportEventCode,
-        String contractUpdateEventCode, String collectionType, String contractCheckKey) {
+    public ContractLogbookService(
+        LogbookOperationsClient logbookClient,
+        GUID eip,
+        String contractsImportEventCode,
+        String contractUpdateEventCode,
+        String collectionType,
+        String contractCheckKey
+    ) {
         this.logbookClient = logbookClient;
         this.eip = eip;
         this.contractsImportEventCode = contractsImportEventCode;
@@ -97,8 +103,14 @@ public class ContractLogbookService {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-            VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+            eipUsage,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.KO,
+            VitamLogbookMessages.getFromFullCodeKey(KOEventType),
+            eip
+        );
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
         logbookMessageError(errorsDetails, logbookParameters, KOEventType);
         logbookClient.update(logbookParameters);
@@ -114,8 +126,14 @@ public class ContractLogbookService {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eipUsage, eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.FATAL,
-            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+            eipUsage,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.FATAL,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL),
+            eip
+        );
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType + "." + StatusCode.FATAL);
         logbookMessageError(errorsDetails, logbookParameters);
         logbookClient.update(logbookParameters);
@@ -135,14 +153,19 @@ public class ContractLogbookService {
         }
     }
 
-    private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters,
-        String KOEventType) {
+    private void logbookMessageError(
+        String errorsDetails,
+        LogbookOperationParameters logbookParameters,
+        String KOEventType
+    ) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
                 String evDetDataKey = null;
-                String detailKo = KOEventType.replaceFirst(this.contractsImportEventCode, "")
-                    .replaceFirst(this.contractUpdateEventCode, "");
+                String detailKo = KOEventType.replaceFirst(this.contractsImportEventCode, "").replaceFirst(
+                    this.contractUpdateEventCode,
+                    ""
+                );
                 switch (detailKo) {
                     case EMPTY_REQUIRED_FIELD:
                         evDetDataKey = "Mandatory Fields";
@@ -201,11 +224,19 @@ public class ContractLogbookService {
      * @throws VitamException
      */
     public void logStarted() throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(eip,
-            contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.STARTED), eip);
-        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            contractsImportEventCode + "." + StatusCode.STARTED);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            contractsImportEventCode,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.STARTED),
+            eip
+        );
+        logbookParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            contractsImportEventCode + "." + StatusCode.STARTED
+        );
         logbookClient.create(logbookParameters);
     }
 
@@ -215,16 +246,23 @@ public class ContractLogbookService {
      * @throws VitamException
      */
     public void logUpdateStarted(String id) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(eip,
-            contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.STARTED), eip);
-        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            contractUpdateEventCode + "." + StatusCode.STARTED);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            contractUpdateEventCode,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.STARTED),
+            eip
+        );
+        logbookParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            contractUpdateEventCode + "." + StatusCode.STARTED
+        );
         if (null != id && !id.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
         }
         logbookClient.create(logbookParameters);
-
     }
 
     /**
@@ -235,10 +273,18 @@ public class ContractLogbookService {
     public void logSuccess() throws VitamException {
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eipUsage, contractsImportEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-            VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.OK), eip);
-        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            contractsImportEventCode + "." + StatusCode.OK);
+            eipUsage,
+            contractsImportEventCode,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(contractsImportEventCode, StatusCode.OK),
+            eip
+        );
+        logbookParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            contractsImportEventCode + "." + StatusCode.OK
+        );
         logbookClient.update(logbookParameters);
     }
 
@@ -256,15 +302,22 @@ public class ContractLogbookService {
         final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
         final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eipUsage, contractUpdateEventCode, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-            VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.OK), eip);
+            eipUsage,
+            contractUpdateEventCode,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(contractUpdateEventCode, StatusCode.OK),
+            eip
+        );
         if (null != id && !id.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
         }
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
-        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            contractUpdateEventCode + "." + StatusCode.OK);
+        logbookParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            contractUpdateEventCode + "." + StatusCode.OK
+        );
         logbookClient.update(logbookParameters);
     }
-
 }

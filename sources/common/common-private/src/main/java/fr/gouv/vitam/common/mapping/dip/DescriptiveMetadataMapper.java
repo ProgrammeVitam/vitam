@@ -50,10 +50,10 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
 import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
+import fr.gouv.vitam.common.model.unit.SignatureDescriptionTypeModel;
 import fr.gouv.vitam.common.model.unit.SignatureInformationExtendedModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
-import fr.gouv.vitam.common.model.unit.SignatureDescriptionTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
 import fr.gouv.vitam.common.model.unit.TimestampingInformationTypeModel;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
@@ -78,7 +78,6 @@ public class DescriptiveMetadataMapper {
     private final CustodialHistoryMapper custodialHistoryMapper = new CustodialHistoryMapper();
     private final ManagementMapper managementMapper = new ManagementMapper(new RuleMapper());
 
-
     /**
      * Map local DescriptiveMetadataModel to jaxb DescriptiveMetadataContentType
      *
@@ -87,10 +86,11 @@ public class DescriptiveMetadataMapper {
      * @return a descriptive Metadata Content Type
      * @throws DatatypeConfigurationException
      */
-    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel,
-        List<ArchiveUnitHistoryModel> historyListModel, SupportedSedaVersions supportedSedaVersion)
-        throws DatatypeConfigurationException, ExportException {
-
+    public DescriptiveMetadataContentType map(
+        DescriptiveMetadataModel metadataModel,
+        List<ArchiveUnitHistoryModel> historyListModel,
+        SupportedSedaVersions supportedSedaVersion
+    ) throws DatatypeConfigurationException, ExportException {
         checkSedaCompatibility(metadataModel, supportedSedaVersion);
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
@@ -99,8 +99,7 @@ public class DescriptiveMetadataMapper {
         if (metadataModel.getAddressee() != null) {
             dmc.getAddressee().addAll(metadataModel.getAddressee());
         }
-        dmc.getAny().addAll(
-            TransformJsonTreeToListOfXmlElement.mapJsonToElement(metadataModel.getAny()));
+        dmc.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(metadataModel.getAny()));
 
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
@@ -143,21 +142,29 @@ public class DescriptiveMetadataMapper {
             dmc.getOriginatingSystemId().addAll(metadataModel.getOriginatingSystemId());
         }
 
-        if (metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null &&
-            !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()) {
+        if (
+            metadataModel.getArchivalAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getArchivalAgencyArchiveUnitIdentifier().isEmpty()
+        ) {
             dmc.getArchivalAgencyArchiveUnitIdentifier().addAll(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
         }
 
-        if (metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null &&
-            !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()) {
-            dmc.getOriginatingAgencyArchiveUnitIdentifier()
+        if (
+            metadataModel.getOriginatingAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getOriginatingAgencyArchiveUnitIdentifier().isEmpty()
+        ) {
+            dmc
+                .getOriginatingAgencyArchiveUnitIdentifier()
                 .addAll(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
         }
 
-        if (metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null &&
-            !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty()) {
-            dmc.getTransferringAgencyArchiveUnitIdentifier().addAll(
-                metadataModel.getTransferringAgencyArchiveUnitIdentifier());
+        if (
+            metadataModel.getTransferringAgencyArchiveUnitIdentifier() != null &&
+            !metadataModel.getTransferringAgencyArchiveUnitIdentifier().isEmpty()
+        ) {
+            dmc
+                .getTransferringAgencyArchiveUnitIdentifier()
+                .addAll(metadataModel.getTransferringAgencyArchiveUnitIdentifier());
         }
 
         if (metadataModel.getLanguage() != null && !metadataModel.getLanguage().isEmpty()) {
@@ -235,25 +242,32 @@ public class DescriptiveMetadataMapper {
         return dmc;
     }
 
-    private static void checkSedaCompatibility(DescriptiveMetadataModel metadataModel,
-        SupportedSedaVersions supportedSedaVersion)
-        throws ExportException {
-
+    private static void checkSedaCompatibility(
+        DescriptiveMetadataModel metadataModel,
+        SupportedSedaVersions supportedSedaVersion
+    ) throws ExportException {
         if (supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_3)) {
             if (CollectionUtils.isNotEmpty(metadataModel.getSignature())) {
                 throw new ExportException("Cannot export obsolete Signature tag into SEDA 2.3+.");
             }
         }
 
-        if (supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_1) ||
-            supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_2)) {
-            if (metadataModel.getSigningInformation() != null &&
-                (metadataModel.getGps() != null || CollectionUtils.isNotEmpty(metadataModel.getTextContent()) ||
+        if (
+            supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_1) ||
+            supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_2)
+        ) {
+            if (
+                metadataModel.getSigningInformation() != null &&
+                (metadataModel.getGps() != null ||
+                    CollectionUtils.isNotEmpty(metadataModel.getTextContent()) ||
                     CollectionUtils.isNotEmpty(metadataModel.getSignature()) ||
-                    metadataModel.getOriginatingSystemIdReplyTo() != null)) {
+                    metadataModel.getOriginatingSystemIdReplyTo() != null)
+            ) {
                 throw new ExportException(
-                    "Cannot export SigningInformation tag in SEDA " + supportedSedaVersion.getVersion() +
-                        " with Signature, Gps, OriginatingSystemIdReplyTo or OriginatingSystemIdReplyTo fields");
+                    "Cannot export SigningInformation tag in SEDA " +
+                    supportedSedaVersion.getVersion() +
+                    " with Signature, Gps, OriginatingSystemIdReplyTo or OriginatingSystemIdReplyTo fields"
+                );
             }
         }
     }
@@ -262,9 +276,7 @@ public class DescriptiveMetadataMapper {
         if (signatures == null) {
             return null;
         }
-        return signatures.stream()
-            .map(this::mapSignature)
-            .collect(Collectors.toList());
+        return signatures.stream().map(this::mapSignature).collect(Collectors.toList());
     }
 
     private SignatureType mapSignature(SignatureTypeModel signatureType) {
@@ -306,32 +318,35 @@ public class DescriptiveMetadataMapper {
         }
         SigningInformationType signingInformationType = new SigningInformationType();
         if (signingInformation.getSigningRole() != null) {
-            signingInformationType.getSigningRole()
-                .addAll(mapSigningRole(signingInformation.getSigningRole()));
+            signingInformationType.getSigningRole().addAll(mapSigningRole(signingInformation.getSigningRole()));
         }
         if (signingInformation.getDetachedSigningRole() != null) {
-            signingInformationType.getDetachedSigningRole()
+            signingInformationType
+                .getDetachedSigningRole()
                 .addAll(mapDetachedSigningRole(signingInformation.getDetachedSigningRole()));
         }
         if (signingInformation.getSignatureDescription() != null) {
-            signingInformationType.getSignatureDescription().addAll(
-                mapSignaturesDescription(signingInformation.getSignatureDescription()));
+            signingInformationType
+                .getSignatureDescription()
+                .addAll(mapSignaturesDescription(signingInformation.getSignatureDescription()));
         }
         if (signingInformation.getTimestampingInformation() != null) {
-            signingInformationType.getTimestampingInformation().addAll(
-                mapTimestampingInformation(signingInformation.getTimestampingInformation()));
+            signingInformationType
+                .getTimestampingInformation()
+                .addAll(mapTimestampingInformation(signingInformation.getTimestampingInformation()));
         }
         if (signingInformation.getAdditionalProof() != null) {
-            signingInformationType.getAdditionalProof().addAll(
-                mapAdditionalProofs(signingInformation.getAdditionalProof()));
+            signingInformationType
+                .getAdditionalProof()
+                .addAll(mapAdditionalProofs(signingInformation.getAdditionalProof()));
         }
         signingInformationType.setExtended(mapExtendedParams(signingInformation.getExtended()));
         return signingInformationType;
     }
 
-    private List<SigningRoleType> mapSigningRole(
-        List<fr.gouv.vitam.common.model.unit.SigningRoleType> signingRole) {
-        return signingRole.stream()
+    private List<SigningRoleType> mapSigningRole(List<fr.gouv.vitam.common.model.unit.SigningRoleType> signingRole) {
+        return signingRole
+            .stream()
             .map(role -> {
                 switch (role) {
                     case SIGNED_DOCUMENT:
@@ -350,8 +365,10 @@ public class DescriptiveMetadataMapper {
     }
 
     private List<DetachedSigningRoleType> mapDetachedSigningRole(
-        List<fr.gouv.vitam.common.model.unit.DetachedSigningRoleType> detachedSigningRole) {
-        return detachedSigningRole.stream()
+        List<fr.gouv.vitam.common.model.unit.DetachedSigningRoleType> detachedSigningRole
+    ) {
+        return detachedSigningRole
+            .stream()
             .map(role -> {
                 switch (role) {
                     case TIMESTAMP:
@@ -367,11 +384,8 @@ public class DescriptiveMetadataMapper {
             .collect(Collectors.toList());
     }
 
-    private List<SignatureDescriptionType> mapSignaturesDescription(
-        List<SignatureDescriptionTypeModel> signature) {
-        return signature.stream()
-            .map(this::mapSignature)
-            .collect(Collectors.toList());
+    private List<SignatureDescriptionType> mapSignaturesDescription(List<SignatureDescriptionTypeModel> signature) {
+        return signature.stream().map(this::mapSignature).collect(Collectors.toList());
     }
 
     private SignatureDescriptionType mapSignature(SignatureDescriptionTypeModel signatureTypeModel) {
@@ -383,7 +397,8 @@ public class DescriptiveMetadataMapper {
     }
 
     private List<TimestampingInformationType> mapTimestampingInformation(
-        List<TimestampingInformationTypeModel> timestampingInformation) throws DatatypeConfigurationException {
+        List<TimestampingInformationTypeModel> timestampingInformation
+    ) throws DatatypeConfigurationException {
         List<TimestampingInformationType> timestampingInformationTypes = new ArrayList<>();
         for (TimestampingInformationTypeModel timestampingInfo : timestampingInformation) {
             timestampingInformationTypes.add(mapTimestampingInformation(timestampingInfo));
@@ -391,25 +406,28 @@ public class DescriptiveMetadataMapper {
         return timestampingInformationTypes;
     }
 
-    private TimestampingInformationType mapTimestampingInformation(
-        TimestampingInformationTypeModel timestampingInfo) throws DatatypeConfigurationException {
+    private TimestampingInformationType mapTimestampingInformation(TimestampingInformationTypeModel timestampingInfo)
+        throws DatatypeConfigurationException {
         TimestampingInformationType timestampingInformationType = new TimestampingInformationType();
 
-        Optional<XMLGregorianCalendar> timeStamp =
-            stringToXMLGregorianCalendar(timestampingInfo.getTimeStamp());
+        Optional<XMLGregorianCalendar> timeStamp = stringToXMLGregorianCalendar(timestampingInfo.getTimeStamp());
         timeStamp.ifPresent(timestampingInformationType::setTimeStamp);
 
         timestampingInformationType.setAdditionalTimestampingInformation(
-            timestampingInfo.getAdditionalTimestampingInformation());
+            timestampingInfo.getAdditionalTimestampingInformation()
+        );
         return timestampingInformationType;
     }
 
     private List<AdditionalProofType> mapAdditionalProofs(
-        List<fr.gouv.vitam.common.model.unit.AdditionalProofType> additionalProofs) {
-        return additionalProofs.stream()
+        List<fr.gouv.vitam.common.model.unit.AdditionalProofType> additionalProofs
+    ) {
+        return additionalProofs
+            .stream()
             .map(additionalProof -> {
                 AdditionalProofType additionalProofType = new AdditionalProofType();
-                additionalProofType.getAdditionalProofInformation()
+                additionalProofType
+                    .getAdditionalProofInformation()
                     .addAll(additionalProof.getAdditionalProofInformation());
                 return additionalProofType;
             })
@@ -421,15 +439,12 @@ public class DescriptiveMetadataMapper {
             return null;
         }
         ExtendedType extendedType = new ExtendedType();
-        extendedType.getAny()
-            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extended.getAny()));
+        extendedType.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extended.getAny()));
         return extendedType;
     }
 
     private List<EventType> mapEvents(List<EventTypeModel> eventTypes) {
-        return eventTypes.stream()
-            .map(this::mapEvent)
-            .collect(Collectors.toList());
+        return eventTypes.stream().map(this::mapEvent).collect(Collectors.toList());
     }
 
     private EventType mapEvent(EventTypeModel event) {
@@ -444,33 +459,41 @@ public class DescriptiveMetadataMapper {
         eventType.setOutcomeDetail(event.getOutcomeDetail());
         eventType.setOutcomeDetailMessage(event.getOutcomeDetailMessage());
         if (Objects.nonNull(event.getLinkingAgentIdentifier())) {
-            eventType.getLinkingAgentIdentifier().addAll(
-                event.getLinkingAgentIdentifier().stream().map(this::mapLinkingAgentIdentifier)
-                    .collect(Collectors.toList()));
+            eventType
+                .getLinkingAgentIdentifier()
+                .addAll(
+                    event
+                        .getLinkingAgentIdentifier()
+                        .stream()
+                        .map(this::mapLinkingAgentIdentifier)
+                        .collect(Collectors.toList())
+                );
         }
         return eventType;
     }
 
     private LinkingAgentIdentifierType mapLinkingAgentIdentifier(
-        LinkingAgentIdentifierTypeModel linkingAgentIdentifierTypeModel) {
+        LinkingAgentIdentifierTypeModel linkingAgentIdentifierTypeModel
+    ) {
         if (linkingAgentIdentifierTypeModel == null) {
             return null;
         }
         LinkingAgentIdentifierType linkingAgentIdentifierType = new LinkingAgentIdentifierType();
         linkingAgentIdentifierType.setLinkingAgentIdentifierType(
-            linkingAgentIdentifierTypeModel.getLinkingAgentIdentifierType());
+            linkingAgentIdentifierTypeModel.getLinkingAgentIdentifierType()
+        );
         linkingAgentIdentifierType.setLinkingAgentIdentifierValue(
-            linkingAgentIdentifierTypeModel.getLinkingAgentIdentifierValue());
+            linkingAgentIdentifierTypeModel.getLinkingAgentIdentifierValue()
+        );
         linkingAgentIdentifierType.setLinkingAgentRole(linkingAgentIdentifierTypeModel.getLinkingAgentRole());
         return linkingAgentIdentifierType;
     }
 
-    private void fillHistory(List<ArchiveUnitHistoryModel> archiveUnitHistoryModel,
-        List<ManagementHistoryType> managementHistoryType)
-        throws DatatypeConfigurationException {
-
+    private void fillHistory(
+        List<ArchiveUnitHistoryModel> archiveUnitHistoryModel,
+        List<ManagementHistoryType> managementHistoryType
+    ) throws DatatypeConfigurationException {
         for (ArchiveUnitHistoryModel historyModel : archiveUnitHistoryModel) {
-
             ManagementHistoryType historyType = new ManagementHistoryType();
             historyType.setData(new ManagementHistoryDataType());
             historyType.getData().setVersion(historyModel.getData().getVersion());
@@ -492,5 +515,4 @@ public class DescriptiveMetadataMapper {
             return Optional.empty();
         }
     }
-
 }

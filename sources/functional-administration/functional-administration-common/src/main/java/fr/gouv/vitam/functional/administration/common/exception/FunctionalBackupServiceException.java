@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.exception.VitamException;
  */
 public class FunctionalBackupServiceException extends VitamException {
 
-
     /**
      * @param message associated message
      */

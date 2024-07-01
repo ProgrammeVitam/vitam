@@ -39,7 +39,6 @@ public class MetaDataConfigurationValidatorTest {
 
     @Test
     public void testConfigOK_full() throws Exception {
-
         // Given
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
@@ -47,13 +46,11 @@ public class MetaDataConfigurationValidatorTest {
         }
 
         // When / Then
-        assertThatCode(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> MetaDataConfigurationValidator.validateConfiguration(config)).doesNotThrowAnyException();
     }
 
     @Test
     public void testConfigOK_defaults_only() throws Exception {
-
         // Given
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config_defaults_only.yml")) {
@@ -61,82 +58,94 @@ public class MetaDataConfigurationValidatorTest {
         }
 
         // When / Then
-        assertThatCode(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> MetaDataConfigurationValidator.validateConfiguration(config)).doesNotThrowAnyException();
     }
 
     @Test
     public void testConfigKO_InvalidDefaultConf() throws Exception {
-
         // Given
         MetaDataConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "metadata_test_config_invalid_defaults.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream("metadata_test_config_invalid_defaults.yml")
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantGroupName() throws Exception {
-
         // Given
         MetaDataConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "metadata_test_config_invalid_tenant_group_name.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "metadata_test_config_invalid_tenant_group_name.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantRange1() throws Exception {
-
         // Given
         MetaDataConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "metadata_test_config_invalid_tenant_range1.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "metadata_test_config_invalid_tenant_range1.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantRange2() throws Exception {
-
         // Given
         MetaDataConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "metadata_test_config_invalid_tenant_range1.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "metadata_test_config_invalid_tenant_range1.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidTenantRange3() throws Exception {
-
         // Given
         MetaDataConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "metadata_test_config_invalid_tenant_range3.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "metadata_test_config_invalid_tenant_range3.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 }

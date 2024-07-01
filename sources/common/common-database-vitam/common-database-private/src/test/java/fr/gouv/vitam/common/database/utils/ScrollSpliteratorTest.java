@@ -53,8 +53,7 @@ public class ScrollSpliteratorTest {
         Spliterator<Long> longSpliterator = new ScrollSpliterator<>(query, function, 3, 4);
 
         // When
-        longSpliterator.forEachRemaining(item -> {
-        });
+        longSpliterator.forEachRemaining(item -> {});
 
         // Then
         verify(function).apply(query);
@@ -69,13 +68,13 @@ public class ScrollSpliteratorTest {
         requestResponseOK1.addResult(2L);
         requestResponseOK1.addResult(3L);
 
-
         requestResponseOK1.setHits(4, 0, 3, 3);
 
         RequestResponseOK<Long> requestResponseOK2 = new RequestResponseOK<>();
         requestResponseOK2.addResult(4L);
         requestResponseOK2.setHits(4, 0, 3, 1);
-        given(function.apply(any(SelectMultiQuery.class))).willReturn(requestResponseOK1)
+        given(function.apply(any(SelectMultiQuery.class)))
+            .willReturn(requestResponseOK1)
             .willReturn(requestResponseOK2);
 
         SelectMultiQuery query = new SelectMultiQuery();
@@ -90,5 +89,4 @@ public class ScrollSpliteratorTest {
         assertThat(counter.get()).isEqualTo(4);
         verify(function, times(2)).apply(query);
     }
-
 }

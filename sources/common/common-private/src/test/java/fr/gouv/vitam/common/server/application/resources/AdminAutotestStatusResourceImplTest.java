@@ -56,23 +56,23 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
 
     // URI
     private static final String TEST_RESOURCE_URI = "/test/v1";
     private static final String ADMIN_STATUS_URI = "/admin/v1";
 
-
     static JunitHelper junitHelper = JunitHelper.getInstance();
 
-    private static final TestVitamAdminClientFactory factory =
-        new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
+    private static final TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(AdminAutotestStatusResourceImplTest.class, factory);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        AdminAutotestStatusResourceImplTest.class,
+        factory
+    );
 
-    private final static VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
+    private static final VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -80,8 +80,11 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         VitamConfiguration.setConnectTimeout(100);
 
         final DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
-        serviceRegistry.register(factory).register((DatabaseConnection) null)
-            .register((VitamStatusService) null).register(fakeDb);
+        serviceRegistry
+            .register(factory)
+            .register((DatabaseConnection) null)
+            .register((VitamStatusService) null)
+            .register(fakeDb);
         LOGGER.debug("Beginning tests");
     }
 
@@ -102,9 +105,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         public DefaultAdminClient getClient() {
             return new DefaultAdminClient(this);
         }
-
     }
-
 
     private static class TestWrongVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
@@ -116,7 +117,6 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         public DefaultAdminClient getClient() {
             return new DefaultAdminClient(this);
         }
-
     }
 
     @Override
@@ -125,6 +125,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
     }
 
     private static class DatabaseConnectionImpl implements DatabaseConnection {
+
         private static boolean status = true;
 
         @Override
@@ -136,7 +137,6 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         public String getInfo() {
             return "info";
         }
-
     }
 
     /**
@@ -249,9 +249,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
             try {
                 serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
-            } catch (final VitamApplicationServerException e) {
-
-            }
+            } catch (final VitamApplicationServerException e) {}
         }
 
         // Add a fake clientFactory
@@ -285,9 +283,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
             try {
                 serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
-            } catch (final VitamApplicationServerException e) {
-
-            }
+            } catch (final VitamApplicationServerException e) {}
         }
 
         // Add a fake optional clientFactory
@@ -321,9 +317,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
             try {
                 serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
-            } catch (final VitamApplicationServerException e) {
-
-            }
+            } catch (final VitamApplicationServerException e) {}
         }
 
         // Application

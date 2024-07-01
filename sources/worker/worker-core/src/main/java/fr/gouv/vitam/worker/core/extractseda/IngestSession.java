@@ -46,13 +46,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class IngestSession {
+
     private final ObjectNode archiveUnitTree = JsonHandler.createObjectNode();
     private final Map<String, String> unitIdToGuid = new HashMap<>();
     private final Map<String, String> guidToUnitId = new HashMap<>();
     private final Map<String, String> unitIdToGroupId = new HashMap<>();
     private final Map<String, List<String>> objectGroupIdToUnitId = new HashMap<>();
-    private final  Map<String, String> dataObjectIdToObjectGroupId = new FastValueAccessMap<>();
-    private final  Map<String, GotObj> dataObjectIdWithoutObjectGroupId = new HashMap<>();
+    private final Map<String, String> dataObjectIdToObjectGroupId = new FastValueAccessMap<>();
+    private final Map<String, GotObj> dataObjectIdWithoutObjectGroupId = new HashMap<>();
     private final Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters = new HashMap<>();
     private final Set<String> existingUnitGuids = new HashSet<>();
     private final Map<String, String> objectGroupIdToGuid = new HashMap<>();
@@ -61,7 +62,7 @@ public class IngestSession {
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml = new HashMap<>();
     private final List<String> originatingAgencies = new ArrayList<>();
     private final Map<String, JsonNode> existingGOTs = new HashMap<>();
-    private final  Map<String, String> existingUnitIdWithExistingObjectGroup = new HashMap<>();
+    private final Map<String, String> existingUnitIdWithExistingObjectGroup = new HashMap<>();
     private final Map<String, Boolean> isThereManifestRelatedReferenceRemained = new HashMap<>();
     private final Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment = new HashMap<>();
     private final Map<String, List<String>> objectGroupIdToDataObjectId = new HashMap<>();
@@ -71,7 +72,7 @@ public class IngestSession {
     private final Set<String> physicalDataObjetsGuids = new HashSet<>();
     private final Map<String, Long> fileWithParmsFromFolder = new HashMap<>();
 
-    private final Multimap<String,String> usageToObjectGroupId = HashMultimap.create();
+    private final Multimap<String, String> usageToObjectGroupId = HashMultimap.create();
 
     public ObjectNode getArchiveUnitTree() {
         return archiveUnitTree;
@@ -169,7 +170,7 @@ public class IngestSession {
         return fileWithParmsFromFolder;
     }
 
-    public Multimap<String,String> getUsageToObjectGroupId() {
+    public Multimap<String, String> getUsageToObjectGroupId() {
         return usageToObjectGroupId;
     }
 }

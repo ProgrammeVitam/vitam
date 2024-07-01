@@ -68,8 +68,7 @@ public class VersionRetentionPolicyModel {
         return intermediaryVersion;
     }
 
-    public void setIntermediaryVersion(
-        IntermediaryVersionEnum intermediaryVersion) {
+    public void setIntermediaryVersion(IntermediaryVersionEnum intermediaryVersion) {
         this.intermediaryVersion = intermediaryVersion;
     }
 }

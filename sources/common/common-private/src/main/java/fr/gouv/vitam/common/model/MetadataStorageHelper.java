@@ -68,8 +68,6 @@ public class MetadataStorageHelper {
         return document.get(UNIT_KEY);
     }
 
-
-
     /**
      * Create a jsonNode with the got document and its lfc
      *

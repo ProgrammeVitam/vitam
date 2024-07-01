@@ -50,7 +50,6 @@ import java.util.Optional;
  * AccessModule interface for database operations in select
  */
 public interface AccessInternalModule {
-
     /**
      * select Unit
      *
@@ -90,8 +89,7 @@ public interface AccessInternalModule {
      * @throws MetaDataNotFoundException Throw if unit is not found
      */
     JsonNode updateUnitById(JsonNode queryJson, String idUnit, String requestId)
-        throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException,
-        IllegalArgumentException, UpdatePermissionException, AccessInternalRuleExecutionException;
+        throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException, IllegalArgumentException, UpdatePermissionException, AccessInternalRuleExecutionException;
 
     /**
      * Retrieve an ObjectGroup by its id with results fields filtered based on given query
@@ -120,10 +118,8 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException For other technical errors
      * @throws MetaDataNotFoundException
      */
-    Response getOneObjectFromObjectGroup(String idObjectGroup,
-        String qualifier, int version, String idUnit)
-        throws StorageNotFoundException, InvalidParseOperationException, MetaDataNotFoundException,
-        AccessInternalExecutionException, AccessInternalUnavailableDataFromAsyncOfferException;
+    Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version, String idUnit)
+        throws StorageNotFoundException, InvalidParseOperationException, MetaDataNotFoundException, AccessInternalExecutionException, AccessInternalUnavailableDataFromAsyncOfferException;
 
     /**
      * Retrieve all accessLog by the concatenation of all accesslog files as InputStream
@@ -187,9 +183,11 @@ public interface AccessInternalModule {
      */
     void checkClassificationLevel(JsonNode query) throws IllegalArgumentException, InvalidParseOperationException;
 
-    Optional<AccessRequestReference> createObjectAccessRequestIfRequired(String idObjectGroup, String qualifier,
-        int version)
-        throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException;
+    Optional<AccessRequestReference> createObjectAccessRequestIfRequired(
+        String idObjectGroup,
+        String qualifier,
+        int version
+    ) throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException;
 
     List<StatusByAccessRequest> checkAccessRequestStatuses(List<AccessRequestReference> accessRequestReferences)
         throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
@@ -198,10 +196,8 @@ public interface AccessInternalModule {
         throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
 
     Response streamUnits(JsonNode applyAccessContractRestrictionForUnitForSelect)
-        throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
-        MetadataScrollThresholdExceededException;
+        throws AccessInternalExecutionException, MetadataScrollLimitExceededException, MetadataScrollThresholdExceededException;
 
     Response streamObjects(JsonNode applyAccessContractRestrictionForObjectForSelect)
-        throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
-        MetadataScrollThresholdExceededException;
+        throws AccessInternalExecutionException, MetadataScrollLimitExceededException, MetadataScrollThresholdExceededException;
 }

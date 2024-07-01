@@ -54,7 +54,7 @@ public class GlobalDatasParser extends GlobalDatas {
     /**
      * Default limit for Request (sanity check)
      */
-    public static int limitRequest = DEFAULT_LIMIT_REQUEST;// NOSONAR Change can be done
+    public static int limitRequest = DEFAULT_LIMIT_REQUEST; // NOSONAR Change can be done
 
     /**
      * Default limit for number of projections
@@ -76,8 +76,7 @@ public class GlobalDatasParser extends GlobalDatas {
      * @param arg String
      * @throws InvalidParseOperationException if the sanity check is in error
      */
-    public static final void sanityRequestCheck(String arg)
-        throws InvalidParseOperationException {
+    public static final void sanityRequestCheck(String arg) throws InvalidParseOperationException {
         GlobalDatas.sanityCheck(arg, GlobalDatasParser.limitRequest);
     }
 
@@ -118,8 +117,7 @@ public class GlobalDatasParser extends GlobalDatas {
      * @return the Object for Value
      * @throws InvalidParseOperationException if value could not parse to JSON
      */
-    public static final Object getValue(final JsonNode value)
-        throws InvalidParseOperationException {
+    public static final Object getValue(final JsonNode value) throws InvalidParseOperationException {
         if (value == null) {
             throw new InvalidParseOperationException("Not correctly parsed");
         }

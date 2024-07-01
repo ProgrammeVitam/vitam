@@ -33,6 +33,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 public class ActionPreservation {
+
     @JsonProperty("Type")
     @NotNull(message = ConstraintConstants.NOT_NULL_ERROR_MSG)
     private ActionTypePreservation type;
@@ -45,9 +46,7 @@ public class ActionPreservation {
         //empty constructor
     }
 
-    public ActionPreservation(
-        @NotNull ActionTypePreservation type,
-        @Valid ValuesPreservation values) {
+    public ActionPreservation(@NotNull ActionTypePreservation type, @Valid ValuesPreservation values) {
         this.type = type;
         this.values = values;
     }
@@ -74,10 +73,6 @@ public class ActionPreservation {
 
     @Override
     public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
+        return "Action{" + "type=" + type + ", values=" + values + '}';
     }
 }
-

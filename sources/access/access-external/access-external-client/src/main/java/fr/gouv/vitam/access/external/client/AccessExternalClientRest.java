@@ -64,6 +64,7 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
+
     public static final String BLANK_QUERY = "selectQuery cannot be null.";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
     private static final String UNITS = "/units/";
@@ -88,29 +89,38 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     @Override
     public RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
-        VitamRequestBuilder request =
-            get().withPath("/units").withHeaders(vitamContext.getHeaders()).withBody(selectQuery, BLANK_QUERY)
-                .withJson();
+        VitamRequestBuilder request = get()
+            .withPath("/units")
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(selectQuery, BLANK_QUERY)
+            .withJson();
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (!SUCCESSFUL.equals(status.getFamily())) {
-                LOGGER.error(String
-                    .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                LOGGER.error(
+                    String.format(
+                        "Error with the response, get status: '%d' and reason '%s'.",
+                        response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()
+                    )
+                );
                 LOGGER.warn(
-                    "We should have throw an exception in this case but we cannot, because it will break this API.");
+                    "We should have throw an exception in this case but we cannot, because it will break this API."
+                );
             }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
 
-
     @Override
     public JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
-        VitamRequestBuilder request =
-            get().withPath("/units/stream").withHeaders(vitamContext.getHeaders()).withBody(selectQuery, BLANK_QUERY)
-                .withJsonContentType().withOctetAccept();
+        VitamRequestBuilder request = get()
+            .withPath("/units/stream")
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(selectQuery, BLANK_QUERY)
+            .withJsonContentType()
+            .withOctetAccept();
         try (Response response = make(request)) {
             check(response);
             return JsonLineIterator.parseFromResponse(response, JsonNode.class);
@@ -120,7 +130,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     @Override
     public JsonLineIterator<JsonNode> streamObjects(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
-        VitamRequestBuilder request = get().withPath(PATH_STREAM_OBJECTS)
+        VitamRequestBuilder request = get()
+            .withPath(PATH_STREAM_OBJECTS)
             .withHeaders(vitamContext.getHeaders())
             .withBody(selectQuery, BLANK_QUERY)
             .withJsonContentType()
@@ -135,9 +146,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     public RequestResponse<JsonNode> selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery, String unitId)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
-        try (Response response = make(
-            get().withPath(UNITS + unitId).withHeaders(vitamContext.getHeaders()).withBody(selectQuery, BLANK_QUERY)
-                .withJson())) {
+        try (
+            Response response = make(
+                get()
+                    .withPath(UNITS + unitId)
+                    .withHeaders(vitamContext.getHeaders())
+                    .withBody(selectQuery, BLANK_QUERY)
+                    .withJson()
+            )
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
@@ -155,21 +172,27 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (!SUCCESSFUL.equals(status.getFamily())) {
-                LOGGER.error(String
-                    .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                LOGGER.error(
+                    String.format(
+                        "Error with the response, get status: '%d' and reason '%s'.",
+                        response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()
+                    )
+                );
                 LOGGER.warn(
-                    "We should have throw an exception in this case but we cannot, because it will break this API.");
+                    "We should have throw an exception in this case but we cannot, because it will break this API."
+                );
             }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
 
     @Override
-    public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext,
+    public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(
+        VitamContext vitamContext,
         JsonNode selectObjectQuery,
-        String unitId)
-        throws VitamClientException {
+        String unitId
+    ) throws VitamClientException {
         VitamRequestBuilder request = get()
             .withPath(UNITS + unitId + AccessExtAPI.OBJECTS)
             .withHeaders(vitamContext.getHeaders())
@@ -181,12 +204,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
-
     @Override
-    public Response getObjectStreamByUnitId(VitamContext vitamContext,
-        String unitId,
-        String usage,
-        int version)
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         VitamRequestBuilder request = get()
@@ -202,7 +221,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
             if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
                 throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
-                    "Object unavailable for immediate access. Access Request required");
+                    "Object unavailable for immediate access. Access Request required"
+                );
             }
 
             check(response);
@@ -216,27 +236,36 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(VitamContext vitamContext,
-        String unitId, String usage, int version) throws VitamClientException, AccessExternalClientNotFoundException {
+    public RequestResponse<AccessRequestReference> createObjectAccessRequestByUnitId(
+        VitamContext vitamContext,
+        String unitId,
+        String usage,
+        int version
+    ) throws VitamClientException, AccessExternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         ParametersChecker.checkParameter("Missing usage", usage);
 
         VitamRequestBuilder request = post()
-            .withPath(UNITS + URLEncoder.encode(unitId, StandardCharsets.UTF_8) + AccessExtAPI.OBJECTS +
-                AccessExtAPI.ACCESS_REQUESTS)
+            .withPath(
+                UNITS +
+                URLEncoder.encode(unitId, StandardCharsets.UTF_8) +
+                AccessExtAPI.OBJECTS +
+                AccessExtAPI.ACCESS_REQUESTS
+            )
             .withHeaders(vitamContext.getHeaders())
             .withHeader(GlobalDataRest.X_QUALIFIER, usage)
             .withHeader(GlobalDataRest.X_VERSION, version)
             .withJson();
         try (Response response = make(request)) {
-
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(
-                    "No such object matching unitId and object qualifier usage & version");
+                    "No such object matching unitId and object qualifier usage & version"
+                );
             }
             if (response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(
-                    "Access forbidden to object with specified qualifier usage & version");
+                    "Access forbidden to object with specified qualifier usage & version"
+                );
             }
             check(response);
 
@@ -246,15 +275,17 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse<StatusByAccessRequest> checkAccessRequestStatuses(
-        VitamContext vitamContext, Collection<AccessRequestReference> accessRequestReferences)
-        throws VitamClientException {
-
+        VitamContext vitamContext,
+        Collection<AccessRequestReference> accessRequestReferences
+    ) throws VitamClientException {
         ParametersChecker.checkParameter("Access requests required", accessRequestReferences);
         for (AccessRequestReference accessRequestReference : accessRequestReferences) {
             ParametersChecker.checkParameter("Access requests required", accessRequestReference);
             ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
-            ParametersChecker.checkParameter("Required storageStrategyId",
-                accessRequestReference.getStorageStrategyId());
+            ParametersChecker.checkParameter(
+                "Required storageStrategyId",
+                accessRequestReference.getStorageStrategyId()
+            );
         }
 
         VitamRequestBuilder request = get()
@@ -263,12 +294,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withJson()
             .withBody(accessRequestReferences);
         try (Response response = make(request)) {
-
             if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
                 throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
-                    String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                    String.format(
+                        "Illegal operation on storage engine, get status: '%d' and reason '%s'.",
                         response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                        fromStatusCode(response.getStatus()).getReasonPhrase()
+                    )
+                );
             }
             check(response);
 
@@ -277,10 +310,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<Void> removeAccessRequest(VitamContext vitamContext,
-        AccessRequestReference accessRequestReference)
-        throws VitamClientException {
-
+    public RequestResponse<Void> removeAccessRequest(
+        VitamContext vitamContext,
+        AccessRequestReference accessRequestReference
+    ) throws VitamClientException {
         ParametersChecker.checkParameter("Access request required", accessRequestReference);
         ParametersChecker.checkParameter("Required accessRequestId", accessRequestReference.getAccessRequestId());
         ParametersChecker.checkParameter("Required storageStrategyId", accessRequestReference.getStorageStrategyId());
@@ -291,12 +324,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             .withJsonContentType()
             .withBody(accessRequestReference);
         try (Response response = make(request)) {
-
             if (response.getStatus() == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
                 throw new VitamClientIllegalAccessRequestOperationOnSyncOfferException(
-                    String.format("Illegal operation on storage engine, get status: '%d' and reason '%s'.",
+                    String.format(
+                        "Illegal operation on storage engine, get status: '%d' and reason '%s'.",
                         response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                        fromStatusCode(response.getStatus()).getReasonPhrase()
+                    )
+                );
             }
             check(response);
 
@@ -305,21 +340,28 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext,
-        JsonNode select)
+    public RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
-        try (Response response = make(
-            get().withPath(LOGBOOK_OPERATIONS_URL).withHeaders(vitamContext.getHeaders()).withBody(select)
-                .withJson())) {
+        try (
+            Response response = make(
+                get()
+                    .withPath(LOGBOOK_OPERATIONS_URL)
+                    .withHeaders(vitamContext.getHeaders())
+                    .withBody(select)
+                    .withJson()
+            )
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
         }
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String processId, JsonNode select)
-        throws VitamClientException {
+    public RequestResponse<LogbookOperation> selectOperationbyId(
+        VitamContext vitamContext,
+        String processId,
+        JsonNode select
+    ) throws VitamClientException {
         VitamRequestBuilder request = get()
             .withPath(LOGBOOK_OPERATIONS_URL + "/" + processId)
             .withHeaders(vitamContext.getHeaders())
@@ -332,9 +374,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext, String idUnit,
-        JsonNode select)
-        throws VitamClientException {
+    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(
+        VitamContext vitamContext,
+        String idUnit,
+        JsonNode select
+    ) throws VitamClientException {
         VitamRequestBuilder request = get()
             .withPath(LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit)
             .withHeaders(vitamContext.getHeaders())
@@ -348,12 +392,20 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String idObject, JsonNode select)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        String idObject,
+        JsonNode select
+    ) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, idObject);
-        try (Response response = make(
-            get().withPath(LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject).withHeaders(vitamContext.getHeaders())
-                .withBody(select, BLANK_QUERY).withJson())) {
+        try (
+            Response response = make(
+                get()
+                    .withPath(LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject)
+                    .withHeaders(vitamContext.getHeaders())
+                    .withBody(select, BLANK_QUERY)
+                    .withJson()
+            )
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, LogbookLifecycle.class);
         }
@@ -362,8 +414,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     @Override
     public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, JsonNode dslRequest)
         throws VitamClientException {
-        try (Response response = make(post().withPath(AccessExtAPI.DIP_API).withHeaders(vitamContext.getHeaders())
-            .withBody(dslRequest, "dslRequest cannot be null.").withJson())) {
+        try (
+            Response response = make(
+                post()
+                    .withPath(AccessExtAPI.DIP_API)
+                    .withHeaders(vitamContext.getHeaders())
+                    .withBody(dslRequest, "dslRequest cannot be null.")
+                    .withJson()
+            )
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
@@ -372,17 +431,22 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     @Override
     public RequestResponse<JsonNode> transfer(VitamContext vitamContext, TransferRequest transferRequest)
         throws VitamClientException {
-        try (Response response = make(
-            post().withPath(AccessExtAPI.TRANSFER_API).withHeaders(vitamContext.getHeaders()).withBody(transferRequest)
-                .withJson())) {
+        try (
+            Response response = make(
+                post()
+                    .withPath(AccessExtAPI.TRANSFER_API)
+                    .withHeaders(vitamContext.getHeaders())
+                    .withBody(transferRequest)
+                    .withJson()
+            )
+        ) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
 
     @Override
-    public Response getTransferById(VitamContext vitamContext, String transferId)
-        throws VitamClientException {
+    public Response getTransferById(VitamContext vitamContext, String transferId) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_TRANSFER_ID, transferId);
         VitamRequestBuilder request = get()
             .withPath(AccessExtAPI.TRANSFER_API + "/" + transferId + "/sip")
@@ -394,8 +458,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getDIPById(VitamContext vitamContext, String dipId)
-        throws VitamClientException {
+    public Response getDIPById(VitamContext vitamContext, String dipId) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_DIP_ID, dipId);
         VitamRequestBuilder request = get()
             .withPath(AccessExtAPI.DIP_API + "/" + dipId + "/dip")
@@ -450,11 +513,16 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try (Response response = make(request)) {
             Response.Status status = response.getStatusInfo().toEnum();
             if (!SUCCESSFUL.equals(status.getFamily())) {
-                LOGGER.error(String
-                    .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                LOGGER.error(
+                    String.format(
+                        "Error with the response, get status: '%d' and reason '%s'.",
+                        response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()
+                    )
+                );
                 LOGGER.warn(
-                    "We should have throw an exception in this case but we cannot, because it will break this API.");
+                    "We should have throw an exception in this case but we cannot, because it will break this API."
+                );
             }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
@@ -503,23 +571,29 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(VitamContext vitamContext,
-        JsonNode selectQuery, String persistentIdentifier)
-        throws VitamClientException {
-        VitamRequestBuilder request =
-            get().withPath("/units/byunitspersistentidentifier/" + persistentIdentifier)
-                .withHeaders(vitamContext.getHeaders())
-                .withBody(selectQuery, BLANK_QUERY)
-                .withJson();
+    public RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String persistentIdentifier
+    ) throws VitamClientException {
+        VitamRequestBuilder request = get()
+            .withPath("/units/byunitspersistentidentifier/" + persistentIdentifier)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(selectQuery, BLANK_QUERY)
+            .withJson();
         try (Response response = make(request)) {
-
             Response.Status status = response.getStatusInfo().toEnum();
             if (!SUCCESSFUL.equals(status.getFamily())) {
-                LOGGER.error(String
-                    .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                LOGGER.error(
+                    String.format(
+                        "Error with the response, get status: '%d' and reason '%s'.",
+                        response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()
+                    )
+                );
                 LOGGER.warn(
-                    "We should have throw an exception in this case but we cannot, because it will break this API.");
+                    "We should have throw an exception in this case but we cannot, because it will break this API."
+                );
             }
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
@@ -527,12 +601,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getObjectByUnitPersistentIdentifier(VitamContext vitamContext,
-        String persistentIdentifier, String qualifier, String version) throws VitamClientException {
+    public Response getObjectByUnitPersistentIdentifier(
+        VitamContext vitamContext,
+        String persistentIdentifier,
+        String qualifier,
+        String version
+    ) throws VitamClientException {
         ParametersChecker.checkParameter("Persistent identifier should not be empty", persistentIdentifier);
         VitamRequestBuilder request = get()
-            .withPath(
-                "/objects/byunitspersistentidentifier/" + persistentIdentifier)
+            .withPath("/objects/byunitspersistentidentifier/" + persistentIdentifier)
             .withHeaders(vitamContext.getHeaders())
             .withOctetAccept();
 
@@ -551,7 +628,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
             if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
                 throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
-                    "Object unavailable for immediate access. Access Request required");
+                    "Object unavailable for immediate access. Access Request required"
+                );
             }
             check(response);
             return response;
@@ -563,8 +641,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getObjectByObjectPersistentIdentifier(VitamContext vitamContext, JsonNode selectQuery,
-        String persistentIdentifier) throws VitamClientException {
+    public Response getObjectByObjectPersistentIdentifier(
+        VitamContext vitamContext,
+        JsonNode selectQuery,
+        String persistentIdentifier
+    ) throws VitamClientException {
         ParametersChecker.checkParameter("Persistent identifier should not be empty", persistentIdentifier);
 
         VitamRequestBuilder request = get()
@@ -578,7 +659,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
             if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
                 throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
-                    "Object unavailable for immediate access. Access Request required");
+                    "Object unavailable for immediate access. Access Request required"
+                );
             }
             check(response);
             return response;
@@ -590,8 +672,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext,
-        String persistentIdentifier) throws VitamClientException {
+    public Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext, String persistentIdentifier)
+        throws VitamClientException {
         ParametersChecker.checkParameter("Persistent identifier should not be empty", persistentIdentifier);
 
         VitamRequestBuilder request = get()
@@ -604,7 +686,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
             if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
                 throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
-                    "Object unavailable for immediate access. Access Request required");
+                    "Object unavailable for immediate access. Access Request required"
+                );
             }
             check(response);
             return response;
@@ -630,8 +713,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getAccessLog(VitamContext vitamContext, JsonNode params)
-        throws VitamClientException {
+    public Response getAccessLog(VitamContext vitamContext, JsonNode params) throws VitamClientException {
         VitamRequestBuilder request = get()
             .withPath("/storageaccesslog")
             .withBody(params)
@@ -642,8 +724,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> launchPreservation(VitamContext vitamContext,
-        PreservationRequest preservationRequest) throws VitamClientException {
+    public RequestResponse<JsonNode> launchPreservation(
+        VitamContext vitamContext,
+        PreservationRequest preservationRequest
+    ) throws VitamClientException {
         VitamRequestBuilder request = post()
             .withPath("/preservation")
             .withHeaders(vitamContext.getHeaders())
@@ -656,8 +740,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> startEliminationAnalysis(VitamContext vitamContext,
-        EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+    public RequestResponse<JsonNode> startEliminationAnalysis(
+        VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody
+    ) throws VitamClientException {
         VitamRequestBuilder request = post()
             .withPath("/elimination/analysis")
             .withHeaders(vitamContext.getHeaders())
@@ -670,8 +756,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> startEliminationAction(VitamContext vitamContext,
-        EliminationRequestBody eliminationRequestBody) throws VitamClientException {
+    public RequestResponse<JsonNode> startEliminationAction(
+        VitamContext vitamContext,
+        EliminationRequestBody eliminationRequestBody
+    ) throws VitamClientException {
         VitamRequestBuilder request = post()
             .withPath("/elimination/action")
             .withHeaders(vitamContext.getHeaders())
@@ -698,8 +786,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> deleteComputedInheritedRules(VitamContext vitamContext,
-        JsonNode deleteComputedInheritedRulesQuery) throws VitamClientException {
+    public RequestResponse<JsonNode> deleteComputedInheritedRules(
+        VitamContext vitamContext,
+        JsonNode deleteComputedInheritedRulesQuery
+    ) throws VitamClientException {
         VitamRequestBuilder request = delete()
             .withPath(UNITS + AccessExtAPI.COMPUTEDINHERITEDRULES)
             .withHeaders(vitamContext.getHeaders())
@@ -726,15 +816,18 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
-
     private void check(Response response) throws VitamClientException {
         Response.Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
-        throw new VitamClientException(String
-            .format("Error with the response, get status: '%d' and reason '%s'.", status.getStatusCode(),
-                status.getReasonPhrase()));
+        throw new VitamClientException(
+            String.format(
+                "Error with the response, get status: '%d' and reason '%s'.",
+                status.getStatusCode(),
+                status.getReasonPhrase()
+            )
+        );
     }
 }

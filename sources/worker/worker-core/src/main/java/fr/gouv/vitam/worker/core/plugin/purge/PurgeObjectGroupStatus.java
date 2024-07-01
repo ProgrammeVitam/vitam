@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.purge;
 
 public enum PurgeObjectGroupStatus {
-
     DELETED,
-    PARTIAL_DETACHMENT
+    PARTIAL_DETACHMENT,
 }

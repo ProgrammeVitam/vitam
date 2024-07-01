@@ -94,16 +94,12 @@ public class PutBinaryOnWorkspace extends ActionHandler {
      * @throws ProcessingException
      */
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         final ItemStatus itemStatus = new ItemStatus(PUT_BINARY_ON_WORKSPACE);
 
         Map<String, Object> guidToPath;
         try (InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_INFO_RANK))) {
-
             guidToPath = JsonHandler.getMapFromInputStream(inputStream);
-
         } catch (IOException | InvalidParseOperationException e) {
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
@@ -115,7 +111,12 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
-            } catch (StorageNotFoundException | StorageServerClientException | ProcessingException | StorageUnavailableDataFromAsyncOfferClientException e) {
+            } catch (
+                StorageNotFoundException
+                | StorageServerClientException
+                | ProcessingException
+                | StorageUnavailableDataFromAsyncOfferClientException e
+            ) {
                 LOGGER.error(format("unable to transfer file from offer to workspace, retry: %d", i), e);
             }
         }
@@ -125,30 +126,31 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     }
 
     private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToInfo)
-        throws ProcessingException, StorageNotFoundException, StorageServerClientException,
-        StorageUnavailableDataFromAsyncOfferClientException {
-
+        throws ProcessingException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
             Map objectInfo = (Map) guidToInfo.get(param.getObjectName());
             String strategyId = (String) objectInfo.get("strategyId");
 
             Boolean mustLog = Boolean.valueOf(param.getMapParameters().get(WorkerParameterName.mustLogAccessOnObject));
-            AccessLogInfoModel logInfo =
-                AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
-            response = storageClient
-                .getContainerAsync(strategyId, param.getObjectName(), DataCategory.OBJECT, logInfo);
+            AccessLogInfoModel logInfo = AccessLogUtils.getInfoFromWorkerInfo(
+                objectInfo,
+                VitamThreadUtils.getVitamSession(),
+                mustLog
+            );
+            response = storageClient.getContainerAsync(strategyId, param.getObjectName(), DataCategory.OBJECT, logInfo);
 
-            handler.transferInputStreamToWorkspace((String) objectInfo.get("FILE_NAME"),
-                (InputStream) response.getEntity(), null, false);
+            handler.transferInputStreamToWorkspace(
+                (String) objectInfo.get("FILE_NAME"),
+                (InputStream) response.getEntity(),
+                null,
+                false
+            );
         } finally {
             StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

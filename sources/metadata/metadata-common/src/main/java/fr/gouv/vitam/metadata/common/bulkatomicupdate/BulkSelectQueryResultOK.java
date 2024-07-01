@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.common.bulkatomicupdate;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class BulkSelectQueryResultOK {
+
     private final int queryIndex;
     private final JsonNode query;
     private final String unitId;
