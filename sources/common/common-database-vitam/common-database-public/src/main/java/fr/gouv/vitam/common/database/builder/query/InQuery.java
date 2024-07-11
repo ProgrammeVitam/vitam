@@ -199,7 +199,7 @@ public class InQuery extends Query {
                 }
                 final ObjectNode sub = ((ObjectNode) currentObject).putObject(inQuery.exactToken());
                 final ArrayNode array = sub.putArray(variableName.trim());
-                final String sdate = LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(value));
+                final String sdate = LocalDateUtil.fromDate(value).toString();
                 array.add(GlobalDatas.getDate(value));
                 stringVals = new HashSet<>();
                 stringVals.add(sdate);
@@ -321,7 +321,7 @@ public class InQuery extends Query {
                 final ArrayNode array = sub.putArray(variableName.trim());
                 stringVals = new HashSet<>();
                 for (final Date value : values) {
-                    final String sdate = LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(value));
+                    final String sdate = LocalDateUtil.fromDate(value).toString();
                     if (!stringVals.contains(sdate)) {
                         array.add(GlobalDatas.getDate(value));
                         stringVals.add(sdate);
@@ -520,7 +520,7 @@ public class InQuery extends Query {
             stringVals = new HashSet<>();
         }
         for (final Date val : inValue) {
-            final String sdate = LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(val));
+            final String sdate = LocalDateUtil.fromDate(val).toString();
             if (!stringVals.contains(sdate)) {
                 array.add(GlobalDatas.getDate(val));
                 stringVals.add(sdate);

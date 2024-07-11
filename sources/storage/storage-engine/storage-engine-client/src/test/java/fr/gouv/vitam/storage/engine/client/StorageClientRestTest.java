@@ -782,8 +782,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Creation ok");
-        result.setCreationTime(LocalDateUtil.nowFormatted());
-        result.setLastModifiedTime(LocalDateUtil.nowFormatted());
+        result.setCreationTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        result.setLastModifiedTime(LocalDateUtil.getString(LocalDateUtil.now()));
         return result;
     }
 

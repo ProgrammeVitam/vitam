@@ -115,7 +115,7 @@ public class ProbativeCreateReportTest {
 
         PreservationRequest request = new PreservationRequest();
         ProbativeReportEntry object = ProbativeReportEntry.koFrom(
-            LocalDateUtil.nowFormatted(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             Collections.singletonList("unitId"),
             "groupId",
             "objectId",
@@ -189,7 +189,7 @@ public class ProbativeCreateReportTest {
             .getInputStreamFromWorkspace("distributionFile.jsonl");
 
         ProbativeReportEntry object = ProbativeReportEntry.koFrom(
-            LocalDateUtil.nowFormatted(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             Collections.singletonList("unitId"),
             "groupId",
             "objectId",
@@ -250,7 +250,7 @@ public class ProbativeCreateReportTest {
 
         PreservationRequest request = new PreservationRequest();
         ProbativeReportEntry object = ProbativeReportEntry.koFrom(
-            LocalDateUtil.nowFormatted(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             Collections.singletonList("unitId"),
             "groupId",
             "objectId",

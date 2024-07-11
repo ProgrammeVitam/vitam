@@ -248,7 +248,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
                 new TapeLibraryBuildingOnDiskArchiveStorageLocation(),
                 null,
                 null,
-                LocalDateUtil.getFormattedDateTimeForMongo(now)
+                now.toString()
             );
             archiveReferentialRepository.insert(tarReferentialEntity);
         } catch (ArchiveReferentialException ex) {

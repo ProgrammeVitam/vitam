@@ -780,8 +780,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         fileRulesModel.setRuleDescription(rule.getRuleDescription());
         fileRulesModel.setRuleValue(rule.getRuleValue());
         fileRulesModel.setRuleMeasurement(RuleMeasurementEnum.getEnumFromType(rule.getRuleMeasurement()));
-        fileRulesModel.setUpdateDate(LocalDateUtil.nowFormatted());
-        fileRulesModel.setCreationDate(LocalDateUtil.nowFormatted());
+        fileRulesModel.setUpdateDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        fileRulesModel.setCreationDate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         return fileRulesModel;
     }
 
@@ -850,7 +850,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             fileRulesModel.getRuleDescription()
         );
         actions.add(setRuleDescription);
-        SetAction setUpdateDate = new SetAction(UPDATE_DATE, LocalDateUtil.nowFormatted());
+        SetAction setUpdateDate = new SetAction(
+            UPDATE_DATE,
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+        );
         actions.add(setUpdateDate);
 
         if (fileRulesModel.getRuleMeasurement() != null) {
@@ -1088,7 +1091,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         final ArrayList<String> usedDeletedFileRuleList = new ArrayList<>();
         final ArrayList<String> usedUpdatedFileRuleList = new ArrayList<>();
         guidmasterNode.put(ReportConstants.EV_TYPE, STP_IMPORT_RULES);
-        guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.nowFormatted());
+        guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         if (eipMaster != null) {
             guidmasterNode.put(ReportConstants.EV_ID, eipMaster.toString());
         }

@@ -69,7 +69,10 @@ public class CertificateCRLCheckRepositoryHelper {
         if (certificateStatus.equals(CertificateStatus.REVOKED)) {
             fieldsToUpdateBson = combine(
                 fieldsToUpdateBson,
-                set(CertificateBaseModel.REVOCATION_DATE_TAG, LocalDateUtil.nowFormatted())
+                set(
+                    CertificateBaseModel.REVOCATION_DATE_TAG,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                )
             );
         }
         certificateCollection.updateMany(in(VitamDocument.ID, certificatesToUpdate), fieldsToUpdateBson);

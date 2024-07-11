@@ -59,7 +59,7 @@ public class TapeReadRequestReferentialEntity {
     private List<FileInTape> files;
 
     @JsonProperty(CREATE_DATE)
-    private String creationDate = LocalDateUtil.nowFormatted();
+    private String creationDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
     @JsonProperty(EXPIRE_DATE)
     private String expireDate;

@@ -65,7 +65,7 @@ public class LogbookLifeCyclesClientHelper {
      */
     public static String checkLogbookParameters(LogbookLifeCycleParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
             parameters.getMandatoriesParameters()

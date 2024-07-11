@@ -228,7 +228,7 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
 
     private ReportSummary computeReportSummary(LogbookOperation logbookOperation) {
         String startDate = logbookOperation.getEvDateTime();
-        String endDate = LocalDateUtil.nowFormatted();
+        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.EVIDENCE_AUDIT;
         ReportResults vitamResults = new ReportResults();
         ObjectNode extendedInfo = JsonHandler.createObjectNode();

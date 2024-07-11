@@ -307,7 +307,7 @@ public class LogBookLifeCycleObjectGroupTest {
         );
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.nowFormatted()
+            LocalDateUtil.now().toString()
         );
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.agentIdentifier,
@@ -446,7 +446,7 @@ public class LogBookLifeCycleObjectGroupTest {
         );
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.nowFormatted()
+            LocalDateUtil.now().toString()
         );
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
             LogbookParameterName.agentIdentifier,

@@ -105,7 +105,7 @@ public class PronomParser {
         FileFormatModel fileFormatModel = new FileFormatModel();
         MultiValuedMap<String, String> hasPriorityOverFileFormatIDByPuid = new ArrayListValuedHashMap<>();
 
-        String updateDate = LocalDateUtil.nowFormatted();
+        String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
         try (InputStream xmlPronom = new FileInputStream(xmlPronomFile)) {
             final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
@@ -124,7 +124,7 @@ public class PronomParser {
                                 switch (attribute.getName().toString()) {
                                     case ATTR_CREATEDDATE:
                                         // Depend on the date format in the file
-                                        creationDate = LocalDateUtil.getFormattedDateTimeForMongo(attribute.getValue());
+                                        creationDate = LocalDateUtil.getFormattedDateForMongo(attribute.getValue());
                                         break;
                                     case ATTR_VERSION:
                                         pronomVersion = attribute.getValue();

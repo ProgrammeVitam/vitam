@@ -68,7 +68,7 @@ public class ReferentialAccessionRegisterSummaryUtil {
             .setTotalObjectGroups(initialValue)
             .setTotalUnits(initialValue)
             .setObjectSize(initialValue)
-            .setCreationDate(LocalDateUtil.nowFormatted());
+            .setCreationDate(LocalDateUtil.now().toString());
         return accessionRegister;
     }
 

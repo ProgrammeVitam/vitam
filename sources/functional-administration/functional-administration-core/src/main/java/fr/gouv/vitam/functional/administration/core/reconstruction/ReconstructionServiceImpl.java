@@ -669,7 +669,10 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 registerSummaryDoc
                     .append(TENANT_ID, tenant)
                     .append(VERSION, 0)
-                    .append(AccessionRegisterSummary.CREATION_DATE, LocalDateUtil.nowFormatted());
+                    .append(
+                        AccessionRegisterSummary.CREATION_DATE,
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                    );
 
                 BasicDBObject searchQuery = new BasicDBObject();
                 searchQuery.put(

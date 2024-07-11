@@ -147,7 +147,7 @@ public class LogbookElasticsearchAccessTest {
         );
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             if (LogbookParameterName.eventDateTime.equals(name)) {
-                parametersForCreation.putParameterValue(name, LocalDateUtil.nowFormatted());
+                parametersForCreation.putParameterValue(name, LocalDateUtil.now().toString());
             } else if (LogbookParameterName.parentEventIdentifier.equals(name)) {
                 parametersForCreation.putParameterValue(name, null);
             } else {

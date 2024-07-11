@@ -62,7 +62,10 @@ public class ObjectGroupGraphUpdates {
             Updates.addEachToSet(ObjectGroup.ORIGINATING_AGENCIES, new ArrayList<>(this.originatingAgenciesToAdd)),
             Updates.addEachToSet(ObjectGroup.OPS, new ArrayList<>(this.operationsToAdd)),
             // Last graph update date
-            Updates.set(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted()),
+            Updates.set(
+                ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
+                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+            ),
             // Inc version
             Updates.inc(ObjectGroup.VERSION, 1),
             Updates.inc(ObjectGroup.ATOMIC_VERSION, 1)

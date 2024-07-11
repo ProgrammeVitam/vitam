@@ -154,7 +154,7 @@ public class TransactionService {
      */
     public void createTransaction(TransactionDto transactionDto, ProjectDto projectDto)
         throws CollectInternalException {
-        final String creationDate = LocalDateUtil.nowFormatted();
+        final String creationDate = LocalDateUtil.now().toString();
 
         TransactionModel transactionModel = new TransactionModel(
             transactionDto.getId(),
@@ -242,7 +242,7 @@ public class TransactionService {
     }
 
     public void replaceTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        final String updateDate = LocalDateUtil.nowFormatted();
+        final String updateDate = LocalDateUtil.now().toString();
         transactionModel.setLastUpdate(updateDate);
         transactionRepository.replaceTransaction(transactionModel);
     }
@@ -304,7 +304,7 @@ public class TransactionService {
                 break;
         }
         transactionModel.setStatus(transactionStatus);
-        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
+        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
         replaceTransaction(transactionModel);
     }
 
@@ -316,7 +316,7 @@ public class TransactionService {
         TransactionModel transactionModel = transactionModelOptional.get();
 
         transactionModel.setVitamOperationId(operationId);
-        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
+        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
         replaceTransaction(transactionModel);
     }
 
@@ -500,7 +500,7 @@ public class TransactionService {
         transactionModel.setManifestContext(
             CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get())
         );
-        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
+        transactionModel.setLastUpdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         transactionRepository.replaceTransaction(transactionModel);
         return transactionModel;
     }
@@ -771,7 +771,7 @@ public class TransactionService {
 
         transaction.setStatus(TransactionStatus.SENDING);
 
-        transaction.setLastUpdate(LocalDateUtil.nowFormatted());
+        transaction.setLastUpdate(LocalDateUtil.now().toString());
         return findOneAndReplace(TransactionStatus.READY, transaction);
     }
 }

@@ -24,7 +24,6 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.processing.common.model;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -61,7 +60,7 @@ public class ProcessWorkflow {
 
     private List<ProcessStep> steps = new ArrayList<>();
 
-    private String processDate = LocalDateUtil.nowFormatted();
+    private String processDate = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
 
     private LocalDateTime processCompletedDate;
 

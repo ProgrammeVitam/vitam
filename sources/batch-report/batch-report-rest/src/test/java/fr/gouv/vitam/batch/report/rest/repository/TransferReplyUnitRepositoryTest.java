@@ -49,6 +49,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -138,7 +139,8 @@ public class TransferReplyUnitRepositoryTest {
                 TransferReplyUnitModel transferReplyUnitModel = new TransferReplyUnitModel();
                 transferReplyUnitModel.setProcessId(reportBody.getProcessId());
                 transferReplyUnitModel.setTenant(0);
-                transferReplyUnitModel.setCreationDateTime(LocalDateUtil.nowFormatted());
+                LocalDateTime localDateTime = LocalDateUtil.now();
+                transferReplyUnitModel.setCreationDateTime(localDateTime.toString());
                 transferReplyUnitModel.setMetadata(md);
                 return transferReplyUnitModel;
             })

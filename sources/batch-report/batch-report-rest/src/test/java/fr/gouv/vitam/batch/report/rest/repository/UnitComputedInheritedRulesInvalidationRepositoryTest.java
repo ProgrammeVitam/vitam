@@ -191,7 +191,7 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
                     new UnitComputedInheritedRulesInvalidationModel(
                         processId,
                         VitamThreadUtils.getVitamSession().getTenantId(),
-                        LocalDateUtil.nowFormatted(),
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
                         new UnitComputedInheritedRulesInvalidationReportEntry(unitId)
                     )
             )

@@ -24,7 +24,6 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.ingest.external.core;
 
 import fr.gouv.vitam.common.FileUtil;
@@ -95,14 +94,14 @@ public class AtrKoBuilder {
         }
         String event = VitamLogbookMessages.getLabelOp(eventType);
         return xmlDefault
-            .replace(DATE, LocalDateUtil.nowFormatted())
+            .replace(DATE, LocalDateUtil.now().toString())
             .replace(MESSAGE_IDENTIFIER, messageIdentifier)
             .replace(ARCHIVAL_AGENCY, archivalAgency)
             .replace(TRANSFERRING_AGENCY, transferringAgency)
             .replace(COMMENT, detail)
             .replace(EVENT_TYPE_CODE, eventType)
             .replace(EVENT_TYPE, event)
-            .replace(EVENT_DATE_TIME, LocalDateUtil.getFormattedDateTimeForMongo(eventDateTime))
+            .replace(EVENT_DATE_TIME, eventDateTime.toString())
             .replaceAll(OUTCOME, code.name())
             .replace(OUTCOME_DETAIL, eventType + "." + code.name())
             .replace(OUTCOME_DETAIL_MESSAGE, detail);

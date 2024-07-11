@@ -233,12 +233,12 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
 
     @Override
     public String getTraceabilityStartDate() {
-        return LocalDateUtil.getFormattedDateTimeForMongo(this.traceabilityStartDate);
+        return LocalDateUtil.getFormattedDateForMongo(this.traceabilityStartDate);
     }
 
     @Override
     public String getTraceabilityEndDate() {
-        return LocalDateUtil.getFormattedDateTimeForMongo(this.traceabilityEndDate);
+        return LocalDateUtil.getFormattedDateForMongo(this.traceabilityEndDate);
     }
 
     @Override

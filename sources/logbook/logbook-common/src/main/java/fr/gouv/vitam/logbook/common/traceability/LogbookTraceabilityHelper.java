@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.traceability;
 
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
@@ -44,7 +43,7 @@ import java.time.LocalDateTime;
  * Interface used to handle specific steps of the traceability process
  */
 public interface LogbookTraceabilityHelper {
-    LocalDateTime INITIAL_START_DATE = LocalDateUtil.EPOCH;
+    LocalDateTime INITIAL_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
 
     /**
      * Search for entries to secure with the traceability process and store data in the given Traceability zip file.<br/>

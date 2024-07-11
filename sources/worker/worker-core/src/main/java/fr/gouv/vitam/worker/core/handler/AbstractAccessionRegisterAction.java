@@ -374,7 +374,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             .setRemained(nbObject);
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(size).setRemained(size);
 
-        String updateDate = LocalDateUtil.nowFormatted();
+        String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
 
@@ -385,7 +385,7 @@ public abstract class AbstractAccessionRegisterAction extends ActionHandler impl
             .setTotalGots(totalObjectsGroups.getRemained())
             .setTotalObjects(totalObjects.getRemained())
             .setObjectSize(objectSize.getRemained())
-            .setCreationdate(LocalDateUtil.nowFormatted());
+            .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         return new AccessionRegisterDetailModel()
             .setId(guid.toString())

@@ -136,7 +136,7 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
 
             // create report Summary
             String startDate = logbookOperationVersionModel.getEvDateTime();
-            String endDate = LocalDateUtil.nowFormatted();
+            String endDate = LocalDateUtil.getString(LocalDateUtil.now());
             ReportType reportType = ReportType.DELETE_GOT_VERSIONS;
             ReportResults vitamResults = new ReportResults();
             ObjectNode extendedInfo = JsonHandler.createObjectNode();

@@ -221,7 +221,7 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
 
     private ReportSummary computeReportSummary(JsonNode logbookOperation) {
         String startDate = logbookOperation.get(LogbookEvent.EV_DATE_TIME).asText();
-        String endDate = LocalDateUtil.nowFormatted();
+        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
         ReportType reportType = ReportType.TRACEABILITY;
         ReportResults vitamResults = new ReportResults();
         ObjectNode extendedInfo = JsonHandler.createObjectNode();

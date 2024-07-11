@@ -221,13 +221,13 @@ public class VitamMongoRepositoryTest {
     @Test
     public void testBulkUpdateMultipleDocumentsOK() throws IOException, DatabaseException {
         MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
-        String date = LocalDateUtil.nowFormatted();
+        String date = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
         // inserts
         List<Document> documents = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
             if (i == 1) {
-                date = LocalDateUtil.nowFormatted();
+                date = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             }
             XContentBuilder builder = jsonBuilder()
                 .startObject()
