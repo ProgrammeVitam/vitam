@@ -169,6 +169,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollNumber;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
 import static java.util.function.Predicate.not;
 
@@ -437,7 +438,7 @@ public class MetaDataImpl {
         Aggregations aUAccessionRegisterInfo = selectArchiveUnitAccessionRegisterInformation(tenant);
         Aggregations oGAccessionRegisterInfo = selectObjectGroupAccessionRegisterInformation(tenant);
 
-        String creationDate = LocalDateUtil.nowFormatted();
+        String creationDate = ISO_LOCAL_DATE_TIME.format(LocalDateUtil.now());
 
         return createWithInformations(aUAccessionRegisterInfo, oGAccessionRegisterInfo, creationDate, tenant);
     }
@@ -1227,7 +1228,7 @@ public class MetaDataImpl {
             scrollDateFilter,
             combine(
                 setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
-                set(MetadataSnapshot.VALUE, LocalDateUtil.nowFormatted())
+                set(MetadataSnapshot.VALUE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             ),
             new UpdateOptions().upsert(true)
         );

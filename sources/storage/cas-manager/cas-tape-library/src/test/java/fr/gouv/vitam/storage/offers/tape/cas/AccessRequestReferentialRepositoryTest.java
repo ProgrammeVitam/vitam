@@ -1010,14 +1010,14 @@ public class AccessRequestReferentialRepositoryTest {
 
     private String nextDate() {
         logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
-        return LocalDateUtil.nowFormatted();
+        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
     }
 
     private String getNowPlusMinutes(int plusMinutes) {
-        return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().plusMinutes(plusMinutes));
+        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusMinutes(plusMinutes));
     }
 
     private String getNowMinusMinutes(int minusMinutes) {
-        return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().minusMinutes(minusMinutes));
+        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().minusMinutes(minusMinutes));
     }
 }

@@ -173,7 +173,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
 
         // Then
         assertThat(helper.getTraceabilityStartDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateTimeForMongo(LOGBOOK_OPERATION_EVENT_DATE)
+            LocalDateUtil.getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE)
         );
     }
 

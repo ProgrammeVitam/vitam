@@ -47,6 +47,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -193,7 +194,8 @@ public class PurgeUnitRepositoryTest {
                 PurgeUnitModel purgeUnitModel = new PurgeUnitModel();
                 purgeUnitModel.setProcessId(reportBody.getProcessId());
                 purgeUnitModel.setTenant(0);
-                purgeUnitModel.setCreationDateTime(LocalDateUtil.nowFormatted());
+                LocalDateTime localDateTime = LocalDateUtil.now();
+                purgeUnitModel.setCreationDateTime(localDateTime.toString());
                 purgeUnitModel.setMetadata(md);
                 return purgeUnitModel;
             })

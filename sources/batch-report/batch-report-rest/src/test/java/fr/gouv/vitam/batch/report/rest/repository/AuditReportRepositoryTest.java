@@ -117,7 +117,7 @@ public class AuditReportRepositoryTest {
         );
         auditReportEntryKO = new AuditObjectGroupModel(
             processId,
-            LocalDateUtil.nowFormatted(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             auditObjectGroupEntry1,
             TENANT_ID
         );
@@ -158,7 +158,7 @@ public class AuditReportRepositoryTest {
         );
         auditReportEntryOK = new AuditObjectGroupModel(
             processId,
-            LocalDateUtil.nowFormatted(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             auditObjectGroupEntry2,
             TENANT_ID
         );
@@ -199,7 +199,7 @@ public class AuditReportRepositoryTest {
         );
         auditReportEntryWARNING = new AuditObjectGroupModel(
             processId,
-            LocalDateUtil.nowFormatted(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             auditObjectGroupEntry3,
             TENANT_ID
         );

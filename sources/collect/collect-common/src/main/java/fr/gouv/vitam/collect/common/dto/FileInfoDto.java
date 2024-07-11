@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class FileInfoDto implements Serializable {
@@ -41,7 +42,7 @@ public class FileInfoDto implements Serializable {
     private String lastModified;
 
     public FileInfoDto() {
-        setLastModified(LocalDateUtil.nowFormatted());
+        setLastModified(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
     }
 
     public FileInfoDto(String fileName, String lastModified) {

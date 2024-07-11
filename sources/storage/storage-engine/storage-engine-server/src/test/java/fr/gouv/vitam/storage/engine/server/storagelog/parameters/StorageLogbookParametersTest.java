@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.server.storagelog.parameters;
 
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.junit.Test;
 
@@ -53,7 +52,7 @@ public class StorageLogbookParametersTest {
         assertEquals(mapParameters.get(StorageLogbookParameterName.eventType), "CREATE");
 
         final LocalDateTime eventDate = parameters.getEventDateTime();
-        assertEquals(LocalDateUtil.parseMongoFormattedDate(DATE), eventDate);
+        assertEquals(LocalDateTime.parse(DATE), eventDate);
 
         final StorageLogbookOutcome statusOutcome = parameters.getStatus();
         assertEquals(OK_STATUS, statusOutcome);

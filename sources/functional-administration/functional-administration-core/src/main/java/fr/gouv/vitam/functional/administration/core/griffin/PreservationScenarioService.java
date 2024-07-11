@@ -81,6 +81,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
@@ -380,8 +381,8 @@ public class PreservationScenarioService {
 
     private void reportVersioning(PreservationScenarioReport report) {
         if (report.getPreviousScenariosCreationDate() != null && report.getNewScenariosCreationDate() != null) {
-            String previousDate = LocalDateUtil.getFormattedDateTimeForMongo(report.getPreviousScenariosCreationDate());
-            String newDate = LocalDateUtil.getFormattedDateTimeForMongo(report.getNewScenariosCreationDate());
+            String previousDate = LocalDateUtil.getFormattedDateForMongo(report.getPreviousScenariosCreationDate());
+            String newDate = LocalDateUtil.getFormattedDateForMongo(report.getNewScenariosCreationDate());
 
             if (previousDate.equals(newDate)) {
                 report.addWarning("Same referential date: " + report.getNewScenariosCreationDate());
@@ -491,7 +492,7 @@ public class PreservationScenarioService {
         throws InvalidParseOperationException, DatabaseException, ReferentialException {
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
             if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
-                preservationScenarioModel.setLastUpdate(LocalDateUtil.nowFormatted());
+                preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(LocalDateUtil.now()));
 
                 formatDateForMongo(preservationScenarioModel);
 
@@ -511,7 +512,7 @@ public class PreservationScenarioService {
 
     private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) throws ReferentialException {
         try {
-            String lastUpdate = LocalDateUtil.nowFormatted();
+            String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
             preservationScenarioModel.setLastUpdate(lastUpdate);
         } catch (DateTimeParseException e) {
             throw new ReferentialException(
@@ -526,9 +527,7 @@ public class PreservationScenarioService {
 
         if (preservationScenarioModel.getCreationDate() != null) {
             try {
-                String creationDate = LocalDateUtil.getFormattedDateTimeForMongo(
-                    preservationScenarioModel.getCreationDate()
-                );
+                String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
                 preservationScenarioModel.setCreationDate(creationDate);
             } catch (DateTimeParseException e) {
                 throw new ReferentialException(

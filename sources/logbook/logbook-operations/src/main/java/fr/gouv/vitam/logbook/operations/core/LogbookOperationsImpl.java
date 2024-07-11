@@ -262,13 +262,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 .add(
                     QueryHelper.gte(
                         VitamFieldsHelper.lastPersistedDate(),
-                        LocalDateUtil.getFormattedDateTimeForMongo(startDate)
+                        LocalDateUtil.getFormattedDateForMongo(startDate)
                     )
                 )
                 .add(
                     QueryHelper.lte(
                         VitamFieldsHelper.lastPersistedDate(),
-                        LocalDateUtil.getFormattedDateTimeForMongo(endDate)
+                        LocalDateUtil.getFormattedDateForMongo(endDate)
                     )
                 )
         );
@@ -287,7 +287,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public LogbookOperation findFirstTraceabilityOperationOKAfterDate(final LocalDateTime date)
         throws InvalidCreateOperationException, LogbookDatabaseException {
         final Select select = new Select();
-        final Query query = QueryHelper.gt("evDateTime", LocalDateUtil.getFormattedDateTimeForMongo(date));
+        final Query query = QueryHelper.gt("evDateTime", date.toString());
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query status = QueryHelper.eq(
             LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(),
@@ -540,13 +540,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
                     .add(
                         gte(
                             VitamFieldsHelper.lastPersistedDate(),
-                            LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate)
+                            LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate)
                         )
                     )
                     .add(
                         lte(
                             VitamFieldsHelper.lastPersistedDate(),
-                            LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate)
+                            LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)
                         )
                     )
                     .add(not().add(in("evTypeProc", ignoredBackgroundLogbookTypeProcesses)))

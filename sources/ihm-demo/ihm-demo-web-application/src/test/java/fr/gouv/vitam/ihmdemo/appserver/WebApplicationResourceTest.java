@@ -268,7 +268,7 @@ public class WebApplicationResourceTest {
 
 
     private Map<String, String> createActiveMapForUpdateCommonContract() {
-        String now = LocalDateUtil.nowFormatted();
+        String now = LocalDateUtil.now().toString();
         Map<String, String> parameters = new HashMap<>();
         parameters.put(STATUS_FIELD_QUERY, "ACTIVE");
         parameters.put(LAST_UPDATE_FIELD_QUERY, now);

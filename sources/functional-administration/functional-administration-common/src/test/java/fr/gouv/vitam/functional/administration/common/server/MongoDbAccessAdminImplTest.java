@@ -164,7 +164,7 @@ public class MongoDbAccessAdminImplTest {
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
 
-        final String now = LocalDateUtil.nowFormatted();
+        final String now = LocalDateUtil.now().toString();
 
         fileFormat1 = new FileFormat()
             .setCreatedDate(now)

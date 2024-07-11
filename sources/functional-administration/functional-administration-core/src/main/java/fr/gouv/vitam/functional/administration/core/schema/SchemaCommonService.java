@@ -116,8 +116,8 @@ public class SchemaCommonService {
             }
             schemaDb.setShortName(shortName);
             schemaDb.setDescription(schemaEltInputElt.getDescription());
-            schemaDb.setCreationdate(LocalDateUtil.nowFormatted());
-            schemaDb.setLastupdate(LocalDateUtil.nowFormatted());
+            schemaDb.setCreationdate(LocalDateUtil.now().toString());
+            schemaDb.setLastupdate(LocalDateUtil.now().toString());
             boolean isLeaf = !Boolean.TRUE.equals(schemaEltInputElt.isObject());
             schemaDb.setIsObject(!isLeaf);
             schemaModelElementsBuilt.add(schemaDb);
@@ -183,7 +183,7 @@ public class SchemaCommonService {
         FunctionalOperationModel operation = new FunctionalOperationModel();
 
         operation.setEvType(SCHEMA_REPORT);
-        operation.setEvDateTime(LocalDateUtil.nowFormatted());
+        operation.setEvDateTime(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         operation.setEvId(eip.toString());
         return schemaImportReport;
     }

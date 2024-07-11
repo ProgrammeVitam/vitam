@@ -546,7 +546,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
 
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.nowFormatted());
+                ((ObjectNode) fieldName).put(
+                        AbstractContractModel.TAG_LAST_UPDATE,
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                    );
             }
         }
 
@@ -825,7 +828,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             case IngestContract.ACTIVATIONDATE:
             case IngestContract.DEACTIVATIONDATE:
                 try {
-                    LocalDateUtil.getFormattedDateTimeForMongo(value.asText());
+                    LocalDateUtil.getFormattedDateForMongo(value.asText());
                 } catch (DateTimeParseException e) {
                     error.addToErrors(
                         getVitamError(
@@ -984,7 +987,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private IngestContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericRejectionCause rejection = null;
-                final String now = LocalDateUtil.nowFormatted();
+                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
                 if (contract.getStatus() == null) {
                     contract.setStatus(ActivationStatus.INACTIVE);
                 }
@@ -996,9 +999,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
-                        contract.setCreationdate(
-                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getCreationdate())
-                        );
+                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
@@ -1009,7 +1010,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(
-                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getActivationdate())
+                            LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate())
                         );
                     }
                 } catch (final Exception e) {
@@ -1021,7 +1022,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         contract.setDeactivationdate(null);
                     } else {
                         contract.setDeactivationdate(
-                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getDeactivationdate())
+                            LocalDateUtil.getFormattedDateForMongo(contract.getDeactivationdate())
                         );
                     }
                 } catch (final Exception e) {

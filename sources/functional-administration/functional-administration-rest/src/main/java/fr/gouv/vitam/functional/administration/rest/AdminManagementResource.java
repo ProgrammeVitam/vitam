@@ -1306,7 +1306,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 )
                 .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
                 .putParameterValue(LogbookParameterName.agentIdentifierPersonae, personalCertificate)
-                .putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
+                .putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
 
             if (operation.getParameterValue(LogbookParameterName.agentIdentifierApplicationSession) != null) {
                 masterOperation.putParameterValue(

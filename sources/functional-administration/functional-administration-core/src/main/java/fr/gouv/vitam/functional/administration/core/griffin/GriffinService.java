@@ -87,6 +87,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
@@ -297,8 +299,8 @@ public class GriffinService {
 
     private void reportVersioning(GriffinReport report) {
         if (report.getPreviousGriffinsCreationDate() != null && report.getNewGriffinsCreationDate() != null) {
-            String previousDate = LocalDateUtil.getFormattedDateTimeForMongo(report.getPreviousGriffinsCreationDate());
-            String newDate = LocalDateUtil.getFormattedDateTimeForMongo(report.getNewGriffinsCreationDate());
+            String previousDate = LocalDateUtil.getFormattedDateForMongo(report.getPreviousGriffinsCreationDate());
+            String newDate = LocalDateUtil.getFormattedDateForMongo(report.getNewGriffinsCreationDate());
 
             if (previousDate.equals(newDate)) {
                 report.addWarning("Same referential date: " + report.getNewGriffinsCreationDate());
@@ -517,15 +519,15 @@ public class GriffinService {
 
     private void formatDateForMongo(GriffinModel griffinModel) throws ReferentialException {
         try {
-            String lastUpdate = LocalDateUtil.nowFormatted();
+            String lastUpdate = getFormattedDateForMongo(now());
             griffinModel.setLastUpdate(lastUpdate);
 
             String creationDate = griffinModel.getCreationDate();
 
             if (creationDate == null) {
-                creationDate = LocalDateUtil.nowFormatted();
+                creationDate = now().toString();
             }
-            creationDate = LocalDateUtil.getFormattedDateTimeForMongo(creationDate);
+            creationDate = getFormattedDateForMongo(creationDate);
             griffinModel.setCreationDate(creationDate);
         } catch (DateTimeParseException e) {
             throw new ReferentialException(

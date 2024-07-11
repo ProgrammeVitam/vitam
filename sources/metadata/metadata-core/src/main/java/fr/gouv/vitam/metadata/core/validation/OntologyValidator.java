@@ -209,11 +209,6 @@ public class OntologyValidator {
         JsonNode fieldValueNode,
         OntologyModel ontologyModel
     ) {
-        // Skip internal fields reformatting...
-        if (fieldName.startsWith("_")) {
-            return fieldValueNode;
-        }
-
         // In case where no ontology is provided
         if (null == ontologyModel) {
             return validateValueLength(

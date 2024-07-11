@@ -146,14 +146,14 @@ public class OfferLogDatabaseService {
 
         return toCloseableIterable(
             mongoCollection
-                .find(lte(TIME, LocalDateUtil.getFormattedDateTimeForMongo(expirationDate)))
+                .find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
                 .sort(Sorts.ascending(CONTAINER, SEQUENCE))
                 .map(
                     d ->
                         new OfferLog(
                             ((Number) d.get(SEQUENCE)).longValue(),
                             LocalDateUtil.parseMongoFormattedDate(
-                                LocalDateUtil.getFormattedDateTimeForMongo(d.getString(TIME))
+                                LocalDateUtil.getFormattedDateForMongo(d.getString(TIME))
                             ),
                             d.getString(CONTAINER),
                             d.getString(FILENAME),
