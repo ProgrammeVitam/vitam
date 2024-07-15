@@ -14,7 +14,7 @@ L'idée est de représenter les paramètres sous forme de Map<LogbookParameterNa
 Une methode getMapParameters() permet de récuperer l'ensemble de ces paramètres.
 Une methode getMandatoriesParameters() permet de récuperer un set de paramètre qui ne doivent pas être null ni vide.
 
-On retrouve une implémentation dans la classe 
+On retrouve une implémentation dans la classe
 **LogbookLifeCycleObjectGroupParameters** qui représente les paramètres pour journaliser un cycle de vie d'object group.
 **LogbookLifeCycleUnitParameters** qui représente les paramètres pour journaliser un cycle de vie d'archive unit.
 
@@ -28,7 +28,7 @@ Afin de récupérer le client ainsi que la bonne classe de paramètre, une facto
 .. code-block:: java
 
   // Récupération du client
-  LogbookLifeCyclesClientFactory.changeMode(ClientConfiguration configuration) 
+  LogbookLifeCyclesClientFactory.changeMode(ClientConfiguration configuration)
   LogbookLifeCycleClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
   // Récupération de la classe paramètre pour Object Group
   LogbookParameters parameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
@@ -38,7 +38,7 @@ Afin de récupérer le client ainsi que la bonne classe de paramètre, une facto
   parameters.putParameterValue(LogbookParameterName.agentIdentifier,
       SERVER_IDENTITY.getJsonIdentity());
   parameters.putParameterValue(LogbookParameterName.eventDateTime,
-      LocalDateUtil.now().toString());
+      LocalDateUtil.nowFormated());
   // Usage recommandé : utiliser le factory avec les arguments obligatoires à remplir
 	// Object Group
   LogbookParameters parameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(args);
@@ -68,7 +68,7 @@ Pour instancier son client en mode Production :
 .. code-block:: java
 
   // Changer la configuration du Factory
-  LogbookLifeCyclesClientFactory.changeMode(ClientConfiguration configuration) 
+  LogbookLifeCyclesClientFactory.changeMode(ClientConfiguration configuration)
   // Récupération explicite du client
   LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
 
@@ -77,6 +77,6 @@ Le client
 
 Le client propose actuellement six méthodes : create, update, commit, rollback, selectOperation et selectLifeCycles et selectLifeCyclesById
 
-// TODO 
+// TODO
 
 Cas d'usage provenant de processing.

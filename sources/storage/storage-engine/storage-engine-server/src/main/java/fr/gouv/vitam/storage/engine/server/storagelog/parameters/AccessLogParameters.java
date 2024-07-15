@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -64,17 +63,6 @@ public class AccessLogParameters implements StorageLogStructure {
     public AccessLogParameters(Map<StorageLogbookParameterName, String> mapParameters) {
         this.mapParameters.putAll(mapParameters);
         checkMandatoryParameters();
-    }
-
-    /**
-     * Get the event date time as a local date time
-     *
-     * @return the local date time as a LocalDateTime
-     */
-    @JsonIgnore
-    public LocalDateTime getEventDateTime() {
-        final String date = mapParameters.get(StorageLogbookParameterName.eventDateTime);
-        return LocalDateTime.parse(date);
     }
 
     /**

@@ -245,7 +245,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        String startEntryCreation = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        String startEntryCreation = LocalDateUtil.nowFormatted();
         String objectGroupId = param.getObjectName();
         String usageVersion = param.getObjectMetadata().get("usageVersion").asText();
 
@@ -729,8 +729,10 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     }
 
     private boolean isEventBeforeInSecured(LogbookOperation traceabilityLogbookOperation, JsonNode event) {
-        LocalDateTime eventDateTime = LocalDateTime.parse(event.get("evDateTime").asText());
-        LocalDateTime traceabilityDateTime = LocalDateTime.parse(traceabilityLogbookOperation.getEvDateTime());
+        LocalDateTime eventDateTime = LocalDateUtil.parseMongoFormattedDate(event.get("evDateTime").asText());
+        LocalDateTime traceabilityDateTime = LocalDateUtil.parseMongoFormattedDate(
+            traceabilityLogbookOperation.getEvDateTime()
+        );
         return eventDateTime.isBefore(traceabilityDateTime) || eventDateTime.isEqual(traceabilityDateTime);
     }
 

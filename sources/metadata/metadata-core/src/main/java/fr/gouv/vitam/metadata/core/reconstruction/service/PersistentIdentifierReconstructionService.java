@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.metadata.core.reconstruction.service;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -87,38 +88,46 @@ public class PersistentIdentifierReconstructionService {
             for (Integer tenant : tenantList) {
                 CompletableFuture<Void> reconstructionFuture = CompletableFuture.runAsync(
                     () -> {
-                        configureThreadAndSession(tenant, requestId);
-                        LocalDateTime startDate = offsetManager.retrieveLastReconstructionDateFromOffset(tenant);
-                        LocalDateTime endDate = offsetManager.retrieveEndDateWithDelay(
-                            persistentIdentifierReconstructionDelayInMinutes
-                        );
-                        LOGGER.info(
-                            "Start of reconstruction between dates {} and {} for tenant {}",
-                            startDate,
-                            endDate,
-                            tenant
-                        );
-                        ReconstructionResponse response = persistentIdentifierReconstructionManager.reconstruct(
-                            startDate,
-                            endDate
-                        );
-                        offsetManager.saveNextReconstructionDateInOffset(
-                            tenant,
-                            response.getLastSuccessfulOperationDate()
-                        );
-                        LOGGER.info(
-                            "End of reconstruction between dates {} and {} for tenant {}",
-                            startDate,
-                            endDate,
-                            tenant
-                        );
-                        LOGGER.info(
-                            "Date of the last operation processed in the persistent identifier reconstruction : {} for tenant {}",
-                            response.getLastSuccessfulOperationDate(),
-                            tenant
-                        );
+                        try {
+                            configureThreadAndSession(tenant, requestId);
+                            LocalDateTime startDate = offsetManager.retrieveLastReconstructionDateFromOffset(tenant);
+                            LocalDateTime endDate = offsetManager.retrieveEndDateWithDelay(
+                                persistentIdentifierReconstructionDelayInMinutes
+                            );
+                            LOGGER.info(
+                                "Start of reconstruction between dates {} and {} for tenant {}",
+                                startDate,
+                                endDate,
+                                tenant
+                            );
+                            ReconstructionResponse response = persistentIdentifierReconstructionManager.reconstruct(
+                                startDate,
+                                endDate
+                            );
+                            offsetManager.saveNextReconstructionDateInOffset(
+                                tenant,
+                                response.getLastSuccessfulOperationDate()
+                            );
+                            LOGGER.info(
+                                "End of reconstruction between dates {} and {} for tenant {}",
+                                startDate,
+                                endDate,
+                                tenant
+                            );
+                            LOGGER.info(
+                                "Date of the last operation processed in the persistent identifier reconstruction : {} for tenant {}",
+                                response.getLastSuccessfulOperationDate(),
+                                tenant
+                            );
 
-                        globalResponse.accumulate(response);
+                            globalResponse.accumulate(response);
+                        } catch (Exception e) {
+                            LOGGER.error(
+                                "An error occurred during persistent identifier reconstruction for tenant " + tenant,
+                                e
+                            );
+                            globalResponse.accumulate(new ReconstructionResponse.Builder().status(FAILURE).build());
+                        }
                     },
                     executorService
                 );
@@ -127,6 +136,7 @@ public class PersistentIdentifierReconstructionService {
             CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
             return globalResponse;
         } catch (Exception e) {
+            LOGGER.error("An error occurred during persistent identifier reconstruction", e);
             return new ReconstructionResponse.Builder().status(FAILURE).build();
         } finally {
             executorService.shutdown();

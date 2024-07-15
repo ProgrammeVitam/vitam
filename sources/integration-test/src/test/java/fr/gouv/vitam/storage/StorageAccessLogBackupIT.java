@@ -439,8 +439,8 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             assertThat(logs).hasSize(1);
 
             assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText()).isBetween(
-                LocalDateUtil.getFormattedDateForMongo(beforeAccess),
-                LocalDateUtil.getFormattedDateForMongo(afterAccess)
+                LocalDateUtil.getFormattedDateTimeForMongo(beforeAccess),
+                LocalDateUtil.getFormattedDateTimeForMongo(afterAccess)
             );
             assertThat(storageLog.get(StorageLogbookParameterName.xRequestId.name()).asText()).isEqualTo(
                 requestId.getId()

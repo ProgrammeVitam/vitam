@@ -115,7 +115,7 @@ public class AuditMetadataFetcher {
         selectMultiQuery.addQueries(
             QueryHelper.lt(
                 VitamFieldsHelper.approximateUpdateDate(),
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().minusMinutes(operationsDelayInMinutes))
+                LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().minusMinutes(operationsDelayInMinutes))
             )
         );
 

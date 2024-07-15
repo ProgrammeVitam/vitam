@@ -107,7 +107,7 @@ public class PersonalCertificateService extends SecurityService {
 
         personalModel.setCertificateHash(parsedCertificate.getCertificateHash());
         personalModel.setExpirationDate(
-            LocalDateUtil.getFormattedDateForMongo(
+            LocalDateUtil.getFormattedDateTimeForMongo(
                 LocalDateUtil.fromDate(parsedCertificate.getX509Certificate().getNotAfter())
             )
         );

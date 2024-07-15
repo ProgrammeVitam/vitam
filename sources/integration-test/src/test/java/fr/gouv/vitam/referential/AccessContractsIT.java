@@ -135,7 +135,7 @@ public class AccessContractsIT extends VitamRuleRunner {
             Update updateQuery = new Update();
             updateQuery.addActions(
                 UpdateActionHelper.set("Status", "INACTIVE"),
-                UpdateActionHelper.set("DeactivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
+                UpdateActionHelper.set("DeactivationDate", LocalDateUtil.nowFormatted()),
                 UpdateActionHelper.unset("ActivationDate")
             );
             RequestResponse<AccessContractModel> updatedAccessContract = client.updateAccessContract(
@@ -158,7 +158,7 @@ public class AccessContractsIT extends VitamRuleRunner {
             updateQuery.addActions(
                 UpdateActionHelper.set("Status", "ACTIVE"),
                 UpdateActionHelper.set("DeactivationDate", ""),
-                UpdateActionHelper.set("ActivationDate", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+                UpdateActionHelper.set("ActivationDate", LocalDateUtil.nowFormatted())
             );
             assertThatCode(() -> client.updateAccessContract("aName", updateQuery.getFinalUpdate())).isInstanceOf(
                 AdminManagementClientBadRequestException.class

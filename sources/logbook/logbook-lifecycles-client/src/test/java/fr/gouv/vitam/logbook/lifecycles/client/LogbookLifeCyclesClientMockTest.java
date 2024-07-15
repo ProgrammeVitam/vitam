@@ -209,7 +209,7 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookParameterName.eventIdentifier.name()
         );
         logbookParamaters.putParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         logbookParamaters.putParameterValue(
             LogbookParameterName.eventIdentifierProcess,
             LogbookParameterName.eventIdentifierProcess.name()

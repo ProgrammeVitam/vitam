@@ -205,7 +205,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStartDate(String startDate) {
-        append(START_DATE, LocalDateUtil.getFormattedDateForMongo(startDate));
+        append(START_DATE, LocalDateUtil.getFormattedDateTimeForMongo(startDate));
         return this;
     }
 
@@ -221,7 +221,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setEndDate(String endDate) {
-        append(END_DATE, LocalDateUtil.getFormattedDateForMongo(endDate));
+        append(END_DATE, LocalDateUtil.getFormattedDateTimeForMongo(endDate));
         return this;
     }
 
@@ -230,7 +230,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setLastUpdate(String lastUpdate) {
-        append(LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
+        append(LAST_UPDATE, LocalDateUtil.getFormattedDateTimeForMongo(lastUpdate));
         return this;
     }
 

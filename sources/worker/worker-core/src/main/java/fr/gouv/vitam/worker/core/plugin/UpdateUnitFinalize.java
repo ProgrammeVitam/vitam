@@ -222,7 +222,7 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
             .reduce((a, b) -> b);
 
         String startDate = logbook.getEvDateTime();
-        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
+        String endDate = LocalDateUtil.nowFormatted();
 
         if (logbookEvent.isEmpty()) {
             return new ReportSummary(startDate, endDate, UPDATE_UNIT, null, null);

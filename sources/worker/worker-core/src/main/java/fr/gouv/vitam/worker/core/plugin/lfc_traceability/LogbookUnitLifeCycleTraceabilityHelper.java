@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -111,7 +112,7 @@ public class LogbookUnitLifeCycleTraceabilityHelper extends LogbookLifeCycleTrac
     @Override
     protected Select generateSelectLogbookOperation(LocalDateTime date) throws InvalidCreateOperationException {
         final Select select = new Select();
-        final Query query = QueryHelper.gt(eventDateTime.getDbname(), date.toString());
+        final Query query = QueryHelper.gt(eventDateTime.getDbname(), LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq(eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name());
         final Query eventStatus = QueryHelper.in(
             String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcomeDetail.getDbname()),

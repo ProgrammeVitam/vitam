@@ -72,7 +72,6 @@ import javax.ws.rs.core.Response.Status;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -191,8 +190,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Stockage de l'objet réalisé avec succès");
-        result.setCreationTime(LocalDateUtil.getString(LocalDateUtil.now()));
-        result.setLastModifiedTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        result.setCreationTime(LocalDateUtil.nowFormatted());
+        result.setLastModifiedTime(LocalDateUtil.nowFormatted());
         result.setNbCopy(1);
         result.setStrategy("default-fake");
         result.setOfferIds(Arrays.asList("fakeOfferId"));
@@ -331,7 +330,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         offerLog.setContainer(type.getFolder() + "_0");
         offerLog.setFileName("fileName_" + (offset + 1));
         offerLog.setSequence(offset + 1);
-        offerLog.setTime(LocalDateTime.of(2017, 12, 13, 12, 0, 0, 0));
+        offerLog.setTime(LocalDateUtil.parseMongoFormattedDate("2017-12-13T12:00:00.000"));
         requestResponseOK.addResult(offerLog);
         return requestResponseOK;
     }

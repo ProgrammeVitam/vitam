@@ -426,7 +426,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
         DbFileInfoModel fileInfoModel = new DbFileInfoModel();
         fileInfoModel.setFilename(outputExtra.getOutput().getOutputName());
-        fileInfoModel.setLastModified(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        fileInfoModel.setLastModified(LocalDateUtil.nowFormatted());
         versionModel.setFileInfoModel(fileInfoModel);
 
         StoredInfoResult storedInfoResult = outputExtra.getStoredInfo().get();

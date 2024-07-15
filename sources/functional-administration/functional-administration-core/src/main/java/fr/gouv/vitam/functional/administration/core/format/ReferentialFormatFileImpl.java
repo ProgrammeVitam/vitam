@@ -348,8 +348,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         }
 
         if (report.getPreviousPronomCreationDate() != null && report.getNewPronomCreationDate() != null) {
-            String previousDate = LocalDateUtil.getFormattedDateForMongo(report.getPreviousPronomCreationDate());
-            String newDate = LocalDateUtil.getFormattedDateForMongo(report.getNewPronomCreationDate());
+            String previousDate = LocalDateUtil.getFormattedDateTimeForMongo(report.getPreviousPronomCreationDate());
+            String newDate = LocalDateUtil.getFormattedDateTimeForMongo(report.getNewPronomCreationDate());
 
             if (previousDate.equals(newDate)) {
                 report.addWarning("Same referential date: " + report.getNewPronomCreationDate());

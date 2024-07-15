@@ -61,7 +61,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.util.List;
 
-import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -142,7 +141,7 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
                 accessionRegisterDetail.getTotalUnits().setRemained(0);
 
                 accessionRegisterDetail.setOpc(params.getContainerName());
-                accessionRegisterDetail.setLastUpdate(getFormattedDateForMongo(LocalDateUtil.now()));
+                accessionRegisterDetail.setLastUpdate(LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now()));
 
                 adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetail);
             }

@@ -438,10 +438,7 @@ public class ArchiveUnitProfileServiceImpl implements ArchiveUnitProfileService 
                 }
 
                 ((ObjectNode) fieldName).remove(ArchiveUnitProfileModel.CREATION_DATE);
-                ((ObjectNode) fieldName).put(
-                        ArchiveUnitProfileModel.LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                    );
+                ((ObjectNode) fieldName).put(ArchiveUnitProfileModel.LAST_UPDATE, LocalDateUtil.nowFormatted());
             }
         }
 

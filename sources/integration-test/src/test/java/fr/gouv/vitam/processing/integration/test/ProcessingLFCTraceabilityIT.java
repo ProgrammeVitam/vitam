@@ -1357,7 +1357,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
         ) {
             // search for got lfc
-            final Query parentQuery = QueryHelper.gte("evDateTime", LocalDateTime.MIN.toString());
+            final Query parentQuery = QueryHelper.exists("evDateTime");
             final Select select = new Select();
             select.setQuery(parentQuery);
             select.addOrderByAscFilter("evDateTime");
@@ -1394,7 +1394,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
         ) {
             // search for got lfc
-            final Query parentQuery = QueryHelper.gte("evDateTime", LocalDateTime.MIN.toString());
+            final Query parentQuery = QueryHelper.exists("evDateTime");
             final Select select = new Select();
             select.setQuery(parentQuery);
             select.addOrderByAscFilter("evDateTime");

@@ -654,10 +654,7 @@ public class MetaDataImplTest {
     @Test
     public void checkStreamUnits_OK() throws Exception {
         // Given
-        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(
-            UnitsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
+        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(UnitsScrollDate.name(), LocalDateUtil.nowFormatted());
         MetadataSnapshot unitsScrollNumber = newMetadataSnapshot(UnitsScrollNumber.name(), 1);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
@@ -680,10 +677,7 @@ public class MetaDataImplTest {
     @Test
     public void checkStreamUnits_limit_reach() throws Exception {
         // Given
-        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(
-            UnitsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
+        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(UnitsScrollDate.name(), LocalDateUtil.nowFormatted());
         MetadataSnapshot unitsScrollNumber = newMetadataSnapshot(UnitsScrollNumber.name(), 3);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
         Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
@@ -697,7 +691,7 @@ public class MetaDataImplTest {
         // Given
         MetadataSnapshot objectsScrollDate = newMetadataSnapshot(
             ObjectsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+            LocalDateUtil.nowFormatted()
         );
         MetadataSnapshot objectsScrollNumber = newMetadataSnapshot(ObjectsScrollNumber.name(), 1);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
@@ -722,7 +716,7 @@ public class MetaDataImplTest {
         // Given
         MetadataSnapshot ObjectsScrollDate = newMetadataSnapshot(
             MetadataSnapshot.PARAMETERS.ObjectsScrollDate.name(),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+            LocalDateUtil.nowFormatted()
         );
         MetadataSnapshot objectsScrollNumber = newMetadataSnapshot(ObjectsScrollNumber.name(), 3);
         FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
@@ -760,10 +754,7 @@ public class MetaDataImplTest {
             .hasSize(36);
         assertThat(
             secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue()
-        ).isBetween(
-            LocalDateUtil.getFormattedDateForMongo(startTime),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
+        ).isBetween(LocalDateUtil.getFormattedDateTimeForMongo(startTime), LocalDateUtil.nowFormatted());
         assertThat(thirdArgument.getValue().isUpsert()).isTrue();
     }
 
@@ -795,10 +786,7 @@ public class MetaDataImplTest {
             .hasSize(36);
         assertThat(
             secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue()
-        ).isBetween(
-            LocalDateUtil.getFormattedDateForMongo(startTime),
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
+        ).isBetween(LocalDateUtil.getFormattedDateTimeForMongo(startTime), LocalDateUtil.nowFormatted());
         assertThat(thirdArgument.getValue().isUpsert()).isTrue();
     }
 

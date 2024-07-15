@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.metadata.core.reconstruction.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -1123,8 +1124,8 @@ public class MetadataReconstructionService {
      */
     public void purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections metaDaCollection) {
         try {
-            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
-                LocalDateTime.now()
+            String dateDeleteLimit = LocalDateUtil.getFormattedDateTimeForMongo(
+                LocalDateUtil.now()
                     .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS)
             );
             Bson query = and(exists(Unit.TENANT_ID, false), lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));

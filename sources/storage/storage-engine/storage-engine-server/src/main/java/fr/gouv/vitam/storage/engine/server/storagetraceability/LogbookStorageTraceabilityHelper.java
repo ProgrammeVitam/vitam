@@ -442,18 +442,18 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
     @Override
     public String getTraceabilityStartDate() {
-        return LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate);
+        return LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate);
     }
 
     @Override
     public String getTraceabilityEndDate() {
-        return LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate);
+        return LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate);
     }
 
     private void extractPreviousEvent() {
         if (lastTraceabilityData != null) {
             previousTimestampToken = lastTraceabilityData.token;
-            previousStartDate = LocalDateUtil.getString(lastTraceabilityData.startDate);
+            previousStartDate = LocalDateUtil.getFormattedDateTimeForMongo(lastTraceabilityData.startDate);
         }
         isLastEventInit = true;
     }

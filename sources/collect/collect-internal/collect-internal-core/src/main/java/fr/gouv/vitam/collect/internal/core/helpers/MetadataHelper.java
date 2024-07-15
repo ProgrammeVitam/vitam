@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -117,7 +116,7 @@ public class MetadataHelper {
     ) {
         FileInfoModel fileInfoModel = new FileInfoModel();
         fileInfoModel.setFilename(fileName);
-        fileInfoModel.setLastModified(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+        fileInfoModel.setLastModified(LocalDateUtil.nowFormatted());
 
         QualifiersModel qualifiersModel = new QualifiersModel();
 
