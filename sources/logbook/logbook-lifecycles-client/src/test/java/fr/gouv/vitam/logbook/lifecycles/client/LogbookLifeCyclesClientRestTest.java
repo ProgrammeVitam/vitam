@@ -633,7 +633,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         );
         logbookLifeCyclesUnitParametersStart.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCyclesUnitParametersStart.putParameterValue(
             LogbookParameterName.agentIdentifier,
@@ -675,7 +675,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         );
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.agentIdentifier,
@@ -965,7 +965,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         );
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCycleObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.agentIdentifier,

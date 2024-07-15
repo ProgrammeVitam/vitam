@@ -73,7 +73,7 @@ public class IdentityService extends SecurityService {
         identityModel.setIssuerDN(certificate.getIssuerDN().getName());
         identityModel.setSerialNumber(String.valueOf(certificate.getSerialNumber()));
         identityModel.setExpirationDate(
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.fromDate(certificate.getNotAfter()))
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(certificate.getNotAfter()))
         );
 
         identityRepository.createIdentity(identityModel);

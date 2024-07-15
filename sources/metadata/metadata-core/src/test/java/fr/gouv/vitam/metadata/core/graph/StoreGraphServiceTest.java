@@ -137,7 +137,7 @@ public class StoreGraphServiceTest {
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
         when(mongoCursorUnit.next()).thenAnswer(
-            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()) + "\"}")
+            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.nowFormatted() + "\"}")
         );
     }
 
@@ -188,7 +188,7 @@ public class StoreGraphServiceTest {
                 )
             )
         );
-        LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
+        LocalDateTime dateTime = LocalDateUtil.parse(endDate, StoreGraphService.formatter);
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(dateTime);
     }
@@ -259,7 +259,7 @@ public class StoreGraphServiceTest {
             return true;
         });
 
-        LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
+        LocalDateTime dateTime = LocalDateUtil.parse(endDate, StoreGraphService.formatter);
 
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(dateTime);
@@ -308,7 +308,7 @@ public class StoreGraphServiceTest {
 
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);
 
-        LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
+        LocalDateTime dateTime = LocalDateUtil.parse(endDate, StoreGraphService.formatter);
 
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(dateTime);

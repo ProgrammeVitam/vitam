@@ -85,7 +85,7 @@ public class BulkAtomicUpdateFinalize extends UpdateUnitFinalize {
             .reduce((a, b) -> b);
 
         String startDate = logbook.getEvDateTime();
-        String endDate = LocalDateUtil.getString(LocalDateUtil.now());
+        String endDate = LocalDateUtil.nowFormatted();
 
         if (logbookEventPrepare.isEmpty()) {
             return new ReportSummary(startDate, endDate, BULK_UPDATE_UNIT, null, null);

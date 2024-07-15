@@ -106,8 +106,8 @@ public class PersistentIdentifierReconstructionManagerTest {
 
     @Test
     public void reconstruct_Failure() throws ReconstructionException {
-        LocalDateTime startDate = LocalDateTime.now();
-        LocalDateTime endDate = LocalDateTime.now().plusDays(1);
+        LocalDateTime startDate = LocalDateUtil.now();
+        LocalDateTime endDate = LocalDateUtil.now().plusDays(1);
         when(reconstructionOperationRepository.fetchReconstructionOperations(startDate, endDate)).thenThrow(
             new ReconstructionException("Reconstruction failure")
         );

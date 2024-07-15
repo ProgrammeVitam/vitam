@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -143,7 +144,7 @@ public class ArchiveReferentialRepository {
                     ),
                     Updates.set(TapeArchiveReferentialEntity.SIZE, size),
                     Updates.set(TapeArchiveReferentialEntity.DIGEST, digest),
-                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.now().toString())
+                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.nowFormatted())
                 ),
                 new UpdateOptions().upsert(false)
             );
@@ -167,7 +168,7 @@ public class ArchiveReferentialRepository {
                 Filters.eq(TapeArchiveReferentialEntity.ID, archiveId),
                 Updates.combine(
                     Updates.set(TapeArchiveReferentialEntity.LOCATION, toBson(onTapeTarStorageLocation)),
-                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.now().toString())
+                    Updates.set(TapeArchiveReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.nowFormatted())
                 ),
                 new UpdateOptions().upsert(false)
             );

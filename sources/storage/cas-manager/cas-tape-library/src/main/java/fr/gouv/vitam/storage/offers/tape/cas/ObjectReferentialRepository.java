@@ -187,7 +187,7 @@ public class ObjectReferentialRepository {
                 ),
                 Updates.combine(
                     Updates.set(TapeObjectReferentialEntity.LOCATION, toBson(tapeLibraryTarStorageLocation)),
-                    Updates.set(TapeObjectReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.now().toString())
+                    Updates.set(TapeObjectReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.nowFormatted())
                 ),
                 new UpdateOptions().upsert(false)
             );

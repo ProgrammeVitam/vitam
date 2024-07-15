@@ -122,7 +122,7 @@ public class BackupFileStorage {
                 EntryType.BACKUP,
                 null,
                 null,
-                LocalDateUtil.now().toString()
+                LocalDateUtil.nowFormatted()
             );
             archiveReferentialRepository.insert(tarReferentialEntity);
         } catch (ArchiveReferentialException ex) {

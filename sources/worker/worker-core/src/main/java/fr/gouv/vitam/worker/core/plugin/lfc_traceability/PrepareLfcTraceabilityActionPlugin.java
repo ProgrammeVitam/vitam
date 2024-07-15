@@ -66,7 +66,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper.INITIAL_START_DATE;
 
@@ -234,8 +233,8 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         boolean maxEntriesReached
     ) throws InvalidParseOperationException, ProcessingException {
         ObjectNode traceabilityInformation = JsonHandler.createObjectNode();
-        traceabilityInformation.put("startDate", getFormattedDateForMongo(traceabilityStartDate));
-        traceabilityInformation.put("endDate", getFormattedDateForMongo(traceabilityEndDate));
+        traceabilityInformation.put("startDate", LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate));
+        traceabilityInformation.put("endDate", LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate));
         traceabilityInformation.put("nbEntries", nbEntries);
         traceabilityInformation.put("maxEntriesReached", maxEntriesReached);
 

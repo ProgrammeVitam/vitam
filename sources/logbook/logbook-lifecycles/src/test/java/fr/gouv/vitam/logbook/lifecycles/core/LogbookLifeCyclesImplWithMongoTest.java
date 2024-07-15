@@ -161,7 +161,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         );
         logbookLifeCyclesUnitParametersStart.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCyclesUnitParametersStart.putParameterValue(
             LogbookParameterName.agentIdentifier,
@@ -207,7 +207,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         );
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
             LogbookParameterName.agentIdentifier,

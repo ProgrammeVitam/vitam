@@ -98,7 +98,7 @@ public class ProjectServiceTest {
     @Test
     public void createProject() throws CollectInternalException {
         logicalClock.freezeTime();
-        final String currentTime = LocalDateUtil.now().toString();
+        final String currentTime = LocalDateUtil.nowFormatted();
         projectService.createProject(new ProjectDto(PROJECT_ID));
 
         Mockito.verify(projectRepository).createProject(
@@ -118,21 +118,22 @@ public class ProjectServiceTest {
     }
 
     @Test
-    public void replaceProject() throws CollectInternalException {
-        final LocalDateTime creationDate = LocalDateUtil.now();
+    public void updateProject_changes_lastUpdate() throws CollectInternalException {
+        final ProjectDto projectDto = new ProjectDto(PROJECT_ID);
+        final LocalDateTime creationDateTime = LocalDateUtil.now();
+        projectDto.setCreationDate(LocalDateUtil.getFormattedDateTimeForMongo(creationDateTime));
         logicalClock.logicalSleep(1, ChronoUnit.DAYS);
         logicalClock.freezeTime();
         final LocalDateTime currentTime = LocalDateUtil.now();
-        final ProjectDto projectDto = new ProjectDto(PROJECT_ID);
-        projectDto.setCreationDate(creationDate.toString());
+        // When
         projectService.updateProject(projectDto);
-
+        // Then
         Mockito.verify(projectRepository).updateProject(
             argThat(
-                e ->
-                    PROJECT_ID.equals(e.getId()) &&
-                    currentTime.isAfter(LocalDateUtil.parseMongoFormattedDate(e.getCreationDate())) &&
-                    currentTime.equals(LocalDateUtil.parseMongoFormattedDate(e.getLastUpdate()))
+                projectModel ->
+                    PROJECT_ID.equals(projectModel.getId()) &&
+                    creationDateTime.isEqual(LocalDateUtil.parseMongoFormattedDate(projectModel.getCreationDate())) &&
+                    currentTime.equals(LocalDateUtil.parseMongoFormattedDate(projectModel.getLastUpdate()))
             )
         );
     }

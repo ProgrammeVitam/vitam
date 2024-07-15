@@ -500,10 +500,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
 
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(
-                        AbstractContractModel.TAG_LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                    );
+                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.nowFormatted());
             }
         }
 
@@ -591,7 +588,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             case AccessContract.ACTIVATIONDATE:
             case AccessContract.DEACTIVATIONDATE:
                 try {
-                    LocalDateUtil.getFormattedDateForMongo(value.asText());
+                    LocalDateUtil.getFormattedDateTimeForMongo(value.asText());
                 } catch (DateTimeParseException e) {
                     error.addToErrors(
                         getVitamError(
@@ -848,7 +845,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         private AccessContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericRejectionCause rejection = null;
-                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+                final String now = LocalDateUtil.nowFormatted();
                 if (contract.getStatus() == null) {
                     contract.setStatus(ActivationStatus.INACTIVE);
                 }
@@ -857,7 +854,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
-                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
+                        contract.setCreationdate(
+                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getCreationdate())
+                        );
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error access contract parse dates", e);
@@ -868,7 +867,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(
-                            LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate())
+                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getActivationdate())
                         );
                     }
                 } catch (final Exception e) {
@@ -880,7 +879,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         contract.setDeactivationdate(null);
                     } else {
                         contract.setDeactivationdate(
-                            LocalDateUtil.getFormattedDateForMongo(contract.getDeactivationdate())
+                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getDeactivationdate())
                         );
                     }
                 } catch (final Exception e) {

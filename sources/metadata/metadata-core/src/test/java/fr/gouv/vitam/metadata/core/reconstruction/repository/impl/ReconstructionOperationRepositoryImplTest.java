@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 public class ReconstructionOperationRepositoryImplTest {
 
     public static final String DSL_QUERY =
-        "[{\"$query\":{\"$and\":[{\"$range\":{\"#lastPersistedDate\":{\"$gte\":\"2023-06-01T00:00\",\"$lt\":\"2023-06-30T00:00\"}}},{\"$in\":{\"evType\":[\"ELIMINATION_ACTION\",\"DELETE_GOT_VERSIONS\",\"TRANSFER_REPLY\"]}},{\"$in\":{\"events.outDetail\":[\"ELIMINATION_ACTION.OK\",\"ELIMINATION_ACTION.WARNING\",\"DELETE_GOT_VERSIONS.OK\",\"TRANSFER_REPLY.OK\"]}}]},\"$filter\":{\"$limit\":10000,\"$orderby\":{\"#lastPersistedDate\":1}},\"$projection\":{}}]";
+        "[{\"$query\":{\"$and\":[{\"$range\":{\"#lastPersistedDate\":{\"$gte\":\"2023-06-01T00:00:00.000\",\"$lt\":\"2023-06-30T00:00:00.000\"}}},{\"$in\":{\"evType\":[\"ELIMINATION_ACTION\",\"DELETE_GOT_VERSIONS\",\"TRANSFER_REPLY\"]}},{\"$in\":{\"events.outDetail\":[\"ELIMINATION_ACTION.OK\",\"ELIMINATION_ACTION.WARNING\",\"DELETE_GOT_VERSIONS.OK\",\"TRANSFER_REPLY.OK\"]}}]},\"$filter\":{\"$limit\":10000,\"$orderby\":{\"#lastPersistedDate\":1}},\"$projection\":{}}]";
     private static final String LOGBOOKS_JSON = "logbooks.json";
 
     @Rule

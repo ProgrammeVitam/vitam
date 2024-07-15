@@ -392,7 +392,7 @@ public class ContractResourceTest {
         createAccessContract();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // Test update for access contract Status => inactive
-        String now = LocalDateUtil.now().toString();
+        String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         SetAction setActionStatusInactive;
         setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
@@ -442,7 +442,7 @@ public class ContractResourceTest {
         createAccessContract();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // Test update for access contract Status => inactive
-        String now = LocalDateUtil.now().toString();
+        String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         SetAction setActionStatusInactive = UpdateActionHelper.set(AccessContractModel.RULE_CATEGORY_TO_FILTER, "Bad");
         Update update = new Update();
@@ -470,7 +470,7 @@ public class ContractResourceTest {
         createIngestContract();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // Test update for access contract Status => inactive
-        String now = LocalDateUtil.now().toString();
+        String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         SetAction setActionStatusInactive;
         try {
@@ -611,7 +611,7 @@ public class ContractResourceTest {
         List<String> createdIdentifiers = createManagementContracts();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // Test update for access contract Status => inactive
-        String now = LocalDateUtil.now().toString();
+        String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
         assertThatCode(() -> {

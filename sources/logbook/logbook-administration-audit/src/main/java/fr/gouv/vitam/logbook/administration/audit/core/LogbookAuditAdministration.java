@@ -93,7 +93,7 @@ public class LogbookAuditAdministration {
                         QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), type),
                         QueryHelper.gte(
                             LogbookMongoDbName.eventDateTime.getDbname(),
-                            LocalDateUtil.getFormattedDateForMongo(startDateTime)
+                            LocalDateUtil.getFormattedDateTimeForMongo(startDateTime)
                         )
                     )
             );

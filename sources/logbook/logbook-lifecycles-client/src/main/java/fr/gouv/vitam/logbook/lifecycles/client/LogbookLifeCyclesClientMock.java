@@ -79,7 +79,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
             parameters.getMandatoriesParameters()
@@ -91,7 +91,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
             parameters.getMandatoriesParameters()
@@ -104,7 +104,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
             parameters.getMandatoriesParameters()
@@ -118,7 +118,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
             parameters.getMandatoriesParameters()
@@ -130,7 +130,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     public void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
             parameters.getMandatoriesParameters()
