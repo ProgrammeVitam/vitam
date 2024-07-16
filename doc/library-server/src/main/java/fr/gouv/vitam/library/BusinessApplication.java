@@ -32,11 +32,9 @@ import javax.ws.rs.core.Context;
 import java.util.HashSet;
 import java.util.Set;
 
-
 public class BusinessApplication extends Application {
 
-    public BusinessApplication(@Context ServletConfig servletConfig) {
-    }
+    public BusinessApplication(@Context ServletConfig servletConfig) {}
 
     @Override
     public Set<Class<?>> getClasses() {
