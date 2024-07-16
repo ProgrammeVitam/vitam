@@ -150,11 +150,11 @@ public class ServerIdentityTest {
     public final void testSetFromPropertyFile() {
         testGetInstance();
         final ServerIdentity serverIdentity = ServerIdentity.getInstance();
-        final File file = ResourcesPrivateUtilTest.getInstance().getServerIdentityPropertiesFile();
+        final File file = ResourcesPrivateUtilTest.PrivateUtilTest.getInstance().getServerIdentityPropertiesFile();
         if (file == null) {
-            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+            LOGGER.error(ResourcesPrivateUtilTest.PrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
         }
-        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+        Assume.assumeTrue(ResourcesPrivateUtilTest.PrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
 
         try {
             serverIdentity.setFromPropertyFile(file);
@@ -171,11 +171,11 @@ public class ServerIdentityTest {
     public final void testSetFromYamlFile() {
         testGetInstance();
         final ServerIdentity serverIdentity = ServerIdentity.getInstance();
-        final File file = ResourcesPrivateUtilTest.getInstance().getServerIdentityYamlFile();
+        final File file = ResourcesPrivateUtilTest.PrivateUtilTest.getInstance().getServerIdentityYamlFile();
         if (file == null) {
-            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+            LOGGER.error(ResourcesPrivateUtilTest.PrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
         }
-        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+        Assume.assumeTrue(ResourcesPrivateUtilTest.PrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
 
         try {
             serverIdentity.setFromYamlFile(file);

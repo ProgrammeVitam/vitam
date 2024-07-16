@@ -44,11 +44,11 @@ public class FileUtilTest {
 
     @Test
     public final void testReadFileString() throws IOException {
-        final File file = ResourcesPrivateUtilTest.getInstance().getServerIdentityPropertiesFile();
+        final File file = ResourcesPrivateUtilTest.PrivateUtilTest.getInstance().getServerIdentityPropertiesFile();
         if (file == null) {
-            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+            LOGGER.error(ResourcesPrivateUtilTest.PrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
         }
-        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+        Assume.assumeTrue(ResourcesPrivateUtilTest.PrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
 
         final String content = FileUtil.readFile(file);
         final String content2 = FileUtil.readFile(file.getAbsolutePath());

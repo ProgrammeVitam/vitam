@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,12 +21,12 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.common.guid;
 
-import fr.gouv.vitam.common.ResourcesPrivateUtilTest;
+import fr.gouv.vitam.common.ResourcesPublicUtilTest;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -48,9 +48,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings({ "javadoc" })
-public class GUIDImplPrivateTest {
+public class GUIDImplPublicTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDImplPrivateTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDImplPublicTest.class);
 
     private static final int VERSION = 1 & 0x1F;
     private static int NB = 100000;
@@ -438,37 +438,37 @@ public class GUIDImplPrivateTest {
         assertTrue(new GUIDImplPrivate(1, 2, 3, false).getPlatformId() == 3);
         try {
             new GUIDImplPrivate(-1, 2, 3, false);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(0x1FF, 2, 3, false);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, -2, 3, false);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, 0x4FFFFFFF, 3, false);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, 2, -3, false);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             new GUIDImplPrivate(1, 2, 0x80000000, false);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }

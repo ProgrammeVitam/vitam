@@ -41,11 +41,11 @@ public class StrongReferenceCacheEntryTest {
         final Integer integer0 = new Integer(-1324);
         try {
             new StrongReferenceCacheEntry<>(integer0, -1324);
-            fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             new StrongReferenceCacheEntry<>("AU4LKOz]pz+", 0L);
-            fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR
     }
 
