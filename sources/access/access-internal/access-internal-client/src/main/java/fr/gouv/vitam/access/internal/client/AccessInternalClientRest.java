@@ -85,6 +85,7 @@ import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
 
@@ -488,13 +489,16 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             }
             check(response);
             return response;
+        } catch (AccessUnauthorizedException e) {
+            return response;
         } catch (VitamException e) {
             throw new VitamClientException(e);
         } finally {
             if (
                 response != null &&
                 !SUCCESSFUL.equals(response.getStatusInfo().getFamily()) &&
-                response.getStatusInfo().toEnum() != NOT_FOUND
+                response.getStatusInfo().toEnum() != NOT_FOUND &&
+                response.getStatusInfo().toEnum() != UNAUTHORIZED
             ) {
                 response.close();
             }

@@ -41,6 +41,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableD
 import fr.gouv.vitam.access.internal.core.identifier.PersistentIdentifierHelper;
 import fr.gouv.vitam.access.internal.core.identifier.query.PersistentIdentifierMultiQueryFactory;
 import fr.gouv.vitam.access.internal.core.identifier.search.ObjectGroupMultiQuerySearchService;
+import fr.gouv.vitam.access.internal.core.permission.VersionUsagePermissionValidator;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -67,6 +68,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
@@ -254,6 +256,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private final WorkspaceClientFactory workspaceClientFactory;
     private final AdminManagementClientFactory adminManagementClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
+
+    private final VersionUsagePermissionValidator versionUsagePermissionValidator =
+        new VersionUsagePermissionValidator();
 
     /**
      * AccessModuleImpl constructor
@@ -678,26 +683,36 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response getObjectByPersistentIdentifier(String persistentIdentifier)
-        throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalException {
+    public ObjectGroupResponse findOneObjectGroupByPersistentId(String persistentId, @Nullable JsonNode query)
+        throws MetaDataNotFoundException, AccessUnauthorizedException {
         final SelectMultiQuery selectMultiQuery = PersistentIdentifierMultiQueryFactory.createSelectMultiQuery(
             PurgedCollectionType.OBJECT,
-            persistentIdentifier
+            persistentId,
+            query
         );
-        final Collection<ObjectGroupResponse> objectGroupResponses = new ObjectGroupMultiQuerySearchService()
-            .search(selectMultiQuery);
-        final Optional<ObjectGroupResponse> optionalObjectGroupResponse = objectGroupResponses.stream().findFirst();
-        if (optionalObjectGroupResponse.isEmpty()) {
-            throw new MetaDataNotFoundException(
-                String.format("No object group found with this persistent identifier: %s", persistentIdentifier)
+        final ObjectGroupResponse objectGroupResponse = new ObjectGroupMultiQuerySearchService()
+            .search(selectMultiQuery)
+            .stream()
+            .findFirst()
+            .orElseThrow(
+                () ->
+                    new MetaDataNotFoundException(
+                        String.format("No object group found with this persistent identifier: %s", persistentId)
+                    )
             );
-        }
+        return objectGroupResponse;
+    }
 
-        final ObjectGroupResponse objectGroupResponse = optionalObjectGroupResponse.get();
+    @Override
+    public Response getObjectByPersistentIdentifier(String persistentIdentifier)
+        throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalException, AccessUnauthorizedException {
+        final ObjectGroupResponse objectGroupResponse = findOneObjectGroupByPersistentId(persistentIdentifier, null);
         final VersionsModel versionsModel = PersistentIdentifierHelper.findVersion(
             objectGroupResponse,
             persistentIdentifier
         ).orElseThrow();
+        versionUsagePermissionValidator.validate(versionsModel);
+
         final List<String> archiveUnitIds = objectGroupResponse.getUp();
         return this.getObject(findFirstAccessibleArchiveUnitId(archiveUnitIds), versionsModel);
     }
@@ -980,8 +995,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response getObjectByUnitPersistentIdentifier(String persistentIdentifier, String qualifier, Integer version)
-        throws StorageNotFoundException, MetaDataNotFoundException, AccessInternalException {
+    public Response getObjectByUnitPersistentIdentifier(
+        String persistentIdentifier,
+        final String qualifier,
+        final Integer version
+    ) throws StorageNotFoundException, MetaDataNotFoundException, AccessInternalException {
         try {
             SelectMultiQuery selectMultiQuery = new SelectParserMultiple().getRequest();
             selectMultiQuery.addQueries(
@@ -1019,20 +1037,46 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     "No object group found for the unit persistent identifier provided"
                 );
             }
-            if (version == null) {
-                version = findLatestVersionByQualifier(objectGroup, qualifier);
-            }
+
+            final VersionsModel versionFound = objectGroup
+                .getQualifiers()
+                .stream()
+                .filter(qualifiersModel -> qualifiersModel.getQualifier().equals(qualifier))
+                .map(QualifiersModel::getVersions)
+                .flatMap(Collection::stream)
+                .filter(versionsModel -> versionsModel.getDataObjectVersion().startsWith(qualifier))
+                .filter(
+                    versionsModel ->
+                        version == null || versionsModel.getDataObjectVersion().endsWith(version.toString())
+                )
+                .findFirst()
+                .orElseThrow(
+                    () ->
+                        new MetaDataNotFoundException(
+                            String.format(
+                                "Object group not contains specified version %d for qualifier %s",
+                                version,
+                                qualifier
+                            )
+                        )
+                );
+            versionUsagePermissionValidator.validate(versionFound);
+
+            final Integer finalVersion = Optional.ofNullable(version).orElse(
+                findLatestVersionByQualifier(objectGroup, qualifier)
+            );
             return getOneObjectFromObjectGroup(
                 objectGroupId,
                 qualifier,
-                version,
+                finalVersion,
                 unit.get(VitamFieldsHelper.id()).asText()
             );
         } catch (
             AccessInternalExecutionException
             | InvalidParseOperationException
             | InvalidCreateOperationException
-            | AccessInternalUnavailableDataFromAsyncOfferException e
+            | AccessInternalUnavailableDataFromAsyncOfferException
+            | AccessUnauthorizedException e
         ) {
             throw new AccessInternalException("Error creating or parsing query: " + e.getMessage(), e);
         }

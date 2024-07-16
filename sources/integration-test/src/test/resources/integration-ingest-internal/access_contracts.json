@@ -105,5 +105,19 @@
 		"RuleCategoryToFilter" : [
 			"HoldRule"
 		]
+	},
+	{
+		"Name":"aName6",
+		"Identifier":"aName6",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FRAN_NP_005568", "FRAN_NP_009913", "FR_ORG_AGEN", "RATP", "Service_producteur"],
+		"EveryDataObjectVersion": false,
+		"DataObjectVersion": [],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
 	}
 ]

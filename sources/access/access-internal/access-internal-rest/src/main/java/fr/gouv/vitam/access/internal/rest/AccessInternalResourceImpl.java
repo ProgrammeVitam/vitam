@@ -41,6 +41,7 @@ import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.core.identifier.exception.PersistentIdentifierNotFoundException;
 import fr.gouv.vitam.access.internal.core.identifier.query.PersistentIdentifierMultiQueryFactory;
 import fr.gouv.vitam.access.internal.core.identifier.search.PurgedPersistentIdentifierSearchService;
+import fr.gouv.vitam.access.internal.core.permission.DownloadPermissionValidator;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
@@ -53,6 +54,7 @@ import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -81,6 +83,7 @@ import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.identifier.PurgedPersistentIdentifier;
 import fr.gouv.vitam.common.model.massupdate.MassUpdateUnitRuleRequest;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.revertupdate.RevertUpdateOptions;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
@@ -161,8 +164,11 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DELETE_GOT_VERSIONS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/access-internal/v1")
 @Tag(name = "Access")
@@ -174,15 +180,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * UNITS
      */
     private static final String UNITS = "units";
-    private static final String RESULTS = "$results";
 
     private static final String UNITS_URI = "/units";
     private static final String UNITS_ATOMIC_BULK_URI = "/units/atomicbulk";
     private static final String UNITS_RULES_URI = "/units/rules";
-    private static final String QUALIFIERS = "#qualifiers";
-    private static final String VERSIONS = "versions";
-    private static final String PERSISTENT_IDENTIFIERS = "PersistentIdentifier";
-    private static final String PERSISTENT_IDENTIFIER_CONTENT = "PersistentIdentifierContent";
 
     private static final String ACCESS_CONTRACT = "AccessContract";
     private static final String REQUEST_IS_NOT_AN_UPDATE_OPERATION = "Request is not an update operation";
@@ -201,13 +202,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
     private static final String START_SELECT_UNITS_DEBUG_MSG = "DEBUG: start selectUnits {}";
-    private static final String START_SELECT_OBJECTS_DEBUG_MSG = "DEBUG: start selectObjects {}";
 
     private final AccessInternalModule accessModule;
 
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
+
+    private final DownloadPermissionValidator downloadPermissionValidator = new DownloadPermissionValidator();
 
     /**
      * @param configuration to associate with AccessResourceImpl
@@ -297,14 +299,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(
                     new VitamError(status.name())
@@ -357,11 +359,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(
                     new VitamError(status.name())
@@ -386,6 +388,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @QueryParam("version") Integer version
     ) {
         try {
+            downloadPermissionValidator.validate();
             return accessModule.getObjectByUnitPersistentIdentifier(unitPersistentIdentifier, qualifier, version);
         } catch (MetaDataNotFoundException | InvalidParseOperationException e) {
             final Optional<PurgedPersistentIdentifier> optionalPurgedPersistentIdentifier =
@@ -403,6 +406,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
                 .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, e.getMessage())).build();
         }
     }
 
@@ -422,45 +428,47 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @PathParam("persistentIdentifier") String persistentIdentifier,
         JsonNode selectQuery
     ) {
-        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
-        Status status;
-        JsonNode result;
-        LOGGER.debug(START_SELECT_OBJECTS_DEBUG_MSG, selectQuery);
         try {
-            result = accessModule.selectObjects(
-                PersistentIdentifierMultiQueryFactory.createSelectMultiQuery(
-                    OBJECT,
-                    persistentIdentifier,
-                    selectQuery
-                ).getFinalSelect()
+            downloadPermissionValidator.validate();
+            final ObjectGroupResponse objectGroupResponse = accessModule.findOneObjectGroupByPersistentId(
+                persistentIdentifier,
+                selectQuery
             );
+            final RequestResponseOK<ObjectGroupResponse> payload = new RequestResponseOK<>(
+                selectQuery,
+                List.of(objectGroupResponse),
+                1
+            );
+            return Response.ok(payload).build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.warn(e.getLocalizedMessage());
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(FORBIDDEN).entity(e).build();
+        }
 
-            LOGGER.debug(DEBUG, result);
-            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-            if (RequestResponse.isRequestResponseEmpty(result)) {
-                JsonNode jsonNode = accessModule.selectPurgedPersistentIdentifier(persistentIdentifier, OBJECT);
-                ((ObjectNode) result).set(RequestResponseOK.TAG_HISTORY, jsonNode);
-                ((ObjectNode) result).remove(RequestResponseOK.TAG_CONTEXT);
-            }
+        try {
+            final JsonNode history = accessModule.selectPurgedPersistentIdentifier(persistentIdentifier, OBJECT);
+            final JsonNode payload = new RequestResponseOK<>().toJsonNode();
+            ((ObjectNode) payload).set(RequestResponseOK.TAG_HISTORY, history);
+            ((ObjectNode) payload).remove(RequestResponseOK.TAG_CONTEXT);
+            return Response.ok(payload).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+            return Response.status(BAD_REQUEST).entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
+            return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(
-                    new VitamError(status.name())
-                        .setHttpCode(status.getStatusCode())
+                    new VitamError(INTERNAL_SERVER_ERROR.name())
+                        .setHttpCode(INTERNAL_SERVER_ERROR.getStatusCode())
                         .setContext(UNITS)
                         .setState(CODE_VITAM)
                         .setMessage(ve.getMessage())
-                        .setDescription(status.getReasonPhrase())
+                        .setDescription(INTERNAL_SERVER_ERROR.getReasonPhrase())
                 )
                 .build();
         }
-        return Response.status(Status.OK).entity(result).build();
     }
 
     @Override
@@ -471,6 +479,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @PathParam("persistentIdentifier") final String persistentIdentifier
     ) {
         try {
+            downloadPermissionValidator.validate();
             return accessModule.getObjectByPersistentIdentifier(persistentIdentifier);
         } catch (MetaDataNotFoundException e) {
             final Optional<PurgedPersistentIdentifier> optionalPurgedPersistentIdentifier =
@@ -485,6 +494,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
                 .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, e.getMessage())).build();
         }
     }
 
@@ -509,10 +521,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final MetadataScrollThresholdExceededException e) {
             return Response.status(Status.EXPECTATION_FAILED).build();
         } catch (final MetadataScrollLimitExceededException e) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -539,10 +551,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final MetadataScrollThresholdExceededException e) {
             return Response.status(Status.EXPECTATION_FAILED).build();
         } catch (final MetadataScrollLimitExceededException e) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -573,14 +585,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(
                     new VitamError(status.name())
@@ -734,7 +746,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
@@ -822,7 +834,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return accessModule.findDIPByOperationId(id);
         } catch (AccessInternalExecutionException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            Status status = Status.BAD_REQUEST;
+            Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -836,7 +848,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return accessModule.findTransferSIPByOperationId(id);
         } catch (AccessInternalExecutionException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            Status status = Status.BAD_REQUEST;
+            Status status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -934,7 +946,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
@@ -1056,7 +1068,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
@@ -1093,7 +1105,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
@@ -1140,7 +1152,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final AccessInternalRuleExecutionException e) {
             LOGGER.error(e.getMessage(), e);
@@ -1234,9 +1246,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         if (!getVitamSession().getContract().isEveryDataObjectVersion() && !validUsage(xQualifier.split("_")[0])) {
             return Optional.of(
-                Response.status(Status.UNAUTHORIZED)
-                    .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier not allowed"))
-                    .build()
+                Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, "Qualifier not allowed")).build()
             );
         }
         try {
@@ -1271,6 +1281,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final int version = Integer.parseInt(xVersion);
 
         try {
+            downloadPermissionValidator.validate();
             return accessModule.getOneObjectFromObjectGroup(idObjectGroup, xQualifier, version, idUnit);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -1299,6 +1310,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (StorageNotFoundException | MetaDataNotFoundException exc) {
             LOGGER.warn(exc);
             return Response.status(NOT_FOUND).entity(getErrorStream(NOT_FOUND, exc.getMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, e.getMessage())).build();
         }
     }
 
@@ -1306,7 +1320,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final VitamSession vitamSession = getVitamSession();
         Set<String> versions = vitamSession.getContract().getDataObjectVersion();
 
-        if (versions == null || versions.isEmpty()) {
+        if (versions.isEmpty()) {
             return true;
         }
         for (String version : versions) {
@@ -1336,6 +1350,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @PathParam("id_unit") String idUnit
     ) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
+
         return asyncObjectStream(multipleMap, idObjectGroup, idUnit);
     }
 
@@ -1507,9 +1522,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (ParseException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorStream(Status.BAD_REQUEST, e.getMessage()))
-                .build();
+            return Response.status(BAD_REQUEST).entity(getErrorStream(BAD_REQUEST, e.getMessage())).build();
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(INTERNAL_SERVER_ERROR)
@@ -1542,7 +1555,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()
             ) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
 
@@ -1618,7 +1631,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -1646,7 +1659,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Check the writing rights
 
             if (!isAuthorized()) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
             String operationId = getVitamSession().getRequestId();
@@ -1716,7 +1729,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -1739,7 +1752,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()
             ) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
 
@@ -1811,7 +1824,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -1834,7 +1847,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()
             ) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
 
@@ -1898,7 +1911,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -1932,8 +1945,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery.deepCopy(), contract);
 
             if (!isAuthorized()) {
-                return Response.status(Status.UNAUTHORIZED)
-                    .entity(getErrorEntity(Status.UNAUTHORIZED, WRITE_PERMISSION_NOT_ALLOWED))
+                return Response.status(UNAUTHORIZED)
+                    .entity(getErrorEntity(UNAUTHORIZED, WRITE_PERMISSION_NOT_ALLOWED))
                     .build();
             }
 
@@ -1984,9 +1997,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return response.toResponse();
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage()))
-                .build();
+            return Response.status(BAD_REQUEST).entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (
@@ -2181,14 +2192,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
+            status = BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (BadRequestException e) {
             LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
         } catch (final Exception ve) {
             LOGGER.error(ve);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(
                     new VitamError(status.name())
