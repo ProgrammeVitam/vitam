@@ -37,41 +37,28 @@ import java.io.FileNotFoundException;
  */
 public class ResourcesPrivateUtilTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ResourcesPrivateUtilTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PrivateUtilTest.class);
 
-    private static final String SERVER_IDENTITY_PROPERTIES_FILE = "ServerIdentity.properties";
-    public static final String SERVER_IDENTITY_YAML_FILE = "server-identity.conf";
-
-    public static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
-    public static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
-    public static final String EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION =
-        "Expecting exception: IllegalArgumentException";
+    public static final String GUID_TEST_PROPERTIES = "GUID-test.properties";
+    public static final String SHOULD_HAVE_AN_EXCEPTION = "Should have an exception";
+    public static final String SHOULD_NOT_HAVE_AN_EXCEPTION = "Should not have an exception";
     public static final String CANNOT_FIND_RESOURCES_TEST_FILE = "CANNOT FIND RESOURCES TEST FILE";
 
-    private final File serverIdentityPropertiesFile;
-    private final File serverIdentityYamlFile;
+    private final File guidTestPropertiesFile;
 
     private ResourcesPrivateUtilTest() {
-        serverIdentityPropertiesFile = getTestResourcesFile(SERVER_IDENTITY_PROPERTIES_FILE);
-        serverIdentityYamlFile = getTestResourcesFile(SERVER_IDENTITY_YAML_FILE);
+        guidTestPropertiesFile = getTestResourcesFile(GUID_TEST_PROPERTIES);
     }
 
     /**
-     * @return the serverIdentityPropertiesFile
+     * @return the GUID Properties File
      */
-    public final File getServerIdentityPropertiesFile() {
-        return serverIdentityPropertiesFile;
+    public final File getGuidTestPropertiesFile() {
+        return guidTestPropertiesFile;
     }
 
     /**
-     * @return the serverIdentityYamlFile
-     */
-    public final File getServerIdentityYamlFile() {
-        return serverIdentityYamlFile;
-    }
-
-    /**
-     * @return the ResourcesPrivateUtilTest instance
+     * @return the ResourcesPublicUtilTest instance
      */
     public static ResourcesPrivateUtilTest getInstance() {
         return new ResourcesPrivateUtilTest();
@@ -90,5 +77,66 @@ public class ResourcesPrivateUtilTest {
         }
 
         return null;
+    }
+
+    /**
+     * Utility class for Junit
+     */
+    public static class PrivateUtilTest {
+
+        private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PrivateUtilTest.class);
+
+        private static final String SERVER_IDENTITY_PROPERTIES_FILE = "ServerIdentity.properties";
+        public static final String SERVER_IDENTITY_YAML_FILE = "server-identity.conf";
+
+        public static final String SHOULD_RAIZED_AN_EXCEPTION = "Should raized an exception";
+        public static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+        public static final String EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION =
+            "Expecting exception: IllegalArgumentException";
+        public static final String CANNOT_FIND_RESOURCES_TEST_FILE = "CANNOT FIND RESOURCES TEST FILE";
+
+        private final File serverIdentityPropertiesFile;
+        private final File serverIdentityYamlFile;
+
+        private PrivateUtilTest() {
+            serverIdentityPropertiesFile = getTestResourcesFile(SERVER_IDENTITY_PROPERTIES_FILE);
+            serverIdentityYamlFile = getTestResourcesFile(SERVER_IDENTITY_YAML_FILE);
+        }
+
+        /**
+         * @return the serverIdentityPropertiesFile
+         */
+        public final File getServerIdentityPropertiesFile() {
+            return serverIdentityPropertiesFile;
+        }
+
+        /**
+         * @return the serverIdentityYamlFile
+         */
+        public final File getServerIdentityYamlFile() {
+            return serverIdentityYamlFile;
+        }
+
+        /**
+         * @return the PrivateUtilTest instance
+         */
+        public static PrivateUtilTest getInstance() {
+            return new PrivateUtilTest();
+        }
+
+        private File getTestResourcesFile(String name) {
+            File file;
+            try {
+                file = PropertiesUtils.getResourceFile(name);
+            } catch (final FileNotFoundException e) { // NOSONAR
+                LOGGER.debug("Not able to load: " + name);
+                return null;
+            }
+            if (file != null && file.exists()) {
+                return file;
+            }
+
+            return null;
+        }
     }
 }

@@ -41,11 +41,11 @@ public class CapacityLruLinkedHashMapTest {
     public void testCapacityMustBePositive() {
         try {
             new CapacityLruLinkedHashMap<>(-627, 1, 1);
-            fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             new CapacityLruLinkedHashMap<>(0, 0, 1306.9207F);
-            fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR
     }
 
@@ -53,7 +53,7 @@ public class CapacityLruLinkedHashMapTest {
     public void testIllegalLoadFactor() {
         try {
             new CapacityLruLinkedHashMap<>(1, 0, 0);
-            fail(ResourcesPrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR
     }
 
