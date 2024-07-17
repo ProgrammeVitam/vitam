@@ -6,17 +6,19 @@
 #########################################################################################
 
 # Set the base image to almalinux/9-base
-FROM almalinux/9-base
+FROM centos:7.9.2009
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Disable fastestmirror ; helps gain several seconds per yum invocation
 COPY fastestmirror.conf /etc/yum/pluginconf.d
 
+# Patch repositories since CentOS7 Deprecation
+RUN sed -i -e 's/mirror.centos.org/vault.centos.org/' -e 's/^mirrorlist=/#&/' -e 's/^#baseurl=/baseurl=/' /etc/yum.repos.d/*.repo
+
 # Make sure the package repository and packages are up to date.
 RUN yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
 
 # Install build tools
-
 RUN yum install -y \
     	rpm-build \
         rpmdevtools \
@@ -35,4 +37,3 @@ WORKDIR /home
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod 755 /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
