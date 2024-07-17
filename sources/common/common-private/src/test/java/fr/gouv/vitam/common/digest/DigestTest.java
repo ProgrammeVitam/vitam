@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.digest;
 
-import fr.gouv.vitam.common.ResourcesPublicUtilTest;
+import fr.gouv.vitam.common.ResourcesPrivateUtilTest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.junit.Assume;
@@ -124,11 +124,11 @@ public class DigestTest {
 
     @Test
     public void testDigestSimpleFile() throws IOException {
-        final File file = ResourcesPublicUtilTest.getInstance().getGuidTestPropertiesFile();
+        final File file = ResourcesPrivateUtilTest.getInstance().getGuidTestPropertiesFile();
         if (file == null) {
-            LOGGER.error(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
         }
-        Assume.assumeTrue(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
 
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
@@ -139,37 +139,37 @@ public class DigestTest {
             final Digest digest1 = Digest.digest(file, DigestType.MD5);
             assertEquals(digest0, digest1);
         } catch (final IllegalArgumentException e) { // NOSONAR
-            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
         }
     }
 
     @Test
     public void testSimpleTest() {
         final Digest digest = new Digest(DigestType.MD5);
-        digest.update(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        digest.update(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         assertEquals(DGMD5, digest.digestHex());
         assertTrue(digest.equals(DGMD5));
         assertTrue(digest.equals(digest.digest()));
         Digest digest2 = new Digest(DigestType.SHA1);
-        digest2.update(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        digest2.update(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         assertEquals(DGSHA1, digest2.digestHex());
         assertTrue(digest2.equals(DGSHA1));
         assertTrue(digest2.equals(digest2.digest()));
         assertFalse(digest2.equals(digest));
         final Digest digest3 = new Digest(DigestType.SHA256);
-        digest3.update(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        digest3.update(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         assertEquals(DGSHA256, digest3.digestHex());
         assertTrue(digest3.equals(DGSHA256));
         assertTrue(digest3.equals(digest3.digest()));
         assertFalse(digest3.equals(digest));
         final Digest digest4 = new Digest(DigestType.SHA384);
-        digest4.update(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        digest4.update(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         assertEquals(DGSHA384, digest4.digestHex());
         assertTrue(digest4.equals(DGSHA384));
         assertTrue(digest4.equals(digest4.digest()));
         assertFalse(digest4.equals(digest));
         final Digest digest5 = new Digest(DigestType.SHA512);
-        digest5.update(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        digest5.update(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         assertEquals(DGSHA512, digest5.digestHex());
         assertTrue(digest5.equals(DGSHA512));
         assertTrue(digest5.equals(digest5.digest()));
@@ -177,7 +177,7 @@ public class DigestTest {
         digest2.reset();
         digest2 = new Digest(DigestType.MD5);
         digest2.reset();
-        digest2.update(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+        digest2.update(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         assertTrue(digest2.equals(digest));
         assertFalse(digest2.equals(null));
         assertFalse(digest2.equals(new Object()));
@@ -190,96 +190,96 @@ public class DigestTest {
     public void testError() throws IOException {
         try {
             DigestType.fromValue("unknown");
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) {
             // Ignore
         }
         try {
             Digest.digest((File) null, DigestType.MD5);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             Digest.digest((InputStream) null, DigestType.MD5);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update((byte[]) null);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update((ByteBuffer) null);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update((File) null);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update(new File("does not exist"));
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update((InputStream) null);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update((FileChannel) null);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update((String) null);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update(new byte[2], -1, 1);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update(new byte[2], 1, -1);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update(new byte[2], -1, -1);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update(new byte[2], 1, 2);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
@@ -287,7 +287,7 @@ public class DigestTest {
             final Digest digest0 = new Digest(DigestType.MD5);
             final ByteArrayInputStream byteArrayInputStream0 = new ByteArrayInputStream(new byte[2]);
             digest0.update(byteArrayInputStream0, 0);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
@@ -295,16 +295,16 @@ public class DigestTest {
 
     @Test
     public void testErrorUsingFile() throws IOException {
-        final File file = ResourcesPublicUtilTest.getInstance().getGuidTestPropertiesFile();
+        final File file = ResourcesPrivateUtilTest.getInstance().getGuidTestPropertiesFile();
         if (file == null) {
-            LOGGER.error(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
+            LOGGER.error(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
         }
-        Assume.assumeTrue(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
+        Assume.assumeTrue(ResourcesPrivateUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
 
         try {
             final Digest digest0 = new Digest(DigestType.MD5);
             digest0.update(file, -1, 0);
-            fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
         }
@@ -314,14 +314,14 @@ public class DigestTest {
             try {
                 final Digest digest0 = new Digest(DigestType.MD5);
                 digest0.update(fileChannel, -1, 1, 0);
-                fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+                fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
             } catch (final IllegalArgumentException e) { // NOSONAR
                 // Ignore
             }
             try {
                 final Digest digest0 = new Digest(DigestType.MD5);
                 digest0.update(fileChannel, 0, 0, 0);
-                fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
+                fail(ResourcesPrivateUtilTest.SHOULD_HAVE_AN_EXCEPTION);
             } catch (final IllegalArgumentException e) { // NOSONAR
                 // Ignore
             }
@@ -329,7 +329,7 @@ public class DigestTest {
                 final Digest digest0 = new Digest(DigestType.MD5);
                 digest0.update(fileChannel);
             } catch (final IllegalArgumentException e) { // NOSONAR
-                fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+                fail(ResourcesPrivateUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
             }
         } finally {
             fileChannel.close();
@@ -343,7 +343,7 @@ public class DigestTest {
                 digest0.update(fileChannel, 0, 1000000, 0);
                 digest0.update(fileChannel, 0, 1000000, 10);
             } catch (final IllegalArgumentException e) { // NOSONAR
-                fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+                fail(ResourcesPrivateUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
             }
         } finally {
             fileChannel.close();

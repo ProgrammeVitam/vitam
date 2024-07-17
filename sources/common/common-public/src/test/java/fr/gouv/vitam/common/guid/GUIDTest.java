@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,7 +21,7 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.common.guid;
@@ -30,6 +30,8 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ResourcesPublicUtilTest;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.junit.BeforeClass;
@@ -45,12 +47,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/**
- *
- */
-public class GUIDImplTest {
+@SuppressWarnings({ "javadoc" })
+public class GUIDTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDImplTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDTest.class);
 
     private static final String WRONG_ARK3 = "ark:/1a/aeasppnwoyafrlybkt3kfuyaaaaac";
 
@@ -84,119 +84,174 @@ public class GUIDImplTest {
         BASEARKB,
     }
 
+    private static final int VERSION = 1 & 0x1F;
+    private static final int HEXLENGTH = GUIDImpl.KEYSIZE * 2;
     private static Properties properties;
 
     @BeforeClass
     public static void setUpBeforeClass() throws IOException {
         final File file = ResourcesPublicUtilTest.getInstance().getGuidTestPropertiesFile();
         if (file == null) {
-            LOGGER.error("CANNOT FIND RESOURCES TEST FILE");
+            LOGGER.error(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
             properties = new Properties();
             properties.setProperty(FIELDS.BASE16.name(), "01010000000127bdb6760058af0154f6a2d300000001");
             properties.setProperty(FIELDS.BASE32.name(), "aeaqaaaaaet33ntwabmk6aku62rngaaaaaaq");
             properties.setProperty(FIELDS.BASE64.name(), "AQEAAAABJ722dgBYrwFU9qLTAAAAAQ");
             properties.setProperty(FIELDS.BASEARK.name(), "ark:/1/aeasppnwoyafrlybkt3kfuyaaaaac");
-            properties.setProperty(FIELDS.COUNTER.name(), "1");
-            properties.setProperty(FIELDS.OBJECTID.name(), "1");
-            properties.setProperty(FIELDS.PLATFORMID.name(), "666744438");
-            properties.setProperty(FIELDS.PROCESSID.name(), "22703");
-            properties.setProperty(FIELDS.TENANTID.name(), "1");
-            properties.setProperty(FIELDS.TIMESTAMP.name(), "1464426746624");
-            properties.setProperty(FIELDS.VERSION.name(), "1");
-            properties.setProperty(FIELDS.HASHCODE.name(), "-2034847754");
-            properties.setProperty(FIELDS.ARKNAME.name(), "aeasppnwoyafrlybkt3kfuyaaaaac");
-            properties.setProperty(FIELDS.MACFRAGMENT.name(), "[0, 0, 39, -67, -74, 118]");
             properties.setProperty(
                 FIELDS.BYTES.name(),
                 "[1, 1, 0, 0, 0, 1, 39, -67, -74, 118, 0, 88, -81, 1, 84, -10, -94, -45, 0, 0, 0, 1]"
             );
-            properties.setProperty(FIELDS.BASE16B.name(), "010100000000a7bdb6760058af0154f6a2d368000001");
-            properties.setProperty(FIELDS.BASE32B.name(), "aeaqaaaaact33ntwabmk6aku62rng2aaaaaq");
-            properties.setProperty(FIELDS.BASE64B.name(), "AQEAAAAAp722dgBYrwFU9qLTaAAAAQ");
-            properties.setProperty(FIELDS.BASEARKB.name(), "ark:/0/aea2ppnwoyafrlybkt3kfu3iaaaac");
         } else {
             properties = PropertiesUtils.readProperties(file);
         }
     }
 
-    /**
-     * Test method for {@link fr.gouv.vitam.common.guid.GUIDImpl#hashCode()}.
-     */
     @Test
-    public final void testInternalCodes() {
-        assertEquals(GUIDImpl.KEYSIZE, GUIDImpl.getKeySize());
-        GUIDImpl guid = null;
+    public void testStructure() {
+        GUIDImpl id;
         try {
-            guid = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
+            id = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
+            final String str = id.toHex();
+
+            assertEquals('0', str.charAt(0));
+            assertEquals('1', str.charAt(1));
+            assertEquals(HEXLENGTH, str.length());
+            LOGGER.debug(id.toArk() + " = " + id.toString());
         } catch (final InvalidGuidOperationException e) {
-            LOGGER.error(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION, e);
-            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
-            return;
+            LOGGER.debug(e);
+            fail("Should not raize an exception");
         }
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.COUNTER.name())), guid.getCounter());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.OBJECTID.name())), guid.getObjectId());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.PROCESSID.name())), guid.getProcessId());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.PLATFORMID.name())), guid.getPlatformId());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.TENANTID.name())), guid.getTenantId());
-        assertEquals(Long.parseLong(properties.getProperty(FIELDS.TIMESTAMP.name())), guid.getTimestamp());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.VERSION.name())), guid.getVersion());
-        assertEquals(Integer.parseInt(properties.getProperty(FIELDS.HASHCODE.name())), guid.hashCode());
-        assertEquals(properties.getProperty(FIELDS.ARKNAME.name()), guid.toArkName());
-        byte[] bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.MACFRAGMENT.name()));
-        assertTrue(Arrays.equals(bytes, guid.getMacFragment()));
-        bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.BYTES.name()));
-        assertTrue(Arrays.equals(bytes, guid.getBytes()));
     }
 
-    /**
-     * Test method for {@link fr.gouv.vitam.common.guid.GUIDImpl#equals(java.lang.Object)}.
-     */
     @Test
-    public final void testEqualsObject() {
+    public void testParsing() {
+        for (int i = 0; i < 1000; i++) {
+            GUIDImpl id1;
+            try {
+                id1 = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
+            } catch (final InvalidGuidOperationException e) {
+                LOGGER.debug(e);
+                fail("Should not raize an exception");
+                return;
+            }
+            GUIDImpl id2;
+            try {
+                id2 = new GUIDImpl(id1.toHex());
+                assertEquals(id1, id2);
+                assertEquals(id1.hashCode(), id2.hashCode());
+                assertEquals(0, id1.compareTo(id2));
+
+                final GUIDImpl id3 = new GUIDImpl(id1.getBytes());
+                assertEquals(id1, id3);
+                assertEquals(id1.hashCode(), id3.hashCode());
+                assertEquals(0, id1.compareTo(id3));
+
+                final GUIDImpl id4 = new GUIDImpl(id1.toBase32());
+                assertEquals(id1, id4);
+                assertEquals(id1.hashCode(), id4.hashCode());
+                assertEquals(0, id1.compareTo(id4));
+
+                final GUIDImpl id5 = new GUIDImpl(id1.toArk());
+                assertEquals(id1, id5);
+                assertEquals(id1.hashCode(), id5.hashCode());
+                assertEquals(0, id1.compareTo(id5));
+            } catch (final InvalidGuidOperationException e) {
+                LOGGER.debug(e);
+                fail(e.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void testGetBytesImmutability() {
+        GUIDImpl id;
+        try {
+            id = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
+        } catch (final InvalidGuidOperationException e) {
+            LOGGER.debug(e);
+            fail("Should not raize an exception");
+            return;
+        }
+        final byte[] bytes = id.getBytes();
+        final byte[] original = Arrays.copyOf(bytes, bytes.length);
+        bytes[0] = 0;
+        bytes[1] = 0;
+        bytes[2] = 0;
+
+        assertTrue(Arrays.equals(id.getBytes(), original));
+    }
+
+    @Test
+    public void testVersionField() {
         try {
             final GUIDImpl parsed1 = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
-            final GUIDImpl parsed2 = new GUIDImpl(properties.getProperty(FIELDS.BASE64.name()));
-            final GUIDImpl parsed3 = new GUIDImpl(properties.getProperty(FIELDS.BASE16.name()));
-            final GUIDImpl parsed4 = new GUIDImpl(properties.getProperty(FIELDS.BASEARK.name()));
-            final byte[] bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.BYTES.name()));
-            final GUIDImpl parsed5 = new GUIDImpl(bytes);
-            assertTrue(parsed1.equals(parsed2));
-            assertTrue(parsed1.equals(parsed3));
-            assertTrue(parsed1.equals(parsed4));
-            assertTrue(parsed1.equals(parsed5));
-            assertEquals(properties.getProperty(FIELDS.BASE32.name()), parsed1.toString());
-            assertEquals(properties.getProperty(FIELDS.BASE32.name()), parsed1.getId());
-            assertEquals(properties.getProperty(FIELDS.BASE32.name()), parsed1.toBase32());
-            assertEquals(properties.getProperty(FIELDS.BASE64.name()), parsed1.toBase64());
-            assertEquals(properties.getProperty(FIELDS.BASE16.name()), parsed1.toHex());
-            assertEquals(properties.getProperty(FIELDS.BASEARK.name()), parsed1.toArk());
-            assertEquals(properties.getProperty(FIELDS.ARKNAME.name()), parsed1.toArkName());
+            assertEquals(VERSION, parsed1.getVersion());
         } catch (final InvalidGuidOperationException e) {
             LOGGER.debug(e);
             fail(e.getMessage());
         }
     }
 
-    /**
-     * Test method for {@link fr.gouv.vitam.common.guid.GUIDImpl#isWorm()}.
-     */
     @Test
-    public final void testIsWorm() {
-        GUIDImpl guid = null;
+    public void testHexBase32() {
+        try {
+            final GUIDImpl parsed1 = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
+            final GUIDImpl parsed2 = new GUIDImpl(properties.getProperty(FIELDS.BASE64.name()));
+            final GUIDImpl parsed0 = new GUIDImpl(properties.getProperty(FIELDS.BASE16.name()));
+            final GUIDImpl parsed8 = new GUIDImpl(properties.getProperty(FIELDS.BASEARK.name()));
+            final byte[] bytes = StringUtils.getBytesFromArraysToString(properties.getProperty(FIELDS.BYTES.name()));
+            final GUIDImpl parsed9 = new GUIDImpl(bytes);
+            assertTrue(parsed1.equals(parsed2));
+            assertTrue(parsed1.equals(parsed0));
+            assertTrue(parsed1.equals(parsed8));
+            assertTrue(parsed1.equals(parsed9));
+            final GUIDImpl parsed3 = new GUIDImpl(parsed9.getBytes());
+            final GUIDImpl parsed4 = new GUIDImpl(parsed9.toBase32());
+            final GUIDImpl parsed5 = new GUIDImpl(parsed9.toHex());
+            final GUIDImpl parsed6 = new GUIDImpl(parsed9.toString());
+            final GUIDImpl parsed7 = new GUIDImpl(parsed9.toBase64());
+            assertTrue(parsed9.equals(parsed3));
+            assertTrue(parsed9.equals(parsed4));
+            assertTrue(parsed9.equals(parsed5));
+            assertTrue(parsed9.equals(parsed6));
+            assertTrue(parsed9.equals(parsed7));
+            final GUIDImpl generated = new GUIDImpl();
+            assertTrue(generated.getVersion() == 0);
+        } catch (final InvalidGuidOperationException e) {
+            LOGGER.debug(e);
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testJson() throws InvalidGuidOperationException {
+        GUIDImpl guid;
         try {
             guid = new GUIDImpl(properties.getProperty(FIELDS.BASE32.name()));
         } catch (final InvalidGuidOperationException e) {
-            LOGGER.error(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION, e);
-            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+            LOGGER.debug(e);
+            fail("Should not raize an exception");
+            return;
         }
-        assertFalse(guid.isWorm());
+        LOGGER.debug("HEX:" + guid.toHex());
+        LOGGER.debug("BASE32: " + guid.toBase32());
+        LOGGER.debug("BASE64: " + guid.toBase64());
         try {
-            guid = new GUIDImpl(properties.getProperty(FIELDS.BASE32B.name()));
-        } catch (final InvalidGuidOperationException e) {
-            LOGGER.error(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION, e);
-            fail(ResourcesPublicUtilTest.SHOULD_NOT_HAVE_AN_EXCEPTION);
+            final String json = JsonHandler.writeAsString(guid);
+            LOGGER.debug(json);
+            final GUIDImpl uuid2 = JsonHandler.getFromString(json, GUIDImpl.class);
+            assertEquals("Json check", guid, uuid2);
+            final GUID guid2 = GUIDReader.getGUID(guid.getId());
+            final String json2 = JsonHandler.writeAsString(guid2);
+            LOGGER.debug(json2);
+            final GUIDImpl uuid3 = JsonHandler.getFromString(json, GUIDImpl.class);
+            assertEquals("Json check", guid, uuid3);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.debug(e);
+            fail("Exception occurs: " + e.getMessage());
+            return;
         }
-        assertTrue(guid.isWorm());
     }
 
     @Test

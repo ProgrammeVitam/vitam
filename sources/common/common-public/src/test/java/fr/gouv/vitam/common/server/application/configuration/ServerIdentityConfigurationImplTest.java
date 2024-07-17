@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,11 +21,12 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
 package fr.gouv.vitam.common.server.application.configuration;
 
+import fr.gouv.vitam.common.ServerIdentity;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -42,7 +43,7 @@ public class ServerIdentityConfigurationImplTest {
 
     @Test
     public void testBadConfiguration() {
-        ServerIdentityConfigurationImpl siConf0 = new ServerIdentityConfigurationImpl();
+        ServerIdentity.ServerIdentityConfigurationImpl siConf0 = new ServerIdentity.ServerIdentityConfigurationImpl();
         try {
             siConf0.setIdentityServerId(-16);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
@@ -64,23 +65,24 @@ public class ServerIdentityConfigurationImplTest {
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
-            siConf0 = new ServerIdentityConfigurationImpl("", 265, 1, "AAA");
+            siConf0 = new ServerIdentity.ServerIdentityConfigurationImpl("", 265, 1, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
-            siConf0 = new ServerIdentityConfigurationImpl("AAA", -265, 1, "AAA");
+            siConf0 = new ServerIdentity.ServerIdentityConfigurationImpl("AAA", -265, 1, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR ignore
         try {
-            siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, 1, "");
+            siConf0 = new ServerIdentity.ServerIdentityConfigurationImpl("AAA", 265, 1, "");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {} // NOSONAR ignore
-        siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, 1, "BBB");
+        siConf0 = new ServerIdentity.ServerIdentityConfigurationImpl("AAA", 265, 1, "BBB");
     }
 
     @Test
     public void testEmpty() {
-        final ServerIdentityConfigurationImpl siConf0 = new ServerIdentityConfigurationImpl();
+        final ServerIdentity.ServerIdentityConfigurationImpl siConf0 =
+            new ServerIdentity.ServerIdentityConfigurationImpl();
         final String string0 = siConf0.getIdentityName();
         assertNull(string0);
         assertNull(siConf0.getIdentityRole());
