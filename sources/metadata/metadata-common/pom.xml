@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>metadata</artifactId>
-        <version>7.1.2-SNAPSHOT</version>
+        <version>7.1.1</version>
     </parent>
     <artifactId>metadata-common</artifactId>
     <name>metadata common</name>
