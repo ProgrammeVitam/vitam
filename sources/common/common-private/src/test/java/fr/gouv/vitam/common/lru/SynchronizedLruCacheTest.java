@@ -93,7 +93,7 @@ public class SynchronizedLruCacheTest {
                 )
             );
         } catch (final VitamException e) { // NOSONAR
-            fail(ResourcesPrivateUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         assertEquals(1, synchronizedLruCache.size());
         try {
@@ -110,7 +110,7 @@ public class SynchronizedLruCacheTest {
                 )
             );
         } catch (final VitamException e) { // NOSONAR
-            fail(ResourcesPrivateUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         assertEquals(2, synchronizedLruCache.size());
         synchronizedLruCache.setNewTtl(10);
@@ -148,7 +148,7 @@ public class SynchronizedLruCacheTest {
     public final void testError() {
         try {
             final SynchronizedLruCache<String, Integer> synchronizedLruCache = new SynchronizedLruCache<>(2, -100, 1);
-            fail(ResourcesPrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+            fail(ResourcesPrivateUtilTest.PrivateUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
             synchronizedLruCache.clear();
         } catch (final IllegalArgumentException e) { // NOSONAR
             // Ignore
