@@ -93,7 +93,7 @@ public class StoreGraphService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreGraphService.class);
 
-    public static final LocalDateTime INITIAL_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
+    public static final LocalDateTime INITIAL_START_DATE = LocalDateUtil.EPOCH;
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS");
 
     public static final String GRAPH = "graph";
@@ -179,11 +179,11 @@ public class StoreGraphService {
     }
 
     public static LocalDateTime parseGraphStartDateFromFileName(String fileName) {
-        return LocalDateTime.from(formatter.parse(fileName.split(UNDERSCORE, 2)[0]));
+        return LocalDateUtil.parse(fileName.split(UNDERSCORE, 2)[0], formatter);
     }
 
     public static LocalDateTime parseGraphEndDateFromFileName(String fileName) {
-        return LocalDateTime.from(formatter.parse(fileName.split(UNDERSCORE, 2)[1]));
+        return LocalDateUtil.parse(fileName.split(UNDERSCORE, 2)[1], formatter);
     }
 
     private DataCategory getDataCategory(MetadataCollections metadataCollections) throws StoreGraphException {
@@ -312,8 +312,8 @@ public class StoreGraphService {
             }
 
             // Date in MongoDB
-            final String startDate = LocalDateUtil.getFormattedDateForMongo(lastStoreDate);
-            final String endDate = LocalDateUtil.getFormattedDateForMongo(currentStoreDate);
+            final String startDate = LocalDateUtil.getFormattedDateTimeForMongo(lastStoreDate);
+            final String endDate = LocalDateUtil.getFormattedDateTimeForMongo(currentStoreDate);
             // Zip file name in the storage
             final String graph_store_name = lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
 

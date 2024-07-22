@@ -165,7 +165,7 @@ public class TransactionInternalResource {
             transactionDto.setStatus(transactionModel.get().getStatus().name());
             transactionDto.setProjectId(transactionModel.get().getProjectId());
             transactionDto.setCreationDate(transactionModel.get().getCreationDate());
-            transactionDto.setLastUpdate(LocalDateUtil.now().toString());
+            transactionDto.setLastUpdate(LocalDateUtil.nowFormatted());
             transactionService.replaceTransaction(transactionDto);
 
             return CollectRequestResponse.toResponseOK(transactionDto);

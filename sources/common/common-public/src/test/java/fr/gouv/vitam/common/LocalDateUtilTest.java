@@ -24,26 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.junit.Assume;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -57,7 +55,7 @@ public class LocalDateUtilTest {
     @Test
     public void check1970() throws ParseException {
         LocalDateTime dt = LocalDateTime.of(1970, 1, 1, 0, 0);
-        LocalDateTime dt0 = LocalDateUtil.fromMillis(0);
+        LocalDateTime dt0 = LocalDateUtil.fromEpochMilliUTC(0);
         LOGGER.info(dt + " vs " + dt0);
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), dt0.toEpochSecond(ZoneOffset.UTC));
         dt = LocalDateTime.parse(dt.toString());
@@ -102,7 +100,6 @@ public class LocalDateUtilTest {
         dt = dt.minusDays(1);
         // should be -1, not 0
         assertEquals(0, dt.getYear());
-        LOGGER.info("Year 0 but -1: " + dt.toString());
         dt0 = LocalDateTime.parse(dt.toString());
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), dt0.toEpochSecond(ZoneOffset.UTC));
         date.setTime(dt.toEpochSecond(ZoneOffset.UTC));
@@ -110,14 +107,13 @@ public class LocalDateUtilTest {
         dt = dt.minusYears(1);
         // should be -2, not -1
         assertEquals(-1, dt.getYear());
-        LOGGER.info("Year -1 but -2: " + dt.toString());
         dt0 = LocalDateTime.parse(dt.toString());
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), dt0.toEpochSecond(ZoneOffset.UTC));
         date.setTime(dt.toEpochSecond(ZoneOffset.UTC));
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), date.getTime());
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("T"));
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("+"));
-        assertTrue(LocalDateUtil.getFormattedDate(LocalDateUtil.now()).length() == 19);
+        assertEquals(19, LocalDateUtil.getFormattedDate(LocalDateUtil.now()).length());
     }
 
     @Test
@@ -138,64 +134,102 @@ public class LocalDateUtilTest {
     @Test
     public void checkConversion() throws Exception {
         final LocalDateTime ldt = LocalDateUtil.now();
-        assertEquals(ldt.format(DateTimeFormatter.ISO_DATE_TIME), LocalDateUtil.getString(ldt));
+        assertEquals(ldt, LocalDateUtil.parseMongoFormattedDate(LocalDateUtil.getFormattedDateTimeForMongo(ldt)));
         assertEquals(ldt, LocalDateUtil.fromDate(LocalDateUtil.getDate(ldt)));
         assertNotNull(LocalDateUtil.getDate(ldt.toString()));
         assertNotNull(LocalDateUtil.getDate("2017-05-12"));
-        assertNotNull(LocalDateUtil.fromMillis(-1));
-        assertNotNull(LocalDateUtil.fromDate((Date) null));
-        assertNotNull(LocalDateUtil.fromDate((FileTime) null));
+        assertNotNull(LocalDateUtil.fromDate(null));
         assertNotNull(LocalDateUtil.getDate((LocalDateTime) null));
     }
 
     @Test
-    public void checkConversionFileTime() throws IOException {
-        final File file = ResourcesPublicUtilTest.getInstance().getGuidTestPropertiesFile();
-        if (file == null) {
-            LOGGER.error(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE);
-        }
-        Assume.assumeTrue(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
-        assertNotNull(LocalDateUtil.fromDate(Files.getLastModifiedTime(file.toPath())));
+    public void getFormattedDateTimeForMongo_tests() {
+        assertEquals("2024-12-25T00:00:00.000", LocalDateUtil.getFormattedDateTimeForMongo("25/12/2024"));
+        assertEquals("2024-12-25T00:00:00.000", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12"));
+        assertEquals("2024-12-25T12:00:00.000", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:00"));
+        assertEquals("2024-12-25T12:34:00.000", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:34"));
+        assertEquals("2024-12-25T12:34:56.000", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:34:56"));
+        assertEquals("2024-12-25T12:34:56.000", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:34:56PST"));
+        assertEquals("2024-12-25T12:34:56.120", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:34:56.12"));
+        assertEquals("2024-12-25T12:34:56.123", LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:34:56.123Z"));
+        assertEquals(
+            "2024-12-25T12:34:56.123",
+            LocalDateUtil.getFormattedDateTimeForMongo("2024-12-25T12:34:56.123PST")
+        );
     }
 
     @Test
-    public void checkFormattedDateForMongo() {
-        String date = "2016-09-27T15:37:53";
-        String dateFormatted = "2016-09-27T15:37:53.000";
-        String dateNoTime = "2016-09-27";
-        String dateNoTimeFormatted = "2016-09-27T00:00:00.000";
-        String dateWithHAndM = "2016-09-27T15:37";
-        String dateWithHAndMFormatted = "2016-09-27T15:37:00.000";
-        String dateWithMillis = "2016-09-27T15:37:53.54";
-        String dateWithMillisFormatted = "2016-09-27T15:37:53.540";
-        String dateWithMillisZone = "2016-09-27T15:37:53.548Z";
-        String dateWithMillisZoneFormatted = "2016-09-27T15:37:53.548";
-        String dateWithMillisZonePST = "2016-09-27T15:37:53.548PST";
-        String dateWithMillisZonePSTFormatted = "2016-09-27T15:37:53.548";
-        String dateWithMillisZonePSTNoMillis = "2016-09-27T15:37:53PST";
-        String dateWithMillisZonePSTNoMillisFormatted = "2016-09-27T15:37:53.000";
-
-        String slashedDate = "27/09/2016";
-        String slashedDateFormatted = "2016-09-27T00:00:00.000";
-
-        assertEquals(dateFormatted, LocalDateUtil.getFormattedDateForMongo(date));
-        assertEquals(dateNoTimeFormatted, LocalDateUtil.getFormattedDateForMongo(dateNoTime));
-        assertEquals(dateWithHAndMFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithHAndM));
-        assertEquals(dateWithMillisFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillis));
-        assertEquals(dateWithMillisZoneFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZone));
-        assertEquals(dateWithMillisZonePSTFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePST));
+    public void getFormattedDateTimeForMongo_tests_2() {
         assertEquals(
-            dateWithMillisZonePSTNoMillisFormatted,
-            LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis)
+            "2024-12-25T12:34:56.123",
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123000000))
         );
+        assertEquals(
+            "2024-12-25T12:34:56.000",
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateTime.of(2024, 12, 25, 12, 34, 56, 0))
+        );
+        assertEquals(
+            "2024-12-25T12:34:00.000",
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateTime.of(2024, 12, 25, 12, 34, 0, 0))
+        );
+        assertEquals(
+            "2024-12-25T12:00:00.000",
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateTime.of(2024, 12, 25, 12, 0, 0, 0))
+        );
+        assertEquals(
+            "2024-12-25T00:00:00.000",
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateTime.of(2024, 12, 25, 0, 0, 0, 0))
+        );
+    }
 
-        assertEquals(slashedDateFormatted, LocalDateUtil.getFormattedDateForMongo(slashedDate));
+    @Test
+    public void getFormattedDateForEsIndexes_tests() {
+        assertEquals(
+            "20241225_123456",
+            LocalDateUtil.getFormattedDateForEsIndexes(LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123000000))
+        );
+        assertEquals(
+            "20241225_123456",
+            LocalDateUtil.getFormattedDateForEsIndexes(LocalDateTime.of(2024, 12, 25, 12, 34, 56, 0))
+        );
+        assertEquals(
+            "20241225_123400",
+            LocalDateUtil.getFormattedDateForEsIndexes(LocalDateTime.of(2024, 12, 25, 12, 34, 0, 0))
+        );
+        assertEquals(
+            "20241225_120000",
+            LocalDateUtil.getFormattedDateForEsIndexes(LocalDateTime.of(2024, 12, 25, 12, 0, 0, 0))
+        );
+        assertEquals(
+            "20241225_000000",
+            LocalDateUtil.getFormattedDateForEsIndexes(LocalDateTime.of(2024, 12, 25, 0, 0, 0, 0))
+        );
+    }
+
+    @Test
+    public void parseMongoFormattedDate_tests() {
+        assertThat(LocalDateUtil.parseMongoFormattedDate("2024-12-25T12:34:56.123")).isEqualTo(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123000000)
+        );
+        assertThat(LocalDateUtil.parseMongoFormattedDate("2024-12-25T12:34:56.000")).isEqualTo(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56)
+        );
+        assertThat(LocalDateUtil.parseMongoFormattedDate("2024-12-25T12:34:56")).isEqualTo(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56)
+        );
+        assertThat(LocalDateUtil.parseMongoFormattedDate("2024-12-25T12:34")).isEqualTo(
+            LocalDateTime.of(2024, 12, 25, 12, 34)
+        );
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseMongoFormattedDate("2024-12-25T12"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseMongoFormattedDate("2024-12-25T"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseMongoFormattedDate("2024-12-25"));
     }
 
     @Test
     public void testMax() {
-        LocalDateTime date1 = LocalDateUtil.fromMillis(1234567890L);
-        LocalDateTime date2 = LocalDateUtil.fromMillis(1234567891L);
+        LocalDateTime date1 = LocalDateUtil.fromEpochMilliUTC(1234567890L);
+        LocalDateTime date2 = LocalDateUtil.fromEpochMilliUTC(1234567891L);
 
         assertThat(LocalDateUtil.max(date1, date1)).isEqualTo(date1);
         assertThat(LocalDateUtil.max(date2, date1)).isEqualTo(date2);
@@ -203,5 +237,71 @@ public class LocalDateUtilTest {
         assertThat(LocalDateUtil.max(null, date1)).isEqualTo(date1);
         assertThat(LocalDateUtil.max(date1, null)).isEqualTo(date1);
         assertThat(LocalDateUtil.max(null, null)).isNull();
+    }
+
+    @Test
+    public void getFormattedSimpleDate_tests() {
+        assertEquals("2024-12-25", LocalDateUtil.getFormattedSimpleDate(LocalDate.of(2024, 12, 25)));
+    }
+
+    @Test
+    public void parseDateTime_tests() {
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 0, 0, 0),
+            LocalDateUtil.parseDateTime("2024-12-25T00:00:00.000000000")
+        );
+        assertEquals(LocalDateTime.of(2024, 12, 25, 0, 0, 0), LocalDateUtil.parseDateTime("2024-12-25T00:00:00"));
+        assertEquals(LocalDateTime.of(2024, 12, 25, 0, 0, 0), LocalDateUtil.parseDateTime("2024-12-25T00:00"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T00"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T"));
+        assertEquals(LocalDateTime.of(2024, 12, 25, 0, 0, 0), LocalDateUtil.parseDateTime("2024-12-25"));
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123456789),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.123456789")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123456780),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.12345678")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123456700),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.1234567")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123456000),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.123456")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123450000),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.12345")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123400000),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.1234")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 123000000),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.123")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 120000000),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.12")
+        );
+        assertEquals(
+            LocalDateTime.of(2024, 12, 25, 12, 34, 56, 100000000),
+            LocalDateUtil.parseDateTime("2024-12-25T12:34:56.1")
+        );
+        assertEquals(LocalDateTime.of(2024, 12, 25, 12, 34, 56), LocalDateUtil.parseDateTime("2024-12-25T12:34:56."));
+        assertEquals(LocalDateTime.of(2024, 12, 25, 12, 34, 56), LocalDateUtil.parseDateTime("2024-12-25T12:34:56"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T12:34:5"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T12:34:"));
+        assertEquals(LocalDateTime.of(2024, 12, 25, 12, 34, 0), LocalDateUtil.parseDateTime("2024-12-25T12:34"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T12:3"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T12:"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T12"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T1"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-25T"));
+        assertEquals(LocalDateTime.of(2024, 12, 25, 0, 0, 0), LocalDateUtil.parseDateTime("2024-12-25"));
+        assertThrows(DateTimeParseException.class, () -> LocalDateUtil.parseDateTime("2024-12-2"));
     }
 }

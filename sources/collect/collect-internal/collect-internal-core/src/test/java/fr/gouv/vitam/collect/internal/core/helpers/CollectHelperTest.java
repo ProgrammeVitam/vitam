@@ -37,7 +37,7 @@ import org.junit.Test;
 
 public class CollectHelperTest {
 
-    String creationDate = LocalDateUtil.now().toString();
+    String creationDate = LocalDateUtil.nowFormatted();
     ProjectDto projectDto;
 
     @Before
@@ -99,7 +99,7 @@ public class CollectHelperTest {
     @Test
     public void mapTransactionDtoToManifestContextTest_should_take_project_value() {
         // GIVEN
-        final String creationDate = LocalDateUtil.now().toString();
+        final String creationDate = LocalDateUtil.nowFormatted();
         TransactionDto transactionDto = new TransactionDto(
             "XXXX00000111111",
             null,
@@ -132,7 +132,7 @@ public class CollectHelperTest {
     @Test
     public void mapTransactionDtoToManifestContextTest_should_take_mixed_value() {
         // GIVEN
-        final String creationDate = LocalDateUtil.now().toString();
+        final String creationDate = LocalDateUtil.nowFormatted();
         TransactionDto transactionDto = new TransactionDto(
             "XXXX00000111111",
             "Tr_archivalAgreement",

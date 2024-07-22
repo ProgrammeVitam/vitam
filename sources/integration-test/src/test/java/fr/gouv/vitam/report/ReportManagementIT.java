@@ -267,7 +267,7 @@ public class ReportManagementIT extends VitamRuleRunner {
             evDetData
         );
 
-        String date = LocalDateUtil.getString(LocalDateUtil.now());
+        String date = LocalDateUtil.nowFormatted();
         ReportType reportType = ReportType.PRESERVATION;
         ReportResults vitamResults = new ReportResults();
         JsonNode extendedInfo = JsonHandler.createObjectNode();
@@ -323,7 +323,7 @@ public class ReportManagementIT extends VitamRuleRunner {
             evDetData
         );
 
-        String date = LocalDateUtil.getString(LocalDateUtil.now());
+        String date = LocalDateUtil.nowFormatted();
         ReportType reportType = ReportType.ELIMINATION_ACTION;
         ReportResults vitamResults = new ReportResults();
         JsonNode extendedInfo = JsonHandler.createObjectNode();
@@ -363,7 +363,7 @@ public class ReportManagementIT extends VitamRuleRunner {
             evDetData
         );
 
-        String date = LocalDateUtil.getString(LocalDateUtil.now());
+        String date = LocalDateUtil.nowFormatted();
         ReportType reportType = ReportType.AUDIT;
         ReportResults vitamResults = new ReportResults();
         JsonNode extendedInfo = JsonHandler.createObjectNode();

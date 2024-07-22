@@ -424,13 +424,13 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
         assertThat(traceabilityEvent2.getLogType()).isEqualTo(TraceabilityType.OPERATION);
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(traceabilityEvent1.getEndDate())
+            LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEvent1.getEndDate())
         );
         assertThat(traceabilityEvent2.getEndDate()).isGreaterThanOrEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(beforeNewTraceability.minusMinutes(5))
+            LocalDateUtil.getFormattedDateTimeForMongo(beforeNewTraceability.minusMinutes(5))
         );
         assertThat(traceabilityEvent2.getEndDate()).isLessThanOrEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(afterNewTraceability.minusMinutes(5))
+            LocalDateUtil.getFormattedDateTimeForMongo(afterNewTraceability.minusMinutes(5))
         );
 
         assertThat(traceabilityEvent2.getHash()).isNotNull();

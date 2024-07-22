@@ -277,7 +277,7 @@ public class AuditObjectJob implements Job {
             selectMultiQuery.addQueries(
                 QueryHelper.lt(
                     VitamFieldsHelper.approximateUpdateDate(),
-                    LocalDateUtil.getFormattedDateForMongo(
+                    LocalDateUtil.getFormattedDateTimeForMongo(
                         LocalDateUtil.now().minus(operationsDelayInMinutes, ChronoUnit.MINUTES)
                     )
                 )

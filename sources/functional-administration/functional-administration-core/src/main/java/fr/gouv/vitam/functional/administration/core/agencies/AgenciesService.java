@@ -685,7 +685,7 @@ public class AgenciesService {
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         guidmasterNode.put(ReportConstants.EV_TYPE, AGENCIES_IMPORT_EVENT);
-        guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.nowFormatted());
         guidmasterNode.put(ReportConstants.EV_ID, operationId);
 
         report.setOperation(guidmasterNode);

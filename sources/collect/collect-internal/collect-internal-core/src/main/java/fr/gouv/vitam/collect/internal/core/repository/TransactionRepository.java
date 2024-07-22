@@ -36,6 +36,7 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -112,7 +113,7 @@ public class TransactionRepository {
     }
 
     public UpdateOneModel<Document> getUpdateOneModel(TransactionModel transactionModel) {
-        // FIXME : update date?
+        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
         Document documentToUpdate = new Document()
             .append(SET, new BasicDBObject(STATUS, transactionModel.getStatus().name()));
         return new UpdateOneModel<>(

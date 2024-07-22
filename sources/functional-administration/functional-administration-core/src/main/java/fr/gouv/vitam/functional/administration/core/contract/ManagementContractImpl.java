@@ -403,10 +403,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     );
                 }
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(
-                        AbstractContractModel.TAG_LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                    );
+                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.nowFormatted());
             }
         }
 
@@ -552,7 +549,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
             case ManagementContract.ACTIVATIONDATE:
             case ManagementContract.DEACTIVATIONDATE:
                 try {
-                    LocalDateUtil.getFormattedDateForMongo(value.asText());
+                    LocalDateUtil.getFormattedDateTimeForMongo(value.asText());
                 } catch (DateTimeParseException e) {
                     error.addToErrors(
                         getVitamError(
@@ -844,7 +841,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
         private ManagementContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericContractValidator.GenericRejectionCause rejection = null;
-                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+                final String now = LocalDateUtil.nowFormatted();
                 if (contract.getStatus() == null) {
                     contract.setStatus(ActivationStatus.INACTIVE);
                 }
@@ -853,7 +850,9 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                     if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
-                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
+                        contract.setCreationdate(
+                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getCreationdate())
+                        );
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error management contract parse dates", e);
@@ -864,7 +863,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                         contract.setActivationdate(now);
                     } else {
                         contract.setActivationdate(
-                            LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate())
+                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getActivationdate())
                         );
                     }
                 } catch (final Exception e) {
@@ -876,7 +875,7 @@ public class ManagementContractImpl implements ContractService<ManagementContrac
                         contract.setDeactivationdate(null);
                     } else {
                         contract.setDeactivationdate(
-                            LocalDateUtil.getFormattedDateForMongo(contract.getDeactivationdate())
+                            LocalDateUtil.getFormattedDateTimeForMongo(contract.getDeactivationdate())
                         );
                     }
                 } catch (final Exception e) {

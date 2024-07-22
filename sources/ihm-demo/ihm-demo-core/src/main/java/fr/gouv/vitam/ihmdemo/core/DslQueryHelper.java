@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.facet.DateRangeFacet;
 import fr.gouv.vitam.common.database.builder.facet.FiltersFacet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
@@ -58,7 +59,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestFacetItem;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -1038,8 +1038,8 @@ public class DslQueryHelper {
         String endDate = (String) options.get("endDate");
         String originatingAgency = (String) options.get("OriginatingAgency");
 
-        Date from = Date.from(LocalDateTime.parse(startDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
-        Date to = Date.from(LocalDateTime.parse(endDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
+        Date from = Date.from(LocalDateUtil.parse(startDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
+        Date to = Date.from(LocalDateUtil.parse(endDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
         RangeQuery range = QueryHelper.range("CreationDate", from, true, to, true);
 
         CompareQuery eqOriginatingAgency = eq("OriginatingAgency", originatingAgency);

@@ -49,7 +49,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -147,8 +146,7 @@ public class EliminationActionUnitRepositoryTest {
                 EliminationActionUnitModel eliminationActionUnitModel = new EliminationActionUnitModel();
                 eliminationActionUnitModel.setProcessId(reportBody.getProcessId());
                 eliminationActionUnitModel.setTenant(0);
-                LocalDateTime localDateTime = LocalDateUtil.now();
-                eliminationActionUnitModel.setCreationDateTime(localDateTime.toString());
+                eliminationActionUnitModel.setCreationDateTime(LocalDateUtil.nowFormatted());
                 eliminationActionUnitModel.setMetadata(md);
                 return eliminationActionUnitModel;
             })

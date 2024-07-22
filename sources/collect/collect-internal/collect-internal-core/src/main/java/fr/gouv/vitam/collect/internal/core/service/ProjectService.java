@@ -56,7 +56,7 @@ public class ProjectService {
      */
     public void createProject(ProjectDto projectDto) throws CollectInternalException {
         // Set project initials
-        final String creationDate = LocalDateUtil.now().toString();
+        final String creationDate = LocalDateUtil.nowFormatted();
 
         ProjectModel projectModel = new ProjectModel(
             projectDto.getId(),
@@ -86,7 +86,7 @@ public class ProjectService {
     public void updateProject(ProjectDto projectDto) throws CollectInternalException {
         // Update project initials
         projectDto.setStatus(projectDto.getStatus() != null ? projectDto.getStatus() : TransactionStatus.OPEN.name());
-        final String lastUpdate = LocalDateUtil.now().toString();
+        final String lastUpdate = LocalDateUtil.nowFormatted();
 
         ProjectModel projectModel = new ProjectModel(
             projectDto.getId(),

@@ -87,6 +87,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -287,6 +288,9 @@ public class DbRequestTest {
     public static MongoRule mongoRule = new MongoRule(
         MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class)
     );
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     private static final MongoDbVarNameAdapter mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
     private static final MappingLoader mappingLoader;
@@ -1023,8 +1027,8 @@ public class DbRequestTest {
 
         // When
         final DbRequest dbRequest = new DbRequest(
-            new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
+            new MongoDbMetadataRepository<>(UNIT::getCollection),
+            new MongoDbMetadataRepository<>(OBJECTGROUP::getCollection),
             fieldHistoryManager
         );
 
@@ -1036,6 +1040,9 @@ public class DbRequestTest {
         updateParser.parse(update.getFinalUpdate());
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(100, 300);
+
+        String updateDate = "2024-02-02T11:22:00.000";
+        logicalClock.freezeTime(LocalDateUtil.parseMongoFormattedDate(updateDate));
 
         OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
@@ -1057,18 +1064,17 @@ public class DbRequestTest {
         expectedUnit.putArray("Number").add(12);
         expectedUnit.put("_v", 1);
         expectedUnit.put("_av", 1);
+        expectedUnit.put("_aud", updateDate);
 
         String expected = JsonHandler.unprettyPrint(expectedUnit);
 
         var afterNode = UNIT.getCollection().find(Filters.eq("_id", uuid)).first();
-        afterNode.remove(Unit.APPROXIMATE_UPDATE_DATE);
         String after = JsonHandler.unprettyPrint(afterNode);
         JsonAssert.assertJsonEquals(expected, after);
         JsonAssert.assertJsonEquals(
             BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate())
         );
-        ((ObjectNode) updatedDocument.getAfterUpdate()).remove(Unit.APPROXIMATE_UPDATE_DATE);
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
     }

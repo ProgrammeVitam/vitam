@@ -246,8 +246,14 @@ public class RangeQuery extends Query {
         }
         final ObjectNode sub =
             ((ObjectNode) currentObject).putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
-        sub.set(from.exactToken(), new TextNode(LocalDateUtil.fromDate(valueFrom).toString()));
-        sub.set(to.exactToken(), new TextNode(LocalDateUtil.fromDate(valueTo).toString()));
+        sub.set(
+            from.exactToken(),
+            new TextNode(LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(valueFrom)))
+        );
+        sub.set(
+            to.exactToken(),
+            new TextNode(LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(valueTo)))
+        );
         currentTokenQUERY = QUERY.RANGE;
         setReady(true);
     }

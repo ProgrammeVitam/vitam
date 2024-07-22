@@ -233,8 +233,8 @@ public class ContextServiceImpl implements ContextService {
                 // validate context
                 if (manager.validateContext(cm, error)) {
                     cm.setId(GUIDFactory.newContextGUID().getId());
-                    cm.setCreationdate(LocalDateUtil.getString(LocalDateUtil.now()));
-                    cm.setLastupdate(LocalDateUtil.getString(LocalDateUtil.now()));
+                    cm.setCreationdate(LocalDateUtil.nowFormatted());
+                    cm.setLastupdate(LocalDateUtil.nowFormatted());
 
                     final ObjectNode contextNode = (ObjectNode) JsonHandler.toJsonNode(cm);
                     JsonNode jsonNode = contextNode.remove(VitamFieldsHelper.id());
@@ -507,10 +507,7 @@ public class ContextServiceImpl implements ContextService {
             final JsonNode fieldName = fieldToSet.get(BuilderToken.UPDATEACTION.SET.exactToken());
             if (fieldName != null) {
                 ((ObjectNode) fieldName).remove(ContextModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(
-                        ContextModel.TAG_LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                    );
+                ((ObjectNode) fieldName).put(ContextModel.TAG_LAST_UPDATE, LocalDateUtil.nowFormatted());
             }
         }
 

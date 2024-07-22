@@ -405,7 +405,7 @@ public class ProfileServiceImpl implements ProfileService {
             update.setQuery(eq(ProfileModel.TAG_IDENTIFIER, profileMetadata.getIdentifier()));
             update.addActions(
                 UpdateActionHelper.set(ProfileModel.TAG_PATH, fileName),
-                UpdateActionHelper.set(ProfileModel.LAST_UPDATE, LocalDateUtil.now().toString())
+                UpdateActionHelper.set(ProfileModel.LAST_UPDATE, LocalDateUtil.nowFormatted())
             );
             updateParserActive.parse(update.getFinalUpdate());
             final JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
@@ -558,10 +558,7 @@ public class ProfileServiceImpl implements ProfileService {
                     validateUpdateAction(profileModel, error, field, value, manager);
                 }
                 ((ObjectNode) fieldName).remove(ProfileModel.CREATION_DATE);
-                ((ObjectNode) fieldName).put(
-                        ProfileModel.LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                    );
+                ((ObjectNode) fieldName).put(ProfileModel.LAST_UPDATE, LocalDateUtil.nowFormatted());
             }
         }
 

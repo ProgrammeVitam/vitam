@@ -299,7 +299,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"UnitsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateForMongo(LocalDate.now().atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().atStartOfDay()) +
                     "\" }"
                 )
             );
@@ -333,7 +333,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"UnitsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateForMongo(LocalDate.now().minusDays(1).atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().minusDays(1).atStartOfDay()) +
                     "\" }"
                 )
             );
@@ -414,7 +414,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"ObjectsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateForMongo(LocalDate.now().atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().atStartOfDay()) +
                     "\" }"
                 )
             );
@@ -448,7 +448,7 @@ public class AccessExternalIT extends VitamRuleRunner {
             .insertOne(
                 new MetadataSnapshot(
                     "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"LastScrollRequestDate\", \"_tenant\" : 0, \"Value\" : \"" +
-                    LocalDateUtil.getFormattedDateForMongo(LocalDate.now().minusDays(1).atStartOfDay()) +
+                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDate.now().minusDays(1).atStartOfDay()) +
                     "\" }"
                 )
             );
