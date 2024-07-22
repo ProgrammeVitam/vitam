@@ -71,8 +71,6 @@ public class LogbookExternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
     private static final String INVALID_ARGUMENT = "Invalid argument: ";
     private static final String CONTRACT_ACCESS_DOES_NOT_ALLOW = "Contract access does not allow ";
-    private static final String COULD_NOT_MODIFY_QUERY = "Could not modify search query: ";
-
     private final AccessInternalClientFactory accessInternalClientFactory;
 
     public LogbookExternalResource() {
