@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.manifest;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import org.bson.Document;
@@ -60,7 +61,7 @@ public class LogbookMapper {
         event.setEventIdentifier(eventData.getString(LogbookEvent.EV_ID));
         event.setEventTypeCode(eventData.getString(LogbookEvent.EV_TYPE_PROC));
         event.setEventType(eventData.getString(LogbookEvent.EV_TYPE));
-        event.setEventDateTime(eventData.getString(LogbookEvent.EV_DATE_TIME));
+        event.setEventDateTime(reformatEventDateTime(eventData.getString(LogbookEvent.EV_DATE_TIME)));
         event.setOutcome(eventData.getString(LogbookEvent.OUTCOME));
         event.setOutcomeDetail(eventData.getString(LogbookEvent.OUT_DETAIL));
         event.setOutcomeDetailMessage(eventData.getString(LogbookEvent.OUT_MESSG));
@@ -76,5 +77,13 @@ public class LogbookMapper {
             Collections.singletonList(eventData.getString(LOGBOOK_EVENT_OBJECT_IDENTIFIER))
         );
         event.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extensions));
+    }
+
+    private static String reformatEventDateTime(String persistedEvDateTime) {
+        // Due to the bug #13013, there might be some Lfc events with evDateTime formatted without milliseconds
+        // (2000-01-01T12:23:45) or seconds (2000-01-01T12:23).
+        // This was caused by the default truncate behavior in the java method LocalDateTime.toString().
+        // We can't patch LFCs (they are secured), but we must properly format the dateTime to be SEDA-conform.
+        return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.parseMongoFormattedDate(persistedEvDateTime));
     }
 }
