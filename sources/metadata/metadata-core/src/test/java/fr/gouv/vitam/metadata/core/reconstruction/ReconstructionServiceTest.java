@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -523,6 +525,75 @@ public class ReconstructionServiceTest {
             reconstructionDateTime
         );
         verifyNoMoreInteractions(reconstructionMetricsCache);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_fix_date_time_format_for_aud_and_acd_fields_when_reconstructing_truncated_lfc_evDateTime()
+        throws Exception {
+        // given
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.OBJECTGROUP.getName())).thenReturn(
+            99L
+        );
+
+        requestItem.setCollection("ObjectGroup");
+        when(
+            restoreBackupService.getListing(
+                STRATEGY_UNIT,
+                DEFAULT_OFFER,
+                DataCategory.OBJECTGROUP,
+                100L,
+                requestItem.getLimit(),
+                Order.ASC,
+                VitamConfiguration.getBatchSize()
+            )
+        ).thenReturn(IteratorUtils.singletonIterator(getOfferLog(100)));
+        when(
+            restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.OBJECTGROUP, "100", 100L)
+        ).thenReturn(getGotMetadataBackupModelWithTruncatedDateTime("100", 100L));
+        when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
+        doNothing().when(logbookLifecycleClient).createRawbulkObjectgrouplifecycles(any());
+        when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
+
+        MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
+            vitamRepositoryProvider,
+            restoreBackupService,
+            logbookLifecycleClientFactory,
+            storageClientFactory,
+            offsetRepository,
+            indexManager,
+            reconstructionMetricsCache
+        );
+
+        FindIterable findIterable = mock(FindIterable.class);
+        final MongoCursor<String> iterator = mock(MongoCursor.class);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
+        when(findIterable.iterator()).thenReturn(iterator);
+        when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
+        // when
+        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+        // then
+        assertThat(realResponseItem).isNotNull();
+        assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.OBJECTGROUP.name());
+        verify(offsetRepository).createOrUpdateOffset(
+            10,
+            STRATEGY_UNIT,
+            MetadataCollections.OBJECTGROUP.getName(),
+            100L
+        );
+        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        ArgumentCaptor<List<WriteModel<Document>>> documentArgCaptor = ArgumentCaptor.forClass(List.class);
+        verify(mongoRepository).update(documentArgCaptor.capture());
+        assertThat(documentArgCaptor.getValue()).hasSize(1);
+        assertThat(documentArgCaptor.getValue().get(0)).isInstanceOf(ReplaceOneModel.class);
+        ReplaceOneModel<Document> replaceOneModel = (ReplaceOneModel<Document>) documentArgCaptor.getValue().get(0);
+        assertThat(replaceOneModel.getReplacement().getString("_id")).isEqualTo("100");
+        assertThat(replaceOneModel.getReplacement().getString("_acd")).isEqualTo("2000-05-01T11:22:00.000");
+        assertThat(replaceOneModel.getReplacement().getString("_aud")).isEqualTo("2000-01-01T00:22:33.000");
     }
 
     @RunWithCustomExecutor
@@ -1504,7 +1575,25 @@ public class ReconstructionServiceTest {
     private MetadataBackupModel getUnitMetadataBackupModel(String id, Long offset) {
         MetadataBackupModel model = new MetadataBackupModel();
         model.setUnit(new Document("_id", id).append("_v", 0));
-        model.setLifecycle(new Document("_id", id));
+        model.setLifecycle(
+            new Document("_id", id)
+                .append("evDateTime", "2000-01-01T00:11:22.333")
+                .append("_lastPersistedDate", "2000-01-01T11:22:33.444")
+                .append("evTypeProc", "INGEST")
+                .append(
+                    "events",
+                    List.of(
+                        new Document()
+                            .append("_lastPersistedDate", "2000-01-01T11:22:33.444")
+                            .append("evDateTime", "2000-01-01T11:22:33.444")
+                            .append("outDetail", "LFC.CHECK_MANIFEST.OK"),
+                        new Document()
+                            .append("_lastPersistedDate", "2000-01-01T11:22:33.444")
+                            .append("evDateTime", "2000-01-01T11:22:33.444")
+                            .append("outDetail", "LFC.CHECK_MANIFEST.LFC_CREATION.OK")
+                    )
+                )
+        );
         model.setOffset(offset);
         return model;
     }
@@ -1522,10 +1611,36 @@ public class ReconstructionServiceTest {
         return offerLog;
     }
 
+    private MetadataBackupModel getGotMetadataBackupModelWithTruncatedDateTime(String id, Long offset) {
+        MetadataBackupModel gotMetadataBackupModel = getGotMetadataBackupModel(id, offset);
+        gotMetadataBackupModel.getLifecycle().put("evDateTime", "2000-05-01T11:22");
+        List<Document> events = (List<Document>) gotMetadataBackupModel.getLifecycle().get("events");
+        events.get(events.size() - 1).put("evDateTime", "2000-01-01T00:22:33");
+        return gotMetadataBackupModel;
+    }
+
     private MetadataBackupModel getGotMetadataBackupModel(String id, Long offset) {
         MetadataBackupModel model = new MetadataBackupModel();
         model.setGot(new Document("_id", id).append("_v", 0));
-        model.setLifecycle(new Document("_id", id));
+        model.setLifecycle(
+            new Document("_id", id)
+                .append("evDateTime", "2000-01-01T00:11:22.333")
+                .append("_lastPersistedDate", "2000-01-01T11:22:33.444")
+                .append("evTypeProc", "INGEST")
+                .append(
+                    "events",
+                    List.of(
+                        new Document()
+                            .append("_lastPersistedDate", "2000-01-01T11:22:33.444")
+                            .append("evDateTime", "2000-01-01T11:22:33.444")
+                            .append("outDetail", "LFC.CHECK_MANIFEST.OK"),
+                        new Document()
+                            .append("_lastPersistedDate", "2000-01-01T11:22:33.444")
+                            .append("evDateTime", "2000-01-01T11:22:33.444")
+                            .append("outDetail", "LFC.CHECK_MANIFEST.LFC_CREATION.OK")
+                    )
+                )
+        );
         model.setOffset(offset);
         return model;
     }

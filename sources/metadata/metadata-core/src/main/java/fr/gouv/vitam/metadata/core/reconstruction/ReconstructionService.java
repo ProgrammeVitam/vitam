@@ -963,14 +963,25 @@ public class ReconstructionService {
             .collect(Collectors.toList());
         if (!events.isEmpty()) {
             Map<String, ?> lastEvent = events.get(events.size() - 1);
-            String approximateDateTime = (String) lastEvent.get(EV_DATE_TIME);
+            String approximateDateTime = reformatEventDateTime((String) lastEvent.get(EV_DATE_TIME));
 
             backupModel
                 .getMetadatas()
-                .put(MetadataDocument.APPROXIMATE_CREATION_DATE, backupModel.getLifecycle().get(EV_DATE_TIME));
+                .put(
+                    MetadataDocument.APPROXIMATE_CREATION_DATE,
+                    reformatEventDateTime(backupModel.getLifecycle().getString(EV_DATE_TIME))
+                );
             backupModel.getMetadatas().put(MetadataDocument.APPROXIMATE_UPDATE_DATE, approximateDateTime);
         }
         return backupModel;
+    }
+
+    private String reformatEventDateTime(String persistedEvDateTime) {
+        // Due to the bug #13013, there might be some Lfc events with evDateTime formatted without milliseconds
+        // (2000-01-01T12:23:45) or seconds (2000-01-01T12:23).
+        // This was caused by the default truncate behavior in the java method LocalDateTime.toString().
+        // We can't patch LFCs (they are secured), but we can patch reconstructed metadata _acd / _aud fields.
+        return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.parseMongoFormattedDate(persistedEvDateTime));
     }
 
     /**
