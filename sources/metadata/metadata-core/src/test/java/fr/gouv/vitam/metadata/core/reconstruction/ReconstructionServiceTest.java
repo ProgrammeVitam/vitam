@@ -555,7 +555,7 @@ public class ReconstructionServiceTest {
         doNothing().when(logbookLifecycleClient).createRawbulkObjectgrouplifecycles(any());
         when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
 
-        MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
+        ReconstructionService reconstructionService = new ReconstructionService(
             vitamRepositoryProvider,
             restoreBackupService,
             logbookLifecycleClientFactory,
