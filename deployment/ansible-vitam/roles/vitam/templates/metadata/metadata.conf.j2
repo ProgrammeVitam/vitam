@@ -23,6 +23,8 @@ transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinut
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 {% endif %}
 
+refreshElasticIndexPostBulkIndexing: {{ vitam.metadata.refreshElasticIndexPostBulkIndexing | default(true) }}
+
 # Units and Objects Stream Threshold
 unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1000000) }}
 unitsStreamExecutionLimit: {{ vitam.metadata.unitsStreamExecutionLimit | default(3) }}

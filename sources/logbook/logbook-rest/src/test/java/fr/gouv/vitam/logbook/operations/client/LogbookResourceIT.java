@@ -512,7 +512,8 @@ public class LogbookResourceIT {
         LogbookCollections.OPERATION.getEsClient()
             .indexEntries(
                 indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION).resolveIndexName(0),
-                List.of(vitamDocument)
+                List.of(vitamDocument),
+                true
             );
     }
 

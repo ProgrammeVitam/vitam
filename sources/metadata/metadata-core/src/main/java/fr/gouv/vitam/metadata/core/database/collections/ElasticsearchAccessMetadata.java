@@ -311,18 +311,27 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
+    public void insertFullDocumentsWithRefreshSettings(
+        MetadataCollections collection,
+        Integer tenantId,
+        Collection<? extends MetadataDocument<?>> documents,
+        boolean withRefreshIndex
+    ) throws MetaDataExecutionException {
+        try {
+            ElasticsearchIndexAlias indexAlias =
+                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
+            super.indexEntries(indexAlias, documents, withRefreshIndex);
+        } catch (DatabaseException e) {
+            throw new MetaDataExecutionException(e);
+        }
+    }
+
     public void insertFullDocuments(
         MetadataCollections collection,
         Integer tenantId,
         Collection<? extends MetadataDocument<?>> documents
     ) throws MetaDataExecutionException {
-        try {
-            ElasticsearchIndexAlias indexAlias =
-                this.indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenantId);
-            super.indexEntries(indexAlias, documents);
-        } catch (DatabaseException e) {
-            throw new MetaDataExecutionException(e);
-        }
+        this.insertFullDocumentsWithRefreshSettings(collection, tenantId, documents, true);
     }
 
     /**

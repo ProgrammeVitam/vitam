@@ -102,6 +102,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
+import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
@@ -143,7 +144,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -793,7 +793,12 @@ public class MetaDataImpl {
         return new MetadataResult(queryCopy, res, facetResults, total, scrollId, hits);
     }
 
-    public void updateObjectGroupId(JsonNode updateQuery, String objectId, boolean forceUpdate)
+    public void updateObjectGroupId(
+        JsonNode updateQuery,
+        String objectId,
+        boolean forceUpdate,
+        boolean withRefreshIndex
+    )
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException, MetadataValidationException {
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
@@ -801,47 +806,52 @@ public class MetaDataImpl {
 
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(new MongoDbVarNameAdapter());
         updateRequest.parse(updateQuery);
-
         // Execute DSL request
         dbRequest.execUpdateRequest(
-            updateRequest,
-            objectId,
+            List.of(new RequestById(objectId, updateRequest)),
             OBJECTGROUP,
             this.objectGroupOntologyValidator,
             null,
             this.objectGroupOntologyLoader.loadOntologies(),
-            forceUpdate
+            forceUpdate,
+            withRefreshIndex
         );
     }
 
-    public RequestResponse<UpdateUnit> updateUnits(JsonNode updateQuery, boolean forceUpdate)
+    public List<UpdateUnit> updateUnits(List<RequestById> bulkRequests, boolean forceUpdate, boolean withRefreshIndex)
         throws InvalidParseOperationException {
-        Set<String> unitIds;
-        final UpdateParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
-        updateRequest.parse(updateQuery);
-        final RequestMultiple request = updateRequest.getRequest();
-        unitIds = request.getRoots();
+        List<String> unitIds = bulkRequests.stream().map(RequestById::getDocumentId).collect(Collectors.toList());
+        LOGGER.debug("Start updating units with count " + unitIds.size());
 
-        List<UpdateUnit> updatedUnits = unitIds
-            .stream()
-            .map(unitId -> updateAndTransformUnit(updateRequest, unitId, forceUpdate))
-            .collect(Collectors.toList());
-
-        return new RequestResponseOK<UpdateUnit>(updateQuery).addAllResults(updatedUnits).setTotal(updatedUnits.size());
-    }
-
-    private UpdateUnit updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId, boolean forceUpdate) {
         try {
-            UpdatedDocument updatedDocument = dbRequest.execUpdateRequest(
-                updateRequest,
-                unitId,
+            if (CollectionUtils.isEmpty(bulkRequests)) {
+                return new ArrayList<>();
+            }
+            Collection<UpdatedDocument> updatedDocuments = dbRequest.execUpdateRequest(
+                bulkRequests,
                 MetadataCollections.UNIT,
                 this.unitOntologyValidator,
                 this.unitValidator,
                 this.unitOntologyLoader.loadOntologies(),
-                forceUpdate
+                forceUpdate,
+                withRefreshIndex
             );
+            return mapResponseWithDiffs(updatedDocuments);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("An error occurred during unit update " + String.join(",", List.of()), e);
+            return errors(unitIds, KO, CHECK_UNIT_SCHEMA, e.getMessage());
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error("Unit not found during unit update " + String.join(",", List.of()), e);
+            return errors(unitIds, KO, UNIT_UNKNOWN_OR_FORBIDDEN, e.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurred during unit update " + String.join(",", List.of()), e);
+            return errors(unitIds, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
+        }
+    }
 
+    private List<UpdateUnit> mapResponseWithDiffs(Collection<UpdatedDocument> updatedDocuments) {
+        List<UpdateUnit> updatedUnits = new ArrayList<>();
+        for (UpdatedDocument updatedDocument : updatedDocuments) {
             String diffs = String.join(
                 "\n",
                 VitamDocument.getConcernedDiffLines(
@@ -851,40 +861,71 @@ public class MetaDataImpl {
                     )
                 )
             );
-
-            if (diffs.isEmpty()) {
-                if (!updatedDocument.isUpdated()) {
-                    LOGGER.info(String.format("No new data updates for unit update %s.", unitId));
-                    return new UpdateUnit(
-                        unitId,
-                        StatusCode.OK,
-                        UNIT_METADATA_NO_NEW_DATA,
-                        "Unit not updated.",
-                        "No diff, there are no new changes."
+            switch (updatedDocument.getStatus()) {
+                case SUCCESS:
+                    if (diffs.isEmpty()) {
+                        if (!updatedDocument.isUpdated()) {
+                            LOGGER.info(
+                                String.format(
+                                    "No new data updates for unit update %s.",
+                                    updatedDocument.getDocumentId()
+                                )
+                            );
+                            updatedUnits.add(
+                                new UpdateUnit(
+                                    updatedDocument.getDocumentId(),
+                                    StatusCode.OK,
+                                    UNIT_METADATA_NO_NEW_DATA,
+                                    "Unit not updated.",
+                                    "No diff, there are no new changes."
+                                )
+                            );
+                        } else {
+                            LOGGER.warn(
+                                String.format("UNKNOWN updates for unit update %s.", updatedDocument.getDocumentId())
+                            );
+                            updatedUnits.add(
+                                new UpdateUnit(
+                                    updatedDocument.getDocumentId(),
+                                    StatusCode.OK,
+                                    UNIT_METADATA_NO_CHANGES,
+                                    "Unit updated with UNKNOWN changes.",
+                                    "UNKNOWN diff, there are some changes but they cannot be trace."
+                                )
+                            );
+                        }
+                    } else {
+                        updatedUnits.add(
+                            new UpdateUnit(
+                                updatedDocument.getDocumentId(),
+                                StatusCode.OK,
+                                UNIT_METADATA_UPDATE,
+                                "Update unit OK.",
+                                diffs
+                            )
+                        );
+                    }
+                    break;
+                case FAILED:
+                    LOGGER.error(
+                        String.format(
+                            "Failed to update for unit update %s. with message %s",
+                            updatedDocument.getDocumentId(),
+                            updatedDocument.getFailureMessage()
+                        )
                     );
-                } else {
-                    LOGGER.warn(String.format("UNKNOWN updates for unit update %s.", unitId));
-                    return new UpdateUnit(
-                        unitId,
-                        StatusCode.OK,
-                        UNIT_METADATA_NO_CHANGES,
-                        "Unit updated with UNKNOWN changes.",
-                        "UNKNOWN diff, there are some changes but they cannot be trace."
+                    updatedUnits.add(
+                        new UpdateUnit(
+                            updatedDocument.getDocumentId(),
+                            KO,
+                            CHECK_UNIT_SCHEMA,
+                            String.format(updatedDocument.getFailureMessage()),
+                            "No diff due to failing status"
+                        )
                     );
-                }
             }
-
-            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
-        } catch (MetadataValidationException e) {
-            LOGGER.error("An error occurred during unit update " + unitId, e);
-            return error(unitId, KO, CHECK_UNIT_SCHEMA, e.getMessage());
-        } catch (MetaDataNotFoundException e) {
-            LOGGER.error("Unit not found during unit update " + unitId, e);
-            return error(unitId, KO, UNIT_UNKNOWN_OR_FORBIDDEN, e.getMessage());
-        } catch (Exception e) {
-            LOGGER.error("An error occurred during unit update " + unitId, e);
-            return error(unitId, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
         }
+        return updatedUnits;
     }
 
     public RequestResponse<UpdateUnit> updateUnitsRules(
@@ -952,26 +993,46 @@ public class MetaDataImpl {
         }
     }
 
+    private List<UpdateUnit> errors(Collection<String> unitIds, StatusCode status, UpdateUnitKey key, String message) {
+        return unitIds
+            .stream()
+            .map(unitId -> error(unitId, status, key, StringUtils.defaultIfBlank(message, "Unknown error")))
+            .collect(Collectors.toList());
+    }
+
     private UpdateUnit error(String unitId, StatusCode status, UpdateUnitKey key, String message) {
         return new UpdateUnit(unitId, status, key, StringUtils.defaultIfBlank(message, "Unknown error"), "no diff");
     }
 
-    public UpdateUnit updateUnitById(JsonNode updateQuery, String unitId, boolean forceUpdate)
+    public UpdateUnit updateUnitById(
+        JsonNode updateQuery,
+        String unitId,
+        boolean forceUpdate,
+        boolean withRefreshIndex
+    )
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException, MetadataValidationException {
-        // parse Update request
+        // parse Update request and add unit id to roots
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
         updateRequest.parse(updateQuery);
+        updateRequest.getRequest().addRoots(unitId);
 
-        UpdatedDocument updatedDocument = dbRequest.execUpdateRequest(
-            updateRequest,
-            unitId,
+        RequestById bulkRequest = new RequestById(unitId, updateRequest);
+        Collection<UpdatedDocument> updatedDocuments = dbRequest.execUpdateRequest(
+            List.of(bulkRequest),
             MetadataCollections.UNIT,
             this.unitOntologyValidator,
             this.unitValidator,
             this.unitOntologyLoader.loadOntologies(),
-            forceUpdate
+            forceUpdate,
+            withRefreshIndex
         );
 
+        Optional<UpdatedDocument> updatedDocumentOpt = updatedDocuments.stream().findFirst();
+        if (!updatedDocumentOpt.isPresent()) {
+            throw new IllegalStateException("No response found");
+        }
+
+        UpdatedDocument updatedDocument = updatedDocumentOpt.get();
         String diffs = String.join(
             "\n",
             VitamDocument.getConcernedDiffLines(
@@ -981,8 +1042,14 @@ public class MetaDataImpl {
                 )
             )
         );
-
-        return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
+        if (UpdatedDocument.UpdatedDocumentStatus.SUCCESS.equals(updatedDocument.getStatus())) {
+            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
+        } else {
+            throw new MetadataValidationException(
+                updatedDocument.getValidationErrorCode(),
+                updatedDocument.getFailureMessage()
+            );
+        }
     }
 
     public void refreshUnit() throws IllegalArgumentException, VitamThreadAccessException, MetaDataExecutionException {

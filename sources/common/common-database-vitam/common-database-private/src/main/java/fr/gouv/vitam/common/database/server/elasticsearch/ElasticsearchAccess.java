@@ -407,8 +407,11 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
     }
 
-    public void indexEntries(ElasticsearchIndexAlias indexAlias, final Collection<? extends Document> documents)
-        throws DatabaseException {
+    public void indexEntries(
+        ElasticsearchIndexAlias indexAlias,
+        final Collection<? extends Document> documents,
+        boolean withRefreshIndex
+    ) throws DatabaseException {
         UnmodifiableIterator<? extends List<? extends Document>> idIterator = Iterators.partition(
             documents.iterator(),
             VitamConfiguration.getMaxElasticsearchBulk()
