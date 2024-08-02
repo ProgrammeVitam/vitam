@@ -26,4 +26,4 @@ https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-7.17.8-x86_64
 https://dl.grafana.com/oss/release/grafana-9.3.6-1.x86_64.rpm
 https://download.copr.fedorainfracloud.org/results/copart/restic/epel-7-x86_64/03257215-restic/restic-0.12.1-1.el7.x86_64.rpm
 
-https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-4.el8.x86_64.rpm
+https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/compat-openssl10-1.0.2o-4.el8.x86_64.rpm
