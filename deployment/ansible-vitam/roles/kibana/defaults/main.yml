@@ -2,5 +2,5 @@
 
 kibana_port: "{{ kibana.port | default(5601) }}"
 
-kibana_version: "{{ kibana.version | default('7.17.20') }}"
+kibana_version: "{{ kibana.version | default('7.17.23') }}"
 kibana_package: "kibana{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ kibana_version }}"

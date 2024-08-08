@@ -4,14 +4,14 @@ https://repo.mongodb.org/apt/debian/dists/bookworm/mongodb-org/7.0/main/binary-a
 https://repo.mongodb.org/apt/debian/dists/bookworm/mongodb-org/7.0/main/binary-amd64/mongodb-org-mongos_7.0.8_amd64.deb
 https://repo.mongodb.org/apt/debian/dists/bookworm/mongodb-org/7.0/main/binary-amd64/mongodb-org-server_7.0.8_amd64.deb
 
-https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.17.20-amd64.deb
-https://artifacts.elastic.co/downloads/logstash/logstash-7.17.20-amd64.deb
-https://artifacts.elastic.co/downloads/kibana/kibana-7.17.20-amd64.deb
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.17.23-amd64.deb
+https://artifacts.elastic.co/downloads/logstash/logstash-7.17.23-amd64.deb
+https://artifacts.elastic.co/downloads/kibana/kibana-7.17.23-amd64.deb
 https://packages.elastic.co/curator/5/debian9/pool/main/e/elasticsearch-curator/elasticsearch-curator_5.8.4_amd64.deb
 
-https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.17.20-amd64.deb
-https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.17.20-amd64.deb
-https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-7.17.20-amd64.deb
+https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.17.23-amd64.deb
+https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-7.17.23-amd64.deb
+https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-7.17.23-amd64.deb
 
 https://dl.grafana.com/oss/release/grafana_10.3.5_amd64.deb
 
