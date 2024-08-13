@@ -106,7 +106,7 @@
     <httpd.container.version>httpd:2.4.58</httpd.container.version>
 
     <!-- database libraries -->
-    <elasticsearch.version>7.17.20</elasticsearch.version>
+    <elasticsearch.version>7.17.23</elasticsearch.version>
     <mongo.version>4.6.1</mongo.version>
 
     <!-- object storing-->

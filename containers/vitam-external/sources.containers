@@ -1,9 +1,9 @@
 mongodb/mongodb-community-server:7.0.8-ubuntu2204
-elasticsearch:7.17.20
-logstash:7.17.20
-kibana:7.17.20
-elastic/metricbeat:7.17.20
-elastic/packetbeat:7.17.20
+elasticsearch:7.17.23
+logstash:7.17.23
+kibana:7.17.23
+elastic/metricbeat:7.17.23
+elastic/packetbeat:7.17.23
 grafana/grafana:10.3.5
 restic/restic:0.16.2
 hashicorp/consul:1.18.1
