@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.time.LogicalClockRule;
@@ -93,6 +94,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -108,7 +111,9 @@ import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -1275,6 +1280,68 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
         assertThat(traceabilityEvent5.getStatistics().getObjects().getNbWarnings()).isEqualTo(0);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowUnitLfcTraceability_preventDoubleExecution() throws Exception {
+        // Given
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(4, ChronoUnit.MINUTES);
+
+        launchIngest(SIP_3_UNITS_2_GOTS);
+        logicalClock.logicalSleep(4, ChronoUnit.MINUTES);
+
+        // When
+        String traceabilityOperationId1 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY, false);
+
+        logicalClock.logicalSleep(1, ChronoUnit.MINUTES);
+        String traceabilityOperationId2 = launchLogbookLFC(Contexts.UNIT_LFC_TRACEABILITY, false);
+
+        // Then
+        assertNotNull(traceabilityOperationId1);
+        waitOperation(traceabilityOperationId1);
+        verifyOperation(traceabilityOperationId1, StatusCode.OK);
+
+        // traceabilityOperationId2 should be null in most cases
+        // traceabilityOperationId2 can be non-null when the first traceability ended too quickly (inconclusive test).
+        if (traceabilityOperationId2 != null) {
+            LogbookOperation traceabilityOperation1 = getLogbookOperation(traceabilityOperationId1);
+            LogbookOperation traceabilityOperation2 = getLogbookOperation(traceabilityOperationId2);
+
+            String traceability1EndDate = traceabilityOperation1
+                .getEvents()
+                .get(traceabilityOperation1.getEvents().size() - 1)
+                .getEvDateTime();
+            String traceability2StartDate = traceabilityOperation2.getEvDateTime();
+            assertThat(traceability1EndDate).isNotNull();
+            assertThat(traceability2StartDate).isNotNull();
+            // Only continue
+            boolean inconclusiveTestWhenTraceability1EndedBeforeTraceability2Started =
+                traceability1EndDate.compareTo(traceability2StartDate) <= 0;
+            inconclusiveOrFail(
+                inconclusiveTestWhenTraceability1EndedBeforeTraceability2Started,
+                "Inconclusive test ! Traceability1 ended too quickly (before traceability 2 started)",
+                "Traceability 2 should not be started when traceability 1 has not ended"
+            );
+        }
+    }
+
+    private static LogbookOperation getLogbookOperation(String operationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
+            return JsonHandler.getFromJsonNode(
+                logbookOperationsClient.selectOperationById(operationId).get(TAG_RESULTS).get(0),
+                LogbookOperation.class
+            );
+        }
+    }
+
+    private static void inconclusiveOrFail(boolean inconclusive, String inconclusiveMessage, String failMessage) {
+        Assume.assumeFalse(inconclusiveMessage, inconclusive);
+        Assert.fail(failMessage);
+    }
+
     private void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         createLogbookOperation(operationId, objectId, null);
@@ -1328,6 +1395,10 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     }
 
     private String launchLogbookLFC(Contexts traceabilityContext) throws Exception {
+        return launchLogbookLFC(traceabilityContext, true);
+    }
+
+    private String launchLogbookLFC(Contexts traceabilityContext, boolean awaitTermination) throws Exception {
         try (
             LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
         ) {
@@ -1347,7 +1418,9 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
                 return null;
             }
             String operationGuid = (String) requestResponseOK.getFirstResult();
-            waitOperation(operationGuid);
+            if (awaitTermination) {
+                waitOperation(operationGuid);
+            }
             return operationGuid;
         }
     }
