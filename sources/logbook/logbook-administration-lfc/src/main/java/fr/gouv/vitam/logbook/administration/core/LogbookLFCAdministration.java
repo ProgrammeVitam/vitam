@@ -213,7 +213,7 @@ public class LogbookLFCAdministration {
                     .collect(Collectors.toList())
             );
             // Workflow id
-            query.setWorkflows(List.of(workflowContext.name()));
+            query.setWorkflows(List.of(workflowContext.getEventType()));
 
             RequestResponse<ProcessDetail> processDetailRequestResponse = processManagementClient.listOperationsDetails(
                 query
