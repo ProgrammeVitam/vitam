@@ -160,7 +160,8 @@ public class SchemaServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_object_group_internal_schema() throws IOException, InvalidParseOperationException {
+    public void should_return_object_group_internal_schema()
+        throws IOException, InvalidParseOperationException, ReferentialException {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final List<SchemaResponse> internalSchema = schemaService.findObjectGroupInternalSchema();
 
@@ -183,6 +184,7 @@ public class SchemaServiceTest {
         assertThat(algorithSchemaElt.getSedaVersions()).contains("2.1");
         assertThat(algorithSchemaElt.getSedaVersions()).contains("2.2");
         assertThat(algorithSchemaElt.getSedaVersions()).contains("2.3");
+        assertThat(algorithSchemaElt.getDescription()).isNotEmpty();
 
         final Optional<SchemaResponse> persistentIdentifierContentSchemaEltOpt = internalSchema
             .stream()
