@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Lists;
@@ -44,6 +45,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -85,8 +87,10 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import io.restassured.RestAssured;
+import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -98,6 +102,7 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -450,6 +455,79 @@ public class LogbookResourceIT {
                 fail("Should not have raized an exception");
             }
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public final void givenNoTraceabilityOperationsWhenGetLastLifeCycleTraceabilityOperationThenReturnEmptyList()
+        throws Exception {
+        RequestResponseOK<JsonNode> requestResponseOK = given()
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .get("/lastLifeCycleTraceabilityOperation/LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .as(new TypeRef<>() {});
+        assertThat(requestResponseOK.getResults()).isEmpty();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public final void givenTraceabilityOperationsWhenGetLastLifeCycleTraceabilityOperationThenReturnLatestWithZipFile()
+        throws Exception {
+        insertLogbookOperation("traceability1_ok.json");
+        insertLogbookOperation("traceability2_ok.json");
+        insertLogbookOperation("traceability3_empty_warning.json");
+
+        RequestResponseOK<JsonNode> requestResponseOK = given()
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .get("/lastLifeCycleTraceabilityOperation/LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .as(new TypeRef<>() {});
+        assertThat(requestResponseOK.getResults()).hasSize(1);
+        assertThat(requestResponseOK.getResults().get(0).get("evDateTime").textValue()).isEqualTo(
+            "2024-08-27T22:15:24.987"
+        );
+    }
+
+    private static void insertLogbookOperation(String resourceFile)
+        throws InvalidParseOperationException, FileNotFoundException, DatabaseException {
+        ObjectNode doc = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(resourceFile),
+            ObjectNode.class
+        );
+
+        Document vitamDocument = JsonHandler.getFromJsonNode(doc, Document.class);
+        LogbookCollections.OPERATION.getCollection().insertOne(vitamDocument);
+
+        transformDocForEs(vitamDocument);
+        LogbookCollections.OPERATION.getEsClient()
+            .indexEntries(
+                indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION).resolveIndexName(0),
+                List.of(vitamDocument)
+            );
+    }
+
+    private static void transformDocForEs(Document vitamDocument) throws InvalidParseOperationException {
+        fixEvDetDataForEs(vitamDocument);
+        for (Map<String, Object> entry : (List<Map<String, Object>>) vitamDocument.get("events")) {
+            fixEvDetDataForEs(entry);
+        }
+    }
+
+    private static void fixEvDetDataForEs(Map<String, Object> doc) throws InvalidParseOperationException {
+        if (!doc.containsKey("evDetData") || doc.get("evDetData") == null) {
+            return;
+        }
+        doc.put("evDetData", JsonHandler.getFromString((String) doc.get("evDetData")));
     }
 
     @RunWithCustomExecutor

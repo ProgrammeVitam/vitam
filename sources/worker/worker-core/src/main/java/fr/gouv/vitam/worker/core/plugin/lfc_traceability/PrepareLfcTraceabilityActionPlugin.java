@@ -40,11 +40,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -66,16 +67,15 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.traceability.LogbookTraceabilityHelper.INITIAL_START_DATE;
 
 public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PrepareLfcTraceabilityActionPlugin.class);
 
-    private static final int LAST_OPERATION_LIFECYCLES_IN_RANK = 0;
-    private static final int TRACEABILITY_INFORMATION_OUT_RANK = 0;
-    private static final int LFC_AND_METADATA_OUT_RANK = 1;
+    private static final int LAST_OPERATION_LIFECYCLES_OUT_RANK = 0;
+    private static final int TRACEABILITY_INFORMATION_OUT_RANK = 1;
+    private static final int LFC_AND_METADATA_OUT_RANK = 2;
     public static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {};
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -107,7 +107,8 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         String eventType,
         HandlerIO handlerIO
     ) throws ProcessingException, InvalidParseOperationException, LogbookClientException {
-        final LogbookOperation lastTraceabilityOperation = loadLastOperationTraceabilityLifecycle(handlerIO);
+        final LogbookOperation lastTraceabilityOperation = findLastLfcTraceabilityOperationWithZip(eventType);
+        exportLastOperationTraceabilityLifecycle(handlerIO, lastTraceabilityOperation);
 
         LocalDateTime traceabilityStartDate = getTraceabilityOperationStartDate(lastTraceabilityOperation);
         LocalDateTime traceabilityEndDate = LocalDateUtil.now().minusSeconds(temporizationDelayInSeconds);
@@ -208,21 +209,31 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
         if (lastTraceabilityOperation == null) {
             return INITIAL_START_DATE;
         } else {
-            final String evDetData = (String) lastTraceabilityOperation.get(eventDetailData.getDbname());
+            final String evDetData = lastTraceabilityOperation.getEvDetData();
             TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
             return LocalDateUtil.parseMongoFormattedDate(traceabilityEvent.getEndDate());
         }
     }
 
-    private LogbookOperation loadLastOperationTraceabilityLifecycle(HandlerIO handlerIO)
-        throws InvalidParseOperationException {
-        JsonNode logbookOperation = JsonHandler.getFromFile(
-            (File) handlerIO.getInput(LAST_OPERATION_LIFECYCLES_IN_RANK)
-        );
-        if (logbookOperation.isEmpty()) {
-            return null;
+    private LogbookOperation findLastLfcTraceabilityOperationWithZip(String eventType) throws ProcessingException {
+        try (LogbookLifeCyclesClient client = logbookLifeCyclesClientFactory.getClient()) {
+            return client.findLastLifecycleTraceabilityOperation(eventType);
+        } catch (LogbookClientException e) {
+            throw new ProcessingException("Cannot load last lfc traceability operation", e);
         }
-        return JsonHandler.getFromJsonNode(logbookOperation, LogbookOperation.class);
+    }
+
+    private void exportLastOperationTraceabilityLifecycle(
+        HandlerIO handlerIO,
+        LogbookOperation lastTraceabilityOperation
+    ) throws InvalidParseOperationException, ProcessingException {
+        File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(LAST_OPERATION_LIFECYCLES_OUT_RANK).getPath());
+        if (lastTraceabilityOperation == null) {
+            JsonHandler.writeAsFile(JsonHandler.createObjectNode(), tempFile);
+        } else {
+            JsonHandler.writeAsFile(lastTraceabilityOperation, tempFile);
+        }
+        handlerIO.addOutputResult(LAST_OPERATION_LIFECYCLES_OUT_RANK, tempFile, false, false);
     }
 
     private void exportTraceabilityInformation(

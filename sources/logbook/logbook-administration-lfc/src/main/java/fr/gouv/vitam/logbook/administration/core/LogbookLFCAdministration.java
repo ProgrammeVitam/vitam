@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.logbook.administration.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -91,7 +90,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
 public class LogbookLFCAdministration {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLFCAdministration.class);
-    private static final String LAST_LFC_TRACEABILITY_OPERATION_FILENAME = "lastOperation.json";
 
     private final LogbookOperations logbookOperations;
     private final LogbookLifeCycles logbookLifeCycles;
@@ -198,7 +196,7 @@ public class LogbookLFCAdministration {
         }
 
         // Start traceability workflow
-        startTraceabilityWorkflow(traceabilityOperationGUID, workflowContext, lastLfcTraceabilityOperationWithZip);
+        startTraceabilityWorkflow(traceabilityOperationGUID, workflowContext);
         return true;
     }
 
@@ -360,14 +358,9 @@ public class LogbookLFCAdministration {
         return traceabilityStartDate;
     }
 
-    private void startTraceabilityWorkflow(
-        GUID traceabilityOperationGUID,
-        Contexts workflowContext,
-        LogbookOperation lastLfcTraceabilityOperationWithZip
-    ) throws VitamClientException, InternalServerException, BadRequestException, LogbookException {
+    private void startTraceabilityWorkflow(GUID traceabilityOperationGUID, Contexts workflowContext)
+        throws VitamClientException, InternalServerException, BadRequestException, LogbookException {
         createContainer(traceabilityOperationGUID.getId());
-
-        persistLastLfcTraceability(traceabilityOperationGUID.getId(), lastLfcTraceabilityOperationWithZip);
 
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             final LogbookOperationParameters logbookUpdateParametersStart =
@@ -458,27 +451,6 @@ public class LogbookLFCAdministration {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             workspaceClient.createContainer(containerName);
         } catch (ContentAddressableStorageServerException e) {
-            throw new VitamClientException(e);
-        }
-    }
-
-    private void persistLastLfcTraceability(String containerName, LogbookOperation lastLfcTraceabilityOperation)
-        throws VitamClientException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            JsonNode traceabilityOperationJson;
-            if (lastLfcTraceabilityOperation == null) {
-                // empty json file
-                traceabilityOperationJson = JsonHandler.createObjectNode();
-            } else {
-                traceabilityOperationJson = JsonHandler.toJsonNode(lastLfcTraceabilityOperation);
-            }
-
-            workspaceClient.putObject(
-                containerName,
-                LAST_LFC_TRACEABILITY_OPERATION_FILENAME,
-                JsonHandler.fromPojoToBytes(traceabilityOperationJson)
-            );
-        } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             throw new VitamClientException(e);
         }
     }
