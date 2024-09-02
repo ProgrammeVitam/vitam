@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.JsonLineIterator;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
@@ -84,6 +85,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
+
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/raw/objectgrouplifecycles/bulk";
     private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/raw/unitlifecycles/bulk";
     private static final String UNIT_LIFECYCLES_RAW_BY_ID_URL = "/raw/unitlifecycles/byid/";
@@ -94,6 +96,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         "/raw/unitlifecycles/bylastpersisteddate";
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL =
         "/raw/objectgrouplifecycles/bylastpersisteddate";
+    private static final String LAST_LIFE_CYCLE_TRACEABILITY_OPERATION_URL = "/lastLifeCycleTraceabilityOperation";
 
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
@@ -686,6 +689,26 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
     ) throws VitamClientInternalException {
         bulkLFC(type, logbookLifeCycleParametersBulk, OPERATIONS_URL + "/" + operationId + "/bulklifecycles/%s");
+    }
+
+    @Override
+    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType) throws LogbookClientException {
+        try (
+            Response response = make(
+                get().withPath(LAST_LIFE_CYCLE_TRACEABILITY_OPERATION_URL + "/" + eventType).withJson()
+            )
+        ) {
+            check(response);
+            RequestResponseOK<JsonNode> results = (RequestResponseOK<JsonNode>) RequestResponse.parseFromResponse(
+                response
+            );
+            if (results.getResults().isEmpty()) {
+                return null;
+            }
+            return JsonHandler.getFromJsonNode(results.getResults().get(0), LogbookOperation.class);
+        } catch (PreconditionFailedClientException | VitamClientInternalException | InvalidParseOperationException e) {
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        }
     }
 
     private void bulkLFC(

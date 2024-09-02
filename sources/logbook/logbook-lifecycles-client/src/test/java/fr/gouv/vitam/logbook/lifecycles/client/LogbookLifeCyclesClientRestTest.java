@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
@@ -605,6 +606,13 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getRawObjectGroupLifeCycleById(List<String> ids) {
+            return mock.get();
+        }
+
+        @Path("/lastLifeCycleTraceabilityOperation/{eventType}")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findLastLifecycleTraceabilityOperation(@PathParam("eventType") String eventType) {
             return mock.get();
         }
     }
@@ -1390,5 +1398,40 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         assertThatThrownBy(() -> {
             client.getRawObjectGroupLifeCycleByIds(Arrays.asList("id1", "id2"));
         }).isInstanceOf(LogbookClientNotFoundException.class);
+    }
+
+    @Test
+    public void findLastLifecycleTraceabilityOperation_OK() throws LogbookClientException {
+        LogbookOperation operation = new LogbookOperation();
+        operation.setEvId("myOp");
+
+        when(mock.get()).thenReturn(
+            Response.status(Response.Status.OK)
+                .entity(
+                    new RequestResponseOK<LogbookOperation>()
+                        .setHttpCode(Response.Status.OK.getStatusCode())
+                        .addResult(operation)
+                )
+                .build()
+        );
+
+        LogbookOperation lastLifecycleTraceabilityOperation = client.findLastLifecycleTraceabilityOperation(
+            "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY"
+        );
+        assertThat(lastLifecycleTraceabilityOperation.getEvId()).isEqualTo("myOp");
+    }
+
+    @Test
+    public void findLastLifecycleTraceabilityOperation_Empty() throws LogbookClientException {
+        when(mock.get()).thenReturn(
+            Response.status(Response.Status.OK)
+                .entity(new RequestResponseOK<LogbookOperation>().setHttpCode(Response.Status.OK.getStatusCode()))
+                .build()
+        );
+
+        LogbookOperation lastLifecycleTraceabilityOperation = client.findLastLifecycleTraceabilityOperation(
+            "LOGBOOK_UNIT_LFC_TRACEABILITY"
+        );
+        assertThat(lastLifecycleTraceabilityOperation).isNull();
     }
 }
