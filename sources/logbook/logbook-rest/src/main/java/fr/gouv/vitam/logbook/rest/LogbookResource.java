@@ -2679,4 +2679,30 @@ public class LogbookResource extends ApplicationStatusResource {
             )
             .build();
     }
+
+    @Path("/lastLifeCycleTraceabilityOperation/{eventType}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findLastLifecycleTraceabilityOperation(@PathParam("eventType") String eventType) {
+        try {
+            LogbookOperation lastLifecycleTraceabilityOperation =
+                this.logbookOperation.findLastLifecycleTraceabilityOperation(eventType, true);
+
+            RequestResponseOK<LogbookOperation> requestResponseOK = new RequestResponseOK<>();
+            requestResponseOK.setHttpCode(Status.OK.getStatusCode());
+            if (lastLifecycleTraceabilityOperation != null) {
+                requestResponseOK.addResult(lastLifecycleTraceabilityOperation);
+            }
+
+            return Response.status(Status.OK).entity(requestResponseOK).build();
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(
+                    new VitamError<>(Status.INTERNAL_SERVER_ERROR.name()).setHttpCode(
+                        Status.INTERNAL_SERVER_ERROR.getStatusCode()
+                    )
+                )
+                .build();
+        }
+    }
 }
