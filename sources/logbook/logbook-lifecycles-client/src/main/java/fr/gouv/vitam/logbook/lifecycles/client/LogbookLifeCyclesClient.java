@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -494,4 +495,6 @@ public interface LogbookLifeCyclesClient extends BasicClient {
         DistributionType type,
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
     ) throws VitamClientInternalException;
+
+    LogbookOperation findLastLifecycleTraceabilityOperation(String eventType) throws LogbookClientException;
 }
