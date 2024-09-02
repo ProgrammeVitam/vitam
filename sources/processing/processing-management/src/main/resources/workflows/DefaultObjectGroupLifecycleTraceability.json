@@ -30,13 +30,11 @@
           "action": {
             "actionKey": "PREPARE_OG_LFC_TRACEABILITY",
             "behavior": "BLOCKING",
-            "in": [
+            "out": [
               {
                 "name": "lastOperation.file",
                 "uri": "WORKSPACE:lastOperation.json"
-              }
-            ],
-            "out": [
+              },
               {
                 "name": "traceabilityInformation.file",
                 "uri": "MEMORY:traceabilityInformation.json"
