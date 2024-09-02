@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -400,5 +401,10 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
     ) {
         // do nothing
+    }
+
+    @Override
+    public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType) {
+        throw new IllegalArgumentException("Stop mocking in production ");
     }
 }
