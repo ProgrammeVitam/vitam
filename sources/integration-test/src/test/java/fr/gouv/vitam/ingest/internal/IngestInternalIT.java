@@ -575,7 +575,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             );
 
             assertThat(updateResponse.isOk()).isFalse();
-            assertThat(((VitamError) updateResponse).getDescription()).contains("Archive Unit Profile not found");
+            assertThat(((VitamError) updateResponse).getMessage()).contains("Archive Unit Profile not found");
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate = (RequestResponseOK<

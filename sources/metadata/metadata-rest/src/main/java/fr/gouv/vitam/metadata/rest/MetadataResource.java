@@ -33,12 +33,14 @@ import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.ArrayListScrollSpliterator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -71,13 +73,16 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
+import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import io.prometheus.client.Histogram;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.elasticsearch.ElasticsearchParseException;
 
@@ -97,7 +102,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
@@ -123,6 +131,7 @@ public class MetadataResource extends ApplicationStatusResource {
     private static final String ACCESS = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
 
+    private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     private final MetaDataImpl metaData;
     private final MetadataRuleService metadataRuleService;
     private final MetaDataConfiguration configuration;
@@ -229,9 +238,23 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     public Response updateUnitBulk(JsonNode updateQuery) {
         Status status;
-        RequestResponse<UpdateUnit> result;
+        RequestResponse<UpdateUnit> resultResponse;
         try {
-            result = metaData.updateUnits(updateQuery, true);
+            final UpdateParserMultiple requestParserMultiple = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
+            requestParserMultiple.parse(updateQuery);
+            Set<String> unitIds = requestParserMultiple.getRequest().getRoots();
+            List<RequestById> requestByIds = unitIds
+                .stream()
+                .map(unitId -> new RequestById(unitId, requestParserMultiple))
+                .collect(Collectors.toList());
+
+            List<UpdateUnit> updatedUnitResult = metaData.updateUnits(
+                requestByIds,
+                true,
+                configuration.getRefreshElasticIndexPostBulkIndexing()
+            );
+
+            resultResponse = new RequestResponseOK<UpdateUnit>(updateQuery).addAllResults(updatedUnitResult);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
@@ -246,7 +269,7 @@ public class MetadataResource extends ApplicationStatusResource {
                 )
                 .build();
         }
-        return Response.status(OK).entity(result).build();
+        return Response.status(OK).entity(resultResponse).build();
     }
 
     /**
@@ -260,30 +283,95 @@ public class MetadataResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     public Response atomicUpdateBulk(List<JsonNode> updateQueries) {
-        final List<RequestResponse<UpdateUnit>> results = new ArrayList<>();
-        updateQueries.forEach(updateQuery -> {
-            try {
-                results.add(metaData.updateUnits(updateQuery, false).setHttpCode(OK.getStatusCode()));
-            } catch (InvalidParseOperationException e) {
-                Status status = Status.BAD_REQUEST;
-                results.add(
-                    new VitamError<UpdateUnit>(status.name())
+        final List<RequestResponse<UpdateUnit>> updateUnitResponses = new ArrayList<>();
+        Map<Integer, RequestResponse<UpdateUnit>> invalidRequestIndexMap = new HashMap<>();
+        try {
+            List<RequestById> bulkRequests = new ArrayList<>();
+            int queryIndex = -1;
+            for (JsonNode updateQuery : updateQueries) {
+                queryIndex++;
+                //In the case of some request has parsing error, we continue executing only correct requests, without partial failed status
+                try {
+                    bulkRequests.addAll(prepareBulkQueries(updateQuery));
+                } catch (InvalidParseOperationException e) {
+                    Status status = Status.BAD_REQUEST;
+                    RequestResponse<UpdateUnit> error = new VitamError<UpdateUnit>(status.name())
                         .setHttpCode(status.getStatusCode())
                         .setContext(ACCESS)
                         .setState(CODE_VITAM)
                         .setMessage(status.getReasonPhrase())
-                        .setDescription(e.getMessage())
-                );
-            }
-        });
+                        .setDescription(e.getMessage());
 
+                    invalidRequestIndexMap.put(queryIndex, error);
+                }
+            }
+            List<UpdateUnit> successCallUpdateUnits = metaData.updateUnits(
+                bulkRequests,
+                false,
+                configuration.getRefreshElasticIndexPostBulkIndexing()
+            );
+
+            makeResponsesAsSameOrderAsCalls(
+                updateQueries,
+                invalidRequestIndexMap,
+                updateUnitResponses,
+                successCallUpdateUnits
+            );
+        } catch (InvalidParseOperationException e) {
+            Status status = Status.BAD_REQUEST;
+            updateUnitResponses.add(
+                new VitamError<UpdateUnit>(status.name())
+                    .setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage())
+            );
+        }
         RequestResponseOK<RequestResponse<UpdateUnit>> updateRequestResponse = new RequestResponseOK<
             RequestResponse<UpdateUnit>
         >()
-            .addAllResults(results)
+            .addAllResults(updateUnitResponses)
             .setHttpCode(OK.getStatusCode());
 
         return Response.status(OK).entity(updateRequestResponse).build();
+    }
+
+    private void makeResponsesAsSameOrderAsCalls(
+        List<JsonNode> updateQueries,
+        Map<Integer, RequestResponse<UpdateUnit>> invalidRequestIndexMap,
+        List<RequestResponse<UpdateUnit>> updateUnitResponses,
+        List<UpdateUnit> successCallUpdateUnits
+    ) {
+        int okResponseIndex = 0;
+        for (int index = 0; index < updateQueries.size(); index++) {
+            if (invalidRequestIndexMap.containsKey(index)) {
+                updateUnitResponses.add(invalidRequestIndexMap.get(index));
+            } else {
+                updateUnitResponses.add(
+                    new RequestResponseOK()
+                        .setHttpCode(OK.getStatusCode())
+                        .addResult(successCallUpdateUnits.get(okResponseIndex++))
+                );
+            }
+        }
+    }
+
+    private List<RequestById> prepareBulkQueries(JsonNode updateQuery) throws InvalidParseOperationException {
+        List<RequestById> bulkRequests = new ArrayList<>();
+        final UpdateParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
+        updateRequest.parse(updateQuery);
+        final RequestMultiple request = updateRequest.getRequest();
+        Set<String> unitIds = request.getRoots();
+        if (CollectionUtils.size(unitIds) != 1) {
+            throw new InvalidParseOperationException(
+                "Request with roots different to 1, found %s" + updateQuery.toString()
+            );
+        }
+        for (String documentId : unitIds) {
+            bulkRequests.add(new RequestById(documentId, updateRequest));
+        }
+        return bulkRequests;
     }
 
     /**
@@ -600,7 +688,8 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response updateUnitById(JsonNode updateRequest, @PathParam("id_unit") String unitId) {
         Status status;
         try {
-            UpdateUnit result = metaData.updateUnitById(updateRequest, unitId, true);
+            boolean withRefreshIndex = true;
+            UpdateUnit result = metaData.updateUnitById(updateRequest, unitId, true, withRefreshIndex);
 
             return Response.ok(
                 new RequestResponseOK<UpdateUnit>().addResult(result).setHttpCode(Status.OK.getStatusCode())
@@ -913,7 +1002,8 @@ public class MetadataResource extends ApplicationStatusResource {
                 .build();
         }
         try {
-            metaData.updateObjectGroupId(updateRequest, objectGroupId, true);
+            boolean withRefreshIndex = true;
+            metaData.updateObjectGroupId(updateRequest, objectGroupId, true, withRefreshIndex);
 
             return Response.status(Status.CREATED)
                 .entity(

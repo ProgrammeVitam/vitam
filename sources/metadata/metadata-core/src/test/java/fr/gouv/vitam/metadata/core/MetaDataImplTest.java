@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
@@ -72,6 +73,7 @@ import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
+import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
@@ -93,6 +95,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
@@ -276,22 +279,24 @@ public class MetaDataImplTest {
         when(
             request.execUpdateRequest(
                 any(),
-                eq("unitId"),
                 eq(MetadataCollections.UNIT),
                 any(OntologyValidator.class),
                 any(UnitValidator.class),
                 anyList(),
+                anyBoolean(),
                 anyBoolean()
             )
         ).thenReturn(
-            new UpdatedDocument(
-                "unitId",
-                JsonHandler.createObjectNode().put("x", "v1"),
-                JsonHandler.createObjectNode().put("x", "v2"),
-                true
+            List.of(
+                new UpdatedDocument(
+                    "unitId",
+                    JsonHandler.createObjectNode().put("x", "v1"),
+                    JsonHandler.createObjectNode().put("x", "v2"),
+                    true
+                )
             )
         );
-        UpdateUnit result = metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
+        UpdateUnit result = metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true, false);
         assertThat(result.getUnitId()).isEqualTo("unitId");
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
         assertThat(result.getDiff()).isEqualTo("-  \"x\" : \"v1\"\n+  \"x\" : \"v2\"");
@@ -332,7 +337,7 @@ public class MetaDataImplTest {
         when(adminManagementClient.findOntologies(any())).thenReturn(
             new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels)
         );
-        metaDataImpl.updateUnitById(JsonHandler.getFromString(""), "unitId", true);
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(""), "unitId", true, false);
     }
 
     @Test(expected = MetaDataExecutionException.class)
@@ -355,15 +360,15 @@ public class MetaDataImplTest {
         when(
             request.execUpdateRequest(
                 any(),
-                eq("unitId"),
                 eq(MetadataCollections.UNIT),
                 any(OntologyValidator.class),
                 any(UnitValidator.class),
                 anyList(),
+                anyBoolean(),
                 anyBoolean()
             )
         ).thenThrow(new MetaDataExecutionException(""));
-        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true, false);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -371,7 +376,7 @@ public class MetaDataImplTest {
         final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
-            metaDataImpl.updateUnitById(JsonHandler.getFromString(createLongString(1001)), "unitId", true);
+            metaDataImpl.updateUnitById(JsonHandler.getFromString(createLongString(1001)), "unitId", true, false);
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
@@ -397,15 +402,15 @@ public class MetaDataImplTest {
         when(
             request.execUpdateRequest(
                 any(),
-                eq("unitId"),
                 eq(MetadataCollections.UNIT),
                 any(OntologyValidator.class),
                 any(UnitValidator.class),
                 anyList(),
+                anyBoolean(),
                 anyBoolean()
             )
         ).thenThrow(new InvalidParseOperationException(""));
-        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true);
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId", true, false);
     }
 
     @Test
@@ -479,18 +484,20 @@ public class MetaDataImplTest {
         when(
             request.execUpdateRequest(
                 any(),
-                eq("unitId"),
                 eq(MetadataCollections.UNIT),
                 any(OntologyValidator.class),
                 any(UnitValidator.class),
                 anyList(),
+                anyBoolean(),
                 anyBoolean()
             )
         ).thenReturn(
-            new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit), true)
+            List.of(
+                new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit), true)
+            )
         );
 
-        UpdateUnit result = metaDataImpl.updateUnitById(updateRequest, "unitId", true);
+        UpdateUnit result = metaDataImpl.updateUnitById(updateRequest, "unitId", true, false);
 
         assertEquals(wantedDiff.get("#diff").asText(), result.getDiff());
     }
@@ -523,27 +530,44 @@ public class MetaDataImplTest {
         when(
             request.execUpdateRequest(
                 any(),
-                any(),
                 eq(MetadataCollections.UNIT),
                 any(OntologyValidator.class),
                 any(UnitValidator.class),
                 anyList(),
+                anyBoolean(),
                 anyBoolean()
             )
         ).thenReturn(
-            new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After), true),
-            new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After), true)
+            List.of(
+                new UpdatedDocument(
+                    "unitId1",
+                    JsonHandler.toJsonNode(unit1Before),
+                    JsonHandler.toJsonNode(unit1After),
+                    true
+                ),
+                new UpdatedDocument(
+                    "unitId2",
+                    JsonHandler.toJsonNode(unit2Before),
+                    JsonHandler.toJsonNode(unit2After),
+                    true
+                )
+            )
         );
 
         // When
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateUnits.json"));
-        RequestResponseOK<UpdateUnit> requestResponse = (RequestResponseOK<UpdateUnit>) metaDataImpl.updateUnits(
-            updateRequest,
-            true
-        );
+        final RequestParserMultiple parser = RequestParserHelper.getParser(updateRequest);
+        final List<RequestById> requestByIds = parser
+            .getRequest()
+            .getRoots()
+            .stream()
+            .map(rootElt -> new RequestById(rootElt, parser))
+            .collect(Collectors.toList());
+
+        List<UpdateUnit> responseElts = metaDataImpl.updateUnits(requestByIds, true, false);
 
         // Then
-        assertThat(requestResponse.getResults().stream())
+        assertThat(responseElts.stream())
             .extracting(
                 UpdateUnit::getUnitId,
                 UpdateUnit::getKey,

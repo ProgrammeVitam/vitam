@@ -381,7 +381,7 @@ public class ElasticsearchAccessTest {
             new ElasticsearchIndexSettings(2, 1, () -> mapping)
         );
 
-        elasticsearchAccess.indexEntries(myalias, documents.values());
+        elasticsearchAccess.indexEntries(myalias, documents.values(), true);
 
         return documents;
     }

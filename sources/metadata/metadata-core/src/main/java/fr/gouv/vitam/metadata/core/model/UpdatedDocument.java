@@ -28,12 +28,21 @@ package fr.gouv.vitam.metadata.core.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.metadata.core.validation.MetadataValidationErrorCode;
 
 public class UpdatedDocument {
 
+    public enum UpdatedDocumentStatus {
+        SUCCESS,
+        FAILED,
+    }
+
     private String documentId;
+    private UpdatedDocumentStatus status;
     private JsonNode beforeUpdate;
     private JsonNode afterUpdate;
+    private String failureMessage;
+    private MetadataValidationErrorCode validationErrorCode;
     private boolean updated;
 
     public UpdatedDocument() {
@@ -45,14 +54,56 @@ public class UpdatedDocument {
         this.beforeUpdate = beforeUpdate;
         this.afterUpdate = afterUpdate;
         this.updated = updated;
+        this.status = UpdatedDocumentStatus.SUCCESS;
+    }
+
+    public UpdatedDocument(
+        String documentId,
+        JsonNode beforeUpdate,
+        JsonNode afterUpdate,
+        boolean updated,
+        MetadataValidationErrorCode validationErrorCode,
+        String failureMessage
+    ) {
+        this(documentId, beforeUpdate, afterUpdate, updated);
+        this.validationErrorCode = validationErrorCode;
+        this.status = UpdatedDocumentStatus.FAILED;
+        this.failureMessage = failureMessage;
     }
 
     public String getDocumentId() {
         return documentId;
     }
 
+    public UpdatedDocumentStatus getStatus() {
+        return status;
+    }
+
+    public String getFailureMessage() {
+        return failureMessage;
+    }
+
+    public MetadataValidationErrorCode getValidationErrorCode() {
+        return validationErrorCode;
+    }
+
     public UpdatedDocument setDocumentId(String documentId) {
         this.documentId = documentId;
+        return this;
+    }
+
+    public UpdatedDocument setDocumentId(MetadataValidationErrorCode validationErrorCode) {
+        this.validationErrorCode = validationErrorCode;
+        return this;
+    }
+
+    public UpdatedDocument setFailureMessage(String failureMessage) {
+        this.failureMessage = failureMessage;
+        return this;
+    }
+
+    public UpdatedDocument setStatus(UpdatedDocumentStatus status) {
+        this.status = status;
         return this;
     }
 

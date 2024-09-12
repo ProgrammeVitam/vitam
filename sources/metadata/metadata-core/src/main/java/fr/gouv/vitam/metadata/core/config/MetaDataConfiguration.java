@@ -95,6 +95,9 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     @JsonProperty("mongodShardsConf")
     private MongoDbShardConf mongodShardsConf;
 
+    @JsonProperty("refreshElasticIndexPostBulkIndexing")
+    private Boolean refreshElasticIndexPostBulkIndexing;
+
     /**
      * MetaDataConfiguration constructor
      *
@@ -411,5 +414,13 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setPersistentIdentifierReconstructionBulkSize(int persistentIdentifierReconstructionBulkSize) {
         this.persistentIdentifierReconstructionBulkSize = persistentIdentifierReconstructionBulkSize;
+    }
+
+    public boolean getRefreshElasticIndexPostBulkIndexing() {
+        return refreshElasticIndexPostBulkIndexing != null && refreshElasticIndexPostBulkIndexing;
+    }
+
+    public void setRefreshElasticIndexPostBulkIndexing(Boolean refreshElasticIndexPostBulkIndexing) {
+        this.refreshElasticIndexPostBulkIndexing = refreshElasticIndexPostBulkIndexing;
     }
 }
