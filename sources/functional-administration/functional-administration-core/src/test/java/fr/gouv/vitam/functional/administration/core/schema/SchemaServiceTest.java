@@ -403,6 +403,21 @@ public class SchemaServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void checkAndDeleteExternalSchemaElementsByPaths_internal() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+
+        setUpMockedFindDocumentsResponse("schema/external-schema-to-delete-ok.json");
+
+        List<String> pathsToDelete = List.of("Invoice.Provider.BirthDate", "OriginatingSystemId");
+
+        assertThrows(
+            BadRequestException.class,
+            () -> schemaService.checkAndDeleteExternalSchemaElementsByPaths(pathsToDelete, true)
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void checkAndDeleteExternalSchemaElementsByPaths_nonExistingPaths() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
 

@@ -493,9 +493,13 @@ public class SchemaService {
     }
 
     public void checkAndDeleteExternalSchemaElementsByPaths(List<String> pathsToDelete, boolean includeAllTenant)
-        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException, BadRequestException {
-        List<String> nonExistingPaths = getNonExistingPaths(pathsToDelete);
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException, BadRequestException, IOException {
+        List<String> internalPaths = getInternalPaths(pathsToDelete);
+        if (!internalPaths.isEmpty()) {
+            throw new BadRequestException("Some paths cannot be deleted because they are internal: " + internalPaths);
+        }
 
+        List<String> nonExistingPaths = getNonExistingPaths(pathsToDelete);
         if (!nonExistingPaths.isEmpty()) {
             throw new BadRequestException(
                 "Some paths cannot be deleted because they do not exist: " + nonExistingPaths
@@ -530,6 +534,23 @@ public class SchemaService {
             LOGGER.debug("All selected paths are deletable.");
             deleteExternalSchemaElementsByPaths(pathsToDelete);
         }
+    }
+
+    private List<String> getInternalPaths(List<String> pathsToDelete)
+        throws ReferentialException, IOException, InvalidParseOperationException {
+        final List<SchemaResponse> unitInternalSchema = loadUnitInternalSchema();
+
+        List<String> internalPaths = unitInternalSchema
+            .stream()
+            .map(SchemaResponse::getPath)
+            .collect(Collectors.toList());
+
+        List<String> internalPathsToDelete = pathsToDelete
+            .stream()
+            .filter(internalPaths::contains)
+            .collect(Collectors.toList());
+
+        return internalPathsToDelete;
     }
 
     private List<String> getNonExistingPaths(List<String> pathsToDelete)
