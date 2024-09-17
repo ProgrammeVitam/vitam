@@ -14,8 +14,8 @@ else
     exit 1
 fi
 
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d
+echo "docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d"
+docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d
 
 echo "Waiting for ES container to start"
 sleep 5
@@ -39,13 +39,13 @@ done
 
 echo "Configuring swift container"
 cd $DOCKER_COMPOSE_DIRNAME
-docker-compose exec swift "swift/bin/register-swift-endpoint.sh" http://127.0.0.1:8080
+docker compose exec swift "swift/bin/register-swift-endpoint.sh" http://127.0.0.1:8080
 cd -
 
 echo "Tail docker logs..."
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up logs -f --tail=all"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml logs -f --tail=all
+echo "docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up logs -f --tail=all"
+docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml logs -f --tail=all
 
-echo "Stopping docker-compose..."
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down -v"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down -v
+echo "Stopping docker compose..."
+echo "docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down -v"
+docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down -v
