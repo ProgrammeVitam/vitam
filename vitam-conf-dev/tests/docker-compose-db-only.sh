@@ -1,8 +1,8 @@
 #!/bin/bash
 DOCKER_COMPOSE_DIRNAME="$(dirname ${BASH_SOURCE[0]})"
 
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d mongo elasticsearch"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d mongo elasticsearch
+echo "docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d mongo elasticsearch"
+docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up -d mongo elasticsearch
 
 echo "Waiting for ES container to start"
 sleep 5
@@ -17,9 +17,9 @@ curl -XPUT -H "Content-Type: application/json" http://localhost:9200/_cluster/se
 echo ""
 
 echo "Tail docker logs..."
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up logs -f --tail=all"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml logs -f --tail=all
+echo "docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up logs -f --tail=all"
+docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml logs -f --tail=all
 
-echo "Stopping docker-compose..."
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down
+echo "Stopping docker compose..."
+echo "docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down"
+docker compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down
