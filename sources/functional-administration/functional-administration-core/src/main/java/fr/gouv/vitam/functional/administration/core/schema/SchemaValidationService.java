@@ -498,16 +498,16 @@ public class SchemaValidationService {
         }
     }
 
-    public void startLogBook(GUID importExternalSchemaOpId, String eventType)
+    public void startLogBook(GUID operationGuid, String eventType)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            importExternalSchemaOpId,
+            operationGuid,
             eventType,
-            importExternalSchemaOpId,
+            operationGuid,
             LogbookTypeProcess.MASTERDATA,
             StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED),
-            importExternalSchemaOpId
+            operationGuid
         );
 
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
@@ -515,18 +515,17 @@ public class SchemaValidationService {
         }
     }
 
-    public void logError(GUID importExternalSchemaOpId, String eventType, String objectId, String errorsDetails)
+    public void logError(GUID operationGuid, String eventType, String objectId, String errorsDetails)
         throws VitamException {
-        LOGGER.error("Validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
             eipId,
             eventType,
-            importExternalSchemaOpId,
+            operationGuid,
             LogbookTypeProcess.MASTERDATA,
             StatusCode.KO,
             VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO),
-            importExternalSchemaOpId
+            operationGuid
         );
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
@@ -535,16 +534,16 @@ public class SchemaValidationService {
         }
     }
 
-    public void logSuccessLogBook(GUID importExternalSchemaOpId, String eventType) throws VitamException {
+    public void logSuccessLogBook(GUID operationGuid, String eventType) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
             eipId,
             eventType,
-            importExternalSchemaOpId,
+            operationGuid,
             LogbookTypeProcess.MASTERDATA,
             StatusCode.OK,
             VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK),
-            importExternalSchemaOpId
+            operationGuid
         );
 
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
