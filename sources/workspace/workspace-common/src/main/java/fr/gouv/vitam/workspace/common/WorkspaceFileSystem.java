@@ -510,15 +510,11 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
 
         if (!isExistingContainer(containerName)) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName
             );
         }
         if (!isExistingObject(containerName, objectName)) {
-            LOGGER.error(
-                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'"
-            );
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName
             );
