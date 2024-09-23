@@ -109,6 +109,8 @@ public class SchemaService {
     private static final String SCHEMA_REPORT = "SCHEMA_REPORT";
     static final String BACKUP_SCHEMA_EVENT = "BACKUP_SCHEMA";
 
+    public static final String DELETE_SCHEMA_EVENT = "DELETE_EXTERNAL_SCHEMA";
+
     public static final String VITAM_UNIT_INTERNAL_SCHEMA_JSON = "vitam-unit-internal-schema.json";
     public static final String VITAM_OBJECT_GROUP_INTERNAL_SCHEMA_JSON = "vitam-object-group-internal-schema.json";
 
@@ -291,10 +293,12 @@ public class SchemaService {
                 );
                 backupReport(schemaImportReport, importExternalSchemaOpId);
             }
-            schemaValidationService.logError(importExternalSchemaOpId, SCHEMA_IMPORT_EVENT, null, e.getMessage());
+            String errorDetails = e.getMessage();
+            LOGGER.error("Validation errors on the input file {}", errorDetails);
+            schemaValidationService.logError(importExternalSchemaOpId, SCHEMA_IMPORT_EVENT, null, errorDetails);
             return SchemaCommonService.getVitamError(
                 VitamCode.SCHEMA_CHECK_ERROR.getItem(),
-                "Error importing schema : " + e.getMessage(),
+                "Error importing schema : " + errorDetails,
                 StatusCode.KO
             ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         }
@@ -493,46 +497,67 @@ public class SchemaService {
     }
 
     public void checkAndDeleteExternalSchemaElementsByPaths(List<String> pathsToDelete, boolean includeAllTenant)
-        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException, BadRequestException, IOException {
-        List<String> internalPaths = getInternalPaths(pathsToDelete);
-        if (!internalPaths.isEmpty()) {
-            throw new BadRequestException("Some paths cannot be deleted because they are internal: " + internalPaths);
-        }
+        throws InvalidCreateOperationException, IOException, VitamException {
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+        GUID deleteExternalSchemaOpId = GUIDReader.getGUID(operationId);
 
-        List<String> nonExistingPaths = getNonExistingPaths(pathsToDelete);
-        if (!nonExistingPaths.isEmpty()) {
-            throw new BadRequestException(
-                "Some paths cannot be deleted because they do not exist: " + nonExistingPaths
+        try {
+            /* Start logbook entry */
+            schemaValidationService.startLogBook(deleteExternalSchemaOpId, DELETE_SCHEMA_EVENT);
+
+            List<String> internalPaths = getInternalPaths(pathsToDelete);
+            if (!internalPaths.isEmpty()) {
+                throw new BadRequestException(
+                    "Some paths cannot be deleted because they are internal: " + internalPaths
+                );
+            }
+
+            List<String> nonExistingPaths = getNonExistingPaths(pathsToDelete);
+            if (!nonExistingPaths.isEmpty()) {
+                throw new BadRequestException(
+                    "Some paths cannot be deleted because they do not exist: " + nonExistingPaths
+                );
+            }
+
+            final List<SchemaModel> unitExternalSchemas = loadCurrentExternalSchema(
+                includeAllTenant ? ALL_TENANTS : CURRENT_TENANT
             );
-        }
 
-        final List<SchemaModel> unitExternalSchemas = loadCurrentExternalSchema(
-            includeAllTenant ? ALL_TENANTS : CURRENT_TENANT
-        );
+            List<String> existingPaths = unitExternalSchemas
+                .stream()
+                .map(SchemaModel::getPath)
+                .collect(Collectors.toList());
 
-        List<String> existingPaths = unitExternalSchemas
-            .stream()
-            .map(SchemaModel::getPath)
-            .collect(Collectors.toList());
+            List<String> nonDeletablePaths = pathsToDelete
+                .stream()
+                .filter(
+                    pathToDelete ->
+                        existingPaths
+                            .stream()
+                            .anyMatch(
+                                existingPath ->
+                                    existingPath.startsWith(pathToDelete) && !pathsToDelete.contains(existingPath)
+                            )
+                )
+                .collect(Collectors.toList());
 
-        List<String> nonDeletablePaths = pathsToDelete
-            .stream()
-            .filter(
-                pathToDelete ->
-                    existingPaths
-                        .stream()
-                        .anyMatch(
-                            existingPath ->
-                                existingPath.startsWith(pathToDelete) && !pathsToDelete.contains(existingPath)
-                        )
-            )
-            .collect(Collectors.toList());
+            if (!nonDeletablePaths.isEmpty()) {
+                throw new BadRequestException(
+                    "Some paths cannot be deleted because they are referenced by other schemas:"
+                );
+            } else {
+                LOGGER.debug("All selected paths are deletable.");
+                deleteExternalSchemaElementsByPaths(pathsToDelete);
+            }
 
-        if (!nonDeletablePaths.isEmpty()) {
-            throw new BadRequestException("Some paths cannot be deleted because they are referenced by other schemas:");
-        } else {
-            LOGGER.debug("All selected paths are deletable.");
-            deleteExternalSchemaElementsByPaths(pathsToDelete);
+            /* Mark deletion as successful */
+            schemaValidationService.logSuccessLogBook(deleteExternalSchemaOpId, DELETE_SCHEMA_EVENT);
+        } catch (Exception e) {
+            /* Mark deletion as failed */
+            String errorDetails = e.getMessage();
+            LOGGER.error("Unable to perform delete: {}", errorDetails);
+            schemaValidationService.logError(deleteExternalSchemaOpId, DELETE_SCHEMA_EVENT, null, errorDetails);
+            throw e;
         }
     }
 
