@@ -105,7 +105,7 @@ elasticsearch.hosts: ["http://{{ elasticsearch_host }}:{{ elasticsearch_port }}"
 #elasticsearch.logQueries: false
 
 # Specifies the path where Kibana creates the process ID file.
-#pid.file: /run/kibana/kibana.pid
+pid.file: /run/kibana/kibana.pid
 
 # Enables you to specify a file where Kibana stores log output.
 logging.dest: "{{ vitam_defaults.folder.root_path }}/log/kibana/kibana.log"
