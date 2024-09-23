@@ -951,7 +951,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
+            LOGGER.warn(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
