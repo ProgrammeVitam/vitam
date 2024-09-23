@@ -1,0 +1,10 @@
+[
+  {
+    "Identifier": "PROFILE WITH SPACES IN IDENTIFIER",
+    "Name": "PROFILE_WITH_SPACES_IN_IDENTIFIER",
+    "Description": "aDescription of the Profile",
+    "Status": "ACTIVE",
+    "Format": "RNG",
+    "SedaVersion": "2.1"
+  }
+]

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rng:grammar datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" ns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <rng:start>
+        <rng:element name="ArchiveTransfer">
+            <rng:zeroOrMore>
+                <rng:attribute>
+                    <rng:anyName>
+                        <rng:except>
+                            <rng:nsName/>
+                            <rng:nsName ns=""/>
+                        </rng:except>
+                    </rng:anyName>
+                </rng:attribute>
+            </rng:zeroOrMore>
+            <rng:optional>
+                <rng:attribute name="id">
+                    <rng:data type="ID"/>
+                </rng:attribute>
+            </rng:optional>
+            <rng:element name="Date">
+                <rng:data type="token"/>
+            </rng:element>
+            <rng:element name="MessageIdentifier">
+                <rng:data type="token"/>
+            </rng:element>
+            <rng:element name="CodeListVersions">
+                <rng:data type="string"/>
+            </rng:element>
+            <rng:element name="DataObjectPackage">
+                <rng:optional>
+                    <rng:attribute name="xml:id">
+                        <rng:data type="ID"/>
+                    </rng:attribute>
+                </rng:optional>
+                <rng:element name="DataObjectGroup">
+                    <rng:attribute name="id">
+                        <rng:data type="ID"/>
+                    </rng:attribute>
+                    <rng:zeroOrMore>
+                        <rng:element name="BinaryDataObject">
+                            <rng:attribute name="id">
+                                <rng:data type="ID"/>
+                            </rng:attribute>
+                            <rng:optional>
+                                <rng:element name="DataObjectVersion">
+                                    <xsd:annotation>
+                                        <xsd:documentation>BinaryMaster par défaut</xsd:documentation>
+                                    </xsd:annotation>
+                                    <rng:data type="token"/>
+                                </rng:element>
+                            </rng:optional>
+                            <rng:optional>
+                                <rng:element name="Uri">
+                                    <rng:data type="anyURI"/>
+                                </rng:element>
+                            </rng:optional>
+                            <rng:element name="MessageDigest">
+                                <rng:data type="base64Binary"/>
+                                <rng:attribute name="algorithm">
+                                    <rng:data type="token"/>
+                                </rng:attribute>
+                            </rng:element>
+                        </rng:element>
+                    </rng:zeroOrMore>
+                </rng:element>
+                <rng:element name="DescriptiveMetadata">
+                    <rng:zeroOrMore>
+                        <rng:element name="ArchiveUnit">
+                            <rng:attribute name="id">
+                                <rng:data type="ID"/>
+                            </rng:attribute>
+                            <rng:element name="Content">
+                                <rng:optional>
+                                    <rng:element name="DescriptionLevel">
+                                        <rng:data type="token"/>
+                                    </rng:element>
+                                </rng:optional>
+                                <rng:optional>
+                                    <rng:element name="Title">
+                                        <rng:data type="string"/>
+                                    </rng:element>
+                                </rng:optional>
+                            </rng:element>
+                        </rng:element>
+                    </rng:zeroOrMore>
+                </rng:element>
+                <rng:element name="ManagementMetadata">
+                    <rng:optional>
+                        <rng:element name="OriginatingAgencyIdentifier">
+                            <rng:data type="token"/>
+                        </rng:element>
+                    </rng:optional>
+                    <rng:optional>
+                        <rng:element name="SubmissionAgencyIdentifier">
+                            <rng:data type="token"/>
+                        </rng:element>
+                    </rng:optional>
+                </rng:element>
+            </rng:element>
+            <rng:element name="ArchivalAgency">
+                <rng:element name="Identifier">
+                    <rng:data type="string"/>
+                </rng:element>
+            </rng:element>
+            <rng:element name="TransferringAgency">
+                <rng:element name="Identifier">
+                    <rng:data type="string"/>
+                </rng:element>
+            </rng:element>
+        </rng:element>
+    </rng:start>
+</rng:grammar>

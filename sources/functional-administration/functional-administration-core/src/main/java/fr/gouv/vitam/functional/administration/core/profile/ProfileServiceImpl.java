@@ -389,7 +389,7 @@ public class ProfileServiceImpl implements ProfileService {
             final String fileName = String.format(
                 "%d_profile_%s_%s.%s",
                 tenantId,
-                profileMetadata.getIdentifier(),
+                profileMetadata.getId(),
                 now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")),
                 extension
             );
