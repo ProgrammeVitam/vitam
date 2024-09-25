@@ -163,6 +163,7 @@ public class CreateManifest extends ActionHandler {
     /**
      * constructor use for plugin instantiation
      */
+    @SuppressWarnings("unused")
     public CreateManifest() {
         this(MetaDataClientFactory.getInstance());
     }

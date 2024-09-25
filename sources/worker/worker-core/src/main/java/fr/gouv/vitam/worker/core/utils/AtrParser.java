@@ -1,0 +1,90 @@
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
+
+package fr.gouv.vitam.worker.core.utils;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveDeliveryRequestReplyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import org.apache.xerces.util.XMLCatalogResolver;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import java.net.URL;
+import java.util.Objects;
+
+import static fr.gouv.vitam.common.utils.SupportedSedaVersions.GENERIC_VITAM_VALIDATOR;
+import static fr.gouv.vitam.common.xml.ValidationXsdUtils.CATALOG_FILENAME;
+import static fr.gouv.vitam.common.xml.ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1;
+
+public class AtrParser {
+
+    private static final JAXBContext jaxbContext;
+    private static final URL SEDA_XSD_URL = Objects.requireNonNull(
+        ValidationXsdUtils.class.getClassLoader().getResource(GENERIC_VITAM_VALIDATOR)
+    );
+    private static final URL CATALOG_URL = Objects.requireNonNull(
+        ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME)
+    );
+
+    static {
+        try {
+            jaxbContext = JAXBContext.newInstance(ArchiveTransferReplyType.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public ArchiveTransferReplyType parseArchiveTransferReply(XMLStreamReader xmlStreamReader)
+        throws JAXBException, SAXException {
+        Unmarshaller unmarshaller = AtrParser.createUnmarshaller();
+        return unmarshaller.unmarshal(xmlStreamReader, ArchiveTransferReplyType.class).getValue();
+    }
+
+    public ArchiveDeliveryRequestReplyType parseArchiveDeliveryRequestReply(XMLStreamReader xmlStreamReader)
+        throws JAXBException, SAXException {
+        Unmarshaller unmarshaller = AtrParser.createUnmarshaller();
+        return unmarshaller.unmarshal(xmlStreamReader, ArchiveDeliveryRequestReplyType.class).getValue();
+    }
+
+    private static Unmarshaller createUnmarshaller() throws JAXBException, SAXException {
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        unmarshaller.setSchema(getSchema());
+        return unmarshaller;
+    }
+
+    private static Schema getSchema() throws SAXException {
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
+        schemaFactory.setResourceResolver(new XMLCatalogResolver(new String[] { CATALOG_URL.toString() }, false));
+        return schemaFactory.newSchema(SEDA_XSD_URL);
+    }
+}
