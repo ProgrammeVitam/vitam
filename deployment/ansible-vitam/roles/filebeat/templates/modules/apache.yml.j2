@@ -1,3 +1,4 @@
+#jinja2: lstrip_blocks: True
 # Module: apache
 # Docs: https://www.elastic.co/guide/en/beats/filebeat/7.17/filebeat-module-apache.html
 
@@ -21,6 +22,16 @@
             target_prefix: ""
         - drop_fields:
             fields: ["date_time"]
+{% if filebeat.disable_health_checks | default(true) | bool %}
+        # Drop Blackbox health checks
+        - drop_event:
+            when:
+              and:
+                - equals:
+                    http_status_code: 200
+                - regexp:
+                    user_agent: "^Blackbox.*"
+{% endif %}
 
   # Error logs
   error:

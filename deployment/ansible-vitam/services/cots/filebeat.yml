@@ -1,6 +1,6 @@
 ---
 
-- hosts: hosts
+- hosts: vitam
   any_errors_fatal: true
   roles:
     - filebeat
