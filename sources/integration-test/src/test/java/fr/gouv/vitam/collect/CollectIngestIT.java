@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -88,6 +89,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -162,6 +164,13 @@ public class CollectIngestIT extends VitamRuleRunner {
         runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        handleAfterClass();
+        runAfter();
+        VitamClientFactory.resetConnections();
     }
 
     @Test
