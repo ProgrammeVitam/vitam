@@ -165,7 +165,6 @@ prometheus:
         targets:
             ## List all the targeted URLs that must be controled with blackbox
             - "{{ vitam_reverse_external_protocol | default('https') }}://{{ vitam_reverse_external_dns }}:{{ reverse_proxy_port | default(443) }},reverse"
-
     mongodb_exporter:
         enabled: true
         port_mongoc: 9216
