@@ -11,7 +11,6 @@
   delay: "{{ packages_install_retries_delay | default(10) }}"
 
 #### mongoc ####
-
 - name: Deploy systemd service file for vitam-mongoc-exporter
   template:
     src: vitam-mongoc-exporter.service.j2
@@ -23,7 +22,6 @@
   when: inventory_hostname in groups['hosts_mongoc_data'] or inventory_hostname in groups['hosts_mongoc_offer']
 
 #### mongod ####
-
 - name: Deploy systemd service file for vitam-mongod-exporter
   template:
     src: vitam-mongod-exporter.service.j2
@@ -62,10 +60,8 @@
 
 # Ensure that the installation is complete
 - meta: flush_handlers
-  tags:
-    - update_mongodb_exporter_configuration
-#### mongoc ####
 
+#### mongoc ####
 - name: Ensure vitam-mongoc-exporter service is started
   service:
     name: vitam-mongoc-exporter
@@ -74,7 +70,6 @@
   when: inventory_hostname in groups['hosts_mongoc_data'] or inventory_hostname in groups['hosts_mongoc_offer']
 
 #### mongod ####
-
 - name: Ensure vitam-mongod-exporter service is started
   service:
     name: vitam-mongod-exporter
@@ -83,8 +78,7 @@
   when: inventory_hostname in groups['hosts_mongod_data'] or inventory_hostname in groups['hosts_mongod_offer']
 
 #### mongoc ####
-
-- name: Wait for mongodb_exporter port {{ prometheus.mongoc_exporter.port | default(9216) }} to be open
+- name: Wait for mongodb_exporter port {{ prometheus.mongodb_exporter.port_mongoc | default(9216) }} to be open
   wait_for:
     host: "{{ ip_admin }}"
     port: "{{ prometheus.mongodb_exporter.port_mongoc | default(9216) }}"
@@ -93,11 +87,10 @@
   when: inventory_hostname in groups['hosts_mongoc_data'] or inventory_hostname in groups['hosts_mongoc_offer']
 
 #### mongod ####
-
-- name: Wait for mongodb_exporter port {{ prometheus.mongod_exporter.port | default(9217) }} to be open
+- name: Wait for mongodb_exporter port {{ prometheus.mongodb_exporter.port_mongoc | default(9217) }} to be open
   wait_for:
     host: "{{ ip_admin }}"
-    port: "{{ prometheus.mongodb_exporter.port_mongod| default(9217) }}"
+    port: "{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}"
     state: "started"
     timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"
   when: inventory_hostname in groups['hosts_mongod_data'] or inventory_hostname in groups['hosts_mongod_offer']

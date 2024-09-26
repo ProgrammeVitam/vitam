@@ -9,7 +9,3 @@ service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 
 vitamdbadmin: "{{ mongodb[mongo_cluster_name].localadmin.user }}"
 vitamdbpassword: "{{ mongodb[mongo_cluster_name].localadmin.password }}"
-
-
-web.listen-address-mongoc: "{{ prometheus.mongodb_exporter.port_mongoc | default('9216') }}"
-web.listen-address-mongod: "{{ prometheus.mongodb_exporter.port_mongod | default('9217') }}"
