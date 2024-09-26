@@ -22,7 +22,7 @@
         target_prefix: ""
     - drop_fields:
         fields: ["date_time"]
-    {% if filebeat.disable_health_checks | default(true) | bool %}
+    {% if filebeat.drop_health_checks_logs | default(true) | bool %}
     # Drop Consul and Prometheus health checks
     - drop_event:
         when:
