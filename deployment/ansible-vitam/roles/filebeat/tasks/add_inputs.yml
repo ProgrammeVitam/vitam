@@ -8,15 +8,15 @@
   notify: "filebeat - restart service"
 
 - set_fact:
-      services_on_vm: "{{ group_names | regex_replace('_', '-') | regex_replace('hosts-', '') | regex_replace('storage-offer-default', 'offer') }}"
+    services_on_vm: "{{ group_names | regex_replace('hosts_', '') | regex_replace('storage_offer_default', 'storageofferdefault') | regex_replace('storage_engine', 'storageengine') | regex_replace('access_external', 'accessexternal') | regex_replace('access_internal', 'accessinternal') | regex_replace('batch_report', 'batchreport') | regex_replace('ingest_external', 'ingestexternal') | regex_replace('ingest_internal', 'ingestinternal') }}"
 
 - block:
 
   - set_fact:
-      vitam_service_list: "{{ vitam.keys() | list | regex_replace('storageofferdefault', 'offer') | regex_replace('accessexternal', 'access-external') | regex_replace('accessinternal', 'access-internal') | regex_replace('batchreport', 'batch-report') | regex_replace('ingestexternal', 'ingest-external') | regex_replace('ingestinternal', 'ingest-internal') | regex_replace('log-servers', 'logstash') | regex_replace('_', '-') }}"
+      vitam_keys: "{{ vitam.keys() | list }}"
 
   - set_fact:
-      vitam_service_list: "{{ services_on_vm | intersect(vitam_service_list) }}"
+      vitam_service_list: "{{ services_on_vm | intersect(vitam_keys) }}"
 
   - name: Add Vitam filebeat inputs
     template:
@@ -36,7 +36,10 @@
   notify: "filebeat - restart service"
 
 - set_fact:
-    cots_service_list: "{{ services_on_vm | intersect(cots_list) }}"
+    cots_on_vm: "{{ services_on_vm + ['consul'] }}"
+
+- set_fact:
+    cots_service_list: "{{ cots_on_vm | intersect(cots_list) }}"
 
 - name: Add COTS filebeat inputs
   template:

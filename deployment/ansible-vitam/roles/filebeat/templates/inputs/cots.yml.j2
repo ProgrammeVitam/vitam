@@ -1,15 +1,12 @@
 #jinja2: lstrip_blocks: True
 {% for cots_service in cots_service_list %}
+  {% if filebeat.cots[cots_service].enable_log | default(true) | bool %}
 #
 # {{ cots_service }}
 #
-{% if filebeat.cots[cots_service].enable_log | default(true) | bool %}
 - type: filestream
   id: {{ vitam_site_name }}-{{cots_service }}
-  enabled: {{ {'cerebro': filebeat.cots.cerebro.enable_log,
-    'grafana': filebeat.cots.grafana.enable_log,
-    'prometheus': filebeat.cots.prometheus.enable_log,
-    'alertmanager': filebeat.cots.alertmanager.enable_log}[cots_service] | default(true) | bool | lower }}
+  enabled: true
   paths:
     - "{{ vitam_defaults.folder.root_path }}/log/{{ cots_service }}/{{ cots_service }}*.log"
   fields_under_root: true
@@ -18,24 +15,7 @@
     vitam_component: {{ cots_service }}
     source: vitam
     type: cots
-{% endif %}
-{% endfor %}
-
-#
-# Consul
-#
-{% if filebeat.cots.consul.enable_log | bool %}
-- type: filestream
-  id: {{ vitam_site_name }}-consul
-  enabled: {{ filebeat.cots.consul.enable_log | bool | lower }}
-  paths:
-    - "{{ vitam_defaults.folder.root_path }}/log/consul/consul*.log"
-  fields_under_root: true
-  fields:
-    kind: log
-    vitam_component: consul
-    source: vitam
-    type: cots
+    {% if cots_service == 'consul' %}
   processors:
     - dissect:
         tokenizer: '%{date_time} [%{log_level}]%{*}%{logger}: %{log_message}'
@@ -49,4 +29,7 @@
         pattern: '^[[:space:]]'
         negate: false
         match: after
-{% endif %}
+    {% endif %}
+
+  {% endif %}
+{% endfor %}

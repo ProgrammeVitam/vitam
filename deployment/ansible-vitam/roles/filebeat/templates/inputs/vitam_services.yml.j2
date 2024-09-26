@@ -1,37 +1,19 @@
 #jinja2: lstrip_blocks: True
 {% for vitam_service in vitam_service_list %}
+{% set vitam_component = vitam[vitam_service].vitam_component %}
 #
-# VITAM SERVICE : {{ vitam_service }}
+# VITAM SERVICE : {{ vitam_component }}
 #
-  {% if filebeat.services[vitam_service].enable_access | default(true) | bool %}
+  {% if filebeat.services.vitam[vitam_service].enable_access | default(true) | bool %}
 - type: filestream
-  id: {{ vitam_site_name }}-{{ vitam_service }}-access
-  enabled: {{ {'access_external': filebeat.services.access_external.enable_access,
-    'access_internal': filebeat.services.access_internal.enable_access,
-    'functional_administration': filebeat.services.functional_administration.enable_access,
-    'scheduler': filebeat.services.scheduler.enable_access,
-    'batch_report': filebeat.services.batch_report.enable_access,
-    'ingest_external': filebeat.services.ingest_external.enable_access,
-    'ingest_internal': filebeat.services.ingest_internal.enable_access,
-    'ihm_demo': filebeat.services.ihm_demo.enable_access,
-    'logbook': filebeat.services.logbook.enable_access,
-    'metadata': filebeat.services.metadata.enable_access,
-    'processing': filebeat.services.processing.enable_access,
-    'security_internal': filebeat.services.security_internal.enable_access,
-    'storage_engine': filebeat.services.storage_engine.enable_access,
-    'offer': filebeat.services.offer.enable_access,
-    'worker': filebeat.services.worker.enable_access,
-    'workspace': filebeat.services.workspace.enable_access,
-    'collect_internal': filebeat.services.collect_internal.enable_access,
-    'collect_external': filebeat.services.collect_external.enable_access,
-    'metadata_collect': filebeat.services.metadata_collect.enable_access,
-    'workspace_collect': filebeat.services.workspace_collect.enable_access} [vitam_service] | default(true) | bool | lower }}
+  id: {{ vitam_site_name }}-{{ vitam_component }}-access
+  enabled: true
   paths:
-    - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_service }}/accesslog-{{ vitam_service }}.*.log"
+    - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}/accesslog-{{ vitam_component }}.*.log"
   fields_under_root: true
   fields:
     kind: access
-    vitam_component: {{ vitam_service }}
+    vitam_component: {{ vitam_component }}
     source: vitam
     type: application
   processors:
@@ -40,37 +22,29 @@
         target_prefix: ""
     - drop_fields:
         fields: ["date_time"]
-  {% endif %}
+    {% if filebeat.disable_health_checks | default(true) | bool %}
+    # Drop Consul and Prometheus health checks
+    - drop_event:
+        when:
+          and:
+            - range:
+                http_status_code.gte: 200
+                http_status_code.lte: 204
+            - regexp:
+                user_agent: "^(Consul|Prometheus).*"
+    {% endif %}
 
-  {% if filebeat.services[vitam_service].enable_security | default(true) | bool %}
+  {% endif %}
+  {% if filebeat.services.vitam[vitam_service].enable_security | default(true) | bool %}
 - type: filestream
-  id: {{ vitam_site_name }}-{{ vitam_service }}-security
-  enabled: {{ {'access_external': filebeat.services.access_external.enable_security,
-    'access_internal': filebeat.services.access_internal.enable_security,
-    'functional_administration': filebeat.services.functional_administration.enable_security,
-    'scheduler': filebeat.services.scheduler.enable_security,
-    'batch_report': filebeat.services.batch_report.enable_security,
-    'ingest_external': filebeat.services.ingest_external.enable_security,
-    'ingest_internal': filebeat.services.ingest_internal.enable_security,
-    'ihm_demo': filebeat.services.ihm_demo.enable_security,
-    'logbook': filebeat.services.logbook.enable_security,
-    'metadata': filebeat.services.metadata.enable_security,
-    'processing': filebeat.services.processing.enable_security,
-    'security_internal': filebeat.services.security_internal.enable_security,
-    'storage_engine': filebeat.services.storage_engine.enable_security,
-    'offer': filebeat.services.offer.enable_security,
-    'worker': filebeat.services.worker.enable_security,
-    'workspace': filebeat.services.workspace.enable_security,
-    'collect_internal': filebeat.services.collect_internal.enable_security,
-    'collect_external': filebeat.services.collect_external.enable_security,
-    'metadata_collect': filebeat.services.metadata_collect.enable_security,
-    'workspace_collect': filebeat.services.workspace_collect.enable_security} [vitam_service] | default(true) | bool | lower }}
+  id: {{ vitam_site_name }}-{{ vitam_component }}-security
+  enabled: true
   paths:
-    - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_service }}/{{ vitam_service }}_security.*.log"
+    - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}/{{ vitam_component }}_security.*.log"
   fields_under_root: true
   fields:
     kind: security
-    vitam_component: {{ vitam_service }}
+    vitam_component: {{ vitam_component }}
     source: vitam
     type: application
   processors:
@@ -86,37 +60,18 @@
         pattern: '^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3}'
         negate: true
         match: after
-  {% endif %}
 
-  {% if filebeat.services[vitam_service].enable_log | default(true) | bool %}
+  {% endif %}
+  {% if filebeat.services.vitam[vitam_service].enable_log | default(true) | bool %}
 - type: filestream
-  id: {{ vitam_site_name }}-{{ vitam_service }}-log
-  enabled: {{ {'access_external': filebeat.services.access_external.enable_log,
-    'access_internal': filebeat.services.access_internal.enable_log,
-    'functional_administration': filebeat.services.functional_administration.enable_log,
-    'scheduler': filebeat.services.scheduler.enable_log,
-    'batch_report': filebeat.services.batch_report.enable_log,
-    'ingest_external': filebeat.services.ingest_external.enable_log,
-    'ingest_internal': filebeat.services.ingest_internal.enable_log,
-    'ihm_demo': filebeat.services.ihm_demo.enable_log,
-    'logbook': filebeat.services.logbook.enable_log,
-    'metadata': filebeat.services.metadata.enable_log,
-    'processing': filebeat.services.processing.enable_log,
-    'security_internal': filebeat.services.security_internal.enable_log,
-    'storage_engine': filebeat.services.storage_engine.enable_log,
-    'offer': filebeat.services.offer.enable_log,
-    'worker': filebeat.services.worker.enable_log,
-    'workspace': filebeat.services.workspace.enable_log,
-    'collect_internal': filebeat.services.collect_internal.enable_log,
-    'collect_external': filebeat.services.collect_external.enable_log,
-    'metadata_collect': filebeat.services.metadata_collect.enable_log,
-    'workspace_collect': filebeat.services.workspace_collect.enable_log} [vitam_service] | default(true) | bool | lower }}
+  id: {{ vitam_site_name }}-{{ vitam_component }}-log
+  enabled: true
   paths:
-    - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_service }}/{{ vitam_service }}.*.log"
+    - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}/{{ vitam_component }}.*.log"
   fields_under_root: true
   fields:
     kind: log
-    vitam_component: {{ vitam_service }}
+    vitam_component: {{ vitam_component }}
     source: vitam
     type: application
   processors:
@@ -132,5 +87,6 @@
         pattern: '^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3}'
         negate: true
         match: after
+
   {% endif %}
 {% endfor %}

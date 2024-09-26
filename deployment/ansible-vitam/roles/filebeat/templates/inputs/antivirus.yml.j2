@@ -1,13 +1,12 @@
 #jinja2: lstrip_blocks: True
-{% set vitam_struct = vitam.ingestexternal %}
-{% set composant_name = vitam_struct.antivirus | default('clamav') %}
+{% set composant_name = vitam.ingestexternal.antivirus | default('clamav') %}
 #
 # antivirus {{ composant_name }}
 #
 {% if filebeat.cots.antivirus.enable_log | bool %}
 - type: filestream
   id: {{ vitam_site_name }}-{{ composant_name }}-error
-  enabled: {{ filebeat.cots.antivirus.enable_log | bool | lower }}
+  enabled: true
   paths:
     - "{{ vitam_defaults.folder.root_path }}/log/{{ composant_name }}/*.log"
   fields_under_root: true
@@ -21,7 +20,7 @@
   {% if filebeat.cots.antivirus.enable_scan | bool %}
 - type: filestream
   id: {{ vitam_site_name }}-{{ composant_name }}-scan
-  enabled: {{ filebeat.cots.antivirus.enable_scan | bool | lower }}
+  enabled: true
   paths:
     - "{{ vitam_defaults.folder.root_path }}/log/{{ composant_name }}/clamd.scan"
   fields_under_root: true

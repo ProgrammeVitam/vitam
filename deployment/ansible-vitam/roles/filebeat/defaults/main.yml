@@ -14,6 +14,7 @@ filebeat_log:
   keepfiles: 30
 
 cots_list:
+  - consul
   - cerebro
   - grafana
   - prometheus
