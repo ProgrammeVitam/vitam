@@ -70,7 +70,7 @@ ExtendedDetectionInfo yes
 
 # Optional path to the global temporary directory.
 # Default: system specific (usually /tmp or /var/tmp).
-#TemporaryDirectory /var/tmp
+TemporaryDirectory {{ vitam_defaults.folder.root_path }}/tmp/clamav
 
 # Path to the database directory.
 # Default: hardcoded (depends on installation options)
