@@ -86,8 +86,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.dip.DataObjectVersions;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
-import fr.gouv.vitam.common.model.export.ExportRequestParameters;
-import fr.gouv.vitam.common.model.export.ExportType;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
+import fr.gouv.vitam.common.model.export.transfer.TransferRequestParameters;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -2658,27 +2658,26 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), unitIds.toArray(new String[0])));
 
-        ExportRequest dipExportRequest = new ExportRequest(new DataObjectVersions(), select.getFinalSelect(), true);
+        TransferRequest transferRequest = new TransferRequest(new DataObjectVersions(), select.getFinalSelect(), true);
 
-        ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
-        exportRequestParameters.setArchivalAgencyIdentifier("Identifier4");
-        exportRequestParameters.setRequesterIdentifier("Required RequesterIdentifier");
-        exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
-        exportRequestParameters.setOriginatingAgencyIdentifier("RATP");
-        exportRequestParameters.setSubmissionAgencyIdentifier("RATP");
-        exportRequestParameters.setRelatedTransferReference(
+        TransferRequestParameters transferRequestParameters = new TransferRequestParameters();
+        transferRequestParameters.setArchivalAgencyIdentifier("Identifier4");
+        transferRequestParameters.setArchivalAgreement("ArchivalAgreement0");
+        transferRequestParameters.setOriginatingAgencyIdentifier("RATP");
+        transferRequestParameters.setSubmissionAgencyIdentifier("RATP");
+        transferRequestParameters.setRelatedTransferReference(
             Arrays.asList("RelatedTransferReference1", "RelatedTransferReference2")
         );
+        transferRequest.setTransferRequestParameters(transferRequestParameters);
 
-        dipExportRequest.setExportType(ExportType.ArchiveTransfer);
-        dipExportRequest.setExportRequestParameters(exportRequestParameters);
+        ExportRequest exportRequest = ExportRequest.from(transferRequest);
 
         String transferOperation = GUIDFactory.newGUID().getId();
         prepareVitamSession();
         VitamThreadUtils.getVitamSession().setRequestId(transferOperation);
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            client.exportByUsageFilter(dipExportRequest);
+            client.exportByUsageFilter(exportRequest);
 
             awaitForWorkflowTerminationWithStatus(transferOperation, expectedStatusCode);
 
