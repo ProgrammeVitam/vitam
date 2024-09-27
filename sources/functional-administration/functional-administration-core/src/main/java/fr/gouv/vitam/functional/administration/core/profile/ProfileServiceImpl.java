@@ -436,10 +436,9 @@ public class ProfileServiceImpl implements ProfileService {
 
             manager.logSuccess(PROFILES_FILE_IMPORT_EVENT, null, wellFormedJson);
         } catch (Exception e) {
-            LOGGER.error(e);
-            String err = "Import profiles storage workspace error : " + e.getMessage();
+            String err = "Import profile error : " + e.getMessage();
             LOGGER.error(err, e);
-            manager.logFatalError(OP_PROFILE_STORAGE, profileMetadata.getId(), err);
+            manager.logFatalError(PROFILES_FILE_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()
             );
