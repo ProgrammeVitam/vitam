@@ -5,8 +5,8 @@ After=network.target
 
 [Service]
 EnvironmentFile=-/vitam/conf/node_exporter/sysconfig.conf
-User=vitam
-Group=vitam
+User={{ vitam_defaults.users.vitam }}
+Group={{ vitam_defaults.users.group }}
 ExecStart=/bin/bash -c 'exec /vitam/bin/node_exporter/node_exporter $NODE_EXPORTER_OPTS 2>> {{ vitam_defaults.folder.root_path | default('/vitam') }}/log/node_exporter/node-exporter.log'
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
