@@ -75,7 +75,8 @@ public class MetadataDocumentHelper {
         VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
         ATOMIC_VERSION("_av"),
         APPROXIMATE_CREATION_DATE("_acd"),
-        APPROXIMATE_UPDATE_DATE("_aud");
+        APPROXIMATE_UPDATE_DATE("_aud"),
+        TRANSFER_OPERATION("_opts");
 
         private final String fieldName;
 
