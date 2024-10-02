@@ -2,12 +2,12 @@
 Description=Mongod Exporter
 Documentation=https://github.com/percona/mongodb_exporter
 After=network.target
-User={{ vitam_defaults.users.vitam }}
-Group={{ vitam_defaults.users.group }}
 
 [Service]
 Type=simple
 Restart=always
+User={{ vitam_defaults.users.vitam }}
+Group={{ vitam_defaults.users.group }}
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/mongodb_exporter/mongodb_exporter --collect-all \
           --compatible-mode --mongodb.uri=mongodb://{{ vitamdbadmin }}:{{ vitamdbpassword }}@{{ ip_service }}:{{ mongodb.mongod_port }} --web.listen-address=:{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}
 
