@@ -82,6 +82,22 @@ public class PurgeUnitPluginTest {
     }
 
     @Test
+    public void testExtractPersistentIdentifiersNullWhenNone() {
+        JsonNodeFactory factory = JsonNodeFactory.instance;
+        JsonNode unitJson = factory.objectNode();
+        List<PersistentIdentifierModel> identifiers = PurgeUnitPlugin.extractPersistentIdentifiersFromUnit(unitJson);
+        assertThat(identifiers).isNull();
+
+        unitJson = factory.objectNode().set("PersistentIdentifier", null);
+        identifiers = PurgeUnitPlugin.extractPersistentIdentifiersFromUnit(unitJson);
+        assertThat(identifiers).isNull();
+
+        unitJson = factory.objectNode().set("PersistentIdentifier", factory.arrayNode());
+        identifiers = PurgeUnitPlugin.extractPersistentIdentifiersFromUnit(unitJson);
+        assertThat(identifiers).isNull();
+    }
+
+    @Test
     public void testMapJsonToPersistentIdentifierModel() {
         JsonNodeFactory factory = JsonNodeFactory.instance;
 

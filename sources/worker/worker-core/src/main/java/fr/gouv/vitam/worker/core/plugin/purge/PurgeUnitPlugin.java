@@ -281,19 +281,19 @@ public class PurgeUnitPlugin extends ActionHandler {
 
     @VisibleForTesting
     protected static List<PersistentIdentifierModel> extractPersistentIdentifiersFromUnit(JsonNode unit) {
-        List<PersistentIdentifierModel> persistentIdentifiers = new ArrayList<>();
-
-        if (unit.has(REPORT_PERSISTENT_IDENTIFIER_FIELD)) {
-            JsonNode persistentIdentifierArray = unit.get(REPORT_PERSISTENT_IDENTIFIER_FIELD);
-
-            if (persistentIdentifierArray.isArray()) {
-                for (JsonNode identifierNode : persistentIdentifierArray) {
-                    PersistentIdentifierModel identifierModel = mapJsonToPersistentIdentifierModel(identifierNode);
-                    persistentIdentifiers.add(identifierModel);
-                }
+        List<PersistentIdentifierModel> persistentIdentifiers = null;
+        JsonNode persistentIdentifierArray = unit.get(REPORT_PERSISTENT_IDENTIFIER_FIELD);
+        if (
+            persistentIdentifierArray != null &&
+            persistentIdentifierArray.isArray() &&
+            !persistentIdentifierArray.isEmpty()
+        ) {
+            persistentIdentifiers = new ArrayList<>();
+            for (JsonNode identifierNode : persistentIdentifierArray) {
+                PersistentIdentifierModel identifierModel = mapJsonToPersistentIdentifierModel(identifierNode);
+                persistentIdentifiers.add(identifierModel);
             }
         }
-
         return persistentIdentifiers;
     }
 
