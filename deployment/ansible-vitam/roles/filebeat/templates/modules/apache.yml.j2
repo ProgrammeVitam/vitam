@@ -20,6 +20,12 @@
         - dissect:
             tokenizer: '%{client_ip|ip} - - [%{date_time}] "%{http_method} %{request_path} HTTP/%{http_version}" %{http_status_code|integer} %{response_size} "%{referer}" "%{user_agent}"'
             target_prefix: ""
+        - timestamp:
+            field: date_time
+            layouts:
+              - '02/Jan/2006:15:04:05 -0700'
+            test:
+              - '30/Sep/2024:13:46:37 +0200'
         - drop_fields:
             fields: ["date_time"]
 {% if filebeat.drop_health_checks_logs | default(true) | bool %}
@@ -46,3 +52,16 @@
         kind: error
         vitam_component: apache
         source: vitam
+        log_level: WARN
+      processors:
+        - dissect:
+            tokenizer: '[%{date_time}] [%{logger}] [%{*}] %{log_message}'
+            target_prefix: ""
+        - timestamp:
+            field: date_time
+            layouts:
+              - 'Mon Jan 02 15:04:05.000000 2006'
+            test:
+              - 'Tue Sep 30 13:46:37.594890 2024'
+        - drop_fields:
+            fields: ["date_time"]

@@ -4,6 +4,8 @@
 - module: kibana
   log:
     enabled: {{ filebeat.cots.kibana_data.enable_log | bool | lower if inventory_hostname in groups['hosts_kibana_data'] else filebeat.cots.kibana_log.enable_log | bool | lower }}
+    var.paths:
+      - "{{ vitam_defaults.folder.root_path }}/log/kibana/kibana.log"
     input:
       fields_under_root: true
       fields:
@@ -11,6 +13,19 @@
         vitam_component: {{ 'kibana-data' if inventory_hostname in groups["hosts_kibana_data"] else 'kibana-log' }}
         source: vitam
         type: cots
+      processors:
+        - dissect:
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] %{log_message}'
+            target_prefix: ""
+            trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
+        - drop_fields:
+            fields: ["date_time"]
 
   audit:
     enabled: {{ filebeat.cots.kibana_data.enable_audit | bool | lower if inventory_hostname in groups['hosts_kibana_data'] else filebeat.cots.kibana_log.enable_audit | bool | lower }}
@@ -21,3 +36,16 @@
         vitam_component: {{ 'kibana-data' if inventory_hostname in groups["hosts_kibana_data"] else 'kibana-log' }}
         source: vitam
         type: cots
+      processors:
+        - dissect:
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] %{log_message}'
+            target_prefix: ""
+            trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
+        - drop_fields:
+            fields: ["date_time"]

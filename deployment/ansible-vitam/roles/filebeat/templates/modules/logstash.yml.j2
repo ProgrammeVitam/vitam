@@ -18,6 +18,12 @@
             tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] %{log_message}'
             target_prefix: ""
             trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
         - drop_fields:
             fields: ["date_time"]
 

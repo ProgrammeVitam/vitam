@@ -42,6 +42,12 @@
                         event.Put("log_level", "UNKNOWN");
                 }
               }
+        - timestamp:
+            field: message.t.$date
+            layouts:
+              - '2006-01-02T15:04:05.000Z07:00'
+            test:
+              - '2024-09-30T13:46:37.298+02:00'
         - drop_event:
             when:
               equals:
@@ -89,6 +95,12 @@
                         event.Put("log_level", "UNKNOWN");
                 }
               }
+        - timestamp:
+            field: message.t.$date
+            layouts:
+              - '2006-01-02T15:04:05.000Z07:00'
+            test:
+              - '2024-09-30T13:46:37.298+02:00'
         - drop_event:
             when:
               equals:
@@ -136,6 +148,12 @@
                         event.Put("log_level", "UNKNOWN");
                 }
               }
+        - timestamp:
+            field: message.t.$date
+            layouts:
+              - '2006-01-02T15:04:05.000Z07:00'
+            test:
+              - '2024-09-30T13:46:37.298+02:00'
         - drop_event:
             when:
               equals:
