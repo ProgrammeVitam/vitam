@@ -23,6 +23,12 @@
             tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
         - drop_fields:
             fields: ["date_time", "node_name"]
 
@@ -42,6 +48,19 @@
         vitam_component: {{ 'elasticsearch-data' if inventory_hostname in groups["hosts_elasticsearch_data"] else 'elasticsearch-log' }}
         source: vitam
         type: cots
+      processors:
+        - dissect:
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            target_prefix: ""
+            trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
+        - drop_fields:
+            fields: ["date_time", "node_name"]
 
   slowlog:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_slowlog | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_slowlog | bool | lower }}
@@ -59,6 +78,19 @@
         vitam_component: {{ 'elasticsearch-data' if inventory_hostname in groups["hosts_elasticsearch_data"] else 'elasticsearch-log' }}
         source: vitam
         type: cots
+      processors:
+        - dissect:
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            target_prefix: ""
+            trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
+        - drop_fields:
+            fields: ["date_time", "node_name"]
 
   deprecation:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_deprecation | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_deprecation | bool | lower }}
@@ -76,3 +108,16 @@
         vitam_component: {{ 'elasticsearch-data' if inventory_hostname in groups["hosts_elasticsearch_data"] else 'elasticsearch-log' }}
         source: vitam
         type: cots
+      processors:
+        - dissect:
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            target_prefix: ""
+            trim_values: all
+        - timestamp:
+            field: date_time
+            layouts:
+              - '2006-01-02T15:04:05,000'
+            test:
+              - '2024-09-30T14:51:17,100'
+        - drop_fields:
+            fields: ["date_time", "node_name"]

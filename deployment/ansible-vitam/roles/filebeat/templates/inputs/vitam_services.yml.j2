@@ -20,6 +20,12 @@
     - dissect:
         tokenizer: '%{client_ip|ip} - - %{date_time} "%{http_method} %{request_path} HTTP/%{http_version}" %{http_status_code|integer} %{response_size} "%{referer}" "%{user_agent}" %{duration|integer} %{request_id} %{tenant_id} %{application_id}'
         target_prefix: ""
+    - timestamp:
+        field: date_time
+        layouts:
+          - '2006-01-02 15:04:05,000'
+        test:
+          - '2024-09-30 13:46:37,298'
     - drop_fields:
         fields: ["date_time"]
     {% if filebeat.drop_health_checks_logs | default(true) | bool %}
@@ -52,6 +58,12 @@
         tokenizer: '%{date_time} [[%{thread}]] [%{operation_id}] [%{tenant_id|integer}] %{log_level} %{logger} - %{log_message}'
         target_prefix: ""
         trim_values: all
+    - timestamp:
+        field: date_time
+        layouts:
+          - '2006-01-02 15:04:05,000'
+        test:
+          - '2024-09-30 13:46:37,298'
     - drop_fields:
         fields: ["date_time"]
   parsers:
@@ -79,6 +91,12 @@
         tokenizer: '%{date_time} [[%{thread}]] [%{request_id}] [%{tenant_id|integer}] %{log_level} %{logger} - %{log_message}'
         target_prefix: ""
         trim_values: all
+    - timestamp:
+        field: date_time
+        layouts:
+          - '2006-01-02 15:04:05,000'
+        test:
+          - '2024-09-30 13:46:37,298'
     - drop_fields:
         fields: ["date_time"]
   parsers:
