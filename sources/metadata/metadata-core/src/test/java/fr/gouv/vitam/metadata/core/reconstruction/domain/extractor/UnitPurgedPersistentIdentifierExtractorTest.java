@@ -72,6 +72,36 @@ public class UnitPurgedPersistentIdentifierExtractorTest {
     }
 
     @Test
+    public void testExtractAndSavePurgedPersistentIdentifierEmpty() throws Exception {
+        // Given
+        ObjectNode element = createSampleJsonNode();
+        element.set("persistentIdentifier", JsonHandler.createArrayNode());
+        ReconstructionOperation operation = createSampleOperation();
+
+        // When
+        List<PurgedPersistentIdentifier> purgedPersistentIdentifiers =
+            unitPurgedPersistentIdentifierExtractor.extractPurgedPersistentIdentifier(element, operation);
+
+        // Then
+        assertThat(purgedPersistentIdentifiers).isEmpty();
+    }
+
+    @Test
+    public void testExtractAndSavePurgedPersistentIdentifierNull() throws Exception {
+        // Given
+        ObjectNode element = createSampleJsonNode();
+        element.set("persistentIdentifier", null);
+        ReconstructionOperation operation = createSampleOperation();
+
+        // When
+        List<PurgedPersistentIdentifier> purgedPersistentIdentifiers =
+            unitPurgedPersistentIdentifierExtractor.extractPurgedPersistentIdentifier(element, operation);
+
+        // Then
+        assertThat(purgedPersistentIdentifiers).isEmpty();
+    }
+
+    @Test
     public void testBuildUnitPurgedPersistentIdentifier() throws Exception {
         // Given
         JsonNode element = createSampleJsonNode();
@@ -90,7 +120,7 @@ public class UnitPurgedPersistentIdentifierExtractorTest {
         assertThat(purgedPersistentIdentifier.getObjectGroupId()).isNull();
     }
 
-    private JsonNode createSampleJsonNode() throws Exception {
+    private ObjectNode createSampleJsonNode() throws Exception {
         ObjectNode node = JsonHandler.createObjectNode();
         node.put("id", "aeaqaaaaaae6eg5mabudoamkdsdghiiaaaba");
         node.set("persistentIdentifier", new ObjectMapper().readTree(PERSISTENT_IDENTIFIER));

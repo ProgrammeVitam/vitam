@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.reconstruction.domain.extractor;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.unit.PersistentIdentifierModel;
 import fr.gouv.vitam.metadata.core.reconstruction.domain.PurgedPersistentIdentifierValidator;
 import fr.gouv.vitam.metadata.core.reconstruction.model.PurgedPersistentIdentifier;
 import fr.gouv.vitam.metadata.core.reconstruction.model.ReconstructionOperation;
@@ -49,13 +50,19 @@ public class UnitPurgedPersistentIdentifierExtractor extends PurgedPersistentIde
         ReconstructionOperation operation
     ) {
         List<PurgedPersistentIdentifier> purgedPersistentIdentifiers = new ArrayList<>();
-        if (node.has("persistentIdentifier") && !node.get("persistentIdentifier").isNull()) {
-            PurgedPersistentIdentifier purgedPersistentIdentifier = buildUnitPurgedPersistentIdentifier(
-                node,
-                operation
+        JsonNode persistentIdentifierNode = node.get("persistentIdentifier");
+        if (persistentIdentifierNode != null && !persistentIdentifierNode.isNull()) {
+            List<PersistentIdentifierModel> persistentIdentifierModels = extractPersistentIdentifiers(
+                persistentIdentifierNode
             );
-            if (purgedPersistentIdentifier != null) {
-                purgedPersistentIdentifiers.add(purgedPersistentIdentifier);
+            if (persistentIdentifierModels != null && !persistentIdentifierModels.isEmpty()) {
+                PurgedPersistentIdentifier purgedPersistentIdentifier = buildUnitPurgedPersistentIdentifier(
+                    node,
+                    operation
+                );
+                if (purgedPersistentIdentifier != null) {
+                    purgedPersistentIdentifiers.add(purgedPersistentIdentifier);
+                }
             }
         }
         return purgedPersistentIdentifiers;
