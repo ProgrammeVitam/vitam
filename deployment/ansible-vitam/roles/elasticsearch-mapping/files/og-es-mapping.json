@@ -292,10 +292,6 @@
     "_up": {
       "type": "keyword"
     },
-    "_uds": {
-      "type": "object",
-      "enabled": false
-    },
     "_us": {
       "type": "keyword"
     },
