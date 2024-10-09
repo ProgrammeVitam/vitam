@@ -45,3 +45,15 @@ X-Tenant-Id: {{tenant}}
     "ShortName": "Date de naissance"
   }
 ]
+
+### delete schema
+
+DELETE {{url-access}}/admin-external/v1/schema/unit
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+[
+  "Invoice",
+  "Invoice.Provider"
+]

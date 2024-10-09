@@ -1,0 +1,72 @@
+[
+  {
+    "Identifier": "Miscellaneous",
+    "ApiField": "Miscellaneous",
+    "Description": "Miscellaneous",
+    "Type": "TEXT",
+    "Origin": "EXTERNAL",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ],
+    "TypeDetail": "STRING",
+    "StringSize": "LARGE",
+    "SedaField": "",
+    "ShortName": "Divers"
+  },
+  {
+    "Identifier": "InvoiceNumber",
+    "ApiField": "InvoiceNumber",
+    "Description": "Numéro de facture",
+    "Type": "TEXT",
+    "Origin": "EXTERNAL",
+    "Collections": [
+      "Unit"
+    ],
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "SedaField": "",
+    "ShortName": "Numéro de facture"
+  },
+  {
+    "Identifier": "ProviderName",
+    "ApiField": "ProviderName",
+    "Description": "Nom du fournisseur",
+    "Type": "TEXT",
+    "Origin": "EXTERNAL",
+    "Collections": [
+      "Unit"
+    ],
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "SedaField": "",
+    "ShortName": "Nom du fournisseur"
+  },
+  {
+    "Identifier": "ProviderNumber",
+    "ApiField": "ProviderNumber",
+    "Description": "Numéro du fournisseur",
+    "Type": "TEXT",
+    "Origin": "EXTERNAL",
+    "Collections": [
+      "Unit"
+    ],
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "SedaField": "",
+    "ShortName": "Numéro du fournisseur"
+  },
+  {
+    "Identifier": "ProviderDate",
+    "ApiField": "ProviderDate",
+    "Description": "Date du fournisseur",
+    "Type": "DATE",
+    "Origin": "EXTERNAL",
+    "Collections": [
+      "Unit"
+    ],
+    "TypeDetail": "DATETIME",
+    "SedaField": "",
+    "ShortName": "Date du fournisseur"
+  }
+]

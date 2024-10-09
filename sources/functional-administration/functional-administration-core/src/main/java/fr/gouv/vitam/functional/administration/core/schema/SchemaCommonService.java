@@ -112,7 +112,9 @@ public class SchemaCommonService {
             String shortName = schemaEltInputElt.getShortName();
             if (StringUtils.isBlank(shortName)) {
                 String leaf = SchemaCommonService.extractLeafFromPath(schemaEltInputElt.getPath());
-                shortName = ontologyEltsMapByIdentifier.get(leaf).getShortName();
+                shortName = ontologyEltsMapByIdentifier.get(leaf) != null
+                    ? ontologyEltsMapByIdentifier.get(leaf).getShortName()
+                    : leaf;
             }
             schemaDb.setShortName(shortName);
             schemaDb.setDescription(schemaEltInputElt.getDescription());
