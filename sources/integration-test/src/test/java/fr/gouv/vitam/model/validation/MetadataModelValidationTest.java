@@ -24,15 +24,21 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.model.validation;
 
 import fr.gouv.vitam.common.MappingLoaderTestUtils;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
+import org.apache.commons.collections4.SetUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.stream.Stream;
+
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataModelValidationTest {
 
@@ -53,6 +59,40 @@ public class MetadataModelValidationTest {
         ModelValidatorUtils.validateDataModel(
             mappingLoader.loadMapping(OBJECTGROUP.name()),
             OBJECTGROUP.getVitamCollection()
+        );
+    }
+
+    @Test
+    public void testSecuredUnitFields() {
+        Stream<String> systemFields = UNIT.getVitamDescriptionResolver()
+            .getDescriptionTypeByStaticName()
+            .keySet()
+            .stream()
+            .filter(fieldName -> fieldName.startsWith("_"))
+            .filter(fieldName -> !fieldName.contains("."));
+
+        assertThat(systemFields).containsExactlyInAnyOrderElementsOf(
+            SetUtils.union(
+                MetadataDocumentHelper.getSecuredUnitFields(),
+                MetadataDocumentHelper.getComputedUnitFields()
+            )
+        );
+    }
+
+    @Test
+    public void testSecuredObjectGroupFields() {
+        Stream<String> systemFields = OBJECTGROUP.getVitamDescriptionResolver()
+            .getDescriptionTypeByStaticName()
+            .keySet()
+            .stream()
+            .filter(fieldName -> fieldName.startsWith("_"))
+            .filter(fieldName -> !fieldName.contains("."));
+
+        assertThat(systemFields).containsExactlyInAnyOrderElementsOf(
+            SetUtils.union(
+                MetadataDocumentHelper.getSecuredObjectGroupFields(),
+                MetadataDocumentHelper.getComputedObjectGroupFields()
+            )
         );
     }
 }

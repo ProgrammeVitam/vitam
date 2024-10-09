@@ -65,9 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModelValidatorUtils {
 
-    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE = new TypeReference<
-        List<OntologyModel>
-    >() {};
+    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE = new TypeReference<>() {};
 
     private ModelValidatorUtils() {}
 
