@@ -570,12 +570,6 @@
     "cardinality": "one"
   },
   {
-    "path": "_uds",
-    "type": "object",
-    "indexed": false,
-    "cardinality": "one"
-  },
-  {
     "path": "_up",
     "type": "keyword",
     "indexed": true,
