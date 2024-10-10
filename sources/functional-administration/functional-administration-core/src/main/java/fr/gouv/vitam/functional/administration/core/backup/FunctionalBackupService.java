@@ -245,11 +245,11 @@ public class FunctionalBackupService {
         // Save data to storage
         try {
             backupService.backup(digestInputStream, dataCategory, fileName);
-
             backupLogbookManager.logEventSuccess(eipMaster, eventCode, digest.digestHex(), fileName, null);
         } catch (BackupServiceException e) {
             LOGGER.error(e);
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
+            throw new VitamException(e.getMessage());
         }
     }
 
