@@ -72,7 +72,10 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private MetadataIndexationConfiguration indexationConfiguration;
 
     @JsonProperty("isDataConsistencyAuditRunnable")
-    private Boolean isDataConsistencyAuditRunnable;
+    private boolean isDataConsistencyAuditRunnable;
+
+    @JsonProperty("enableDataConsistencyRectificationMode")
+    private boolean enableDataConsistencyRectificationMode;
 
     @JsonProperty("dataConsistencyAuditOplogMaxSize")
     private Integer dataConsistencyAuditOplogMaxSize;
@@ -307,12 +310,23 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         return this;
     }
 
-    public Boolean getIsDataConsistencyAuditRunnable() {
+    public boolean getIsDataConsistencyAuditRunnable() {
         return isDataConsistencyAuditRunnable;
     }
 
-    public void setIsDataConsistencyAuditRunnable(Boolean dataConsistencyAuditRunnable) {
+    public void setIsDataConsistencyAuditRunnable(boolean dataConsistencyAuditRunnable) {
         isDataConsistencyAuditRunnable = dataConsistencyAuditRunnable;
+    }
+
+    public boolean isEnableDataConsistencyRectificationMode() {
+        return enableDataConsistencyRectificationMode;
+    }
+
+    public MetaDataConfiguration setEnableDataConsistencyRectificationMode(
+        boolean enableDataConsistencyRectificationMode
+    ) {
+        this.enableDataConsistencyRectificationMode = enableDataConsistencyRectificationMode;
+        return this;
     }
 
     public Integer getDataConsistencyAuditOplogMaxSize() {
