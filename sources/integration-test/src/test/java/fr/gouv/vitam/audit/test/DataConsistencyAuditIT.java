@@ -97,6 +97,7 @@ import static fr.gouv.vitam.common.model.WorkspaceConstants.TMP_FILE_NAME_FOR_SH
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+// To be fixed in US #13561
 @Ignore
 public class DataConsistencyAuditIT extends VitamRuleRunner {
 
