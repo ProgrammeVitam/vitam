@@ -31,16 +31,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>processing-management-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>processing-monitoring</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 		</dependency>

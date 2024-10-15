@@ -116,6 +116,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.VitamTestHelper.selectLogbookOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -992,20 +993,6 @@ public class RulesIT extends VitamRuleRunner {
             JsonNode rules = client.getRules(new Select().getFinalSelect());
             List<FileRulesModel> results = RequestResponseOK.getFromJsonNode(rules, FileRulesModel.class).getResults();
             return results.stream().collect(Collectors.toMap(FileRulesModel::getRuleId, r -> r));
-        }
-    }
-
-    private LogbookOperation selectLogbookOperation(String importRequestId)
-        throws LogbookClientException, InvalidParseOperationException {
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            JsonNode result = client.selectOperationById(importRequestId);
-            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(
-                result
-            );
-            return JsonHandler.getFromJsonNode(
-                logbookOperationVersionModelResponseOK.getFirstResult(),
-                LogbookOperation.class
-            );
         }
     }
 
