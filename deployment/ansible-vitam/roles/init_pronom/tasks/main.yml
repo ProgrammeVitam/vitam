@@ -13,7 +13,7 @@
 #     http_proxy: "{{ http_proxy_environnement }}"
 
 - name: create temporary pem file to upload PRONOM
-  local_action: shell openssl pkcs12 -in {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem  -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes
+  local_action: "shell openssl pkcs12 -in {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.p12 -out {{ inventory_dir }}/keystores/client-external/keystore_vitam-admin-int.pem  -passin pass:{{ keystores.client_external.vitam_admin_int }} -passout pass:{{ keystores.client_external.vitam_admin_int }} -nodes"
   no_log: "{{ hide_passwords_during_deploy }}"
   tags:
     - init_pronom

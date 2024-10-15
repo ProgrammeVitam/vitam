@@ -1,0 +1,13 @@
+---
+
+- name: Wait for service to be up'n'running on admin port
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ vitam_struct.port_admin }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+- name: Migrate tenants
+  include_tasks: migrate_tenant.yml
+  loop: "{{ vitam_tenant_ids }}"
+  loop_control:
+    loop_var: tenantId
