@@ -1,0 +1,26 @@
+---
+# Example: ansible-vitam-migration/migration_metadata_transfer_request_traceability.yml
+
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "You are about to run transfer request traceability migration playbook.\nThis might take some time.\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+      tags: always
+
+- hosts: hosts_metadata
+  gather_facts: no
+  roles:
+    - migration_metadata_transfer_request_traceability
+  vars:
+    vitam_struct: "{{ vitam.metadata }}"
+    vitam_component: "{{ vitam.metadata.vitam_component }}"
+  run_once: true
