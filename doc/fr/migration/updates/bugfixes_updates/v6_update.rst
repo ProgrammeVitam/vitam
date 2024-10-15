@@ -80,3 +80,20 @@ Elle est réalisée en exécutant la procédure suivante sur **tous les sites** 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_scheduling.yml --ask-vault-pass
 
 ..
+
+Migration unités archivistiques avec demande de transfert non complétée
+-----------------------------------------------------------------------
+
+Cette migration permet de corriger des erreurs de sécurisation ou d'audit sur des unités archivistiques pour lesquelles une demande de transfert a été initiée, mais dont le transfert effectif n'a pas été finalisée.
+
+.. caution:: Cette procédure doit être exécutée uniquement en cas de migration mineure depuis une version 6.3.1- (v6.3.1 ou inférieure) vers une version 6.4+ (v6.4 ou supérieure).
+
+.. caution:: Cette migration est à effectuer **APRES** l'installation et uniquement sur le **site primaire**.
+
+.. caution:: Dans le cas où un tenant comporte un très grand nombre d'unités archivistiques dont la demande de transfert a été initiée pour un tenant donné (plus de 100 000 unités archivistiques), la migration ne pourra alors s'opérer. Le support Vitam devra alors être contacté.
+
+Pour lancer la migration, le playbook suivant doit être exécuté :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_metadata_transfer_request_traceability.yml --ask-vault-pass

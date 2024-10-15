@@ -399,7 +399,7 @@ public class MetadataAdminMigrationResourceIT extends VitamRuleRunner {
     }
 
     public interface MigrateUnitsWithTransferApi {
-        @POST("/v1/migrateUnitsWithTransferRequests")
+        @POST("/metadata/v1/migrateUnitsWithTransferRequests")
         @Headers({ "Accept: application/json" })
         Call<JsonNode> migrateUnitsWithTransferRequests(
             @Header("X-Tenant-Id") Integer tenant,
