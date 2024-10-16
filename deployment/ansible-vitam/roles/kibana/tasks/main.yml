@@ -26,7 +26,7 @@
 
 - name: remove useless parameters from kibana service
   lineinfile:
-    path: "{{ '/etc/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/kibana.service"
+    path: /etc/systemd/system/kibana.service
     regexp: '^ExecStart='
     line: 'ExecStart=/usr/share/kibana/bin/kibana'
     state: present
