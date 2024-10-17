@@ -30,7 +30,7 @@
   when: vitam_struct.vitam_component == "offer"
 
 # state: latest to handle snapshot versions
-- name: Install {{ package_name }} package
+- name: "Install {{ package_name }} package"
   package:
     name: "{{ package_name }}"
     state: latest
@@ -47,10 +47,10 @@
 # Force a specific version to install (even downgrade)
 - block:
 
-    - name: Install {{ package_name }} package
+    - name: "Install {{ package_name }} package"
       apt:
         name: "{{ package_name }}={{ force_vitam_version }}"
-        force: yes
+        force: true
         state: present
       register: result
       retries: "{{ packages_install_retries_number }}"
@@ -64,7 +64,7 @@
 
     - name: Install {{ package_name }} package
       yum:
-        allow_downgrade : yes
+        allow_downgrade: true
         name: "{{ package_name }}-{{ force_vitam_version }}"
         state: present
       register: result
@@ -363,7 +363,7 @@
 
 - meta: flush_handlers
 
-- name: Ensure "{{ package_name }}" service is disabled and stopped on secondary site
+- name: "Ensure {{ package_name }} service is disabled and stopped on secondary site"
   service:
     name: "vitam-{{ vitam_struct.vitam_component }}"
     enabled: false
@@ -373,39 +373,42 @@
 
 - block:
 
-  - name: Ensure "{{ package_name }}" service is started at boot
-    service:
-      name: "vitam-{{ vitam_struct.vitam_component }}"
-      state: started
-      enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
+    - name: "Ensure {{ package_name }} service is started at boot"
+      service:
+        name: "vitam-{{ vitam_struct.vitam_component }}"
+        state: started
+        enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
 
-  - name: Check if "{{ package_name }}" service is listening on service port (tcp check)
-    wait_for:
-      host: "{{ ip_service }}"
-      port: "{{ vitam_struct.port_service }}"
-      state: started
-      timeout: "{{ vitam_defaults.services.start_timeout }}"
+    - name: "Check if {{ package_name }} service is listening on service port (tcp check)"
+      wait_for:
+        host: "{{ ip_service }}"
+        port: "{{ vitam_struct.port_service }}"
+        state: started
+        timeout: "{{ vitam_defaults.services.start_timeout }}"
 
-  - name: Check if "{{ package_name }}" service is listening on service port (http check)
-    uri:
-      url: "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/admin/v1/status"
-    register: result
-    until:
-      - result.status is defined
-      - result.status == 200
-    retries: "{{ vitam_defaults.services.status_retries_number }}"
-    delay: "{{ vitam_defaults.services.status_retries_delay }}"
+    - name: "Check if {{ package_name }} service is listening on service port (http check)"
+      uri:
+        url: "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/admin/v1/status"
+      register: result
+      until:
+        - result.status is defined
+        - result.status == 200
+      retries: "{{ vitam_defaults.services.status_retries_number }}"
+      delay: "{{ vitam_defaults.services.status_retries_delay }}"
 
-  - name: Check {{ vitam_struct.vitam_component }} service health in local consul agent
-    uri:
-      url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname]['ip_admin'], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
-    register: result
-    until:
-      - result.status is defined
-      - result.status == 200
-    retries: "{{ vitam_defaults.services.status_retries_number }}"
-    delay: "{{ vitam_defaults.services.status_retries_delay }}"
-    when: consul_disabled is not defined or consul_disabled | lower != 'true'
+    - name: "Check {{ vitam_struct.vitam_component }} service health in local consul agent"
+      uri:
+        url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname]['ip_admin'], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
+      register: result
+      until:
+        - result.status is defined
+        - result.status == 200
+      retries: "{{ vitam_defaults.services.status_retries_number }}"
+      delay: "{{ vitam_defaults.services.status_retries_delay }}"
+      when: consul_disabled is not defined or consul_disabled | lower != 'true'
 
+  tags:
+    - update_vitam_configuration
+    - update_vitam_certificates
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )
