@@ -516,7 +516,7 @@
     "Description": "Mapping : unit-es-mapping.json",
     "Type": "KEYWORD",
     "TypeDetail": "STRING",
-    "StringSize": "MEDIUM",
+    "StringSize": "SHORT",
     "Origin": "INTERNAL",
     "ShortName": "Identifiant de version du GPS",
     "Collections": [
