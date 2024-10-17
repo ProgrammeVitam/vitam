@@ -354,6 +354,44 @@ public class IngestContractImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenIngestContractsBadSignaturePolicyReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_bad_signaturePolicy.json");
+        final List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+            fileContracts,
+            new TypeReference<>() {}
+        );
+        final RequestResponse<IngestContractModel> response = ingestContractService.createContracts(
+            IngestContractModelList
+        );
+
+        assertThat(response.isOk()).isFalse();
+
+        verifyNoMoreInteractions(functionalBackupService);
+
+        ArgumentCaptor<LogbookOperationParameters> logbookOperationParametersCaptor = ArgumentCaptor.forClass(
+            LogbookOperationParameters.class
+        );
+        verify(logbookOperationsClientMock, times(1)).create(logbookOperationParametersCaptor.capture());
+        verify(logbookOperationsClientMock, times(1)).update(logbookOperationParametersCaptor.capture());
+        List<LogbookOperationParameters> allLogbookOperationParameters =
+            logbookOperationParametersCaptor.getAllValues();
+        assertThat(allLogbookOperationParameters.size()).isEqualTo(2);
+        assertThat(allLogbookOperationParameters.get(0).getStatus()).isEqualTo(StatusCode.STARTED);
+        assertThat(allLogbookOperationParameters.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo(
+            "STP_IMPORT_INGEST_CONTRACT"
+        );
+        assertThat(
+            allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail)
+        ).isEqualTo("STP_IMPORT_INGEST_CONTRACT.BAD_REQUEST.KO");
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void givenIngestContractsTestProfileNotInDBReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_not_indb.json");
