@@ -813,7 +813,7 @@ public class AccessExternalIT extends VitamRuleRunner {
         assertEquals(persistentIdentifierContentElt.getType(), SchemaType.KEYWORD);
         assertEquals(persistentIdentifierContentElt.getSedaField(), "PersistentIdentifierContent");
         assertEquals(persistentIdentifierContentElt.getCollection(), MetadataType.UNIT.getName());
-        assertEquals(persistentIdentifierContentElt.getCardinality(), SchemaCardinality.ONE);
+        assertEquals(persistentIdentifierContentElt.getCardinality(), SchemaCardinality.ONE_REQUIRED);
         assertThat(persistentIdentifierContentElt.getSedaVersions().contains("2.2"));
         assertThat(persistentIdentifierContentElt.getSedaVersions().contains("2.3"));
         assertThat(!persistentIdentifierContentElt.getSedaVersions().contains("2.1"));
