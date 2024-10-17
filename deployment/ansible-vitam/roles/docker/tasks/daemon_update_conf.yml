@@ -24,3 +24,9 @@
   - docker_opts.docker_bip is defined
   - docker_opts.docker_address_pools_cidr is defined
   - docker_opts.docker_address_pools_size is defined
+
+- name: Make sure net.ipv4.ip_unprivileged_port_start is disabled
+  sysctl:
+    name: net.ipv4.ip_unprivileged_port_start
+    sysctl_set: yes
+    value: '0'

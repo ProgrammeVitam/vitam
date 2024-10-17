@@ -1,10 +1,10 @@
 ---
 
-- name: Create input.d folder
+- name: Create inputs.d folder
   file:
     path: /etc/filebeat/inputs.d
     state: directory
-    mode: 0755
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify: "filebeat - restart service"
 
 - set_fact:

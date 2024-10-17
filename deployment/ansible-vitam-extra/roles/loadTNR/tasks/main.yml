@@ -5,9 +5,21 @@
     path: "{{ TNR_output }}"
     state: absent
 
-- name: Install vitam-ihm-recette package
+- name: Set openjdk_package for RedHat family
+  set_fact:
+    openjdk_package: java-11-openjdk-headless
+  when: ansible_os_family == 'RedHat'
+
+- name: Set openjdk_package for Debian family
+  set_fact:
+    openjdk_package: "{{ 'openjdk-11-jre-headless' if ansible_distribution_version | int < 12 else 'openjdk-17-jre-headless' }}"
+  when: ansible_os_family == 'Debian'
+
+- name: Install required packages for TNR execution
   package:
-    name: "vitam-ihm-recette"
+    name:
+      - vitam-ihm-recette
+      - "{{ openjdk_package }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"

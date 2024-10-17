@@ -1,5 +1,8 @@
 ---
 
+filebeat_version: "{{ filebeat.version | default('7.17.23') }}"
+filebeat_package: "filebeat{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ filebeat_version }}"
+
 filebeat_processors:
   processors:
     - add_host_metadata:

@@ -1,0 +1,26 @@
+[Unit]
+Description=filebeat
+Documentation=http://www.elastic.co
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Restart=always
+Environment="CONTAINER_NAME=filebeat"
+ExecStartPre=-/usr/bin/docker rm -f filebeat
+ExecStart=/usr/bin/docker run --rm \
+  --name filebeat \
+  --user=root \
+  --volume="/etc/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw" \
+  --volume="/etc/filebeat/modules.d:/usr/share/filebeat/modules.d:rw" \
+  --volume="/etc/filebeat/inputs.d:/usr/share/filebeat/inputs.d:rw" \
+  --volume="/vitam:/vitam:rw" \
+  --volume="/var/lib/docker/containers:/var/lib/docker/containers:ro" \
+  --volume="/var/run/docker.sock:/var/run/docker.sock:ro" \
+  {{ container_repository.registry_url }}/vitam-external/elastic/filebeat:{{ filebeat_version }} \
+  -e --strict.perms=false
+
+ExecStop=/usr/bin/docker stop filebeat
+
+[Install]
+WantedBy=multi-user.target

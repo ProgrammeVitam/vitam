@@ -5,7 +5,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/hashicorp/consul:{{ consul_version }}
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/hashicorp/consul:{{ consul_version }}-ubi
 ExecStartPre=-/usr/bin/docker stop vitam-consul
 ExecStartPre=-/usr/bin/docker rm vitam-consul
 ExecStart=/usr/bin/docker run --rm --net=host -e 'CONSUL_ALLOW_PRIVILEGED_PORTS=' --name vitam-consul \
@@ -16,10 +16,10 @@ ExecStart=/usr/bin/docker run --rm --net=host -e 'CONSUL_ALLOW_PRIVILEGED_PORTS=
         -v "/vitam/script/consul:/vitam/script/consul" \
         -v "/vitam/data/consul:/consul/data" \
         -v "/vitam/tmp/consul:/vitam/tmp/consul" \
-        {{ container_repository.registry_url }}/vitam-external/hashicorp/consul:{{ consul_version }}
+        {{ container_repository.registry_url }}/vitam-external/hashicorp/consul:{{ consul_version }}-ubi agent
 
 ExecStop=/usr/bin/docker stop -t 85 vitam-consul
-ExecReload=/usr/bin/docker exec vitam-consul sh -c 'kill -HUP $(pidof consul)'
+ExecReload=/usr/bin/docker exec vitam-consul sh -c 'for pid in $(ls /proc | grep -E "^[0-9]+$"); do if [ "$(cat /proc/$pid/comm 2>/dev/null)" = "consul" ]; then kill -HUP $pid; fi; done'
 ExecRestart=/usr/bin/docker restart vitam-consul
 TimeoutStartSec=60
 TimeoutStopSec=30
