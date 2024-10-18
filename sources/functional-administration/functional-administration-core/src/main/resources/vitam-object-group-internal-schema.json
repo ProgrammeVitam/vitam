@@ -14,7 +14,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "FileInfo"
   },
   {
@@ -51,7 +50,7 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
+    "StringSize": "MEDIUM",
     "SedaField": "CreatingApplicationVersion",
     "ShortName": "Version de l'application"
   },
@@ -165,7 +164,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Metadata"
   },
   {
@@ -183,7 +181,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Audio"
   },
   {
@@ -201,7 +198,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Document"
   },
   {
@@ -219,7 +215,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Image"
   },
   {
@@ -237,7 +232,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Text"
   },
   {
@@ -255,7 +249,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Video"
   },
   {
@@ -273,7 +266,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "OtherMetadata"
   },
   {
@@ -453,7 +445,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "_qualifiers"
   },
   {
@@ -497,7 +488,6 @@
     "ApiPath": "#qualifiers.versions",
     "ApiField": "versions",
     "Collection": "ObjectGroup",
-    "StringSize": "SHORT",
     "ShortName": "versions"
   },
   {
@@ -686,7 +676,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "FileInfo"
   },
   {
@@ -837,7 +826,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "FormatIdentification"
   },
   {
@@ -949,7 +937,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "PersistentIdentifier"
   },
   {
@@ -1042,7 +1029,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "PhysicalDimensions"
   },
   {
@@ -1060,7 +1046,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Depth"
   },
   {
@@ -1116,7 +1101,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Diameter"
   },
   {
@@ -1172,7 +1156,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Height"
   },
   {
@@ -1228,7 +1211,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Length"
   },
   {
@@ -1322,7 +1304,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Thickness"
   },
   {
@@ -1378,7 +1359,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Weight"
   },
   {
@@ -1434,7 +1414,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "ShortName": "Width"
   },
   {
@@ -1568,7 +1547,6 @@
     "ApiPath": "#qualifiers.versions.#storage",
     "ApiField": "#storage",
     "Collection": "ObjectGroup",
-    "StringSize": "SHORT",
     "ShortName": "_storage"
   },
   {
@@ -1652,7 +1630,6 @@
     "ApiPath": "#storage",
     "ApiField": "#storage",
     "Collection": "ObjectGroup",
-    "StringSize": "SHORT",
     "ShortName": "_storage"
   },
   {
@@ -1717,7 +1694,6 @@
     "ApiPath": "#uds",
     "ApiField": "#uds",
     "Collection": "ObjectGroup",
-    "StringSize": "SHORT",
     "ShortName": "_uds"
   },
   {
