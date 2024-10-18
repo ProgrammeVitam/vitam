@@ -284,7 +284,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                                     acm.getName(),
                                     "The fields declaredSignature, declaredTimestamp, or declaredAdditionalProof are not authorized due to the signature policy"
                                 ).getReason()
-                            ).setMessage(UPDATE_CONTRACT_BAD_REQUEST)
+                            ).setMessage(CONTRACT_BAD_REQUEST)
                         );
                         continue;
                     }
