@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.metadata.migration.integration.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -208,13 +209,15 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        if (adminExternalClient != null) {
+            adminExternalClient.close();
+        }
         handleAfterClass();
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();
         VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
-        shutdownUsedFactoriesCLients();
     }
 
     @After
@@ -562,10 +565,6 @@ public class DataMigrationIT extends VitamRuleRunner {
             RequestResponseOK<JsonNode> fromJsonNode = RequestResponseOK.getFromJsonNode(result);
             return fromJsonNode.getResults();
         }
-    }
-
-    private static void shutdownUsedFactoriesCLients() {
-        AdminExternalClientFactory.getInstance().shutdown();
     }
 
     private String getBasicAuthnToken() {
