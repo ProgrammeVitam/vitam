@@ -678,6 +678,8 @@ public class VitamServerRunner extends ExternalResource {
             if (mockWhenStop) {
                 AccessExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+                AdminExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
             return;
         }
@@ -688,6 +690,8 @@ public class VitamServerRunner extends ExternalResource {
         // Wait stop then Mock
         if (mockWhenStop) {
             AccessExternalClientFactory.getInstance()
+                .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            AdminExternalClientFactory.getInstance()
                 .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
         }
     }
