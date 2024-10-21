@@ -37,6 +37,12 @@
     - tmp
   notify: "prometheus-elasticsearch-exporter - restart service"
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: prometheus.elasticsearch_exporter.logrotate | default('enabled') | lower == 'enabled'
+
 - name: Enable logrotate for elasticsearch_exporter
   template:
     src: elasticsearch-exporter.logrotate.j2

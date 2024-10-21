@@ -11,6 +11,12 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: mongodb.logrotate | default('enabled') | lower == 'enabled'
+
 ### System tuning best practices ####
 
 # next steps in order to disable Transparent HugePages
