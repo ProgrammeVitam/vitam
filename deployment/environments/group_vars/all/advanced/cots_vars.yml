@@ -5,6 +5,7 @@ consul:
     check_interval: 10 # in seconds
     check_timeout: 5 # in seconds
     log_level: WARN # Available log_level are: TRACE, DEBUG, INFO, WARN or ERR
+    at_boot: true
 
 # Please uncomment and fill values if you want to connect VITAM to external SIEM
 # external_siem:
@@ -15,6 +16,7 @@ elasticsearch:
     log:
         host: "elasticsearch-log.service.{{ consul_domain }}"
         port_http: "9201"
+        at_boot: true
         groupe: "log"
         baseuri: "elasticsearch-log"
         cluster_name: "elasticsearch-log"
@@ -110,6 +112,7 @@ logstash:
     host: "logstash.service.{{ consul_domain }}"
     port: 10514
     rest_port: 20514
+    at_boot: true
     check_consul: 10 # in seconds
     ## logstash xms & xmx in Megabytes
     # jvm_xms: 256 # default to memory_size/8
@@ -123,6 +126,9 @@ logstash:
             max_log_file_size: "10MB"
             max_total_log_size: "2GB"
 
+filebeat:
+    at_boot: true
+
 # Prometheus params
 prometheus:
     metrics_path: /admin/v1/metrics
@@ -130,11 +136,13 @@ prometheus:
     prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
     server:
         port: 9090
+        at_boot: true
         tsdb_retention_time: "15d"
         tsdb_retention_size: "5GB"
     node_exporter:
         enabled: true
         port: 9101
+        at_boot: true
         metrics_path: /metrics
         log_level: "warn"
         logrotate: enabled # or disabled
@@ -142,10 +150,12 @@ prometheus:
     consul_exporter:
         enabled: true
         port: 9107
+        at_boot: true
         metrics_path: /metrics
     elasticsearch_exporter:
         enabled: true
         port: 9114
+        at_boot: true
         metrics_path: /metrics
         log_level: "warn"
         logrotate: enabled # or disabled
@@ -153,6 +163,7 @@ prometheus:
     alertmanager:
         api_port: 9093
         cluster_port: 9094
+        at_boot: true
         #receivers: # https://grafana.com/blog/2020/02/25/step-by-step-guide-to-setting-up-prometheus-alertmanager-with-slack-pagerduty-and-gmail/
         #- name: "slack_alert"
         #  slack_configs:
@@ -162,6 +173,7 @@ prometheus:
     blackbox_exporter:
         enabled: true
         port: 9115
+        at_boot: true
         targets:
             ## List all the targeted URLs that must be controled with blackbox
             - "{{ vitam_reverse_external_protocol | default('https') }}://{{ vitam_reverse_external_dns }}:{{ reverse_proxy_port | default(443) }},reverse"
@@ -169,10 +181,12 @@ prometheus:
         enabled: true
         port_mongoc: 9216
         port_mongod: 9217
+        at_boot: true
 
 grafana:
     check_consul: 10 # in seconds
     http_port: 3000
+    at_boot: true
     proxy: false
     grafana_datasources:
       - name: "Prometheus"
@@ -227,6 +241,7 @@ kibana:
         api_call_timeout: 120
         groupe: "log"
         port: 5601
+        at_boot: true
         default_index_pattern: "logstash-vitam*"
         check_consul: 10 # in seconds
         # default shards & replica
