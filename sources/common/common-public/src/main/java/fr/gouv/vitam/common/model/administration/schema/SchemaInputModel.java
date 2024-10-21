@@ -93,39 +93,44 @@ public class SchemaInputModel {
         return description;
     }
 
-    public void setDescription(String description) {
+    public SchemaInputModel setDescription(String description) {
         this.description = description;
+        return this;
     }
 
     public SchemaCardinality getCardinality() {
         return cardinality;
     }
 
-    public void setCardinality(SchemaCardinality cardinality) {
+    public SchemaInputModel setCardinality(SchemaCardinality cardinality) {
         this.cardinality = cardinality;
+        return this;
     }
 
     public Boolean isObject() {
         return isObject;
     }
 
-    public void setObject(Boolean isObject) {
+    public SchemaInputModel setObject(Boolean isObject) {
         this.isObject = isObject;
+        return this;
     }
 
     public String getShortName() {
         return shortName;
     }
 
-    public void setShortName(String shortName) {
+    public SchemaInputModel setShortName(String shortName) {
         this.shortName = shortName;
+        return this;
     }
 
     public String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
+    public SchemaInputModel setPath(String path) {
         this.path = path;
+        return this;
     }
 }

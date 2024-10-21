@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.metadata.management.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -55,8 +56,18 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyOrigin;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.StringSize;
+import fr.gouv.vitam.common.model.administration.TypeDetail;
+import fr.gouv.vitam.common.model.administration.schema.SchemaCardinality;
+import fr.gouv.vitam.common.model.administration.schema.SchemaInputModel;
+import fr.gouv.vitam.common.model.administration.schema.SchemaOrigin;
+import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.time.LogicalClockRule;
@@ -80,6 +91,7 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.collections4.ListUtils;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -101,6 +113,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -155,6 +168,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         "functional-admin/accession-register/accession-register-detail-3.json";
     private static final String ACCESSION_REGISTER_DETAIL_DATA_4 =
         "functional-admin/accession-register/accession-register-detail-4.json";
+
+    private static final String INTERNAL_ONTOLOGIES_PATH = "ontology/ontologies.json";
 
     private static final String NAME = "Name";
     public static final String PERMISSIONS = "Permissions";
@@ -1612,5 +1627,108 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void reconstructSchema() throws Exception {
+        // GIVEN
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
+        OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccess);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_0,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.SCHEMA.getName(),
+            0L
+        );
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final boolean forceUpdate = false;
+            List<OntologyModel> internalOntologies = JsonHandler.getFromInputStreamAsTypeReference(
+                PropertiesUtils.getResourceAsStream(INTERNAL_ONTOLOGIES_PATH),
+                new TypeReference<>() {}
+            );
+
+            List<OntologyModel> ontologies = ListUtils.union(
+                internalOntologies,
+                List.of(
+                    new OntologyModel()
+                        .setIdentifier("MyField1")
+                        .setDescription("My description1")
+                        .setType(OntologyType.KEYWORD)
+                        .setShortName("My Field1")
+                        .setCollections(List.of("Unit"))
+                        .setOrigin(OntologyOrigin.EXTERNAL)
+                        .setTypeDetail(TypeDetail.STRING)
+                        .setStringSize(StringSize.MEDIUM)
+                )
+            );
+
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+            VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_1));
+
+            client.importOntologies(forceUpdate, ontologies);
+
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+            VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
+
+            client.importUnitExternalSchema(
+                List.of(
+                    new SchemaInputModel()
+                        .setPath("MyField1")
+                        .setObject(false)
+                        .setCardinality(SchemaCardinality.ONE_REQUIRED)
+                )
+            );
+
+            final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.get();
+            final VitamMongoRepository mongoRepository = vitamRepository.getVitamMongoRepository(
+                FunctionalAdminCollections.SCHEMA.getVitamCollection()
+            );
+            final VitamElasticsearchRepository securityProfileEs = vitamRepository.getVitamESRepository(
+                FunctionalAdminCollections.SECURITY_PROFILE.getVitamCollection(),
+                functionalAdminIndexManager.getElasticsearchIndexAliasResolver(
+                    FunctionalAdminCollections.SECURITY_PROFILE
+                )
+            );
+
+            mongoRepository.purge();
+            securityProfileEs.purge();
+
+            FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+                new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+
+            // Reconstruction service
+            ReconstructionServiceImpl reconstructionService = new ReconstructionServiceImpl(
+                vitamRepository,
+                new RestoreBackupServiceImpl(),
+                offsetRepository,
+                functionalAdminIndexManager,
+                reconstructionMetricsCache
+            );
+
+            // WHEN
+            reconstructionService.reconstruct(FunctionalAdminCollections.SCHEMA, TENANT_0);
+
+            // THEN
+            List<SchemaResponse> unitSchema =
+                ((RequestResponseOK<SchemaResponse>) client.getUnitSchema()).getResults()
+                    .stream()
+                    .filter(s -> s.getPath().equals("MyField1"))
+                    .collect(Collectors.toList());
+
+            assertThat(unitSchema).hasSize(1);
+            SchemaResponse schemaResponse = unitSchema.get(0);
+
+            assertThat(schemaResponse.getTenant()).isEqualTo(TENANT_0);
+            assertThat(schemaResponse.getOrigin()).isEqualTo(SchemaOrigin.EXTERNAL);
+            assertThat(schemaResponse.getCollection()).isEqualTo("Unit");
+            assertThat(schemaResponse.getDescription()).isEqualTo("My description1");
+            assertThat(schemaResponse.getPath()).isEqualTo("MyField1");
+            assertThat(schemaResponse.getShortName()).isEqualTo("My Field1");
+        }
     }
 }
