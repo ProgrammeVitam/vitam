@@ -156,12 +156,14 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_COLLECT_INTERNAL = 8088;
     public static final int PORT_SERVICE_COLLECT_EXTERNAL = 8488;
     public static final int PORT_SERVICE_SCHEDULER = 8799;
+    public static final int PORT_SERVICE_SCHEDULER_ADMIN = 28799;
 
     public static final String WORKSPACE_COLLECT_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE_COLLECT;
     public static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     public static final String METADATA_URL = "http://localhost:" + PORT_SERVICE_METADATA;
     public static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
     public static final String LOGBOOK_URL = "http://localhost:" + PORT_SERVICE_LOGBOOK;
+    public static final String SCHEDULER_ADMIN_URL = "http://localhost:" + PORT_SERVICE_SCHEDULER_ADMIN;
 
     public static final String DEFAULT_OFFER_CONF = "common/storage-default-offer.conf";
     public static final String LOGBOOK_CONF = "common/logbook.conf";
@@ -451,11 +453,16 @@ public class VitamServerRunner extends ExternalResource {
             }
 
             SystemPropertyUtil.set(SchedulerMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_SCHEDULER));
+            SystemPropertyUtil.set(
+                JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+                Integer.toString(PORT_SERVICE_SCHEDULER_ADMIN)
+            );
             LOGGER.warn("=== VitamServerRunner start  SchedulerMain");
             schedulerMain = new SchedulerMain(SCHEDULER_CONF);
             schedulerMain.start();
             SchedulerClientFactory.getInstance().changeServerPort(PORT_SERVICE_SCHEDULER);
             SystemPropertyUtil.clear(SchedulerMain.PARAMETER_JETTY_SERVER_PORT);
+            SystemPropertyUtil.clear(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
         } catch (SchedulerException e) {
             throw new VitamApplicationServerException(e);
         }

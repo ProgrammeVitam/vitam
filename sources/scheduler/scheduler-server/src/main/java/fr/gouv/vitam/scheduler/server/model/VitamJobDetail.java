@@ -59,6 +59,10 @@ public class VitamJobDetail {
     @JsonProperty(SHOULD_RECOVER)
     private boolean shouldRecover;
 
+    public VitamJobDetail() {
+        // Empty constructor for deserialization
+    }
+
     public VitamJobDetail(
         String key,
         String description,
