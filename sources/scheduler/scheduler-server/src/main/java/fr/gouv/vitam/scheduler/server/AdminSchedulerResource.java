@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.scheduler.server;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.scheduler.server.util.VitamJobsDataProcessorPlugin;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -45,6 +47,8 @@ import java.util.Set;
 @Path("/scheduler/v1")
 public class AdminSchedulerResource {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminSchedulerResource.class);
+
     private final VitamJobsDataProcessorPlugin jobsDataProcessorPlugin;
 
     public AdminSchedulerResource(VitamJobsDataProcessorPlugin jobsDataProcessorPlugin) {
@@ -55,7 +59,26 @@ public class AdminSchedulerResource {
     @Path("/jobs")
     @Produces(MediaType.APPLICATION_JSON)
     public Response importJobs() throws SchedulerException {
+        LOGGER.warn("##### STARTING JOB CONFIGURATION #####");
+
+        // PAUSE all jobs
+        final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
+        final Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.anyGroup());
+        if (!jobKeys.isEmpty()) {
+            LOGGER.warn("PAUSING existing jobs...");
+            scheduler.pauseAll();
+        }
+        // Delete all exising jobs & triggers
+        for (JobKey jobKey : jobKeys) {
+            LOGGER.warn("DELETING existing job " + jobKey);
+            scheduler.deleteJob(jobKey);
+        }
+
+        // Reinit jobs
+        LOGGER.warn("RELOADING job configuration...");
         jobsDataProcessorPlugin.initialize();
+
+        LOGGER.warn("##### JOB CONFIGURATION DONE SUCCESSFULLY #####");
         return Response.accepted().build();
     }
 

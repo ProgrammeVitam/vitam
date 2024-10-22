@@ -53,8 +53,18 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> findJobs() throws VitamClientException {
+    public RequestResponse<JsonNode> findCurrentJobs() throws VitamClientException {
         try (Response response = make(VitamRequestBuilder.get().withPath("/current-jobs").withJsonAccept())) {
+            check(response);
+            return RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> findJobs() throws VitamClientException {
+        try (Response response = make(VitamRequestBuilder.get().withPath("/jobs").withJsonAccept())) {
             check(response);
             return RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
