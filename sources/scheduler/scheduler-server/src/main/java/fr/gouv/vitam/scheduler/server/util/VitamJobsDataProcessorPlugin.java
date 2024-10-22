@@ -28,8 +28,6 @@
 package fr.gouv.vitam.scheduler.server.util;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.scheduler.server.SchedulerConfiguration;
 import fr.gouv.vitam.scheduler.server.SchedulerListener;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
@@ -46,23 +44,21 @@ import java.util.stream.Collectors;
 
 public class VitamJobsDataProcessorPlugin {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamJobsDataProcessorPlugin.class);
-
     private static final String FILE_NAME_DELIMITERS = ",";
 
-    private String fileNames;
+    private final String fileNames;
 
     XMLSchedulingDataProcessorPlugin dataProcessorPlugin;
 
     public VitamJobsDataProcessorPlugin(SchedulerConfiguration configuration) {
         dataProcessorPlugin = new XMLSchedulingDataProcessorPlugin();
-        setFileNames(configuration.getFileNames());
+        this.fileNames = configuration.getFileNames();
         dataProcessorPlugin.setFailOnFileNotFound(configuration.isFailOnFileNotFound());
     }
 
     public void initialize() throws SchedulerException {
-        refreshListFiles();
-        dataProcessorPlugin.setFileNames(getFileNames());
+        String filesToLoad = refreshListFiles();
+        dataProcessorPlugin.setFileNames(filesToLoad);
         dataProcessorPlugin.initialize(
             "VitamJobs",
             SchedulerListener.getInstance().getScheduler(),
@@ -71,25 +67,15 @@ public class VitamJobsDataProcessorPlugin {
         dataProcessorPlugin.start();
     }
 
-    private void refreshListFiles() {
-        final Path path = Path.of(VitamConfiguration.getVitamConfigFolder()).resolve(Path.of(getFileNames()));
+    private String refreshListFiles() throws SchedulerException {
+        final Path path = Path.of(VitamConfiguration.getVitamConfigFolder()).resolve(Path.of(this.fileNames));
         final File dir = path.getParent().toFile();
-        FileFilter fileFilter = new WildcardFileFilter(path.getFileName().toString());
+        FileFilter fileFilter = WildcardFileFilter.builder().setWildcards(path.getFileName().toString()).get();
         File[] files = dir.listFiles(fileFilter);
         if (Objects.nonNull(files) && files.length != 0) {
-            setFileNames(
-                Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.joining(FILE_NAME_DELIMITERS))
-            );
+            return Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.joining(FILE_NAME_DELIMITERS));
         } else {
-            LOGGER.error("Cannot find job files");
+            throw new SchedulerException("Cannot find job files");
         }
-    }
-
-    public String getFileNames() {
-        return fileNames;
-    }
-
-    public void setFileNames(String fileNames) {
-        this.fileNames = fileNames;
     }
 }

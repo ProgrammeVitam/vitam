@@ -65,10 +65,13 @@ import fr.gouv.vitam.scheduler.server.SchedulerMain;
 import fr.gouv.vitam.scheduler.server.client.SchedulerClient;
 import fr.gouv.vitam.scheduler.server.client.SchedulerClientFactory;
 import fr.gouv.vitam.scheduler.server.job.auditobject.AuditObjectJob;
+import fr.gouv.vitam.scheduler.server.model.VitamJobDetail;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import okhttp3.OkHttpClient;
+import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.lang.SerializationUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -78,7 +81,17 @@ import org.junit.Test;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.Headers;
+import retrofit2.http.POST;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,6 +101,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.SCHEDULER_ADMIN_URL;
 import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -102,6 +116,7 @@ public class SchedulerIT extends VitamRuleRunner {
     private static final String CONTRACT_ID = "contract";
     private static final String CONTEXT_ID = "Context_IT";
     private static final int DELAY = 5;
+    private static SchedulerAdminApi schedulerAdminApi;
 
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();
@@ -138,6 +153,17 @@ public class SchedulerIT extends VitamRuleRunner {
         ).toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(configurationPath);
         new DataLoader("integration-ingest-internal").prepareData();
+
+        final OkHttpClient okHttpClient = new OkHttpClient.Builder()
+            .readTimeout(600, TimeUnit.SECONDS)
+            .connectTimeout(600, TimeUnit.SECONDS)
+            .build();
+        Retrofit retrofit = new Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(SCHEDULER_ADMIN_URL)
+            .addConverterFactory(JacksonConverterFactory.create())
+            .build();
+        schedulerAdminApi = retrofit.create(SchedulerAdminApi.class);
     }
 
     @AfterClass
@@ -148,6 +174,69 @@ public class SchedulerIT extends VitamRuleRunner {
             Set.of("vitam_schedulers", "vitam_jobs", "vitam_locks", "vitam_triggers", "vitam_calendars")
         );
         VitamClientFactory.resetConnections();
+    }
+
+    @Test
+    public void test_imports_jobs() throws Exception {
+        // Given
+        Path jobsDirectory = Paths.get(VitamConfiguration.getVitamConfigFolder(), "jobs");
+
+        try (SchedulerClient client = SchedulerClientFactory.getInstance().getClient()) {
+            Files.createDirectories(jobsDirectory);
+            File srcJobFile1 = PropertiesUtils.getResourceFile("scheduler_jobs/jobs-1.xml");
+            File srcJobFile2 = PropertiesUtils.getResourceFile("scheduler_jobs/jobs-2.xml");
+            Path job1 = jobsDirectory.resolve("jobs-1.xml");
+            Path job2 = jobsDirectory.resolve("jobs-2.xml");
+
+            // When : first import
+            Files.copy(srcJobFile1.toPath(), job1);
+            Response<Void> import1Response = schedulerAdminApi.importJobs().execute();
+
+            // Then : job 1 loaded
+            assertThat(import1Response.isSuccessful()).isTrue();
+
+            RequestResponseOK<JsonNode> currentJobs1 = (RequestResponseOK<JsonNode>) client.findJobs();
+            List<VitamJobDetail> jobDetails1 = JsonHandler.getFromJsonNodeList(
+                currentJobs1.getResults(),
+                VitamJobDetail.class
+            );
+            assertThat(jobDetails1).hasSize(1);
+            assertThat(jobDetails1.get(0).getKey()).isEqualTo("Metadata.PurgeDipJob");
+
+            // When : add another job
+            Files.copy(srcJobFile2.toPath(), job2);
+            Response<Void> import2Response = schedulerAdminApi.importJobs().execute();
+
+            // Then : Both jobs loaded
+            assertThat(import2Response.isSuccessful()).isTrue();
+            RequestResponseOK<JsonNode> currentJobs2 = (RequestResponseOK<JsonNode>) client.findJobs();
+            List<VitamJobDetail> jobDetails = JsonHandler.getFromJsonNodeList(
+                currentJobs2.getResults(),
+                VitamJobDetail.class
+            );
+            assertThat(jobDetails).hasSize(2);
+            assertThat(jobDetails.stream().map(VitamJobDetail::getKey)).containsExactlyInAnyOrder(
+                "Offer.OfferLogCompactionJob_offer-fs-1",
+                "Metadata.PurgeDipJob"
+            );
+
+            // When : remove job1
+            Files.delete(job1);
+            Response<Void> import3Response = schedulerAdminApi.importJobs().execute();
+
+            // Then : Only job 2 is loaded
+            assertThat(import3Response.isSuccessful()).isTrue();
+
+            RequestResponseOK<JsonNode> currentJobs3 = (RequestResponseOK<JsonNode>) client.findJobs();
+            List<VitamJobDetail> jobDetails3 = JsonHandler.getFromJsonNodeList(
+                currentJobs3.getResults(),
+                VitamJobDetail.class
+            );
+            assertThat(jobDetails3).hasSize(1);
+            assertThat(jobDetails3.get(0).getKey()).isEqualTo("Offer.OfferLogCompactionJob_offer-fs-1");
+        } finally {
+            PathUtils.delete(jobsDirectory);
+        }
     }
 
     @Test
@@ -295,5 +384,11 @@ public class SchedulerIT extends VitamRuleRunner {
         } catch (VitamClientException e) {
             fail("An error occured while retreiving job state", e);
         }
+    }
+
+    public interface SchedulerAdminApi {
+        @POST("/scheduler/v1/jobs")
+        @Headers({ "Accept: application/json" })
+        Call<Void> importJobs();
     }
 }
