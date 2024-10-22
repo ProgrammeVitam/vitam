@@ -72,6 +72,12 @@
   notify: restart clamav
   when: ansible_os_family == "Debian"
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: clamav.logrotate | default('enabled') | lower == 'enabled'
+
 - name: Enable logrotate for clamAV
   template:
     src: clamav/logrotate.j2
