@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.functional.administration.core.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,11 +65,12 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -167,7 +169,7 @@ public class SchemaValidationService {
                 );
 
             String message = String.format(
-                "Paths already in current schema for the current or other tenants =  %s  ",
+                "Paths already in current schema for the current or other tenants = %s",
                 existingPathsInCurrentSchema.stream().collect(Collectors.joining(", "))
             );
             throw new SchemaImportValidationException(message);
@@ -210,7 +212,7 @@ public class SchemaValidationService {
                 );
 
             String message = String.format(
-                "Paths already in current schema =  %s  ",
+                "Paths already in current schema = %s",
                 existingPathsInCurrentSchema.stream().collect(Collectors.joining(", "))
             );
             throw new SchemaImportValidationException(message);
@@ -223,41 +225,60 @@ public class SchemaValidationService {
     ) throws SchemaImportValidationException {
         LOGGER.debug("Validating external schema inputs consistency ");
         if (CollectionUtils.isEmpty(externalSchemaInputList)) {
-            LOGGER.error("Empty schema list ");
-            String message = String.format("Empty schema list ");
-            throw new SchemaImportValidationException(message);
+            LOGGER.error("Empty schema list");
+            throw new SchemaImportValidationException("Empty schema list");
         }
-        List<SchemaInputModel> schemaInputsWithErrors = new ArrayList<>();
+        // Validate schema attributes
+        Map<String, List<SchemaInputModel>> schemaInputsWithErrorsByAttribute = new HashMap<>();
         for (SchemaInputModel inputSchema : externalSchemaInputList) {
+            // Validate Path
             final Matcher matcher = PATH_PATTERN.matcher(inputSchema.getPath());
             if (!matcher.find()) {
-                schemaInputsWithErrors.add(inputSchema);
+                schemaInputsWithErrorsByAttribute
+                    .computeIfAbsent(SchemaInputModel.TAG_PATH, k -> new ArrayList<>())
+                    .add(inputSchema);
+            }
+            // Validate ShortName
+            String shortName = inputSchema.getShortName();
+            if (StringUtils.isEmpty(shortName)) {
+                schemaInputsWithErrorsByAttribute
+                    .computeIfAbsent(SchemaInputModel.TAG_SHORT_NAME, k -> new ArrayList<>())
+                    .add(inputSchema);
+            }
+            // Validate Description
+            String description = inputSchema.getDescription();
+            if (StringUtils.isEmpty(description)) {
+                schemaInputsWithErrorsByAttribute
+                    .computeIfAbsent(SchemaInputModel.TAG_DESCRIPTION, k -> new ArrayList<>())
+                    .add(inputSchema);
             }
         }
-        if (!CollectionUtils.isEmpty(schemaInputsWithErrors)) {
-            LOGGER.error("Some paths wrong path format ");
-            schemaInputsWithErrors
-                .stream()
-                .forEach(
-                    schema ->
-                        addError(
-                            schema.getPath(),
-                            new ErrorReportSchema(
-                                SchemaErrorCode.IMPORT_SCHEMA_WRONG_PATH_FORMAT,
-                                schema,
-                                "Wrong path format"
-                            ),
-                            importErrors
-                        )
-                );
-
-            String message = String.format(
-                "Some paths wrong path format  =  %s  ",
-                schemaInputsWithErrors
+        if (!schemaInputsWithErrorsByAttribute.isEmpty()) {
+            LOGGER.error("Some inputs have validation errors");
+            List<String> errorMessages = new ArrayList<>();
+            for (String attribute : schemaInputsWithErrorsByAttribute.keySet()) {
+                boolean isPath = SchemaInputModel.TAG_PATH.equals(attribute);
+                List<SchemaInputModel> schemaInputModels = schemaInputsWithErrorsByAttribute.get(attribute);
+                for (SchemaInputModel inputSchema : schemaInputModels) {
+                    addError(
+                        inputSchema.getPath(),
+                        new ErrorReportSchema(
+                            isPath
+                                ? SchemaErrorCode.IMPORT_SCHEMA_WRONG_PATH_FORMAT
+                                : SchemaErrorCode.IMPORT_SCHEMA_MISSING_INFORMATION,
+                            inputSchema,
+                            "Wrong attribute " + attribute
+                        ),
+                        importErrors
+                    );
+                }
+                String paths = schemaInputModels
                     .stream()
-                    .map(schemaInputModel -> schemaInputModel.getPath())
-                    .collect(Collectors.joining(", "))
-            );
+                    .map(SchemaInputModel::getPath)
+                    .collect(Collectors.joining(", "));
+                errorMessages.add(String.format("%s (%s)", attribute, paths));
+            }
+            String message = String.format("Some inputs have validation errors: %s", String.join(", ", errorMessages));
             throw new SchemaImportValidationException(message);
         }
     }
@@ -303,7 +324,7 @@ public class SchemaValidationService {
                 );
 
             String message = String.format(
-                "Paths with missing parents =  %s  ",
+                "Paths with missing parents = %s",
                 pathsWithErrors.stream().collect(Collectors.joining(", "))
             );
             throw new SchemaImportValidationException(message);

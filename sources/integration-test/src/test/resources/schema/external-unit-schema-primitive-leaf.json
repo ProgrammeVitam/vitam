@@ -3,6 +3,7 @@
     "IsObject": false,
     "Cardinality": "MANY",
     "Path": "MyTestRa",
-    "ShortName": "MyTestRa"
+    "ShortName": "MyTestRa",
+    "Description": "MyTestRa"
   }
 ]

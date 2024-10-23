@@ -251,36 +251,6 @@ public class SchemaIT extends VitamRuleRunner {
         }
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public void shouldSaveSchemaWhenObjectHasNoShortName()
-        throws FileNotFoundException, JsonProcessingException, AccessExternalClientException, InvalidParseOperationException {
-        try (final AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            final VitamContext context = new VitamContext(TENANT_ID)
-                .setApplicationSessionId("ApplicationSessionId")
-                .setAccessContract("contract");
-
-            final boolean forceUpdate = false;
-            final InputStream ontologiesInputStream = combineOntologies(
-                INTERNAL_ONTOLOGIES_PATH,
-                "ontology/external-ontologies-with-objects.json"
-            );
-            final RequestResponse<?> ontologiesImportResponse = client.importOntologies(
-                forceUpdate,
-                context,
-                ontologiesInputStream
-            );
-
-            assertThat(ontologiesImportResponse.getStatus()).isEqualTo(200);
-
-            final InputStream schemaInputStream = PropertiesUtils.getResourceAsStream(
-                "schema/external-unit-schema-object-without-shortname.json"
-            );
-            final RequestResponse<?> schemaImportResponse = client.importUnitExternalSchema(context, schemaInputStream);
-            assertThat(schemaImportResponse.getStatus()).isEqualTo(200);
-        }
-    }
-
     private InputStream combineOntologies(
         final String internalOntologieFilePath,
         final String externalOntologieFilePath

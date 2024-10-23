@@ -4,18 +4,21 @@
     "Cardinality": "ONE",
     "Path": "Invoice-Provider",
     "StringSize": "SHORT",
-    "ShortName": "Provider"
+    "ShortName": "Provider",
+    "Description": "Provider"
   },
   {
     "Cardinality": "ONE",
     "Path": "Invoice.Provider .BirthDate",
     "StringSize": "SHORT",
-    "ShortName": "Date de naissance"
+    "ShortName": "Date de naissance",
+    "Description": "Date de naissance"
   },
   {
     "Cardinality": "ONE",
     "Path": "Addressee.' ' BirthPlace.City",
-    "ShortName": "Ville"
+    "ShortName": "Ville",
+    "Description": "Ville"
   },
   {
     "IsObject": true,
@@ -28,6 +31,11 @@
     "Cardinality": "ONE",
     "Path": "Addressee*BirthPlace\\Country",
     "StringSize": "SHORT",
-    "ShortName": "Pays"
+    "Description": "Pays"
+  },
+  {
+    "Cardinality": "ONE",
+    "Path": "With_Underscore",
+    "StringSize": "SHORT"
   }
 ]

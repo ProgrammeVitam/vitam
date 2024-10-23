@@ -4,24 +4,28 @@
     "Path": "Invoice",
     "IsObject": true,
     "StringSize": "SHORT",
-    "ShortName": "Facture"
+    "ShortName": "Facture",
+    "Description": "Facture"
   },
   {
     "Cardinality": "ONE",
     "Path": "Invoice.Provider",
     "IsObject": true,
     "StringSize": "SHORT",
-    "ShortName": "Provider"
+    "ShortName": "Provider",
+    "Description": "Provider"
   },
   {
     "Cardinality": "ONE",
     "Path": "Invoice.Provider.BirthDate",
-    "ShortName": "Date de naissance"
+    "ShortName": "Date de naissance",
+    "Description": "Date de naissance"
   },
   {
     "Cardinality": "ONE",
     "Path": "Invoice.Provider.SomeDate",
     "StringSize": "SHORT",
-    "ShortName": "Une certaine date"
+    "ShortName": "Une certaine date",
+    "Description": "Une certaine date"
   }
 ]

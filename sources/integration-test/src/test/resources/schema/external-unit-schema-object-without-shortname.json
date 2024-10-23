@@ -1,9 +1,0 @@
-[
-  { "Cardinality": "MANY", "Path": "Miscellaneous" },
-  { "Cardinality": "MANY", "Path": "Invoice", "IsObject": true },
-  { "Cardinality": "ONE", "Path": "Invoice.InvoiceNumber" },
-  { "Cardinality": "MANY", "Path": "Invoice.Provider", "IsObject": true, "ShortName": "Fournisseur" },
-  { "Cardinality": "ONE", "Path": "Invoice.Provider.ProviderName" },
-  { "Cardinality": "ONE", "Path": "Invoice.Provider.ProviderNumber" },
-  { "Cardinality": "ONE", "Path": "Invoice.Provider.ProviderDate" }
-]
