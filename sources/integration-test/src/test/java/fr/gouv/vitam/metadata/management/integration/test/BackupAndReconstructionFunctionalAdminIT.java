@@ -1679,6 +1679,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                 List.of(
                     new SchemaInputModel()
                         .setPath("MyField1")
+                        .setDescription("My description1")
+                        .setShortName("My Field1")
                         .setObject(false)
                         .setCardinality(SchemaCardinality.ONE_REQUIRED)
                 )
