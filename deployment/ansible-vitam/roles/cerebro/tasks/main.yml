@@ -71,6 +71,12 @@
   notify:
     - "cerebro - restart service"
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: cerebro.logrotate | default('enabled') | lower == 'enabled'
+
 - name: Enable logrotate for cerebro
   template:
     src: logrotate.j2

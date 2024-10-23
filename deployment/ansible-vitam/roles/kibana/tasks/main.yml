@@ -30,6 +30,12 @@
     group: "kibana"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: kibana.logrotate | default('enabled') | lower == 'enabled'
+
 - name: Enable logrotate for Kibana
   template:
     src: logrotate.j2

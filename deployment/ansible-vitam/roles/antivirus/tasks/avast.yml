@@ -126,6 +126,12 @@
     enabled: "{{ avast.at_boot | default(service_at_boot) }}"
     state: started
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: avast.logrotate | default('enabled') | lower == 'enabled'
+
 - name: Enable logrotate for Avast
   template:
     src: avast/logrotate.j2
