@@ -58,6 +58,12 @@
     mode: "0644"
   notify: "prometheus-node-exporter - restart service"
 
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  when: prometheus.node_exporter.logrotate | default('enabled') | lower == 'enabled'
+
 - name: Enable logrotate for node_exporter
   template:
     src: node-exporter.logrotate.j2
