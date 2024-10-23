@@ -169,6 +169,8 @@ Dans le fichier de configuration des repositories ``environments/group_vars/all/
 
 Actuellement l'antivirus n'est pas supporté par le déploiement en mode conteneur, vous devrez configurer la valeur suivante: ``vitam.ingest_external.ignore_antivirus_check: true``.
 
+De plus, le composant library n'est pas supporté en mode container, vous devrez laisser vide le groupe ``[library]`` de votre inventaire.
+
 Procédures à exécuter AVANT la montée de version
 ================================================
 

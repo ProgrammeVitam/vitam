@@ -1,10 +1,29 @@
 ---
 
-- name: Install Filebeat
+- name: "Install {{ filebeat_package }} package"
   package:
-    name: filebeat
+    name: "{{ filebeat_package }}"
     state: latest
   notify: "filebeat - restart service"
+  when: install_mode != "container"
+
+- name: Ensure Filebeat directory exist
+  file:
+    path: "/etc/filebeat"
+    state: directory
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  notify: "filebeat - restart service"
+  when: install_mode == "container"
+
+- name: "Deploy systemd service file for filebeat"
+  template:
+    src: "filebeat.service.j2"
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/filebeat.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "filebeat - restart service"
+  when: install_mode == "container"
 
 - name: Add Filebeat config file
   template:

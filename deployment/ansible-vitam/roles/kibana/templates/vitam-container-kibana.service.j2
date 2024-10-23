@@ -10,11 +10,12 @@ ExecStartPre=-/usr/bin/docker stop kibana
 ExecStartPre=-/usr/bin/docker rm kibana
 ExecStart=/usr/bin/docker run --rm --net=host --ulimit memlock=-1:-1 --name kibana \
         -v "/vitam/conf/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:rw" \
+        -v "/vitam/log/kibana/:/vitam/log/kibana:rw" \
         {{ container_repository.registry_url }}/vitam-external/kibana:{{ kibana_version }}
 
 ExecStop=/usr/bin/docker stop -t 85 kibana
 ExecReload=/usr/bin/docker restart -t 85 kibana
-TimeoutStartSec=60
+TimeoutStartSec=120
 TimeoutStopSec=30
 StartLimitBurst=6
 

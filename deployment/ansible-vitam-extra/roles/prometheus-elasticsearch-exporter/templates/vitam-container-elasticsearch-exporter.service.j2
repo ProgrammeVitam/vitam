@@ -13,7 +13,7 @@ ExecStart=/usr/bin/docker run --rm --net=host --ulimit memlock=-1:-1 --name elas
         {% if inventory_hostname in groups['hosts_elasticsearch_data'] %}
         --es.uri=http://{{ ip_service }}:{{ elasticsearch.data.port_http }} --web.listen-address=:{{ prometheus.elasticsearch_exporter.port | default(9114) }} --web.telemetry-path={{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }} --log.level={{ prometheus.elasticsearch_exporter.log_level | default('warn') }}
         {% elif inventory_hostname in groups['hosts_elasticsearch_log'] %}
-        --es.uri=http://{{ ip_admin }}:{{ elasticsearch.log.port_http }} --web.listen-address=:{{ prometheus.elasticsearch_exporter.port | default(9114) }} --web.telemetry-path={{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }} --log.level={{ prometheus.elasticsearch_exporter.log_level | default('warn') }}'
+        --es.uri=http://{{ ip_admin }}:{{ elasticsearch.log.port_http }} --web.listen-address=:{{ prometheus.elasticsearch_exporter.port | default(9114) }} --web.telemetry-path={{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }} --log.level={{ prometheus.elasticsearch_exporter.log_level | default('warn') }}
         {% endif %}
 
 ExecStop=/usr/bin/docker stop -t 85 elasticsearch_exporter

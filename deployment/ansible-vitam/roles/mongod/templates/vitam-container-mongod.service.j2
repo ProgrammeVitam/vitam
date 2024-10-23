@@ -24,8 +24,8 @@ ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongod --user 1003:10
 
 ExecStop=/usr/bin/docker stop -t 85 vitam-mongod
 ExecReload=/usr/bin/docker restart -t 85 vitam-mongod
-TimeoutStartSec=60
-TimeoutStopSec=30
+TimeoutStartSec=120
+TimeoutStopSec=60
 StartLimitBurst=6
 
 [Install]

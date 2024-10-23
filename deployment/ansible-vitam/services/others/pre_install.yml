@@ -5,6 +5,6 @@
   roles:
     - normalize-host
     - selinux_conf
-    - syslogd
-    - filebeat
     - { role: docker, when: install_mode == 'container' }
+    - filebeat
+    - syslogd

@@ -4,9 +4,10 @@ logstash:7.17.23
 kibana:7.17.23
 elastic/metricbeat:7.17.23
 elastic/packetbeat:7.17.23
+elastic/filebeat:7.17.23
 grafana/grafana:10.3.5
 restic/restic:0.16.2
-hashicorp/consul:1.18.1
+hashicorp/consul:1.18.1-ubi
 lmenezes/cerebro:0.9.4
 prom/prometheus:v2.51.2
 prom/alertmanager:v0.27.0

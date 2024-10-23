@@ -1,5 +1,13 @@
 ---
 
+- name: Create modules.d folder
+  file:
+    path: /etc/filebeat/modules.d
+    state: directory
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  notify: "filebeat - restart service"
+  when: install_mode == "container"
+
 - name: Add kibana filebeat module
   template:
     src: modules/kibana.yml.j2

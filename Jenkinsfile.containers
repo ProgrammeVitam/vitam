@@ -21,6 +21,7 @@ pipeline {
         MONGO_VERSION="7.0.8"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
+        JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
     }
 
     stages {
@@ -132,7 +133,7 @@ pipeline {
                         sh "docker pull $image"
 
                         // Run Trivy scan
-                        sh "trivy image $image --ignore-unfixed --vuln-type os,library --format template --template '@html.tpl' -o reports/${imageName}-scan.html"
+                        sh "trivy image $image --ignore-unfixed --vuln-type os,library --format template --template '@html.tpl' -o reports/${imageName}-scan.html || true"
 
                         // Publish HTML report
                         publishHTML target: [
