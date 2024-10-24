@@ -3,7 +3,7 @@
 - name: "Install {{ filebeat_package }} package"
   package:
     name: "{{ filebeat_package }}"
-    state: latest
+    state: present
   notify: "filebeat - restart service"
   when: install_mode != "container"
 
