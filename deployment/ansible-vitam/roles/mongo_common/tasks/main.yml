@@ -15,6 +15,10 @@
   package:
     name: logrotate
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: mongodb.logrotate | default('enabled') | lower == 'enabled'
 
 ### System tuning best practices ####
