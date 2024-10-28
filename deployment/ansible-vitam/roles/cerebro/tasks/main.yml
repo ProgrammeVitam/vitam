@@ -75,6 +75,10 @@
   package:
     name: logrotate
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: cerebro.logrotate | default('enabled') | lower == 'enabled'
 
 - name: Enable logrotate for cerebro
