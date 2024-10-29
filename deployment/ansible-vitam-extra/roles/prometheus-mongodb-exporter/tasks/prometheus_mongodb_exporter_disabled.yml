@@ -13,12 +13,12 @@
   file:
     path: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-mongoc-exporter.service"
     state: absent
-    notify: daemon reload
+  notify: daemon reload
   when: inventory_hostname in groups['hosts_mongoc_data'] or inventory_hostname in groups['hosts_mongoc_offer']
 
 - name: Remove systemd service file for mongod_exporter
   file:
     path: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-mongod-exporter.service"
     state: absent
-    notify: daemon reload
+  notify: daemon reload
   when: inventory_hostname in groups['hosts_mongod_data'] or inventory_hostname in groups['hosts_mongod_offer']

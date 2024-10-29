@@ -16,7 +16,7 @@
   file:
     path: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-consul.service"
     state: absent
-    notify: daemon reload
+  notify: daemon reload
 
 - name: Remove 127.0.0.1 nameserver to resolv.conf
   blockinfile:

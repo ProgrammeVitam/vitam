@@ -13,7 +13,7 @@
   file:
     path: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-node-exporter.service"
     state: absent
-    notify: daemon reload
+  notify: daemon reload
 
 - name: Remove logrotate configuration for node-exporter
   file:
