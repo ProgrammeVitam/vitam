@@ -13,7 +13,7 @@
   file:
     path: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-blackbox-exporter.service"
     state: absent
-    notify: daemon reload
+  notify: daemon reload
 
 - name: Remove consul agent service declaration for blackbox-exporter
   file:
