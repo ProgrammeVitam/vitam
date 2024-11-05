@@ -2802,7 +2802,7 @@
     "FieldName": "PersistentIdentifierType",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "Cardinality": "ONE",
+    "Cardinality": "ONE_REQUIRED",
     "Indexed": true,
     "Path": "PersistentIdentifier.PersistentIdentifierType",
     "ApiField": "PersistentIdentifierType",
