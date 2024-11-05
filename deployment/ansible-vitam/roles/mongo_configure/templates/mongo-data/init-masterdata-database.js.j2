@@ -25,9 +25,6 @@ db.AccessionRegisterDetail.createIndex( { "Opc" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "Opi" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1, "Opi" : 1, "_tenant" : 1} , { unique: true } )
 
-// [Migration R7 -> R8] Drop R6 and R7 AccessionRegisterDetail indexes
-db.AccessionRegisterDetail.dropIndex( { "OriginatingAgency" : 1, "Identifier" : 1, "_tenant" : 1} )
-
 db.IngestContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
 db.AccessContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
@@ -53,4 +50,3 @@ db.PreservationScenario.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { un
 db.ManagementContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
 db.Schema.createIndex( { "_tenant" : 1 , "Path" : 1, "Collections" : 1 } , { unique: true } )
-

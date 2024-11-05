@@ -1,4 +1,3 @@
-
 // Switch to metadata database
 db = db.getSiblingDB('metadata')
 
@@ -14,20 +13,6 @@ db.ObjectGroup.createIndex( { "_ops" : 1 } )
 db.ObjectGroup.createIndex( { "_glpd" : 1 } )
 
 db.Snapshot.createIndex( { "_tenant" : 1, "Name" : 1 } , { unique: true } )
-
-// Drop R6 indexes, if any
-
-db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 } )
-db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
-db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
-db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_uds" : 1 } )
-db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
-db.Unit.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_og" : 1 , "_us" : 1 } )
-
-db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 } )
-db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_us" : 1 } )
-db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_up" : 1 } )
-db.ObjectGroup.dropIndex( { "_id" : 1 , "_tenant" : 1 , "_v" : 1 } )
 
 // create index
 db.PurgedPersistentIdentifier.createIndex( { "_tenant" : 1, "persistentIdentifier.PersistentIdentifierContent" : 1 } , { unique: false } )
