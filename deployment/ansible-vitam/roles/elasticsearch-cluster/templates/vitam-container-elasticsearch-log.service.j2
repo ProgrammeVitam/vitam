@@ -8,8 +8,8 @@ After=network-online.target
 ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/elasticsearch:{{ elasticsearch_version }}
 ExecStartPre=-/usr/bin/docker stop vitam-elasticsearch-log
 ExecStartPre=-/usr/bin/docker rm vitam-elasticsearch-log
-ExecStart=/usr/bin/docker run --rm --net=host --user 1003:1003 --ulimit memlock=-1:-1 -e 'ES_HOME=/usr/share/elasticsearch' \
-		-e 'ES_PATH_CONF={{ vitam_defaults.folder.root_path }}/conf/elasticsearch-log' --name vitam-elasticsearch-log \
+ExecStart=/usr/bin/docker run --rm --net=host --user {{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].1 }}:{{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].2 }} --ulimit memlock=-1:-1 -e 'ES_HOME=/usr/share/elasticsearch' \
+        -e 'ES_PATH_CONF={{ vitam_defaults.folder.root_path }}/conf/elasticsearch-log' --name vitam-elasticsearch-log \
         -v "/vitam/conf/elasticsearch-log:/vitam/conf/elasticsearch-log:rw" \
         -v "/vitam/log/elasticsearch-log:/vitam/log/elasticsearch-log:rw" \
         -v "/vitam/data/elasticsearch-log:/vitam/data/elasticsearch-log:rw" \
