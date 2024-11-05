@@ -18,10 +18,10 @@ filebeat_log:
 
 cots_list:
   - consul
-  - cerebro
-  - grafana
-  - prometheus
-  - alertmanager
+  # - cerebro
+  # - grafana
+  # - prometheus
+  # - alertmanager
 
 filebeat:
   system:
@@ -31,8 +31,8 @@ filebeat:
     consul:
       enable_log: true
     antivirus:
-      enable_scan: true
-      enable_log: true
+      enable_scan: false
+      enable_log: false
     kibana_data:
       enable_log: true
       enable_audit: true
