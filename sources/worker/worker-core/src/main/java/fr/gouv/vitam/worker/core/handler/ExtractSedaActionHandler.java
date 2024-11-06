@@ -310,10 +310,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
     private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
         "Can not save unitToGuidMap to temporary file";
-    private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
-    private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
     private static final String MISSING_STORAGE_INFO = "Missing one or more storage infos";
     private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
 
@@ -450,7 +448,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             /*
              * setting agIdExt information
              */
-            if (agIdExt.size() > 0) {
+            if (!agIdExt.isEmpty()) {
                 globalCompositeItemStatus.setMasterData(LogbookMongoDbName.agIdExt.getDbname(), agIdExt.toString());
                 globalCompositeItemStatus.setData(LogbookMongoDbName.agIdExt.getDbname(), agIdExt.toString());
             }
@@ -461,7 +459,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             /*
              * setting rightsStatementIdentifier information
              */
-            if (rightsStatementIdentifier.size() > 0) {
+            if (!rightsStatementIdentifier.isEmpty()) {
                 globalCompositeItemStatus.setData(
                     LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
                     rightsStatementIdentifier.toString()

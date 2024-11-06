@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.worker.common.utils;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 
@@ -38,8 +36,6 @@ import java.util.Optional;
  *
  */
 public final class SedaIngestParams {
-
-    static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaIngestParams.class);
 
     public String version;
     public String namespaceURI;

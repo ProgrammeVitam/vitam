@@ -177,14 +177,14 @@ public class SedaUtils {
                 xmlStreamReader.next();
                 String namespaceURI = xmlStreamReader.getNamespaceURI();
                 if (namespaceURI == null) {
-                    throw new ProcessingException("The namespace URI could not be readed from Manifest!");
+                    throw new ProcessingException("The namespace URI could not be read from Manifest!");
                 }
                 extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, namespaceURI);
             }
         } catch (XMLStreamException e) {
             throw new ProcessingException(CheckSedaValidationStatus.NOT_XML_FILE.name(), e);
         } catch (IOException e) {
-            throw new ProcessingException("A technical problem occured when reading Manifest!", e);
+            throw new ProcessingException("A technical problem occurred when reading Manifest!", e);
         }
     }
 
@@ -269,10 +269,10 @@ public class SedaUtils {
         String xmLNameSpace
     ) throws ProcessingException {
         try {
-            Pair<String, String> extractedNameSpaceAndSerdaVersion = validateNameSpaceAndSedaVersion(xmLNameSpace);
+            Pair<String, String> extractedNameSpaceAndSedaVersion = validateNameSpaceAndSedaVersion(xmLNameSpace);
             sedaIngestParams = new SedaIngestParams(
-                extractedNameSpaceAndSerdaVersion.getRight(),
-                extractedNameSpaceAndSerdaVersion.getLeft()
+                extractedNameSpaceAndSedaVersion.getRight(),
+                extractedNameSpaceAndSedaVersion.getLeft()
             );
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(sedaIngestParamsOutputRank).getPath());
             JsonHandler.writeAsFile(sedaIngestParams, tempFile);
