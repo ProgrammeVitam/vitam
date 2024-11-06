@@ -1134,6 +1134,7 @@
                 <groupId>net.sf.saxon</groupId>
                 <artifactId>Saxon-HE</artifactId>
                 <version>${Saxon-HE.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>

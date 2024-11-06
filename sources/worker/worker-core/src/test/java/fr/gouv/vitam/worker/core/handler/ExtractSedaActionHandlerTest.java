@@ -59,6 +59,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.extractseda.IngestSession;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -80,6 +81,7 @@ import org.mockito.junit.MockitoRule;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -308,13 +310,18 @@ public class ExtractSedaActionHandlerTest {
         when(workspaceClient.getObject(any(), eq("referential/contracts.json"))).thenReturn(
             Response.status(Status.OK).entity(ingestContract).build()
         );
-        final InputStream sedaParams = PropertiesUtils.getResourceAsStream(SEDA_PARAMS);
+        givenSedaParams(SEDA_PARAMS);
+        when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
+        handlerIO.addInIOParameters(in);
+    }
+
+    private void givenSedaParams(String sedaParamsFile)
+        throws FileNotFoundException, ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        final InputStream sedaParams = PropertiesUtils.getResourceAsStream(sedaParamsFile);
         when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_FIELD))).thenReturn(true);
         when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_FIELD))).thenReturn(
             Response.status(Status.OK).entity(sedaParams).build()
         );
-        when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
-        handlerIO.addInIOParameters(in);
     }
 
     @After
