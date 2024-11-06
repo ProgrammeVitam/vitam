@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -59,9 +60,7 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.File;
@@ -171,16 +170,11 @@ public class SedaUtils {
     public void extractXmlNameSpaceAndSaveSedaParams(HandlerIO handlerIO, int sedaIngestParamsRankOutput)
         throws ProcessingException {
         try (final InputStream xmlFile = loadIngestManifest()) {
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-            final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile);
-            if (xmlStreamReader.hasNext() && xmlStreamReader.getEventType() == XMLStreamConstants.START_DOCUMENT) {
-                xmlStreamReader.next();
-                String namespaceURI = xmlStreamReader.getNamespaceURI();
-                if (namespaceURI == null) {
-                    throw new ProcessingException("The namespace URI could not be read from Manifest!");
-                }
-                extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, namespaceURI);
+            String namespaceURI = XmlNamespaceUtils.parseXmlNamespace(xmlFile);
+            if (namespaceURI == null) {
+                throw new ProcessingException("The namespace URI could not be read from Manifest!");
             }
+            extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, namespaceURI);
         } catch (XMLStreamException e) {
             throw new ProcessingException(CheckSedaValidationStatus.NOT_XML_FILE.name(), e);
         } catch (IOException e) {

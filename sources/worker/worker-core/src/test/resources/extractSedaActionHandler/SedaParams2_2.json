@@ -1,0 +1,6 @@
+{
+  "Version": "2.2",
+  "NamespaceURI": "fr:gouv:culture:archivesdefrance:seda:v2.2",
+  "SedaValidatorXSD": "seda-2.2/seda-2.2-main.xsd",
+  "VitamValidatorXSD": "seda-2.2/vitam-validation/seda-vitam-main.xsd"
+}

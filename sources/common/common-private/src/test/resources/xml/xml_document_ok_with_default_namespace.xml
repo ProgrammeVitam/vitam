@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MyElement xmlns="my:namespace">
+    some text
+    <!-- comment -->
+    <![CDATA[this is a test]]>
+    <MySubElement>
+        <External xmlns="some:other:namespace">other</External>
+        another text
+    </MySubElement>
+</MyElement>
