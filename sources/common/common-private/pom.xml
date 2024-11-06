@@ -60,11 +60,6 @@
         </dependency>
 
         <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.owasp.esapi</groupId>
             <artifactId>esapi</artifactId>
             <exclusions>
@@ -197,7 +192,6 @@
             <groupId>com.github.java-json-tools</groupId>
             <artifactId>json-schema-validator</artifactId>
         </dependency>
-
         <!-- Keep for test case -->
 
         <!-- Metrics dependencies -->

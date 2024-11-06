@@ -94,6 +94,12 @@ public enum SupportedSedaVersions {
             .findFirst();
     }
 
+    public static Optional<SupportedSedaVersions> getSupportedSedaVersionByXmlNamespace(String xmlNamespace) {
+        return Arrays.stream(SupportedSedaVersions.values())
+            .filter(supportedSedaVersion -> supportedSedaVersion.getNamespaceURI().equals(xmlNamespace))
+            .findFirst();
+    }
+
     public static boolean isSedaVersionsCompatible(String metadataSedaVersion, String sedaVersionToExport) {
         return (
             metadataSedaVersion != null &&
