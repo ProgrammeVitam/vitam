@@ -105,7 +105,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileOKThenReturnResponseOK() throws Exception {
+    public void givenProfileOKThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
@@ -141,7 +141,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileKOThenReturnResponseKO() throws Exception {
+    public void givenProfileKOThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
@@ -178,7 +178,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileWithoutPathThenReturnResponseKO() throws Exception {
+    public void givenProfileWithoutPathThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()

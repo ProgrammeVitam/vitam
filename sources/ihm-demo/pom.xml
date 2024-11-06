@@ -139,7 +139,6 @@
     <resteasy.client.version>5.0.9.Final</resteasy.client.version>
     <resteasy.core.version>5.0.9.Final</resteasy.core.version>
     <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
-    <thaiopensource.version>20220510</thaiopensource.version>
     <guava.version>33.1.0-jre</guava.version>
     <log4j2.version>2.17.1</log4j2.version>
     <commons-logging.version>1.3.1</commons-logging.version>
@@ -151,14 +150,11 @@
     <apache-shiro.version>1.13.0</apache-shiro.version>
     <assertj.version>3.25.3</assertj.version>
     <rest-assured.version>5.4.0</rest-assured.version>
-    <staxon.version>1.3</staxon.version>
     <org.json.version>20240303</org.json.version>
     <javax.servlet.version>4.0.1</javax.servlet.version>
     <json-sanitize.version>1.2.2</json-sanitize.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <esapi.version>2.5.3.1</esapi.version>
-    <!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
-    <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
     <xml-resolver.version>1.2</xml-resolver.version>
     <opencsv.version>5.9</opencsv.version>
     <commons-csv.version>1.10.0</commons-csv.version>
@@ -1112,51 +1108,6 @@
         <artifactId>jaxb-runtime</artifactId>
         <version>${jaxb.version}</version>
       </dependency>
-
-      <dependency>
-        <groupId>net.sf.saxon</groupId>
-        <artifactId>Saxon-HE</artifactId>
-        <version>${Saxon-HE.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.relaxng</groupId>
-        <artifactId>jing</artifactId>
-        <version>${thaiopensource.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>saxon</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.relaxng</groupId>
-        <artifactId>trang</artifactId>
-        <version>${thaiopensource.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>saxon</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
@@ -1213,11 +1164,6 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
         <version>${commons-text}</version>
-      </dependency>
-      <dependency>
-        <groupId>de.odysseus.staxon</groupId>
-        <artifactId>staxon</artifactId>
-        <version>${staxon.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jboss.resteasy</groupId>
@@ -1407,11 +1353,6 @@
         <artifactId>shiro-all</artifactId>
         <version>${apache-shiro.version}</version>
         <type>pom</type>
-      </dependency>
-      <dependency>
-        <groupId>org.opengis.cite.xerces</groupId>
-        <artifactId>xercesImpl-xsd11</artifactId>
-        <version>${xerces-xsd11.version}</version>
       </dependency>
       <dependency>
         <groupId>xml-resolver</groupId>

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbStorageModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -61,7 +62,6 @@ import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -96,7 +96,7 @@ public class ProbativeCreateReportEntryTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    public TempFolderRule tempFolder = new TempFolderRule();
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
