@@ -51,7 +51,6 @@
   package:
     name:
       - "{{ elasticsearch_package }}"
-      - vitam-user-vitamdb
     state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -61,18 +60,16 @@
     - "elasticsearch-cluster - restart service"
   when: install_mode != "container"
 
-- name: "Install vitam-user-vitamdb packages"
+- name: Install vitam-user-vitamdb package
   package:
     name:
       - vitam-user-vitamdb
-    state: present
+    state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  notify:
-    - "elasticsearch-cluster - restart service"
-  when: install_mode == "container"
+  notify: "elasticsearch-cluster - restart service"
 
 - name: Install ICU analysis plugin for elastic-data
   package:
@@ -84,6 +81,11 @@
   delay: "{{ packages_install_retries_delay }}"
   notify: "elasticsearch-cluster - restart service"
   when: composant.cluster_name == 'elasticsearch-data'
+
+- name: get passwd for vitamdb
+  getent:
+    database: passwd
+    key: "{{ vitam_defaults.users.vitamdb | default('vitamdb') }}"
 
 - name: "Deploy systemd service file for vitam-{{ composant.cluster_name }}"
   template:

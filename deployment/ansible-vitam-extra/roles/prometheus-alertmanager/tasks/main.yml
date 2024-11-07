@@ -70,7 +70,7 @@
     state: directory
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
-    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
 
 - name: Deploy consul agent service declaration
   template:

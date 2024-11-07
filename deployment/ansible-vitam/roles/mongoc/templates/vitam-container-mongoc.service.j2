@@ -7,7 +7,7 @@ After=docker.service
 ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:7.0.8-ubuntu2204
 ExecStartPre=-/usr/bin/docker stop vitam-mongoc
 ExecStartPre=-/usr/bin/docker rm vitam-mongoc
-ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongoc --user 1003:1003 \
+ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongoc --user {{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].1 }}:{{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].2 }} \
         -v "/vitam/conf/mongoc:/etc/mongo" \
         -v "/vitam/conf/mongoc/mongoc.conf:/etc/mongo/mongoc.conf" \
         -v "/vitam/conf/mongoc/keyfile:/etc/mongo/keyfile" \
