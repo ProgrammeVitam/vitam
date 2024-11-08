@@ -192,6 +192,10 @@
             <groupId>com.github.java-json-tools</groupId>
             <artifactId>json-schema-validator</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.relaxng</groupId>
+            <artifactId>jing</artifactId>
+        </dependency>
         <!-- Keep for test case -->
 
         <!-- Metrics dependencies -->

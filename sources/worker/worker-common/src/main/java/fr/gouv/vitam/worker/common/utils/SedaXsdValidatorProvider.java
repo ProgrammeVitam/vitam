@@ -24,44 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.xml;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import org.junit.Assert;
-import org.junit.Test;
+package fr.gouv.vitam.worker.common.utils;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
-import java.io.IOException;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.common.xml.XsdValidator;
+import org.xml.sax.SAXException;
 
-public class XMLInputFactoryUtilsTest {
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-    private static final String XML_FILE_WITH_XXE = "xml/xml_document_with_xxe.xml";
+public class SedaXsdValidatorProvider {
 
-    @Test
-    public final void shouldNotInjectExternalEntity() throws IOException, XMLStreamException {
-        XMLEventReader eventReader = XMLInputFactoryUtils.newInstance()
-            .createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
-        while (eventReader.hasNext()) {
-            final XMLEvent event = eventReader.nextEvent();
-            if (event.isCharacters()) {
-                Assert.assertFalse(event.asCharacters().getData().contains("root:x:0:0"));
-            }
-        }
+    private static final SedaXsdValidatorProvider INSTANCE = new SedaXsdValidatorProvider();
+
+    public static SedaXsdValidatorProvider getInstance() {
+        return INSTANCE;
     }
 
-    @Test
-    public final void shoulInjectExternalEntity() throws IOException, XMLStreamException {
-        XMLEventReader eventReader = XMLInputFactory.newInstance()
-            .createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
-        while (eventReader.hasNext()) {
-            final XMLEvent event = eventReader.nextEvent();
-            if (event.isCharacters()) {
-                Assert.assertTrue(event.asCharacters().getData().contains("root:x:0:0"));
-                break;
-            }
-        }
+    private final Map<SupportedSedaVersions, XsdValidator> xsdValidatorMap;
+
+    private SedaXsdValidatorProvider() {
+        this.xsdValidatorMap = Arrays.stream(SupportedSedaVersions.values()).collect(
+            Collectors.toMap(
+                supportedSedaVersions -> supportedSedaVersions,
+                supportedSedaVersions -> {
+                    try {
+                        return new XsdValidator(supportedSedaVersions.getVitamValidatorXSD());
+                    } catch (SAXException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            )
+        );
+    }
+
+    public XsdValidator getValidator(SupportedSedaVersions supportedSedaVersions) {
+        return xsdValidatorMap.get(supportedSedaVersions);
     }
 }

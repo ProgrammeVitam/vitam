@@ -66,8 +66,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -89,6 +89,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.SedaIngestParams;
+import fr.gouv.vitam.worker.common.utils.SedaXsdValidatorProvider;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -101,7 +102,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.TransformerException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -153,13 +153,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final StorageClientFactory storageClientFactory;
 
-    private final ValidationXsdUtils validationXsdUtils;
+    private final SedaXsdValidatorProvider sedaXsdValidatorProvider;
 
     public TransferNotificationActionHandler() {
         this(
             LogbookOperationsClientFactory.getInstance(),
             StorageClientFactory.getInstance(),
-            ValidationXsdUtils.getInstance()
+            SedaXsdValidatorProvider.getInstance()
         );
     }
 
@@ -167,11 +167,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
     TransferNotificationActionHandler(
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory,
-        ValidationXsdUtils validationXsdUtils
+        SedaXsdValidatorProvider sedaXsdValidatorProvider
     ) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageClientFactory = storageClientFactory;
-        this.validationXsdUtils = validationXsdUtils;
+        this.sedaXsdValidatorProvider = sedaXsdValidatorProvider;
     }
 
     /**
@@ -303,7 +303,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private void checkAtrFile(File atrFile, SedaIngestParams sedaIngestParams) throws IOException {
         try {
-            validationXsdUtils.checkWithXSD(new FileInputStream(atrFile), sedaIngestParams.getSedaValidatorXSD());
+            XsdValidator xsdValidator = sedaXsdValidatorProvider.getValidator(
+                SupportedSedaVersions.getSupportedSedaVersionByXmlNamespace(
+                    sedaIngestParams.getNamespaceURI()
+                ).orElseThrow()
+            );
+            xsdValidator.validate(atrFile);
         } catch (SAXException e) {
             if (e.getCause() == null) {
                 // In case of an exception while parsing the manifest file, when the exception is thrown before parsing
@@ -312,8 +317,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 // with the important errors, even with empty tags that broke the schema conformity.
                 LOGGER.error("ATR File is not valid with the XSD", e);
             }
-            LOGGER.error("ATR File is not a correct xml file", e);
-        } catch (XMLStreamException e) {
             LOGGER.error("ATR File is not a correct xml file", e);
         }
     }

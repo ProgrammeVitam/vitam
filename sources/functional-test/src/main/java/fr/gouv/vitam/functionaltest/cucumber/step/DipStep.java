@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import fr.gouv.vitam.functionaltest.models.UnitModel;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Then;
@@ -52,27 +52,20 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.w3c.dom.Node;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -227,7 +220,7 @@ public class DipStep extends CommonStep {
             String manifest;
             ZipArchiveEntry manifestEntry = zipFile.getEntry("manifest.xml");
             try (InputStream is = zipFile.getInputStream(manifestEntry)) {
-                manifest = IOUtils.toString(is, StandardCharsets.UTF_8.name());
+                manifest = IOUtils.toString(is, StandardCharsets.UTF_8);
             }
 
             // Get selected Seda version
@@ -335,49 +328,31 @@ public class DipStep extends CommonStep {
         throw new IllegalStateException("Unknown type " + jsonNode);
     }
 
-    private boolean filterNode(Node node) {
-        return node.getNodeName().equalsIgnoreCase("BinaryDataObject");
-    }
-
-    private Node getChildNode(Node node, String childNodeName) {
-        for (var k = 0; k < node.getChildNodes().getLength(); k++) {
-            if (node.getChildNodes().item(k).getNodeName().equalsIgnoreCase(childNodeName)) return node
-                .getChildNodes()
-                .item(k);
-        }
-        return null;
-    }
-
-    private String transform(Source manifest) throws FileNotFoundException, TransformerException {
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer(
-            new StreamSource(PropertiesUtils.getResourceAsStream("transform.xsl"))
+    private String transform(InputStream manifestInputStream) throws FileNotFoundException, TransformerException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        SecureXMLFactoryUtils.xsltTransform(
+            PropertiesUtils.getResourceAsStream("transform.xsl"),
+            manifestInputStream,
+            byteArrayOutputStream
         );
-
-        StringWriter writer = new StringWriter();
-        StreamResult streamResult = new StreamResult(writer);
-
-        transformer.transform(manifest, streamResult);
-        return writer.toString();
+        return byteArrayOutputStream.toString(StandardCharsets.UTF_8);
     }
 
-    private Source getManifestFromZip(Path zip) throws IOException {
+    private InputStream getManifestFromZip(Path zip) throws IOException {
         try (ZipFile zipFile = new ZipFile(zip.toFile())) {
             // Check manifest
             ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
 
             try (InputStream is = zipFile.getInputStream(manifest)) {
-                String xml = IOUtils.toString(is, StandardCharsets.UTF_8);
-                return new StreamSource(new StringReader(xml));
+                return new ByteArrayInputStream(is.readAllBytes());
             }
         }
     }
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
         int cpt = 0;
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         Stack<String> elementNames = new Stack<>();
-        final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(inputStream);
+        final XMLEventReader eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(inputStream);
         while (eventReader.hasNext()) {
             final XMLEvent event = eventReader.nextEvent();
             switch (event.getEventType()) {

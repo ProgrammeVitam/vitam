@@ -29,8 +29,8 @@ package fr.gouv.vitam.functional.administration.core.format;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
 import fr.gouv.vitam.functional.administration.core.format.model.FileFormatModel;
@@ -39,7 +39,6 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.xml.sax.SAXException;
 
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
@@ -75,6 +74,15 @@ public class PronomParser {
     private static final String ATTR_VERSION = "Version";
     private static final String ATTR_CREATEDDATE = "DateCreated";
     private static final String EXTERNAL_MIME_TYPE = "MIMEType";
+    private static final XsdValidator pronomXsdValidator;
+
+    static {
+        try {
+            pronomXsdValidator = new XsdValidator("DROID_SignatureFile_Vitam.xsd");
+        } catch (SAXException e) {
+            throw new RuntimeException("Cannot initialize Pronom validator", e);
+        }
+    }
 
     private PronomParser() {
         // Empty
@@ -108,9 +116,7 @@ public class PronomParser {
         String updateDate = LocalDateUtil.nowFormatted();
 
         try (InputStream xmlPronom = new FileInputStream(xmlPronomFile)) {
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-
-            final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
+            final XMLEventReader eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlPronom);
             while (eventReader.hasNext()) {
                 final XMLEvent event = eventReader.nextEvent();
                 switch (event.getEventType()) {
@@ -210,11 +216,9 @@ public class PronomParser {
     }
 
     private static void validateSchema(File xmlPronomFile) throws InvalidFileFormatParseException {
-        try (FileInputStream fis = new FileInputStream(xmlPronomFile)) {
-            if (!ValidationXsdUtils.getInstance().checkWithXSD(fis, "DROID_SignatureFile_Vitam.xsd")) {
-                throw new InvalidFileFormatParseException("Schema validation failed for xml file format");
-            }
-        } catch (SAXException | XMLStreamException e) {
+        try {
+            pronomXsdValidator.validate(xmlPronomFile);
+        } catch (SAXException e) {
             throw new InvalidFileFormatParseException("Invalid xml file format", e);
         } catch (IOException e) {
             throw new InvalidFileFormatParseException("Could not load xml file format", e);

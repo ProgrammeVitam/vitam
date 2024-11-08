@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -102,7 +102,7 @@ public class VerifyAtrPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         XMLStreamReader xmlStreamReader = null;
         try (InputStream atr = getTransformedXmlAsInputStream(handler)) {
-            xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
+            xmlStreamReader = SecureXMLFactoryUtils.createSecureXMLStreamReader(atr);
             ArchiveTransferReplyType transferReply = atrParser.parseArchiveTransferReply(xmlStreamReader);
 
             handler.addOutputResult(0, transferReply);

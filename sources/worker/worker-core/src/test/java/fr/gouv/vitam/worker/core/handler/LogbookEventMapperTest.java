@@ -29,8 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
-import org.apache.commons.io.IOUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBContext;
@@ -38,14 +37,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -134,15 +129,7 @@ public class LogbookEventMapperTest {
     }
 
     private XMLEventReader createXmlEventReader(InputStream xmlFile) throws XMLStreamException, IOException {
-        XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-        return xmlInputFactory.createXMLEventReader(unprettyXML(xmlFile));
-    }
-
-    private Reader unprettyXML(InputStream xmlFile) throws IOException {
-        String xml = IOUtils.toString(xmlFile, StandardCharsets.UTF_8);
-        xml = xml.replaceAll("(?s)<!--.*?-->", ""); // remove comments
-        xml = xml.replaceAll(">\\s+<", "><"); // remove whitespaces
-        return new StringReader(xml);
+        return SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
     }
 
     @XmlRootElement(name = "LogBook", namespace = "fr:gouv:culture:archivesdefrance:seda:v2")

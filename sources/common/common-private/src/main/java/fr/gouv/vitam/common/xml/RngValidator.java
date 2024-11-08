@@ -24,17 +24,55 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.xml;
 
-import javax.xml.stream.XMLInputFactory;
+import org.apache.xerces.util.XMLCatalogResolver;
+import org.xml.sax.SAXException;
 
-public class XMLInputFactoryUtils {
+import javax.annotation.concurrent.ThreadSafe;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Objects;
 
-    public static XMLInputFactory newInstance() {
-        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, Boolean.FALSE);
-        xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, Boolean.FALSE);
-        xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, Boolean.FALSE);
-        return xmlInputFactory;
+@ThreadSafe
+public class RngValidator {
+
+    /**
+     * Filename of the catalog file ; should be found in the classpath.
+     */
+    private static final String CATALOG_FILENAME = "xsd_validation/catalog.xml";
+
+    private final Schema schema;
+
+    public RngValidator(File schemaFile) throws SAXException {
+        // Manually validate xml file before loading rng schema
+        SecureXMLFactoryUtils.validateXmlFile(schemaFile);
+
+        @SuppressWarnings("deprecation")
+        SchemaFactory factory = SecureXMLFactoryUtils.internalCreateNotThatSecureRngSchemaFactory();
+
+        // Load catalog to resolve external schemas even offline.
+        final URL catalogUrl = RngValidator.class.getClassLoader().getResource(CATALOG_FILENAME);
+        factory.setResourceResolver(
+            new XMLCatalogResolver(new String[] { Objects.requireNonNull(catalogUrl).toString() }, false)
+        );
+
+        this.schema = factory.newSchema(schemaFile);
+    }
+
+    public void validate(File xmlFile) throws IOException, SAXException {
+        // Manually validate xml files before using rng validator
+        SecureXMLFactoryUtils.validateXmlFile(xmlFile);
+
+        @SuppressWarnings("deprecation")
+        final Validator validator = SecureXMLFactoryUtils.internalCreateNotThatSecureSchemaValidator(this.schema);
+
+        validator.validate(new StreamSource(xmlFile));
     }
 }

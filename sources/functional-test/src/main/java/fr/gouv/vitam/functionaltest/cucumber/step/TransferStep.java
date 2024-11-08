@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.export.transfer.TransferRequest;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -48,7 +48,6 @@ import org.assertj.core.api.Assertions;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
@@ -67,7 +66,7 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Java6Assertions.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TransferStep extends CommonStep {
 
@@ -233,9 +232,8 @@ public class TransferStep extends CommonStep {
 
     private int countElements(InputStream inputStream, String path) throws XMLStreamException {
         int cpt = 0;
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         Stack<String> elementNames = new Stack<>();
-        final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(inputStream);
+        final XMLEventReader eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(inputStream);
         while (eventReader.hasNext()) {
             final XMLEvent event = eventReader.nextEvent();
             switch (event.getEventType()) {
