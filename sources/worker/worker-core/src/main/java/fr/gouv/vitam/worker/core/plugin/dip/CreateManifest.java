@@ -94,7 +94,6 @@ import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportLine;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferStatus;
 import fr.gouv.vitam.worker.core.utils.DataObjectVersionToPatternsConvertor;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.collections4.MapUtils;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -249,7 +248,7 @@ public class CreateManifest extends ActionHandler {
             String originatingAgency = VitamConfiguration.getDefaultOriginatingAgencyForExport(
                 ParameterHelper.getTenantParameter()
             );
-            Map<String, String> ogs = new HashMap<>();
+            Map<String, String> unitIdToObjectGroupId = new HashMap<>();
 
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(exportRequest.getDslRequest());
@@ -263,7 +262,7 @@ public class CreateManifest extends ActionHandler {
             );
 
             for (JsonNode item : StreamSupport.stream(scrollRequest, false).collect(Collectors.toList())) {
-                prepareGraphCreation(multimap, originatingAgencies, ogs, item, sedaVersionToExport);
+                prepareGraphCreation(multimap, originatingAgencies, unitIdToObjectGroupId, item, sedaVersionToExport);
             }
 
             if (checkEmptinessSelectedUnits(itemStatus, scrollRequest.estimateSize())) {
@@ -279,6 +278,7 @@ public class CreateManifest extends ActionHandler {
             Select select = new Select();
 
             Map<String, JsonNode> idBinaryWithFileName = new HashMap<>();
+            Set<String> exportedObjectGroupIds = new HashSet<>();
             boolean exportWithLogBookLFC = exportRequest.isExportWithLogBookLFC();
             boolean exportWithoutObjects = exportRequest.isExportWithoutObjects();
 
@@ -291,7 +291,10 @@ public class CreateManifest extends ActionHandler {
 
             final AccessContractModel accessContractModel = getAccessContractModel(adminManagementClient);
 
-            Iterable<List<Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
+            Iterable<List<Entry<String, String>>> partitions = partition(
+                unitIdToObjectGroupId.entrySet(),
+                MAX_ELEMENT_IN_QUERY
+            );
             for (List<Entry<String, String>> partition : partitions) {
                 ListMultimap<String, String> unitsForObjectGroupId = partition
                     .stream()
@@ -306,10 +309,10 @@ public class CreateManifest extends ActionHandler {
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
                 ArrayNode objects = (ArrayNode) response.get(TAG_RESULTS);
                 for (JsonNode object : objects) {
-                    String id = object.get(id()).textValue();
-                    List<String> linkedUnits = unitsForObjectGroupId.get(id);
+                    String objectGroupId = object.get(id()).textValue();
+                    List<String> linkedUnits = unitsForObjectGroupId.get(objectGroupId);
                     JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(
-                        id,
+                        objectGroupId,
                         new Select().getFinalSelect()
                     );
 
@@ -320,6 +323,10 @@ public class CreateManifest extends ActionHandler {
                         accessContractModel,
                         exportWithoutObjects
                     );
+
+                    if (objectGroup.getQualifiers().isEmpty()) {
+                        continue;
+                    }
 
                     JsonNode currentObject = JsonHandler.toJsonNode(objectGroup);
                     Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = exportWithLogBookLFC
@@ -344,6 +351,7 @@ public class CreateManifest extends ActionHandler {
                         .flatMap(Collection::stream)
                         .mapToLong(VersionsModel::getSize)
                         .sum();
+                    exportedObjectGroupIds.add(objectGroupId);
                 }
             }
 
@@ -369,6 +377,13 @@ public class CreateManifest extends ActionHandler {
                 VitamConfiguration.getElasticSearchScrollLimit()
             );
 
+            // If we export no GOT, we exclude object groups
+            final Map<String, String> filteredOgs = unitIdToObjectGroupId
+                .entrySet()
+                .stream()
+                .filter(entry -> exportedObjectGroupIds.contains(entry.getValue()))
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+
             manifestBuilder.startDescriptiveMetadata();
 
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(scrollRequest);
@@ -387,9 +402,7 @@ public class CreateManifest extends ActionHandler {
                     .map(node -> node.get(0))
                     .map(LogbookLifeCycleUnit::new)
                     .orElse(null);
-                // If we export no GOT, we exclude object groups
 
-                final Map<String, String> filteredOgs = MapUtils.isEmpty(idBinaryWithFileName) ? Map.of() : ogs;
                 unit = manifestBuilder.writeArchiveUnitWithLFC(archiveUnitModel, multimap, filteredOgs, logbookLFC);
 
                 if (ArchiveTransfer.equals(exportRequest.getExportType())) {
