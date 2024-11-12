@@ -43,6 +43,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.utils.AtrParser;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.junit.Before;
@@ -53,13 +54,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamReader;
 import java.io.IOException;
 import java.util.Collections;
@@ -98,10 +96,7 @@ public class VerifyAtrPluginTest {
     private LogbookOperationsClient logbookOperationsClient;
 
     @Mock
-    private Unmarshaller unmarshaller;
-
-    @Mock
-    private JAXBContext jaxbContext;
+    private AtrParser atrParser;
 
     @InjectMocks
     private VerifyAtrPlugin verifyAtrPlugin;
@@ -117,7 +112,6 @@ public class VerifyAtrPluginTest {
     @Before
     public void setup() throws Exception {
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
-        given(jaxbContext.createUnmarshaller()).willReturn(unmarshaller);
     }
 
     @Test
@@ -169,9 +163,7 @@ public class VerifyAtrPluginTest {
     public void should_return_FATAL_when_unexpected_error() throws Exception {
         // Given
         mockTransformOperations(KO.name(), false);
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willThrow(
-            new JAXBException("Error")
-        );
+        given(atrParser.parseArchiveTransferReply(any(XMLStreamReader.class))).willThrow(new JAXBException("Error"));
 
         // When
         ItemStatus result = verifyAtrPlugin.execute(null, handlerIO);
@@ -184,7 +176,7 @@ public class VerifyAtrPluginTest {
     public void should_return_KO_when_ATR_not_valid() throws Exception {
         // Given
         mockTransformOperations(KO.name(), false);
-        given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willThrow(
+        given(atrParser.parseArchiveTransferReply(any(XMLStreamReader.class))).willThrow(
             new UnmarshalException("Error")
         );
 
@@ -231,17 +223,13 @@ public class VerifyAtrPluginTest {
         );
     }
 
-    private JAXBElement<ArchiveTransferReplyType> getJaxbAtr(String replyCode) {
+    private ArchiveTransferReplyType getJaxbAtr(String replyCode) {
         ArchiveTransferReplyType archiveTransferReplyType = new ArchiveTransferReplyType();
         IdentifierType identifier = new IdentifierType();
         identifier.setValue(messageRequestIdentifier);
         archiveTransferReplyType.setMessageRequestIdentifier(identifier);
         archiveTransferReplyType.setReplyCode(replyCode);
-        return new JAXBElement<>(
-            new QName(ArchiveTransferReplyType.class.getSimpleName()),
-            ArchiveTransferReplyType.class,
-            archiveTransferReplyType
-        );
+        return archiveTransferReplyType;
     }
 
     private JsonNode getLogbookOperation(StatusCode statusCode) throws InvalidParseOperationException {
@@ -256,7 +244,7 @@ public class VerifyAtrPluginTest {
     }
 
     private void mockTransformOperations(String replyCode, boolean shouldMockUnmarshallStream)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException, JAXBException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException, JAXBException, SAXException {
         given(handlerIO.getFileFromWorkspace(eq(ATR_FOR_TRANSFER_REPLY_IN_WORKSPACE_XML))).willReturn(
             PropertiesUtils.getResourceFile(ATR_WITH_SEDA_2_1_XML)
         );
@@ -265,9 +253,7 @@ public class VerifyAtrPluginTest {
         );
 
         if (shouldMockUnmarshallStream) {
-            given(unmarshaller.unmarshal(any(XMLStreamReader.class), eq((ArchiveTransferReplyType.class)))).willReturn(
-                getJaxbAtr(replyCode)
-            );
+            given(atrParser.parseArchiveTransferReply(any(XMLStreamReader.class))).willReturn(getJaxbAtr(replyCode));
         }
     }
 }

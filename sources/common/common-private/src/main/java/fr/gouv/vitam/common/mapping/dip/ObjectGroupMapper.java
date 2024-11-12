@@ -130,10 +130,10 @@ public class ObjectGroupMapper {
                 binaryDataObjectType.setFormatIdentification(formatIdentificationType);
             }
         }
-        final FileInfoType fileInfoType = new FileInfoType();
         final FileInfoModel fileInfoModel = version != null ? version.getFileInfoModel() : null;
         if (fileInfoModel != null) {
-            fileInfoType.setFilename(fileInfoModel.getFilename());
+            final FileInfoType fileInfoType = new FileInfoType();
+            fileInfoType.setFilename(StringUtils.defaultString(fileInfoModel.getFilename()));
             fileInfoType.setCreatingApplicationName(fileInfoModel.getCreatingApplicationName());
             fileInfoType.setCreatingApplicationVersion(fileInfoModel.getCreatingApplicationVersion());
             fileInfoType.setCreatingOs(fileInfoModel.getCreatingOs());
@@ -157,8 +157,8 @@ public class ObjectGroupMapper {
                     )
                 );
             }
+            binaryDataObjectType.setFileInfo(fileInfoType);
         }
-        binaryDataObjectType.setFileInfo(fileInfoType);
         if (version != null) {
             binaryDataObjectType.setUri(version.getUri());
             binaryDataObjectType.setSize(BigInteger.valueOf(version.getSize()));
