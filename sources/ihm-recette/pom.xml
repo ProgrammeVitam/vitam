@@ -114,7 +114,7 @@
     <awssdk.v1.version>1.12.690</awssdk.v1.version>
 
     <!-- jetty -->
-    <jetty.version>10.0.20</jetty.version>
+    <jetty.version>10.0.24</jetty.version>
 
     <!-- specific for IHM -->
     <frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version>

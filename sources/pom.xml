@@ -164,7 +164,7 @@
         <awssdk.v1.version>1.12.690</awssdk.v1.version>
 
         <!-- jetty -->
-        <jetty.version>10.0.20</jetty.version>
+        <jetty.version>10.0.24</jetty.version>
 
         <!-- Metrics -->
         <prometheus-version>0.16.0</prometheus-version>
