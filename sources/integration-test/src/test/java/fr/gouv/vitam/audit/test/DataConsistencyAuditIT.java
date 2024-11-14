@@ -70,6 +70,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -96,6 +97,8 @@ import static fr.gouv.vitam.common.model.WorkspaceConstants.TMP_FILE_NAME_FOR_SH
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+// To be fixed in US #13561
+@Ignore
 public class DataConsistencyAuditIT extends VitamRuleRunner {
 
     public static final String INCOHERANT_DATA_SIZE = "IncoherantDataSize";

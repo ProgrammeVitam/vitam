@@ -28,54 +28,43 @@ package fr.gouv.vitam.common.server.application.configuration;
 
 public class DataConsistencyAuditConfig {
 
-    private Boolean isDataConsistencyAuditRunnable;
-    private Integer dataConsistencyAuditOplogMaxSize;
-    private Boolean dbAuthentication = false;
-    private MongoDbShardConf mongodShardsConf;
-
-    public DataConsistencyAuditConfig() {}
+    private final boolean isDataConsistencyAuditRunnable;
+    private final boolean enableDataConsistencyRectificationMode;
+    private final Integer dataConsistencyAuditOplogMaxSize;
+    private final Boolean dbAuthentication;
+    private final MongoDbShardConf mongodShardsConf;
 
     public DataConsistencyAuditConfig(
-        Boolean isDataConsistencyAuditRunnable,
+        boolean isDataConsistencyAuditRunnable,
+        boolean enableDataConsistencyRectificationMode,
         Integer dataConsistencyAuditOplogMaxSize,
         MongoDbShardConf mongodShardsConf,
         Boolean dbAuthentication
     ) {
         this.isDataConsistencyAuditRunnable = isDataConsistencyAuditRunnable;
+        this.enableDataConsistencyRectificationMode = enableDataConsistencyRectificationMode;
         this.dataConsistencyAuditOplogMaxSize = dataConsistencyAuditOplogMaxSize;
         this.mongodShardsConf = mongodShardsConf;
         this.dbAuthentication = dbAuthentication;
     }
 
-    public Boolean getIsDataConsistencyAuditRunnable() {
+    public boolean getIsDataConsistencyAuditRunnable() {
         return isDataConsistencyAuditRunnable;
     }
 
-    public void setIsDataConsistencyAuditRunnable(Boolean dataConsistencyAuditRunnable) {
-        isDataConsistencyAuditRunnable = dataConsistencyAuditRunnable;
+    public boolean isEnableDataConsistencyRectificationMode() {
+        return enableDataConsistencyRectificationMode;
     }
 
     public Integer getDataConsistencyAuditOplogMaxSize() {
         return dataConsistencyAuditOplogMaxSize;
     }
 
-    public void setDataConsistencyAuditOplogMaxSize(Integer dataConsistencyAuditOplogMaxSize) {
-        this.dataConsistencyAuditOplogMaxSize = dataConsistencyAuditOplogMaxSize;
-    }
-
     public MongoDbShardConf getMongodShardsConf() {
         return mongodShardsConf;
     }
 
-    public void setMongodShardsConf(MongoDbShardConf mongodShardsConf) {
-        this.mongodShardsConf = mongodShardsConf;
-    }
-
     public Boolean isDbAuthentication() {
         return dbAuthentication;
-    }
-
-    public void setDbAuthentication(Boolean dbAuthentication) {
-        this.dbAuthentication = dbAuthentication;
     }
 }

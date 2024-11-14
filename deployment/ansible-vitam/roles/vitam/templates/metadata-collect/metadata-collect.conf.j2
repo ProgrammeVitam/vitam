@@ -113,9 +113,6 @@ adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
   password: {{ admin_basic_auth_password }}
 
-isDataConsistencyAuditRunnable: {{ vitam.metadata_collect.isDataConsistencyAuditRunnable | default(false) }}
-dataConsistencyAuditOplogMaxSize: {{ vitam.metadata_collect.dataConsistencyAuditOplogMaxSize | default(100) }}
-
 refreshElasticIndexPostBulkIndexing: {{ vitam.metadata_collect.refreshElasticIndexPostBulkIndexing | default(true) }}
 
 mongodShardsConf:

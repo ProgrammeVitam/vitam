@@ -72,6 +72,7 @@ public class MetadataAuditResource {
                 new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings())
             ),
             metaDataConfiguration.getIsDataConsistencyAuditRunnable(),
+            metaDataConfiguration.isEnableDataConsistencyRectificationMode(),
             metaDataConfiguration.getDataConsistencyAuditOplogMaxSize(),
             metaDataConfiguration.getMongodShardsConf(),
             metaDataConfiguration.isDbAuthentication()
