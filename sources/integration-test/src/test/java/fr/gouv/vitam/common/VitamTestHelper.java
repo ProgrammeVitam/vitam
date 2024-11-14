@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -565,6 +566,20 @@ public class VitamTestHelper {
             client.traceability(List.of(tenantId));
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        }
+    }
+
+    public static LogbookOperation selectLogbookOperation(String importRequestId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            JsonNode result = client.selectOperationById(importRequestId);
+            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(
+                result
+            );
+            return JsonHandler.getFromJsonNode(
+                logbookOperationVersionModelResponseOK.getFirstResult(),
+                LogbookOperation.class
+            );
         }
     }
 }

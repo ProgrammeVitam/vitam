@@ -47,6 +47,34 @@ public class MetadataDocumentHelper {
     public static final String STORAGE_KEY = "_storage";
     public static final String STRATEGY_KEY = "strategyId";
 
+    private enum SecuredUnitFields {
+        ID("_id"),
+        TENANT("_tenant"),
+        VERSION("_v"),
+        UP("_up"),
+        SP("_sp"),
+        OBJECT_GROUP("_og"),
+        IMPLEMENTATION_VERSION("_implementationVersion"),
+        SEDA_VERSION("_sedaVersion"),
+        NBC("_nbc"),
+        HISTORY("_history"),
+        STORAGE("_storage"),
+        MANAGEMENT("_mgt"),
+        INITIAL_OPERATION("_opi"),
+        OPERATIONS("_ops"),
+        UNIT_TYPE("_unitType");
+
+        private final String fieldName;
+
+        SecuredUnitFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+    }
+
     private enum ComputedGraphUnitFields {
         US("_us"),
         SPS("_sps"),
@@ -75,11 +103,38 @@ public class MetadataDocumentHelper {
         VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
         ATOMIC_VERSION("_av"),
         APPROXIMATE_CREATION_DATE("_acd"),
-        APPROXIMATE_UPDATE_DATE("_aud");
+        APPROXIMATE_UPDATE_DATE("_aud"),
+        TRANSFER_OPERATION("_opts"),
+        COLLECT_BATCH_ID("_batchId"),
+        COLLECT_UPLOAD_PATH("_uploadPath");
 
         private final String fieldName;
 
         TemporaryUnitFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+    }
+
+    private enum SecuredObjectGroupFields {
+        ID("_id"),
+        TENANT("_tenant"),
+        VERSION("_v"),
+        UP("_up"),
+        SP("_sp"),
+        NBC("_nbc"),
+        STORAGE("_storage"),
+        INITIAL_OPERATION("_opi"),
+        OPERATIONS("_ops"),
+        QUALIFIERS("_qualifiers"),
+        PROFIL("_profil");
+
+        private final String fieldName;
+
+        SecuredObjectGroupFields(String fieldName) {
             this.fieldName = fieldName;
         }
 
@@ -107,7 +162,8 @@ public class MetadataDocumentHelper {
     private enum TemporaryObjectGroupFields {
         ATOMIC_VERSION("_av"),
         APPROXIMATE_CREATION_DATE("_acd"),
-        APPROXIMATE_UPDATE_DATE("_aud");
+        APPROXIMATE_UPDATE_DATE("_aud"),
+        COLLECT_BATCH_ID("_batchId");
 
         private final String fieldName;
 
@@ -126,6 +182,8 @@ public class MetadataDocumentHelper {
     private static final Set<String> computedUnitFields;
     private static final Set<String> temporaryObjectGroupFields;
     private static final Set<String> computedObjectGroupFields;
+    private static final Set<String> securedUnitFields;
+    private static final Set<String> securedObjectGroupFields;
 
     static {
         computedGraphUnitFields = ListUtils.unmodifiableList(
@@ -158,6 +216,16 @@ public class MetadataDocumentHelper {
 
         computedObjectGroupFields = SetUtils.unmodifiableSet(
             new HashSet<>(CollectionUtils.union(computedGraphObjectGroupFields, temporaryObjectGroupFields))
+        );
+
+        securedUnitFields = SetUtils.unmodifiableSet(
+            Arrays.stream(SecuredUnitFields.values()).map(SecuredUnitFields::getFieldName).collect(Collectors.toSet())
+        );
+
+        securedObjectGroupFields = SetUtils.unmodifiableSet(
+            Arrays.stream(SecuredObjectGroupFields.values())
+                .map(SecuredObjectGroupFields::getFieldName)
+                .collect(Collectors.toSet())
         );
     }
 
@@ -264,5 +332,19 @@ public class MetadataDocumentHelper {
             throw new IllegalArgumentException("Expected storage/strategy information in unit");
         }
         return unit.get(VitamFieldsHelper.storage()).get(STRATEGY_KEY).asText();
+    }
+
+    /**
+     * Retrieve main / secured unit fields
+     */
+    public static Set<String> getSecuredUnitFields() {
+        return securedUnitFields;
+    }
+
+    /**
+     * Retrieve main / secured object group fields
+     */
+    public static Set<String> getSecuredObjectGroupFields() {
+        return securedObjectGroupFields;
     }
 }
