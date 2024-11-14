@@ -305,16 +305,18 @@ public class OntologyModel {
         return typeDetail;
     }
 
-    public void setTypeDetail(TypeDetail typeDetail) {
+    public OntologyModel setTypeDetail(TypeDetail typeDetail) {
         this.typeDetail = typeDetail;
+        return this;
     }
 
     public StringSize getStringSize() {
         return stringSize;
     }
 
-    public void setStringSize(StringSize stringSize) {
+    public OntologyModel setStringSize(StringSize stringSize) {
         this.stringSize = stringSize;
+        return this;
     }
 
     @Override

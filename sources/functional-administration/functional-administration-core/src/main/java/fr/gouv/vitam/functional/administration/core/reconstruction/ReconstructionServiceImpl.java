@@ -206,6 +206,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             case AGENCIES:
             case GRIFFIN:
             case PRESERVATION_SCENARIO:
+            case SCHEMA:
                 // Keep reconstruction process by specified Tenant
                 break;
             case CONTEXT:
@@ -220,7 +221,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             case ACCESSION_REGISTER_SYMBOLIC:
             case VITAM_SEQUENCE:
             default:
-                throw new IllegalArgumentException("Collection not supported in this service!");
+                throw new IllegalArgumentException("Collection '" + collection + "' not supported in this service!");
         }
         try {
             for (Integer tenant : tenants) {

@@ -249,7 +249,7 @@ public class Ontology extends VitamDocument<Ontology> {
      * @return this
      */
     public Ontology setType(OntologyType type) {
-        append(TYPE, type);
+        append(TYPE, type.getType());
         return this;
     }
 
@@ -269,7 +269,7 @@ public class Ontology extends VitamDocument<Ontology> {
      * @return this
      */
     public Ontology setOrigin(OntologyOrigin origin) {
-        append(ORIGIN, origin);
+        append(ORIGIN, origin.name());
         return this;
     }
 
@@ -371,8 +371,8 @@ public class Ontology extends VitamDocument<Ontology> {
      * @param stringSize to set
      * @return this
      */
-    public Ontology setStringSize(TypeDetail stringSize) {
-        append(STRING_SIZE, stringSize);
+    public Ontology setStringSize(StringSize stringSize) {
+        append(STRING_SIZE, stringSize.getSize());
         return this;
     }
 }
