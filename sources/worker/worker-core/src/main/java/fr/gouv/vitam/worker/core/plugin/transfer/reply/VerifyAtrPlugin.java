@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -49,17 +48,15 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.utils.AtrParser;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.xerces.util.XMLCatalogResolver;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.ErrorListener;
@@ -69,23 +66,16 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
-import java.util.Objects;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.common.utils.SupportedSedaVersions.GENERIC_VITAM_VALIDATOR;
-import static fr.gouv.vitam.common.xml.ValidationXsdUtils.CATALOG_FILENAME;
-import static fr.gouv.vitam.common.xml.ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.ARCHIVE_TRANSFER;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -93,29 +83,23 @@ public class VerifyAtrPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
-    private static final URL SEDA_XSD_URL = Objects.requireNonNull(
-        ValidationXsdUtils.class.getClassLoader().getResource(GENERIC_VITAM_VALIDATOR)
-    );
-    private static final URL CATALOG_URL = Objects.requireNonNull(
-        ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME)
-    );
     public static final String ATR_FOR_TRANSFER_REPLY = "ATR-for-transfer-reply-in-workspace.xml";
     private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
 
-    private final JAXBContext jaxbContext;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     private final TransformerFactory transformerFactory;
+    private final AtrParser atrParser;
 
-    public VerifyAtrPlugin() throws Exception {
-        this(JAXBContext.newInstance(ArchiveTransferReplyType.class), LogbookOperationsClientFactory.getInstance());
+    public VerifyAtrPlugin() {
+        this(LogbookOperationsClientFactory.getInstance(), new AtrParser());
     }
 
     @VisibleForTesting
-    public VerifyAtrPlugin(JAXBContext jaxbContext, LogbookOperationsClientFactory logbookOperationsClientFactory) {
-        this.jaxbContext = jaxbContext;
+    public VerifyAtrPlugin(LogbookOperationsClientFactory logbookOperationsClientFactory, AtrParser atrParser) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.transformerFactory = TransformerFactory.newInstance();
+        this.atrParser = atrParser;
     }
 
     @Override
@@ -123,10 +107,7 @@ public class VerifyAtrPlugin extends ActionHandler {
         XMLStreamReader xmlStreamReader = null;
         try (InputStream atr = getTransformedXmlAsInputStream(handler)) {
             xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
-            Unmarshaller unmarshaller = createUnmarshaller();
-            ArchiveTransferReplyType transferReply = unmarshaller
-                .unmarshal(xmlStreamReader, ArchiveTransferReplyType.class)
-                .getValue();
+            ArchiveTransferReplyType transferReply = atrParser.parseArchiveTransferReply(xmlStreamReader);
 
             handler.addOutputResult(0, transferReply);
 
@@ -247,17 +228,5 @@ public class VerifyAtrPlugin extends ActionHandler {
         } catch (XMLStreamException e) {
             throw new ProcessingException(e);
         }
-    }
-
-    private Unmarshaller createUnmarshaller() throws JAXBException, SAXException {
-        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        unmarshaller.setSchema(getSchema());
-        return unmarshaller;
-    }
-
-    static Schema getSchema() throws SAXException {
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
-        schemaFactory.setResourceResolver(new XMLCatalogResolver(new String[] { CATALOG_URL.toString() }, false));
-        return schemaFactory.newSchema(SEDA_XSD_URL);
     }
 }

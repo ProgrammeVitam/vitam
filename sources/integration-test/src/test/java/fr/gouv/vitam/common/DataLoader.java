@@ -219,7 +219,7 @@ public class DataLoader {
                 )
             );
         } catch (final Exception e) {
-            LOGGER.error(e);
+            throw new RuntimeException("Cannot initialize tests", e);
         }
     }
 

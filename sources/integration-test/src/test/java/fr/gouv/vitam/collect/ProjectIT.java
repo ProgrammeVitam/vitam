@@ -89,6 +89,8 @@ public class ProjectIT extends VitamRuleRunner {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         runner.stopMetadataServer(true);
+        handleAfterClass();
+        runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }

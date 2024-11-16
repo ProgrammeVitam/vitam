@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.VitamTestHelper;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -83,6 +84,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -149,6 +151,13 @@ public class RevertEssentialMetadataIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         new DataLoader("integration-processing").prepareData();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        handleAfterClass();
+        runAfter();
+        VitamClientFactory.resetConnections();
     }
 
     private void populateData(String unitsFile, String lfcFile) throws Exception {
