@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveDeliveryRequestReplyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
@@ -1342,6 +1344,75 @@ public class TransferAndDipIT extends VitamRuleRunner {
                         binaryDataObject.getFileInfo() != null && binaryDataObject.getFileInfo().getFilename().isEmpty()
                 )
         ).hasSize(1);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_transfer_request_export_with_invalid_got_xml_id_13435() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, "sip/SimpleTree.zip");
+        verifyOperation(ingestOpId, OK);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        ExportRequest exportRequest = new ExportRequest(
+            new DataObjectVersions(Collections.singleton(BINARY_MASTER.getName())),
+            select.getFinalSelect(),
+            false
+        );
+        exportRequest.setExportType(ExportType.ArchiveTransfer);
+        ExportRequestParameters exportRequestParameters = getExportRequestParameters();
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+
+        // When
+        String exportOperationId = exportDIP(exportRequest);
+
+        // Then
+        VitamTestHelper.verifyOperation(exportOperationId, OK, WARNING);
+
+        String manifest = getManifestString(getTransferSIP(exportOperationId));
+        LOGGER.debug(manifest);
+
+        ArchiveTransferReplyType report = parseArchiveTransferReply(manifest);
+        List<String> uris = report
+            .getDataObjectPackage()
+            .getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject()
+            .stream()
+            .map(entry -> (DataObjectGroupType) entry)
+            .map(DataObjectGroupType::getBinaryDataObjectOrPhysicalDataObject)
+            .flatMap(Collection::stream)
+            .map(obj -> (BinaryDataObjectType) obj)
+            .map(BinaryDataObjectType::getUri)
+            .collect(Collectors.toList());
+
+        System.out.println(uris);
+        assertThat(uris).hasSize(1);
+
+        List<ArchiveUnitType> archiveUnits = report.getDataObjectPackage().getDescriptiveMetadata().getArchiveUnit();
+        assertThat(archiveUnits).hasSize(2);
+        // 1 unit without GOT
+        assertThat(
+            archiveUnits.stream().filter(unit -> unit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().isEmpty())
+        ).hasSize(1);
+        // 1 unit with GOT
+        assertThat(
+            archiveUnits.stream().filter(unit -> !unit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().isEmpty())
+        ).hasSize(1);
+    }
+
+    private static ArchiveTransferReplyType parseArchiveTransferReply(String manifest)
+        throws IOException, XMLStreamException, JAXBException, SAXException {
+        ArchiveTransferReplyType report;
+        String versionNeutralManifest = manifest.replaceAll(
+            "fr:gouv:culture:archivesdefrance:seda:v2.[1-3]",
+            "fr:gouv:culture:archivesdefrance:seda:v2"
+        );
+        try (Reader reader = new StringReader(versionNeutralManifest)) {
+            XMLStreamReader xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(reader);
+            report = new AtrParser().parseArchiveTransferReply(xmlStreamReader);
+        }
+        return report;
     }
 
     private static ArchiveDeliveryRequestReplyType parseArchiveDeliveryRequestReply(String manifest)
