@@ -82,6 +82,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bson.BsonTimestamp;
 import org.bson.Document;
@@ -132,8 +133,9 @@ public class MetadataAuditService {
     private VitamElasticsearchRepository elasticsearchGotRepository;
     private VitamMongoRepository mongoRepositoryForUnits;
     private VitamMongoRepository mongoRepositoryForGot;
+    private final DataConsistencyAuditConfig dataConsistencyAuditConfig;
 
-    private static DataConsistencyAuditConfig dataConsistencyAuditConfig = new DataConsistencyAuditConfig();
+    // FIMXE in #13561 : Should be a stateless service
     private GUID eip;
 
     @VisibleForTesting
@@ -142,7 +144,8 @@ public class MetadataAuditService {
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         VitamRepositoryProvider vitamRepositoryProvider,
         ElasticsearchMetadataIndexManager indexManager,
-        Boolean isDataConsistencyAuditRunnable,
+        boolean isDataConsistencyAuditRunnable,
+        boolean enableDataConsistencyRectificationMode,
         Integer dataConsistencyAuditOplogMaxSize,
         MongoDbShardConf mongodShardsConf,
         boolean dbAuthentication
@@ -151,8 +154,9 @@ public class MetadataAuditService {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.indexManager = indexManager;
-        dataConsistencyAuditConfig = new DataConsistencyAuditConfig(
+        this.dataConsistencyAuditConfig = new DataConsistencyAuditConfig(
             isDataConsistencyAuditRunnable,
+            enableDataConsistencyRectificationMode,
             dataConsistencyAuditOplogMaxSize,
             mongodShardsConf,
             dbAuthentication
@@ -247,7 +251,19 @@ public class MetadataAuditService {
             if (incoherantData.isEmpty()) {
                 successLogbookForAudit(logbookClient);
             } else {
-                rectifyDataInElasticsearch(logbookClient, metadataOplogFromMongo, metadataOpLogFromEs, incoherantData);
+                String alert =
+                    "Audit data consistency : Incoherent documents in ES found. " +
+                    StringUtils.truncate(incoherantData.toString(), 1000);
+                LOGGER.warn(alert);
+                alertService.createAlert(alert);
+                if (dataConsistencyAuditConfig.isEnableDataConsistencyRectificationMode()) {
+                    rectifyDataInElasticsearch(
+                        logbookClient,
+                        metadataOplogFromMongo,
+                        metadataOpLogFromEs,
+                        incoherantData
+                    );
+                }
             }
 
             Map<String, Object> responseResults = Map.of(
@@ -310,10 +326,6 @@ public class MetadataAuditService {
         Map<String, String> incoherantData
     )
         throws DatabaseException, InvalidParseOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        LOGGER.debug("Audit data consistency : Start updating incoherants documents in ES");
-        alertService.createAlert(
-            incoherantData.size() + " incoherant documents detected when running data consistency audit"
-        );
         updateIncoherantDataFromEs(metadataOplogFromMongo, incoherantData);
         deleteIncoherantDataFromEs(metadataOplogFromMongo, metadataOpLogFromEs, incoherantData);
 

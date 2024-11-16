@@ -355,8 +355,9 @@ vitam:
     streamExecutionLimit: 3 # 3 times
     workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
     elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
-    #### Audit data consistency MongoDB-ES ####
+    #### Audit data consistency MongoDB-ES #### (Experimental / Not for Production)
     isDataConsistencyAuditRunnable: false
+    enableDataConsistencyRectificationMode: false
     dataConsistencyAuditOplogMaxSize: 100
     # Reconstruction metrics cache in minutes (secondary site)
     reconstructionMetricsCacheDurationInMinutes: 15
@@ -505,9 +506,6 @@ vitam:
     transfersSIPTimeToLiveInMinutes: 10080 # 7 days
     workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
     elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata-collect/mapping" # Directory of elasticsearch metadata mapping
-    #### Audit data consistency MongoDB-ES ####
-    isDataConsistencyAuditRunnable: false
-    dataConsistencyAuditOplogMaxSize: 100
     context_path: "/metadata-collect"
   workspace_collect:
     vitam_component: workspace-collect
