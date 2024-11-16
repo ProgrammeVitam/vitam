@@ -87,6 +87,8 @@ public class ProjectIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        handleAfterClass();
+        runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }

@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.export;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,6 +32,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveDeliveryRequestReplyType;
+import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -55,6 +59,8 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
 import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
@@ -66,6 +72,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -85,6 +92,7 @@ import fr.gouv.vitam.worker.core.plugin.dip.CreateManifest;
 import fr.gouv.vitam.worker.core.plugin.dip.ExportCheckResourceAvailability;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.SaveAtrPlugin;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.VerifyAtrPlugin;
+import fr.gouv.vitam.worker.core.utils.AtrParser;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
@@ -101,9 +109,12 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -114,11 +125,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
@@ -128,6 +142,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold.SizeUnit.BYTE;
 import static fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold.SizeUnit.KILOBYTE;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.EV_ID_PROC;
@@ -143,6 +158,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class TransferAndDipIT extends VitamRuleRunner {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransferAndDipIT.class);
 
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "aName5";
@@ -166,6 +183,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
     private static final String EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION =
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ArchiveTransferReply xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
+    public static final String MANIFEST_XML = "manifest.xml";
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(
@@ -1236,10 +1254,11 @@ public class TransferAndDipIT extends VitamRuleRunner {
         try (dip) {
             IOUtils.copy(dip, new FileOutputStream(dipFile));
         }
-        ZipFile zipFile = new ZipFile(dipFile);
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            return IOUtils.toString(is, StandardCharsets.UTF_8.name());
+        try (ZipFile zipFile = new ZipFile(dipFile)) {
+            ZipArchiveEntry manifest = zipFile.getEntry(MANIFEST_XML);
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                return IOUtils.toString(is, StandardCharsets.UTF_8.name());
+            }
         }
     }
 
@@ -1269,5 +1288,73 @@ public class TransferAndDipIT extends VitamRuleRunner {
             fail("Error while computing inherited rules");
             return null;
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_export_dip_with_empty_or_missing_filename_13434() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, "sip/SIP_WithoutFileInfo.zip");
+        verifyOperation(ingestOpId, OK);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        ExportRequest exportRequest = new ExportRequest(
+            new DataObjectVersions(Collections.singleton(BINARY_MASTER.getName())),
+            select.getFinalSelect(),
+            false
+        );
+        exportRequest.setExportType(ExportType.ArchiveDeliveryRequestReply);
+        ExportRequestParameters exportRequestParameters = getExportRequestParameters();
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+
+        // When
+        String exportOperationId = exportDIP(exportRequest);
+
+        // Then
+        VitamTestHelper.verifyOperation(exportOperationId, OK);
+
+        String manifest = getManifestString(getDip(exportOperationId));
+        LOGGER.debug(manifest);
+
+        ArchiveDeliveryRequestReplyType report = parseArchiveDeliveryRequestReply(manifest);
+
+        List<BinaryDataObjectType> binaryDataObjects = report
+            .getDataObjectPackage()
+            .getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject()
+            .stream()
+            .map(entry -> (DataObjectGroupType) entry)
+            .map(DataObjectGroupType::getBinaryDataObjectOrPhysicalDataObject)
+            .flatMap(Collection::stream)
+            .map(obj -> (BinaryDataObjectType) obj)
+            .collect(Collectors.toList());
+
+        assertThat(binaryDataObjects).hasSize(2);
+        assertThat(
+            binaryDataObjects.stream().filter(binaryDataObject -> binaryDataObject.getFileInfo() == null)
+        ).hasSize(1);
+        assertThat(
+            binaryDataObjects
+                .stream()
+                .filter(
+                    binaryDataObject ->
+                        binaryDataObject.getFileInfo() != null && binaryDataObject.getFileInfo().getFilename().isEmpty()
+                )
+        ).hasSize(1);
+    }
+
+    private static ArchiveDeliveryRequestReplyType parseArchiveDeliveryRequestReply(String manifest)
+        throws IOException, XMLStreamException, JAXBException, SAXException {
+        ArchiveDeliveryRequestReplyType report;
+        String versionNeutralManifest = manifest.replaceAll(
+            "fr:gouv:culture:archivesdefrance:seda:v2.[1-3]",
+            "fr:gouv:culture:archivesdefrance:seda:v2"
+        );
+        try (Reader reader = new StringReader(versionNeutralManifest)) {
+            XMLStreamReader xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(reader);
+            report = new AtrParser().parseArchiveDeliveryRequestReply(xmlStreamReader);
+        }
+        return report;
     }
 }

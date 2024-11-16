@@ -331,7 +331,7 @@ public class ManifestBuilder implements AutoCloseable {
     @Nonnull
     private String getExtension(BinaryDataObjectType binaryDataObjectType) {
         String extension = FilenameUtils.getExtension(binaryDataObjectType.getUri());
-        if (Strings.isNullOrEmpty(extension)) {
+        if (Strings.isNullOrEmpty(extension) && binaryDataObjectType.getFileInfo() != null) {
             extension = FilenameUtils.getExtension(binaryDataObjectType.getFileInfo().getFilename());
         }
         if (Strings.isNullOrEmpty(extension)) {

@@ -51,6 +51,12 @@
                                 name="ArchiveTransferReply"/>
             </annox:annotate>
         </jxb:bindings>
+        <jxb:bindings node="xs:complexType[@name='ArchiveDeliveryRequestReplyType']">
+            <annox:annotate>
+                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                                name="ArchiveDeliveryRequestReply"/>
+            </annox:annotate>
+        </jxb:bindings>
     </jxb:bindings>
 
     <jxb:bindings schemaLocation="seda-vitam/seda-vitam-technical.xsd" node="/xs:schema">
