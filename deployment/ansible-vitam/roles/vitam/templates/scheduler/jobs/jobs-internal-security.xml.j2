@@ -10,10 +10,11 @@
             file), overwrite them -->
         <overwrite-existing-data>true</overwrite-existing-data>
         <!-- if there are any jobs/trigger in scheduler of same name (as in this
-            file), and over-write is false, ignore them rather then generating an error -->
+            file), and over-write is false, ignore them rather than generating an error -->
         <ignore-duplicates>true</ignore-duplicates>
     </processing-directives>
 
+    {% if primary_site | lower == "true" %}
     <schedule>
 
         <job>
@@ -34,4 +35,5 @@
         </trigger>
 
     </schedule>
+    {% endif %}
 </job-scheduling-data>
