@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.mapping.mapper;
 
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,12 +37,11 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.stream.XMLStreamReader;
-import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -140,8 +139,7 @@ public class ElementMapperTest {
     }
 
     private <T> T getXMLFromString(String input, Class<T> clazz) throws Exception {
-        XMLStreamReader parser = XMLInputFactoryUtils.newInstance()
-            .createXMLStreamReader(new ByteArrayInputStream(input.getBytes(UTF_8)));
+        XMLStreamReader parser = SecureXMLFactoryUtils.createSecureXMLStreamReader(new StringReader(input));
         JAXBElement<T> element = unmarshaller.unmarshal(parser, clazz);
         return element.getValue();
     }

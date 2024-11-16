@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.xml;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.Diff;
@@ -155,7 +154,6 @@ public class XmlNamespaceUtilsTest {
     }
 
     @Test
-    @Ignore
     public final void shouldTransformXmlNamespaceIgnoringXXEInjections() throws Exception {
         try (
             InputStream xmlInputStream = PropertiesUtils.getResourceAsStream(
@@ -173,7 +171,7 @@ public class XmlNamespaceUtilsTest {
                     )
             )
                 .isInstanceOf(TransformerException.class)
-                .hasMessageContaining("The entity \"xxe\" was referenced, but not declared");
+                .hasMessageContaining("\"xxe\"");
         }
     }
 

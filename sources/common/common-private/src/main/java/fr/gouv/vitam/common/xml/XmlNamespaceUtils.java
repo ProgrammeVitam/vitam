@@ -52,7 +52,7 @@ public final class XmlNamespaceUtils {
     }
 
     public static String parseXmlNamespace(InputStream inputStream) throws XMLStreamException {
-        final XMLStreamReader xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(inputStream);
+        final XMLStreamReader xmlStreamReader = SecureXMLFactoryUtils.createSecureXMLStreamReader(inputStream);
         try {
             while (xmlStreamReader.hasNext()) {
                 if (xmlStreamReader.next() == XMLStreamConstants.START_ELEMENT) {
@@ -73,7 +73,7 @@ public final class XmlNamespaceUtils {
     ) throws TransformerException {
         try {
             XMLOutputFactory outputFactory = XMLOutputFactory.newInstance();
-            XMLEventReader eventReader = XMLInputFactoryUtils.newInstance().createXMLEventReader(inputStream);
+            XMLEventReader eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(inputStream);
             XMLEventWriter eventWriter = outputFactory.createXMLEventWriter(outputStream);
             XMLEventFactory eventFactory = XMLEventFactory.newInstance();
 

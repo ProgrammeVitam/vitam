@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -53,12 +53,10 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -72,7 +70,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -94,8 +91,8 @@ public class SedaUtilsTest {
     private static final String OBJ = "obj";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private final InputStream seda;
-    private final InputStream sedaPdo;
+    private final File seda;
+    private final File sedaPdo;
 
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private SedaUtils utils;
@@ -109,8 +106,8 @@ public class SedaUtilsTest {
         .setCurrentStep("TEST");
 
     public SedaUtilsTest() throws FileNotFoundException {
-        seda = PropertiesUtils.getResourceAsStream(SIP);
-        sedaPdo = PropertiesUtils.getResourceAsStream(SIP_PDO);
+        seda = PropertiesUtils.getResourceFile(SIP);
+        sedaPdo = PropertiesUtils.getResourceFile(SIP_PDO);
     }
 
     @Before
@@ -134,37 +131,28 @@ public class SedaUtilsTest {
 
     @Test
     public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(seda);
         assertEquals(CheckSedaValidationStatus.VALID, utils.checkSedaValidation(new ItemStatus()));
     }
 
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXmlFile() throws Exception {
-        final String str = "This is not an xml file";
-        final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(any(), anyString())).thenReturn(Response.status(Status.OK).entity(is).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(PropertiesUtils.getResourceFile("non_xml_file.txt"));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
         assertEquals(CheckSedaValidationStatus.NOT_XML_FILE, status);
     }
 
     @Test
     public void givenGuidWhenXmlNotXMLThenReturnNotXsdValid() throws Exception {
-        final String str = "<invalidTag>This is an invalid Tag</invalidTag>";
-        final InputStream is = new ByteArrayInputStream(str.getBytes());
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(is).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(is);
+        final String invalidXmlFile = "invalid_xml.xml";
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(PropertiesUtils.getResourceFile(invalidXmlFile));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
         assertEquals(CheckSedaValidationStatus.NOT_XSD_VALID, status);
     }
 
     @Test
     public void givenGuidWhenXmlNotExistThenReturnNoFile() throws Exception {
-        when(workspaceClient.getObject(any(), any())).thenThrow(new ContentAddressableStorageNotFoundException(""));
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenThrow(
-            new ContentAddressableStorageNotFoundException("")
-        );
+        when(handlerIO.getFileFromWorkspace(any())).thenThrow(new ContentAddressableStorageNotFoundException(""));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
         assertEquals(CheckSedaValidationStatus.NO_FILE, status);
     }
@@ -188,9 +176,8 @@ public class SedaUtilsTest {
 
     @Test
     public void givenManifestWhenGetInfoThenGetVersionList() throws Exception {
-        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
-        final XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader(PropertiesUtils.getResourcePath("sip.xml").toString())
+        final XMLEventReader evenReader = SecureXMLFactoryUtils.createSecureXMLEventReader(
+            PropertiesUtils.getResourceAsStream("sip.xml")
         );
         Map<String, List<DataObjectInfo>> versionList;
 
@@ -212,15 +199,17 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCompareVersionList() throws Exception {
-        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
-
-        XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
+        XMLEventReader evenReader = SecureXMLFactoryUtils.createSecureXMLEventReader(
+            PropertiesUtils.getResourceAsStream("sip.xml")
+        );
         Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
         Map<String, String> invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
         Map<String, String> validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
         assertEquals(0, invalidVersionMap.size());
         assertEquals(5, validVersionMap.size());
-        evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
+        evenReader = SecureXMLFactoryUtils.createSecureXMLEventReader(
+            PropertiesUtils.getResourceAsStream("sip-with-wrong-version.xml")
+        );
         versionMap = utils.compareVersionList(evenReader);
         invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
         validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
@@ -231,8 +220,8 @@ public class SedaUtilsTest {
         assertTrue(invalidVersionMap.containsValue("Diffusion"));
         assertTrue(invalidVersionMap.containsValue("PhysicalMaster"));
 
-        evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/sip-incorrect-version-format.xml")
+        evenReader = SecureXMLFactoryUtils.createSecureXMLEventReader(
+            PropertiesUtils.getResourceAsStream("sip-incorrect-version-format.xml")
         );
         versionMap = utils.compareVersionList(evenReader);
         invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
@@ -243,7 +232,9 @@ public class SedaUtilsTest {
         assertTrue(invalidVersionMap.containsValue("PhysicalMaster_-1"));
         assertTrue(invalidVersionMap.containsValue("Dissemination_One"));
 
-        evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip_missing_required_value.xml"));
+        evenReader = SecureXMLFactoryUtils.createSecureXMLEventReader(
+            PropertiesUtils.getResourceAsStream("sip_missing_required_value.xml")
+        );
         versionMap = utils.compareVersionList(evenReader);
         invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
         validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
@@ -255,16 +246,16 @@ public class SedaUtilsTest {
 
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityThenOK() throws Exception {
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
+        FileInputStream sedaInputStream = new FileInputStream(seda);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaInputStream);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
 
     @Test
     public void givenCorrectObjectGroupWhenCheckStorageAvailabilityWithPDOThenOK() throws Exception {
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(sedaPdo).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaPdo);
+        FileInputStream sedaInputStream = new FileInputStream(sedaPdo);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaInputStream);
         final long totalSize = utils.computeTotalSizeOfObjectsInManifest(params);
         assertTrue(totalSize > 0);
     }
@@ -300,9 +291,8 @@ public class SedaUtilsTest {
 
     @Test
     public void givenWrongAlgorithmThenReturnInvalidAlgo() throws Exception {
-        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
-        XMLEventReader evenReader = factory.createXMLEventReader(
-            new FileReader("src/test/resources/SIP_mauvais_algorithm_sha512.xml")
+        XMLEventReader evenReader = SecureXMLFactoryUtils.createSecureXMLEventReader(
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_algorithm_sha512.xml")
         );
 
         assertThrows(SedaUtilsException.class, () -> utils.compareVersionList(evenReader));
@@ -319,8 +309,7 @@ public class SedaUtilsTest {
         );
 
         // WHEN
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(seda);
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
 
         // THEN
@@ -330,10 +319,8 @@ public class SedaUtilsTest {
     public void givenSip_SedaVersionThenReturnResponseOK(SupportedSedaVersions seda, String sip) throws Exception {
         // GIVEN
         utils.setSedaIngestParams(new SedaIngestParams(seda.getVersion(), seda.getNamespaceURI()));
-        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(sip);
         // WHEN
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda2_2).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(PropertiesUtils.getResourceFile(sip));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
 
         // THEN
@@ -361,9 +348,7 @@ public class SedaUtilsTest {
         );
 
         // WHEN
-        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(SIP_2_2);
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda2_2).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(PropertiesUtils.getResourceFile(SIP_2_2));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
 
         // THEN
@@ -381,9 +366,9 @@ public class SedaUtilsTest {
         );
 
         // WHEN
-        InputStream seda2_2 = PropertiesUtils.getResourceAsStream(UNSUPPORTED_SEDA_VERSION_MANIFEST);
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda2_2).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_2);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(
+            PropertiesUtils.getResourceFile(UNSUPPORTED_SEDA_VERSION_MANIFEST)
+        );
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
 
         // THEN
@@ -396,9 +381,7 @@ public class SedaUtilsTest {
         utils.setSedaIngestParams(new SedaIngestParams(seda.getVersion(), seda.getNamespaceURI()));
 
         // WHEN
-        InputStream seda2_3 = PropertiesUtils.getResourceAsStream(manifest);
-        when(workspaceClient.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda2_3).build());
-        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda2_3);
+        when(handlerIO.getFileFromWorkspace(any())).thenReturn(PropertiesUtils.getResourceFile(manifest));
         final CheckSedaValidationStatus status = utils.checkSedaValidation(new ItemStatus());
 
         // THEN
