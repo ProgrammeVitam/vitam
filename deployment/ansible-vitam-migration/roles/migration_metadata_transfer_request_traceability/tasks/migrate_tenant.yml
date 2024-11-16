@@ -1,0 +1,28 @@
+---
+
+- name: "Migrate tenant {{ tenantId }}"
+  uri:
+    url: "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/metadata/v1/migrateUnitsWithTransferRequests?threshold={{ threshold | default('100000') }}"
+    method: "POST"
+    headers:
+      X-Tenant-Id: "{{ tenantId }}"
+      Host: "{{ vitam_struct.host }}"
+    force_basic_auth: yes
+    user: "{{ admin_basic_auth_user }}"
+    password: "{{ admin_basic_auth_password }}"
+    status_code: [ 200, 202 ]
+    return_content: yes
+    timeout: 3600
+  register: migration_response
+
+- name: Modify json...
+  set_fact:
+    migration_response_json: "{{ migration_response.json | regex_replace('\\$results', 'results') }}"
+
+- debug:
+    msg: "No migration required for tenant {{ tenantId }}"
+  when: migration_response.status == 202
+
+- debug:
+    msg: "Migration succeeded for tenant {{ tenantId }}. OperationId = {{ migration_response_json.results[0] }}"
+  when: migration_response.status == 200
