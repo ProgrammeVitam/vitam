@@ -119,10 +119,10 @@ public class CheckArchiveProfileActionHandlerTest {
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(
-            handlerIO.getInputStreamFromWorkspace(
+            handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
-        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+        ).thenReturn(PropertiesUtils.getResourceFile(MANIFEST_OK));
 
         when(adminClient.findProfiles(any())).thenReturn(createProfileRNG("Profil20.rng"));
 
@@ -155,10 +155,10 @@ public class CheckArchiveProfileActionHandlerTest {
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(
-            handlerIO.getInputStreamFromWorkspace(
+            handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
-        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
+        ).thenReturn(PropertiesUtils.getResourceFile(MANIFEST_KO));
 
         when(adminClient.findProfiles(any())).thenReturn(createProfileRNG("Profil20.rng"));
 
@@ -192,10 +192,10 @@ public class CheckArchiveProfileActionHandlerTest {
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(
-            handlerIO.getInputStreamFromWorkspace(
+            handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
-        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+        ).thenReturn(PropertiesUtils.getResourceFile(MANIFEST_OK));
 
         when(adminClient.findProfiles(any())).thenReturn(createProfileRNG(""));
 

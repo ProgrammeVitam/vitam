@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -44,7 +44,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.StartElement;
@@ -102,8 +101,6 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
 
         InputStream xmlFile = null;
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
@@ -129,7 +126,7 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
             }
 
             // Create event reader
-            eventReader = xmlInputFactory.createXMLEventReader(xmlFile);
+            eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
 
             while (true) {
                 final XMLEvent event = eventReader.nextEvent();

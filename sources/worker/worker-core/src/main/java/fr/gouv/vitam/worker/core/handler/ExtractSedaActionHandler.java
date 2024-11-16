@@ -88,7 +88,7 @@ import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -161,7 +161,6 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -783,16 +782,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         /**
          * Retrieves SEDA
          **/
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         XMLEventReader reader = null;
 
         final QName dataObjectGroupName = new QName(namespaceURI, DATA_OBJECT_GROUP);
         final QName dataObjectName = new QName(namespaceURI, BINARY_DATA_OBJECT);
         final QName physicalDataObjectName = new QName(namespaceURI, PHYSICAL_DATA_OBJECT);
         final QName unitName = new QName(namespaceURI, ARCHIVE_UNIT);
-
         try (InputStream xmlFile = getTransformedXmlAsInputStream(handlerIO, ingestContext.getSedaVersion())) {
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            reader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
             final JsonXMLConfig config = new JsonXMLConfigBuilder()
                 .autoArray(true)
                 .autoPrimitive(true)
@@ -805,7 +802,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             );
             final FileWriter tmpFileWriter = new FileWriter(globalSedaParametersFile);
             final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-            final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
+            JsonXMLOutputFactory jsonXMLOutputFactory = new JsonXMLOutputFactory(config);
+            final XMLEventWriter writer = jsonXMLOutputFactory.createXMLEventWriter(tmpFileWriter);
+            writer.setPrefix("", UNIFIED_NAMESPACE);
             writer.add(eventFactory.createStartDocument());
             boolean globalMetadata = true;
 

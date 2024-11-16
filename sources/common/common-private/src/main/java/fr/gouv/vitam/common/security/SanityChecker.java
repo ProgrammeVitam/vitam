@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import org.owasp.esapi.Validator;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
@@ -43,7 +43,6 @@ import org.owasp.esapi.reference.validation.HTMLValidationRule;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -342,11 +341,10 @@ public class SanityChecker {
      */
     protected static void checkXmlSanityTagValueSize(File xmlFile) throws InvalidParseOperationException, IOException {
         try (final InputStream xmlStream = new FileInputStream(xmlFile)) {
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             // read XML input stream
             XMLStreamReader reader = null;
             try {
-                reader = xmlInputFactory.createXMLStreamReader(xmlStream);
+                reader = SecureXMLFactoryUtils.createSecureXMLStreamReader(xmlStream);
                 while (reader.hasNext()) {
                     final int event = reader.next();
                     if (

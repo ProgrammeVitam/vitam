@@ -33,9 +33,19 @@ import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import org.junit.Test;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -85,6 +95,67 @@ public class ArchTests {
                         return (
                             javaMethodCall.getTargetOwner().getFullName().equals(LocalDateTime.class.getName()) &&
                             javaMethodCall.getTarget().getName().equals("toString")
+                        );
+                    }
+                }
+            )
+            .check(importedClasses);
+    }
+
+    @Test
+    public void testUnsecureUsageOfXMLInputFactory() {
+        Set<String> fullClassNames = Stream.of(
+            XMLInputFactory.class,
+            TransformerFactory.class,
+            SchemaFactory.class,
+            DocumentBuilderFactory.class,
+            SAXParserFactory.class
+        )
+            .map(Class::getName)
+            .collect(Collectors.toSet());
+
+        JavaClasses importedClasses = new ClassFileImporter().importPackages("fr.gouv.vitam");
+
+        noClasses()
+            .that()
+            .doNotHaveFullyQualifiedName(SecureXMLFactoryUtils.class.getName())
+            .should()
+            .callMethodWhere(
+                new DescribedPredicate<>(
+                    "static methods of Xml factories are invoked instead of SecureXMLFactoryUtils helpers"
+                ) {
+                    @Override
+                    public boolean test(JavaMethodCall javaMethodCall) {
+                        return (
+                            fullClassNames.contains(javaMethodCall.getTargetOwner().getFullName()) &&
+                            javaMethodCall
+                                .getTarget()
+                                .resolveMember()
+                                .orElseThrow()
+                                .getModifiers()
+                                .contains(JavaModifier.STATIC)
+                        );
+                    }
+                }
+            )
+            .check(importedClasses);
+    }
+
+    @Test
+    public void testUnsecureSchemaValidatorInitialization() {
+        JavaClasses importedClasses = new ClassFileImporter().importPackages("fr.gouv.vitam");
+
+        noClasses()
+            .that()
+            .doNotHaveFullyQualifiedName(SecureXMLFactoryUtils.class.getName())
+            .should()
+            .callMethodWhere(
+                new DescribedPredicate<>("Schema.newValidator is invoked instead of SecureXMLFactoryUtils helpers") {
+                    @Override
+                    public boolean test(JavaMethodCall javaMethodCall) {
+                        return (
+                            javaMethodCall.getTargetOwner().isAssignableFrom(Schema.class) &&
+                            javaMethodCall.getTarget().getName().equals("newValidator")
                         );
                     }
                 }

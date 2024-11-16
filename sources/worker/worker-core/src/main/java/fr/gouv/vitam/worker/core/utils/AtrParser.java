@@ -29,8 +29,7 @@ package fr.gouv.vitam.worker.core.utils;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveDeliveryRequestReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
-import org.apache.xerces.util.XMLCatalogResolver;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
@@ -38,28 +37,19 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import java.net.URL;
-import java.util.Objects;
 
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.GENERIC_VITAM_VALIDATOR;
-import static fr.gouv.vitam.common.xml.ValidationXsdUtils.CATALOG_FILENAME;
-import static fr.gouv.vitam.common.xml.ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1;
 
 public class AtrParser {
 
     private static final JAXBContext jaxbContext;
-    private static final URL SEDA_XSD_URL = Objects.requireNonNull(
-        ValidationXsdUtils.class.getClassLoader().getResource(GENERIC_VITAM_VALIDATOR)
-    );
-    private static final URL CATALOG_URL = Objects.requireNonNull(
-        ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME)
-    );
+    private static final Schema genericVitamSchema;
 
     static {
         try {
             jaxbContext = JAXBContext.newInstance(ArchiveTransferReplyType.class);
-        } catch (JAXBException e) {
+            genericVitamSchema = new XsdValidator(GENERIC_VITAM_VALIDATOR).getSchema();
+        } catch (JAXBException | SAXException e) {
             throw new RuntimeException(e);
         }
     }
@@ -78,13 +68,7 @@ public class AtrParser {
 
     private static Unmarshaller createUnmarshaller() throws JAXBException, SAXException {
         Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-        unmarshaller.setSchema(getSchema());
+        unmarshaller.setSchema(genericVitamSchema);
         return unmarshaller;
-    }
-
-    private static Schema getSchema() throws SAXException {
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
-        schemaFactory.setResourceResolver(new XMLCatalogResolver(new String[] { CATALOG_URL.toString() }, false));
-        return schemaFactory.newSchema(SEDA_XSD_URL);
     }
 }

@@ -30,14 +30,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.thaiopensource</groupId>
-			<artifactId>jing</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.thaiopensource</groupId>
-			<artifactId>trang</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 		</dependency>
