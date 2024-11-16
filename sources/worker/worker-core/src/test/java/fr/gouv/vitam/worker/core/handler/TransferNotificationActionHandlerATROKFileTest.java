@@ -36,8 +36,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -50,6 +50,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.common.utils.SedaXsdValidatorProvider;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -61,7 +62,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.events.XMLEvent;
 import java.io.File;
 import java.io.InputStream;
@@ -72,6 +72,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +103,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
     );
     private LogbookOperationsClient logbookOperationsClient;
 
-    private static final ValidationXsdUtils validationXsdUtils = mock(ValidationXsdUtils.class);
+    private static final SedaXsdValidatorProvider sedaXsdValidatorProvider = mock(SedaXsdValidatorProvider.class);
 
     private HandlerIOImpl handlerIO;
     private List<IOParameter> in;
@@ -144,7 +146,9 @@ public class TransferNotificationActionHandlerATROKFileTest {
         );
         handlerIO.setCurrentObjectId(objectId);
 
-        when(validationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
+        XsdValidator xsdValidator = mock(XsdValidator.class);
+        doNothing().when(xsdValidator).validate(any());
+        doReturn(xsdValidator).when(sedaXsdValidatorProvider).getValidator(any());
 
         in = new ArrayList<>();
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
@@ -181,7 +185,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
             TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
                 logbookOperationsClientFactory,
                 storageClientFactory,
-                validationXsdUtils
+                sedaXsdValidatorProvider
             )
         ) {
             final InputStream xmlFile;
@@ -205,8 +209,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
             }
             assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-            XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            XMLEventReader reader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
             String objectGroupGuid = null;
             String objectGuid = null;
             int count = 0;

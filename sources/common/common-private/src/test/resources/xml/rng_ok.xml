@@ -1,0 +1,9 @@
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+    <rng:start>
+        <rng:element name="MyElement">
+            <rng:data type="string">
+                <rng:param name="pattern">A</rng:param>
+            </rng:data>
+        </rng:element>
+    </rng:start>
+</rng:grammar>

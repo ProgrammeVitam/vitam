@@ -44,8 +44,10 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.InvalidXmlException;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -57,11 +59,8 @@ import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.File;
@@ -137,8 +136,7 @@ public class SedaUtils {
         XMLEventReader reader = null;
         try (final InputStream xmlFile = loadIngestManifest()) {
             StringBuilder sedaComment = new StringBuilder();
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            reader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
             while (true) {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement()) {
@@ -171,20 +169,15 @@ public class SedaUtils {
     public void extractXmlNameSpaceAndSaveSedaParams(HandlerIO handlerIO, int sedaIngestParamsRankOutput)
         throws ProcessingException {
         try (final InputStream xmlFile = loadIngestManifest()) {
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-            final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile);
-            if (xmlStreamReader.hasNext() && xmlStreamReader.getEventType() == XMLStreamConstants.START_DOCUMENT) {
-                xmlStreamReader.next();
-                String namespaceURI = xmlStreamReader.getNamespaceURI();
-                if (namespaceURI == null) {
-                    throw new ProcessingException("The namespace URI could not be readed from Manifest!");
-                }
-                extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, namespaceURI);
+            String namespaceURI = XmlNamespaceUtils.parseXmlNamespace(xmlFile);
+            if (namespaceURI == null) {
+                throw new ProcessingException("The namespace URI could not be read from Manifest!");
             }
+            extractAndSaveSedaIngestParams(handlerIO, sedaIngestParamsRankOutput, namespaceURI);
         } catch (XMLStreamException e) {
             throw new ProcessingException(CheckSedaValidationStatus.NOT_XML_FILE.name(), e);
         } catch (IOException e) {
-            throw new ProcessingException("A technical problem occured when reading Manifest!", e);
+            throw new ProcessingException("A technical problem occurred when reading Manifest!", e);
         }
     }
 
@@ -269,10 +262,10 @@ public class SedaUtils {
         String xmLNameSpace
     ) throws ProcessingException {
         try {
-            Pair<String, String> extractedNameSpaceAndSerdaVersion = validateNameSpaceAndSedaVersion(xmLNameSpace);
+            Pair<String, String> extractedNameSpaceAndSedaVersion = validateNameSpaceAndSedaVersion(xmLNameSpace);
             sedaIngestParams = new SedaIngestParams(
-                extractedNameSpaceAndSerdaVersion.getRight(),
-                extractedNameSpaceAndSerdaVersion.getLeft()
+                extractedNameSpaceAndSedaVersion.getRight(),
+                extractedNameSpaceAndSedaVersion.getLeft()
             );
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(sedaIngestParamsOutputRank).getPath());
             JsonHandler.writeAsFile(sedaIngestParams, tempFile);
@@ -304,7 +297,8 @@ public class SedaUtils {
      * @return a status representing the validation of the file
      */
     public CheckSedaValidationStatus checkSedaValidation(ItemStatus itemStatus) {
-        try (InputStream input = checkExistenceManifest()) {
+        try {
+            File manifestFile = getManifestFile();
             if (checkMultiManifest()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST;
             }
@@ -319,14 +313,16 @@ public class SedaUtils {
                 LOGGER.warn(sedaIngestParams.getVersion() + " is not supported by Vitam!");
                 return CheckSedaValidationStatus.UNSUPPORTED_SEDA_VERSION;
             }
-            ValidationXsdUtils.getInstance()
-                .checkWithXSD(input, sedaSupportedVersionModel.get().getVitamValidatorXSD());
+
+            XsdValidator xsdValidator = SedaXsdValidatorProvider.getInstance()
+                .getValidator(sedaSupportedVersionModel.get());
+            xsdValidator.validate(manifestFile);
 
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
             LOGGER.error("Manifest xml file is not valid with the XSD", e);
             return CheckSedaValidationStatus.NO_FILE;
-        } catch (final XMLStreamException e) {
+        } catch (final InvalidXmlException e) {
             LOGGER.error("This is not an xml file", e);
             return CheckSedaValidationStatus.NOT_XML_FILE;
         } catch (final SAXException e) {
@@ -384,17 +380,15 @@ public class SedaUtils {
     /**
      * check if there is manifest.xml file in the SIP
      */
-    private InputStream checkExistenceManifest() throws IOException, ProcessingException {
-        InputStream manifest;
+    private File getManifestFile() throws IOException, ProcessingException {
         try {
-            manifest = handlerIO.getInputStreamFromWorkspace(
+            return handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             );
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Manifest not found");
             throw new ProcessingException("Manifest not found", e);
         }
-        return manifest;
     }
 
     /**
@@ -448,8 +442,6 @@ public class SedaUtils {
         extractUriResponse.setUriSetManifest(uriSet);
         extractUriResponse.setErrorNumber(0);
 
-        // Create the XML input factory
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         // Create the XML output factory
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
@@ -473,7 +465,7 @@ public class SedaUtils {
             }
 
             // Create event reader
-            eventReader = xmlInputFactory.createXMLEventReader(xmlFile);
+            eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
 
             while (true) {
                 final XMLEvent event = eventReader.nextEvent();
@@ -567,8 +559,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            reader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
             versionMap = compareVersionList(reader);
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
@@ -833,8 +824,7 @@ public class SedaUtils {
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
         ) {
-            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            reader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
             sedaUtilInfo = getDataObjectInfo(reader);
             return sedaUtilInfo;
         } catch (final XMLStreamException e) {

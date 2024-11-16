@@ -92,10 +92,6 @@
 			<version>${org.glassfish.web.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.relaxng</groupId>
-			<artifactId>jing</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.flipkart.zjsonpatch</groupId>
 			<artifactId>zjsonpatch</artifactId>
 			<version>${zjsonpatch.version}</version>

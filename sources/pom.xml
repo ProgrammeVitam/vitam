@@ -1145,6 +1145,7 @@
                 <groupId>net.sf.saxon</groupId>
                 <artifactId>Saxon-HE</artifactId>
                 <version>${Saxon-HE.version}</version>
+                <scope>test</scope>
             </dependency>
 
             <dependency>
@@ -1158,26 +1159,7 @@
                     </exclusion>
                     <exclusion>
                         <groupId>net.sf.saxon</groupId>
-                        <artifactId>saxon</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>xerces</groupId>
-                        <artifactId>xercesImpl</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.relaxng</groupId>
-                <artifactId>trang</artifactId>
-                <version>${thaiopensource.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.sf.saxon</groupId>
-                        <artifactId>saxon</artifactId>
+                        <artifactId>Saxon-HE</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>xerces</groupId>

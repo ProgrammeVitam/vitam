@@ -46,8 +46,9 @@ import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.RngValidator;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -60,12 +61,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.bson.conversions.Bson;
 import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
 import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
-import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -166,7 +164,7 @@ public class ProfileManager {
     public boolean validateXSD(File file, VitamError error) throws Exception {
         // Check xml valid
         try {
-            SchemaFactory.newInstance(ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1).newSchema(file);
+            new XsdValidator(file);
         } catch (SAXException e) {
             LOGGER.error("Malformed profile xsd file", e);
             return false;
@@ -177,8 +175,7 @@ public class ProfileManager {
 
     private boolean checkTag(File file, String prefix, String element, VitamError error)
         throws FileNotFoundException, XMLStreamException {
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
-        final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(file));
+        final XMLEventReader eventReader = SecureXMLFactoryUtils.createSecureXMLEventReader(new FileInputStream(file));
         while (eventReader.hasNext()) {
             XMLEvent event = eventReader.nextEvent();
             if (event.isStartDocument()) {
@@ -218,8 +215,7 @@ public class ProfileManager {
      */
     public boolean validateRNG(File file, VitamError error) throws Exception {
         try {
-            System.setProperty(ValidationXsdUtils.RNG_PROPERTY_KEY, ValidationXsdUtils.RNG_FACTORY);
-            SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI).newSchema(file);
+            new RngValidator(file);
         } catch (SAXException e) {
             LOGGER.error("Malformed profile rng file", e);
             return false;

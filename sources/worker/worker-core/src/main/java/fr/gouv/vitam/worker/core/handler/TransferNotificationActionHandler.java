@@ -48,7 +48,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.OperationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -67,7 +66,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -89,6 +89,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.SedaIngestParams;
+import fr.gouv.vitam.worker.common.utils.SedaXsdValidatorProvider;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -101,19 +102,14 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.transform.ErrorListener;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -153,21 +149,17 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String TEST_STATUS_PREFIX = "Test ";
-    private static final String ATR_SEDA_2_2_TRANSFORMER = "transform-atr-seda-2.2.xsl";
-    private static final String ATR_SEDA_2_1_TRANSFORMER = "transform-atr-seda-2.1.xsl";
-    private static final String ATR_SEDA_2_3_TRANSFORMER = "transform-atr-seda-2.3.xsl";
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final StorageClientFactory storageClientFactory;
-    private final ValidationXsdUtils validationXsdUtils;
 
-    private final TransformerFactory transformerFactory;
+    private final SedaXsdValidatorProvider sedaXsdValidatorProvider;
 
     public TransferNotificationActionHandler() {
         this(
             LogbookOperationsClientFactory.getInstance(),
             StorageClientFactory.getInstance(),
-            ValidationXsdUtils.getInstance()
+            SedaXsdValidatorProvider.getInstance()
         );
     }
 
@@ -175,12 +167,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
     TransferNotificationActionHandler(
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory,
-        ValidationXsdUtils validationXsdUtils
+        SedaXsdValidatorProvider sedaXsdValidatorProvider
     ) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageClientFactory = storageClientFactory;
-        this.validationXsdUtils = validationXsdUtils;
-        this.transformerFactory = TransformerFactory.newInstance();
+        this.sedaXsdValidatorProvider = sedaXsdValidatorProvider;
     }
 
     /**
@@ -312,7 +303,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private void checkAtrFile(File atrFile, SedaIngestParams sedaIngestParams) throws IOException {
         try {
-            validationXsdUtils.checkWithXSD(new FileInputStream(atrFile), sedaIngestParams.getSedaValidatorXSD());
+            XsdValidator xsdValidator = sedaXsdValidatorProvider.getValidator(
+                SupportedSedaVersions.getSupportedSedaVersionByXmlNamespace(
+                    sedaIngestParams.getNamespaceURI()
+                ).orElseThrow()
+            );
+            xsdValidator.validate(atrFile);
         } catch (SAXException e) {
             if (e.getCause() == null) {
                 // In case of an exception while parsing the manifest file, when the exception is thrown before parsing
@@ -321,8 +317,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 // with the important errors, even with empty tags that broke the schema conformity.
                 LOGGER.error("ATR File is not valid with the XSD", e);
             }
-            LOGGER.error("ATR File is not a correct xml file", e);
-        } catch (XMLStreamException e) {
             LOGGER.error("ATR File is not a correct xml file", e);
         }
     }
@@ -412,7 +406,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
             );
             File atrWithUnifiedSedaVersion = handlerIO.getNewLocalFile("_atr_unified_seda.xml");
             archiveTransferReplyMarshaller.marshal(archiveTransferReply, atrWithUnifiedSedaVersion);
-            transformAtrFile(sedaIngestParams.getVersion(), atrFile, atrWithUnifiedSedaVersion);
+            SupportedSedaVersions sedaVersion = SupportedSedaVersions.getSupportedSedaVersionByVersion(
+                sedaIngestParams.getVersion()
+            ).orElseThrow();
+
+            transformAtrFile(sedaVersion, atrWithUnifiedSedaVersion, atrFile);
         } catch (IOException e) {
             throw new ProcessingException(e);
         } catch (JAXBException e) {
@@ -426,37 +424,19 @@ public class TransferNotificationActionHandler extends ActionHandler {
         return atrFile;
     }
 
-    private void transformAtrFile(String sedaVersion, File atrFile, File atrWithUnifiedSedaVersion)
-        throws FileNotFoundException, TransformerException {
-        Source xsl;
-        if (sedaVersion.equals(SupportedSedaVersions.SEDA_2_1.getVersion())) {
-            xsl = new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_1_TRANSFORMER));
-        } else if (sedaVersion.equals(SupportedSedaVersions.SEDA_2_3.getVersion())) {
-            xsl = new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_3_TRANSFORMER));
-        } else {
-            // Default to SEDA 2.2 version
-            xsl = new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_2_TRANSFORMER));
+    private void transformAtrFile(SupportedSedaVersions sedaVersion, File atrWithUnifiedSedaVersion, File atrFile)
+        throws IOException, TransformerException {
+        try (
+            InputStream inputStream = new FileInputStream(atrWithUnifiedSedaVersion);
+            OutputStream outputStream = new FileOutputStream(atrFile)
+        ) {
+            XmlNamespaceUtils.transformXMLNamespace(
+                inputStream,
+                outputStream,
+                SupportedSedaVersions.UNIFIED_NAMESPACE,
+                sedaVersion.getNamespaceURI()
+            );
         }
-        Transformer transformer = transformerFactory.newTransformer(xsl);
-        transformer.setErrorListener(
-            new ErrorListener() {
-                @Override
-                public void warning(TransformerException exception) {
-                    LOGGER.warn("An error occurred while processing SEDA transformation", exception);
-                }
-
-                @Override
-                public void error(TransformerException exception) throws TransformerException {
-                    throw exception;
-                }
-
-                @Override
-                public void fatalError(TransformerException exception) throws TransformerException {
-                    throw exception;
-                }
-            }
-        );
-        transformer.transform(new StreamSource(atrWithUnifiedSedaVersion), new StreamResult(atrFile));
     }
 
     private void addFirstLevelBaseInformations(

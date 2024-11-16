@@ -31,7 +31,6 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.BasicClient;
@@ -48,7 +47,6 @@ import fr.gouv.vitam.common.model.processing.LifecycleState;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -87,7 +85,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static io.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -175,57 +172,6 @@ public class WorkerIT extends VitamRuleRunner {
         RestAssured.port = runner.PORT_SERVICE_METADATA;
         RestAssured.basePath = METADATA_PATH;
         get(BasicClient.STATUS_URL).then().statusCode(204);
-    }
-
-    private void printAndCheckXmlConfiguration() throws Exception {
-        LOGGER.warn(
-            "XML Configuration: " +
-            "\n\tjavax.xml.parsers.SAXParserFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.parsers.SAXParserFactory") +
-            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.parsers.DocumentBuilderFactory") +
-            "\n\tjavax.xml.datatype.DatatypeFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.datatype.DatatypeFactory") +
-            "\n\tjavax.xml.stream.XMLEventFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLEventFactory") +
-            "\n\tjavax.xml.stream.XMLInputFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLInputFactory") +
-            "\n\tjavax.xml.stream.XMLOutputFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.stream.XMLOutputFactory") +
-            "\n\tjavax.xml.transform.TransformerFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.transform.TransformerFactory") +
-            "\n\tjavax.xml.validation.SchemaFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.validation.SchemaFactory") +
-            "\n\tjavax.xml.xpath.XPathFactory: " +
-            SystemPropertyUtil.getNoCheck("javax.xml.xpath.XPathFactory")
-        );
-
-        LOGGER.warn(
-            "XML Implementation: " +
-            "\n\tjavax.xml.parsers.SAXParserFactory: " +
-            javax.xml.parsers.SAXParserFactory.newInstance().getClass() +
-            "\n\tjavax.xml.parsers.DocumentBuilderFactory: " +
-            javax.xml.parsers.DocumentBuilderFactory.newInstance().getClass() +
-            "\n\tjavax.xml.datatype.DatatypeFactory: " +
-            javax.xml.datatype.DatatypeFactory.newInstance().getClass() +
-            "\n\tjavax.xml.stream.XMLEventFactory: " +
-            javax.xml.stream.XMLEventFactory.newFactory().getClass() +
-            "\n\tjavax.xml.stream.XMLInputFactory: " +
-            XMLInputFactoryUtils.newInstance().getClass() +
-            "\n\tjavax.xml.stream.XMLOutputFactory: " +
-            javax.xml.stream.XMLOutputFactory.newInstance().getClass() +
-            "\n\tjavax.xml.transform.TransformerFactory: " +
-            javax.xml.transform.TransformerFactory.newInstance().getClass() +
-            "\n\tjavax.xml.validation.SchemaFactory: " +
-            javax.xml.validation.SchemaFactory.newInstance("http://www.w3.org/XML/XMLSchema/v1.1").getClass() +
-            "\n\tjavax.xml.xpath.XPathFactory: " +
-            javax.xml.xpath.XPathFactory.newInstance().getClass()
-        );
-    }
-
-    @Test
-    public void testXsdConfiguration() throws Exception {
-        assertThatCode(() -> printAndCheckXmlConfiguration()).doesNotThrowAnyException();
     }
 
     @RunWithCustomExecutor

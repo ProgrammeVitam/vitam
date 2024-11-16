@@ -45,7 +45,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import fr.gouv.vitam.common.xml.RngValidator;
+import fr.gouv.vitam.common.xml.XsdValidator;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.Profile;
@@ -62,7 +63,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.SAXException;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -130,12 +130,12 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
                 checkProfilePath(profile);
                 Response downloadResponse = null;
                 InputStream stream = null;
-                File tmpFile;
+                File schemaFile;
                 try {
                     downloadResponse = adminClient.downloadProfileFile(profileIdentifier);
                     stream = downloadResponse.readEntity(InputStream.class);
-                    tmpFile = PropertiesUtils.fileFromTmpFolder(profile.getPath());
-                    OutputStream outputStream = new FileOutputStream(tmpFile);
+                    schemaFile = PropertiesUtils.fileFromTmpFolder(profile.getPath());
+                    OutputStream outputStream = new FileOutputStream(schemaFile);
                     IOUtils.copy(stream, outputStream);
                     outputStream.close();
                 } finally {
@@ -144,23 +144,23 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
                 }
 
                 if (profile.getFormat().equals(ProfileFormat.XSD)) {
-                    isValid = ValidationXsdUtils.getInstance()
-                        .checkFileXSD(
-                            handlerIO.getInputStreamFromWorkspace(
-                                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
-                            ),
-                            tmpFile
-                        );
+                    XsdValidator validator = new XsdValidator(schemaFile);
+                    validator.validate(
+                        handlerIO.getFileFromWorkspace(
+                            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                        )
+                    );
+                    isValid = true;
                 }
 
                 if (profile.getFormat().equals(ProfileFormat.RNG)) {
-                    isValid = ValidationXsdUtils.getInstance()
-                        .checkFileRNG(
-                            handlerIO.getInputStreamFromWorkspace(
-                                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
-                            ),
-                            tmpFile
-                        );
+                    RngValidator validator = new RngValidator(schemaFile);
+                    validator.validate(
+                        handlerIO.getFileFromWorkspace(
+                            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                        )
+                    );
+                    isValid = true;
                 }
             } else {
                 throw new ProfileNotFoundException(profileIdentifier + NOT_FOUND);
@@ -201,7 +201,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
                 infoNode,
                 StatusCode.FATAL
             );
-        } catch (IOException | XMLStreamException e) {
+        } catch (IOException e) {
             LOGGER.error(FILE_NOT_FOUND, e);
             return getItemStatus(
                 itemStatus,
