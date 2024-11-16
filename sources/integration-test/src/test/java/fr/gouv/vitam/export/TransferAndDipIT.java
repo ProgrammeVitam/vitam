@@ -77,7 +77,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -194,7 +194,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         "<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:pr=\"info:lc/xmlns/premis-v2\" xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
 
     private static final String EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ArchiveTransferReply xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><ArchiveTransferReply xmlns=\"%s\" xmlns:ns2=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
     private static final String MANIFEST_XML = "manifest.xml";
 
     @ClassRule
@@ -1183,7 +1183,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
     }
 
     private String retrieveArchiveUnitGuidById(String manifest) {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory factory = SecureXMLFactoryUtils.createSecureDocumentBuilderFactory();
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
             org.w3c.dom.Document doc = builder.parse(new InputSource(new StringReader(manifest)));
@@ -1366,7 +1366,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
             "fr:gouv:culture:archivesdefrance:seda:v2"
         );
         try (Reader reader = new StringReader(versionNeutralManifest)) {
-            XMLStreamReader xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(reader);
+            XMLStreamReader xmlStreamReader = SecureXMLFactoryUtils.createSecureXMLStreamReader(reader);
             report = new AtrParser().parseArchiveTransferReply(xmlStreamReader);
         }
         return report;
@@ -1380,7 +1380,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
             "fr:gouv:culture:archivesdefrance:seda:v2"
         );
         try (Reader reader = new StringReader(versionNeutralManifest)) {
-            XMLStreamReader xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(reader);
+            XMLStreamReader xmlStreamReader = SecureXMLFactoryUtils.createSecureXMLStreamReader(reader);
             report = new AtrParser().parseArchiveDeliveryRequestReply(xmlStreamReader);
         }
         return report;

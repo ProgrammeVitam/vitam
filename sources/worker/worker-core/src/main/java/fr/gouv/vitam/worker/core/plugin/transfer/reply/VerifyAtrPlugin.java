@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -39,7 +38,9 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -47,6 +48,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.utils.AtrParser;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
@@ -59,18 +61,15 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.ErrorListener;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.Optional;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
@@ -84,11 +83,9 @@ public class VerifyAtrPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
     public static final String ATR_FOR_TRANSFER_REPLY = "ATR-for-transfer-reply-in-workspace.xml";
-    private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    private final TransformerFactory transformerFactory;
     private final AtrParser atrParser;
 
     public VerifyAtrPlugin() {
@@ -98,7 +95,6 @@ public class VerifyAtrPlugin extends ActionHandler {
     @VisibleForTesting
     public VerifyAtrPlugin(LogbookOperationsClientFactory logbookOperationsClientFactory, AtrParser atrParser) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.transformerFactory = TransformerFactory.newInstance();
         this.atrParser = atrParser;
     }
 
@@ -106,7 +102,7 @@ public class VerifyAtrPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         XMLStreamReader xmlStreamReader = null;
         try (InputStream atr = getTransformedXmlAsInputStream(handler)) {
-            xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
+            xmlStreamReader = SecureXMLFactoryUtils.createSecureXMLStreamReader(atr);
             ArchiveTransferReplyType transferReply = atrParser.parseArchiveTransferReply(xmlStreamReader);
 
             handler.addOutputResult(0, transferReply);
@@ -141,39 +137,46 @@ public class VerifyAtrPlugin extends ActionHandler {
         ) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
+        } catch (ProcessingStatusException e) {
+            throw new RuntimeException(e);
         } finally {
             closeXmlReader(xmlStreamReader);
         }
     }
 
     private InputStream getTransformedXmlAsInputStream(HandlerIO handlerIO)
-        throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ProcessingStatusException, XMLStreamException, UnmarshalException {
         File originalATR = handlerIO.getFileFromWorkspace(ATR_FOR_TRANSFER_REPLY);
         File transformedATR = handlerIO.getNewLocalFile("transformed-" + ATR_FOR_TRANSFER_REPLY);
-        Source xsl = new StreamSource(PropertiesUtils.getResourceAsStream(TRANSFORM_XSLT_PATH));
-        Transformer transformer = transformerFactory.newTransformer(xsl);
-        transformer.setErrorListener(
-            new ErrorListener() {
-                @Override
-                public void warning(TransformerException exception) {
-                    LOGGER.warn("An error occurred while processing ATR transformation", exception);
-                }
 
-                @Override
-                public void error(TransformerException exception) throws TransformerException {
-                    throw exception;
-                }
+        SupportedSedaVersions sedaVersion = parseSedaVersion(originalATR);
 
-                @Override
-                public void fatalError(TransformerException exception) throws TransformerException {
-                    throw exception;
-                }
-            }
-        );
-
-        transformer.transform(new StreamSource(originalATR), new StreamResult(transformedATR));
-
+        try (
+            InputStream originalATRInputStream = new FileInputStream(originalATR);
+            OutputStream transformedATROutputStream = new FileOutputStream(transformedATR)
+        ) {
+            XmlNamespaceUtils.transformXMLNamespace(
+                originalATRInputStream,
+                transformedATROutputStream,
+                sedaVersion.getNamespaceURI(),
+                SupportedSedaVersions.UNIFIED_NAMESPACE
+            );
+        }
         return new FileInputStream(transformedATR);
+    }
+
+    private static SupportedSedaVersions parseSedaVersion(File originalATR)
+        throws IOException, XMLStreamException, UnmarshalException {
+        try (InputStream originalATRInputStream = new FileInputStream(originalATR)) {
+            String xmlNamespace = XmlNamespaceUtils.parseXmlNamespace(originalATRInputStream);
+            Optional<SupportedSedaVersions> supportedSedaVersionByXmlNamespace =
+                SupportedSedaVersions.getSupportedSedaVersionByXmlNamespace(xmlNamespace);
+            if (supportedSedaVersionByXmlNamespace.isEmpty()) {
+                LOGGER.error("Unsupported ATR or seda version. Unknown xml namespace: '" + xmlNamespace + "'");
+                throw new UnmarshalException("Invalid ATR. Unsupported namespace");
+            }
+            return supportedSedaVersionByXmlNamespace.get();
+        }
     }
 
     private boolean hasReplyCode(String replyCode) {

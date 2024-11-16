@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<p:MyElement xmlns:p="my:namespace">
+    some text
+    <!-- comment -->
+    <![CDATA[this is a test]]>
+    <p:MySubElement>
+        <p:External xmlns:p="some:other:namespace">other</p:External>
+        another text
+    </p:MySubElement>
+    <r:MySubElement xmlns:r="my:namespace">
+        yet another text
+    </r:MySubElement>
+</p:MyElement>

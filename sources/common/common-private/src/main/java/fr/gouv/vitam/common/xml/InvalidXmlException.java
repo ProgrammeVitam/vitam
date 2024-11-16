@@ -24,42 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.lru;
 
-import org.junit.Test;
+package fr.gouv.vitam.common.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
-public class InterfaceLruCacheEntryTest {
+public class InvalidXmlException extends SAXException {
 
-    @Test
-    public void testReset() {
-        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
-            "ttl must be positive",
-            4176L
-        );
-        final boolean boolean0 = strongReferenceCacheEntry0.resetTime(2357L);
-        assertTrue(boolean0);
-    }
-
-    @Test
-    public void testStillValid() {
-        final StrongReferenceCacheEntry<Object> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
-            "ttl must be positive",
-            1L
-        );
-        final boolean boolean0 = strongReferenceCacheEntry0.isStillValid(4176L);
-        assertTrue(boolean0);
-    }
-
-    @Test
-    public void testValue() {
-        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
-            "ttl must be positive",
-            4176L
-        );
-        final String string0 = strongReferenceCacheEntry0.getValue();
-        assertEquals("ttl must be positive", string0);
+    public InvalidXmlException(String message, SAXParseException e) {
+        super(message, e);
     }
 }

@@ -46,7 +46,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
@@ -94,7 +93,9 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
-import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import fr.gouv.vitam.common.xml.XmlNamespaceUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -166,25 +167,20 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-import javax.xml.transform.ErrorListener;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
@@ -272,7 +268,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int UNIT_TYPE_INPUT_RANK = 1;
     private static final int STORAGE_INFO_INPUT_RANK = 2;
     private static final int CONTRACTS_INPUT_RANK = 3;
-    private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
     private static final String SUBTASK_MALFORMED = "CHECK_MANIFEST_MALFORMED_DATA";
@@ -318,10 +313,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String CYCLE_FOUND_EXCEPTION = "Seda has an archive unit cycle ";
     private static final String SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG =
         "Can not save unitToGuidMap to temporary file";
-    private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
-    private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
     private static final String MISSING_STORAGE_INFO = "Missing one or more storage infos";
     private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
 
@@ -349,7 +342,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final AdminManagementClientFactory adminManagementClientFactory;
-    private final TransformerFactory transformerFactory;
     private final SedaUtilsFactory sedaUtilsFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
@@ -373,7 +365,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this.metaDataClientFactory = metaDataClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
-        this.transformerFactory = TransformerFactory.newInstance();
         this.sedaUtilsFactory = SedaUtilsFactory.getInstance();
     }
 
@@ -498,7 +489,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             /*
              * setting agIdExt information
              */
-            if (agIdExt.size() > 0) {
+            if (!agIdExt.isEmpty()) {
                 globalCompositeItemStatus.setMasterData(LogbookMongoDbName.agIdExt.getDbname(), agIdExt.toString());
                 globalCompositeItemStatus.setData(LogbookMongoDbName.agIdExt.getDbname(), agIdExt.toString());
             }
@@ -509,7 +500,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             /*
              * setting rightsStatementIdentifier information
              */
-            if (rightsStatementIdentifier.size() > 0) {
+            if (!rightsStatementIdentifier.isEmpty()) {
                 globalCompositeItemStatus.setData(
                     LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
                     rightsStatementIdentifier.toString()
@@ -800,16 +791,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         /**
          * Retrieves SEDA
          **/
-        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         XMLEventReader reader = null;
 
         final QName dataObjectGroupName = new QName(namespaceURI, DATA_OBJECT_GROUP);
         final QName dataObjectName = new QName(namespaceURI, BINARY_DATA_OBJECT);
         final QName physicalDataObjectName = new QName(namespaceURI, PHYSICAL_DATA_OBJECT);
         final QName unitName = new QName(namespaceURI, ARCHIVE_UNIT);
-
-        try (InputStream xmlFile = getTransformedXmlAsInputStream(handlerIO)) {
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+        try (InputStream xmlFile = getTransformedXmlAsInputStream(handlerIO, ingestContext.getSedaVersion())) {
+            reader = SecureXMLFactoryUtils.createSecureXMLEventReader(xmlFile);
             final JsonXMLConfig config = new JsonXMLConfigBuilder()
                 .autoArray(true)
                 .autoPrimitive(true)
@@ -822,7 +811,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             );
             final FileWriter tmpFileWriter = new FileWriter(globalSedaParametersFile);
             final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-            final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
+            JsonXMLOutputFactory jsonXMLOutputFactory = new JsonXMLOutputFactory(config);
+            final XMLEventWriter writer = jsonXMLOutputFactory.createXMLEventWriter(tmpFileWriter);
+            writer.setPrefix("", UNIFIED_NAMESPACE);
             writer.add(eventFactory.createStartDocument());
             boolean globalMetadata = true;
 
@@ -1102,7 +1093,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // Fill evDetData EvDetailReq, ArchivalAgreement, ArchivalProfile and ServiceLevel properties
             try {
                 JsonNode metadataAsJson = JsonHandler.getFromFile(globalSedaParametersFile).get(TAG_ARCHIVE_TRANSFER);
-
                 JsonNode comments = metadataAsJson.get(SedaConstants.TAG_COMMENT);
 
                 if (comments != null && comments.isArray()) {
@@ -1331,33 +1321,26 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException
      */
     @Nonnull
-    private InputStream getTransformedXmlAsInputStream(HandlerIO handlerIO)
+    private InputStream getTransformedXmlAsInputStream(HandlerIO handlerIO, String inputSedaVersion)
         throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         File xmlFile = handlerIO.getFileFromWorkspace(SEDA_FOLDER + "/" + SEDA_FILE);
         File cleanManifest = handlerIO.getNewLocalFile("_" + SEDA_FILE);
-        Source xsl = new StreamSource(PropertiesUtils.getResourceAsStream(TRANSFORM_XSLT_PATH));
 
-        Transformer transformer = transformerFactory.newTransformer(xsl);
-        transformer.setErrorListener(
-            new ErrorListener() {
-                @Override
-                public void warning(TransformerException exception) {
-                    LOGGER.warn("An error occurred while processing SEDA transformation", exception);
-                }
+        try (
+            InputStream inputStream = new FileInputStream(xmlFile);
+            OutputStream outputStream = new FileOutputStream(cleanManifest)
+        ) {
+            SupportedSedaVersions sedaVersion = SupportedSedaVersions.getSupportedSedaVersionByVersion(
+                inputSedaVersion
+            ).orElseThrow();
 
-                @Override
-                public void error(TransformerException exception) throws TransformerException {
-                    throw exception;
-                }
-
-                @Override
-                public void fatalError(TransformerException exception) throws TransformerException {
-                    throw exception;
-                }
-            }
-        );
-
-        transformer.transform(new StreamSource(xmlFile), new StreamResult(cleanManifest));
+            XmlNamespaceUtils.transformXMLNamespace(
+                inputStream,
+                outputStream,
+                sedaVersion.getNamespaceURI(),
+                UNIFIED_NAMESPACE
+            );
+        }
 
         return new FileInputStream(cleanManifest);
     }
