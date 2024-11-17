@@ -32,5 +32,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
 
 public interface SchedulerClient extends MockOrRestClient {
+    RequestResponse<JsonNode> findCurrentJobs() throws VitamClientException;
+
     RequestResponse<JsonNode> findJobs() throws VitamClientException;
 }
