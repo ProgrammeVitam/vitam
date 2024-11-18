@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.mapping.dip;
 
+import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -54,7 +55,7 @@ public class TransformJsonTreeToListOfXmlElement {
      */
     public static List<Element> mapJsonToElement(Map<String, ?> map) {
         try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory documentBuilderFactory = SecureXMLFactoryUtils.createSecureDocumentBuilderFactory();
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = documentBuilder.newDocument();
             List<Element> elementToReturn = new ArrayList<>();

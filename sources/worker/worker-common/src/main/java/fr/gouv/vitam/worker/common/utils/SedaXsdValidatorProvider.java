@@ -24,7 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-/**
- * LRU HashMap implementation
- */
-package fr.gouv.vitam.common.lru;
+
+package fr.gouv.vitam.worker.common.utils;
+
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import fr.gouv.vitam.common.xml.XsdValidator;
+import org.xml.sax.SAXException;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+public class SedaXsdValidatorProvider {
+
+    private static final SedaXsdValidatorProvider INSTANCE = new SedaXsdValidatorProvider();
+
+    public static SedaXsdValidatorProvider getInstance() {
+        return INSTANCE;
+    }
+
+    private final Map<SupportedSedaVersions, XsdValidator> xsdValidatorMap;
+
+    private SedaXsdValidatorProvider() {
+        this.xsdValidatorMap = Arrays.stream(SupportedSedaVersions.values()).collect(
+            Collectors.toMap(
+                supportedSedaVersions -> supportedSedaVersions,
+                supportedSedaVersions -> {
+                    try {
+                        return new XsdValidator(supportedSedaVersions.getVitamValidatorXSD());
+                    } catch (SAXException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            )
+        );
+    }
+
+    public XsdValidator getValidator(SupportedSedaVersions supportedSedaVersions) {
+        return xsdValidatorMap.get(supportedSedaVersions);
+    }
+}

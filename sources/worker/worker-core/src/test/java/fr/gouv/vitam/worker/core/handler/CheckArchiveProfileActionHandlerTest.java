@@ -105,7 +105,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileOKThenReturnResponseOK() throws Exception {
+    public void givenProfileOKThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
@@ -119,10 +119,10 @@ public class CheckArchiveProfileActionHandlerTest {
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(
-            handlerIO.getInputStreamFromWorkspace(
+            handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
-        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+        ).thenReturn(PropertiesUtils.getResourceFile(MANIFEST_OK));
 
         when(adminClient.findProfiles(any())).thenReturn(createProfileRNG("Profil20.rng"));
 
@@ -141,7 +141,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileKOThenReturnResponseKO() throws Exception {
+    public void givenProfileKOThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
@@ -155,10 +155,10 @@ public class CheckArchiveProfileActionHandlerTest {
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(
-            handlerIO.getInputStreamFromWorkspace(
+            handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
-        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
+        ).thenReturn(PropertiesUtils.getResourceFile(MANIFEST_KO));
 
         when(adminClient.findProfiles(any())).thenReturn(createProfileRNG("Profil20.rng"));
 
@@ -178,7 +178,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProdileWithoutPathThenReturnResponseKO() throws Exception {
+    public void givenProfileWithoutPathThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
@@ -192,10 +192,10 @@ public class CheckArchiveProfileActionHandlerTest {
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(
-            handlerIO.getInputStreamFromWorkspace(
+            handlerIO.getFileFromWorkspace(
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
             )
-        ).thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+        ).thenReturn(PropertiesUtils.getResourceFile(MANIFEST_OK));
 
         when(adminClient.findProfiles(any())).thenReturn(createProfileRNG(""));
 
