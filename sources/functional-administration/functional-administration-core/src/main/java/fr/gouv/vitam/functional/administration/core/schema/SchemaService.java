@@ -270,7 +270,6 @@ public class SchemaService {
             return new RequestResponseOK<SchemaModel>().setHttpCode(Response.Status.CREATED.getStatusCode());
         } catch (SchemaImportValidationException e) {
             LOGGER.error(e);
-            schemaValidationService.logValidationError(importExternalSchemaOpId, SCHEMA_IMPORT_EVENT, e.getMessage());
             if (importErrors != null) {
                 SchemaCommonService.fillSchemaImportReportError(
                     schemaImportReport,
@@ -280,6 +279,7 @@ public class SchemaService {
                 );
                 backupReport(schemaImportReport, importExternalSchemaOpId);
             }
+            schemaValidationService.logValidationError(importExternalSchemaOpId, SCHEMA_IMPORT_EVENT, e.getMessage());
 
             return SchemaCommonService.getVitamError(
                 VitamCode.SCHEMA_CHECK_ERROR.getItem(),
