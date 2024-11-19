@@ -54,6 +54,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int swiftMaxConnections;
     private int swiftConnectionTimeout;
     private int swiftReadTimeout;
+    private boolean swiftDisableKeepAlive = false;
     /**
      * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token
      * renew before a token expiration occurs
@@ -521,5 +522,14 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     @Override
     public String getBaseUrl() {
         return contextPath;
+    }
+
+    public boolean isSwiftDisableKeepAlive() {
+        return swiftDisableKeepAlive;
+    }
+
+    public StorageConfiguration setSwiftDisableKeepAlive(boolean swiftDisableKeepAlive) {
+        this.swiftDisableKeepAlive = swiftDisableKeepAlive;
+        return this;
     }
 }
