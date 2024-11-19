@@ -96,6 +96,8 @@ vitam_offers:
     swiftConnectionTimeout: 200000
     #Max time (in milliseconds) waiting for a data from the server (socket) (optional, 60000 by default)
     swiftReadTimeout: 60000
+    # Disable keep-alive. Optional, defaults to false.
+    swiftDisableKeepAlive: false
     #Default number of retries on errors
     swiftNbRetries: 3
     #Time (in seconds) to renew a token before expiration occurs (blocking) (optional, 60 by default)
@@ -208,6 +210,7 @@ vitam_offers:
   #    swiftMaxConnections: 1000
   #    swiftConnectionTimeout: 200000
   #    swiftReadTimeout: 60000
+  #    swiftDisableKeepAlive: false
   #    Time (in seconds) to renew a token before expiration occurs
   #    swiftHardRenewTokenDelayBeforeExpireTime: 60
   #    swiftSoftRenewTokenDelayBeforeExpireTime: 300
