@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.storage.swift;
 
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -82,7 +83,7 @@ public class SwiftV2V3ITTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         containerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
         objectName = GUIDFactory.newGUID().getId();
     }
@@ -97,6 +98,7 @@ public class SwiftV2V3ITTest {
         configurationSwift.setSwiftPassword("demo");
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v2.0");
         configurationSwift.setEnableCustomHeaders(false);
+        configurationSwift.setSwiftDisableKeepAlive(true);
 
         return configurationSwift;
     }
@@ -111,6 +113,7 @@ public class SwiftV2V3ITTest {
         configurationSwift.setSwiftPassword("demo");
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v3");
         configurationSwift.setEnableCustomHeaders(false);
+        configurationSwift.setSwiftDisableKeepAlive(false);
 
         return configurationSwift;
     }

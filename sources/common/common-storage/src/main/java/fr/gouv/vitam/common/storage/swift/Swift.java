@@ -55,8 +55,11 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.ConnectionException;
+import org.openstack4j.connectors.httpclient.HttpClientFactory;
 import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.common.Payloads;
 import org.openstack4j.model.storage.object.SwiftObject;
@@ -112,6 +115,17 @@ public class Swift extends ContentAddressableStorageAbstract {
         this.swiftNbRetries = configuration.getSwiftNbRetries();
         this.swiftWaitingTimeInMilliseconds = configuration.getSwiftWaitingTimeInMilliseconds();
         this.swiftRandomRangeSleepInMilliseconds = configuration.getSwiftRandomRangeSleepInMilliseconds();
+        customizeOpenstack4jHttpClient(configuration);
+    }
+
+    private static void customizeOpenstack4jHttpClient(StorageConfiguration configuration) {
+        HttpClientFactory.registerInterceptor((httpClientBuilder, requestConfig, config) -> {
+            if (configuration.isSwiftDisableKeepAlive()) {
+                httpClientBuilder.setConnectionReuseStrategy(new SwiftPreventKeepAliveStrategy());
+            }
+
+            httpClientBuilder.setDefaultHeaders(List.of(new BasicHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE)));
+        });
     }
 
     /**
