@@ -121,10 +121,12 @@ public class Swift extends ContentAddressableStorageAbstract {
     private static void customizeOpenstack4jHttpClient(StorageConfiguration configuration) {
         HttpClientFactory.registerInterceptor((httpClientBuilder, requestConfig, config) -> {
             if (configuration.isSwiftDisableKeepAlive()) {
+                // Force disable keep-alive in request
+                httpClientBuilder.setDefaultHeaders(List.of(new BasicHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE)));
+
+                // Drop keep-alive from response header (just in case)
                 httpClientBuilder.setConnectionReuseStrategy(new SwiftPreventKeepAliveStrategy());
             }
-
-            httpClientBuilder.setDefaultHeaders(List.of(new BasicHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE)));
         });
     }
 
