@@ -28,32 +28,39 @@ set -e
 #*******************************************************************************
 WORKING_DIR=$(dirname $0)
 
-SOURCES_FILE=${WORKING_DIR}/sources # Contains all the urls where download rpm
-TARGET_DIR=${WORKING_DIR}/target      # Targer dir where copying rpm dowloaded
+SOURCES_FILE=${WORKING_DIR}/sources # Contains all the urls where download deb
+TARGET_DIR=${WORKING_DIR}/target    # Target dir where copying deb downloaded
+INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-external-binaries/deb # Internal cache repository
 mkdir -p ${TARGET_DIR}
 
 if [ -f "${SOURCES_FILE}" ]
 then
-	cat ${SOURCES_FILE} |  
-	while read SRC_URL   
+	cat ${SOURCES_FILE} |
+	while read SRC_URL
 	do
 		echo "SRC_URL : ${SRC_URL}"
 		if [[ $(echo "${SRC_URL}" | grep -E -o '^[^#]') ]] # skip is the line is commented
 		then
-			FILE=$(echo "${SRC_URL}" | grep -E -o '[^/]+$') # get the name of the rpm file
+			FILE=$(echo "${SRC_URL}" | grep -E -o '[^/]+$') # get the name of the deb file
 			if [ -f "${TARGET_DIR}/${FILE}" ]
 			then
-			 	echo "${FILE} already exists in ${TARGET_DIR} ! Skipping..." 
+			 	echo "${FILE} already exists in ${TARGET_DIR} ! Skipping..."
 			else # if [ -f "${TARGET_DIR}/${FILE}" ]
-			 	echo "Downloading ${SRC_URL} into ${TARGET_DIR}..."
-			 	curl -k ${SRC_URL} -o ${TARGET_DIR}/${FILE}.tmp	  
-			 	mv ${TARGET_DIR}/${FILE}.tmp ${TARGET_DIR}/${FILE}
-			 	echo "Download done."
-			fi 
+        # Send a HEAD request on internal cache repository and check the HTTP status code
+        if curl --head --silent --fail "${INTERNAL_REPO}/${FILE}" > /dev/null; then
+            echo "File exists in internal cache repository."
+            echo "Downloading from ${INTERNAL_REPO}/${FILE} into ${TARGET_DIR}..."
+            curl -k ${INTERNAL_REPO}/${FILE} -o ${TARGET_DIR}/${FILE}
+        else
+            echo "File does not exist in internal cache repository."
+            echo "Downloading from ${SRC_URL} into ${TARGET_DIR}..."
+            curl -k ${SRC_URL} -o ${TARGET_DIR}/${FILE}
+        fi
+			fi
 		else #if [echo "${SRC_URL}" | grep -E -o '^[^#]']
-			echo "${SRC_URL} is commented  ! Skipping..."
+			echo "${SRC_URL} is commented ! Skipping..."
 		fi
 	done
 else # if [ -f "${SOURCES_FILE}" ]
-	echo "${SOURCES_FILE} doesn't exists  ! Exiting..."
-fi 
+	echo "${SOURCES_FILE} doesn't exists ! Exiting..."
+fi
