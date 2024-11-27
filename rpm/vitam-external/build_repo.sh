@@ -30,6 +30,7 @@ WORKING_DIR=$(dirname $0)
 
 for SOURCE in ${WORKING_DIR}/*.sources; do
   DISTRIB=$(basename $SOURCE | cut -d. -f1)
+  INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-external-binaries/rpm/${DISTRIB}
   TARGET_DIR=${WORKING_DIR}/target/${DISTRIB} # Target directory where to copy downloaded rpm
   mkdir -p ${TARGET_DIR}
 
@@ -37,19 +38,28 @@ for SOURCE in ${WORKING_DIR}/*.sources; do
   while read SRC_URL
   do
     echo "SRC_URL : ${SRC_URL}"
-    if [[ $(echo "${SRC_URL}" | grep -E -o '^[^#]') ]] # skip if the line is commented
+    if [[ $(echo "${SRC_URL}" | grep -E -o '^[^#]') ]] # skip if the line is commented or empty
     then
-      FILE=$(echo "${SRC_URL}" | grep -E -o '[^/]+$') # get the name of the rpm file
+      FILE=${SRC_URL##*/} # get the name of the rpm file
       if [ -f "${TARGET_DIR}/${FILE}" ]
       then
         echo "${FILE} already exists in ${TARGET_DIR} ! Skipping..."
       else # if [ -f "${TARGET_DIR}/${FILE}" ]
-        echo "Downloading ${SRC_URL} into ${TARGET_DIR}..."
-        curl -k ${SRC_URL} -o ${TARGET_DIR}/${FILE}
-        echo "Download done."
+        # Send a HEAD request on internal cache repository and check the HTTP status code
+        if curl --head --silent --fail "${INTERNAL_REPO}/${FILE}" > /dev/null; then
+            echo "File exists in internal cache repository."
+            echo "Downloading from ${INTERNAL_REPO}/${FILE} into ${TARGET_DIR}..."
+            curl -k ${INTERNAL_REPO}/${FILE} -o ${TARGET_DIR}/${FILE}
+        else
+            echo "File does not exist in internal cache repository."
+            echo "Downloading from ${SRC_URL} into ${TARGET_DIR}..."
+            curl -k ${SRC_URL} -o ${TARGET_DIR}/${FILE}
+        fi
+        echo "Download ${DISTRIB}/${FILE} done."
       fi
     else #if [echo "${SRC_URL}" | grep -E -o '^[^#]']
-      echo "${SRC_URL} is commented ! Skipping..."
+      echo "${SRC_URL} is commented or empty ! Skipping..."
     fi
+    echo "========================================"
   done
 done

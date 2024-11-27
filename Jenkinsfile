@@ -356,7 +356,7 @@ pipeline {
                             sh 'vitam-build.git/push_product_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
                     },
-                    "Upload vitam-external  packages": {
+                    "Upload vitam-external packages": {
                         sshagent (credentials: ['jenkins_sftp_to_repository']) {
                             sh 'vitam-build.git/push_external_repo.sh commit $SERVICE_REPO_SSHURL'
                         }
