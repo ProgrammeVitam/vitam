@@ -61,6 +61,7 @@ if [ ! -d "${TARGET_FOLDER}" ]; then
 	popd
 	exit 2
 fi
+
 # will create symlinks only if the file links exists in rpmbuild
 if [ -f "${COMPONENT_FOLDER}/rpmbuild/links" ]; then
 	## list elements in $HOME
@@ -85,6 +86,7 @@ if [ -f "${COMPONENT_FOLDER}/rpmbuild/links" ]; then
 		ln -sf $hid_item ${target_link}
 	done
 fi
+
 # override exit function to delete created links when living.
 function clean_exit(){
 	returncode=${1:-0}
@@ -92,10 +94,45 @@ function clean_exit(){
 	exit ${returncode}
 }
 
-# Build RPM
+INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-product-binaries
 
+# Build RPM
 for SPECFILE in $(ls ${COMPONENT_FOLDER}/rpmbuild/SPECS/*.spec); do
 	echo "Building specfile ${SPECFILE}..."
+
+	# Get the version from the spec file
+	VERSION=$(awk '/^Version:/ {print $2}' "$SPECFILE")
+	echo "Version: $VERSION"
+
+	# Loop over each Source* lines
+	grep -E '^Source' "$SPECFILE" | while read -r line; do
+		echo "Processing line: $line";
+		SOURCE_ID=${line%%:*}
+
+		# Extract the URL portion from the line
+		URL=$(echo "$line" | sed "s#^${SOURCE_ID}:[[:space:]]*##")
+		if [[ ! $URL =~ ^http ]]; then
+			echo "$SOURCE_ID is not an url, skipping cache control..."
+			continue
+		fi
+
+		# Get the FILE from the URL
+		FILE=${URL##*/}
+		# Update the %{version} in the FILE variable name
+		FILE=${FILE/\%\{version\}/$VERSION}
+
+		echo "Checking cache repository on URL: ${INTERNAL_REPO}/${FILE}"
+		if curl --head --silent --fail "${INTERNAL_REPO}/${FILE}" > /dev/null; then
+			# Extract original BASE_URL
+			BASE_URL=${URL%/*}
+			echo "File exists in internal cache repository."
+			echo "Updating ${SOURCE_ID} from ${BASE_URL} to ${INTERNAL_REPO} in ${SPECFILE}"
+			sed -i "/^${SOURCE_ID}:/s#${BASE_URL}#${INTERNAL_REPO}#" "${SPECFILE}"
+		else
+			echo "File does not exist in internal cache repository."
+			echo "Keeping ${SOURCE_ID} untouched in ${SPECFILE}"
+		fi
+	done
 
 	HOME=${COMPONENT_FOLDER} spectool -g -R ${SPECFILE}
 	if [ ! $? -eq 0 ]; then
@@ -119,7 +156,7 @@ RPMS=$(find ${COMPONENT_FOLDER} -name '*.rpm')
 mkdir -p ${TARGET_FOLDER}
 
 for RPM in ${RPMS}; do
- 	mv ${RPM} ${TARGET_FOLDER}
+	mv ${RPM} ${TARGET_FOLDER}
 done
 
 popd

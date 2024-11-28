@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-WORKING_FOLDER=$(dirname $0)
 
 PROMETHEUS_VERSION="2.51.2"
 PROMETHEUS_NODE_EXPORTER_VERSION="1.7.0"
@@ -10,95 +9,98 @@ PROMETHEUS_ALERTMANAGER_VERSION="0.27.0"
 PROMETHEUS_BLACKBOX_EXPORTER_VERSION="0.25.0"
 PROMETHEUS_MONGODB_EXPORTER_VERSION="0.40.0"
 
-PROMETHEUS_URL=https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz
-PROMETHEUS_NODE_EXPORTER_URL=https://github.com/prometheus/node_exporter/releases/download/v${PROMETHEUS_NODE_EXPORTER_VERSION}/node_exporter-${PROMETHEUS_NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
-PROMETHEUS_CONSUL_EXPORTER_URL=https://github.com/prometheus/consul_exporter/releases/download/v${PROMETHEUS_CONSUL_EXPORTER_VERSION}/consul_exporter-${PROMETHEUS_CONSUL_EXPORTER_VERSION}.linux-amd64.tar.gz
-PROMETHEUS_ELASTICSEARCH_EXPORTER_URL=https://github.com/prometheus-community/elasticsearch_exporter/releases/download/v${PROMETHEUS_ELASTICSEARCH_EXPORTER_VERSION}/elasticsearch_exporter-${PROMETHEUS_ELASTICSEARCH_EXPORTER_VERSION}.linux-amd64.tar.gz
-PROMETHEUS_ALERTMANAGER_URL=https://github.com/prometheus/alertmanager/releases/download/v${PROMETHEUS_ALERTMANAGER_VERSION}/alertmanager-${PROMETHEUS_ALERTMANAGER_VERSION}.linux-amd64.tar.gz
-PROMETHEUS_BLACKBOX_EXPORTER_URL=https://github.com/prometheus/blackbox_exporter/releases/download/v${PROMETHEUS_BLACKBOX_EXPORTER_VERSION}/blackbox_exporter-${PROMETHEUS_BLACKBOX_EXPORTER_VERSION}.linux-amd64.tar.gz
-PROMETHEUS_MONGODB_EXPORTER_URL=https://github.com/percona/mongodb_exporter/releases/download/v${PROMETHEUS_MONGODB_EXPORTER_VERSION}/mongodb_exporter-${PROMETHEUS_MONGODB_EXPORTER_VERSION}.linux-amd64.tar.gz
+INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-product-binaries
 
+WORKING_FOLDER=$(dirname $0)
 if [ ! -d ${WORKING_FOLDER}/target ]; then
-	mkdir ${WORKING_FOLDER}/target
+    mkdir ${WORKING_FOLDER}/target
 fi
 
 ## Directory where source files will be downloaded
 if [ ! -d ${WORKING_FOLDER}/sources ]; then
-	mkdir ${WORKING_FOLDER}/sources
+    mkdir ${WORKING_FOLDER}/sources
 fi
-
 
 #########################
 ## Prometheus server
 #########################
-PACKAGE_NAME=prometheus
-PACKAGE_VERSION=${PROMETHEUS_VERSION}
-PACKAGE_URL=${PROMETHEUS_URL}
+COMPONENT_NAME=prometheus
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/${PACKAGE_NAME}
 
 rm -rf ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam
 
-mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/conf/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-${COMPONENT_NAME}/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-${COMPONENT_NAME}/vitam/bin/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-${COMPONENT_NAME}/vitam/conf/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
 fi
 
-echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
-mv -f NOTICE ../../app/${PACKAGE_NAME}/NOTICE
-mv -f -u consoles/ ../../app/${PACKAGE_NAME}/
-mv -f -u console_libraries ../../app/${PACKAGE_NAME}/
-mv -f ${PACKAGE_NAME}.yml ../../conf/${PACKAGE_NAME}
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
+mv -f NOTICE ../../app/${COMPONENT_NAME}/NOTICE
+mv -f -u consoles/ ../../app/${COMPONENT_NAME}/
+mv -f -u console_libraries ../../app/${COMPONENT_NAME}/
+mv -f ${COMPONENT_NAME}.yml ../../conf/${COMPONENT_NAME}
 
 popd
 pushd ${WORKING_FOLDER}
 
-dpkg-deb --build vitam-${PACKAGE_NAME} ${WORKING_FOLDER}/target
+dpkg-deb --build vitam-${COMPONENT_NAME} ${WORKING_FOLDER}/target
 
 popd
-
 
 #########################
 ## Prometheus node_exporter
 #########################
-PACKAGE_NAME=node_exporter
-PACKAGE_VERSION=${PROMETHEUS_NODE_EXPORTER_VERSION}
-PACKAGE_URL=${PROMETHEUS_NODE_EXPORTER_URL}
+COMPONENT_NAME=node_exporter
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/prometheus/node_exporter/releases/download/v${PROMETHEUS_NODE_EXPORTER_VERSION}/${PACKAGE_NAME}
 
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam
 
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
-echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus-node-exporter/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus-node-exporter/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
-mv -f NOTICE ../../app/${PACKAGE_NAME}/NOTICE
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
+mv -f NOTICE ../../app/${COMPONENT_NAME}/NOTICE
 
 popd
 pushd ${WORKING_FOLDER}
@@ -110,33 +112,37 @@ popd
 #########################
 ## Prometheus consul_exporter
 #########################
-PACKAGE_NAME=consul_exporter
-PACKAGE_VERSION=${PROMETHEUS_CONSUL_EXPORTER_VERSION}
-PACKAGE_URL=${PROMETHEUS_CONSUL_EXPORTER_URL}
+COMPONENT_NAME=consul_exporter
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_CONSUL_EXPORTER_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/prometheus/consul_exporter/releases/download/v${PROMETHEUS_CONSUL_EXPORTER_VERSION}/${PACKAGE_NAME}
 
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam
 
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${PACKAGE_NAME}
-
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
-echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus-consul-exporter/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus-consul-exporter/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
-mv -f NOTICE ../../app/${PACKAGE_NAME}/NOTICE
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
+mv -f NOTICE ../../app/${COMPONENT_NAME}/NOTICE
 
 popd
 pushd ${WORKING_FOLDER}
@@ -148,32 +154,36 @@ popd
 ####################################
 ## Prometheus Elasticsearch Exporter
 ####################################
-PACKAGE_NAME=elasticsearch_exporter
-PACKAGE_VERSION=${PROMETHEUS_ELASTICSEARCH_EXPORTER_VERSION}
-PACKAGE_URL=${PROMETHEUS_ELASTICSEARCH_EXPORTER_URL}
+COMPONENT_NAME=elasticsearch_exporter
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_ELASTICSEARCH_EXPORTER_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/prometheus-community/elasticsearch_exporter/releases/download/v${PROMETHEUS_ELASTICSEARCH_EXPORTER_VERSION}/${PACKAGE_NAME}
 
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam
 
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/${PACKAGE_NAME}
-
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
-echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus-elasticsearch-exporter/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus-elasticsearch-exporter/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
 
 popd
 pushd ${WORKING_FOLDER}
@@ -185,73 +195,80 @@ popd
 #########################
 ## Prometheus alertmanager
 #########################
-PACKAGE_NAME=alertmanager
-PACKAGE_VERSION=${PROMETHEUS_ALERTMANAGER_VERSION}
-PACKAGE_URL=${PROMETHEUS_ALERTMANAGER_URL}
+COMPONENT_NAME=alertmanager
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_ALERTMANAGER_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/prometheus/alertmanager/releases/download/v${PROMETHEUS_ALERTMANAGER_VERSION}/${PACKAGE_NAME}
 
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-${COMPONENT_NAME}/vitam
 
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam
-
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/conf/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${COMPONENT_NAME}/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${COMPONENT_NAME}/vitam/bin/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${COMPONENT_NAME}/vitam/conf/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
-echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus-${PACKAGE_NAME}/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus-${COMPONENT_NAME}/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus-${COMPONENT_NAME}/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
-mv -f NOTICE ../../app/${PACKAGE_NAME}/NOTICE
-mv -f ${PACKAGE_NAME}.yml ../../conf/${PACKAGE_NAME}
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
+mv -f NOTICE ../../app/${COMPONENT_NAME}/NOTICE
+mv -f ${COMPONENT_NAME}.yml ../../conf/${COMPONENT_NAME}
 
 popd
 pushd ${WORKING_FOLDER}
 
-dpkg-deb --build vitam-prometheus-${PACKAGE_NAME} ${WORKING_FOLDER}/target
+dpkg-deb --build vitam-prometheus-${COMPONENT_NAME} ${WORKING_FOLDER}/target
 
 popd
-
 
 #########################
 ## Prometheus blackbox_exporter
 #########################
-PACKAGE_NAME=blackbox_exporter
-PACKAGE_VERSION=${PROMETHEUS_BLACKBOX_EXPORTER_VERSION}
-PACKAGE_URL=${PROMETHEUS_BLACKBOX_EXPORTER_URL}
+COMPONENT_NAME=blackbox_exporter
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_BLACKBOX_EXPORTER_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/prometheus/blackbox_exporter/releases/download/v${PROMETHEUS_BLACKBOX_EXPORTER_VERSION}/${PACKAGE_NAME}
 
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam
 
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam/bin/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam/bin/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
-echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus-blackbox-exporter/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus-blackbox-exporter/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus-blackbox-exporter/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
-mv -f NOTICE ../../app/${PACKAGE_NAME}/NOTICE
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
+mv -f NOTICE ../../app/${COMPONENT_NAME}/NOTICE
 
 popd
 pushd ${WORKING_FOLDER}
@@ -263,30 +280,36 @@ popd
 #########################
 ## Prometheus mongodb_exporter
 #########################
-PACKAGE_NAME=mongodb_exporter
-PACKAGE_VERSION=${PROMETHEUS_MONGODB_EXPORTER_VERSION}
-PACKAGE_URL=${PROMETHEUS_MONGODB_EXPORTER_URL}
+COMPONENT_NAME=mongodb_exporter
+PACKAGE_NAME=${COMPONENT_NAME}-${PROMETHEUS_MONGODB_EXPORTER_VERSION}.linux-amd64.tar.gz
+PACKAGE_URL=https://github.com/percona/mongodb_exporter/releases/download/v${PROMETHEUS_MONGODB_EXPORTER_VERSION}/${PACKAGE_NAME}
 
 rm -rf ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam
 
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam/app/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam/bin/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam/app/${COMPONENT_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam/bin/${COMPONENT_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
-echo "Repertoire courant: $(pwd)"
-echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
-if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+echo "Current directory: $(pwd)"
+
+echo "Downloading ${PACKAGE_NAME}..."
+if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; then
+    echo "File exists in internal cache repository."
+    curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+else
+    echo "File does not exist in internal cache repository."
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
-tar xzf ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz --strip 1 -C ../vitam-prometheus-mongodb-exporter/vitam/bin/${PACKAGE_NAME}/
+echo "Untar ${PACKAGE_NAME}"
+tar xvzf ${PACKAGE_NAME} --strip 1 -C ../vitam-prometheus-mongodb-exporter/vitam/bin/${COMPONENT_NAME}/
 
 popd
 
-pushd ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam/bin/${PACKAGE_NAME}/
+pushd ${WORKING_FOLDER}/vitam-prometheus-mongodb-exporter/vitam/bin/${COMPONENT_NAME}/
 echo "Install files ..."
 
-mv -f LICENSE ../../app/${PACKAGE_NAME}/LICENSE
+mv -f LICENSE ../../app/${COMPONENT_NAME}/LICENSE
 
 popd
 pushd ${WORKING_FOLDER}
