@@ -1,11 +1,5 @@
 ---
 
-- name: Remove deprecated mongodb-org-tools package
-  package:
-    name:
-      - mongodb-org-tools
-    state: absent
-
 - name: Install common mongodb packages
   package:
     name:
