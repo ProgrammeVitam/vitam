@@ -1,5 +1,11 @@
 ---
 
+- name: Remove deprecated mongodb-org-tools package
+  package:
+    name:
+      - mongodb-org-tools
+    state: absent
+
 - name: Install restic & mandatory packages
   package:
     name:
