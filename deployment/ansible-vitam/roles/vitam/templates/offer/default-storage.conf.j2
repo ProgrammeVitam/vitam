@@ -45,6 +45,10 @@ s3ConnectionTimeout: {{ vitam_offers[offer_conf]["s3ConnectionTimeout"] | defaul
 s3SocketTimeout: {{ vitam_offers[offer_conf]["s3SocketTimeout"] | default(50000) }}
 s3RequestTimeout: {{ vitam_offers[offer_conf]["s3RequestTimeout"] | default(0) }}
 s3ClientExecutionTimeout: {{ vitam_offers[offer_conf]["s3ClientExecutionTimeout"] | default(0) }}
+s3DisableMultipartUpload: {{ vitam_offers[offer_conf]["s3DisableMultipartUpload"] | default(false) }}
+s3MaxUploadPartSizeMB: {{ vitam_offers[offer_conf]["s3MaxUploadPartSizeMB"] | default(5120) }}
+s3MultiPartCleanNbRetries: {{ vitam_offers[offer_conf]["s3MultiPartCleanNbRetries"] | default(3) }}
+s3MultiPartCleanWaitingTimeInMilliseconds: {{ vitam_offers[offer_conf]["s3MultiPartCleanWaitingTimeInMilliseconds"] | default(10000) }}
 s3TrustStore: {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
 s3TrustStorePassword: {{ password_truststore }}
 {% endif %}
