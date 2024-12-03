@@ -147,6 +147,14 @@ vitam_offers:
     s3RequestTimeout: 0
     # s3ClientExecutionTimeout (optional): Max time (in milliseconds) for a request by java client (0 by default, disabled)
     s3ClientExecutionTimeout: 0
+    # Disable multipart upload of large objects (legacy mode / not recommended, only for S3 servers without multipart upload support)
+    s3DisableMultipartUpload: false
+    # Max upload size for single object upload size in MB (min: 5 MB, max: 5 GB, default: 5 GB)
+    s3MaxUploadPartSizeMB: 5_120
+    # Nb retries for S3 multipart upload cleanup
+    s3MultiPartCleanNbRetries: 3
+    # Wait delay for S3 multipart upload cleanup (in milliseconds)
+    s3MultiPartCleanWaitingTimeInMilliseconds: 10_000
     # Offer log compaction
     offer_log_compaction:
       ## Expiration, here offer logs 21 days old will be compacted
