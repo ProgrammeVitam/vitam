@@ -193,11 +193,12 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             configuration.getS3MaxUploadPartSizeMB() > StorageConfiguration.MAX_UPLOAD_PART_SIZE_MB
         ) {
             throw new IllegalArgumentException(
-                "Invalid max part upload size %d. Valid values must be in the range [%d MB - %d MB]".formatted(
-                        configuration.getS3MaxUploadPartSizeMB(),
-                        StorageConfiguration.MAX_UPLOAD_PART_SIZE_MB,
-                        StorageConfiguration.MAX_UPLOAD_PART_SIZE_MB
-                    )
+                String.format(
+                    "Invalid max part upload size %d. Valid values must be in the range [%d MB - %d MB]",
+                    configuration.getS3MaxUploadPartSizeMB(),
+                    StorageConfiguration.MAX_UPLOAD_PART_SIZE_MB,
+                    StorageConfiguration.MAX_UPLOAD_PART_SIZE_MB
+                )
             );
         }
     }
@@ -439,13 +440,10 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             nbParts,
             partSize
         );
-        try (
-            InputStream partInputStream = BoundedInputStream.builder()
-                .setInputStream(stream)
-                .setMaxCount(partSize)
-                .setPropagateClose(false)
-                .get()
-        ) {
+        try (BoundedInputStream partInputStream = new BoundedInputStream(stream, partSize)) {
+            // Prevent closing inner stream by s3 client
+            partInputStream.setPropagateClose(false);
+
             UploadPartRequest uploadPartRequest = new UploadPartRequest()
                 .withInputStream(partInputStream)
                 .withBucketName(containerName)
