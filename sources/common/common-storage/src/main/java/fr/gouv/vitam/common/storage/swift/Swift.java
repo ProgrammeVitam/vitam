@@ -30,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -397,7 +396,11 @@ public class Swift extends ContentAddressableStorageAbstract {
                         containerName
                     )
                 );
-                Pair<String, Long> objectDigestAndSize = getObjectDigestAndSize(containerName, objectName, digestType);
+                Pair<String, Long> objectDigestAndSize = computeObjectDigestAndSize(
+                    containerName,
+                    objectName,
+                    digestType
+                );
                 updateMetadataObject(
                     containerName,
                     objectName,
@@ -705,28 +708,5 @@ public class Swift extends ContentAddressableStorageAbstract {
             LOGGER.debug("The vitam enable custom header property used by offers is disabled!");
         }
         return headers;
-    }
-
-    private Pair<String, Long> getObjectDigestAndSize(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
-
-        Stopwatch sw = Stopwatch.createStarted();
-        ObjectContent object = getObject(containerName, objectName);
-        try (InputStream stream = object.getInputStream()) {
-            final Digest digest = new Digest(algo);
-            digest.update(stream);
-            return Pair.of(digest.toString(), object.getSize());
-        } catch (final IOException e) {
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            PerformanceLogger.getInstance()
-                .log(
-                    "STP_Offer_" + getConfiguration().getProvider(),
-                    containerName,
-                    "COMPUTE_DIGEST_FROM_STREAM",
-                    sw.elapsed(TimeUnit.MILLISECONDS)
-                );
-        }
     }
 }

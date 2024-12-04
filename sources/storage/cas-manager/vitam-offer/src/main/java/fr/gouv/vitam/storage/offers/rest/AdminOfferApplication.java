@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.swift.Swift;
-import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.tape.rest.AdminTapeResource;
 import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 
@@ -42,11 +41,10 @@ import java.util.Set;
 
 public class AdminOfferApplication extends ConfigurationApplication {
 
-    private Set<Object> singletons;
+    private final Set<Object> singletons;
 
     public AdminOfferApplication() {
         OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
-        DefaultOfferService service = offerCommonApplication.getDefaultOfferService();
         ContentAddressableStorage contentAddressableStorage = offerCommonApplication.getContentAddressableStorage();
 
         singletons = new HashSet<>();

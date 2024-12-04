@@ -38,6 +38,9 @@ import java.util.List;
  */
 public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
+    public static final int MIN_UPLOAD_PART_SIZE_MB = 5;
+    public static final int MAX_UPLOAD_PART_SIZE_MB = 5 * 1024;
+
     private String provider;
     private String swiftKeystoneAuthUrl;
     private String swiftDomain;
@@ -115,6 +118,25 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      * S3 client execution timeout
      */
     private int s3ClientExecutionTimeout;
+
+    /**
+     * Disable multi-part upload for
+     */
+    private boolean s3DisableMultipartUpload;
+    /**
+     * Max upload size in MB for single object upload size (defaults to 5 GB)
+     */
+    private long s3MaxUploadPartSizeMB = MAX_UPLOAD_PART_SIZE_MB;
+
+    /**
+     * Nb retries for S3 multi-part upload cleanup
+     */
+    private int s3MultiPartCleanNbRetries = 3;
+
+    /**
+     * Wait delay for S3 multi-part upload cleanup
+     */
+    private int s3MultiPartCleanWaitingTimeInMilliseconds = 10_000;
 
     /**
      * Tape library configuration
@@ -530,6 +552,44 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public StorageConfiguration setSwiftDisableKeepAlive(boolean swiftDisableKeepAlive) {
         this.swiftDisableKeepAlive = swiftDisableKeepAlive;
+        return this;
+    }
+
+    public boolean isS3DisableMultipartUpload() {
+        return s3DisableMultipartUpload;
+    }
+
+    public StorageConfiguration setS3DisableMultipartUpload(boolean s3DisableMultipartUpload) {
+        this.s3DisableMultipartUpload = s3DisableMultipartUpload;
+        return this;
+    }
+
+    public long getS3MaxUploadPartSizeMB() {
+        return s3MaxUploadPartSizeMB;
+    }
+
+    public StorageConfiguration setS3MaxUploadPartSizeMB(long s3MaxUploadPartSizeMB) {
+        this.s3MaxUploadPartSizeMB = s3MaxUploadPartSizeMB;
+        return this;
+    }
+
+    public int getS3MultiPartCleanNbRetries() {
+        return s3MultiPartCleanNbRetries;
+    }
+
+    public StorageConfiguration setS3MultiPartCleanNbRetries(int s3MultiPartCleanNbRetries) {
+        this.s3MultiPartCleanNbRetries = s3MultiPartCleanNbRetries;
+        return this;
+    }
+
+    public int getS3MultiPartCleanWaitingTimeInMilliseconds() {
+        return s3MultiPartCleanWaitingTimeInMilliseconds;
+    }
+
+    public StorageConfiguration setS3MultiPartCleanWaitingTimeInMilliseconds(
+        int s3MultiPartCleanWaitingTimeInMilliseconds
+    ) {
+        this.s3MultiPartCleanWaitingTimeInMilliseconds = s3MultiPartCleanWaitingTimeInMilliseconds;
         return this;
     }
 }
