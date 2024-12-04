@@ -30,33 +30,34 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FixedPatternFakeInputStream;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract.LISTING_MAX_RESULTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -80,10 +81,15 @@ public class AmazonS3V1ITTest {
     private StorageConfiguration configurationMinioSsl;
 
     private String containerName;
-    private String objectName;
+    private String objectName1;
+    private String objectName2;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    private long largeObjectSize;
+    private long largeObjectSize2;
+    public String largeObjectDigest;
+
+    private static final String FILE1_DIGEST =
+        "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418";
 
     @Before
     public void setUp() throws Exception {
@@ -100,6 +106,7 @@ public class AmazonS3V1ITTest {
         configurationMinio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationMinio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationMinio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        configurationMinio.setS3MaxUploadPartSizeMB(5);
 
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
@@ -115,6 +122,7 @@ public class AmazonS3V1ITTest {
         configurationMinioSsl.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationMinioSsl.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationMinioSsl.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        configurationMinioSsl.setS3MaxUploadPartSizeMB(5);
 
         configurationOpenio = new StorageConfiguration();
         configurationOpenio.setProvider(PROVIDER);
@@ -129,9 +137,14 @@ public class AmazonS3V1ITTest {
         configurationOpenio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationOpenio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationOpenio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        configurationOpenio.setS3MaxUploadPartSizeMB(5);
 
         containerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
-        objectName = GUIDFactory.newGUID().getId();
+        objectName1 = GUIDFactory.newGUID().getId();
+        objectName2 = GUIDFactory.newGUID().getId();
+        largeObjectSize = 10 * 1024 * 1024 - 500 + RandomUtils.nextInt(1000);
+        largeObjectSize2 = largeObjectSize + 1000;
+        largeObjectDigest = computeDigest(new FixedPatternFakeInputStream(largeObjectSize));
     }
 
     @Ignore("There is a problem with minio ssl when sending an object with a wrong size")
@@ -166,41 +179,38 @@ public class AmazonS3V1ITTest {
     }
 
     private void mainScenario(AmazonS3V1 amazonS3V1) throws Exception {
-        // check container that does not exists
+        // check container that does not exist
         assertThat(amazonS3V1.isExistingContainer(containerName)).isFalse();
 
-        // check object in a container that does not exists
-        assertThat(amazonS3V1.isExistingObject(containerName, objectName)).isFalse();
+        // check object in a container that does not exist
+        assertThat(amazonS3V1.isExistingObject(containerName, objectName1)).isFalse();
 
-        // delete object in a container that does not exists
+        // delete object in a container that does not exist
         assertThatThrownBy(
             () -> {
-                amazonS3V1.deleteObject(containerName, objectName);
+                amazonS3V1.deleteObject(containerName, objectName1);
             },
-            "Delete object in a container that does not exists"
+            "Delete object in a container that does not exist"
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // try to upload a file in a container that does not exists
+        // try to upload a file in a container that does not exist
         assertThatThrownBy(
-            () -> {
-                InputStream stream = getInputStream("file1.pdf");
-                amazonS3V1.putObject(containerName, objectName, stream, DigestType.SHA512, 6_906L);
-            },
-            "Try to upload a file in a container that does not exists"
+            () -> writeSmallObject(amazonS3V1, objectName1, "file1.pdf", 6_906L),
+            "Try to upload a file in a container that does not exist"
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // try to download a file from a container that does not exists
+        // try to download a file from a container that does not exist
         assertThatThrownBy(
             () -> {
-                amazonS3V1.getObject(containerName, objectName);
+                amazonS3V1.getObject(containerName, objectName1);
             },
-            "Try to download a file from a container that does not exists"
+            "Try to download a file from a container that does not exist"
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // compute digest of object from a container that does not exists
+        // compute digest of object from a container that does not exist
         assertThatThrownBy(
             () -> {
-                amazonS3V1.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
+                amazonS3V1.getObjectDigest(containerName, objectName1, DigestType.SHA512, false);
             },
             "Compute digest of object from a container that does not exist"
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
@@ -221,128 +231,222 @@ public class AmazonS3V1ITTest {
         // check container that exists (cache)
         assertThat(amazonS3V1.isExistingContainer(containerName)).isTrue();
 
-        // check object that does not exists
-        assertThat(amazonS3V1.isExistingObject(containerName, objectName)).isFalse();
+        // check object that does not exist
+        assertThat(amazonS3V1.isExistingObject(containerName, objectName1)).isFalse();
 
-        // compute digest of object that does not exists
+        // compute digest of object that does not exist
         assertThatThrownBy(
             () -> {
-                amazonS3V1.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
+                amazonS3V1.getObjectDigest(containerName, objectName1, DigestType.SHA512, false);
             },
-            "Compute digest of object that does not exists"
+            "Compute digest of object that does not exist"
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // try to download a file that does not exists
+        // try to download a file that does not exist
         assertThatThrownBy(
             () -> {
-                amazonS3V1.getObject(containerName, objectName);
+                amazonS3V1.getObject(containerName, objectName1);
             },
-            "Try to download a file that does not exists"
+            "Try to download a file that does not exist"
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // upload a file
-        InputStream file1Stream = getInputStream("file1.pdf");
-        amazonS3V1.putObject(containerName, objectName, file1Stream, DigestType.SHA512, 6_906L);
-        file1Stream.close();
+        assertThatCode(() -> writeSmallObject(amazonS3V1, objectName1, "file1.pdf", 6_906L)).doesNotThrowAnyException();
 
-        // download an existing file
-        ObjectContent response = amazonS3V1.getObject(containerName, objectName);
-        try (InputStream is = response.getInputStream()) {
-            File fileDownloaded = tempFolder.newFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded);
-            IOUtils.copy(is, fileOutputStream);
-            File resourceFile = PropertiesUtils.getResourceFile("file1.pdf");
-            assertThat(fileDownloaded.length()).isEqualTo(resourceFile.length());
-        }
+        // Check object content & metadata
+        checkObjectContent(amazonS3V1, objectName1, FILE1_DIGEST);
+        checkObjectMetadata(amazonS3V1, objectName1, false, 6_906L, FILE1_DIGEST);
+        checkObjectMetadata(amazonS3V1, objectName1, true, 6_906L, FILE1_DIGEST);
 
-        // get an existing file's metadata
-        MetadatasObject metadatasObject = amazonS3V1.getObjectMetadata(containerName, objectName, false);
-        assertThat(metadatasObject.getFileSize()).isEqualTo(6_906L);
-        assertThat(metadatasObject.getDigest()).isEqualTo(
-            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418"
-        );
-        assertThat(metadatasObject.getObjectName()).isEqualTo(objectName);
-        assertThat(metadatasObject.getType()).isEqualTo(containerName.split("_")[1]);
-
-        // check object that does exists
-        assertThat(amazonS3V1.isExistingObject(containerName, objectName)).isTrue();
-
-        // compute digest of object that does exists
-        String computedDigest = amazonS3V1.getObjectDigest(containerName, objectName, DigestType.SHA512, false);
-        assertThat(computedDigest).isEqualTo(
-            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418"
-        );
+        // check object that does exist
+        assertThat(amazonS3V1.isExistingObject(containerName, objectName1)).isTrue();
+        // compute digest of object that does exist
+        String computedDigest = amazonS3V1.getObjectDigest(containerName, objectName1, DigestType.SHA512, false);
+        assertThat(computedDigest).isEqualTo(FILE1_DIGEST);
 
         // try to upload a file on an existing file with an invalid size length (size <
         // filesize)
         assertThatThrownBy(
-            () -> {
-                InputStream file2Stream = getInputStream("file2.pdf");
-                amazonS3V1.putObject(containerName, objectName, file2Stream, DigestType.SHA512, 0L);
-            },
+            () -> writeSmallObject(amazonS3V1, objectName1, "file1.pdf", 0L),
             "Try to upload a file on an existing file with an invalid size length (size < filesize)"
         ).isInstanceOf(ContentAddressableStorageServerException.class);
 
         // try to upload a file on an existing file with an invalid size length (size >
         // filesize)
         assertThatThrownBy(
-            () -> {
-                InputStream file2Stream = getInputStream("file2.pdf");
-                amazonS3V1.putObject(containerName, objectName, file2Stream, DigestType.SHA512, 1_000_000L);
-            },
+            () -> writeSmallObject(amazonS3V1, objectName1, "file1.pdf", 1_000_000L),
             "Try to upload a file on an existing file with an invalid size length (size > filesize)"
         ).isInstanceOf(ContentAddressableStorageServerException.class);
 
+        // Upload a large object
+        assertThatCode(() -> writeLargeObject(amazonS3V1, objectName2, largeObjectSize)).doesNotThrowAnyException();
+
+        // Check large object content & metadata
+        checkObjectContent(amazonS3V1, objectName2, largeObjectDigest);
+        checkObjectMetadata(amazonS3V1, objectName2, false, largeObjectSize, largeObjectDigest);
+        checkObjectMetadata(amazonS3V1, objectName2, true, largeObjectSize, largeObjectDigest);
+
+        // Override large object with a small one
+        writeSmallObject(amazonS3V1, objectName2, "file1.pdf", 6_906L);
+
+        // Check new object content & metadata
+        checkObjectContent(amazonS3V1, objectName2, FILE1_DIGEST);
+        checkObjectMetadata(amazonS3V1, objectName2, false, 6_906L, FILE1_DIGEST);
+        checkObjectMetadata(amazonS3V1, objectName2, true, 6_906L, FILE1_DIGEST);
+
+        // Override small object with a large one
+        writeLargeObject(amazonS3V1, objectName2, largeObjectSize);
+
+        // Check large object content & metadata
+        checkObjectContent(amazonS3V1, objectName2, largeObjectDigest);
+        checkObjectMetadata(amazonS3V1, objectName2, false, largeObjectSize, largeObjectDigest);
+        checkObjectMetadata(amazonS3V1, objectName2, true, largeObjectSize, largeObjectDigest);
+
         // delete an existing file
         assertThatCode(() -> {
-            amazonS3V1.deleteObject(containerName, objectName);
+            amazonS3V1.deleteObject(containerName, objectName1);
         }).doesNotThrowAnyException();
 
         // delete an non existing file > idempotent
         assertThatCode(() -> {
-            amazonS3V1.deleteObject(containerName, objectName);
+            amazonS3V1.deleteObject(containerName, objectName1);
         }).doesNotThrowAnyException();
+
+        // Delete large object
+        assertThatCode(() -> amazonS3V1.deleteObject(containerName, objectName2)).doesNotThrowAnyException();
+
+        // Ensure large object no more exists
+        assertThat(amazonS3V1.isExistingObject(containerName, objectName2)).isFalse();
 
         amazonS3V1.close();
     }
 
     private void listingScenario(AmazonS3V1 amazonS3V1) throws Exception {
-        int nbIter = 2;
+        // Given
+        int nbSmallObjects = 2 * LISTING_MAX_RESULTS + 10;
+        int nbLargeObjects = 10;
+        int overriddenSmallObjectIndex = 123;
+        int overriddenLargeObjectIndex = 1;
+        int deletedSmallObjectIndex = 136;
+        int deletedLargeObjectIndex = 3;
+
         // create a container
         assertThatCode(() -> {
             amazonS3V1.createContainer(containerName);
         }).doesNotThrowAnyException();
 
         // upload multiple times the same file
-        for (int i = 0; i < (nbIter * 100 + 50); i++) {
-            InputStream file1Stream = getInputStream("file1.pdf");
-            amazonS3V1.putObject(containerName, objectName + i, file1Stream, DigestType.SHA512, 6_906L);
-            file1Stream.close();
+        for (int i = 0; i < nbSmallObjects; i++) {
+            writeSmallObject(amazonS3V1, objectName1 + i, "file1.pdf", 6_906L);
         }
+        // upload a few large objects
+        for (int i = 0; i < nbLargeObjects; i++) {
+            writeLargeObject(amazonS3V1, objectName2 + i, largeObjectSize);
+        }
+
+        // override some objects
+        writeSmallObject(amazonS3V1, objectName1 + overriddenSmallObjectIndex, "3500.txt", 3500L);
+        writeLargeObject(amazonS3V1, objectName2 + overriddenLargeObjectIndex, largeObjectSize2);
+
+        // delete some objects
+        amazonS3V1.deleteObject(containerName, objectName1 + deletedSmallObjectIndex);
+        amazonS3V1.deleteObject(containerName, objectName2 + deletedLargeObjectIndex);
 
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
+        // WHEN
         amazonS3V1.listContainer(containerName, objectListingListener);
 
+        // THEN - Expect :
+        //   -  (nbSmallObjects - 2)x small objects with size 6906L
+        //   -                     1x small object with size 3500L
+        //   -                     1x small object deleted
+        //   - (largeObjectName - 2)x large objects with size 12_000_000L
+        //   -                     1x large object with size 12_000_001L
+        //   -                     1x large object deleted
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
-        verify(objectListingListener, times(nbIter * 100 + 50)).handleObjectEntry(objectEntryArgumentCaptor.capture());
+        verify(objectListingListener, times(nbSmallObjects + nbLargeObjects - 2)).handleObjectEntry(
+            objectEntryArgumentCaptor.capture()
+        );
 
-        objectEntryArgumentCaptor
-            .getAllValues()
-            .forEach(capturedObjectEntry -> assertThat(capturedObjectEntry.getSize()).isEqualTo(6906L));
+        assertThat(
+            objectEntryArgumentCaptor.getAllValues().stream().filter(entry -> 6906L == entry.getSize()).count()
+        ).isEqualTo(nbSmallObjects - 2);
+
+        assertThat(
+            objectEntryArgumentCaptor.getAllValues().stream().filter(entry -> 3500L == entry.getSize()).count()
+        ).isEqualTo(1);
+
+        // One large object overridden, one deleted
+        assertThat(
+            objectEntryArgumentCaptor
+                .getAllValues()
+                .stream()
+                .filter(entry -> largeObjectSize == entry.getSize())
+                .count()
+        ).isEqualTo(nbLargeObjects - 2);
+
+        assertThat(
+            objectEntryArgumentCaptor
+                .getAllValues()
+                .stream()
+                .filter(entry -> largeObjectSize2 == entry.getSize())
+                .count()
+        ).isEqualTo(1);
 
         Set<String> capturedFileNames = objectEntryArgumentCaptor
             .getAllValues()
             .stream()
             .map(ObjectEntry::getObjectId)
             .collect(Collectors.toSet());
-        Set<String> expectedFileNames = IntStream.range(0, nbIter * 100 + 50)
-            .mapToObj(i -> objectName + i)
+        Set<String> expectedSmallFileNames = IntStream.range(0, nbSmallObjects)
+            .filter(i -> i != deletedSmallObjectIndex)
+            .mapToObj(i -> objectName1 + i)
             .collect(Collectors.toSet());
-        assertThat(capturedFileNames).isEqualTo(expectedFileNames);
+        Set<String> expectedLargeFileNames = IntStream.range(0, nbLargeObjects)
+            .filter(i -> i != deletedLargeObjectIndex)
+            .mapToObj(i -> objectName2 + i)
+            .collect(Collectors.toSet());
+        assertThat(capturedFileNames).isEqualTo(SetUtils.union(expectedSmallFileNames, expectedLargeFileNames));
     }
 
-    private InputStream getInputStream(String file) throws IOException {
-        return PropertiesUtils.getResourceAsStream(file);
+    private void writeSmallObject(AmazonS3V1 amazonS3V1, String objectName, String resourceFile, long size)
+        throws IOException, ContentAddressableStorageException {
+        try (InputStream inputStream = PropertiesUtils.getResourceAsStream(resourceFile)) {
+            amazonS3V1.putObject(containerName, objectName, inputStream, DigestType.SHA512, size);
+        }
+    }
+
+    private void writeLargeObject(AmazonS3V1 amazonS3V1, String objectName, long size)
+        throws IOException, ContentAddressableStorageException {
+        try (InputStream inputStream = new FixedPatternFakeInputStream(size)) {
+            amazonS3V1.putObject(containerName, objectName, inputStream, DigestType.SHA512, size);
+        }
+    }
+
+    private void checkObjectContent(AmazonS3V1 amazonS3V1, String objectName, String expectedDigest)
+        throws ContentAddressableStorageException, IOException {
+        ObjectContent response = amazonS3V1.getObject(containerName, objectName);
+        try (InputStream is = response.getInputStream()) {
+            assertThat(computeDigest(is)).isEqualTo(expectedDigest);
+        }
+    }
+
+    private static String computeDigest(InputStream is) throws IOException {
+        return new Digest(DigestType.SHA512).update(is).digestHex();
+    }
+
+    private void checkObjectMetadata(
+        AmazonS3V1 amazonS3V1,
+        String object,
+        boolean noCache,
+        long objectSize,
+        String expectedDigest
+    ) throws ContentAddressableStorageException {
+        MetadatasObject largeObjectMetadata = amazonS3V1.getObjectMetadata(containerName, object, noCache);
+        assertThat(largeObjectMetadata.getFileSize()).isEqualTo(objectSize);
+        assertThat(largeObjectMetadata.getDigest()).isEqualTo(expectedDigest);
+        assertThat(largeObjectMetadata.getObjectName()).isEqualTo(object);
+        assertThat(largeObjectMetadata.getType()).isEqualTo(containerName.split("_")[1]);
     }
 }

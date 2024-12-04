@@ -34,8 +34,10 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,13 +72,19 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     protected String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
+        return computeObjectDigestAndSize(containerName, objectName, algo).getLeft();
+    }
+
+    protected Pair<String, Long> computeObjectDigestAndSize(String containerName, String objectName, DigestType algo)
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
 
         Stopwatch sw = Stopwatch.createStarted();
         try (InputStream stream = getObject(containerName, objectName).getInputStream()) {
+            SizedInputStream sizedInputStream = new SizedInputStream(stream);
             final Digest digest = new Digest(algo);
-            digest.update(stream);
-            return digest.toString();
+            digest.update(sizedInputStream);
+            return Pair.of(digest.toString(), sizedInputStream.getSize());
         } catch (final IOException e) {
             throw new ContentAddressableStorageException(e);
         } finally {
