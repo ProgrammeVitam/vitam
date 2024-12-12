@@ -4,16 +4,24 @@
   systemd:
     name: "{{ clamav_service_name }}"
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: restart freshclam
   systemd:
     name: clamav-freshclam
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
+
+# VPS is downloaded during the installation of avast package, unless the VPS repository wasn't properly configured.
+# So we need to download it once to properly start avast service.
+- name: restart avastvps
+  systemd:
+    name: avast-vpsupdate
+    state: restarted
+    daemon_reload: true
 
 - name: restart avast
   systemd:
     name: avast
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
