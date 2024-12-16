@@ -36,6 +36,8 @@ import org.junit.Test;
 
 import java.util.stream.Stream;
 
+import static fr.gouv.vitam.functional.administration.core.schema.SchemaService.VITAM_OBJECT_GROUP_INTERNAL_SCHEMA_JSON;
+import static fr.gouv.vitam.functional.administration.core.schema.SchemaService.VITAM_UNIT_INTERNAL_SCHEMA_JSON;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,6 +49,16 @@ public class MetadataModelValidationTest {
     @Before
     public void setup() {
         mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
+    }
+
+    @Test
+    public void validateUnitSchema() throws Exception {
+        ModelValidatorUtils.validateSchema(VITAM_UNIT_INTERNAL_SCHEMA_JSON, UNIT);
+    }
+
+    @Test
+    public void validateObjectGroupSchema() throws Exception {
+        ModelValidatorUtils.validateSchema(VITAM_OBJECT_GROUP_INTERNAL_SCHEMA_JSON, OBJECTGROUP);
     }
 
     @Test

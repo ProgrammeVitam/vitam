@@ -29,6 +29,7 @@ package fr.gouv.vitam.model.validation;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.DynamicParserTokens;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamDescriptionResolver;
@@ -37,7 +38,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
+import fr.gouv.vitam.common.model.administration.schema.SchemaCardinality;
+import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
+import fr.gouv.vitam.common.model.administration.schema.SchemaType;
 import fr.gouv.vitam.common.ontology.OntologyTestHelper;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.model.validation.jsonschema.JsonSchemaField;
 import fr.gouv.vitam.model.validation.jsonschema.JsonSchemaFieldParser;
 import fr.gouv.vitam.model.validation.mapping.ElasticsearchMappingParser;
@@ -543,6 +548,60 @@ public class ModelValidatorUtils {
                     vitamDescriptionType.getType()
                 )
                 .isIn(validVitamTypes);
+        }
+    }
+
+    public static void validateSchema(String internalSchemaJsonResourceFile, MetadataCollections metadataCollection)
+        throws Exception {
+        List<SchemaResponse> schemaResponses = JsonHandler.getFromInputStreamAsTypeReference(
+            PropertiesUtils.getResourceAsStream(internalSchemaJsonResourceFile),
+            new TypeReference<>() {}
+        );
+        Map<String, SchemaResponse> schemaResponseByPath = schemaResponses
+            .stream()
+            .filter(s -> !s.getPath().startsWith("_") || s.getPath().startsWith("_mgt"))
+            // FIXME 14040 : Fix Event.LinkingAgentIdentifier model
+            .filter(s -> s.getPath().startsWith("LinkingAgentIdentifier"))
+            .collect(Collectors.toMap(SchemaResponse::getPath, s -> s));
+
+        Map<String, VitamDescriptionType> descriptionTypeByName = Maps.filterKeys(
+            metadataCollection.getVitamDescriptionResolver().getDescriptionTypeByStaticName(),
+            key ->
+                !Objects.equals(key, "Title.keyword") &&
+                (!key.startsWith("_") || key.startsWith("_mgt")) &&
+                // FIXME 14040 : Fix Event.LinkingAgentIdentifier model
+                key.startsWith("Event.LinkingAgentIdentifier")
+        );
+
+        assertThat(schemaResponseByPath.keySet()).isEqualTo(descriptionTypeByName.keySet());
+
+        for (String path : descriptionTypeByName.keySet()) {
+            VitamDescriptionType vitamDescriptionType = descriptionTypeByName.get(path);
+            SchemaResponse schemaResponse = schemaResponseByPath.get(path);
+            switch (vitamDescriptionType.getCardinality()) {
+                case one -> assertThat(schemaResponse.getCardinality()).isIn(
+                    SchemaCardinality.ONE,
+                    SchemaCardinality.ONE_REQUIRED
+                );
+                case many -> assertThat(schemaResponse.getCardinality()).isIn(
+                    SchemaCardinality.MANY,
+                    SchemaCardinality.MANY_REQUIRED
+                );
+                default -> throw new IllegalStateException(
+                    "Unexpected value: " + vitamDescriptionType.getCardinality()
+                );
+            }
+
+            switch (vitamDescriptionType.getType()) {
+                case datetime -> assertThat(schemaResponse.getType()).isIn(SchemaType.DATE);
+                case object, nested_object -> assertThat(schemaResponse.getType()).isIn(SchemaType.OBJECT);
+                case keyword -> assertThat(schemaResponse.getType()).isIn(SchemaType.KEYWORD);
+                case text -> assertThat(schemaResponse.getType()).isIn(SchemaType.TEXT);
+                case signed_long -> assertThat(schemaResponse.getType()).isIn(SchemaType.LONG);
+                case signed_double -> assertThat(schemaResponse.getType()).isIn(SchemaType.DOUBLE);
+                case bool -> assertThat(schemaResponse.getType()).isIn(SchemaType.BOOLEAN);
+                default -> throw new IllegalStateException("Unexpected value: " + vitamDescriptionType.getType());
+            }
         }
     }
 }
