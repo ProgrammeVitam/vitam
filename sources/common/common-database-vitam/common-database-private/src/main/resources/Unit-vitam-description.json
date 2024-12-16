@@ -1209,7 +1209,7 @@
     "path": "OriginatingAgency.OrganizationDescriptiveMetadata",
     "type": "object",
     "indexed": true,
-    "cardinality": "many"
+    "cardinality": "one"
   },
   {
     "path": "OriginatingAgencyArchiveUnitIdentifier",
@@ -1569,7 +1569,7 @@
     "path": "RelatedObjectReference.Replaces",
     "type": "object",
     "indexed": true,
-    "cardinality": "one"
+    "cardinality": "many"
   },
   {
     "path": "RelatedObjectReference.Replaces.ArchiveUnitRefId",
@@ -2289,7 +2289,7 @@
     "path": "SigningInformation.SignatureDescription.Signer",
     "type": "object",
     "indexed": true,
-    "cardinality": "many"
+    "cardinality": "one"
   },
   {
     "path": "SigningInformation.SignatureDescription.Signer.Activity",
@@ -2763,13 +2763,13 @@
     "path": "SubmissionAgency.OrganizationDescriptiveMetadata",
     "type": "object",
     "indexed": true,
-    "cardinality": "many"
+    "cardinality": "one"
   },
   {
     "path": "SystemId",
     "type": "keyword",
     "indexed": true,
-    "cardinality": "one"
+    "cardinality": "many"
   },
   {
     "path": "Tag",
