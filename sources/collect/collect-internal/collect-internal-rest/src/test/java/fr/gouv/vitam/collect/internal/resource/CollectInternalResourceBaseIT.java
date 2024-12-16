@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.resource;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
@@ -39,16 +40,24 @@ import fr.gouv.vitam.collect.internal.core.service.TransactionService;
 import fr.gouv.vitam.collect.internal.rest.CollectMetadataInternalResource;
 import fr.gouv.vitam.collect.internal.rest.ProjectInternalResource;
 import fr.gouv.vitam.collect.internal.rest.TransactionInternalResource;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import io.restassured.RestAssured;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -61,9 +70,12 @@ import org.mockito.junit.MockitoRule;
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
@@ -89,14 +101,22 @@ public class CollectInternalResourceBaseIT {
     protected static BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService = mock(
         BulkAtomicUpdateMetadataService.class
     );
+    protected static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+    protected static AdminManagementClientFactory adminManagementClientFactory = mock(
+        AdminManagementClientFactory.class
+    );
     protected static MetadataService metadataService = new MetadataService(
         metadataRepository,
         projectRepository,
-        bulkAtomicUpdateMetadataService
+        bulkAtomicUpdateMetadataService,
+        adminManagementClientFactory
     );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
+        doReturn(loadUnitSchema()).when(adminManagementClient).getUnitSchema();
+
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
@@ -178,5 +198,13 @@ public class CollectInternalResourceBaseIT {
             }
             return singletons;
         }
+    }
+
+    public static RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {
+        List<SchemaResponse> unitSchemaModels = JsonHandler.getFromInputStreamAsTypeReference(
+            PropertiesUtils.getResourceAsStream("unit-schema-with-custom-fields.json"),
+            new TypeReference<>() {}
+        );
+        return new RequestResponseOK<SchemaResponse>().addAllResults(unitSchemaModels);
     }
 }

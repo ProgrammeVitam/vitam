@@ -332,14 +332,8 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     .when()
                     .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
-                    .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
-                    .body("message", Matchers.equalTo("Internal Server Error"))
-                    .body(
-                        "description",
-                        Matchers.equalTo(
-                            "Mapping for File not found, expected one of [File,Content.DescriptionLevel,Content.Title,Content.Description,Content.StartDate,Content.EndDate]"
-                        )
-                    );
+                    .statusCode(BAD_REQUEST.getStatusCode())
+                    .body("message", Matchers.equalTo("Invalid header names. Missing required 'File' header name"));
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
             } catch (IOException e) {
