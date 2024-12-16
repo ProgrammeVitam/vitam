@@ -852,8 +852,8 @@ public class FluxIT extends VitamRuleRunner {
             );
 
             JsonAssert.assertJsonEquals(
-                JsonHandler.toJsonNode(unitsByTransaction.getResults()),
                 expectedUnits,
+                JsonHandler.toJsonNode(unitsByTransaction.getResults()),
                 JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
                     List.of(
                         "[*]." + VitamFieldsHelper.id(),

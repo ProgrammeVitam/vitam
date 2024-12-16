@@ -26,11 +26,16 @@
  */
 package fr.gouv.vitam.collect.internal.core.helpers;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
+import fr.gouv.vitam.collect.internal.core.csv.CsvToJsonConverter;
+import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,32 +43,44 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
 import java.util.List;
+
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
 
 public class CsvHelper {
 
     private CsvHelper() {}
 
-    public static void convertCsvToJsonlMetadataFile(InputStream is, File metadataFile) throws IOException {
+    public static void convertCsvToJsonlMetadataFile(
+        SedaSchemaInfoResolver sedaSchemaInfoResolver,
+        InputStream is,
+        File metadataFile
+    ) throws IOException, CollectInternalException {
         try (
-            final InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
-            CSVParser parser = new CSVParser(
-                reader,
-                CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false).withDelimiter(';')
-            );
+            CSVParser parser = createParser(is);
             JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(metadataFile, true), true)
         ) {
             final List<String> headerNames = parser.getHeaderNames();
+            CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
 
-            Iterator<CollectJsonMetadataLine> iterator = IteratorUtils.transformedIterator(
-                IteratorUtils.transformedIterator(parser.iterator(), e -> CsvMetadataMapper.map(e, headerNames)),
-                e -> new CollectJsonMetadataLine().setFile(e.getKey()).setUnitContent(e.getValue())
-            );
-
-            while (iterator.hasNext()) {
-                writer.addEntry(iterator.next());
+            for (CSVRecord record : parser) {
+                ObjectNode unitJson = csvToJsonConverter.convertCsvRecordToJson(record);
+                String uploadPath = FilenameUtils.separatorsToUnix(record.get(FILE_HEADER));
+                writer.addEntry(new CollectJsonMetadataLine().setFile(uploadPath).setUnitContent(unitJson));
             }
         }
+    }
+
+    public static CSVParser createParser(InputStream is) throws IOException {
+        final InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
+        return new CSVParser(
+            reader,
+            CSVFormat.Builder.create(CSVFormat.DEFAULT)
+                .setHeader()
+                .setTrim(true)
+                .setIgnoreEmptyLines(false)
+                .setDelimiter(';')
+                .build()
+        );
     }
 }
