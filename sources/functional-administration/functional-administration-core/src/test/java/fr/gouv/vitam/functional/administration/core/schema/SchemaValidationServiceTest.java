@@ -73,7 +73,9 @@ public class SchemaValidationServiceTest {
     private static final Integer TENANT_ID = 2;
     private static final Integer ADMIN_TENANT = 1;
     private static final OntologyService ontologyService = Mockito.mock(OntologyServiceImpl.class);
-    private static MongoDbAccessReferential mongoDbAccessReferential = Mockito.mock(MongoDbAccessReferential.class);
+    private static final MongoDbAccessReferential mongoDbAccessReferential = Mockito.mock(
+        MongoDbAccessReferential.class
+    );
     private static SchemaValidationService schemaValidationService;
     private final TypeReference<List<SchemaInputModel>> listOfSchemaInputType = new TypeReference<>() {};
     private final TypeReference<List<Schema>> listOfSchemaType = new TypeReference<>() {};
@@ -406,6 +408,42 @@ public class SchemaValidationServiceTest {
             .hasMessage(
                 "Paths already in current schema for the current or other tenants = Invoice.Provider.BirthDate, Invoice, Invoice.Provider"
             );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_importing_some_paths_matching_ontology_of_type_geo_point() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final File fileSchema = PropertiesUtils.getResourceFile(
+            "schema/schema-with-path-matching-ontology-of-type-geo-point.json"
+        );
+        final List<SchemaInputModel> schemaModelList = JsonHandler.getFromFileAsTypeReference(
+            fileSchema,
+            listOfSchemaInputType
+        );
+        final File ontologyFile = PropertiesUtils.getResourceFile("schema/ok-ontologies.json");
+        final List<OntologyModel> ontologyModelList = JsonHandler.getFromFileAsTypeReference(
+            ontologyFile,
+            listOfOntologyType
+        );
+        Map<String, OntologyModel> ontologyEltsMapByIdentifier = ontologyModelList
+            .stream()
+            .collect(Collectors.toMap(OntologyModel::getIdentifier, ontologyElt -> ontologyElt));
+        final RequestResponseOK<OntologyModel> ontologyResponse = new RequestResponseOK<OntologyModel>().addAllResults(
+            ontologyModelList
+        );
+        when(ontologyService.findOntologies(any())).thenReturn(ontologyResponse);
+        assertThatThrownBy(
+            () ->
+                schemaValidationService.validateExternalSchemaInputs(
+                    schemaModelList,
+                    internalSchemaList,
+                    ontologyEltsMapByIdentifier,
+                    new HashMap<>()
+                )
+        )
+            .isInstanceOf(SchemaImportValidationException.class)
+            .hasMessage("Path matches an ontology of type GEO_POINT = MyGeoPoint");
     }
 
     private InputStream loadUnitInternalSchema() throws IOException {
