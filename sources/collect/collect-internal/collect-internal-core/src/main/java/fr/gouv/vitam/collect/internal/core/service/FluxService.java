@@ -36,6 +36,7 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException
 import fr.gouv.vitam.collect.common.exception.CsvParseInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
+import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
 import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.common.model.unit.LevelType;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.collections4.CollectionUtils;
@@ -102,13 +104,16 @@ public class FluxService {
     private final MetadataService metadataService;
     private final ProjectRepository projectRepository;
     private final MetadataRepository metadataRepository;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
     public FluxService(
         CollectService collectService,
         MetadataService metadataService,
         ProjectRepository projectRepository,
-        MetadataRepository metadataRepository
+        MetadataRepository metadataRepository,
+        AdminManagementClientFactory adminManagementClientFactory
     ) {
+        this.adminManagementClientFactory = adminManagementClientFactory;
         this.collectService = collectService;
         this.metadataService = metadataService;
         this.projectRepository = projectRepository;
@@ -223,13 +228,15 @@ public class FluxService {
         }
     }
 
-    private static File csvMetadataToTransformedMetadataFile(TempWorkspace tempWorkspace, File metadataFile)
-        throws CollectInternalServerSideException {
+    private File csvMetadataToTransformedMetadataFile(TempWorkspace tempWorkspace, File metadataFile)
+        throws CollectInternalException {
+        SedaSchemaInfoResolver sedaSchemaInfoResolver = new SedaSchemaInfoResolver(adminManagementClientFactory);
+
         try {
             File tranformedMetadataFile = tempWorkspace.getFile(TRANSFORMED_METADATA_JSONL_FILE);
 
             try (InputStream is = new FileInputStream(metadataFile)) {
-                CsvHelper.convertCsvToJsonlMetadataFile(is, tranformedMetadataFile);
+                CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, is, tranformedMetadataFile);
             }
             return tranformedMetadataFile;
         } catch (IOException e) {

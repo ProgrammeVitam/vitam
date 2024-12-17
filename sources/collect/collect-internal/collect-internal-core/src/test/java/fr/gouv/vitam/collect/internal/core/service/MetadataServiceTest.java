@@ -46,7 +46,9 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -54,6 +56,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.junit.Before;
@@ -66,6 +70,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +85,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -117,6 +123,12 @@ public class MetadataServiceTest {
     private ProjectRepository projectRepository;
 
     @Mock
+    private AdminManagementClient adminManagementClient;
+
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
+
+    @Mock
     private BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService;
 
     @InjectMocks
@@ -128,6 +140,9 @@ public class MetadataServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
+        doReturn(loadUnitSchema()).when(adminManagementClient).getUnitSchema();
+
         transactionModel = new TransactionModel();
         transactionModel.setId(TRANSACTION_ID);
         transactionModel.setProjectId(PROJECT_ID);
@@ -470,5 +485,13 @@ public class MetadataServiceTest {
             expectedQueries,
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
         );
+    }
+
+    public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {
+        List<SchemaResponse> unitSchemaModels = JsonHandler.getFromInputStreamAsTypeReference(
+            PropertiesUtils.getResourceAsStream("unit-schema-with-custom-fields.json"),
+            new TypeReference<>() {}
+        );
+        return new RequestResponseOK<SchemaResponse>().addAllResults(unitSchemaModels);
     }
 }

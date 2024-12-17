@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetadataType;
@@ -103,6 +104,7 @@ public class BusinessApplication extends ConfigurationApplication {
             );
             IngestInternalClientFactory ingestInternalClientFactory = IngestInternalClientFactory.getInstance();
             AccessInternalClientFactory accessInternalClientFactory = AccessInternalClientFactory.getInstance();
+            AdminManagementClientFactory adminManagementClientFactory = AdminManagementClientFactory.getInstance();
 
             // Repositories
             TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
@@ -118,7 +120,8 @@ public class BusinessApplication extends ConfigurationApplication {
             MetadataService metadataService = new MetadataService(
                 metadataRepository,
                 projectRepository,
-                bulkAtomicUpdateMetadataService
+                bulkAtomicUpdateMetadataService,
+                adminManagementClientFactory
             );
             ProjectService projectService = new ProjectService(projectRepository);
             CollectService collectService = new CollectService(
@@ -130,7 +133,8 @@ public class BusinessApplication extends ConfigurationApplication {
                 collectService,
                 metadataService,
                 projectRepository,
-                metadataRepository
+                metadataRepository,
+                adminManagementClientFactory
             );
             TransactionService transactionService = new TransactionService(
                 transactionRepository,

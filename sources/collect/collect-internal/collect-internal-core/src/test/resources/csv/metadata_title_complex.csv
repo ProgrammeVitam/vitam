@@ -1,0 +1,10 @@
+File;Content.Description;Content.Title.0;Content.Title.0.attr;Content.Title.1;Content.Title.1.attr;Content.Title.2;Content.Title.2.attr
+"File0";"File0 desc";"Title1";"";"Title2";"xml:lang=""fr""";"Title3";"xml:lang=""en"""
+"File1";"File1 desc";"Title1";"xml:lang=""fr""";"Title2";"xml:lang=""en""";"";""
+"File2";"File2 desc";"Title1";"";"Title2";"xml:lang=""fr""";"";""
+"File3";"File3 desc";"Title1";"";"";"";"";""
+"File4";"File4 desc";"";"";"";"";"";""
+"File5";"File5 desc";"Title1";"";"Title2";"";"";""
+"File6";"File6 desc";"Title1";"xml:lang=""fr""";"Title2";"xml:lang=""fr""";"";""
+"File7";"File7 desc";"Title1";"xml:lang=""_illegal""";"";"";"";""
+"File8";"File8 desc";"Title1";"badformat";"";"";"";""

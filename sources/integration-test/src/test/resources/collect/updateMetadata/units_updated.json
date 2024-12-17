@@ -55,8 +55,8 @@
       { "evDateTime": "2016-06-03T15:28:00" },
       {
         "evDateTime": "2016-06-03T15:28:00",
-        "evDetData": "EventDetail_content0",
-        "evTypeDetail": "EventDetailData_content0",
+        "evDetData": "EventDetailData_content0",
+        "evTypeDetail": "EventDetail_content0",
         "evId": "EventIdentifier_content0",
         "evType": "EventType_content0",
         "evTypeProc": "EventTypeCode_content0",
