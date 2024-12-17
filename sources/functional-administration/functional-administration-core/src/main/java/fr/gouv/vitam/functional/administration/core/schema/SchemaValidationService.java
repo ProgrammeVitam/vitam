@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.administration.schema.SchemaInputModel;
 import fr.gouv.vitam.common.model.administration.schema.SchemaModel;
 import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
@@ -74,6 +75,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -398,6 +400,40 @@ public class SchemaValidationService {
         }
     }
 
+    /**
+     * As {@link fr.gouv.vitam.common.model.administration.schema.SchemaType} doesn't have a corresponding type for GEO_POINT, we prevent creating schema that matches an ontology of type GEO_POINT
+     */
+    private void checkSchemaDoesntMatchOntologyOfTypeGeoPoint(
+        Map<String, SchemaInputModel> externalSchemaInputsMapByPath,
+        Map<String, OntologyModel> ontologyEltsMapByIdentifier,
+        Map<String, List<ErrorReportSchema>> importErrors
+    ) throws SchemaImportValidationException {
+        final List<String> pathsMatchingOntologyOfTypeGeoPoint = externalSchemaInputsMapByPath
+            .values()
+            .stream()
+            .filter(schemaModelElt -> !Boolean.TRUE.equals(schemaModelElt.isObject()))
+            .map(schemaModelElt -> SchemaCommonService.extractLeafFromPath(schemaModelElt.getPath()))
+            .collect(Collectors.toSet())
+            .stream()
+            .filter(
+                leaf ->
+                    Optional.ofNullable(ontologyEltsMapByIdentifier.get(leaf))
+                        .map(ontologyModel -> OntologyType.GEO_POINT.equals(ontologyModel.getType()))
+                        .orElse(false)
+            )
+            .toList();
+        if (CollectionUtils.isNotEmpty(pathsMatchingOntologyOfTypeGeoPoint)) {
+            final String baseMessage = "Path matches an ontology of type GEO_POINT";
+            checkErrors(
+                pathsMatchingOntologyOfTypeGeoPoint,
+                baseMessage,
+                SchemaErrorCode.IMPORT_SCHEMA_LEAF_WRONG_TYPE,
+                externalSchemaInputsMapByPath,
+                importErrors
+            );
+        }
+    }
+
     private void checkErrors(
         final List<String> errorPaths,
         final String baseMessage,
@@ -431,6 +467,11 @@ public class SchemaValidationService {
             importErrors
         );
         checkSchemaObjectPathsAreNotDeclaredAsOntologies(
+            externalSchemaInputsMapByPath,
+            ontologyEltsMapByIdentifier,
+            importErrors
+        );
+        checkSchemaDoesntMatchOntologyOfTypeGeoPoint(
             externalSchemaInputsMapByPath,
             ontologyEltsMapByIdentifier,
             importErrors

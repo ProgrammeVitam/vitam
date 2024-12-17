@@ -4443,5 +4443,16 @@
     "Collections": [
       "Agencies"
     ]
+  },
+  {
+    "Identifier": "MyGeoPoint",
+    "ApiField": "MyGeoPoint",
+    "Origin": "EXTERNAL",
+    "Type": "GEO_POINT",
+    "Description": "Extension au SEDA. Elément de type gps",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
   }
 ]

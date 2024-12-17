@@ -1,0 +1,8 @@
+[
+  {
+    "Cardinality": "ONE",
+    "Path": "MyGeoPoint",
+    "ShortName": "My geo point",
+    "Description": "Description My Geo Point"
+  }
+]
