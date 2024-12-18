@@ -4,7 +4,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam/{{ vitam_struct.vitam_component }}:latest
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam/{{ vitam_struct.vitam_component }}:{{ vitam_container_version | default('latest') }}
 ExecStart=/usr/bin/docker run --rm --network host --name {{ vitam_struct.vitam_component }} --user {{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].1 }}:{{ getent_passwd[vitam_defaults.users.vitam | default('vitam')].2 }} \
                               -e "JAVA_TOOL_OPTIONS={{ vitam_struct.jvm_opts.gc | default(gc_opts) }} {{ vitam_struct.jvm_opts.memory | default(memory_opts) }} {{ vitam_struct.jvm_opts.java | default(java_opts) }} -Dorg.owasp.esapi.resources={{ vitam_folder_conf }} -Dlogback.configurationFile={{ vitam_folder_conf }}/logback.xml -Dvitam.config.folder={{ vitam_folder_conf }} -Dvitam.data.folder={{ vitam_folder_data }} -Dvitam.tmp.folder={{ vitam_folder_tmp }} -Dvitam.log.folder={{ vitam_folder_log }} -Djava.security.properties={{ vitam_folder_conf }}/java.security -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath={{ vitam_folder_log }}{% if jvm_log %} -XX:+UnlockDiagnosticVMOptions -XX:+LogVMOutput -XX:LogFile={{ vitam_folder_log }}/jvm.log{% endif %} -XX:+UseG1GC {{ vitam_struct.jmx_exporter | default(jmx_exporter_opts) }} -XX:+ExitOnOutOfMemoryError" \
                               -v "{{ vitam_folder_conf }}:{{ vitam_folder_conf }}:rw" \
@@ -12,7 +12,7 @@ ExecStart=/usr/bin/docker run --rm --network host --name {{ vitam_struct.vitam_c
                               -v "{{ vitam_folder_data }}:{{ vitam_folder_data }}:rw" \
                               -v "{{ vitam_folder_tmp }}:{{ vitam_folder_tmp }}:rw" \
                               -v "{{ vitam_folder_lib }}:{{ vitam_folder_lib }}:rw" \
-                              {{ container_repository.registry_url }}/vitam/{{ vitam_struct.vitam_component }}:latest \
+                              {{ container_repository.registry_url }}/vitam/{{ vitam_struct.vitam_component }}:{{ vitam_container_version | default('latest') }} \
                               {{ vitam_folder_conf }}/{{ vitam_struct.vitam_component }}.conf
 
 ExecStop=/usr/bin/docker stop -t 85 {{ vitam_struct.vitam_component }}
