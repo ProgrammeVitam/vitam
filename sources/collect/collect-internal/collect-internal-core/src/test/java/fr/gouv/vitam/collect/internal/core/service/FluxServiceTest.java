@@ -38,16 +38,21 @@ import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -64,6 +69,7 @@ import org.mockito.junit.MockitoRule;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -83,6 +89,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -107,6 +114,12 @@ public class FluxServiceTest {
     private static final String TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH =
         "streamZip/transaction_without_file_column.zip";
 
+    private static final String ARBORESCENCE_WITH_ACCENTS_WINDOWS_ZIP =
+        "streamZip/arborescence_with_accents_windows.zip";
+    private static final String ARBORESCENCE_WITH_ACCENTS_OBJECTGROUPS =
+        "streamZip/arborescence_with_accents_objectgroups.json";
+    private static final String ARBORESCENCE_WITH_ACCENTS_UNITS = "streamZip/arborescence_with_accents_units.json";
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -130,6 +143,12 @@ public class FluxServiceTest {
     @Mock
     private MetadataRepository metadataRepository;
 
+    @Mock
+    private AdminManagementClient adminManagementClient;
+
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
+
     @InjectMocks
     private FluxService fluxService;
 
@@ -140,6 +159,9 @@ public class FluxServiceTest {
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID).getId());
+
+        doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
+        doReturn(loadUnitSchema()).when(adminManagementClient).getUnitSchema();
 
         transactionModel = new TransactionModel();
         transactionModel.setId(TRANSACTION_ID);
@@ -353,10 +375,7 @@ public class FluxServiceTest {
                 CollectInternalException.class,
                 () -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID, null)
             );
-            Assert.assertEquals(
-                "Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]",
-                exception.getMessage()
-            );
+            Assert.assertEquals("Invalid header names. Missing required 'File' header name", exception.getMessage());
         }
 
         // Then
@@ -513,9 +532,11 @@ public class FluxServiceTest {
         );
     }
 
-    private static final String ARBORESCENCE_WITH_ACCENTS_WINDOWS_ZIP =
-        "streamZip/arborescence_with_accents_windows.zip";
-    private static final String ARBORESCENCE_WITH_ACCENTS_OBJECTGROUPS =
-        "streamZip/arborescence_with_accents_objectgroups.json";
-    private static final String ARBORESCENCE_WITH_ACCENTS_UNITS = "streamZip/arborescence_with_accents_units.json";
+    public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {
+        List<SchemaResponse> unitSchemaModels = JsonHandler.getFromInputStreamAsTypeReference(
+            PropertiesUtils.getResourceAsStream("unit-schema-with-custom-fields.json"),
+            new TypeReference<>() {}
+        );
+        return new RequestResponseOK<SchemaResponse>().addAllResults(unitSchemaModels);
+    }
 }

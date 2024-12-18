@@ -611,11 +611,11 @@
         "evTypeProc": "Ligne_ouverture",
         "evType": "Ouverture",
         "evDateTime": "1998-05-25T08:07:00",
-        "evDetData": "Ouverture de la station \u00E0 l'exploitation",
+        "evTypeDetail": "Ouverture de la station \u00E0 l'exploitation",
         "outcome": "OK",
         "outDetail": "Ligne_Ouverture_OK",
         "outMessg": "Ouverture de la station effectu\u00E9e avec succ\u00E8s",
-        "evTypeDetail": "500 personnes pr\u00E9sentes"
+        "evDetData": "500 personnes pr\u00E9sentes"
       }
     ],
     "Tag": [

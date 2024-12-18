@@ -41,6 +41,7 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
 import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonlMetadataFileValidator;
@@ -72,6 +73,7 @@ import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.LevelType;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import org.apache.commons.io.FileUtils;
 
@@ -107,15 +109,18 @@ public class MetadataService {
 
     private final ProjectRepository projectRepository;
     private final BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
     public MetadataService(
         MetadataRepository metadataRepository,
         ProjectRepository projectRepository,
-        BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService
+        BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService,
+        AdminManagementClientFactory adminManagementClientFactory
     ) {
         this.metadataRepository = metadataRepository;
         this.projectRepository = projectRepository;
         this.bulkAtomicUpdateMetadataService = bulkAtomicUpdateMetadataService;
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     public JsonNode selectUnitById(String unitId) throws CollectInternalException {
@@ -190,8 +195,10 @@ public class MetadataService {
         throws CollectInternalException {
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         File file = PropertiesUtils.fileFromTmpFolder("metadata_" + requestId + VitamConstants.JSONL_EXTENSION);
+
+        SedaSchemaInfoResolver sedaSchemaInfoResolver = new SedaSchemaInfoResolver(adminManagementClientFactory);
         try {
-            CsvHelper.convertCsvToJsonlMetadataFile(is, file);
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, is, file);
             try (InputStream jsonlMetadataInputStream = new FileInputStream(file)) {
                 updateUnitsWithJsonlMetadataFile(transaction.getId(), jsonlMetadataInputStream);
             }
