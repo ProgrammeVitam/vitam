@@ -50,16 +50,20 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SEPARATOR;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.END_DATE_FIELD;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.HASH_PREFIX;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.MANAGEMENT_FIELD;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath;
 
 /**
- * Allows resolving of "Content.*" schema fields by their full "SedaPath".
+ * Allows resolving of "Content.*" & "Management.*" schema fields by their full "SedaPath".
  * FIXME : To be refactored or deleted when story #14050 is implemented.
  */
 public class SedaSchemaInfoResolver {
 
     private final Map<String, SedaSchemaInfo> contentSchemaBySedaPath;
+    private final Map<String, SedaSchemaInfo> managementSedaSchemaBySedaPath;
 
     public SedaSchemaInfoResolver(AdminManagementClientFactory adminManagementClientFactory)
         throws CollectInternalException {
@@ -67,6 +71,7 @@ public class SedaSchemaInfoResolver {
         List<SchemaResponse> sedaSchemaModels = skipSystemSchemaModels(allSchemaModels);
         hotfixSchemaModels(sedaSchemaModels);
         contentSchemaBySedaPath = getContentSchemaBySedaPath(sedaSchemaModels);
+        managementSedaSchemaBySedaPath = getManagementSchemaBySedaPath(sedaSchemaModels);
     }
 
     @Deprecated
@@ -81,16 +86,35 @@ public class SedaSchemaInfoResolver {
         schemaModels
             .stream()
             .filter(model -> model.getOrigin() == SchemaOrigin.INTERNAL && model.getType() == SchemaType.OBJECT)
-            .forEach(model -> model.setSedaField(model.getFieldName()));
+            .forEach(model -> {
+                if (model.getApiPath().equals(CsvMetadataUtils.MANAGEMENT_FIELD)) {
+                    model.setSedaField(CsvMetadataUtils.MANAGEMENT);
+                } else if (
+                    model.getApiPath().startsWith(CsvMetadataUtils.MANAGEMENT_FIELD) &&
+                    StringUtils.equalsAny(model.getApiField(), END_DATE_FIELD, "Rules", "Inheritance")
+                ) {
+                    // #management.<RuleCategory>.Rules
+                    // #management.<RuleCategory>.Rules.EndDate
+                    // #management.<RuleCategory>.Inheritance
+                    model.setSedaField(null);
+                } else {
+                    model.setSedaField(model.getFieldName());
+                }
+            });
     }
 
     private static List<SchemaResponse> skipSystemSchemaModels(List<SchemaResponse> schemaModels) {
-        // Remove vitam-internal fields (#management, #version, #computedInheritedRules...)
+        // Remove vitam-internal fields (#version, #computedInheritedRules...)
         // Remove virtual fields "Title_" & "Description_"
+        // Remove rule end dates "#management.<RuleCategory>.Rules.EndDate" (computed)
         return schemaModels
             .stream()
-            // Remove vitam-internal fields (#version, #computedInheritedRules...)
-            .filter(model -> !StringUtils.startsWith(model.getApiPath(), HASH_PREFIX))
+            // Remove vitam-internal fields (#version, #computedInheritedRules...) but keep #management
+            .filter(
+                model ->
+                    !StringUtils.startsWith(model.getApiPath(), HASH_PREFIX) ||
+                    StringUtils.startsWith(model.getApiPath(), MANAGEMENT_FIELD)
+            )
             // Remove virtual fields "Title_" & "Description_"
             .filter(
                 model ->
@@ -99,6 +123,12 @@ public class SedaSchemaInfoResolver {
                         CsvMetadataUtils.API_FIELD_TITLE_,
                         CsvMetadataUtils.API_FIELD_DESCRIPTION_
                     )
+            )
+            // Remove rule EndDate fields
+            .filter(
+                model ->
+                    !StringUtils.startsWith(model.getApiPath(), MANAGEMENT_FIELD) ||
+                    !END_DATE_FIELD.equals(model.getApiField())
             )
             .collect(Collectors.toList());
     }
@@ -115,6 +145,8 @@ public class SedaSchemaInfoResolver {
     private static Map<String, SedaSchemaInfo> getContentSchemaBySedaPath(List<SchemaResponse> contentSchemaModels) {
         List<SchemaResponse> sortedContentSchemaFields = contentSchemaModels
             .stream()
+            // Only retain Content fields
+            .filter(model -> !StringUtils.startsWith(model.getApiPath(), MANAGEMENT_FIELD))
             // FIXME : External fields do not have ApiField, ApiPath & SedaField (Bug #14049)
             .sorted(
                 Comparator.comparing(
@@ -159,14 +191,119 @@ public class SedaSchemaInfoResolver {
             apiPathToSedaPath.put(apiPath, sedaPath);
             sedaPathToSedaInfo.put(
                 sedaPath,
-                new SedaSchemaInfo(sedaPath, apiPath, apiField, isObject, isArray, isExternal, isSedaExtensionPoint)
+                new SedaSchemaInfo(
+                    sedaPath,
+                    apiPath,
+                    apiField,
+                    isObject,
+                    isArray,
+                    isExternal,
+                    isSedaExtensionPoint,
+                    false,
+                    false
+                )
             );
         }
 
         // Append root "Content" seda field
-        sedaPathToSedaInfo.put(CONTENT, new SedaSchemaInfo(CONTENT, null, null, true, false, false, true));
+        sedaPathToSedaInfo.put(
+            CONTENT,
+            new SedaSchemaInfo(CONTENT, null, null, true, false, false, true, false, false)
+        );
 
         return MapUtils.unmodifiableMap(sedaPathToSedaInfo);
+    }
+
+    private static Map<String, SedaSchemaInfo> getManagementSchemaBySedaPath(List<SchemaResponse> allSchemaModels) {
+        List<SchemaResponse> sortedManagementSchemaModels = allSchemaModels
+            .stream()
+            .filter(model -> StringUtils.startsWith(model.getApiPath(), MANAGEMENT_FIELD))
+            .sorted(Comparator.comparing(SchemaResponse::getApiPath))
+            .collect(Collectors.toList());
+
+        Map<String, String> apiPathToSedaPath = new HashMap<>();
+        Map<String, SedaSchemaInfo> sedaPathToSedaInfo = new HashMap<>();
+
+        for (SchemaResponse schema : sortedManagementSchemaModels) {
+            if (schema.getSedaField() == null) {
+                // Ignore Vitam fields without matching Seda fields (ex. "#management.AppraisalRule.Inheritance")
+                continue;
+            }
+
+            String sedaPath;
+            String apiSubPath;
+            if (!schema.getApiPath().contains(SEPARATOR)) {
+                apiSubPath = schema.getApiPath();
+                sedaPath = schema.getSedaField();
+            } else {
+                sedaPath = schema.getSedaField();
+                String parentPath = schema.getApiPath();
+                apiSubPath = null;
+                while (true) {
+                    apiSubPath = buildPath(StringUtils.substringAfterLast(parentPath, SEPARATOR), apiSubPath);
+                    parentPath = StringUtils.substringBeforeLast(parentPath, SEPARATOR);
+                    if (apiPathToSedaPath.containsKey(parentPath)) {
+                        sedaPath = buildPath(apiPathToSedaPath.get(parentPath), sedaPath);
+                        break;
+                    }
+                }
+            }
+            apiPathToSedaPath.put(schema.getApiPath(), sedaPath);
+
+            boolean isObject = schema.getType() == SchemaType.OBJECT;
+
+            sedaPathToSedaInfo.put(
+                sedaPath,
+                new SedaSchemaInfo(
+                    sedaPath,
+                    schema.getApiPath(),
+                    apiSubPath,
+                    isObject,
+                    isArrayManagementField(schema, sedaPath),
+                    false,
+                    false,
+                    isSpecialRulePropertyArrayIndex(sedaPath),
+                    false
+                )
+            );
+        }
+
+        // Add exceptions
+        sedaPathToSedaInfo.put(
+            "Management.LogBook",
+            new SedaSchemaInfo("Management.LogBook", null, null, true, false, false, false, false, true)
+        );
+
+        sedaPathToSedaInfo.put(
+            "Management.UpdateOperation",
+            new SedaSchemaInfo(
+                "Management.UpdateOperation",
+                "#management.UpdateOperation",
+                "UpdateOperation",
+                true,
+                false,
+                false,
+                false,
+                false,
+                true
+            )
+        );
+
+        return MapUtils.unmodifiableMap(sedaPathToSedaInfo);
+    }
+
+    private static boolean isArrayManagementField(SchemaResponse schema, String sedaPath) {
+        if (
+            schema.getCardinality() == SchemaCardinality.MANY ||
+            schema.getCardinality() == SchemaCardinality.MANY_REQUIRED
+        ) {
+            return true;
+        }
+        return CsvMetadataUtils.SEDA_MANAGEMENT_SPECIAL_ARRAY_FIELDS.contains(sedaPath);
+    }
+
+    private static boolean isSpecialRulePropertyArrayIndex(String sedaPath) {
+        return CsvMetadataUtils.SEDA_MANAGEMENT_SPECIAL_RULE_PROPERTY_ARRAY_FIELDS.contains(sedaPath);
     }
 
     public SedaSchemaInfo getContentSchemaInfo(String sedaPath) {
@@ -176,5 +313,9 @@ public class SedaSchemaInfoResolver {
     @VisibleForTesting
     Collection<SedaSchemaInfo> getAllContentSchemaInfo() {
         return contentSchemaBySedaPath.values();
+    }
+
+    public SedaSchemaInfo getManagementModelBySedaPath(String sedaPath) {
+        return managementSedaSchemaBySedaPath.get(sedaPath);
     }
 }

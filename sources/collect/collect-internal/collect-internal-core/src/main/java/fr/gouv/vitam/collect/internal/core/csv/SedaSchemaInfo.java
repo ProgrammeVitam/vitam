@@ -38,6 +38,8 @@ public final class SedaSchemaInfo {
     private final boolean isArray;
     private final boolean isExternal;
     private final boolean isSedaExtensionPoint;
+    private final boolean isSpecialRulePropertyArrayIndex;
+    private final boolean isForbiddenCsvHeader;
 
     public SedaSchemaInfo(
         String sedaPath,
@@ -46,7 +48,11 @@ public final class SedaSchemaInfo {
         boolean isObject,
         boolean isArray,
         boolean isExternal,
-        boolean isSedaExtensionPoint
+        boolean isSedaExtensionPoint,
+        // Rule properties have special array index notation (Management.AppraisalRule.StartDate.1 refers to Management.AppraisalRule.Rule.1)
+        boolean isSpecialRulePropertyArrayIndex,
+        // Few Seda fields are NOT supported in CSV metadata headers (Management.UpdateOperation & Management.LogBook)
+        boolean isForbiddenCsvHeader
     ) {
         this.sedaPath = sedaPath;
         this.apiPath = apiPath;
@@ -55,6 +61,8 @@ public final class SedaSchemaInfo {
         this.isArray = isArray;
         this.isExternal = isExternal;
         this.isSedaExtensionPoint = isSedaExtensionPoint;
+        this.isSpecialRulePropertyArrayIndex = isSpecialRulePropertyArrayIndex;
+        this.isForbiddenCsvHeader = isForbiddenCsvHeader;
     }
 
     public String sedaPath() {
@@ -85,6 +93,14 @@ public final class SedaSchemaInfo {
         return isSedaExtensionPoint;
     }
 
+    public boolean isSpecialRulePropertyArrayIndex() {
+        return isSpecialRulePropertyArrayIndex;
+    }
+
+    public boolean isForbiddenCsvHeader() {
+        return isForbiddenCsvHeader;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
@@ -97,13 +113,25 @@ public final class SedaSchemaInfo {
             this.isObject == that.isObject &&
             this.isArray == that.isArray &&
             this.isExternal == that.isExternal &&
-            this.isSedaExtensionPoint == that.isSedaExtensionPoint
+            this.isSedaExtensionPoint == that.isSedaExtensionPoint &&
+            this.isSpecialRulePropertyArrayIndex == that.isSpecialRulePropertyArrayIndex &&
+            this.isForbiddenCsvHeader == that.isForbiddenCsvHeader
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sedaPath, apiPath, apiSubPath, isObject, isArray, isExternal, isSedaExtensionPoint);
+        return Objects.hash(
+            sedaPath,
+            apiPath,
+            apiSubPath,
+            isObject,
+            isArray,
+            isExternal,
+            isSedaExtensionPoint,
+            isSpecialRulePropertyArrayIndex,
+            isForbiddenCsvHeader
+        );
     }
 
     @Override
@@ -130,6 +158,12 @@ public final class SedaSchemaInfo {
             ", " +
             "isSedaExtensionPoint=" +
             isSedaExtensionPoint +
+            ", " +
+            "isSpecialRulePropertyArrayIndex=" +
+            isSpecialRulePropertyArrayIndex +
+            ", " +
+            "isForbiddenCsvHeader=" +
+            isForbiddenCsvHeader +
             ']'
         );
     }

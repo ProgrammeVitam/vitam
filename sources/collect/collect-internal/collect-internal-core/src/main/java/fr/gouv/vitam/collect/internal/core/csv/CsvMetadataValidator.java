@@ -53,7 +53,9 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_S
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE_VALID_HEADER_NAME_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.IMPLICIT_0_ARRAY_INDEX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.MAX_HEADER_NAME_LENGTH;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.RULE_FIELD_NAME;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR_CHAR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath;
@@ -86,7 +88,7 @@ public class CsvMetadataValidator {
             .stream()
             .filter(CsvMetadataUtils::isManagementField)
             .collect(Collectors.toList());
-        validateManagementHeaderNames(managementHeaderNames);
+        validateManagementHeaderNames(sedaSchemaInfoResolver, managementHeaderNames);
     }
 
     private void globalHeaderNameChecks(List<String> headerNames) throws CollectInvalidCsvFormatException {
@@ -431,7 +433,9 @@ public class CsvMetadataValidator {
                                 fieldEntry.isDeclaredAsObject(),
                                 true,
                                 true,
-                                true
+                                true,
+                                false,
+                                false
                             )
                         );
                     }
@@ -485,7 +489,184 @@ public class CsvMetadataValidator {
         return currentSedaPath;
     }
 
-    private void validateManagementHeaderNames(List<String> managementHeaderNames) {
-        // FIXME : Management field names need special handling (out of scope)
+    private void validateManagementHeaderNames(
+        SedaSchemaInfoResolver sedaSchemaInfoResolver,
+        List<String> managementHeaderNames
+    ) throws CollectInvalidCsvFormatException {
+        validateManagementHeaderNamesAgainstSedaModel(managementHeaderNames, sedaSchemaInfoResolver);
+
+        checkManagementHeaderArrayIndexes(managementHeaderNames, sedaSchemaInfoResolver);
+    }
+
+    private static void validateManagementHeaderNamesAgainstSedaModel(
+        List<String> managementHeaderNames,
+        SedaSchemaInfoResolver sedaSchemaInfoResolver
+    ) throws CollectInvalidCsvFormatException {
+        for (String headerName : managementHeaderNames) {
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                if (matchesPattern(fieldEntry.sedaFieldName(), ARRAY_INDEX_PATTERN)) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" + headerName + "'. Invalid array index"
+                    );
+                }
+
+                SedaSchemaInfo sedaManagementModel = sedaSchemaInfoResolver.getManagementModelBySedaPath(
+                    fieldEntry.simpleSedaPath()
+                );
+                if (sedaManagementModel == null) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" +
+                        headerName +
+                        "'. Invalid seda extension point '" +
+                        fieldEntry.parentFullSedaPath() +
+                        "'"
+                    );
+                }
+
+                if (sedaManagementModel.isForbiddenCsvHeader()) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header names. Invalid header name '" +
+                        headerName +
+                        "'. Seda Field '" +
+                        fieldEntry.sedaFieldName() +
+                        "' is forbidden."
+                    );
+                }
+
+                if (fieldEntry.isDeclaredAsArray() && !sedaManagementModel.isArray()) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" +
+                        headerName +
+                        "'. Field '" +
+                        fieldEntry.simpleSedaPath() +
+                        "' is not an array"
+                    );
+                }
+                if (fieldEntry.isDeclaredAsObject() && !sedaManagementModel.isObject()) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" +
+                        headerName +
+                        "'. Field '" +
+                        fieldEntry.simpleSedaPath() +
+                        "' is not an object."
+                    );
+                }
+                if (!fieldEntry.isDeclaredAsObject() && sedaManagementModel.isObject()) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" +
+                        headerName +
+                        "'. Field '" +
+                        fieldEntry.simpleSedaPath() +
+                        "' is an object."
+                    );
+                }
+            }
+        }
+    }
+
+    private void checkManagementHeaderArrayIndexes(
+        List<String> managementHeaderNames,
+        SedaSchemaInfoResolver sedaSchemaInfoResolver
+    ) throws CollectInvalidCsvFormatException {
+        checkSparseManagementArraysHeaderNames(managementHeaderNames, sedaSchemaInfoResolver);
+
+        checkRulePropertiesWithIndexRelativeToRuleId(managementHeaderNames, sedaSchemaInfoResolver);
+    }
+
+    private void checkSparseManagementArraysHeaderNames(
+        List<String> managementHeaderNames,
+        SedaSchemaInfoResolver sedaSchemaInfoResolver
+    ) throws CollectInvalidCsvFormatException {
+        // Check for sparse arrays (ex. "Management.AppraisalRule.Rule.0" & "Management.AppraisalRule.Rule.2" without "Management.AppraisalRule.Rule.1")
+        // /!\ Important : Some rule properties are declared with array index relative to rule id array index.
+        //     Ex. "Management.AppraisalRule.Rule.0" & "Management.AppraisalRule.Rule.1" & "Management.AppraisalRule.StartDate.1"
+        //     is a valid header name set, because Management.AppraisalRule.StartDate.1 is linked to Management.AppraisalRule.Rule.1
+
+        HashSetValuedHashMap<String, Integer> fieldsWithArrayIndexes = new HashSetValuedHashMap<>();
+
+        for (String headerName : managementHeaderNames) {
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                SedaSchemaInfo sedaManagementModel = sedaSchemaInfoResolver.getManagementModelBySedaPath(
+                    fieldEntry.simpleSedaPath()
+                );
+                if (sedaManagementModel == null) {
+                    throw new IllegalStateException("Expected valid seda path '" + fieldEntry.simpleSedaPath() + "'");
+                }
+
+                if (fieldEntry.isDeclaredAsArray()) {
+                    // Skip rule properties linked to a declaring rule id
+                    if (!sedaManagementModel.isSpecialRulePropertyArrayIndex()) {
+                        fieldsWithArrayIndexes.put(
+                            buildPath(fieldEntry.parentFullSedaPath(), fieldEntry.sedaFieldName()),
+                            fieldEntry.arrayIndex()
+                        );
+                    }
+                }
+            }
+        }
+
+        checkNoMissingArrayIndexes(fieldsWithArrayIndexes);
+    }
+
+    private void checkRulePropertiesWithIndexRelativeToRuleId(
+        List<String> managementHeaderNames,
+        SedaSchemaInfoResolver sedaSchemaInfoResolver
+    ) throws CollectInvalidCsvFormatException {
+        // Some rule properties are declared with array index relative to rule id array index.
+        // /!\ WARNING : array index might be implicit OR explicit.
+        // Ex. "Management.AppraisalRule.StartDate.1" can only be declared along with a "Management.AppraisalRule.Rule.1"
+        //     "Management.AppraisalRule.StartDate" can only be declared along with a "Management.AppraisalRule.Rule" (implicit .0) or "Management.AppraisalRule.Rule.0" (explicit .0)
+
+        Set<String> ruleIdFullFieldNames = new HashSet<>();
+        Map<String, String> rulePropertyToExpectedDeclaringRuleIdMap = new HashMap<>();
+
+        for (String headerName : managementHeaderNames) {
+            String fullFieldNameWithArrayIndex = null;
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                String fullParentFieldName = fullFieldNameWithArrayIndex;
+                fullFieldNameWithArrayIndex = buildPath(fullFieldNameWithArrayIndex, fieldEntry.sedaFieldName());
+
+                SedaSchemaInfo sedaManagementModel = sedaSchemaInfoResolver.getManagementModelBySedaPath(
+                    fieldEntry.simpleSedaPath()
+                );
+                if (sedaManagementModel == null) {
+                    throw new IllegalStateException("Expected valid seda path '" + fieldEntry.simpleSedaPath() + "'");
+                }
+
+                if (sedaManagementModel.isArray()) {
+                    String arrayIndex = IMPLICIT_0_ARRAY_INDEX;
+                    if (fieldEntry.isDeclaredAsArray()) {
+                        arrayIndex = String.valueOf(fieldEntry.arrayIndex());
+                    }
+                    fullFieldNameWithArrayIndex = buildPath(fullFieldNameWithArrayIndex, arrayIndex);
+
+                    // Register all declared "Rule" field names (Management.*.Rule.<index>)
+                    if (RULE_FIELD_NAME.equals(fieldEntry.sedaFieldName())) {
+                        ruleIdFullFieldNames.add(fullFieldNameWithArrayIndex);
+                    }
+
+                    // Register rule properties along their expected "Rule" field name
+                    if (sedaManagementModel.isSpecialRulePropertyArrayIndex()) {
+                        rulePropertyToExpectedDeclaringRuleIdMap.put(
+                            fullFieldNameWithArrayIndex,
+                            buildPath(buildPath(fullParentFieldName, RULE_FIELD_NAME), arrayIndex)
+                        );
+                    }
+                }
+            }
+        }
+
+        for (String rulePropertyFieldName : rulePropertyToExpectedDeclaringRuleIdMap.keySet()) {
+            String expectedDeclaringRuleId = rulePropertyToExpectedDeclaringRuleIdMap.get(rulePropertyFieldName);
+            if (!ruleIdFullFieldNames.contains(expectedDeclaringRuleId)) {
+                throw new CollectInvalidCsvFormatException(
+                    "Invalid header names. Rule property field '" +
+                    rulePropertyFieldName +
+                    "' does not have a corresponding '" +
+                    expectedDeclaringRuleId +
+                    "'."
+                );
+            }
+        }
     }
 }
