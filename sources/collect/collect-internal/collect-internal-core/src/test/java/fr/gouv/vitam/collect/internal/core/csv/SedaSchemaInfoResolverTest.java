@@ -68,68 +68,91 @@ public class SedaSchemaInfoResolverTest {
     }
 
     @Test
-    public void testResolver() throws CollectInternalException {
+    public void testResolverForContentFields() throws CollectInternalException {
         SedaSchemaInfoResolver instance = new SedaSchemaInfoResolver(adminManagementClientFactory);
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.DescriptionLevel")).isEqualTo(
-            new SchemaInfo("Content.DescriptionLevel", "DescriptionLevel", "DescriptionLevel", false, false, false)
+        assertThat(instance.getContentSchemaInfo("Content")).isEqualTo(
+            new SedaSchemaInfo("Content", null, null, true, false, false, true)
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Event")).isEqualTo(
-            new SchemaInfo("Content.Event", "Event", "Event", true, true, false)
+        assertThat(instance.getContentSchemaInfo("Content.DescriptionLevel")).isEqualTo(
+            new SedaSchemaInfo(
+                "Content.DescriptionLevel",
+                "DescriptionLevel",
+                "DescriptionLevel",
+                false,
+                false,
+                false,
+                false
+            )
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Event.EventDateTime")).isEqualTo(
-            new SchemaInfo("Content.Event.EventDateTime", "Event.evDateTime", "evDateTime", false, false, false)
+        assertThat(instance.getContentSchemaInfo("Content.Event")).isEqualTo(
+            new SedaSchemaInfo("Content.Event", "Event", "Event", true, true, false, false)
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Signature.Signer.Function")).isEqualTo(
-            new SchemaInfo(
+        assertThat(instance.getContentSchemaInfo("Content.Event.EventDateTime")).isEqualTo(
+            new SedaSchemaInfo(
+                "Content.Event.EventDateTime",
+                "Event.evDateTime",
+                "evDateTime",
+                false,
+                false,
+                false,
+                false
+            )
+        );
+
+        assertThat(instance.getContentSchemaInfo("Content.Signature.Signer.Function")).isEqualTo(
+            new SedaSchemaInfo(
                 "Content.Signature.Signer.Function",
                 "Signature.Signer.Function",
                 "Function",
                 false,
                 true,
+                false,
                 false
             )
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.SigningInformation.Extended")).isEqualTo(
-            new SchemaInfo(
+        assertThat(instance.getContentSchemaInfo("Content.SigningInformation.Extended")).isEqualTo(
+            new SedaSchemaInfo(
                 "Content.SigningInformation.Extended",
                 "SigningInformation.Extended",
                 "Extended",
                 true,
                 false,
-                false
+                false,
+                true
             )
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Invoice")).isEqualTo(
-            new SchemaInfo("Content.Invoice", "Invoice", "Invoice", true, true, true)
+        assertThat(instance.getContentSchemaInfo("Content.Invoice")).isEqualTo(
+            new SedaSchemaInfo("Content.Invoice", "Invoice", "Invoice", true, true, true, true)
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Invoice.Provider.MyKeyword")).isEqualTo(
-            new SchemaInfo(
+        assertThat(instance.getContentSchemaInfo("Content.Invoice.Provider.MyKeyword")).isEqualTo(
+            new SedaSchemaInfo(
                 "Content.Invoice.Provider.MyKeyword",
                 "Invoice.Provider.MyKeyword",
                 "MyKeyword",
                 false,
                 true,
-                true
+                true,
+                false
             )
         );
 
         // No management fields
-        assertThat(instance.getContentFieldSchemaInfo("Management.AppraisalRule.Rule")).isNull();
+        assertThat(instance.getContentSchemaInfo("Management.AppraisalRule.Rule")).isNull();
 
         // No system field (#version, Title_ & Description_)
-        assertThat(instance.getContentFieldSchemaInfo("#version")).isNull();
-        assertThat(instance.getContentFieldSchemaInfo("Content.Title_")).isNull();
-        assertThat(instance.getContentFieldSchemaInfo("Content.Description_")).isNull();
+        assertThat(instance.getContentSchemaInfo("#version")).isNull();
+        assertThat(instance.getContentSchemaInfo("Content.Title_")).isNull();
+        assertThat(instance.getContentSchemaInfo("Content.Description_")).isNull();
 
         // Unknown fields
-        assertThat(instance.getContentFieldSchemaInfo("Unknown")).isNull();
+        assertThat(instance.getContentSchemaInfo("Unknown")).isNull();
     }
 
     public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {

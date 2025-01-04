@@ -29,29 +29,32 @@ package fr.gouv.vitam.collect.internal.core.csv;
 
 import java.util.Objects;
 
-public final class SchemaInfo {
+public final class SedaSchemaInfo {
 
     private final String sedaPath;
     private final String apiPath;
-    private final String apiField;
+    private final String apiSubPath;
     private final boolean isObject;
     private final boolean isArray;
     private final boolean isExternal;
+    private final boolean isSedaExtensionPoint;
 
-    public SchemaInfo(
+    public SedaSchemaInfo(
         String sedaPath,
         String apiPath,
-        String apiField,
+        String apiSubPath,
         boolean isObject,
         boolean isArray,
-        boolean isExternal
+        boolean isExternal,
+        boolean isSedaExtensionPoint
     ) {
         this.sedaPath = sedaPath;
         this.apiPath = apiPath;
-        this.apiField = apiField;
+        this.apiSubPath = apiSubPath;
         this.isObject = isObject;
         this.isArray = isArray;
         this.isExternal = isExternal;
+        this.isSedaExtensionPoint = isSedaExtensionPoint;
     }
 
     public String sedaPath() {
@@ -62,8 +65,8 @@ public final class SchemaInfo {
         return apiPath;
     }
 
-    public String apiField() {
-        return apiField;
+    public String apiSubPath() {
+        return apiSubPath;
     }
 
     public boolean isObject() {
@@ -78,38 +81,43 @@ public final class SchemaInfo {
         return isExternal;
     }
 
+    public boolean isSedaExtensionPoint() {
+        return isSedaExtensionPoint;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (SchemaInfo) obj;
+        var that = (SedaSchemaInfo) obj;
         return (
             Objects.equals(this.sedaPath, that.sedaPath) &&
             Objects.equals(this.apiPath, that.apiPath) &&
-            Objects.equals(this.apiField, that.apiField) &&
+            Objects.equals(this.apiSubPath, that.apiSubPath) &&
             this.isObject == that.isObject &&
             this.isArray == that.isArray &&
-            this.isExternal == that.isExternal
+            this.isExternal == that.isExternal &&
+            this.isSedaExtensionPoint == that.isSedaExtensionPoint
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sedaPath, apiPath, apiField, isObject, isArray, isExternal);
+        return Objects.hash(sedaPath, apiPath, apiSubPath, isObject, isArray, isExternal, isSedaExtensionPoint);
     }
 
     @Override
     public String toString() {
         return (
-            "SchemaInfo[" +
+            "SedaSchemaInfo[" +
             "sedaPath=" +
             sedaPath +
             ", " +
             "apiPath=" +
             apiPath +
             ", " +
-            "apiField=" +
-            apiField +
+            "apiSubPath=" +
+            apiSubPath +
             ", " +
             "isObject=" +
             isObject +
@@ -119,6 +127,9 @@ public final class SchemaInfo {
             ", " +
             "isExternal=" +
             isExternal +
+            ", " +
+            "isSedaExtensionPoint=" +
+            isSedaExtensionPoint +
             ']'
         );
     }

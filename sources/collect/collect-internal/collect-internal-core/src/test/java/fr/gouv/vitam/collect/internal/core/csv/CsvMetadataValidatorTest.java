@@ -89,28 +89,28 @@ public class CsvMetadataValidatorTest {
     }
 
     @Test
-    public void testConvertInvalidHeader_DuplicateHeaders() {
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title"),
-            "Duplicate header name 'Content.Title'"
-        );
+    public void testHeaderValidation_DuplicateHeaders() {
+        // Given
+        List<String> headerLines = List.of("File;File;Content.Title", "File;Content.Title;Content.Title");
+
+        // When / Then
+        for (String headerLine : headerLines) {
+            assertThatHeaderNamesAreInvalid(headerLine, "Duplicate header name '");
+        }
     }
 
     @Test
-    public void testConvertInvalidHeader_MissingFileHeader() {
-        assertThatHeaderNamesAreInvalid(
-            List.of("Content.Title", "Content.Description"),
-            "Missing required 'File' header name"
-        );
+    public void testHeaderValidation_MissingFileHeader() {
+        assertThatHeaderNamesAreInvalid("Content.Title;Content.Description", "Missing required 'File' header name");
     }
 
     @Test
-    public void testConvertInvalidHeader_NoHeaderToSet() {
-        assertThatHeaderNamesAreInvalid(List.of("File"), "No header to set");
+    public void testHeaderValidation_NoHeaderToSet() {
+        assertThatHeaderNamesAreInvalid("File", "No header to set");
     }
 
     @Test
-    public void testConvertInvalidHeader_HeaderSanityChecks_TooLong() {
+    public void testHeaderValidation_HeaderSanityChecks_TooLong() {
         assertThatHeaderNamesAreInvalid(
             List.of("File", "Content." + StringUtils.repeat('A', 300)),
             "Invalid header name 'Content.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...'. Too long"
@@ -118,7 +118,7 @@ public class CsvMetadataValidatorTest {
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidCategory() {
+    public void testHeaderValidation_InvalidCategory() {
         // Given
         List<String> headerLines = List.of(
             "File;Content.",
@@ -128,16 +128,15 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
             assertThatHeaderNamesAreInvalid(
-                headerNames,
+                headerLine,
                 "Only accepted names are 'File', 'Content.*' or 'Management.*'"
             );
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_TooManyHeaders() {
+    public void testHeaderValidation_TooManyHeaders() {
         // Given
         List<String> headerNames = ListUtils.union(
             List.of("File"),
@@ -149,7 +148,7 @@ public class CsvMetadataValidatorTest {
     }
 
     @Test
-    public void testConvertInvalidHeader_MixImplicitAndExplicitArrayIndex() {
+    public void testHeaderValidation_MixImplicitAndExplicitArrayIndex() {
         // Given
         List<String> headerLines = List.of(
             "File;Content.SystemId;Content.SystemId.1",
@@ -159,16 +158,12 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(
-                headerNames,
-                "Cannot mix implicit array and array index syntaxes for field"
-            );
+            assertThatHeaderNamesAreInvalid(headerLine, "Cannot mix implicit array and array index syntaxes for field");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_MissingHeaderIndex() {
+    public void testHeaderValidation_MissingHeaderIndex() {
         // Given
         List<String> headerLines = List.of(
             "File;Content.SystemId.0;Content.SystemId.2",
@@ -178,19 +173,23 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(headerNames, "Missing field '");
+            assertThatHeaderNamesAreInvalid(headerLine, "Missing field '");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidArrayFields() {
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Field.0.0"), "Invalid array index");
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.0.Field.0"), "Invalid array index");
+    public void testHeaderValidation_InvalidArrayFields() {
+        assertThatHeaderNamesAreInvalid("File;Content.Title.0.0", "Invalid array declaration at 'Content.Title.0'");
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Description.0.0",
+            "Invalid array declaration at 'Content.Description.0'"
+        );
+        assertThatHeaderNamesAreInvalid("File;Content.Tag.0.0", "Invalid array declaration at 'Content.Tag.0'");
+        assertThatHeaderNamesAreInvalid("File;Content.0.Title", "Field 'Content' is not an array");
     }
 
     @Test
-    public void testConvertInvalidHeader_TooLargeArrayIndex() {
+    public void testHeaderValidation_TooLargeArrayIndex() {
         // Given
         List<String> headerLines = List.of(
             "File;Content.SystemId.10000",
@@ -201,13 +200,12 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(headerNames, "Array index too large");
+            assertThatHeaderNamesAreInvalid(headerLine, "Array index too large");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_EmptyFieldName() {
+    public void testHeaderValidation_EmptyFieldName() {
         // Given
         List<String> headerLines = List.of(
             "File;Content..",
@@ -218,37 +216,33 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(headerNames, "Empty field name");
+            assertThatHeaderNamesAreInvalid(headerLine, "Empty field name");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_FieldNameContainingDigit() {
-        assertThatCode(
-            () -> csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, List.of("File", "Content.Field1"))
-        ).doesNotThrowAnyException();
+    public void testHeaderValidation_ValidFieldNameContainingDigit() {
+        assertThatHeaderNamesAreValid("File;Content.Field1");
     }
 
     @Test
-    public void testConvertInvalidHeader_FieldNameStartingWithDigit() {
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.1Field"), "Field name cannot start with a digit");
+    public void testHeaderValidation_InvalidFieldNameStartingWithDigit() {
+        assertThatHeaderNamesAreInvalid("File;Content.1Field", "Field name cannot start with a digit");
     }
 
     @Test
-    public void testConvertInvalidHeader_IllegalFieldNamesPrefix() {
+    public void testHeaderValidation_IllegalFieldNamesPrefix() {
         // Given
         List<String> headerLines = List.of("File;Content._AZ", "File;Content.-AZ");
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(headerNames, "'. Field name cannot start with '_' or '-'");
+            assertThatHeaderNamesAreInvalid(headerLine, "'. Field name cannot start with '_' or '-'");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_IllegalFieldNamesReservedCharacters() {
+    public void testHeaderValidation_IllegalFieldNamesReservedCharacters() {
         // Given
         List<String> headerLines = List.of(
             "File;Content.A\u0000Z",
@@ -294,63 +288,51 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(headerNames, "'. Reserved characters");
+            assertThatHeaderNamesAreInvalid(headerLine, "'. Reserved characters");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidTitleHeaderNames() {
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Title.subfield"), "Valid Content.Title.* expected");
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Title.0.0"), "Valid Content.Title.* expected");
+    public void testHeaderValidation_InvalidTitleHeaderNames() {
+        assertThatHeaderNamesAreInvalid("File;Content.Title.subfield", "Valid Content.Title.* expected");
+        assertThatHeaderNamesAreInvalid("File;Content.Title.0.attr", "Missing base header name 'Content.Title.0'");
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title.0.attr"),
+            "File;Content.Title;Content.Title.0.attr",
             "Missing base header name 'Content.Title.0'"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title.0.attr"),
-            "Missing base header name 'Content.Title.0'"
-        );
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title.attr.0"),
+            "File;Content.Title;Content.Title.attr.0",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title.attr.subfield"),
+            "File;Content.Title;Content.Title.attr.subfield",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidDescriptionHeaderNames() {
+    public void testHeaderValidation_InvalidDescriptionHeaderNames() {
+        assertThatHeaderNamesAreInvalid("File;Content.Description.subfield", "Valid Content.Description.* expected");
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description.subfield"),
-            "Valid Content.Description.* expected"
-        );
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description.0.0"),
-            "Valid Content.Description.* expected"
-        );
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description.0.attr"),
+            "File;Content.Description.0.attr",
             "Missing base header name 'Content.Description.0'"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description", "Content.Description.0.attr"),
+            "File;Content.Description;Content.Description.0.attr",
             "Missing base header name 'Content.Description.0'"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description", "Content.Description.attr.0"),
+            "File;Content.Description;Content.Description.attr.0",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description", "Content.Description.attr.subfield"),
+            "File;Content.Description;Content.Description.attr.subfield",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidApiFieldNameAsSedaPath() {
+    public void testHeaderValidation_InvalidApiFieldNameAsSedaPath() {
         // Given
         List<String> headerLines = List.of(
             "File;Content.Title_",
@@ -389,192 +371,164 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            List<String> headerNames = List.of(headerLine.split(";"));
-            assertThatHeaderNamesAreInvalid(headerNames, " Header must be Seda field name");
+            assertThatHeaderNamesAreInvalid(headerLine, " Header must be Seda field name");
         }
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidSedaExtensionPoints() {
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Title.MyExtension"), "Valid Content.Title.* expected");
+    public void testHeaderValidation_InvalidSedaExtensionPoints() {
+        assertThatHeaderNamesAreInvalid("File;Content.Title.MyExtension", "Valid Content.Title.* expected");
+
+        assertThatHeaderNamesAreInvalid("File;Content.Description.MyExtension", "Valid Content.Description.* expected");
+
+        assertThatHeaderNamesAreInvalid("File;Content.Tag.MyExtension", "Field 'Content.Tag' is not an object.");
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Description.MyExtension"),
-            "Valid Content.Description.* expected"
-        );
-
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Tag.MyExtension"),
-            "Field 'Content.Tag' is not an object."
-        );
-
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Signature.MyExtension"),
+            "File;Content.Signature.MyExtension",
             "Invalid seda extension point 'Content.Signature'"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Signature.ReferencedObject.SignedObjectDigest.MyExtension"),
+            "File;Content.Signature.ReferencedObject.SignedObjectDigest.MyExtension",
             "Invalid seda extension point 'Content.Signature.ReferencedObject.SignedObjectDigest'"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Event.MyExtension"),
+            "File;Content.Event.MyExtension",
             "Invalid seda extension point 'Content.Event'"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Invoice.Provider.MyKeyword.MyExtension"),
+            "File;Content.Invoice.Provider.MyKeyword.MyExtension",
             "Field 'Content.Invoice.Provider.MyKeyword' is not an object"
         );
     }
 
     @Test
-    public void testConvertInvalidHeader_ValidSedaExtensionPoints() {
-        assertThatHeaderNamesAreValid(List.of("File", "Content.MyExtension"));
-        assertThatHeaderNamesAreValid(List.of("File", "Content.MyExtension.SubField1"));
+    public void testHeaderValidation_ValidSedaExtensionPoints() {
+        assertThatHeaderNamesAreValid("File;Content.MyExtension");
+        assertThatHeaderNamesAreValid("File;Content.MyExtension.SubField1");
+        assertThatHeaderNamesAreValid("File;Content.MyExtension.SubField1;Content.MyExtension.SubField2");
+
+        assertThatHeaderNamesAreValid("File;Content.Invoice.MyExtension");
+        assertThatHeaderNamesAreValid("File;Content.Invoice.MyExtension.SubField1");
         assertThatHeaderNamesAreValid(
-            List.of("File", "Content.MyExtension.SubField1", "Content.MyExtension.SubField2")
+            "File;Content.Invoice.MyExtension.SubField1;Content.Invoice.MyExtension.SubField2"
         );
 
-        assertThatHeaderNamesAreValid(List.of("File", "Content.Invoice.MyExtension"));
-        assertThatHeaderNamesAreValid(List.of("File", "Content.Invoice.MyExtension.SubField1"));
+        assertThatHeaderNamesAreValid("File;Content.SigningInformation.Extended.MyExtension");
+        assertThatHeaderNamesAreValid("File;Content.SigningInformation.Extended.MyExtension.SubField1");
         assertThatHeaderNamesAreValid(
-            List.of("File", "Content.Invoice.MyExtension.SubField1", "Content.Invoice.MyExtension.SubField2")
+            "File;Content.SigningInformation.Extended.MyExtension.SubField1;Content.SigningInformation.Extended.MyExtension.SubField2"
         );
 
-        assertThatHeaderNamesAreValid(List.of("File", "Content.SigningInformation.Extended.MyExtension"));
-        assertThatHeaderNamesAreValid(List.of("File", "Content.SigningInformation.Extended.MyExtension.SubField1"));
+        assertThatHeaderNamesAreValid("File;Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension");
         assertThatHeaderNamesAreValid(
-            List.of(
-                "File",
-                "Content.SigningInformation.Extended.MyExtension.SubField1",
-                "Content.SigningInformation.Extended.MyExtension.SubField2"
-            )
+            "File;Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1"
+        );
+        assertThatHeaderNamesAreValid(
+            "File;Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1;Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension.SubField2"
         );
 
+        assertThatHeaderNamesAreValid("File;Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension");
         assertThatHeaderNamesAreValid(
-            List.of("File", "Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension")
+            "File;Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1"
         );
         assertThatHeaderNamesAreValid(
-            List.of("File", "Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1")
-        );
-        assertThatHeaderNamesAreValid(
-            List.of(
-                "File",
-                "Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1",
-                "Content.OriginatingAgency.OrganizationDescriptiveMetadata.MyExtension.SubField2"
-            )
-        );
-
-        assertThatHeaderNamesAreValid(
-            List.of("File", "Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension")
-        );
-        assertThatHeaderNamesAreValid(
-            List.of("File", "Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1")
-        );
-        assertThatHeaderNamesAreValid(
-            List.of(
-                "File",
-                "Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1",
-                "Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension.SubField2"
-            )
+            "File;Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension.SubField1;Content.SubmissionAgency.OrganizationDescriptiveMetadata.MyExtension.SubField2"
         );
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidAttrHeaderName() {
+    public void testHeaderValidation_InvalidAttrHeaderName() {
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.attr.Title"),
+            "File;Content.attr.Title",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title.0", "Content.Title.attr.0"),
+            "File;Content.Title.0;Content.Title.attr.0",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title.0", "Content.Title.0.attr.0"),
+            "File;Content.Title.0;Content.Title.0.attr.0",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title.attr.attr"),
+            "File;Content.Title.attr.attr",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
 
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title.0.attr"),
-            "Missing base header name 'Content.Title.0'"
-        );
+        assertThatHeaderNamesAreInvalid("File;Content.Title.0.attr", "Missing base header name 'Content.Title.0'");
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title.0.attr"),
+            "File;Content.Title;Content.Title.0.attr",
             "Missing base header name 'Content.Title.0'"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title.attr.0"),
+            "File;Content.Title;Content.Title.attr.0",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Title", "Content.Title.attr.subfield"),
+            "File;Content.Title;Content.Title.attr.subfield",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
 
-        assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.MyExtension", "Content.MyExtension.attr"),
-            "Reserved 'attr' suffix"
-        );
+        assertThatHeaderNamesAreInvalid("File;Content.MyExtension;Content.MyExtension.attr", "Reserved 'attr' suffix");
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.MyExtension.attr"),
+            "File;Content.MyExtension.attr",
             "Missing base header name 'Content.MyExtension'"
         );
 
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Tag", "Content.Tag.attr"), "Reserved 'attr' suffix");
+        assertThatHeaderNamesAreInvalid("File;Content.Tag;Content.Tag.attr", "Reserved 'attr' suffix");
     }
 
     @Test
-    public void testConvertInvalidHeader_ObjectFieldsCannotBeHeaderNames() {
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Writer"), "Field 'Content.Writer' is an object.");
-
-        assertThatHeaderNamesAreInvalid(List.of("File", "Content.Invoice"), "Field 'Content.Invoice' is an object.");
+    public void testHeaderValidation_ObjectFieldsCannotBeHeaderNames() {
+        assertThatHeaderNamesAreInvalid("File;Content.Writer", "Field 'Content.Writer' is an object.");
+        assertThatHeaderNamesAreInvalid("File;Content.Invoice", "Field 'Content.Invoice' is an object.");
     }
 
     @Test
-    public void testConvertInvalidHeader_InvalidArrayIndexForNonArrayFields() {
+    public void testHeaderValidation_InvalidArrayIndexForNonArrayFields() {
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Sender.Gender.0"),
+            "File;Content.Sender.Gender.0",
             "Field 'Content.Sender.Gender' is not an array"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Sender.0.Gender.0"),
+            "File;Content.Sender.0.Gender.0",
             "Field 'Content.Sender.Gender' is not an array"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Event.EventIdentifier.0"),
+            "File;Content.Event.EventIdentifier.0",
             "Field 'Content.Event.EventIdentifier' is not an array"
         );
 
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.Event.0.EventIdentifier.0"),
+            "File;Content.Event.0.EventIdentifier.0",
             "Field 'Content.Event.EventIdentifier' is not an array"
         );
     }
 
     @Test
-    public void testConvertInvalidHeader_ExternalFieldCannotBeAnObjectAndAValueField() {
+    public void testHeaderValidation_ExternalFieldCannotBeAnObjectAndAValueField() {
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.MyExtension", "Content.MyExtension.SubField"),
+            "File;Content.MyExtension;Content.MyExtension.SubField",
             "Field 'Content.MyExtension' is not an object."
         );
         assertThatHeaderNamesAreInvalid(
-            List.of("File", "Content.MyExtension.SubField", "Content.MyExtension"),
+            "File;Content.MyExtension.SubField;Content.MyExtension",
             "Field 'Content.MyExtension' is an object."
         );
+    }
+
+    private void assertThatHeaderNamesAreInvalid(String headersLine, String errorMessage) {
+        assertThatHeaderNamesAreInvalid(parseHeaders(headersLine), errorMessage);
     }
 
     private void assertThatHeaderNamesAreInvalid(List<String> headerNames, String errorMessage) {
@@ -584,10 +538,18 @@ public class CsvMetadataValidatorTest {
             .hasMessageContaining(errorMessage);
     }
 
+    private void assertThatHeaderNamesAreValid(String headersLine) {
+        assertThatHeaderNamesAreValid(parseHeaders(headersLine));
+    }
+
     private void assertThatHeaderNamesAreValid(List<String> headerNames) {
         assertThatCode(
             () -> csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, headerNames)
         ).doesNotThrowAnyException();
+    }
+
+    private static List<String> parseHeaders(String headerLine) {
+        return List.of(headerLine.split(";"));
     }
 
     private RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {

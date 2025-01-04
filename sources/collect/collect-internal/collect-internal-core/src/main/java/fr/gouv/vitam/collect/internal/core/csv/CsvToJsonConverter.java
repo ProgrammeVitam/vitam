@@ -30,6 +30,7 @@ package fr.gouv.vitam.collect.internal.core.csv;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.wnameless.json.unflattener.JsonUnflattener;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.collect.internal.core.csv.CsvHeaderFieldNameIterable.FieldEntry;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.collect.internal.core.helpers.CsvMetadataMapper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -53,18 +54,14 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_DESCRIPTION_;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_TITLE;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_TITLE_;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ARRAY_INDEX_PATTERN;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ATTR_HEADER_NAME;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ATTR_HEADER_NAME_SUFFIX;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_DESCRIPTION;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.LANG_ATTR_VALUE_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR_CHAR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.equalsOrStartsWith;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContentDescriptionField;
@@ -110,39 +107,29 @@ public class CsvToJsonConverter {
     }
 
     private static String normalizeContentHeaderName(SedaSchemaInfoResolver sedaSchemaInfoResolver, String headerName) {
-        String fullFieldName = headerName.substring(CONTENT_SEPARATOR.length());
-        String[] fieldNames = StringUtils.splitPreserveAllTokens(fullFieldName, SEPARATOR_CHAR);
-
-        String sedaPath = CONTENT;
         String normalizedHeaderName = null;
-        for (int i = 0; i < fieldNames.length; i++) {
-            String fieldName = fieldNames[i];
-            sedaPath = buildPath(sedaPath, fieldName);
-
-            if (sedaPath.equals(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST)) {
-                if (i == fieldNames.length - 1) {
+        for (FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+            if (fieldEntry.simpleSedaPath().equals(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST)) {
+                if (!fieldEntry.isDeclaredAsObject()) {
                     return buildPath(normalizedHeaderName, "SignedObjectDigest.MessageDigest");
-                } else {
-                    if (i != fieldNames.length - 2 || !fieldNames[i + 1].equals(ATTR_HEADER_NAME)) {
-                        throw new IllegalStateException("Expected " + ATTR_HEADER_NAME_SUFFIX + " suffix");
-                    }
-                    return buildPath(normalizedHeaderName, "SignedObjectDigest.Algorithm");
                 }
             }
+            if (fieldEntry.simpleSedaPath().equals(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR)) {
+                return buildPath(normalizedHeaderName, "Algorithm");
+            }
 
-            SchemaInfo schemaInfo = sedaSchemaInfoResolver.getContentFieldSchemaInfo(sedaPath);
+            SedaSchemaInfo schemaInfo = sedaSchemaInfoResolver.getContentSchemaInfo(fieldEntry.simpleSedaPath());
             if (schemaInfo == null) {
-                normalizedHeaderName = buildPath(normalizedHeaderName, fieldName);
+                normalizedHeaderName = buildPath(normalizedHeaderName, fieldEntry.sedaFieldName());
             } else {
-                normalizedHeaderName = buildPath(normalizedHeaderName, schemaInfo.apiField());
+                normalizedHeaderName = buildPath(normalizedHeaderName, schemaInfo.apiSubPath());
             }
 
             boolean isArray = schemaInfo == null || schemaInfo.isArray();
             if (isArray) {
                 int arrayIndex = 0;
-                if (i + 1 < fieldNames.length && matchesPattern(fieldNames[i + 1], ARRAY_INDEX_PATTERN)) {
-                    arrayIndex = Integer.parseInt(fieldNames[i + 1]);
-                    i++;
+                if (fieldEntry.isDeclaredAsArray()) {
+                    arrayIndex = fieldEntry.arrayIndex();
                 }
                 normalizedHeaderName = normalizedHeaderName + "[" + arrayIndex + "]";
             }
@@ -192,7 +179,7 @@ public class CsvToJsonConverter {
         try {
             unitContent = (ObjectNode) JsonHandler.getFromString(jsonStr);
         } catch (InvalidParseOperationException e) {
-            throw new CollectInvalidCsvFormatException("An error occurred during Content metadata mapping", e);
+            throw new IllegalStateException("An error occurred during Csv metadata mapping", e);
         }
         return unitContent;
     }

@@ -27,8 +27,6 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
-
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -53,6 +51,7 @@ public class CsvMetadataUtils {
     );
 
     public static final Set<String> SEDA_EXTENSION_POINTS = Set.of(
+        "Content",
         "Content.SigningInformation.Extended",
         "Content.OriginatingAgency.OrganizationDescriptiveMetadata",
         "Content.SubmissionAgency.OrganizationDescriptiveMetadata"
@@ -113,15 +112,5 @@ public class CsvMetadataUtils {
 
     public static boolean equalsOrStartsWith(String str, String prefix) {
         return str.equals(prefix) || str.startsWith(prefix + SEPARATOR);
-    }
-
-    public static int parseIndexPattern(String headerName, String value) throws CollectInvalidCsvFormatException {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new CollectInvalidCsvFormatException(
-                "Invalid header name '" + headerName + "'. Invalid array index '" + value + "'"
-            );
-        }
     }
 }

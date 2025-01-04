@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.HASH_PREFIX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
@@ -58,14 +59,14 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR
  */
 public class SedaSchemaInfoResolver {
 
-    private final Map<String, SchemaInfo> contentSchemaBySedaPath;
+    private final Map<String, SedaSchemaInfo> contentSchemaBySedaPath;
 
     public SedaSchemaInfoResolver(AdminManagementClientFactory adminManagementClientFactory)
         throws CollectInternalException {
         List<SchemaResponse> allSchemaModels = loadUnitSchema(adminManagementClientFactory);
-        hotfixSchemaModels(allSchemaModels);
-        List<SchemaResponse> contentSchemaModels = skipSystemSchemaModels(allSchemaModels);
-        contentSchemaBySedaPath = getContentSchemaBySedaPath(contentSchemaModels);
+        List<SchemaResponse> sedaSchemaModels = skipSystemSchemaModels(allSchemaModels);
+        hotfixSchemaModels(sedaSchemaModels);
+        contentSchemaBySedaPath = getContentSchemaBySedaPath(sedaSchemaModels);
     }
 
     @Deprecated
@@ -75,7 +76,8 @@ public class SedaSchemaInfoResolver {
             .stream()
             .filter(model -> model.getPath().equals("Event.evDetData"))
             .forEach(model -> model.setSedaField("EventDetailData"));
-        // FIXME : SedaField is empty for INTERNAL OBJECT schema model entries (Bug #14047)
+
+        // FIXME : Patch SedaField for INTERNAL OBJECT schema model entries (Bug #14047)
         schemaModels
             .stream()
             .filter(model -> model.getOrigin() == SchemaOrigin.INTERNAL && model.getType() == SchemaType.OBJECT)
@@ -110,7 +112,7 @@ public class SedaSchemaInfoResolver {
         }
     }
 
-    private static Map<String, SchemaInfo> getContentSchemaBySedaPath(List<SchemaResponse> contentSchemaModels) {
+    private static Map<String, SedaSchemaInfo> getContentSchemaBySedaPath(List<SchemaResponse> contentSchemaModels) {
         List<SchemaResponse> sortedContentSchemaFields = contentSchemaModels
             .stream()
             // FIXME : External fields do not have ApiField, ApiPath & SedaField (Bug #14049)
@@ -122,7 +124,7 @@ public class SedaSchemaInfoResolver {
             .collect(Collectors.toList());
 
         Map<String, String> apiPathToSedaPath = new HashMap<>();
-        Map<String, SchemaInfo> sedaPathToSedaInfo = new HashMap<>();
+        Map<String, SedaSchemaInfo> sedaPathToSedaInfo = new HashMap<>();
 
         for (SchemaResponse schema : sortedContentSchemaFields) {
             boolean isObject = schema.getType() == SchemaType.OBJECT;
@@ -145,22 +147,34 @@ public class SedaSchemaInfoResolver {
                 sedaPath = apiPathToSedaPath.get(parentApiPath) + SEPARATOR + sedaField;
             }
 
+            boolean isSedaExtensionPoint;
+            if (isExternal) {
+                // External objects may be extended
+                isSedaExtensionPoint = isObject;
+            } else {
+                // Only predefined Seda extension points may be extended
+                isSedaExtensionPoint = CsvMetadataUtils.SEDA_EXTENSION_POINTS.contains(sedaPath);
+            }
+
             apiPathToSedaPath.put(apiPath, sedaPath);
             sedaPathToSedaInfo.put(
                 sedaPath,
-                new SchemaInfo(sedaPath, apiPath, apiField, isObject, isArray, isExternal)
+                new SedaSchemaInfo(sedaPath, apiPath, apiField, isObject, isArray, isExternal, isSedaExtensionPoint)
             );
         }
+
+        // Append root "Content" seda field
+        sedaPathToSedaInfo.put(CONTENT, new SedaSchemaInfo(CONTENT, null, null, true, false, false, true));
 
         return MapUtils.unmodifiableMap(sedaPathToSedaInfo);
     }
 
-    public SchemaInfo getContentFieldSchemaInfo(String sedaPath) {
+    public SedaSchemaInfo getContentSchemaInfo(String sedaPath) {
         return contentSchemaBySedaPath.get(sedaPath);
     }
 
     @VisibleForTesting
-    Collection<SchemaInfo> getAllContentFieldSchemaInfo() {
+    Collection<SedaSchemaInfo> getAllContentSchemaInfo() {
         return contentSchemaBySedaPath.values();
     }
 }

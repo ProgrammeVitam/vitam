@@ -44,7 +44,6 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_TITLE_;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ARRAY_INDEX_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ATTR_HEADER_NAME_SUFFIX;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_DESCRIPTION_VALID_HEADER_NAME_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST;
@@ -54,7 +53,6 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_S
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE_VALID_HEADER_NAME_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEDA_EXTENSION_POINTS;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR_CHAR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.STARTS_WITH_DIGIT_PATTERN;
@@ -64,7 +62,6 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContent
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isFileField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isManagementField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.matchesPattern;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.parseIndexPattern;
 
 public class CsvMetadataValidator {
 
@@ -100,6 +97,8 @@ public class CsvMetadataValidator {
         checkRequiredHeaderNames(headerNames);
         headerNameSanityChecks(headerNames);
         checkAttributeHeaderNames(headerNames);
+        checkHeaderImplicitAndExplicitArrayIndexMix(headerNames);
+        checkInvalidArraysOfArrays(headerNames);
     }
 
     private void checkTooManyHeaderNames(List<String> headerNames) throws CollectInvalidCsvFormatException {
@@ -195,47 +194,6 @@ public class CsvMetadataValidator {
         }
     }
 
-    private void checkHeaderArrayIndexes(List<String> headerNames) throws CollectInvalidCsvFormatException {
-        HashSetValuedHashMap<String, Integer> fieldsWithArrayIndexes = new HashSetValuedHashMap<>();
-        Set<String> fieldsWithoutArrayIndexes = new HashSet<>();
-
-        for (String headerName : headerNames) {
-            String[] parts = StringUtils.splitPreserveAllTokens(headerName, SEPARATOR_CHAR);
-            String fieldName = null;
-            for (int i = 0; i < parts.length; i++) {
-                fieldName = buildPath(fieldName, parts[i]);
-                if ((i + 1 < parts.length) && matchesPattern(parts[i + 1], ARRAY_INDEX_PATTERN)) {
-                    fieldsWithArrayIndexes.put(fieldName, parseIndexPattern(headerName, parts[i + 1]));
-                } else {
-                    fieldsWithoutArrayIndexes.add(fieldName);
-                }
-            }
-        }
-
-        // No field declared with both explicit and implicit array index ("A" & "A.1")
-        for (String fieldName : fieldsWithoutArrayIndexes) {
-            if (fieldsWithArrayIndexes.containsKey(fieldName)) {
-                throw new CollectInvalidCsvFormatException(
-                    "Invalid header names. Cannot mix implicit array and array index syntaxes for field '" +
-                    fieldName +
-                    "'"
-                );
-            }
-        }
-
-        // No sparse arrays (ex. "A.0" & "A.2" without "A.1")
-        for (String fieldName : fieldsWithArrayIndexes.keySet()) {
-            Set<Integer> arrayIndexes = fieldsWithArrayIndexes.get(fieldName);
-            for (int i = 0; i < arrayIndexes.size(); i++) {
-                if (!arrayIndexes.contains(i)) {
-                    throw new CollectInvalidCsvFormatException(
-                        "Invalid header names. Missing field '" + fieldName + "." + i + "'"
-                    );
-                }
-            }
-        }
-    }
-
     private void checkAttributeHeaderNames(List<String> headerNames) throws CollectInvalidCsvFormatException {
         // ".attr" can only be used as a suffix
         for (String headerName : headerNames) {
@@ -265,14 +223,57 @@ public class CsvMetadataValidator {
         }
     }
 
+    private void checkHeaderImplicitAndExplicitArrayIndexMix(List<String> headerNames)
+        throws CollectInvalidCsvFormatException {
+        Set<String> fieldsWithArrayIndexes = new HashSet<>();
+        Set<String> fieldsWithoutArrayIndexes = new HashSet<>();
+
+        for (String headerName : headerNames) {
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                if (fieldEntry.isDeclaredAsArray()) {
+                    fieldsWithArrayIndexes.add(fieldEntry.fullSedaPathWithoutLastArrayIndex());
+                } else {
+                    fieldsWithoutArrayIndexes.add(fieldEntry.fullSedaPathWithoutLastArrayIndex());
+                }
+            }
+        }
+
+        // No field declared with both explicit and implicit array index ("A" & "A.1")
+        for (String fieldName : fieldsWithoutArrayIndexes) {
+            if (fieldsWithArrayIndexes.contains(fieldName)) {
+                throw new CollectInvalidCsvFormatException(
+                    "Invalid header names. Cannot mix implicit array and array index syntaxes for field '" +
+                    fieldName +
+                    "'"
+                );
+            }
+        }
+    }
+
+    private void checkInvalidArraysOfArrays(List<String> headerNames) throws CollectInvalidCsvFormatException {
+        for (String headerName : headerNames) {
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                if (matchesPattern(fieldEntry.sedaFieldName(), ARRAY_INDEX_PATTERN)) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" +
+                        headerName +
+                        "'. Invalid array declaration at '" +
+                        fieldEntry.parentFullSedaPath() +
+                        "'"
+                    );
+                }
+            }
+        }
+    }
+
     private void validateContentHeaderNames(
         SedaSchemaInfoResolver sedaSchemaInfoResolver,
         List<String> contentHeaderNames
     ) throws CollectInvalidCsvFormatException {
         preventUsingApiFieldNameAsSedaPath(sedaSchemaInfoResolver, contentHeaderNames);
 
-        // Array indexes can only be checked for Content.*. Management.* fields require special handling
-        checkHeaderArrayIndexes(contentHeaderNames);
+        // No sparse arrays (ex. "Content.XYZ.0" & "Content.XYZ.2" without "Content.XYZ.1")
+        checkSparseContentArraysHeaderNames(contentHeaderNames);
 
         // Content.Title[.*]
         validateSpecialContentTitleHeaderNames(
@@ -310,7 +311,7 @@ public class CsvMetadataValidator {
         reservedSedaPaths.add(CONTENT_SEPARATOR + API_FIELD_DESCRIPTION_);
         reservedSedaPaths.add(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST);
         reservedSedaPaths.add(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ALGORITHM);
-        for (SchemaInfo schemaInfo : sedaSchemaInfoResolver.getAllContentFieldSchemaInfo()) {
+        for (SedaSchemaInfo schemaInfo : sedaSchemaInfoResolver.getAllContentSchemaInfo()) {
             String contentApiPath = CONTENT_SEPARATOR + schemaInfo.apiPath();
             if (!contentApiPath.equals(schemaInfo.sedaPath())) {
                 reservedSedaPaths.add(contentApiPath);
@@ -318,11 +319,41 @@ public class CsvMetadataValidator {
         }
 
         for (String headerName : contentHeaderNames) {
+            // Remove array indexes
             String sedaPath = headerName.replaceAll("\\.\\d+$", "").replaceAll("\\.\\d+\\.", ".");
             for (String reservedSedaPath : reservedSedaPaths) {
                 if (equalsOrStartsWith(sedaPath, reservedSedaPath)) {
                     throw new CollectInvalidCsvFormatException(
                         "Invalid header name '" + headerName + "'. Header must be Seda field name"
+                    );
+                }
+            }
+        }
+    }
+
+    private void checkSparseContentArraysHeaderNames(List<String> headerNames) throws CollectInvalidCsvFormatException {
+        HashSetValuedHashMap<String, Integer> fieldsWithArrayIndexes = new HashSetValuedHashMap<>();
+
+        for (String headerName : headerNames) {
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                if (fieldEntry.isDeclaredAsArray()) {
+                    fieldsWithArrayIndexes.put(fieldEntry.fullSedaPathWithoutLastArrayIndex(), fieldEntry.arrayIndex());
+                }
+            }
+        }
+
+        checkNoMissingArrayIndexes(fieldsWithArrayIndexes);
+    }
+
+    private void checkNoMissingArrayIndexes(HashSetValuedHashMap<String, Integer> fieldsWithArrayIndexes)
+        throws CollectInvalidCsvFormatException {
+        // No sparse arrays (ex. "A.0" & "A.2" without "A.1")
+        for (String fieldName : fieldsWithArrayIndexes.keySet()) {
+            Set<Integer> arrayIndexes = fieldsWithArrayIndexes.get(fieldName);
+            for (int i = 0; i < arrayIndexes.size(); i++) {
+                if (!arrayIndexes.contains(i)) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header names. Missing field '" + fieldName + "." + i + "'"
                     );
                 }
             }
@@ -355,39 +386,24 @@ public class CsvMetadataValidator {
         SedaSchemaInfoResolver sedaSchemaInfoResolver,
         List<String> mainContentHeaderNames
     ) throws CollectInvalidCsvFormatException {
-        Map<String, SchemaInfo> extraExternalSchemaFields = new HashMap<>();
+        Map<String, SedaSchemaInfo> extraExternalSchemaFields = new HashMap<>();
         for (String headerName : mainContentHeaderNames) {
             preventAttributeInRegularHeaderName(headerName);
 
-            String fullFieldName = StringUtils.removeStart(headerName, CONTENT_SEPARATOR);
-            String[] fieldNames = StringUtils.splitPreserveAllTokens(fullFieldName, SEPARATOR_CHAR);
-            if (fieldNames.length == 0) {
-                throw new CollectInvalidCsvFormatException("Invalid header name '" + headerName + "'");
-            }
-
-            SchemaInfo parentSchemaInfo = null;
-            for (int i = 0; i < fieldNames.length; i++) {
-                String fieldName = fieldNames[i];
-
-                if (matchesPattern(fieldName, ARRAY_INDEX_PATTERN)) {
+            SedaSchemaInfo parentSchemaInfo = null;
+            for (CsvHeaderFieldNameIterable.FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+                if (matchesPattern(fieldEntry.sedaFieldName(), ARRAY_INDEX_PATTERN)) {
                     throw new CollectInvalidCsvFormatException(
                         "Invalid header name '" + headerName + "'. Invalid array index"
                     );
                 }
 
-                boolean isDeclaredAsArray = false;
-                if (i + 1 < fieldNames.length && matchesPattern(fieldNames[i + 1], ARRAY_INDEX_PATTERN)) {
-                    isDeclaredAsArray = true;
-                    i++;
-                }
-                boolean isDeclaredAsObject = (i + 1 < fieldNames.length);
+                String parentSedaPath = parentSchemaInfo == null ? null : parentSchemaInfo.sedaPath();
+                String currentSedaPath = buildPath(parentSedaPath, fieldEntry.sedaFieldName());
 
-                String parentSedaPath = parentSchemaInfo == null ? CONTENT : parentSchemaInfo.sedaPath();
-                String currentSedaPath = buildPath(parentSedaPath, fieldName);
+                currentSedaPath = patchSpecialSignedObjectDigestPath(currentSedaPath, fieldEntry.isDeclaredAsObject());
 
-                currentSedaPath = patchSpecialSignedObjectDigestPath(currentSedaPath, isDeclaredAsObject);
-
-                SchemaInfo schemaInfo = sedaSchemaInfoResolver.getContentFieldSchemaInfo(currentSedaPath);
+                SedaSchemaInfo schemaInfo = sedaSchemaInfoResolver.getContentSchemaInfo(currentSedaPath);
                 if (schemaInfo == null) {
                     // Unknown external schema field can only be added on top of
                     // - Seda extension points
@@ -402,12 +418,12 @@ public class CsvMetadataValidator {
                                 "'. Value field '" +
                                 parentSedaPath +
                                 "' cannot have a sub-field '" +
-                                fieldName +
+                                fieldEntry.sedaFieldName() +
                                 "'"
                             );
                         }
 
-                        if (!parentSchemaInfo.isExternal() && !SEDA_EXTENSION_POINTS.contains(parentSedaPath)) {
+                        if (!parentSchemaInfo.isSedaExtensionPoint()) {
                             throw new CollectInvalidCsvFormatException(
                                 "Invalid header name '" +
                                 headerName +
@@ -420,28 +436,36 @@ public class CsvMetadataValidator {
 
                     if (!extraExternalSchemaFields.containsKey(currentSedaPath)) {
                         String apiPath = parentSchemaInfo != null
-                            ? buildPath(parentSchemaInfo.apiPath(), fieldName)
-                            : fieldName;
+                            ? buildPath(parentSchemaInfo.apiPath(), fieldEntry.sedaFieldName())
+                            : fieldEntry.sedaFieldName();
                         extraExternalSchemaFields.put(
                             currentSedaPath,
-                            new SchemaInfo(currentSedaPath, apiPath, fieldName, isDeclaredAsObject, true, true)
+                            new SedaSchemaInfo(
+                                currentSedaPath,
+                                apiPath,
+                                fieldEntry.sedaFieldName(),
+                                fieldEntry.isDeclaredAsObject(),
+                                true,
+                                true,
+                                true
+                            )
                         );
                     }
 
                     schemaInfo = extraExternalSchemaFields.get(currentSedaPath);
                 }
 
-                if (isDeclaredAsArray && !schemaInfo.isArray()) {
+                if (fieldEntry.isDeclaredAsArray() && !schemaInfo.isArray()) {
                     throw new CollectInvalidCsvFormatException(
                         "Invalid header name '" + headerName + "'. Field '" + currentSedaPath + "' is not an array"
                     );
                 }
-                if (isDeclaredAsObject && !schemaInfo.isObject()) {
+                if (fieldEntry.isDeclaredAsObject() && !schemaInfo.isObject()) {
                     throw new CollectInvalidCsvFormatException(
                         "Invalid header name '" + headerName + "'. Field '" + currentSedaPath + "' is not an object."
                     );
                 }
-                if (!isDeclaredAsObject && schemaInfo.isObject()) {
+                if (!fieldEntry.isDeclaredAsObject() && schemaInfo.isObject()) {
                     throw new CollectInvalidCsvFormatException(
                         "Invalid header name '" + headerName + "'. Field '" + currentSedaPath + "' is an object."
                     );
