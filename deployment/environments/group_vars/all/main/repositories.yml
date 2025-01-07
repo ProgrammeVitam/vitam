@@ -19,3 +19,5 @@ install_mode: legacy
 #   registry_url:
 #   username:
 #   password:
+# Add vitam_container_version for specific container version deployment (default: latest)
+vitam_container_version: '7.1.2-SNAPSHOT'
