@@ -102,6 +102,9 @@ public class SchemaService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchemaService.class);
 
+    private static final String COLLECTION_UNIT = "Unit";
+    private static final String COLLECTION_OBJECTGROUP = "ObjectGroup";
+
     private static final String SCHEMA_JSON_IS_MANDATORY_PARAMETER =
         "The json input of external schema type is mandatory";
     public static final String SCHEMA_IMPORT_EVENT = "IMPORT_EXTERNAL_SCHEMA";
@@ -166,7 +169,7 @@ public class SchemaService {
     private List<SchemaResponse> findUnitExternalSchema(TenantScope tenantScope)
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException {
         LOGGER.info("retrieving unit external schema ");
-        return decorateSchema(mapSchemaDbEntityToModel(loadCurrentExternalSchema(tenantScope)));
+        return decorateSchema(mapSchemaDbEntityToModel(loadCurrentExternalSchema(tenantScope)), COLLECTION_UNIT);
     }
 
     /**
@@ -207,14 +210,15 @@ public class SchemaService {
      * @throws InvalidParseOperationException
      * @throws IOException
      */
-    public List<SchemaResponse> findObjectGroupInternalSchema() throws InvalidParseOperationException, IOException {
+    public List<SchemaResponse> findObjectGroupInternalSchema()
+        throws InvalidParseOperationException, IOException, ReferentialException {
         LOGGER.info("retrieving ObjectGroup schema ");
         InputStream isObjectGroupInternalSchema = loadObjectGroupInternalSchema();
         List<SchemaResponse> objectGroupSchemaModels = JsonHandler.getFromInputStreamAsTypeReference(
             isObjectGroupInternalSchema,
             new TypeReference<>() {}
         );
-        return objectGroupSchemaModels;
+        return decorateSchema(objectGroupSchemaModels, COLLECTION_OBJECTGROUP);
     }
 
     /**
@@ -423,25 +427,32 @@ public class SchemaService {
             VITAM_UNIT_INTERNAL_SCHEMA_JSON
         );
         return decorateSchema(
-            JsonHandler.getFromInputStreamAsTypeReference(unitInternalSchemaInputStream, new TypeReference<>() {})
+            JsonHandler.getFromInputStreamAsTypeReference(unitInternalSchemaInputStream, new TypeReference<>() {}),
+            COLLECTION_UNIT
         );
     }
 
-    private List<SchemaResponse> decorateSchema(List<SchemaResponse> unitSchemaResponses)
+    private List<SchemaResponse> decorateSchema(List<SchemaResponse> schemaResponses, String collection)
         throws ReferentialException, InvalidParseOperationException {
+        Select select = new Select();
+        try {
+            select.setQuery(QueryHelper.in(OntologyModel.TAG_COLLECTIONS, collection));
+        } catch (InvalidCreateOperationException e) {
+            throw new ReferentialException("Unable to create select query", e);
+        }
         final Map<String, OntologyModel> mapOntologiesByIdentifier = ontologyService
-            .findOntologies(new Select().getFinalSelect())
+            .findOntologies(select.getFinalSelect())
             .getResults()
             .stream()
             .collect(Collectors.toMap(OntologyModel::getIdentifier, ontologyModel -> ontologyModel));
 
-        return unitSchemaResponses
+        return schemaResponses
             .stream()
-            .peek(unitSchema -> {
-                if (!SchemaType.OBJECT.equals(unitSchema.getType())) {
-                    final OntologyModel ontologyElt = mapOntologiesByIdentifier.get(unitSchema.getFieldName());
+            .peek(schemaResponse -> {
+                if (!SchemaType.OBJECT.equals(schemaResponse.getType())) {
+                    final OntologyModel ontologyElt = mapOntologiesByIdentifier.get(schemaResponse.getFieldName());
                     if (ontologyElt == null) {
-                        final String message = String.format("No ontology found for path %s", unitSchema.getPath());
+                        final String message = String.format("No ontology found for path %s", schemaResponse.getPath());
                         LOGGER.error(message);
                         throw new IllegalStateException(message);
                     }
@@ -454,13 +465,13 @@ public class SchemaService {
                         LOGGER.error(message);
                         throw new IllegalStateException(message);
                     }
-                    unitSchema.setTypeDetail(SchemaTypeDetail.valueOf(typeDetail.getType()));
+                    schemaResponse.setTypeDetail(SchemaTypeDetail.valueOf(typeDetail.getType()));
                     Optional.ofNullable(ontologyElt.getStringSize()).ifPresent(
-                        stringSize -> unitSchema.setStringSize(SchemaStringSizeType.valueOf(stringSize.getSize()))
+                        stringSize -> schemaResponse.setStringSize(SchemaStringSizeType.valueOf(stringSize.getSize()))
                     );
-                    unitSchema.setDescription(ontologyElt.getDescription());
-                    if (SchemaOrigin.EXTERNAL.equals(unitSchema.getOrigin()) && unitSchema.getType() == null) {
-                        unitSchema.setType(SchemaType.valueOf(ontologyElt.getType().getType()));
+                    schemaResponse.setDescription(ontologyElt.getDescription());
+                    if (SchemaOrigin.EXTERNAL.equals(schemaResponse.getOrigin()) && schemaResponse.getType() == null) {
+                        schemaResponse.setType(SchemaType.valueOf(ontologyElt.getType().getType()));
                     }
                 }
             })

@@ -104,7 +104,7 @@ public class SchemaResource {
             LOGGER.info(" retrieving object group schema elements");
             List<SchemaResponse> objectGroupSchema = schemaService.findObjectGroupInternalSchema();
             return Response.ok(objectGroupSchema).build();
-        } catch (InvalidParseOperationException | IOException e) {
+        } catch (InvalidParseOperationException | IOException | ReferentialException e) {
             LOGGER.error("Cannot retrieve object group schema ", e);
             return Response.serverError().build();
         }
