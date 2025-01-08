@@ -53,21 +53,19 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_S
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE_VALID_HEADER_NAME_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.MAX_HEADER_NAME_LENGTH;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR_CHAR;
-import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.STARTS_WITH_DIGIT_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.equalsOrStartsWith;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContentField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isFileField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isManagementField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.matchesPattern;
+import static fr.gouv.vitam.collect.internal.core.csv.FieldNameValidationUtils.validateRegularVitamFieldName;
 
 public class CsvMetadataValidator {
 
-    private static final Set<Character> RESERVED_CHARACTERS =
-        "'\"`,;:°$§&# .*+=/|\\(){}[]@~^!?<>%".chars().mapToObj(c -> (char) c).collect(Collectors.toSet());
-    public static final int MAX_HEADER_NAME_LENGTH = 255;
     public static final int MAX_HEADER_NAMES = 10_000;
     // At least "File" header + 1 other header to update is expected
     public static final int MIN_HEADER_COUNT = 2;
@@ -140,7 +138,9 @@ public class CsvMetadataValidator {
         for (String headerName : headerNames) {
             if (headerName.length() > MAX_HEADER_NAME_LENGTH) {
                 throw new CollectInvalidCsvFormatException(
-                    "Invalid header name '" + StringUtils.abbreviate(headerName, MAX_HEADER_NAME_LENGTH) + "'. Too long"
+                    "Invalid header name '" +
+                    StringUtils.abbreviate(headerName, MAX_HEADER_NAME_LENGTH) +
+                    "': Header name is too long"
                 );
             }
             if (!isContentField(headerName) && !isManagementField(headerName) && !isFileField(headerName)) {
@@ -162,26 +162,10 @@ public class CsvMetadataValidator {
     }
 
     public void checkIllegalFieldName(String fieldName, String headerName) throws CollectInvalidCsvFormatException {
-        if (StringUtils.isAllBlank(fieldName)) {
-            throw new CollectInvalidCsvFormatException("Invalid header name '" + headerName + "'. Empty field name");
-        }
-        for (char c : fieldName.toCharArray()) {
-            if (Character.isISOControl(c) || !Character.isDefined(c) || RESERVED_CHARACTERS.contains(c)) {
-                throw new CollectInvalidCsvFormatException(
-                    "Invalid header name '" + headerName + "'. Reserved characters"
-                );
-            }
-        }
-        if (fieldName.startsWith("_") || fieldName.startsWith("-")) {
-            throw new CollectInvalidCsvFormatException(
-                "Invalid header name '" + headerName + "'. Field name cannot start with '_' or '-'"
-            );
-        }
-
-        if (matchesPattern(fieldName, STARTS_WITH_DIGIT_PATTERN)) {
-            throw new CollectInvalidCsvFormatException(
-                "Invalid header name '" + headerName + "'. Field name cannot start with a digit"
-            );
+        try {
+            validateRegularVitamFieldName(fieldName);
+        } catch (IllegalArgumentException e) {
+            throw new CollectInvalidCsvFormatException("Invalid header name '" + headerName + "': " + e.getMessage());
         }
     }
 

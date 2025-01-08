@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 
 public class CsvMetadataUtils {
 
+    public static final int MAX_HEADER_NAME_LENGTH = 255;
     public static final char SEPARATOR_CHAR = '.';
     public static final String SEPARATOR = ".";
     public static final String HASH_PREFIX = "#";

@@ -215,7 +215,7 @@ public class CsvToJsonConverterTest {
         assertThatCode(unit7Invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessageContaining(
-                "Invalid header name 'Content.Description.*'. Field name cannot start with '_' or '-'"
+                "Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'"
             );
         assertThatCode(unit8Invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
@@ -257,7 +257,9 @@ public class CsvToJsonConverterTest {
             .hasMessageContaining("Multiple values for 'Content.Title' header with same lang attribute 'fr'");
         assertThatCode(unit7Invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Invalid header name 'Content.Title.*'. Field name cannot start with '_' or '-'");
+            .hasMessageContaining(
+                "Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'"
+            );
         assertThatCode(unit8Invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessageContaining("Invalid xml:lang attribute for header 'Content.Title.0.attr'");

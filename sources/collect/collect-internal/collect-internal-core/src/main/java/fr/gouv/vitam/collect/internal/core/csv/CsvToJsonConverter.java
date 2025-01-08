@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -67,10 +68,11 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.equalsOrS
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContentDescriptionField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContentTitleField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.matchesPattern;
+import static fr.gouv.vitam.collect.internal.core.csv.FieldNameValidationUtils.MAX_FIELD_NAME_LENGTH;
+import static fr.gouv.vitam.collect.internal.core.csv.FieldNameValidationUtils.validateRegularVitamFieldName;
 
 public class CsvToJsonConverter {
 
-    private final CsvMetadataValidator csvMetadataValidator;
     private final List<String> headerNames;
     private final Map<String, String> normalizedContentHeaderMap;
 
@@ -78,8 +80,8 @@ public class CsvToJsonConverter {
         throws CollectInvalidCsvFormatException {
         this.headerNames = headerNames;
 
-        this.csvMetadataValidator = new CsvMetadataValidator();
-        this.csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, headerNames);
+        CsvMetadataValidator csvMetadataValidator = new CsvMetadataValidator();
+        csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, headerNames);
 
         this.normalizedContentHeaderMap = initializeContentHeaders(headerNames, sedaSchemaInfoResolver);
     }
@@ -275,7 +277,18 @@ public class CsvToJsonConverter {
             String value = valueByIndex.get(arrayIndex);
             if (langAttrByIndex.containsKey(arrayIndex)) {
                 String lang = langAttrByIndex.get(arrayIndex);
-                this.csvMetadataValidator.checkIllegalFieldName(lang, sedaFieldName + ".*");
+                try {
+                    validateRegularVitamFieldName(lang);
+                } catch (IllegalArgumentException e) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid lang value '" +
+                        StringEscapeUtils.escapeJava(StringUtils.abbreviate(lang, MAX_FIELD_NAME_LENGTH)) +
+                        "' for '" +
+                        sedaFieldName +
+                        ".*': " +
+                        e.getMessage()
+                    );
+                }
                 String fieldName = multiValueApiFieldName + SEPARATOR + lang;
                 if (flatFieldValueMap.containsKey(fieldName)) {
                     throw new CollectInvalidCsvFormatException(
