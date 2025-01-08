@@ -153,6 +153,21 @@ public class SedaSchemaInfoResolverTest {
             )
         );
 
+        // Forbidden "Content.ArchiveUnitProfile"
+        assertThat(instance.getContentSchemaInfo("Content.ArchiveUnitProfile")).isEqualTo(
+            new SedaSchemaInfo(
+                "Content.ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                false,
+                false,
+                false,
+                false,
+                false,
+                true
+            )
+        );
+
         // No management fields
         assertThat(instance.getContentSchemaInfo("Management.AppraisalRule.Rule")).isNull();
 
@@ -339,6 +354,20 @@ public class SedaSchemaInfoResolverTest {
 
         assertThat(instance.getManagementModelBySedaPath("Management.LogBook")).isEqualTo(
             new SedaSchemaInfo("Management.LogBook", null, null, true, false, false, false, false, true)
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("ArchiveUnitProfile")).isEqualTo(
+            new SedaSchemaInfo(
+                "ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
         );
     }
 

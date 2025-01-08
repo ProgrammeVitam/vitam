@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -41,6 +42,7 @@ public class CsvMetadataUtils {
     public static final String MANAGEMENT = "Management";
     public static final String MANAGEMENT_SEPARATOR = MANAGEMENT + SEPARATOR;
     public static final String MANAGEMENT_FIELD = "#management";
+    public static final String ARCHIVE_UNIT_PROFILE = "ArchiveUnitProfile";
     public static final Pattern STARTS_WITH_DIGIT_PATTERN = Pattern.compile("^[0-9].*$");
     public static final Pattern ARRAY_INDEX_PATTERN = Pattern.compile("^(0|[1-9][0-9]*)$");
     public static final String CONTENT_TITLE = "Content.Title";
@@ -129,6 +131,8 @@ public class CsvMetadataUtils {
 
     public static final String IMPLICIT_0_ARRAY_INDEX = "0";
 
+    public static final Set<String> FORBIDDEN_CONTENT_SEDA_PATHS = Collections.singleton("Content.ArchiveUnitProfile");
+
     public static String buildPath(String basePath, String subPath) {
         if (basePath == null && subPath == null) {
             return null;
@@ -151,7 +155,10 @@ public class CsvMetadataUtils {
     }
 
     public static boolean isManagementField(String headerName) {
-        return headerName.startsWith(MANAGEMENT_SEPARATOR) && headerName.length() > MANAGEMENT_SEPARATOR.length();
+        return (
+            (headerName.startsWith(MANAGEMENT_SEPARATOR) && headerName.length() > MANAGEMENT_SEPARATOR.length()) ||
+            equalsOrStartsWith(headerName, ARCHIVE_UNIT_PROFILE)
+        );
     }
 
     public static boolean isContentTitleField(String headerName) {

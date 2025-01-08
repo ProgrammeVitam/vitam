@@ -149,7 +149,7 @@ public class CsvMetadataValidator {
                 throw new CollectInvalidCsvFormatException(
                     "Invalid header name '" +
                     headerName +
-                    "'. Only accepted names are 'File', 'Content.*' or 'Management.*'"
+                    "'. Only accepted names are 'File', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'"
                 );
             }
             String[] fieldNames = StringUtils.splitPreserveAllTokens(headerName, SEPARATOR_CHAR);
@@ -441,6 +441,16 @@ public class CsvMetadataValidator {
                     }
 
                     schemaInfo = extraExternalSchemaFields.get(currentSedaPath);
+                }
+
+                if (schemaInfo.isForbiddenCsvHeader()) {
+                    throw new CollectInvalidCsvFormatException(
+                        "Invalid header name '" +
+                        headerName +
+                        "'. Seda Field '" +
+                        fieldEntry.sedaFieldName() +
+                        "' is forbidden."
+                    );
                 }
 
                 if (fieldEntry.isDeclaredAsArray() && !schemaInfo.isArray()) {
