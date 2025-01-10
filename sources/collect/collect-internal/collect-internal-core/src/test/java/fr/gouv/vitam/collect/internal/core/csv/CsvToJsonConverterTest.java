@@ -29,8 +29,8 @@ package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -40,31 +40,38 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 
 public class CsvToJsonConverterTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -387,142 +394,192 @@ public class CsvToJsonConverterTest {
     @Test
     public void testConvertComplexDescription() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_description_complex.csv")
-        );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream("csv/metadata_description_complex.csv");
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
-        ObjectNode unit2 = csvToJsonConverter.convertCsvRecordToJson(records.get(2));
-        ObjectNode unit3 = csvToJsonConverter.convertCsvRecordToJson(records.get(3));
-        ObjectNode unit4 = csvToJsonConverter.convertCsvRecordToJson(records.get(4));
-        ThrowingCallable unit5Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(5));
-        ThrowingCallable unit6Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(6));
-        ThrowingCallable unit7Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(7));
-        ThrowingCallable unit8Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(8));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_description_complex_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_description_complex_expected_unit1.json");
-        assertJsonEquals(unit2, "csv/metadata_description_complex_expected_unit2.json");
-        assertJsonEquals(unit3, "csv/metadata_description_complex_expected_unit3.json");
-        assertJsonEquals(unit4, "csv/metadata_description_complex_expected_unit4.json");
-        assertThatCode(unit5Invocation)
+        assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Description' header");
-        assertThatCode(unit6Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Description' header with same lang attribute 'fr'");
-        assertThatCode(unit7Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining(
-                "Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'"
+            .hasMessage(
+                "CSV validation failed. 4 error(s):\n" +
+                "- Invalid CSV record at line 6 (File=\"File5\"): Multiple values for 'Content.Description' header\n" +
+                "- Invalid CSV record at line 7 (File=\"File6\"): Multiple values for 'Content.Description' header with same lang attribute 'fr'\n" +
+                "- Invalid CSV record at line 8 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'\n" +
+                "- Invalid CSV record at line 9 (File=\"File8\"): Invalid xml:lang attribute for header 'Content.Description.0.attr'"
             );
-        assertThatCode(unit8Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Invalid xml:lang attribute for header 'Content.Description.0.attr'");
+
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            CollectJsonMetadataLine unit2 = metadata.next();
+            CollectJsonMetadataLine unit3 = metadata.next();
+            CollectJsonMetadataLine unit4 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("File0");
+            assertThat(unit1.getFile()).isEqualTo("File1");
+            assertThat(unit2.getFile()).isEqualTo("File2");
+            assertThat(unit3.getFile()).isEqualTo("File3");
+            assertThat(unit4.getFile()).isEqualTo("File4");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_description_complex_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_description_complex_expected_unit1.json");
+            assertJsonEquals(unit2.getUnitContent(), "csv/metadata_description_complex_expected_unit2.json");
+            assertJsonEquals(unit3.getUnitContent(), "csv/metadata_description_complex_expected_unit3.json");
+            assertJsonEquals(unit4.getUnitContent(), "csv/metadata_description_complex_expected_unit4.json");
+        }
     }
 
     @Test
     public void testConvertComplexTitle() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_title_complex.csv")
-        );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream("csv/metadata_title_complex.csv");
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
-        ObjectNode unit2 = csvToJsonConverter.convertCsvRecordToJson(records.get(2));
-        ObjectNode unit3 = csvToJsonConverter.convertCsvRecordToJson(records.get(3));
-        ObjectNode unit4 = csvToJsonConverter.convertCsvRecordToJson(records.get(4));
-        ThrowingCallable unit5Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(5));
-        ThrowingCallable unit6Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(6));
-        ThrowingCallable unit7Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(7));
-        ThrowingCallable unit8Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(8));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_title_complex_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_title_complex_expected_unit1.json");
-        assertJsonEquals(unit2, "csv/metadata_title_complex_expected_unit2.json");
-        assertJsonEquals(unit3, "csv/metadata_title_complex_expected_unit3.json");
-        assertJsonEquals(unit4, "csv/metadata_title_complex_expected_unit4.json");
-        assertThatCode(unit5Invocation)
+        assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Title' header");
-        assertThatCode(unit6Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Title' header with same lang attribute 'fr'");
-        assertThatCode(unit7Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining(
-                "Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'"
+            .hasMessage(
+                "CSV validation failed. 4 error(s):\n" +
+                "- Invalid CSV record at line 6 (File=\"File5\"): Multiple values for 'Content.Title' header\n" +
+                "- Invalid CSV record at line 7 (File=\"File6\"): Multiple values for 'Content.Title' header with same lang attribute 'fr'\n" +
+                "- Invalid CSV record at line 8 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'\n" +
+                "- Invalid CSV record at line 9 (File=\"File8\"): Invalid xml:lang attribute for header 'Content.Title.0.attr'"
             );
-        assertThatCode(unit8Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Invalid xml:lang attribute for header 'Content.Title.0.attr'");
+
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            CollectJsonMetadataLine unit2 = metadata.next();
+            CollectJsonMetadataLine unit3 = metadata.next();
+            CollectJsonMetadataLine unit4 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("File0");
+            assertThat(unit1.getFile()).isEqualTo("File1");
+            assertThat(unit2.getFile()).isEqualTo("File2");
+            assertThat(unit3.getFile()).isEqualTo("File3");
+            assertThat(unit4.getFile()).isEqualTo("File4");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_title_complex_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_title_complex_expected_unit1.json");
+            assertJsonEquals(unit2.getUnitContent(), "csv/metadata_title_complex_expected_unit2.json");
+            assertJsonEquals(unit3.getUnitContent(), "csv/metadata_title_complex_expected_unit3.json");
+            assertJsonEquals(unit4.getUnitContent(), "csv/metadata_title_complex_expected_unit4.json");
+        }
     }
 
     @Test
     public void testConvertFullSedaContent() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(PropertiesUtils.getResourceAsStream("csv/metadata_full_seda.csv"));
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream("csv/metadata_full_seda.csv");
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_full_seda_expected_unit1.json");
+        assertThatCode(invocation).doesNotThrowAnyException();
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("Unit0");
+            assertThat(unit1.getFile()).isEqualTo("Unit1");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_full_seda_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_full_seda_expected_unit1.json");
+        }
     }
 
     @Test
     public void testConvertFullSedaContentImplicitArrayIndexHeaders() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_implicit_array_index.csv")
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream(
+            "csv/metadata_full_seda_implicit_array_index.csv"
         );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_implicit_array_index_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_full_seda_implicit_array_index_expected_unit1.json");
+        assertThatCode(invocation).doesNotThrowAnyException();
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("Unit0");
+            assertThat(unit1.getFile()).isEqualTo("Unit1");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_full_seda_implicit_array_index_expected_unit0.json");
+
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_full_seda_implicit_array_index_expected_unit1.json");
+        }
     }
 
     @Test
     public void testConvertFullSedaContentExplicitArrayIndexHeaders() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_explicit_array_index.csv")
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream(
+            "csv/metadata_full_seda_explicit_array_index.csv"
         );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_explicit_array_index_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_full_seda_explicit_array_index_expected_unit1.json");
+        assertThatCode(invocation).doesNotThrowAnyException();
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("Unit0");
+            assertThat(unit1.getFile()).isEqualTo("Unit1");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_full_seda_explicit_array_index_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_full_seda_explicit_array_index_expected_unit1.json");
+        }
     }
 
     public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {

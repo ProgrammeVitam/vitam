@@ -177,18 +177,30 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_MissingHeaderIndex() {
-        // Given
-        List<String> headerLines = List.of(
+        assertThatHeaderNamesAreInvalid(
             "File;Content.SystemId.0;Content.SystemId.2",
-            "File;Content.Description.0;Content.Description.0.attr;Content.Description.2;Content.Description.2.attr",
-            "File;Content.Title.0;Content.Title.0.attr;Content.Title.2;Content.Title.2.attr",
-            "File;Management.AppraisalRule.Rule.0;Management.AppraisalRule.Rule.2"
+            "Expected header name 'Content.SystemId.1' since header 'Content.SystemId.2' is declared"
         );
-
-        // When / Then
-        for (String headerLine : headerLines) {
-            assertThatHeaderNamesAreInvalid(headerLine, "Missing field '");
-        }
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Description.0;Content.Description.2",
+            "Expected header name 'Content.Description.1' since header 'Content.Description.2' is declared"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Title.0;Content.Title.0.attr;Content.Title.2;Content.Title.2.attr",
+            "Expected header name 'Content.Title.1' since header 'Content.Title.2' is declared"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.EventIdentifier;Content.Event.5.EventIdentifier",
+            "Expected header name 'Content.Event.1' since header 'Content.Event.5' is declared"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Management.AppraisalRule.Rule.0;Management.AppraisalRule.Rule.2",
+            "Expected header name 'Management.AppraisalRule.Rule.1' since header 'Management.AppraisalRule.Rule.2' is declared"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Management.AppraisalRule.RefNonRuleId.0;Management.AppraisalRule.RefNonRuleId.3",
+            "Expected header name 'Management.AppraisalRule.RefNonRuleId.1' since header 'Management.AppraisalRule.RefNonRuleId.3' is declared"
+        );
     }
 
     @Test
@@ -199,43 +211,43 @@ public class CsvMetadataValidatorTest {
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.AppraisalRule.StartDate.0",
-            "Invalid header names. Rule property field 'Management.AppraisalRule.StartDate.0' does not have a corresponding 'Management.AppraisalRule.Rule.0'."
+            "Invalid header name 'Management.AppraisalRule.StartDate.0': Rule property field 'Management.AppraisalRule.StartDate.0' does not have a corresponding 'Management.AppraisalRule.Rule.0'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.AccessRule.StartDate.1",
-            "Invalid header names. Rule property field 'Management.AccessRule.StartDate.1' does not have a corresponding 'Management.AccessRule.Rule.1'."
+            "Invalid header name 'Management.AccessRule.StartDate.1': Rule property field 'Management.AccessRule.StartDate.1' does not have a corresponding 'Management.AccessRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.DisseminationRule.Rule.0;Management.DisseminationRule.StartDate.1",
-            "Invalid header names. Rule property field 'Management.DisseminationRule.StartDate.1' does not have a corresponding 'Management.DisseminationRule.Rule.1'."
+            "Invalid header name 'Management.DisseminationRule.StartDate.1': Rule property field 'Management.DisseminationRule.StartDate.1' does not have a corresponding 'Management.DisseminationRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.ReuseRule.StartDate.1",
-            "Invalid header names. Rule property field 'Management.ReuseRule.StartDate.1' does not have a corresponding 'Management.ReuseRule.Rule.1'."
+            "Invalid header name 'Management.ReuseRule.StartDate.1': Rule property field 'Management.ReuseRule.StartDate.1' does not have a corresponding 'Management.ReuseRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.ClassificationRule.StartDate.1",
-            "Invalid header names. Rule property field 'Management.ClassificationRule.StartDate.1' does not have a corresponding 'Management.ClassificationRule.Rule.1'."
+            "Invalid header name 'Management.ClassificationRule.StartDate.1': Rule property field 'Management.ClassificationRule.StartDate.1' does not have a corresponding 'Management.ClassificationRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.StartDate.1",
-            "Invalid header names. Rule property field 'Management.HoldRule.StartDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.StartDate.1': Rule property field 'Management.HoldRule.StartDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldEndDate.1",
-            "Invalid header names. Rule property field 'Management.HoldRule.HoldEndDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldEndDate.1': Rule property field 'Management.HoldRule.HoldEndDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldOwner.1",
-            "Invalid header names. Rule property field 'Management.HoldRule.HoldOwner.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldOwner.1': Rule property field 'Management.HoldRule.HoldOwner.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldReassessingDate.1",
-            "Invalid header names. Rule property field 'Management.HoldRule.HoldReassessingDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldReassessingDate.1': Rule property field 'Management.HoldRule.HoldReassessingDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldReason.1",
-            "Invalid header names. Rule property field 'Management.HoldRule.HoldReason.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldReason.1': Rule property field 'Management.HoldRule.HoldReason.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
         );
     }
 
@@ -295,7 +307,7 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_InvalidArrayFields() {
-        assertThatHeaderNamesAreInvalid("File;Content.Title.0.0", "Invalid array declaration at 'Content.Title.0'");
+        assertThatHeaderNamesAreInvalid("File;Content.Title.1000000000000", "Array index '1000000000000' too large");
         assertThatHeaderNamesAreInvalid(
             "File;Content.Description.0.0",
             "Invalid array declaration at 'Content.Description.0'"
@@ -332,7 +344,7 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            assertThatHeaderNamesAreInvalid(headerLine, "Array index too large");
+            assertThatHeaderNamesAreInvalid(headerLine, "Array index '10000' too large");
         }
     }
 
@@ -426,11 +438,14 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_InvalidTitleHeaderNames() {
-        assertThatHeaderNamesAreInvalid("File;Content.Title.subfield", "Valid Content.Title.* expected");
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Title.subfield",
+            "Valid Content.Title[.*] or Content.Title[.*].attr expected"
+        );
         assertThatHeaderNamesAreInvalid("File;Content.Title.0.attr", "Missing base header name 'Content.Title.0'");
         assertThatHeaderNamesAreInvalid(
-            "File;Content.Title;Content.Title.0.attr",
-            "Missing base header name 'Content.Title.0'"
+            "File;Content.Title.0;Content.Title.1.attr",
+            "Missing base header name 'Content.Title.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title;Content.Title.attr.0",
@@ -444,14 +459,17 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_InvalidDescriptionHeaderNames() {
-        assertThatHeaderNamesAreInvalid("File;Content.Description.subfield", "Valid Content.Description.* expected");
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Description.subfield",
+            "Valid Content.Description[.*] or Content.Description[.*].attr expected"
+        );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Description.0.attr",
             "Missing base header name 'Content.Description.0'"
         );
         assertThatHeaderNamesAreInvalid(
-            "File;Content.Description;Content.Description.0.attr",
-            "Missing base header name 'Content.Description.0'"
+            "File;Content.Description.0;Content.Description.1.attr",
+            "Missing base header name 'Content.Description.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Description;Content.Description.attr.0",
@@ -503,15 +521,21 @@ public class CsvMetadataValidatorTest {
 
         // When / Then
         for (String headerLine : headerLines) {
-            assertThatHeaderNamesAreInvalid(headerLine, " Header must be Seda field name");
+            assertThatHeaderNamesAreInvalid(headerLine, " Header must be Seda field name instead of Vitam field name");
         }
     }
 
     @Test
     public void testHeaderValidation_InvalidSedaExtensionPoints() {
-        assertThatHeaderNamesAreInvalid("File;Content.Title.MyExtension", "Valid Content.Title.* expected");
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Title.MyExtension",
+            "Valid Content.Title[.*] or Content.Title[.*].attr expected"
+        );
 
-        assertThatHeaderNamesAreInvalid("File;Content.Description.MyExtension", "Valid Content.Description.* expected");
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Description.MyExtension",
+            "Valid Content.Description[.*] or Content.Description[.*].attr expected"
+        );
 
         assertThatHeaderNamesAreInvalid("File;Content.Tag.MyExtension", "Field 'Content.Tag' is not an object.");
 
@@ -537,17 +561,17 @@ public class CsvMetadataValidatorTest {
 
         assertThatHeaderNamesAreInvalid(
             "File;Management.Unknown",
-            "Invalid header name 'Management.Unknown'. Invalid seda extension point 'Management'"
+            "Invalid seda extension point 'Management'. Unknown field 'Unknown'"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.Unknown",
-            "Invalid header name 'Management.HoldRule.Unknown'. Invalid seda extension point 'Management.HoldRule'"
+            "Invalid header name 'Management.HoldRule.Unknown': Invalid seda extension point 'Management.HoldRule'. Unknown field 'Unknown'"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.EndDate",
-            "Invalid header name 'Management.HoldRule.EndDate'. Invalid seda extension point 'Management.HoldRule'"
+            "Invalid header name 'Management.HoldRule.EndDate': Invalid seda extension point 'Management.HoldRule'. Unknown field 'EndDate'"
         );
 
         assertThatHeaderNamesAreInvalid(
@@ -599,7 +623,7 @@ public class CsvMetadataValidatorTest {
         );
 
         assertThatHeaderNamesAreInvalid(
-            "File;Content.Title.0;Content.Title.attr.0",
+            "File;Content.Title.0;Content.Title.0.attr.0",
             "Reserved 'attr' keyword can only be used as a prefix"
         );
 
@@ -616,8 +640,8 @@ public class CsvMetadataValidatorTest {
         assertThatHeaderNamesAreInvalid("File;Content.Title.0.attr", "Missing base header name 'Content.Title.0'");
 
         assertThatHeaderNamesAreInvalid(
-            "File;Content.Title;Content.Title.0.attr",
-            "Missing base header name 'Content.Title.0'"
+            "File;Content.Title.0;Content.Title.1.attr",
+            "Missing base header name 'Content.Title.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title;Content.Title.attr.0",
@@ -690,15 +714,28 @@ public class CsvMetadataValidatorTest {
         );
     }
 
-    private void assertThatHeaderNamesAreInvalid(String headersLine, String errorMessage) {
-        assertThatHeaderNamesAreInvalid(parseHeaders(headersLine), errorMessage);
+    @Test
+    public void testMultipleValidationErrors() {
+        assertThatHeaderNamesAreInvalid(
+            "File;Unknown;Content.Title_;Content.Description.0;Content.Description.2;Content.MyExtension;Content.MyExtension.SubField;Management.AppraisalRule;Management.StorageRule.Rule",
+            "CSV validation failed. 5 error(s):\n" +
+            "- Invalid header name 'Unknown': Invalid header name 'Unknown'. Only accepted names are 'File', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'\n" +
+            "- Invalid header name 'Content.Title_': Header must be Seda field name instead of Vitam field name\n" +
+            "- Invalid header name 'Content.Description.2': Expected header name 'Content.Description.1' since header 'Content.Description.2' is declared\n" +
+            "- Invalid header name 'Content.MyExtension.SubField': Field 'Content.MyExtension' is not an object.\n" +
+            "- Invalid header name 'Management.AppraisalRule': Field 'Management.AppraisalRule' is an object."
+        );
     }
 
-    private void assertThatHeaderNamesAreInvalid(List<String> headerNames, String errorMessage) {
+    private void assertThatHeaderNamesAreInvalid(String headersLine, String... errorMessages) {
+        assertThatHeaderNamesAreInvalid(parseHeaders(headersLine), errorMessages);
+    }
+
+    private void assertThatHeaderNamesAreInvalid(List<String> headerNames, String... errorMessages) {
         assertThatThrownBy(() -> csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, headerNames))
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessageContaining("Invalid header name")
-            .hasMessageContaining(errorMessage);
+            .hasMessageContainingAll(errorMessages);
     }
 
     private void assertThatHeaderNamesAreValid(String headersLine) {
