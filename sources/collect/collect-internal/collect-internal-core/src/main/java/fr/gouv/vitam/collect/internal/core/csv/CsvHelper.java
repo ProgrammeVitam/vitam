@@ -24,13 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.core.helpers;
+package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
-import fr.gouv.vitam.collect.internal.core.csv.CsvToJsonConverter;
-import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
+import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -55,7 +53,7 @@ public class CsvHelper {
         SedaSchemaInfoResolver sedaSchemaInfoResolver,
         InputStream is,
         File metadataFile
-    ) throws IOException, CollectInternalException {
+    ) throws IOException, CollectInvalidCsvFormatException {
         try (
             CSVParser parser = createParser(is);
             JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(metadataFile, true), true)

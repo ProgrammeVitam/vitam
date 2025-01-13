@@ -30,7 +30,6 @@ package fr.gouv.vitam.collect.internal.core.csv;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.wnameless.json.unflattener.JsonUnflattener;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.collect.internal.core.helpers.CsvMetadataMapper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -79,7 +78,7 @@ public class CsvToJsonConverter {
     private final Map<String, String> normalizedContentHeaderMap;
 
     public CsvToJsonConverter(SedaSchemaInfoResolver sedaSchemaInfoResolver, List<String> headerNames)
-        throws CollectInternalException {
+        throws CollectInvalidCsvFormatException {
         this.headerNames = headerNames;
 
         this.csvMetadataValidator = new CsvMetadataValidator();

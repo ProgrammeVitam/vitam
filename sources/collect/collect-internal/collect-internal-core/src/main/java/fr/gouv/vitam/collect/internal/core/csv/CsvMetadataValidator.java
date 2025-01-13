@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
-import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +78,7 @@ public class CsvMetadataValidator {
     public static final int MAX_ARRAY_INDEX_LENGTH = 4;
 
     public void validateHeaderNames(SedaSchemaInfoResolver sedaSchemaInfoResolver, List<String> headerNames)
-        throws CollectInternalException {
+        throws CollectInvalidCsvFormatException {
         globalHeaderNameChecks(headerNames);
 
         List<String> contentHeaderNames = headerNames
@@ -269,7 +268,7 @@ public class CsvMetadataValidator {
     private void validateContentHeaderNames(
         SedaSchemaInfoResolver sedaSchemaInfoResolver,
         List<String> contentHeaderNames
-    ) throws CollectInternalException {
+    ) throws CollectInvalidCsvFormatException {
         preventUsingApiFieldNameAsSedaPath(sedaSchemaInfoResolver, contentHeaderNames);
 
         // Array indexes can only be checked for Content.*. Management.* fields require special handling
