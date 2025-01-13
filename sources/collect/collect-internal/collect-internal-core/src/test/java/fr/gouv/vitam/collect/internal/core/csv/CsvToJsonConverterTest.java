@@ -82,7 +82,7 @@ public class CsvToJsonConverterTest {
     }
 
     @Test
-    public void testNormalizedContentHeaderNames() throws CollectInternalException {
+    public void testNormalizedHeaderNames() throws CollectInternalException {
         // Given
         List<String> headerNames = List.of(
             "File",
@@ -111,12 +111,63 @@ public class CsvToJsonConverterTest {
             "Content.SomeOtherExternalField.SomeSubField2.1",
             "Content.Signature.ReferencedObject.SignedObjectId",
             "Content.Signature.ReferencedObject.SignedObjectDigest",
-            "Content.Signature.ReferencedObject.SignedObjectDigest.attr"
+            "Content.Signature.ReferencedObject.SignedObjectDigest.attr",
+            "Management.AccessRule.PreventInheritance",
+            "Management.AccessRule.RefNonRuleId.0",
+            "Management.AccessRule.Rule.0",
+            "Management.AccessRule.Rule.1",
+            "Management.AccessRule.StartDate.1",
+            "Management.AppraisalRule.Rule.0",
+            "Management.AppraisalRule.Rule.1",
+            "Management.AppraisalRule.StartDate.0",
+            "Management.AppraisalRule.StartDate.1",
+            "Management.AppraisalRule.FinalAction",
+            "Management.AppraisalRule.PreventInheritance",
+            "Management.AppraisalRule.RefNonRuleId.0",
+            "Management.AppraisalRule.RefNonRuleId.1",
+            "Management.DisseminationRule.Rule.0",
+            "Management.DisseminationRule.Rule.1",
+            "Management.DisseminationRule.StartDate",
+            "Management.DisseminationRule.PreventInheritance",
+            "Management.DisseminationRule.RefNonRuleId",
+            "Management.ClassificationRule.Rule.0",
+            "Management.ClassificationRule.Rule.1",
+            "Management.ClassificationRule.StartDate.0",
+            "Management.ClassificationRule.ClassificationLevel",
+            "Management.ClassificationRule.ClassificationOwner",
+            "Management.ClassificationRule.ClassificationReassessingDate",
+            "Management.ClassificationRule.NeedReassessingAuthorization",
+            "Management.ClassificationRule.PreventInheritance",
+            "Management.ClassificationRule.RefNonRuleId",
+            "Management.HoldRule.PreventInheritance",
+            "Management.HoldRule.Rule.0",
+            "Management.HoldRule.Rule.1",
+            "Management.HoldRule.StartDate.0",
+            "Management.HoldRule.StartDate.1",
+            "Management.HoldRule.HoldEndDate",
+            "Management.HoldRule.HoldOwner",
+            "Management.HoldRule.HoldReason.0",
+            "Management.HoldRule.HoldReassessingDate.0",
+            "Management.HoldRule.PreventRearrangement.0",
+            "Management.HoldRule.PreventRearrangement.1",
+            "Management.ReuseRule.PreventInheritance",
+            "Management.ReuseRule.RefNonRuleId.0",
+            "Management.ReuseRule.Rule.0",
+            "Management.ReuseRule.Rule.1",
+            "Management.ReuseRule.StartDate.0",
+            "Management.ReuseRule.StartDate.1",
+            "Management.StorageRule.FinalAction",
+            "Management.StorageRule.PreventInheritance",
+            "Management.StorageRule.RefNonRuleId.0",
+            "Management.StorageRule.RefNonRuleId.1",
+            "Management.StorageRule.Rule.0",
+            "Management.StorageRule.StartDate.0",
+            "Management.NeedAuthorization"
         );
 
         // When
         CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        Map<String, String> normalizedHeaderNames = csvToJsonConverter.getNormalizedContentHeaderMap();
+        Map<String, String> normalizedHeaderNames = csvToJsonConverter.getNormalizedHeaderMap();
 
         // Then
         assertThat(normalizedHeaderNames).hasSize(headerNames.size() - 4);
@@ -176,6 +227,160 @@ public class CsvToJsonConverterTest {
         );
         assertThat(normalizedHeaderNames.get("Content.Signature.ReferencedObject.SignedObjectDigest.attr")).isEqualTo(
             "Signature[0].ReferencedObject.SignedObjectDigest.Algorithm"
+        );
+
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.PreventInheritance")).isEqualTo(
+            "#management.AccessRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.RefNonRuleId.0")).isEqualTo(
+            "#management.AccessRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.Rule.0")).isEqualTo(
+            "#management.AccessRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.Rule.1")).isEqualTo(
+            "#management.AccessRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.StartDate.1")).isEqualTo(
+            "#management.AccessRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.Rule.0")).isEqualTo(
+            "#management.AppraisalRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.Rule.1")).isEqualTo(
+            "#management.AppraisalRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.StartDate.0")).isEqualTo(
+            "#management.AppraisalRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.StartDate.1")).isEqualTo(
+            "#management.AppraisalRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.FinalAction")).isEqualTo(
+            "#management.AppraisalRule.FinalAction"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.PreventInheritance")).isEqualTo(
+            "#management.AppraisalRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.RefNonRuleId.0")).isEqualTo(
+            "#management.AppraisalRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.RefNonRuleId.1")).isEqualTo(
+            "#management.AppraisalRule.Inheritance.PreventRulesId[1]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.Rule.0")).isEqualTo(
+            "#management.DisseminationRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.Rule.1")).isEqualTo(
+            "#management.DisseminationRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.StartDate")).isEqualTo(
+            "#management.DisseminationRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.PreventInheritance")).isEqualTo(
+            "#management.DisseminationRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.RefNonRuleId")).isEqualTo(
+            "#management.DisseminationRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.Rule.0")).isEqualTo(
+            "#management.ClassificationRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.Rule.1")).isEqualTo(
+            "#management.ClassificationRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.StartDate.0")).isEqualTo(
+            "#management.ClassificationRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.ClassificationLevel")).isEqualTo(
+            "#management.ClassificationRule.ClassificationLevel"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.ClassificationOwner")).isEqualTo(
+            "#management.ClassificationRule.ClassificationOwner"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.ClassificationReassessingDate")).isEqualTo(
+            "#management.ClassificationRule.ClassificationReassessingDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.NeedReassessingAuthorization")).isEqualTo(
+            "#management.ClassificationRule.NeedReassessingAuthorization"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.PreventInheritance")).isEqualTo(
+            "#management.ClassificationRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.RefNonRuleId")).isEqualTo(
+            "#management.ClassificationRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.PreventInheritance")).isEqualTo(
+            "#management.HoldRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.Rule.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.Rule.1")).isEqualTo(
+            "#management.HoldRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.StartDate.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.StartDate.1")).isEqualTo(
+            "#management.HoldRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldEndDate")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldEndDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldOwner")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldOwner"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldReason.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldReason"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldReassessingDate.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldReassessingDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.PreventRearrangement.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].PreventRearrangement"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.PreventRearrangement.1")).isEqualTo(
+            "#management.HoldRule.Rules[1].PreventRearrangement"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.PreventInheritance")).isEqualTo(
+            "#management.ReuseRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.RefNonRuleId.0")).isEqualTo(
+            "#management.ReuseRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.Rule.0")).isEqualTo(
+            "#management.ReuseRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.Rule.1")).isEqualTo(
+            "#management.ReuseRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.StartDate.0")).isEqualTo(
+            "#management.ReuseRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.StartDate.1")).isEqualTo(
+            "#management.ReuseRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.FinalAction")).isEqualTo(
+            "#management.StorageRule.FinalAction"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.PreventInheritance")).isEqualTo(
+            "#management.StorageRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.RefNonRuleId.0")).isEqualTo(
+            "#management.StorageRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.RefNonRuleId.1")).isEqualTo(
+            "#management.StorageRule.Inheritance.PreventRulesId[1]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.Rule.0")).isEqualTo(
+            "#management.StorageRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.StartDate.0")).isEqualTo(
+            "#management.StorageRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.NeedAuthorization")).isEqualTo(
+            "#management.NeedAuthorization"
         );
     }
 
@@ -268,8 +473,25 @@ public class CsvToJsonConverterTest {
     @Test
     public void testConvertFullSedaContent() throws Exception {
         // Given
+        CSVParser parser = CsvHelper.createParser(PropertiesUtils.getResourceAsStream("csv/metadata_full_seda.csv"));
+        List<String> headerNames = parser.getHeaderNames();
+        List<CSVRecord> records = parser.getRecords();
+
+        // When
+        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
+        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
+        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
+
+        // Then
+        assertJsonEquals(unit0, "csv/metadata_full_seda_expected_unit0.json");
+        assertJsonEquals(unit1, "csv/metadata_full_seda_expected_unit1.json");
+    }
+
+    @Test
+    public void testConvertFullSedaContentImplicitArrayIndexHeaders() throws Exception {
+        // Given
         CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_content.csv")
+            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_implicit_array_index.csv")
         );
         List<String> headerNames = parser.getHeaderNames();
         List<CSVRecord> records = parser.getRecords();
@@ -280,15 +502,15 @@ public class CsvToJsonConverterTest {
         ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_content_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_full_seda_content_expected_unit1.json");
+        assertJsonEquals(unit0, "csv/metadata_full_seda_implicit_array_index_expected_unit0.json");
+        assertJsonEquals(unit1, "csv/metadata_full_seda_implicit_array_index_expected_unit1.json");
     }
 
     @Test
-    public void testConvertFullSedaContentImplicitArrayIndexHeaders() throws Exception {
+    public void testConvertFullSedaContentExplicitArrayIndexHeaders() throws Exception {
         // Given
         CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_content_implicit_index.csv")
+            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_explicit_array_index.csv")
         );
         List<String> headerNames = parser.getHeaderNames();
         List<CSVRecord> records = parser.getRecords();
@@ -296,9 +518,11 @@ public class CsvToJsonConverterTest {
         // When
         CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
         ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
+        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_content_implicit_index_expected_unit0.json");
+        assertJsonEquals(unit0, "csv/metadata_full_seda_explicit_array_index_expected_unit0.json");
+        assertJsonEquals(unit1, "csv/metadata_full_seda_explicit_array_index_expected_unit1.json");
     }
 
     public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {
@@ -314,7 +538,7 @@ public class CsvToJsonConverterTest {
         JsonAssert.assertJsonEquals(
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(expectedJsonResource)),
             actual,
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths("#management")
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
         );
     }
 }

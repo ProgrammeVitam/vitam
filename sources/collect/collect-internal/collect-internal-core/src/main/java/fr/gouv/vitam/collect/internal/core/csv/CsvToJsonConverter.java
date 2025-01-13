@@ -30,9 +30,9 @@ package fr.gouv.vitam.collect.internal.core.csv;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.wnameless.json.unflattener.JsonUnflattener;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import fr.gouv.vitam.collect.internal.core.csv.CsvHeaderFieldNameIterable.FieldEntry;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
-import fr.gouv.vitam.collect.internal.core.helpers.CsvMetadataMapper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
@@ -41,7 +41,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +61,8 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_S
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.LANG_ATTR_VALUE_PATTERN;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.RULES_PREFIX;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.RULES_SEPARATOR_PREFIX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.equalsOrStartsWith;
@@ -74,7 +75,7 @@ import static fr.gouv.vitam.collect.internal.core.csv.FieldNameValidationUtils.v
 public class CsvToJsonConverter {
 
     private final List<String> headerNames;
-    private final Map<String, String> normalizedContentHeaderMap;
+    private final Map<String, String> normalizedHeaderMap;
 
     public CsvToJsonConverter(SedaSchemaInfoResolver sedaSchemaInfoResolver, List<String> headerNames)
         throws CollectInvalidCsvFormatException {
@@ -83,7 +84,12 @@ public class CsvToJsonConverter {
         CsvMetadataValidator csvMetadataValidator = new CsvMetadataValidator();
         csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, headerNames);
 
-        this.normalizedContentHeaderMap = initializeContentHeaders(headerNames, sedaSchemaInfoResolver);
+        Map<String, String> normalizedContentHeaderMap = initializeContentHeaders(headerNames, sedaSchemaInfoResolver);
+        Map<String, String> normalizedManagementHeaderMap = initializeManagementHeaders(
+            headerNames,
+            sedaSchemaInfoResolver
+        );
+        this.normalizedHeaderMap = mergeMaps(normalizedContentHeaderMap, normalizedManagementHeaderMap);
     }
 
     private static Map<String, String> initializeContentHeaders(
@@ -139,24 +145,80 @@ public class CsvToJsonConverter {
         return normalizedHeaderName;
     }
 
-    public ObjectNode convertCsvRecordToJson(CSVRecord record) throws CollectInvalidCsvFormatException {
-        ObjectNode managementMetadata = convertManagementFields(record);
-        ObjectNode contentMetadata = convertContentFields(record);
-        return merge(managementMetadata, contentMetadata);
+    private Map<String, String> initializeManagementHeaders(
+        List<String> headerNames,
+        SedaSchemaInfoResolver sedaSchemaInfoResolver
+    ) {
+        return headerNames
+            .stream()
+            // Only retain "Management.*" fields
+            .filter(CsvMetadataUtils::isManagementField)
+            .collect(
+                Collectors.toMap(
+                    headerName -> headerName,
+                    headerName -> normalizeManagementHeaderName(sedaSchemaInfoResolver, headerName)
+                )
+            );
     }
 
-    private ObjectNode convertContentFields(CSVRecord record) throws CollectInvalidCsvFormatException {
+    private String normalizeManagementHeaderName(SedaSchemaInfoResolver sedaSchemaInfoResolver, String headerName) {
+        String normalizedHeaderName = null;
+        for (FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
+            SedaSchemaInfo schemaInfo = sedaSchemaInfoResolver.getManagementModelBySedaPath(
+                fieldEntry.simpleSedaPath()
+            );
+            if (schemaInfo == null) {
+                throw new IllegalStateException("Unexpected management seda header name '" + headerName + "'");
+            }
+
+            if (schemaInfo.isArray()) {
+                int arrayIndex = 0;
+                if (fieldEntry.isDeclaredAsArray()) {
+                    arrayIndex = fieldEntry.arrayIndex();
+                }
+
+                if (schemaInfo.apiSubPath().startsWith(RULES_SEPARATOR_PREFIX)) {
+                    // Split rule properties
+                    // Ex. "Management.AppraisalRule.Rule.<index>" ==> "#management.AppraisalRule.Rules[<index>].Rule"
+                    //     "Management.AppraisalRule.StartDate.<index>" ==> "#management.AppraisalRule.Rules[<index>].StartDate"
+                    normalizedHeaderName = buildPath(normalizedHeaderName, RULES_PREFIX);
+                    normalizedHeaderName = normalizedHeaderName + "[" + arrayIndex + "]";
+                    normalizedHeaderName = buildPath(
+                        normalizedHeaderName,
+                        StringUtils.removeStart(schemaInfo.apiSubPath(), RULES_SEPARATOR_PREFIX)
+                    );
+                } else {
+                    // Regular array
+                    // Ex "Management.ReuseRule.RefNonRuleId.<index>" ==> "#management.ReuseRule.Inheritance.PreventRulesId[<inde>]"
+                    normalizedHeaderName = buildPath(normalizedHeaderName, schemaInfo.apiSubPath());
+                    normalizedHeaderName = normalizedHeaderName + "[" + arrayIndex + "]";
+                }
+            } else {
+                // Single value
+                // Ex. "Management.NeedAuthorization" ==> "#management.NeedAuthorization"
+                //     "Management.AppraisalRule.PreventInheritance" ==> "#management.AppraisalRule.Inheritance.PreventInheritance"
+                normalizedHeaderName = buildPath(normalizedHeaderName, schemaInfo.apiSubPath());
+            }
+        }
+        return normalizedHeaderName;
+    }
+
+    private static ImmutableMap<String, String> mergeMaps(Map<String, String> map1, Map<String, String> map2) {
+        return ImmutableMap.<String, String>builder().putAll(map1).putAll(map2).build();
+    }
+
+    public ObjectNode convertCsvRecordToJson(CSVRecord record) throws CollectInvalidCsvFormatException {
         SortedMap<String, String> flatFieldValueMap = new TreeMap<>();
         List<String> mainContentHeaderNames = headerNames
             .stream()
-            // Only retain "Content.*" fields
-            .filter(CsvMetadataUtils::isContentField)
+            // Skip "File" header
+            .filter(headerName -> !CsvMetadataUtils.isFileField(headerName))
             .filter(headerName -> !isContentTitleField(headerName) && !isContentDescriptionField(headerName))
             .filter(headerName -> StringUtils.isNotEmpty(record.get(headerName)))
             .collect(Collectors.toList());
 
         for (String headerName : mainContentHeaderNames) {
-            String flatFieldName = this.normalizedContentHeaderMap.get(headerName);
+            String flatFieldName = this.normalizedHeaderMap.get(headerName);
             String fieldValue = record.get(headerName);
 
             if (matchesPattern(headerName, CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR_PATTERN)) {
@@ -316,38 +378,8 @@ public class CsvToJsonConverter {
         return Integer.parseInt(arrayIndexStr);
     }
 
-    private ObjectNode convertManagementFields(CSVRecord record) throws CollectInvalidCsvFormatException {
-        try {
-            ObjectNode flatManagementMetadataJson = JsonHandler.createObjectNode();
-            CsvMetadataMapper.mapManagement(flatManagementMetadataJson, headerNames, record);
-            CsvMetadataMapper.unflatSingleElementInArrays(flatManagementMetadataJson);
-            final String jsonStr = JsonUnflattener.unflatten(flatManagementMetadataJson.toString());
-            final ObjectNode managementMetadataJson = (ObjectNode) JsonHandler.getFromString(jsonStr);
-            CsvMetadataMapper.fixSpecificManagementSedaFields(managementMetadataJson);
-            return managementMetadataJson;
-        } catch (InvalidParseOperationException e) {
-            throw new CollectInvalidCsvFormatException("An error occurred during Management metadata mapping", e);
-        }
-    }
-
-    private ObjectNode merge(ObjectNode managementMetadata, ObjectNode contentMetadata) {
-        ObjectNode metadata = JsonHandler.createObjectNode();
-        for (Iterator<String> it = managementMetadata.fieldNames(); it.hasNext();) {
-            String fieldName = it.next();
-            metadata.set(fieldName, managementMetadata.get(fieldName));
-        }
-        for (Iterator<String> it = contentMetadata.fieldNames(); it.hasNext();) {
-            String fieldName = it.next();
-            if (metadata.has(fieldName)) {
-                throw new IllegalStateException("Duplicate field name '" + fieldName + "'");
-            }
-            metadata.set(fieldName, contentMetadata.get(fieldName));
-        }
-        return metadata;
-    }
-
     @VisibleForTesting
-    Map<String, String> getNormalizedContentHeaderMap() {
-        return normalizedContentHeaderMap;
+    Map<String, String> getNormalizedHeaderMap() {
+        return normalizedHeaderMap;
     }
 }

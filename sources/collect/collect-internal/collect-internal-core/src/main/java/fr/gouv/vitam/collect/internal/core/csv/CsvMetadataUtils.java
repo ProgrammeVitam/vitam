@@ -124,6 +124,8 @@ public class CsvMetadataUtils {
     public static final String API_FIELD_DESCRIPTION_ = "Description_";
 
     public static final String RULE_FIELD_NAME = "Rule";
+    public static final String RULES_PREFIX = "Rules";
+    public static final String RULES_SEPARATOR_PREFIX = RULES_PREFIX + SEPARATOR;
 
     public static final String IMPLICIT_0_ARRAY_INDEX = "0";
 

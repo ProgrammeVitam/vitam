@@ -81,9 +81,7 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void validateComplexSedaHeaders() throws Exception {
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_content.csv")
-        );
+        CSVParser parser = CsvHelper.createParser(PropertiesUtils.getResourceAsStream("csv/metadata_full_seda.csv"));
         List<String> headerNames = parser.getHeaderNames();
         assertThatHeaderNamesAreValid(headerNames);
     }
