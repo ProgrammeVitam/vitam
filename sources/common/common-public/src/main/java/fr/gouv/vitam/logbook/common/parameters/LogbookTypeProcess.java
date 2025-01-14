@@ -78,7 +78,6 @@ public enum LogbookTypeProcess {
      * Storage logbook type process
      */
     STORAGE_LOGBOOK,
-
     /**
      * Storage Rule type process
      */

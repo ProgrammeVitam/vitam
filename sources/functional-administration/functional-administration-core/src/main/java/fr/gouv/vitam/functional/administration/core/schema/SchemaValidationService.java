@@ -66,6 +66,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -334,29 +336,79 @@ public class SchemaValidationService {
     }
 
     private void checkSchemaPathsAreDeclaredAsOntologies(
-        final Map<String, SchemaInputModel> externalSchemaInputsMapByPath,
-        final Map<String, OntologyModel> ontologyEltsMapByIdentifier,
+        final Map<String, SchemaInputModel> externalSchemaInputsByPath,
+        final Map<String, OntologyModel> ontologyByIdentifier,
         final Map<String, List<ErrorReportSchema>> importErrors
     ) throws SchemaImportValidationException {
-        final List<String> pathsWithMissedLeavesErrors = externalSchemaInputsMapByPath
+        final List<String> leavesNotFoundInOntology = externalSchemaInputsByPath
             .values()
             .stream()
-            .filter(schemaModelElt -> !Boolean.TRUE.equals(schemaModelElt.isObject()))
-            .map(schemaModelElt -> SchemaCommonService.extractLeafFromPath(schemaModelElt.getPath()))
+            .filter(SchemaInputModel::notObject)
+            .map(schemaModel -> SchemaCommonService.extractLeafFromPath(schemaModel.getPath()))
             .collect(Collectors.toSet())
             .stream()
-            .filter(leaf -> !ontologyEltsMapByIdentifier.containsKey(leaf))
+            .filter(leaf -> !ontologyByIdentifier.containsKey(leaf))
             .collect(Collectors.toList());
-        if (!CollectionUtils.isEmpty(pathsWithMissedLeavesErrors)) {
-            final String baseMessage = "Path leaf missed";
-            checkErrors(
-                pathsWithMissedLeavesErrors,
-                baseMessage,
-                SchemaErrorCode.IMPORT_SCHEMA_LEAF_NOT_FOUND,
-                externalSchemaInputsMapByPath,
-                importErrors
+        if (CollectionUtils.isEmpty(leavesNotFoundInOntology)) {
+            return;
+        }
+
+        Map<String, List<String>> ontologyIdentifiersByLowerCase = ontologyByIdentifier
+            .keySet()
+            .stream()
+            .collect(Collectors.groupingBy(String::toLowerCase, Collectors.toList()));
+
+        Set<String> wrongIdentifiers = new HashSet<>();
+        Map<String, List<String>> maybeWrongIdentifiers = new HashMap<>();
+        leavesNotFoundInOntology.forEach(leafNotFound -> {
+            if (ontologyIdentifiersByLowerCase.containsKey(leafNotFound.toLowerCase())) {
+                maybeWrongIdentifiers.put(leafNotFound, ontologyIdentifiersByLowerCase.get(leafNotFound.toLowerCase()));
+            } else {
+                wrongIdentifiers.add(leafNotFound);
+            }
+        });
+        if (CollectionUtils.isNotEmpty(wrongIdentifiers)) {
+            final String baseMessage = "Path leaf not found in ontology";
+            wrongIdentifiers.forEach(
+                identifier ->
+                    addError(
+                        identifier,
+                        new ErrorReportSchema(
+                            SchemaErrorCode.IMPORT_SCHEMA_LEAF_NOT_FOUND,
+                            externalSchemaInputsByPath.get(identifier),
+                            baseMessage
+                        ),
+                        importErrors
+                    )
             );
         }
+        if (MapUtils.isNotEmpty(maybeWrongIdentifiers)) {
+            final String baseMessage = "Path leaf not found in ontology but it may be a mistake: ";
+            maybeWrongIdentifiers.forEach(
+                (identifier, relatedIdentifiers) ->
+                    addError(
+                        identifier,
+                        new ErrorReportSchema(
+                            SchemaErrorCode.IMPORT_SCHEMA_LEAF_NOT_FOUND,
+                            externalSchemaInputsByPath.get(identifier),
+                            baseMessage + String.join(", ", relatedIdentifiers)
+                        ),
+                        importErrors
+                    )
+            );
+        }
+
+        final List<String> wrongIdentifiersMessages = wrongIdentifiers.stream().toList();
+        final List<String> maybeWrongIdentifiersMessages = maybeWrongIdentifiers
+            .entrySet()
+            .stream()
+            .map(entry -> entry.getKey() + " (existing relative: " + String.join(", ", entry.getValue()) + ")")
+            .collect(Collectors.toList());
+        final String computedMessage =
+            "Path leaf not found in ontology: " +
+            String.join(", ", ListUtils.union(wrongIdentifiersMessages, maybeWrongIdentifiersMessages));
+        LOGGER.error(computedMessage);
+        throw new SchemaImportValidationException(computedMessage);
     }
 
     private void checkSchemaObjectPathsAreNotDeclaredAsOntologies(
