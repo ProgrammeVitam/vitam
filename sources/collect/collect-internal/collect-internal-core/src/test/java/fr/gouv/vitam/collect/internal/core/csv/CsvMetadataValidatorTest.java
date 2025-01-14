@@ -483,46 +483,134 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_InvalidApiFieldNameAsSedaPath() {
-        // Given
-        List<String> headerLines = List.of(
+        assertThatHeaderNamesAreInvalid(
             "File;Content.Title_",
-            "File;Content.Title_.0",
-            "File;Content.Description_",
-            "File;Content.Description_.0",
-            "File;Content.Signature.ReferencedObject.SignedObjectDigest.Algorithm",
-            "File;Content.Signature.0.ReferencedObject.SignedObjectDigest.Algorithm",
-            "File;Content.Signature.ReferencedObject.SignedObjectDigest.MessageDigest",
-            "File;Content.Signature.0.ReferencedObject.SignedObjectDigest.MessageDigest",
-            "File;Content.Event.evType",
-            "File;Content.Event.0.evType",
-            "File;Content.Event.evDetData",
-            "File;Content.Event.0.evDetData",
-            "File;Content.Event.evId",
-            "File;Content.Event.0.evId",
-            "File;Content.Event.evTypeDetail",
-            "File;Content.Event.0.evTypeDetail",
-            "File;Content.Event.evTypeProc",
-            "File;Content.Event.0.evTypeProc",
-            "File;Content.Event.linkingAgentIdentifier.LinkingAgentIdentifierValue",
-            "File;Content.Event.0.linkingAgentIdentifier.LinkingAgentIdentifierValue",
-            "File;Content.Event.linkingAgentIdentifier.LinkingAgentIdentifierType",
-            "File;Content.Event.0.linkingAgentIdentifier.LinkingAgentIdentifierType",
-            "File;Content.Event.linkingAgentIdentifier.LinkingAgentRole",
-            "File;Content.Event.0.linkingAgentIdentifier.LinkingAgentRole",
-            "File;Content.Event.evDateTime",
-            "File;Content.Event.0.evDateTime",
-            "File;Content.Event.outcome",
-            "File;Content.Event.0.outcome",
-            "File;Content.Event.outDetail",
-            "File;Content.Event.0.outDetail",
-            "File;Content.Event.outMessg",
-            "File;Content.Event.0.outMessg"
+            "Header must be Seda path 'Content.Title' instead of Vitam field name 'Content.Title_'"
         );
-
-        // When / Then
-        for (String headerLine : headerLines) {
-            assertThatHeaderNamesAreInvalid(headerLine, " Header must be Seda field name instead of Vitam field name");
-        }
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Title_.0",
+            "Header must be Seda path 'Content.Title' instead of Vitam field name 'Content.Title_'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Description_",
+            "Header must be Seda path 'Content.Description' instead of Vitam field name 'Content.Description_'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Description_.0",
+            "Header must be Seda path 'Content.Description' instead of Vitam field name 'Content.Description_'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Signature.ReferencedObject.SignedObjectDigest.Algorithm",
+            "Header must be Seda path 'Content.Signature.ReferencedObject.SignedObjectDigest.attr' instead of Vitam field name 'Content.Signature.ReferencedObject.SignedObjectDigest.Algorithm'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Signature.0.ReferencedObject.SignedObjectDigest.Algorithm",
+            "Header must be Seda path 'Content.Signature.ReferencedObject.SignedObjectDigest.attr' instead of Vitam field name 'Content.Signature.ReferencedObject.SignedObjectDigest.Algorithm'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Signature.ReferencedObject.SignedObjectDigest.MessageDigest",
+            "Header must be Seda path 'Content.Signature.ReferencedObject.SignedObjectDigest' instead of Vitam field name 'Content.Signature.ReferencedObject.SignedObjectDigest.MessageDigest'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Signature.0.ReferencedObject.SignedObjectDigest.MessageDigest",
+            "Header must be Seda path 'Content.Signature.ReferencedObject.SignedObjectDigest' instead of Vitam field name 'Content.Signature.ReferencedObject.SignedObjectDigest.MessageDigest'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evType",
+            "Header must be Seda path 'Content.Event.EventType' instead of Vitam field name 'Content.Event.evType'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.evType",
+            "Header must be Seda path 'Content.Event.EventType' instead of Vitam field name 'Content.Event.evType'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evDetData",
+            "Header must be Seda path 'Content.Event.EventDetailData' instead of Vitam field name 'Content.Event.evDetData'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.evDetData",
+            "Header must be Seda path 'Content.Event.EventDetailData' instead of Vitam field name 'Content.Event.evDetData'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evId",
+            "Header must be Seda path 'Content.Event.EventIdentifier' instead of Vitam field name 'Content.Event.evId'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.evId",
+            "Header must be Seda path 'Content.Event.EventIdentifier' instead of Vitam field name 'Content.Event.evId'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evTypeDetail",
+            "Header must be Seda path 'Content.Event.EventDetail' instead of Vitam field name 'Content.Event.evTypeDetail'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.evTypeDetail",
+            "Header must be Seda path 'Content.Event.EventDetail' instead of Vitam field name 'Content.Event.evTypeDetail'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evTypeProc",
+            "Header must be Seda path 'Content.Event.EventTypeCode' instead of Vitam field name 'Content.Event.evTypeProc'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.evTypeProc",
+            "Header must be Seda path 'Content.Event.EventTypeCode' instead of Vitam field name 'Content.Event.evTypeProc'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.linkingAgentIdentifier.LinkingAgentIdentifierValue",
+            "Header must be Seda path 'Content.Event.LinkingAgentIdentifier' instead of Vitam field name 'Content.Event.linkingAgentIdentifier'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.linkingAgentIdentifier.LinkingAgentIdentifierValue",
+            "Header must be Seda path 'Content.Event.LinkingAgentIdentifier' instead of Vitam field name 'Content.Event.linkingAgentIdentifier'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.linkingAgentIdentifier.LinkingAgentIdentifierType",
+            "Header must be Seda path 'Content.Event.LinkingAgentIdentifier' instead of Vitam field name 'Content.Event.linkingAgentIdentifier'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.linkingAgentIdentifier.LinkingAgentIdentifierType",
+            "Header must be Seda path 'Content.Event.LinkingAgentIdentifier' instead of Vitam field name 'Content.Event.linkingAgentIdentifier'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.linkingAgentIdentifier.LinkingAgentRole",
+            "Header must be Seda path 'Content.Event.LinkingAgentIdentifier' instead of Vitam field name 'Content.Event.linkingAgentIdentifier'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.linkingAgentIdentifier.LinkingAgentRole",
+            "Header must be Seda path 'Content.Event.LinkingAgentIdentifier' instead of Vitam field name 'Content.Event.linkingAgentIdentifier'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evDateTime",
+            "Header must be Seda path 'Content.Event.EventDateTime' instead of Vitam field name 'Content.Event.evDateTime'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.evDateTime",
+            "Header must be Seda path 'Content.Event.EventDateTime' instead of Vitam field name 'Content.Event.evDateTime'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.outcome",
+            "Header must be Seda path 'Content.Event.Outcome' instead of Vitam field name 'Content.Event.outcome'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.outcome",
+            "Header must be Seda path 'Content.Event.Outcome' instead of Vitam field name 'Content.Event.outcome'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.outDetail",
+            "Header must be Seda path 'Content.Event.OutcomeDetail' instead of Vitam field name 'Content.Event.outDetail'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.outDetail",
+            "Header must be Seda path 'Content.Event.OutcomeDetail' instead of Vitam field name 'Content.Event.outDetail'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.outMessg",
+            "Header must be Seda path 'Content.Event.OutcomeDetailMessage' instead of Vitam field name 'Content.Event.outMessg'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.0.outMessg",
+            "Header must be Seda path 'Content.Event.OutcomeDetailMessage' instead of Vitam field name 'Content.Event.outMessg'"
+        );
     }
 
     @Test
@@ -720,7 +808,7 @@ public class CsvMetadataValidatorTest {
             "File;Unknown;Content.Title_;Content.Description.0;Content.Description.2;Content.MyExtension;Content.MyExtension.SubField;Management.AppraisalRule;Management.StorageRule.Rule",
             "CSV validation failed. 5 error(s):\n" +
             "- Invalid header name 'Unknown': Invalid header name 'Unknown'. Only accepted names are 'File', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'\n" +
-            "- Invalid header name 'Content.Title_': Header must be Seda field name instead of Vitam field name\n" +
+            "- Invalid header name 'Content.Title_': Header must be Seda path 'Content.Title' instead of Vitam field name 'Content.Title_'\n" +
             "- Invalid header name 'Content.Description.2': Expected header name 'Content.Description.1' since header 'Content.Description.2' is declared\n" +
             "- Invalid header name 'Content.MyExtension.SubField': Field 'Content.MyExtension' is not an object.\n" +
             "- Invalid header name 'Management.AppraisalRule': Field 'Management.AppraisalRule' is an object."

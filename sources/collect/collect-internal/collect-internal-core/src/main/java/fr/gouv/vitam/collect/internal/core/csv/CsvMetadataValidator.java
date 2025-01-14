@@ -33,18 +33,19 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_DESCRIPTION_;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_TITLE_;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ARRAY_INDEX_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ATTR_HEADER_NAME_SUFFIX;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_DESCRIPTION;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_DESCRIPTION_VALID_HEADER_NAME_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST;
@@ -52,6 +53,7 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_S
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.CONTENT_TITLE_VALID_HEADER_NAME_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.IMPLICIT_0_ARRAY_INDEX;
@@ -297,25 +299,40 @@ public class CsvMetadataValidator {
         SedaSchemaInfoResolver sedaSchemaInfoResolver,
         CsvHeaderValidationManager csvHeaderValidationManager
     ) throws CollectInvalidCsvFormatException {
-        List<String> reservedSedaPaths = new ArrayList<>();
-        reservedSedaPaths.add(CONTENT_SEPARATOR + API_FIELD_TITLE_);
-        reservedSedaPaths.add(CONTENT_SEPARATOR + API_FIELD_DESCRIPTION_);
-        reservedSedaPaths.add(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST);
-        reservedSedaPaths.add(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ALGORITHM);
+        Map<String, String> reservedSedaPaths = new HashMap<>();
+        reservedSedaPaths.put(CONTENT_SEPARATOR + API_FIELD_TITLE_, CONTENT_TITLE);
+        reservedSedaPaths.put(CONTENT_SEPARATOR + API_FIELD_DESCRIPTION_, CONTENT_DESCRIPTION);
+        reservedSedaPaths.put(
+            CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST,
+            CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST
+        );
+        reservedSedaPaths.put(
+            CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ALGORITHM,
+            CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR
+        );
         for (SedaSchemaInfo schemaInfo : sedaSchemaInfoResolver.getAllContentSchemaInfo()) {
             String contentApiPath = CONTENT_SEPARATOR + schemaInfo.apiPath();
             if (!contentApiPath.equals(schemaInfo.sedaPath())) {
-                reservedSedaPaths.add(contentApiPath);
+                reservedSedaPaths.put(contentApiPath, schemaInfo.sedaPath());
             }
         }
 
         for (String headerName : csvHeaderValidationManager.getRemainingContentHeaderNamesToValidate()) {
             // Remove array indexes
             String sedaPath = headerName.replaceAll("\\.\\d+$", "").replaceAll("\\.\\d+\\.", ".");
-            if (reservedSedaPaths.stream().anyMatch(reservedPath -> equalsOrStartsWith(sedaPath, reservedPath))) {
+            Optional<Map.Entry<String, String>> reservedPathEntry = reservedSedaPaths
+                .entrySet()
+                .stream()
+                .filter(reservedPath -> equalsOrStartsWith(sedaPath, reservedPath.getKey()))
+                .findFirst();
+            if (reservedPathEntry.isPresent()) {
                 csvHeaderValidationManager.report(
                     headerName,
-                    "Header must be Seda field name instead of Vitam field name"
+                    "Header must be Seda path '" +
+                    reservedPathEntry.get().getValue() +
+                    "' instead of Vitam field name '" +
+                    reservedPathEntry.get().getKey() +
+                    "'"
                 );
             }
         }
