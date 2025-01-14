@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_DESCRIPTION_;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_TITLE_;
@@ -458,10 +459,24 @@ public class CsvMetadataValidator {
                         }
 
                         if (!parentSchemaInfo.isSedaExtensionPoint()) {
+                            List<String> availableSedaFields = sedaSchemaInfoResolver
+                                .getChildContentSchemaInfo(parentSedaPath)
+                                .stream()
+                                .filter(s -> !s.isForbiddenCsvHeader())
+                                .map(s -> StringUtils.removeStart(s.sedaPath(), parentSedaPath + SEPARATOR))
+                                .sorted()
+                                .collect(Collectors.toList());
+
                             csvHeaderValidationManager.report(
                                 headerName,
-                                "Invalid seda extension point '" + parentSedaPath + "'"
+                                "Invalid seda extension point '" +
+                                parentSedaPath +
+                                "'. Invalid field '" +
+                                fieldEntry.sedaFieldName() +
+                                "'. Available fields: " +
+                                availableSedaFields.stream().collect(Collectors.joining(", ", "[", "]"))
                             );
+
                             // No more processing of other fields of this header
                             break;
                         }
@@ -493,7 +508,7 @@ public class CsvMetadataValidator {
                 if (schemaInfo.isForbiddenCsvHeader()) {
                     csvHeaderValidationManager.report(
                         headerName,
-                        "Seda Field '" + fieldEntry.sedaFieldName() + "' is forbidden."
+                        "Seda Field '" + fieldEntry.simpleSedaPath() + "' is reserved / forbidden."
                     );
                     // No more processing of other fields of this header
                     break;
@@ -583,13 +598,22 @@ public class CsvMetadataValidator {
             );
 
             if (sedaManagementModel == null) {
+                List<String> availableSedaFields = sedaSchemaInfoResolver
+                    .getChildManagementSchemaInfo(fieldEntry.parentSimpleSedaPath())
+                    .stream()
+                    .filter(s -> !s.isForbiddenCsvHeader())
+                    .map(s -> StringUtils.removeStart(s.sedaPath(), fieldEntry.parentSimpleSedaPath() + SEPARATOR))
+                    .sorted()
+                    .collect(Collectors.toList());
+
                 csvHeaderValidationManager.report(
                     headerName,
                     "Invalid seda extension point '" +
                     fieldEntry.parentFullSedaPath() +
-                    "'. Unknown field '" +
+                    "'. Invalid field '" +
                     fieldEntry.sedaFieldName() +
-                    "'"
+                    "'. Available fields: " +
+                    availableSedaFields.stream().collect(Collectors.joining(", ", "[", "]"))
                 );
                 // No more processing of other fields of this header
                 return;
@@ -598,7 +622,7 @@ public class CsvMetadataValidator {
             if (sedaManagementModel.isForbiddenCsvHeader()) {
                 csvHeaderValidationManager.report(
                     headerName,
-                    "Seda Field '" + fieldEntry.sedaFieldName() + "' is forbidden."
+                    "Seda Field '" + fieldEntry.simpleSedaPath() + "' is reserved / forbidden."
                 );
                 // No more processing of other fields of this header
                 return;

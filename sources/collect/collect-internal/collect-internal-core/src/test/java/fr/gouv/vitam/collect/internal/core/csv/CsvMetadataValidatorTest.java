@@ -293,15 +293,15 @@ public class CsvMetadataValidatorTest {
     public void testHeaderValidation_ForbiddenFields() {
         assertThatHeaderNamesAreInvalid(
             "File;Content.ArchiveUnitProfile",
-            "Seda Field 'ArchiveUnitProfile' is forbidden."
+            "Seda Field 'Content.ArchiveUnitProfile' is reserved / forbidden."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.LogBook.Event.0.EventIdentifier",
-            "Seda Field 'LogBook' is forbidden."
+            "Seda Field 'Management.LogBook' is reserved / forbidden."
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.UpdateOperation.SystemId",
-            "Seda Field 'UpdateOperation' is forbidden."
+            "Seda Field 'Management.UpdateOperation' is reserved / forbidden."
         );
     }
 
@@ -638,28 +638,38 @@ public class CsvMetadataValidatorTest {
         );
 
         assertThatHeaderNamesAreInvalid(
+            "File;Content.Event.evId",
+            "Header must be Seda path 'Content.Event.EventIdentifier' instead of Vitam field name 'Content.Event.evId'"
+        );
+
+        assertThatHeaderNamesAreInvalid(
             "File;Content.Event.MyExtension",
-            "Invalid seda extension point 'Content.Event'"
+            "Invalid seda extension point 'Content.Event'. Invalid field 'MyExtension'. Available fields: [EventDateTime, EventDetail, EventDetailData, EventIdentifier, EventType, EventTypeCode, LinkingAgentIdentifier, Outcome, OutcomeDetail, OutcomeDetailMessage]"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Content.Invoice.Provider.MyKeyword.MyExtension",
-            "Field 'Content.Invoice.Provider.MyKeyword' is not an object"
+            "Field 'Content.Invoice.Provider.MyKeyword' is not an object."
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Management.Unknown",
-            "Invalid seda extension point 'Management'. Unknown field 'Unknown'"
+            "Invalid seda extension point 'Management'. Invalid field 'Unknown'. Available fields: [AccessRule, AppraisalRule, ClassificationRule, DisseminationRule, HoldRule, NeedAuthorization, ReuseRule, StorageRule]"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.Unknown",
-            "Invalid header name 'Management.HoldRule.Unknown': Invalid seda extension point 'Management.HoldRule'. Unknown field 'Unknown'"
+            "Invalid seda extension point 'Management.HoldRule'. Invalid field 'Unknown'. Available fields: [HoldEndDate, HoldOwner, HoldReason, HoldReassessingDate, PreventInheritance, PreventRearrangement, RefNonRuleId, Rule, StartDate]"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.EndDate",
-            "Invalid header name 'Management.HoldRule.EndDate': Invalid seda extension point 'Management.HoldRule'. Unknown field 'EndDate'"
+            "Invalid seda extension point 'Management.HoldRule'. Invalid field 'EndDate'. Available fields: [HoldEndDate, HoldOwner, HoldReason, HoldReassessingDate, PreventInheritance, PreventRearrangement, RefNonRuleId, Rule, StartDate]"
+        );
+
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.SigningInformation.DetachedRole",
+            "Invalid seda extension point 'Content.SigningInformation'. Invalid field 'DetachedRole'. Available fields: [AdditionalProof, DetachedSigningRole, Extended, SignatureDescription, SigningRole, TimestampingInformation]"
         );
 
         assertThatHeaderNamesAreInvalid(

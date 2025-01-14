@@ -339,4 +339,29 @@ public class SedaSchemaInfoResolver {
     public SedaSchemaInfo getManagementModelBySedaPath(String sedaPath) {
         return managementSedaSchemaBySedaPath.get(sedaPath);
     }
+
+    public List<SedaSchemaInfo> getChildContentSchemaInfo(String sedaPathPrefix) {
+        return getChildSchemaInfo(sedaPathPrefix, contentSchemaBySedaPath);
+    }
+
+    public List<SedaSchemaInfo> getChildManagementSchemaInfo(String sedaPathPrefix) {
+        return getChildSchemaInfo(sedaPathPrefix, managementSedaSchemaBySedaPath);
+    }
+
+    private List<SedaSchemaInfo> getChildSchemaInfo(
+        String sedaPathPrefix,
+        Map<String, SedaSchemaInfo> contentSchemaBySedaPath
+    ) {
+        return contentSchemaBySedaPath
+            .values()
+            .stream()
+            .filter(s -> {
+                if (!s.sedaPath().startsWith(sedaPathPrefix + SEPARATOR)) {
+                    return false;
+                }
+                String subSedaPath = StringUtils.removeStart(s.sedaPath(), sedaPathPrefix + SEPARATOR);
+                return !subSedaPath.contains(SEPARATOR);
+            })
+            .collect(Collectors.toList());
+    }
 }

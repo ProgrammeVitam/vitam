@@ -66,6 +66,7 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
 
                 String fieldName = fieldNames[index];
 
+                String parentSimpleSedaPath = simpleSedaPath;
                 simpleSedaPath = buildPath(simpleSedaPath, fieldName);
 
                 String parentFullSedaPath = fullSedaPath;
@@ -89,7 +90,8 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
                     simpleSedaPath,
                     fullSedaPath,
                     fullSedaPathWithoutLastArrayIndex,
-                    parentFullSedaPath
+                    parentFullSedaPath,
+                    parentSimpleSedaPath
                 );
             }
         };
@@ -104,6 +106,7 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
         private final String fullSedaPath;
         private final String fullSedaPathWithoutLastArrayIndex;
         private final String parentFullSedaPath;
+        private final String parentSimpleSedaPath;
 
         public FieldEntry(
             // Declared array index (ex "Content.Title" --> "Title", "Content.Title.0" --> "Title")
@@ -117,8 +120,10 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
             String fullSedaPath,
             // Seda Path with declared array indexes (ex "Content.Writer.0.FullName.0" --> "Content.Writer.0.FullName")
             String fullSedaPathWithoutLastArrayIndex,
-            // Seda Path with declared array indexes (ex "Content.Writer.0.FullName.0" --> "Content.Writer.0")
-            String parentFullSedaPath
+            // Parent Seda Path with declared array indexes (ex "Content.Writer.0.FullName.0" --> "Content.Writer.0")
+            String parentFullSedaPath,
+            // Parent Seda Path without array indexes (ex "Content.Writer.0.FullName.0" --> "Content.Writer")
+            String parentSimpleSedaPath
         ) {
             this.sedaFieldName = sedaFieldName;
             this.arrayIndex = arrayIndex;
@@ -127,6 +132,7 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
             this.fullSedaPath = fullSedaPath;
             this.fullSedaPathWithoutLastArrayIndex = fullSedaPathWithoutLastArrayIndex;
             this.parentFullSedaPath = parentFullSedaPath;
+            this.parentSimpleSedaPath = parentSimpleSedaPath;
         }
 
         public boolean isDeclaredAsArray() {
@@ -161,6 +167,10 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
             return parentFullSedaPath;
         }
 
+        public String parentSimpleSedaPath() {
+            return parentSimpleSedaPath;
+        }
+
         @Override
         public boolean equals(Object obj) {
             if (obj == this) return true;
@@ -173,7 +183,8 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
                 Objects.equals(this.simpleSedaPath, that.simpleSedaPath) &&
                 Objects.equals(this.fullSedaPath, that.fullSedaPath) &&
                 Objects.equals(this.fullSedaPathWithoutLastArrayIndex, that.fullSedaPathWithoutLastArrayIndex) &&
-                Objects.equals(this.parentFullSedaPath, that.parentFullSedaPath)
+                Objects.equals(this.parentFullSedaPath, that.parentFullSedaPath) &&
+                Objects.equals(this.parentSimpleSedaPath, that.parentSimpleSedaPath)
             );
         }
 
@@ -186,7 +197,8 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
                 simpleSedaPath,
                 fullSedaPath,
                 fullSedaPathWithoutLastArrayIndex,
-                parentFullSedaPath
+                parentFullSedaPath,
+                parentSimpleSedaPath
             );
         }
 
@@ -214,6 +226,9 @@ public class CsvHeaderFieldNameIterable implements Iterable<CsvHeaderFieldNameIt
                 ", " +
                 "parentFullSedaPath=" +
                 parentFullSedaPath +
+                ", " +
+                "parentSimpleSedaPath=" +
+                parentSimpleSedaPath +
                 ']'
             );
         }
