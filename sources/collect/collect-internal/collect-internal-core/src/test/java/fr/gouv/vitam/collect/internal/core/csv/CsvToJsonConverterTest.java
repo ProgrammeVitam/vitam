@@ -406,10 +406,10 @@ public class CsvToJsonConverterTest {
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessage(
                 "CSV validation failed. 4 error(s):\n" +
-                "- Invalid CSV record at line 6 (File=\"File5\"): Multiple values for 'Content.Description' header\n" +
-                "- Invalid CSV record at line 7 (File=\"File6\"): Multiple values for 'Content.Description' header with same lang attribute 'fr'\n" +
-                "- Invalid CSV record at line 8 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'\n" +
-                "- Invalid CSV record at line 9 (File=\"File8\"): Invalid xml:lang attribute for header 'Content.Description.0.attr'"
+                "- Invalid CSV record at line 7 (File=\"File5\"): Multiple values for 'Content.Description' header\n" +
+                "- Invalid CSV record at line 8 (File=\"File6\"): Multiple values for 'Content.Description' header with same lang attribute 'fr'\n" +
+                "- Invalid CSV record at line 9 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'\n" +
+                "- Invalid CSV record at line 10 (File=\"File8\"): Invalid xml:lang attribute for header 'Content.Description.0.attr'"
             );
 
         try (
@@ -453,11 +453,13 @@ public class CsvToJsonConverterTest {
         assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessage(
-                "CSV validation failed. 4 error(s):\n" +
-                "- Invalid CSV record at line 6 (File=\"File5\"): Multiple values for 'Content.Title' header\n" +
-                "- Invalid CSV record at line 7 (File=\"File6\"): Multiple values for 'Content.Title' header with same lang attribute 'fr'\n" +
-                "- Invalid CSV record at line 8 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'\n" +
-                "- Invalid CSV record at line 9 (File=\"File8\"): Invalid xml:lang attribute for header 'Content.Title.0.attr'"
+                "CSV validation failed. 6 error(s):\n" +
+                "- Invalid CSV record at line 7 (File=\"File5\"): Multiple values for 'Content.Title' header\n" +
+                "- Invalid CSV record at line 8 (File=\"File6\"): Multiple values for 'Content.Title' header with same lang attribute 'fr'\n" +
+                "- Invalid CSV record at line 9 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'\n" +
+                "- Invalid CSV record at line 10 (File=\"File8\"): Invalid xml:lang attribute for header 'Content.Title.0.attr'\n" +
+                "- Invalid CSV record at line 11: Nb columns (2) must match nb headers (8)\n" +
+                "- Invalid CSV record at line 12: Nb columns (50) must match nb headers (8)"
             );
 
         try (
@@ -471,6 +473,7 @@ public class CsvToJsonConverterTest {
             CollectJsonMetadataLine unit2 = metadata.next();
             CollectJsonMetadataLine unit3 = metadata.next();
             CollectJsonMetadataLine unit4 = metadata.next();
+            CollectJsonMetadataLine unit11 = metadata.next();
             assertThat(metadata.hasNext()).isFalse();
 
             assertThat(unit0.getFile()).isEqualTo("File0");
@@ -478,12 +481,14 @@ public class CsvToJsonConverterTest {
             assertThat(unit2.getFile()).isEqualTo("File2");
             assertThat(unit3.getFile()).isEqualTo("File3");
             assertThat(unit4.getFile()).isEqualTo("File4");
+            assertThat(unit11.getFile()).isEqualTo("File11");
 
             assertJsonEquals(unit0.getUnitContent(), "csv/metadata_title_complex_expected_unit0.json");
             assertJsonEquals(unit1.getUnitContent(), "csv/metadata_title_complex_expected_unit1.json");
             assertJsonEquals(unit2.getUnitContent(), "csv/metadata_title_complex_expected_unit2.json");
             assertJsonEquals(unit3.getUnitContent(), "csv/metadata_title_complex_expected_unit3.json");
             assertJsonEquals(unit4.getUnitContent(), "csv/metadata_title_complex_expected_unit4.json");
+            assertJsonEquals(unit11.getUnitContent(), "csv/metadata_title_complex_expected_unit11.json");
         }
     }
 

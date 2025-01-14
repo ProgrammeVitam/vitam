@@ -68,10 +68,24 @@ public class CsvHelper {
 
             try (CsvErrorAccumulator csvErrorAccumulator = new CsvErrorAccumulator()) {
                 for (CSVRecord record : parser) {
+                    long csvRecordNumberIncludingHeader = record.getRecordNumber() + 1;
+                    if (!record.isConsistent()) {
+                        csvErrorAccumulator.report(
+                            "Invalid CSV record at line " +
+                            csvRecordNumberIncludingHeader +
+                            ": Nb columns (" +
+                            record.size() +
+                            ") must match nb headers (" +
+                            headerNames.size() +
+                            ")"
+                        );
+                        continue;
+                    }
+
                     String uploadPath = FilenameUtils.separatorsToUnix(record.get(FILE_HEADER));
                     if (StringUtils.isBlank(uploadPath)) {
                         csvErrorAccumulator.report(
-                            "Invalid CSV record at line " + record.getRecordNumber() + ": Empty " + FILE_HEADER
+                            "Invalid CSV record at line " + csvRecordNumberIncludingHeader + ": Empty " + FILE_HEADER
                         );
                         continue;
                     }
@@ -83,7 +97,7 @@ public class CsvHelper {
                         csvErrorAccumulator.report(
                             String.format(
                                 "Invalid CSV record at line %d (File=\"%s\"): %s",
-                                record.getRecordNumber(),
+                                csvRecordNumberIncludingHeader,
                                 sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH),
                                 e.getMessage()
                             )
