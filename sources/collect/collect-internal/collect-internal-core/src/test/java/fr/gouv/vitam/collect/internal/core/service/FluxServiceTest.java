@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
@@ -84,6 +85,7 @@ import static fr.gouv.vitam.common.PropertiesUtils.getResourceAsStream;
 import static fr.gouv.vitam.common.SedaConstants.TAG_FILE_INFO;
 import static fr.gouv.vitam.common.SedaConstants.TAG_URI;
 import static fr.gouv.vitam.common.SedaConstants.TAG_VERSIONS;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -101,10 +103,13 @@ public class FluxServiceTest {
     private static final String PROJECT_ID = "PROJECT_ID";
 
     private static final String UNITS_PATH = "streamZip/units.json";
+    private static final String UNITS_WITHOUT_BINARIES_PATH = "streamZip/units_without_binaries.json";
 
     private static final String OBJECTGROUPS_PATH = "streamZip/objectgroups.json";
 
     private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
+    private static final String TRANSACTION_ZIP_WITHOUT_BINARY_PATH = "streamZip/transaction_without_binary.zip";
+    private static final String TRANSACTION_ZIP_EMPTY_PATH = "streamZip/zip_empty.zip";
 
     private static final String TRANSACTION_ZIP_WITH_METADATA_CSV_PATH = "streamZip/transaction_with_metadata_csv.zip";
 
@@ -245,6 +250,67 @@ public class FluxServiceTest {
                 )
             )
         );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void processStreamWithoutBinaryThenOK() throws Exception {
+        when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
+        Map<String, JsonNode> units = new HashMap<>();
+        when(metadataRepository.saveArchiveUnits(ArgumentMatchers.anyList())).thenAnswer(e -> {
+            final List<ObjectNode> unitsToSave = e.getArgument(0);
+            for (ObjectNode unit : unitsToSave) {
+                units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
+            }
+            return JsonHandler.toJsonNode(
+                new RequestResponseOK<>(JsonHandler.createObjectNode(), unitsToSave, unitsToSave.size())
+            );
+        });
+
+        when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
+
+        try (
+            final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+                TRANSACTION_ZIP_WITHOUT_BINARY_PATH
+            )
+        ) {
+            fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID, null);
+        }
+
+        final JsonNode expectedUnits = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile(UNITS_WITHOUT_BINARIES_PATH)
+        );
+
+        JsonAssert.assertJsonEquals(
+            units.values(),
+            expectedUnits,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
+                List.of(
+                    "[*]." + VitamFieldsHelper.id(),
+                    "[*]." + VitamFieldsHelper.unitups(),
+                    "[*]." + VitamFieldsHelper.object(),
+                    "[*]." + VitamFieldsHelper.batchId()
+                )
+            )
+        );
+
+        verify(metadataRepository, never()).saveObjectGroups(anyList());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void processStreamWithEmptyZipThenKO() throws Exception {
+        when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
+        when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
+
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_EMPTY_PATH)) {
+            assertThatThrownBy(() -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID, null))
+                .isInstanceOf(CollectInternalInvalidRequestException.class)
+                .hasMessage("Empty zip file.");
+        }
+
+        verify(metadataRepository, never()).saveArchiveUnits(anyList());
+        verify(metadataRepository, never()).saveObjectGroups(anyList());
     }
 
     @Test

@@ -1,0 +1,35 @@
+[
+  {
+    "#id": "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq",
+    "#opi": "TRANSACTION_ID",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "ROOT",
+    "#uploadPath": "ROOT",
+    "DescriptionLevel": "RecordGrp"
+  },
+  {
+    "#id": "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq",
+    "#opi": "TRANSACTION_ID",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "Parent B",
+    "#uploadPath": "ROOT/Parent B",
+    "DescriptionLevel": "RecordGrp",
+    "#unitups": [
+      "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq"
+    ]
+  },
+  {
+    "#id": "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq",
+    "#opi": "TRANSACTION_ID",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "Parent A",
+    "#uploadPath": "ROOT/Parent A",
+    "DescriptionLevel": "RecordGrp",
+    "#unitups": [
+      "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq"
+    ]
+  }
+]
