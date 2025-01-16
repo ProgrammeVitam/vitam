@@ -85,6 +85,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.zip.ZipException;
 
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.findUnitParent;
 import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.getSerializationObjectMapper;
@@ -191,7 +192,7 @@ public class FluxService {
             }
 
             if (isEmpty) {
-                throw new CollectInternalException("File is empty");
+                throw new CollectInternalInvalidRequestException("Empty zip file.");
             }
 
             File validatedJsonlMetadataFile = null;
@@ -219,11 +220,15 @@ public class FluxService {
                     metadataService.updateUnitsWithJsonlMetadataFile(transactionId, is);
                 }
             }
-        } catch (IOException | ArchiveException e) {
-            LOGGER.error("An error occurs when try to upload the ZIP:", e);
-            throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
-        } catch (InvalidParseOperationException e) {
-            throw new CollectInternalException(e.getMessage(), e);
+        } catch (ZipException | ArchiveException e) {
+            throw new CollectInternalInvalidRequestException("Invalid ZIP archive: " + e.getMessage(), e);
+        } catch (CollectInternalException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CollectInternalException(
+                "An unexpected error occurs when try to upload the ZIP: " + e.getMessage(),
+                e
+            );
         }
     }
 
@@ -402,6 +407,12 @@ public class FluxService {
 
     private void bulkWriteObjectGroups(TempWorkspace tempWorkspace) throws IOException {
         File ogFile = tempWorkspace.getFile(MetadataType.OBJECTGROUP.getName() + VitamConstants.JSONL_EXTENSION);
+
+        if (!ogFile.exists()) {
+            LOGGER.info("No object group to insert");
+            return;
+        }
+
         JsonLineGenericIterator<ObjectNode> ogIterator = new JsonLineGenericIterator<>(
             new FileInputStream(ogFile),
             new TypeReference<>() {}
