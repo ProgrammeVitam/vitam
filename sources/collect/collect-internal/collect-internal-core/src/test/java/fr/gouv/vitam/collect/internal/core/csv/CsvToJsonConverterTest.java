@@ -29,10 +29,9 @@ package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
-import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -41,31 +40,38 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
 
 public class CsvToJsonConverterTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -83,7 +89,7 @@ public class CsvToJsonConverterTest {
     }
 
     @Test
-    public void testNormalizedContentHeaderNames() throws CollectInternalException {
+    public void testNormalizedHeaderNames() throws CollectInternalException {
         // Given
         List<String> headerNames = List.of(
             "File",
@@ -112,12 +118,63 @@ public class CsvToJsonConverterTest {
             "Content.SomeOtherExternalField.SomeSubField2.1",
             "Content.Signature.ReferencedObject.SignedObjectId",
             "Content.Signature.ReferencedObject.SignedObjectDigest",
-            "Content.Signature.ReferencedObject.SignedObjectDigest.attr"
+            "Content.Signature.ReferencedObject.SignedObjectDigest.attr",
+            "Management.AccessRule.PreventInheritance",
+            "Management.AccessRule.RefNonRuleId.0",
+            "Management.AccessRule.Rule.0",
+            "Management.AccessRule.Rule.1",
+            "Management.AccessRule.StartDate.1",
+            "Management.AppraisalRule.Rule.0",
+            "Management.AppraisalRule.Rule.1",
+            "Management.AppraisalRule.StartDate.0",
+            "Management.AppraisalRule.StartDate.1",
+            "Management.AppraisalRule.FinalAction",
+            "Management.AppraisalRule.PreventInheritance",
+            "Management.AppraisalRule.RefNonRuleId.0",
+            "Management.AppraisalRule.RefNonRuleId.1",
+            "Management.DisseminationRule.Rule.0",
+            "Management.DisseminationRule.Rule.1",
+            "Management.DisseminationRule.StartDate",
+            "Management.DisseminationRule.PreventInheritance",
+            "Management.DisseminationRule.RefNonRuleId",
+            "Management.ClassificationRule.Rule.0",
+            "Management.ClassificationRule.Rule.1",
+            "Management.ClassificationRule.StartDate.0",
+            "Management.ClassificationRule.ClassificationLevel",
+            "Management.ClassificationRule.ClassificationOwner",
+            "Management.ClassificationRule.ClassificationReassessingDate",
+            "Management.ClassificationRule.NeedReassessingAuthorization",
+            "Management.ClassificationRule.PreventInheritance",
+            "Management.ClassificationRule.RefNonRuleId",
+            "Management.HoldRule.PreventInheritance",
+            "Management.HoldRule.Rule.0",
+            "Management.HoldRule.Rule.1",
+            "Management.HoldRule.StartDate.0",
+            "Management.HoldRule.StartDate.1",
+            "Management.HoldRule.HoldEndDate",
+            "Management.HoldRule.HoldOwner",
+            "Management.HoldRule.HoldReason.0",
+            "Management.HoldRule.HoldReassessingDate.0",
+            "Management.HoldRule.PreventRearrangement.0",
+            "Management.HoldRule.PreventRearrangement.1",
+            "Management.ReuseRule.PreventInheritance",
+            "Management.ReuseRule.RefNonRuleId.0",
+            "Management.ReuseRule.Rule.0",
+            "Management.ReuseRule.Rule.1",
+            "Management.ReuseRule.StartDate.0",
+            "Management.ReuseRule.StartDate.1",
+            "Management.StorageRule.FinalAction",
+            "Management.StorageRule.PreventInheritance",
+            "Management.StorageRule.RefNonRuleId.0",
+            "Management.StorageRule.RefNonRuleId.1",
+            "Management.StorageRule.Rule.0",
+            "Management.StorageRule.StartDate.0",
+            "Management.NeedAuthorization"
         );
 
         // When
         CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        Map<String, String> normalizedHeaderNames = csvToJsonConverter.getNormalizedContentHeaderMap();
+        Map<String, String> normalizedHeaderNames = csvToJsonConverter.getNormalizedHeaderMap();
 
         // Then
         assertThat(normalizedHeaderNames).hasSize(headerNames.size() - 4);
@@ -178,126 +235,358 @@ public class CsvToJsonConverterTest {
         assertThat(normalizedHeaderNames.get("Content.Signature.ReferencedObject.SignedObjectDigest.attr")).isEqualTo(
             "Signature[0].ReferencedObject.SignedObjectDigest.Algorithm"
         );
+
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.PreventInheritance")).isEqualTo(
+            "#management.AccessRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.RefNonRuleId.0")).isEqualTo(
+            "#management.AccessRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.Rule.0")).isEqualTo(
+            "#management.AccessRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.Rule.1")).isEqualTo(
+            "#management.AccessRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AccessRule.StartDate.1")).isEqualTo(
+            "#management.AccessRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.Rule.0")).isEqualTo(
+            "#management.AppraisalRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.Rule.1")).isEqualTo(
+            "#management.AppraisalRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.StartDate.0")).isEqualTo(
+            "#management.AppraisalRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.StartDate.1")).isEqualTo(
+            "#management.AppraisalRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.FinalAction")).isEqualTo(
+            "#management.AppraisalRule.FinalAction"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.PreventInheritance")).isEqualTo(
+            "#management.AppraisalRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.RefNonRuleId.0")).isEqualTo(
+            "#management.AppraisalRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.AppraisalRule.RefNonRuleId.1")).isEqualTo(
+            "#management.AppraisalRule.Inheritance.PreventRulesId[1]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.Rule.0")).isEqualTo(
+            "#management.DisseminationRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.Rule.1")).isEqualTo(
+            "#management.DisseminationRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.StartDate")).isEqualTo(
+            "#management.DisseminationRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.PreventInheritance")).isEqualTo(
+            "#management.DisseminationRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.DisseminationRule.RefNonRuleId")).isEqualTo(
+            "#management.DisseminationRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.Rule.0")).isEqualTo(
+            "#management.ClassificationRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.Rule.1")).isEqualTo(
+            "#management.ClassificationRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.StartDate.0")).isEqualTo(
+            "#management.ClassificationRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.ClassificationLevel")).isEqualTo(
+            "#management.ClassificationRule.ClassificationLevel"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.ClassificationOwner")).isEqualTo(
+            "#management.ClassificationRule.ClassificationOwner"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.ClassificationReassessingDate")).isEqualTo(
+            "#management.ClassificationRule.ClassificationReassessingDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.NeedReassessingAuthorization")).isEqualTo(
+            "#management.ClassificationRule.NeedReassessingAuthorization"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.PreventInheritance")).isEqualTo(
+            "#management.ClassificationRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ClassificationRule.RefNonRuleId")).isEqualTo(
+            "#management.ClassificationRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.PreventInheritance")).isEqualTo(
+            "#management.HoldRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.Rule.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.Rule.1")).isEqualTo(
+            "#management.HoldRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.StartDate.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.StartDate.1")).isEqualTo(
+            "#management.HoldRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldEndDate")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldEndDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldOwner")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldOwner"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldReason.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldReason"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.HoldReassessingDate.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].HoldReassessingDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.PreventRearrangement.0")).isEqualTo(
+            "#management.HoldRule.Rules[0].PreventRearrangement"
+        );
+        assertThat(normalizedHeaderNames.get("Management.HoldRule.PreventRearrangement.1")).isEqualTo(
+            "#management.HoldRule.Rules[1].PreventRearrangement"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.PreventInheritance")).isEqualTo(
+            "#management.ReuseRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.RefNonRuleId.0")).isEqualTo(
+            "#management.ReuseRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.Rule.0")).isEqualTo(
+            "#management.ReuseRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.Rule.1")).isEqualTo(
+            "#management.ReuseRule.Rules[1].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.StartDate.0")).isEqualTo(
+            "#management.ReuseRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.ReuseRule.StartDate.1")).isEqualTo(
+            "#management.ReuseRule.Rules[1].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.FinalAction")).isEqualTo(
+            "#management.StorageRule.FinalAction"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.PreventInheritance")).isEqualTo(
+            "#management.StorageRule.Inheritance.PreventInheritance"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.RefNonRuleId.0")).isEqualTo(
+            "#management.StorageRule.Inheritance.PreventRulesId[0]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.RefNonRuleId.1")).isEqualTo(
+            "#management.StorageRule.Inheritance.PreventRulesId[1]"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.Rule.0")).isEqualTo(
+            "#management.StorageRule.Rules[0].Rule"
+        );
+        assertThat(normalizedHeaderNames.get("Management.StorageRule.StartDate.0")).isEqualTo(
+            "#management.StorageRule.Rules[0].StartDate"
+        );
+        assertThat(normalizedHeaderNames.get("Management.NeedAuthorization")).isEqualTo(
+            "#management.NeedAuthorization"
+        );
     }
 
     @Test
     public void testConvertComplexDescription() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_description_complex.csv")
-        );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream("csv/metadata_description_complex.csv");
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
-        ObjectNode unit2 = csvToJsonConverter.convertCsvRecordToJson(records.get(2));
-        ObjectNode unit3 = csvToJsonConverter.convertCsvRecordToJson(records.get(3));
-        ObjectNode unit4 = csvToJsonConverter.convertCsvRecordToJson(records.get(4));
-        ThrowingCallable unit5Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(5));
-        ThrowingCallable unit6Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(6));
-        ThrowingCallable unit7Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(7));
-        ThrowingCallable unit8Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(8));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_description_complex_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_description_complex_expected_unit1.json");
-        assertJsonEquals(unit2, "csv/metadata_description_complex_expected_unit2.json");
-        assertJsonEquals(unit3, "csv/metadata_description_complex_expected_unit3.json");
-        assertJsonEquals(unit4, "csv/metadata_description_complex_expected_unit4.json");
-        assertThatCode(unit5Invocation)
+        assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Description' header");
-        assertThatCode(unit6Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Description' header with same lang attribute 'fr'");
-        assertThatCode(unit7Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining(
-                "Invalid header name 'Content.Description.*'. Field name cannot start with '_' or '-'"
+            .hasMessage(
+                """
+                CSV validation failed. 4 errors:
+                - Invalid CSV record at line 7 (File="File5"): Multiple values for 'Content.Description' header
+                - Invalid CSV record at line 8 (File="File6"): Multiple values for 'Content.Description' header with same lang attribute 'fr'
+                - Invalid CSV record at line 9 (File="File7"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'
+                - Invalid CSV record at line 10 (File="File8"): Invalid xml:lang attribute for header 'Content.Description.0.attr'"""
             );
-        assertThatCode(unit8Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Invalid xml:lang attribute for header 'Content.Description.0.attr'");
+
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            CollectJsonMetadataLine unit2 = metadata.next();
+            CollectJsonMetadataLine unit3 = metadata.next();
+            CollectJsonMetadataLine unit4 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("File0");
+            assertThat(unit1.getFile()).isEqualTo("File1");
+            assertThat(unit2.getFile()).isEqualTo("File2");
+            assertThat(unit3.getFile()).isEqualTo("File3");
+            assertThat(unit4.getFile()).isEqualTo("File4");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_description_complex_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_description_complex_expected_unit1.json");
+            assertJsonEquals(unit2.getUnitContent(), "csv/metadata_description_complex_expected_unit2.json");
+            assertJsonEquals(unit3.getUnitContent(), "csv/metadata_description_complex_expected_unit3.json");
+            assertJsonEquals(unit4.getUnitContent(), "csv/metadata_description_complex_expected_unit4.json");
+        }
     }
 
     @Test
     public void testConvertComplexTitle() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_title_complex.csv")
-        );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream("csv/metadata_title_complex.csv");
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
-        ObjectNode unit2 = csvToJsonConverter.convertCsvRecordToJson(records.get(2));
-        ObjectNode unit3 = csvToJsonConverter.convertCsvRecordToJson(records.get(3));
-        ObjectNode unit4 = csvToJsonConverter.convertCsvRecordToJson(records.get(4));
-        ThrowingCallable unit5Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(5));
-        ThrowingCallable unit6Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(6));
-        ThrowingCallable unit7Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(7));
-        ThrowingCallable unit8Invocation = () -> csvToJsonConverter.convertCsvRecordToJson(records.get(8));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_title_complex_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_title_complex_expected_unit1.json");
-        assertJsonEquals(unit2, "csv/metadata_title_complex_expected_unit2.json");
-        assertJsonEquals(unit3, "csv/metadata_title_complex_expected_unit3.json");
-        assertJsonEquals(unit4, "csv/metadata_title_complex_expected_unit4.json");
-        assertThatCode(unit5Invocation)
+        assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Title' header");
-        assertThatCode(unit6Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Multiple values for 'Content.Title' header with same lang attribute 'fr'");
-        assertThatCode(unit7Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Invalid header name 'Content.Title.*'. Field name cannot start with '_' or '-'");
-        assertThatCode(unit8Invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
-            .hasMessageContaining("Invalid xml:lang attribute for header 'Content.Title.0.attr'");
+            .hasMessage(
+                """
+                CSV validation failed. 6 errors:
+                - Invalid CSV record at line 7 (File="File5"): Multiple values for 'Content.Title' header
+                - Invalid CSV record at line 8 (File="File6"): Multiple values for 'Content.Title' header with same lang attribute 'fr'
+                - Invalid CSV record at line 9 (File="File7"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'
+                - Invalid CSV record at line 10 (File="File8"): Invalid xml:lang attribute for header 'Content.Title.0.attr'
+                - Invalid CSV record at line 11: Nb columns (2) must match nb headers (8)
+                - Invalid CSV record at line 12: Nb columns (50) must match nb headers (8)"""
+            );
+
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            CollectJsonMetadataLine unit2 = metadata.next();
+            CollectJsonMetadataLine unit3 = metadata.next();
+            CollectJsonMetadataLine unit4 = metadata.next();
+            CollectJsonMetadataLine unit11 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("File0");
+            assertThat(unit1.getFile()).isEqualTo("File1");
+            assertThat(unit2.getFile()).isEqualTo("File2");
+            assertThat(unit3.getFile()).isEqualTo("File3");
+            assertThat(unit4.getFile()).isEqualTo("File4");
+            assertThat(unit11.getFile()).isEqualTo("File11");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_title_complex_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_title_complex_expected_unit1.json");
+            assertJsonEquals(unit2.getUnitContent(), "csv/metadata_title_complex_expected_unit2.json");
+            assertJsonEquals(unit3.getUnitContent(), "csv/metadata_title_complex_expected_unit3.json");
+            assertJsonEquals(unit4.getUnitContent(), "csv/metadata_title_complex_expected_unit4.json");
+            assertJsonEquals(unit11.getUnitContent(), "csv/metadata_title_complex_expected_unit11.json");
+        }
     }
 
     @Test
     public void testConvertFullSedaContent() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_content.csv")
-        );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream("csv/metadata_full_seda.csv");
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
-        ObjectNode unit1 = csvToJsonConverter.convertCsvRecordToJson(records.get(1));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_content_expected_unit0.json");
-        assertJsonEquals(unit1, "csv/metadata_full_seda_content_expected_unit1.json");
+        assertThatCode(invocation).doesNotThrowAnyException();
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("Unit0");
+            assertThat(unit1.getFile()).isEqualTo("Unit1");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_full_seda_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_full_seda_expected_unit1.json");
+        }
     }
 
     @Test
     public void testConvertFullSedaContentImplicitArrayIndexHeaders() throws Exception {
         // Given
-        CSVParser parser = CsvHelper.createParser(
-            PropertiesUtils.getResourceAsStream("csv/metadata_full_seda_content_implicit_index.csv")
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream(
+            "csv/metadata_full_seda_implicit_array_index.csv"
         );
-        List<String> headerNames = parser.getHeaderNames();
-        List<CSVRecord> records = parser.getRecords();
+        File resultJsonl = tempFolder.newFile();
 
         // When
-        CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
-        ObjectNode unit0 = csvToJsonConverter.convertCsvRecordToJson(records.get(0));
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
 
         // Then
-        assertJsonEquals(unit0, "csv/metadata_full_seda_content_implicit_index_expected_unit0.json");
+        assertThatCode(invocation).doesNotThrowAnyException();
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("Unit0");
+            assertThat(unit1.getFile()).isEqualTo("Unit1");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_full_seda_implicit_array_index_expected_unit0.json");
+
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_full_seda_implicit_array_index_expected_unit1.json");
+        }
+    }
+
+    @Test
+    public void testConvertFullSedaContentExplicitArrayIndexHeaders() throws Exception {
+        // Given
+        InputStream csvInputStream = PropertiesUtils.getResourceAsStream(
+            "csv/metadata_full_seda_explicit_array_index.csv"
+        );
+        File resultJsonl = tempFolder.newFile();
+
+        // When
+        ThrowingCallable invocation = () ->
+            CsvHelper.convertCsvToJsonlMetadataFile(sedaSchemaInfoResolver, csvInputStream, resultJsonl);
+
+        // Then
+        assertThatCode(invocation).doesNotThrowAnyException();
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                new FileInputStream(resultJsonl),
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
+            CollectJsonMetadataLine unit0 = metadata.next();
+            CollectJsonMetadataLine unit1 = metadata.next();
+            assertThat(metadata.hasNext()).isFalse();
+
+            assertThat(unit0.getFile()).isEqualTo("Unit0");
+            assertThat(unit1.getFile()).isEqualTo("Unit1");
+
+            assertJsonEquals(unit0.getUnitContent(), "csv/metadata_full_seda_explicit_array_index_expected_unit0.json");
+            assertJsonEquals(unit1.getUnitContent(), "csv/metadata_full_seda_explicit_array_index_expected_unit1.json");
+        }
     }
 
     public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {
@@ -313,7 +602,7 @@ public class CsvToJsonConverterTest {
         JsonAssert.assertJsonEquals(
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(expectedJsonResource)),
             actual,
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths("#management")
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
         );
     }
 }

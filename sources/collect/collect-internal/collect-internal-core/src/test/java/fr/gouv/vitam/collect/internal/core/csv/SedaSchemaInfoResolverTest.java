@@ -68,68 +68,307 @@ public class SedaSchemaInfoResolverTest {
     }
 
     @Test
-    public void testResolver() throws CollectInternalException {
+    public void testResolverForContentFields() throws CollectInternalException {
         SedaSchemaInfoResolver instance = new SedaSchemaInfoResolver(adminManagementClientFactory);
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.DescriptionLevel")).isEqualTo(
-            new SchemaInfo("Content.DescriptionLevel", "DescriptionLevel", "DescriptionLevel", false, false, false)
+        assertThat(instance.getContentSchemaInfo("Content")).isEqualTo(
+            new SedaSchemaInfo("Content", null, null, true, false, false, true, false, false)
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Event")).isEqualTo(
-            new SchemaInfo("Content.Event", "Event", "Event", true, true, false)
+        assertThat(instance.getContentSchemaInfo("Content.DescriptionLevel")).isEqualTo(
+            new SedaSchemaInfo(
+                "Content.DescriptionLevel",
+                "DescriptionLevel",
+                "DescriptionLevel",
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Event.EventDateTime")).isEqualTo(
-            new SchemaInfo("Content.Event.EventDateTime", "Event.evDateTime", "evDateTime", false, false, false)
+        assertThat(instance.getContentSchemaInfo("Content.Event")).isEqualTo(
+            new SedaSchemaInfo("Content.Event", "Event", "Event", true, true, false, false, false, false)
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Signature.Signer.Function")).isEqualTo(
-            new SchemaInfo(
+        assertThat(instance.getContentSchemaInfo("Content.Event.EventDateTime")).isEqualTo(
+            new SedaSchemaInfo(
+                "Content.Event.EventDateTime",
+                "Event.evDateTime",
+                "evDateTime",
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
+        );
+
+        assertThat(instance.getContentSchemaInfo("Content.Signature.Signer.Function")).isEqualTo(
+            new SedaSchemaInfo(
                 "Content.Signature.Signer.Function",
                 "Signature.Signer.Function",
                 "Function",
                 false,
                 true,
+                false,
+                false,
+                false,
                 false
             )
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.SigningInformation.Extended")).isEqualTo(
-            new SchemaInfo(
+        assertThat(instance.getContentSchemaInfo("Content.SigningInformation.Extended")).isEqualTo(
+            new SedaSchemaInfo(
                 "Content.SigningInformation.Extended",
                 "SigningInformation.Extended",
                 "Extended",
                 true,
                 false,
+                false,
+                true,
+                false,
                 false
             )
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Invoice")).isEqualTo(
-            new SchemaInfo("Content.Invoice", "Invoice", "Invoice", true, true, true)
+        assertThat(instance.getContentSchemaInfo("Content.Invoice")).isEqualTo(
+            new SedaSchemaInfo("Content.Invoice", "Invoice", "Invoice", true, true, true, true, false, false)
         );
 
-        assertThat(instance.getContentFieldSchemaInfo("Content.Invoice.Provider.MyKeyword")).isEqualTo(
-            new SchemaInfo(
+        assertThat(instance.getContentSchemaInfo("Content.Invoice.Provider.MyKeyword")).isEqualTo(
+            new SedaSchemaInfo(
                 "Content.Invoice.Provider.MyKeyword",
                 "Invoice.Provider.MyKeyword",
                 "MyKeyword",
                 false,
                 true,
+                true,
+                false,
+                false,
+                false
+            )
+        );
+
+        // Forbidden "Content.ArchiveUnitProfile"
+        assertThat(instance.getContentSchemaInfo("Content.ArchiveUnitProfile")).isEqualTo(
+            new SedaSchemaInfo(
+                "Content.ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                false,
+                false,
+                false,
+                false,
+                false,
                 true
             )
         );
 
         // No management fields
-        assertThat(instance.getContentFieldSchemaInfo("Management.AppraisalRule.Rule")).isNull();
+        assertThat(instance.getContentSchemaInfo("Management.AppraisalRule.Rule")).isNull();
 
         // No system field (#version, Title_ & Description_)
-        assertThat(instance.getContentFieldSchemaInfo("#version")).isNull();
-        assertThat(instance.getContentFieldSchemaInfo("Content.Title_")).isNull();
-        assertThat(instance.getContentFieldSchemaInfo("Content.Description_")).isNull();
+        assertThat(instance.getContentSchemaInfo("#version")).isNull();
+        assertThat(instance.getContentSchemaInfo("Content.Title_")).isNull();
+        assertThat(instance.getContentSchemaInfo("Content.Description_")).isNull();
 
         // Unknown fields
-        assertThat(instance.getContentFieldSchemaInfo("Unknown")).isNull();
+        assertThat(instance.getContentSchemaInfo("Unknown")).isNull();
+    }
+
+    @Test
+    public void testResolverForManagementFields() throws CollectInternalException {
+        SedaSchemaInfoResolver instance = new SedaSchemaInfoResolver(adminManagementClientFactory);
+
+        assertThat(instance.getManagementModelBySedaPath("Management")).isEqualTo(
+            new SedaSchemaInfo("Management", "#management", "#management", true, false, false, false, false, false)
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.AppraisalRule")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.AppraisalRule",
+                "#management.AppraisalRule",
+                "AppraisalRule",
+                true,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.AccessRule.Rules")).isNull();
+
+        assertThat(instance.getManagementModelBySedaPath("Management.AccessRule.Rule")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.AccessRule.Rule",
+                "#management.AccessRule.Rules.Rule",
+                "Rules.Rule",
+                false,
+                true,
+                false,
+                false,
+                false,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.StorageRule.StartDate")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.StorageRule.StartDate",
+                "#management.StorageRule.Rules.StartDate",
+                "Rules.StartDate",
+                false,
+                true,
+                false,
+                false,
+                true,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.HoldRule.HoldEndDate")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.HoldRule.HoldEndDate",
+                "#management.HoldRule.Rules.HoldEndDate",
+                "Rules.HoldEndDate",
+                false,
+                true,
+                false,
+                false,
+                true,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.HoldRule.HoldOwner")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.HoldRule.HoldOwner",
+                "#management.HoldRule.Rules.HoldOwner",
+                "Rules.HoldOwner",
+                false,
+                true,
+                false,
+                false,
+                true,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.HoldRule.HoldReassessingDate")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.HoldRule.HoldReassessingDate",
+                "#management.HoldRule.Rules.HoldReassessingDate",
+                "Rules.HoldReassessingDate",
+                false,
+                true,
+                false,
+                false,
+                true,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.HoldRule.HoldReason")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.HoldRule.HoldReason",
+                "#management.HoldRule.Rules.HoldReason",
+                "Rules.HoldReason",
+                false,
+                true,
+                false,
+                false,
+                true,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.HoldRule.PreventRearrangement")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.HoldRule.PreventRearrangement",
+                "#management.HoldRule.Rules.PreventRearrangement",
+                "Rules.PreventRearrangement",
+                false,
+                true,
+                false,
+                false,
+                true,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.ClassificationRule.EndDate")).isNull();
+
+        assertThat(instance.getManagementModelBySedaPath("Management.ReuseRule.Inheritance")).isNull();
+
+        assertThat(instance.getManagementModelBySedaPath("Management.ReuseRule.PreventInheritance")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.ReuseRule.PreventInheritance",
+                "#management.ReuseRule.Inheritance.PreventInheritance",
+                "Inheritance.PreventInheritance",
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.ReuseRule.RefNonRuleId")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.ReuseRule.RefNonRuleId",
+                "#management.ReuseRule.Inheritance.PreventRulesId",
+                "Inheritance.PreventRulesId",
+                false,
+                true,
+                false,
+                false,
+                false,
+                false
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.ReuseRule.Unknown")).isNull();
+
+        assertThat(instance.getManagementModelBySedaPath("Management.Unknown")).isNull();
+
+        assertThat(instance.getManagementModelBySedaPath("Management.UpdateOperation")).isEqualTo(
+            new SedaSchemaInfo(
+                "Management.UpdateOperation",
+                "#management.UpdateOperation",
+                "UpdateOperation",
+                true,
+                false,
+                false,
+                false,
+                false,
+                true
+            )
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("Management.LogBook")).isEqualTo(
+            new SedaSchemaInfo("Management.LogBook", null, null, true, false, false, false, false, true)
+        );
+
+        assertThat(instance.getManagementModelBySedaPath("ArchiveUnitProfile")).isEqualTo(
+            new SedaSchemaInfo(
+                "ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                "ArchiveUnitProfile",
+                false,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
+        );
     }
 
     public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {

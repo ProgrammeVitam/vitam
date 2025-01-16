@@ -27,11 +27,50 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
-public record SchemaInfo(
-    String sedaPath,
-    String apiPath,
-    String apiField,
-    boolean isObject,
-    boolean isArray,
-    boolean isExternal
-) {}
+import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CsvErrorAccumulator implements AutoCloseable {
+
+    private static final int MAX_ERROR_COUNT = 20;
+    private final List<String> errorMessages = new ArrayList<>();
+
+    public CsvErrorAccumulator() {}
+
+    public void report(String errorMessage) throws CollectInvalidCsvFormatException {
+        errorMessages.add(errorMessage);
+        if (errorMessages.size() >= MAX_ERROR_COUNT) {
+            throw buildException();
+        }
+    }
+
+    private CollectInvalidCsvFormatException buildException() {
+        try {
+            StringBuilder stringBuilder = new StringBuilder("CSV validation failed. ");
+
+            if (errorMessages.size() == 1) {
+                stringBuilder.append("1 error:");
+            } else if (errorMessages.size() < MAX_ERROR_COUNT) {
+                stringBuilder.append(errorMessages.size()).append(" errors:");
+            } else {
+                stringBuilder.append("At least ").append(errorMessages.size()).append(" errors:");
+            }
+
+            for (String errorMessage : errorMessages) {
+                stringBuilder.append("\n- ").append(errorMessage);
+            }
+            return new CollectInvalidCsvFormatException(stringBuilder.toString());
+        } finally {
+            errorMessages.clear();
+        }
+    }
+
+    @Override
+    public void close() throws CollectInvalidCsvFormatException {
+        if (!errorMessages.isEmpty()) {
+            throw buildException();
+        }
+    }
+}
