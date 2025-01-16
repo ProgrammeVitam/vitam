@@ -27,13 +27,13 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
-
+import java.util.Collections;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 public class CsvMetadataUtils {
 
+    public static final int MAX_HEADER_NAME_LENGTH = 255;
     public static final char SEPARATOR_CHAR = '.';
     public static final String SEPARATOR = ".";
     public static final String HASH_PREFIX = "#";
@@ -41,6 +41,8 @@ public class CsvMetadataUtils {
     public static final String CONTENT_SEPARATOR = CONTENT + SEPARATOR;
     public static final String MANAGEMENT = "Management";
     public static final String MANAGEMENT_SEPARATOR = MANAGEMENT + SEPARATOR;
+    public static final String MANAGEMENT_FIELD = "#management";
+    public static final String ARCHIVE_UNIT_PROFILE = "ArchiveUnitProfile";
     public static final Pattern STARTS_WITH_DIGIT_PATTERN = Pattern.compile("^[0-9].*$");
     public static final Pattern ARRAY_INDEX_PATTERN = Pattern.compile("^(0|[1-9][0-9]*)$");
     public static final String CONTENT_TITLE = "Content.Title";
@@ -53,6 +55,7 @@ public class CsvMetadataUtils {
     );
 
     public static final Set<String> SEDA_EXTENSION_POINTS = Set.of(
+        "Content",
         "Content.SigningInformation.Extended",
         "Content.OriginatingAgency.OrganizationDescriptiveMetadata",
         "Content.SubmissionAgency.OrganizationDescriptiveMetadata"
@@ -70,6 +73,48 @@ public class CsvMetadataUtils {
         "Content.Signature(\\.(0|[1-9][0-9]*))?.ReferencedObject.SignedObjectDigest.attr"
     );
 
+    public static final String SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST_SUFFIX = "SignedObjectDigest.MessageDigest";
+    public static final String ALGORITHM_SUFFIX = "Algorithm";
+
+    public static final String END_DATE_FIELD = "EndDate";
+
+    public static final Set<String> SEDA_MANAGEMENT_SPECIAL_ARRAY_FIELDS = Set.of(
+        "Management.AccessRule.Rule",
+        "Management.AccessRule.StartDate",
+        "Management.AppraisalRule.Rule",
+        "Management.AppraisalRule.StartDate",
+        "Management.ClassificationRule.Rule",
+        "Management.ClassificationRule.StartDate",
+        "Management.DisseminationRule.Rule",
+        "Management.DisseminationRule.StartDate",
+        "Management.HoldRule.Rule",
+        "Management.HoldRule.StartDate",
+        "Management.HoldRule.HoldEndDate",
+        "Management.HoldRule.HoldOwner",
+        "Management.HoldRule.HoldReassessingDate",
+        "Management.HoldRule.HoldReason",
+        "Management.HoldRule.PreventRearrangement",
+        "Management.ReuseRule.Rule",
+        "Management.ReuseRule.StartDate",
+        "Management.StorageRule.Rule",
+        "Management.StorageRule.StartDate"
+    );
+
+    public static final Set<String> SEDA_MANAGEMENT_SPECIAL_RULE_PROPERTY_ARRAY_FIELDS = Set.of(
+        "Management.AccessRule.StartDate",
+        "Management.AppraisalRule.StartDate",
+        "Management.ClassificationRule.StartDate",
+        "Management.DisseminationRule.StartDate",
+        "Management.HoldRule.StartDate",
+        "Management.HoldRule.HoldEndDate",
+        "Management.HoldRule.HoldOwner",
+        "Management.HoldRule.HoldReassessingDate",
+        "Management.HoldRule.HoldReason",
+        "Management.HoldRule.PreventRearrangement",
+        "Management.ReuseRule.StartDate",
+        "Management.StorageRule.StartDate"
+    );
+
     public static final Pattern LANG_ATTR_VALUE_PATTERN = Pattern.compile("^xml:lang=\"(.+)\"$");
     public static final Pattern ALGORITHM_ATTR_VALUE_PATTERN = Pattern.compile("^algorithm=\"(.+)\"$");
 
@@ -83,8 +128,25 @@ public class CsvMetadataUtils {
     public static final String API_FIELD_DESCRIPTION = "Description";
     public static final String API_FIELD_DESCRIPTION_ = "Description_";
 
+    public static final String RULE_FIELD_NAME = "Rule";
+    public static final String RULES_PREFIX = "Rules";
+    public static final String RULES_SEPARATOR_PREFIX = RULES_PREFIX + SEPARATOR;
+
+    public static final String IMPLICIT_0_ARRAY_INDEX = "0";
+
+    public static final Set<String> FORBIDDEN_CONTENT_SEDA_PATHS = Collections.singleton("Content.ArchiveUnitProfile");
+
     public static String buildPath(String basePath, String subPath) {
-        return basePath == null ? subPath : basePath + SEPARATOR + subPath;
+        if (basePath == null && subPath == null) {
+            return null;
+        }
+        if (basePath == null) {
+            return subPath;
+        }
+        if (subPath == null) {
+            return basePath;
+        }
+        return basePath + SEPARATOR + subPath;
     }
 
     public static boolean isFileField(String headerName) {
@@ -96,7 +158,10 @@ public class CsvMetadataUtils {
     }
 
     public static boolean isManagementField(String headerName) {
-        return headerName.startsWith(MANAGEMENT_SEPARATOR) && headerName.length() > MANAGEMENT_SEPARATOR.length();
+        return (
+            (headerName.startsWith(MANAGEMENT_SEPARATOR) && headerName.length() > MANAGEMENT_SEPARATOR.length()) ||
+            equalsOrStartsWith(headerName, ARCHIVE_UNIT_PROFILE)
+        );
     }
 
     public static boolean isContentTitleField(String headerName) {
@@ -113,15 +178,5 @@ public class CsvMetadataUtils {
 
     public static boolean equalsOrStartsWith(String str, String prefix) {
         return str.equals(prefix) || str.startsWith(prefix + SEPARATOR);
-    }
-
-    public static int parseIndexPattern(String headerName, String value) throws CollectInvalidCsvFormatException {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new CollectInvalidCsvFormatException(
-                "Invalid header name '" + headerName + "'. Invalid array index '" + value + "'"
-            );
-        }
     }
 }

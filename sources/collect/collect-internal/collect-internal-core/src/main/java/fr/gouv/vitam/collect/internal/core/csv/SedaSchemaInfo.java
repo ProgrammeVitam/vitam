@@ -29,29 +29,40 @@ package fr.gouv.vitam.collect.internal.core.csv;
 
 import java.util.Objects;
 
-public final class SchemaInfo {
+public final class SedaSchemaInfo {
 
     private final String sedaPath;
     private final String apiPath;
-    private final String apiField;
+    private final String apiSubPath;
     private final boolean isObject;
     private final boolean isArray;
     private final boolean isExternal;
+    private final boolean isSedaExtensionPoint;
+    private final boolean isSpecialRulePropertyArrayIndex;
+    private final boolean isForbiddenCsvHeader;
 
-    public SchemaInfo(
+    public SedaSchemaInfo(
         String sedaPath,
         String apiPath,
-        String apiField,
+        String apiSubPath,
         boolean isObject,
         boolean isArray,
-        boolean isExternal
+        boolean isExternal,
+        boolean isSedaExtensionPoint,
+        // Rule properties have special array index notation (Management.AppraisalRule.StartDate.1 refers to Management.AppraisalRule.Rule.1)
+        boolean isSpecialRulePropertyArrayIndex,
+        // Few Seda fields are NOT supported in CSV metadata headers (Management.UpdateOperation & Management.LogBook)
+        boolean isForbiddenCsvHeader
     ) {
         this.sedaPath = sedaPath;
         this.apiPath = apiPath;
-        this.apiField = apiField;
+        this.apiSubPath = apiSubPath;
         this.isObject = isObject;
         this.isArray = isArray;
         this.isExternal = isExternal;
+        this.isSedaExtensionPoint = isSedaExtensionPoint;
+        this.isSpecialRulePropertyArrayIndex = isSpecialRulePropertyArrayIndex;
+        this.isForbiddenCsvHeader = isForbiddenCsvHeader;
     }
 
     public String sedaPath() {
@@ -62,8 +73,8 @@ public final class SchemaInfo {
         return apiPath;
     }
 
-    public String apiField() {
-        return apiField;
+    public String apiSubPath() {
+        return apiSubPath;
     }
 
     public boolean isObject() {
@@ -78,38 +89,63 @@ public final class SchemaInfo {
         return isExternal;
     }
 
+    public boolean isSedaExtensionPoint() {
+        return isSedaExtensionPoint;
+    }
+
+    public boolean isSpecialRulePropertyArrayIndex() {
+        return isSpecialRulePropertyArrayIndex;
+    }
+
+    public boolean isForbiddenCsvHeader() {
+        return isForbiddenCsvHeader;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (SchemaInfo) obj;
+        var that = (SedaSchemaInfo) obj;
         return (
             Objects.equals(this.sedaPath, that.sedaPath) &&
             Objects.equals(this.apiPath, that.apiPath) &&
-            Objects.equals(this.apiField, that.apiField) &&
+            Objects.equals(this.apiSubPath, that.apiSubPath) &&
             this.isObject == that.isObject &&
             this.isArray == that.isArray &&
-            this.isExternal == that.isExternal
+            this.isExternal == that.isExternal &&
+            this.isSedaExtensionPoint == that.isSedaExtensionPoint &&
+            this.isSpecialRulePropertyArrayIndex == that.isSpecialRulePropertyArrayIndex &&
+            this.isForbiddenCsvHeader == that.isForbiddenCsvHeader
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sedaPath, apiPath, apiField, isObject, isArray, isExternal);
+        return Objects.hash(
+            sedaPath,
+            apiPath,
+            apiSubPath,
+            isObject,
+            isArray,
+            isExternal,
+            isSedaExtensionPoint,
+            isSpecialRulePropertyArrayIndex,
+            isForbiddenCsvHeader
+        );
     }
 
     @Override
     public String toString() {
         return (
-            "SchemaInfo[" +
+            "SedaSchemaInfo[" +
             "sedaPath=" +
             sedaPath +
             ", " +
             "apiPath=" +
             apiPath +
             ", " +
-            "apiField=" +
-            apiField +
+            "apiSubPath=" +
+            apiSubPath +
             ", " +
             "isObject=" +
             isObject +
@@ -119,6 +155,15 @@ public final class SchemaInfo {
             ", " +
             "isExternal=" +
             isExternal +
+            ", " +
+            "isSedaExtensionPoint=" +
+            isSedaExtensionPoint +
+            ", " +
+            "isSpecialRulePropertyArrayIndex=" +
+            isSpecialRulePropertyArrayIndex +
+            ", " +
+            "isForbiddenCsvHeader=" +
+            isForbiddenCsvHeader +
             ']'
         );
     }

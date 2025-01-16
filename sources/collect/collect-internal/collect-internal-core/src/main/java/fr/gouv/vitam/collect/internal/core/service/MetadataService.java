@@ -41,8 +41,8 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
-import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;

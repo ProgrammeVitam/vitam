@@ -93,10 +93,10 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
             "1",
             unPrettyQuery,
             null,
-            "No unit was matches selection criteria",
+            "No unit matches selection criteria",
             StatusCode.WARNING,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.WARNING),
-            "No unit was matches selection criteria"
+            "No unit matches selection criteria"
         );
 
         bulkUpdateUnitMetadataEntryOK = new BulkUpdateUnitMetadataReportEntry(

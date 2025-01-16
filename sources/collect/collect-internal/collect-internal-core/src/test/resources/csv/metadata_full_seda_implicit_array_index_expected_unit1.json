@@ -1,0 +1,855 @@
+{
+  "#management": {
+    "AccessRule": {
+      "Inheritance": {
+        "PreventInheritance": "false",
+        "PreventRulesId": [
+          "PreventAccessRule0"
+        ]
+      },
+      "Rules": [
+        {
+          "Rule": "AccessRule0"
+        }
+      ]
+    },
+    "AppraisalRule": {
+      "FinalAction": "Destroy",
+      "Inheritance": {
+        "PreventRulesId": [
+          "PreventAppraisalRule0"
+        ]
+      },
+      "Rules": [
+        {
+          "Rule": "AppraisalRule0"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "ClassificationLevel": "MyClassificationLevel",
+      "ClassificationOwner": "MyClassificationOwner",
+      "ClassificationReassessingDate": "2024-12-31",
+      "Inheritance": {
+        "PreventInheritance": "true"
+      },
+      "NeedReassessingAuthorization": "false",
+      "Rules": [
+        {
+          "StartDate": "2024-01-01"
+        }
+      ]
+    },
+    "HoldRule": {
+      "Inheritance": {
+        "PreventInheritance": "true"
+      },
+      "Rules": [
+        {
+          "HoldEndDate": "2025-01-01",
+          "HoldOwner": "MyHoldOwner",
+          "HoldReason": "MyHoldReason",
+          "HoldReassessingDate": "2024-12-31",
+          "Rule": "HoldRule0",
+          "StartDate": "2024-01-01"
+        }
+      ]
+    },
+    "ReuseRule": {
+      "Inheritance": {
+        "PreventInheritance": "true"
+      }
+    },
+    "StorageRule": {
+      "FinalAction": "RestrictAccess",
+      "Inheritance": {
+        "PreventInheritance": "true",
+        "PreventRulesId": [
+          "PreventStorageRule0"
+        ]
+      },
+      "Rules": [
+        {
+          "Rule": "StorageRule0",
+          "StartDate": "2020-01-01"
+        }
+      ]
+    }
+  },
+  "AcquiredDate": "2000-01-01",
+  "Addressee": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ],
+  "Agent": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ],
+  "ArchivalAgencyArchiveUnitIdentifier": [
+    "MyArchivalAgencyArchiveUnitIdentifier0"
+  ],
+  "AuthorizedAgent": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ],
+  "Coverage": {
+    "Juridictional": [
+      "MyJuridictional0"
+    ],
+    "Spatial": [
+      "MySpatial0"
+    ],
+    "Temporal": [
+      "MyTemporal0"
+    ]
+  },
+  "CreatedDate": "2000-01-01",
+  "CustodialHistory": {
+    "CustodialHistoryFile": {
+      "DataObjectGroupReferenceId": "MyDataObjectGroupReferenceId",
+      "DataObjectReferenceId": "MyDataObjectReferenceId"
+    },
+    "CustodialHistoryItem": [
+      "MyCustodialHistoryItem0"
+    ]
+  },
+  "DateLitteral": "MyDateLitteral",
+  "Description": "MyDescription",
+  "DescriptionLanguage": "MyDescriptionLanguage",
+  "DescriptionLevel": "MyDescriptionLevel",
+  "DocumentType": "MyDocumentType",
+  "EndDate": "2000-01-01",
+  "Event": [
+    {
+      "evDateTime": "2000-01-01",
+      "evDetData": "MyEventDetailData",
+      "evId": "MyEventIdentifier",
+      "evType": "MyEventType",
+      "evTypeDetail": "MyEventDetail",
+      "evTypeProc": "MyEventTypeCode",
+      "linkingAgentIdentifier": [
+        {
+          "LinkingAgentIdentifierType": "MyLinkingAgentIdentifierType",
+          "LinkingAgentIdentifierValue": "MyLinkingAgentIdentifierValue",
+          "LinkingAgentRole": "MyLinkingAgentRole"
+        }
+      ],
+      "outDetail": "MyOutcomeDetail",
+      "outMessg": "MyOutcomeDetailMessage",
+      "outcome": "MyOutcome"
+    }
+  ],
+  "FilePlanPosition": [
+    "MyFilePlanPosition0"
+  ],
+  "Gps": {
+    "GpsAltitude": "100",
+    "GpsAltitudeRef": "MyGpsAltitudeRef",
+    "GpsDateStamp": "MyGpsDateStamp",
+    "GpsLatitude": "MyGpsLatitude",
+    "GpsLatitudeRef": "MyGpsLatitudeRef",
+    "GpsLongitude": "MyGpsLongitude",
+    "GpsLongitudeRef": "MyGpsLongitudeRef",
+    "GpsVersionID": "MyGpsVersionID"
+  },
+  "Invoice": [
+    {
+      "Provider": [
+        {
+          "MyDate": [
+            "2000-01-01"
+          ],
+          "MyDouble": [
+            "0.0"
+          ],
+          "MyEnum": [
+            "Enum-MyEnum0"
+          ],
+          "MyKeyword": [
+            "MyMyKeyword0"
+          ],
+          "MyText": [
+            "MyMyText0"
+          ]
+        }
+      ]
+    }
+  ],
+  "Keyword": [
+    {
+      "KeywordContent": "MyKeywordContent",
+      "KeywordReference": "MyKeywordReference",
+      "KeywordType": "MyKeywordType"
+    }
+  ],
+  "Language": [
+    "MyLanguage0"
+  ],
+  "OriginatingAgency": {
+    "Identifier": "MyIdentifier"
+  },
+  "OriginatingAgencyArchiveUnitIdentifier": [
+    "MyOriginatingAgencyArchiveUnitIdentifier0"
+  ],
+  "OriginatingSystemIdReplyTo": "MyOriginatingSystemIdReplyTo",
+  "OriginatingSystemId": [
+    "MyOriginatingSystemId0"
+  ],
+  "PersistentIdentifier": [
+    {
+      "PersistentIdentifierContent": "MyPersistentIdentifierContent",
+      "PersistentIdentifierOrigin": "MyPersistentIdentifierOrigin",
+      "PersistentIdentifierReference": "MyPersistentIdentifierReference",
+      "PersistentIdentifierType": "MyPersistentIdentifierType"
+    }
+  ],
+  "ReceivedDate": "2000-01-01",
+  "Recipient": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ],
+  "RegisteredDate": "2000-01-01",
+  "RelatedObjectReference": {
+    "IsPartOf": [
+      {
+        "ArchiveUnitRefId": "MyArchiveUnitRefId",
+        "DataObjectReference": {
+          "DataObjectGroupReferenceId": "MyDataObjectGroupReferenceId",
+          "DataObjectReferenceId": "MyDataObjectReferenceId"
+        },
+        "ExternalReference": "MyExternalReference",
+        "RepositoryArchiveUnitPID": "MyRepositoryArchiveUnitPID",
+        "RepositoryObjectPID": "MyRepositoryObjectPID"
+      }
+    ],
+    "IsVersionOf": [
+      {
+        "ArchiveUnitRefId": "MyArchiveUnitRefId",
+        "DataObjectReference": {
+          "DataObjectGroupReferenceId": "MyDataObjectGroupReferenceId",
+          "DataObjectReferenceId": "MyDataObjectReferenceId"
+        },
+        "ExternalReference": "MyExternalReference",
+        "RepositoryArchiveUnitPID": "MyRepositoryArchiveUnitPID",
+        "RepositoryObjectPID": "MyRepositoryObjectPID"
+      }
+    ],
+    "References": [
+      {
+        "ArchiveUnitRefId": "MyArchiveUnitRefId",
+        "DataObjectReference": {
+          "DataObjectGroupReferenceId": "MyDataObjectGroupReferenceId",
+          "DataObjectReferenceId": "MyDataObjectReferenceId"
+        },
+        "ExternalReference": "MyExternalReference",
+        "RepositoryArchiveUnitPID": "MyRepositoryArchiveUnitPID",
+        "RepositoryObjectPID": "MyRepositoryObjectPID"
+      }
+    ],
+    "Replaces": [
+      {
+        "ArchiveUnitRefId": "MyArchiveUnitRefId",
+        "DataObjectReference": {
+          "DataObjectGroupReferenceId": "MyDataObjectGroupReferenceId",
+          "DataObjectReferenceId": "MyDataObjectReferenceId"
+        },
+        "ExternalReference": "MyExternalReference",
+        "RepositoryArchiveUnitPID": "MyRepositoryArchiveUnitPID",
+        "RepositoryObjectPID": "MyRepositoryObjectPID"
+      }
+    ],
+    "Requires": [
+      {
+        "ArchiveUnitRefId": "MyArchiveUnitRefId",
+        "DataObjectReference": {
+          "DataObjectGroupReferenceId": "MyDataObjectGroupReferenceId",
+          "DataObjectReferenceId": "MyDataObjectReferenceId"
+        },
+        "ExternalReference": "MyExternalReference",
+        "RepositoryArchiveUnitPID": "MyRepositoryArchiveUnitPID",
+        "RepositoryObjectPID": "MyRepositoryObjectPID"
+      }
+    ]
+  },
+  "Sender": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ],
+  "SentDate": "2000-01-01",
+  "Signature": [
+    {
+      "ReferencedObject": {
+        "SignedObjectDigest": {
+          "Algorithm": "MyAlgorithm",
+          "MessageDigest": "MyMessageDigest"
+        },
+        "SignedObjectId": "MySignedObjectId"
+      },
+      "Signer": [
+        {
+          "Activity": [
+            "MyActivity0"
+          ],
+          "BirthDate": "2000-01-01",
+          "BirthName": "MyBirthName",
+          "BirthPlace": {
+            "Address": "MyAddress",
+            "City": "MyCity",
+            "Country": "MyCountry",
+            "Geogname": "MyGeogname",
+            "PostalCode": "MyPostalCode",
+            "Region": "MyRegion"
+          },
+          "Corpname": "MyCorpname",
+          "DeathDate": "2000-01-01",
+          "DeathPlace": {
+            "Address": "MyAddress",
+            "City": "MyCity",
+            "Country": "MyCountry",
+            "Geogname": "MyGeogname",
+            "PostalCode": "MyPostalCode",
+            "Region": "MyRegion"
+          },
+          "FirstName": "MyFirstName",
+          "FullName": "MyFullName",
+          "Function": [
+            "MyFunction0"
+          ],
+          "Gender": "MyGender",
+          "GivenName": "MyGivenName",
+          "Identifier": [
+            "MyIdentifier0"
+          ],
+          "Mandate": [
+            "MyMandate0"
+          ],
+          "Nationality": [
+            "MyNationality0"
+          ],
+          "Position": [
+            "MyPosition0"
+          ],
+          "Role": [
+            "MyRole0"
+          ],
+          "SigningTime": "2000-01-01"
+        }
+      ],
+      "Validator": {
+        "Activity": [
+          "MyActivity0"
+        ],
+        "BirthDate": "2000-01-01",
+        "BirthName": "MyBirthName",
+        "BirthPlace": {
+          "Address": "MyAddress",
+          "City": "MyCity",
+          "Country": "MyCountry",
+          "Geogname": "MyGeogname",
+          "PostalCode": "MyPostalCode",
+          "Region": "MyRegion"
+        },
+        "Corpname": "MyCorpname",
+        "DeathDate": "2000-01-01",
+        "DeathPlace": {
+          "Address": "MyAddress",
+          "City": "MyCity",
+          "Country": "MyCountry",
+          "Geogname": "MyGeogname",
+          "PostalCode": "MyPostalCode",
+          "Region": "MyRegion"
+        },
+        "FirstName": "MyFirstName",
+        "FullName": "MyFullName",
+        "Function": [
+          "MyFunction0"
+        ],
+        "Gender": "MyGender",
+        "GivenName": "MyGivenName",
+        "Identifier": [
+          "MyIdentifier0"
+        ],
+        "Mandate": [
+          "MyMandate0"
+        ],
+        "Nationality": [
+          "MyNationality0"
+        ],
+        "Position": [
+          "MyPosition0"
+        ],
+        "Role": [
+          "MyRole0"
+        ],
+        "ValidationTime": "2000-01-01"
+      }
+    }
+  ],
+  "SigningInformation": {
+    "AdditionalProof": [
+      {
+        "AdditionalProofInformation": [
+          "MyAdditionalProofInformation0"
+        ]
+      }
+    ],
+    "DetachedSigningRole": [
+      "MyDetachedSigningRole0"
+    ],
+    "SignatureDescription": [
+      {
+        "Signer": {
+          "Activity": [
+            "MyActivity0"
+          ],
+          "BirthDate": "2000-01-01",
+          "BirthName": "MyBirthName",
+          "BirthPlace": {
+            "Address": "MyAddress",
+            "City": "MyCity",
+            "Country": "MyCountry",
+            "Geogname": "MyGeogname",
+            "PostalCode": "MyPostalCode",
+            "Region": "MyRegion"
+          },
+          "Corpname": "MyCorpname",
+          "DeathDate": "2000-01-01",
+          "DeathPlace": {
+            "Address": "MyAddress",
+            "City": "MyCity",
+            "Country": "MyCountry",
+            "Geogname": "MyGeogname",
+            "PostalCode": "MyPostalCode",
+            "Region": "MyRegion"
+          },
+          "FirstName": "MyFirstName",
+          "FullName": "MyFullName",
+          "Function": [
+            "MyFunction0"
+          ],
+          "Gender": "MyGender",
+          "GivenName": "MyGivenName",
+          "Identifier": [
+            "MyIdentifier0"
+          ],
+          "Mandate": [
+            "MyMandate0"
+          ],
+          "Nationality": [
+            "MyNationality0"
+          ],
+          "Position": [
+            "MyPosition0"
+          ],
+          "Role": [
+            "MyRole0"
+          ],
+          "SigningTime": "2000-01-01"
+        },
+        "SigningType": "MySigningType",
+        "Validator": {
+          "Activity": [
+            "MyActivity0"
+          ],
+          "BirthDate": "2000-01-01",
+          "BirthName": "MyBirthName",
+          "BirthPlace": {
+            "Address": "MyAddress",
+            "City": "MyCity",
+            "Country": "MyCountry",
+            "Geogname": "MyGeogname",
+            "PostalCode": "MyPostalCode",
+            "Region": "MyRegion"
+          },
+          "Corpname": "MyCorpname",
+          "DeathDate": "2000-01-01",
+          "DeathPlace": {
+            "Address": "MyAddress",
+            "City": "MyCity",
+            "Country": "MyCountry",
+            "Geogname": "MyGeogname",
+            "PostalCode": "MyPostalCode",
+            "Region": "MyRegion"
+          },
+          "FirstName": "MyFirstName",
+          "FullName": "MyFullName",
+          "Function": [
+            "MyFunction0"
+          ],
+          "Gender": "MyGender",
+          "GivenName": "MyGivenName",
+          "Identifier": [
+            "MyIdentifier0"
+          ],
+          "Mandate": [
+            "MyMandate0"
+          ],
+          "Nationality": [
+            "MyNationality0"
+          ],
+          "Position": [
+            "MyPosition0"
+          ],
+          "Role": [
+            "MyRole0"
+          ],
+          "ValidationTime": "2000-01-01"
+        }
+      }
+    ],
+    "SigningRole": [
+      "MySigningRole0"
+    ],
+    "TimestampingInformation": [
+      {
+        "AdditionalTimestampingInformation": "MyAdditionalTimestampingInformation",
+        "TimeStamp": "2000-01-01"
+      }
+    ]
+  },
+  "Source": "MySource",
+  "StartDate": "2000-01-01",
+  "Status": "MyStatus",
+  "SubmissionAgency": {
+    "Identifier": "MyIdentifier"
+  },
+  "SystemId": [
+    "MySystemId0"
+  ],
+  "Tag": [
+    "MyTag0"
+  ],
+  "TextContent": [
+    "MyTextContent0"
+  ],
+  "Title": "MyTitle",
+  "TransactedDate": "2000-01-01",
+  "TransferringAgencyArchiveUnitIdentifier": [
+    "MyTransferringAgencyArchiveUnitIdentifier0"
+  ],
+  "Transmitter": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ],
+  "Type": "MyType",
+  "Version": "MyVersion",
+  "Writer": [
+    {
+      "Activity": [
+        "MyActivity0"
+      ],
+      "BirthDate": "2000-01-01",
+      "BirthName": "MyBirthName",
+      "BirthPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "Corpname": "MyCorpname",
+      "DeathDate": "2000-01-01",
+      "DeathPlace": {
+        "Address": "MyAddress",
+        "City": "MyCity",
+        "Country": "MyCountry",
+        "Geogname": "MyGeogname",
+        "PostalCode": "MyPostalCode",
+        "Region": "MyRegion"
+      },
+      "FirstName": "MyFirstName",
+      "FullName": "MyFullName",
+      "Function": [
+        "MyFunction0"
+      ],
+      "Gender": "MyGender",
+      "GivenName": "MyGivenName",
+      "Identifier": [
+        "MyIdentifier0"
+      ],
+      "Mandate": [
+        "MyMandate0"
+      ],
+      "Nationality": [
+        "MyNationality0"
+      ],
+      "Position": [
+        "MyPosition0"
+      ],
+      "Role": [
+        "MyRole0"
+      ]
+    }
+  ]
+}

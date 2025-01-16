@@ -1,4 +1,81 @@
 {
+  "#management": {
+    "AccessRule": {
+      "Inheritance": {
+        "PreventInheritance": "false",
+        "PreventRulesId": [
+          "PreventAccessRule0"
+        ]
+      },
+      "Rules": [
+        {
+          "Rule": "AccessRule0"
+        }
+      ]
+    },
+    "AppraisalRule": {
+      "FinalAction": "Destroy",
+      "Inheritance": {
+        "PreventRulesId": [
+          "PreventAppraisalRule0"
+        ]
+      },
+      "Rules": [
+        {
+          "Rule": "AppraisalRule0"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "ClassificationLevel": "MyClassificationLevel",
+      "ClassificationOwner": "MyClassificationOwner",
+      "ClassificationReassessingDate": "2024-12-31",
+      "Inheritance": {
+        "PreventInheritance": "true"
+      },
+      "NeedReassessingAuthorization": "false",
+      "Rules": [
+        {
+          "StartDate": "2024-01-01"
+        }
+      ]
+    },
+    "HoldRule": {
+      "Inheritance": {
+        "PreventInheritance": "true"
+      },
+      "Rules": [
+        {
+          "HoldEndDate": "2025-01-01",
+          "HoldOwner": "MyHoldOwner",
+          "HoldReason": "MyHoldReason",
+          "HoldReassessingDate": "2024-12-31",
+          "Rule": "HoldRule0",
+          "StartDate": "2024-01-01"
+        }
+      ]
+    },
+    "ReuseRule": {
+      "Inheritance": {
+        "PreventInheritance": "true"
+      }
+    },
+    "StorageRule": {
+      "FinalAction": "RestrictAccess",
+      "Inheritance": {
+        "PreventInheritance": "true",
+        "PreventRulesId": [
+          "PreventStorageRule0"
+        ]
+      },
+      "Rules": [
+        {
+          "Rule": "StorageRule0",
+          "StartDate": "2020-01-01"
+        }
+      ]
+    }
+  },
   "AcquiredDate": "2000-01-01",
   "Addressee": [
     {
@@ -101,7 +178,6 @@
   "ArchivalAgencyArchiveUnitIdentifier": [
     "MyArchivalAgencyArchiveUnitIdentifier0"
   ],
-  "ArchiveUnitProfile": "MyArchiveUnitProfile",
   "AuthorizedAgent": [
     {
       "Activity": [

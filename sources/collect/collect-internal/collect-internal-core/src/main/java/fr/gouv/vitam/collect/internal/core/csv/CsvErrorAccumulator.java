@@ -24,21 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.common.bulkatomicupdate;
 
-public enum BulkUpdateUnitReportKey {
-    INVALID_DSL_QUERY("Invalid DSL query: cannot contains internal field(s)"),
-    UNIT_NOT_FOUND("No unit matches selection criteria"),
-    TOO_MANY_UNITS_FOUND("More than one unit matches selection criteria"),
-    ERROR_METADATA_UPDATE("An error occurred while executing the update");
+package fr.gouv.vitam.collect.internal.core.csv;
 
-    private final String message;
+import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 
-    BulkUpdateUnitReportKey(String message) {
-        this.message = message;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CsvErrorAccumulator implements AutoCloseable {
+
+    private static final int MAX_ERROR_COUNT = 20;
+    private final List<String> errorMessages = new ArrayList<>();
+
+    public CsvErrorAccumulator() {}
+
+    public void report(String errorMessage) throws CollectInvalidCsvFormatException {
+        errorMessages.add(errorMessage);
+        if (errorMessages.size() >= MAX_ERROR_COUNT) {
+            throw buildException();
+        }
     }
 
-    public String getMessage() {
-        return message;
+    private CollectInvalidCsvFormatException buildException() {
+        try {
+            StringBuilder stringBuilder = new StringBuilder("CSV validation failed. ");
+
+            if (errorMessages.size() == 1) {
+                stringBuilder.append("1 error:");
+            } else if (errorMessages.size() < MAX_ERROR_COUNT) {
+                stringBuilder.append(errorMessages.size()).append(" errors:");
+            } else {
+                stringBuilder.append("At least ").append(errorMessages.size()).append(" errors:");
+            }
+
+            for (String errorMessage : errorMessages) {
+                stringBuilder.append("\n- ").append(errorMessage);
+            }
+            return new CollectInvalidCsvFormatException(stringBuilder.toString());
+        } finally {
+            errorMessages.clear();
+        }
+    }
+
+    @Override
+    public void close() throws CollectInvalidCsvFormatException {
+        if (!errorMessages.isEmpty()) {
+            throw buildException();
+        }
     }
 }
