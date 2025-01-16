@@ -53,9 +53,9 @@ public class CsvErrorAccumulator implements AutoCloseable {
             if (errorMessages.size() == 1) {
                 stringBuilder.append("1 error:");
             } else if (errorMessages.size() < MAX_ERROR_COUNT) {
-                stringBuilder.append(errorMessages.size()).append(" error(s):");
+                stringBuilder.append(errorMessages.size()).append(" errors:");
             } else {
-                stringBuilder.append("At least ").append(errorMessages.size()).append(" error(s):");
+                stringBuilder.append("At least ").append(errorMessages.size()).append(" errors:");
             }
 
             for (String errorMessage : errorMessages) {

@@ -64,7 +64,7 @@ public class CsvErrorAccumulatorTest {
             // Close triggers exception with 2 errors
             assertThatThrownBy(csvErrorAccumulator::close)
                 .isInstanceOf(CollectInvalidCsvFormatException.class)
-                .hasMessage("CSV validation failed. 2 error(s):\n" + "- msg1\n" + "- msg2");
+                .hasMessage("CSV validation failed. 2 errors:\n" + "- msg1\n" + "- msg2");
         }
     }
 
@@ -82,7 +82,7 @@ public class CsvErrorAccumulatorTest {
             assertThatThrownBy(() -> csvErrorAccumulator.report("msg20"))
                 .isInstanceOf(CollectInvalidCsvFormatException.class)
                 .hasMessageStartingWith(
-                    "CSV validation failed. At least 20 error(s):\n" + "- msg1\n" + "- msg2\n" + "- msg3"
+                    "CSV validation failed. At least 20 errors:\n" + "- msg1\n" + "- msg2\n" + "- msg3"
                 )
                 .hasMessageEndingWith("- msg19\n" + "- msg20");
 

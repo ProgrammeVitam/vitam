@@ -181,16 +181,13 @@ public class SedaSchemaInfoResolver {
                 sedaPath = apiPathToSedaPath.get(parentApiPath) + SEPARATOR + sedaField;
             }
 
-            boolean isSedaExtensionPoint;
-            if (isExternal) {
-                // External objects may be extended
-                isSedaExtensionPoint = isObject;
-            } else {
-                // Only predefined Seda extension points may be extended
-                isSedaExtensionPoint = CsvMetadataUtils.SEDA_EXTENSION_POINTS.contains(sedaPath);
-            }
-
+            // External fields may be extended if and only if they are defined as objects
+            // Internal objects can be extended only for specific extension points.
+            boolean isSedaExtensionPoint = isExternal
+                ? isObject
+                : CsvMetadataUtils.SEDA_EXTENSION_POINTS.contains(sedaPath);
             apiPathToSedaPath.put(apiPath, sedaPath);
+
             sedaPathToSedaInfo.put(
                 sedaPath,
                 new SedaSchemaInfo(

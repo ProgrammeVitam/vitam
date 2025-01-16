@@ -50,6 +50,7 @@ import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ALGORITHM_ATTR_VALUE_PATTERN;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.ALGORITHM_SUFFIX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_DESCRIPTION;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_DESCRIPTION_;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.API_FIELD_TITLE;
@@ -64,6 +65,7 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.LANG_ATTR
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.RULES_PREFIX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.RULES_SEPARATOR_PREFIX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST_SUFFIX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.equalsOrStartsWith;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContentDescriptionField;
@@ -119,11 +121,11 @@ public class CsvToJsonConverter {
         for (FieldEntry fieldEntry : new CsvHeaderFieldNameIterable(headerName)) {
             if (fieldEntry.simpleSedaPath().equals(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST)) {
                 if (!fieldEntry.isDeclaredAsObject()) {
-                    return buildPath(normalizedHeaderName, "SignedObjectDigest.MessageDigest");
+                    return buildPath(normalizedHeaderName, SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST_SUFFIX);
                 }
             }
             if (fieldEntry.simpleSedaPath().equals(CONTENT_SIGNATURE_REFERENCED_OBJECT_SIGNED_OBJECT_DIGEST_ATTR)) {
-                return buildPath(normalizedHeaderName, "Algorithm");
+                return buildPath(normalizedHeaderName, ALGORITHM_SUFFIX);
             }
 
             SedaSchemaInfo schemaInfo = sedaSchemaInfoResolver.getContentSchemaInfo(fieldEntry.simpleSedaPath());

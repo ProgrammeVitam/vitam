@@ -449,11 +449,11 @@ public class CsvMetadataValidatorTest {
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title;Content.Title.attr.0",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title;Content.Title.attr.subfield",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
     }
 
@@ -473,11 +473,11 @@ public class CsvMetadataValidatorTest {
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Description;Content.Description.attr.0",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Description;Content.Description.attr.subfield",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
     }
 
@@ -717,22 +717,22 @@ public class CsvMetadataValidatorTest {
     public void testHeaderValidation_InvalidAttrHeaderName() {
         assertThatHeaderNamesAreInvalid(
             "File;Content.attr.Title",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title.0;Content.Title.0.attr.0",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title.0;Content.Title.0.attr.0",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
 
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title.attr.attr",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
 
         assertThatHeaderNamesAreInvalid("File;Content.Title.0.attr", "Missing base header name 'Content.Title.0'");
@@ -743,11 +743,11 @@ public class CsvMetadataValidatorTest {
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title;Content.Title.attr.0",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.Title;Content.Title.attr.subfield",
-            "Reserved 'attr' keyword can only be used as a prefix"
+            "Reserved 'attr' keyword can only be used as a suffix"
         );
 
         assertThatHeaderNamesAreInvalid("File;Content.MyExtension;Content.MyExtension.attr", "Reserved 'attr' suffix");
@@ -816,7 +816,7 @@ public class CsvMetadataValidatorTest {
     public void testMultipleValidationErrors() {
         assertThatHeaderNamesAreInvalid(
             "File;Unknown;Content.Title_;Content.Description.0;Content.Description.2;Content.MyExtension;Content.MyExtension.SubField;Management.AppraisalRule;Management.StorageRule.Rule",
-            "CSV validation failed. 5 error(s):\n" +
+            "CSV validation failed. 5 errors:\n" +
             "- Invalid header name 'Unknown': Invalid header name 'Unknown'. Only accepted names are 'File', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'\n" +
             "- Invalid header name 'Content.Title_': Header must be Seda path 'Content.Title' instead of Vitam field name 'Content.Title_'\n" +
             "- Invalid header name 'Content.Description.2': Expected header name 'Content.Description.1' since header 'Content.Description.2' is declared\n" +

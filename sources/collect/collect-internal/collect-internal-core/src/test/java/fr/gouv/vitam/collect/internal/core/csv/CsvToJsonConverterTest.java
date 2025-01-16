@@ -405,7 +405,7 @@ public class CsvToJsonConverterTest {
         assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessage(
-                "CSV validation failed. 4 error(s):\n" +
+                "CSV validation failed. 4 errors:\n" +
                 "- Invalid CSV record at line 7 (File=\"File5\"): Multiple values for 'Content.Description' header\n" +
                 "- Invalid CSV record at line 8 (File=\"File6\"): Multiple values for 'Content.Description' header with same lang attribute 'fr'\n" +
                 "- Invalid CSV record at line 9 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'\n" +
@@ -453,7 +453,7 @@ public class CsvToJsonConverterTest {
         assertThatThrownBy(invocation)
             .isInstanceOf(CollectInvalidCsvFormatException.class)
             .hasMessage(
-                "CSV validation failed. 6 error(s):\n" +
+                "CSV validation failed. 6 errors:\n" +
                 "- Invalid CSV record at line 7 (File=\"File5\"): Multiple values for 'Content.Title' header\n" +
                 "- Invalid CSV record at line 8 (File=\"File6\"): Multiple values for 'Content.Title' header with same lang attribute 'fr'\n" +
                 "- Invalid CSV record at line 9 (File=\"File7\"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'\n" +

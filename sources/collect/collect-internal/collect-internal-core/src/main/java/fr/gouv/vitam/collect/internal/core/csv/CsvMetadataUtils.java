@@ -73,6 +73,9 @@ public class CsvMetadataUtils {
         "Content.Signature(\\.(0|[1-9][0-9]*))?.ReferencedObject.SignedObjectDigest.attr"
     );
 
+    public static final String SIGNED_OBJECT_DIGEST_MESSAGE_DIGEST_SUFFIX = "SignedObjectDigest.MessageDigest";
+    public static final String ALGORITHM_SUFFIX = "Algorithm";
+
     public static final String END_DATE_FIELD = "EndDate";
 
     public static final Set<String> SEDA_MANAGEMENT_SPECIAL_ARRAY_FIELDS = Set.of(

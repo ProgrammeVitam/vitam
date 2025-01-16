@@ -200,7 +200,7 @@ public class CsvMetadataValidator {
         // ".attr" can only be used as a suffix
         for (String headerName : csvHeaderValidationManager.getRemainingHeaderNamesToValidate()) {
             if (headerName.contains(ATTR_HEADER_NAME_SUFFIX + SEPARATOR)) {
-                csvHeaderValidationManager.report(headerName, "Reserved 'attr' keyword can only be used as a prefix");
+                csvHeaderValidationManager.report(headerName, "Reserved 'attr' keyword can only be used as a suffix");
             }
         }
 

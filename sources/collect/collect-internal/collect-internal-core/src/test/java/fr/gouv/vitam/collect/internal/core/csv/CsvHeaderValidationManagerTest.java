@@ -73,7 +73,7 @@ public class CsvHeaderValidationManagerTest {
             assertThatThrownBy(csvHeaderValidationManager::close)
                 .isInstanceOf(CollectInvalidCsvFormatException.class)
                 .hasMessage(
-                    "CSV validation failed. 2 error(s):\n" +
+                    "CSV validation failed. 2 errors:\n" +
                     "- Invalid header name 'header1': msg1\n" +
                     "- Invalid header name 'header2': msg2"
                 );
@@ -95,7 +95,7 @@ public class CsvHeaderValidationManagerTest {
             assertThatThrownBy(() -> csvHeaderValidationManager.report("header20", "msg20"))
                 .isInstanceOf(CollectInvalidCsvFormatException.class)
                 .hasMessageStartingWith(
-                    "CSV validation failed. At least 20 error(s):\n" +
+                    "CSV validation failed. At least 20 errors:\n" +
                     "- Invalid header name 'header1': msg1\n" +
                     "- Invalid header name 'header2': msg2\n" +
                     "- Invalid header name 'header3': msg3"
