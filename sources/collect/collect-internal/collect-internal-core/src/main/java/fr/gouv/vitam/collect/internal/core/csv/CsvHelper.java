@@ -24,18 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.core.helpers;
+
+package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
-import fr.gouv.vitam.collect.internal.core.csv.CsvToJsonConverter;
-import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
+import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -49,13 +50,15 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEAD
 
 public class CsvHelper {
 
+    private static final int MAX_PATH_LENGTH = 255;
+
     private CsvHelper() {}
 
     public static void convertCsvToJsonlMetadataFile(
         SedaSchemaInfoResolver sedaSchemaInfoResolver,
         InputStream is,
         File metadataFile
-    ) throws IOException, CollectInternalException {
+    ) throws IOException, CollectInvalidCsvFormatException {
         try (
             CSVParser parser = createParser(is);
             JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(metadataFile, true), true)
@@ -63,10 +66,47 @@ public class CsvHelper {
             final List<String> headerNames = parser.getHeaderNames();
             CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(sedaSchemaInfoResolver, headerNames);
 
-            for (CSVRecord record : parser) {
-                ObjectNode unitJson = csvToJsonConverter.convertCsvRecordToJson(record);
-                String uploadPath = FilenameUtils.separatorsToUnix(record.get(FILE_HEADER));
-                writer.addEntry(new CollectJsonMetadataLine().setFile(uploadPath).setUnitContent(unitJson));
+            try (CsvErrorAccumulator csvErrorAccumulator = new CsvErrorAccumulator()) {
+                for (CSVRecord record : parser) {
+                    long csvRecordNumberIncludingHeader = record.getRecordNumber() + 1;
+                    if (!record.isConsistent()) {
+                        csvErrorAccumulator.report(
+                            "Invalid CSV record at line " +
+                            csvRecordNumberIncludingHeader +
+                            ": Nb columns (" +
+                            record.size() +
+                            ") must match nb headers (" +
+                            headerNames.size() +
+                            ")"
+                        );
+                        continue;
+                    }
+
+                    String uploadPath = FilenameUtils.separatorsToUnix(record.get(FILE_HEADER));
+                    if (StringUtils.isBlank(uploadPath)) {
+                        csvErrorAccumulator.report(
+                            "Invalid CSV record at line " + csvRecordNumberIncludingHeader + ": Empty " + FILE_HEADER
+                        );
+                        continue;
+                    }
+
+                    ObjectNode unitJson;
+                    try {
+                        unitJson = csvToJsonConverter.convertCsvRecordToJson(record);
+                    } catch (CollectInvalidCsvFormatException e) {
+                        csvErrorAccumulator.report(
+                            String.format(
+                                "Invalid CSV record at line %d (File=\"%s\"): %s",
+                                csvRecordNumberIncludingHeader,
+                                sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH),
+                                e.getMessage()
+                            )
+                        );
+                        continue;
+                    }
+
+                    writer.addEntry(new CollectJsonMetadataLine().setFile(uploadPath).setUnitContent(unitJson));
+                }
             }
         }
     }
@@ -82,5 +122,9 @@ public class CsvHelper {
                 .setDelimiter(';')
                 .build()
         );
+    }
+
+    public static String sanitizeStringForLog(String uploadPath, int maxLength) {
+        return StringUtils.abbreviate(StringEscapeUtils.escapeJava(uploadPath), maxLength);
     }
 }

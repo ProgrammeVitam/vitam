@@ -34,11 +34,10 @@ import com.google.common.collect.Iterators;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
-import fr.gouv.vitam.collect.common.exception.CsvParseInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
+import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
-import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.TempWorkspace;
@@ -223,7 +222,7 @@ public class FluxService {
         } catch (IOException | ArchiveException e) {
             LOGGER.error("An error occurs when try to upload the ZIP:", e);
             throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
-        } catch (InvalidParseOperationException | CsvParseInternalException e) {
+        } catch (InvalidParseOperationException e) {
             throw new CollectInternalException(e.getMessage(), e);
         }
     }

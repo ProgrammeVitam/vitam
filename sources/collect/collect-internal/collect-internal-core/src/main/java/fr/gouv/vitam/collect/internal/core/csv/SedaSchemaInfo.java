@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,34 +21,22 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.common.exception;
 
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
+package fr.gouv.vitam.collect.internal.core.csv;
 
-public class CsvParseInternalException extends VitamRuntimeException {
-
-    /**
-     * @param message
-     */
-    public CsvParseInternalException(String message) {
-        super(message);
-    }
-
-    /**
-     * @param cause
-     */
-    public CsvParseInternalException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public CsvParseInternalException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
+public record SedaSchemaInfo(
+    String sedaPath,
+    String apiPath,
+    String apiSubPath,
+    boolean isObject,
+    boolean isArray,
+    boolean isExternal,
+    boolean isSedaExtensionPoint,
+    // Rule properties have special array index notation (Management.AppraisalRule.StartDate.1 refers to Management.AppraisalRule.Rule.1)
+    boolean isSpecialRulePropertyArrayIndex,
+    // Few Seda fields are NOT supported in CSV metadata headers (Management.UpdateOperation & Management.LogBook)
+    boolean isForbiddenCsvHeader
+) {}
