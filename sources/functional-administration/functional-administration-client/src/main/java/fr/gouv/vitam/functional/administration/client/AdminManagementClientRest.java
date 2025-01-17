@@ -167,9 +167,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withJsonAccept();
 
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(request);
             checkWithSpecificException(response);
+            doNotCloseResponse = true;
             return response;
         } catch (
             final VitamClientInternalException
@@ -180,7 +182,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
@@ -266,9 +268,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withOctetAccept();
 
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(request);
             checkWithSpecificException(response);
+            doNotCloseResponse = true;
             return response;
         } catch (
             DatabaseConflictException
@@ -282,7 +286,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (BadRequestException e) {
             throw new AdminManagementClientBadRequestException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
@@ -297,9 +301,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .withOctetContentType()
             .withOctetAccept();
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(request);
             checkWithSpecificException(response);
+            doNotCloseResponse = true;
             return response;
         } catch (
             ReferentialNotFoundException
@@ -312,7 +318,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (BadRequestException e) {
             throw new AdminManagementClientBadRequestException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }

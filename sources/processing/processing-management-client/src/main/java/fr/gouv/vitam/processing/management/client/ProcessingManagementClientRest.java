@@ -179,19 +179,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         throws InternalServerException, BadRequestException, VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
         VitamRequestBuilder request = head().withPath(OPERATION_URI + "/" + operationId).withJsonAccept();
-        Response response = null;
-        try {
-            response = make(request);
-            checkWithSpecificException(response);
-            return getItemStatusFromResponse(response);
-        } catch (ForbiddenClientException | ConflictClientException e) {
+        try (Response response = make(request)) {
+            try {
+                checkWithSpecificException(response);
+            } catch (ForbiddenClientException | ConflictClientException e) {
+                // Nothing: we'll return ItemStatus
+            }
             return getItemStatusFromResponse(response);
         } catch (PreconditionFailedClientException e) {
             throw new BadRequestException(ILLEGAL_ARGUMENT, e);
-        } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
-                response.close();
-            }
         }
     }
 

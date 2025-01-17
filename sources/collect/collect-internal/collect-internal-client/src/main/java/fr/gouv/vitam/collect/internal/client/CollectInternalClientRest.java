@@ -290,12 +290,14 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     @Override
     public InputStream generateSip(String transactionId) throws VitamClientException {
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(post().withPath(TRANSACTION_PATH + "/" + transactionId + "/send").withOctetAccept());
             check(response);
+            doNotCloseResponse = true;
             return response.readEntity(InputStream.class);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
@@ -358,12 +360,14 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             .withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH + "/" + usage + "/" + version + BINARY_PATH)
             .withOctetAccept();
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(request);
             check(response);
+            doNotCloseResponse = true;
             return response;
         } finally {
-            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }

@@ -121,25 +121,23 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     @Override
     public JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
-        Response response = null;
-        try {
-            response = make(
+        try (
+            Response response = make(
                 get().withPath("/units").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()).withJson()
-            );
-            check(response);
-            return response.readEntity(JsonNode.class);
-        } catch (InvalidParseOperationException e) {
-            JsonNode resp = response.readEntity(JsonNode.class);
-            if (resp != null && resp.get("description") != null) {
-                throw new InvalidParseOperationException(resp.get("description").asText(), e);
+            )
+        ) {
+            try {
+                check(response);
+            } catch (InvalidParseOperationException e) {
+                JsonNode resp = response.readEntity(JsonNode.class);
+                if (resp != null && resp.get("description") != null) {
+                    throw new InvalidParseOperationException(resp.get("description").asText(), e);
+                }
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage(), e);
             }
-            throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage(), e);
+            return response.readEntity(JsonNode.class);
         } catch (VitamClientInternalException | MetaDataNotFoundException e) {
             throw new MetaDataClientServerException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
@@ -237,28 +235,26 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         if (Strings.isNullOrEmpty(unitId)) {
             throw new InvalidParseOperationException("unitId MUST NOT be empty.");
         }
-        Response response = null;
-        try {
-            response = make(
+        try (
+            Response response = make(
                 put()
                     .withJson()
                     .withPath("/units/" + unitId)
                     .withBody(updateQuery, ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage())
-            );
-            check(response);
-            return response.readEntity(JsonNode.class);
-        } catch (InvalidParseOperationException e) {
-            JsonNode resp = response.readEntity(JsonNode.class);
-            if (resp != null && resp.get("description") != null) {
-                throw new InvalidParseOperationException(JsonHandler.unprettyPrint(resp.get("description")), e);
+            )
+        ) {
+            try {
+                check(response);
+            } catch (InvalidParseOperationException e) {
+                JsonNode resp = response.readEntity(JsonNode.class);
+                if (resp != null && resp.get("description") != null) {
+                    throw new InvalidParseOperationException(JsonHandler.unprettyPrint(resp.get("description")), e);
+                }
+                throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage(), e);
             }
-            throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage(), e);
+            return response.readEntity(JsonNode.class);
         } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
@@ -451,10 +447,12 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public RequestResponse<JsonNode> getUnitByIdRaw(String unitId) throws VitamClientException {
-        Response response = null;
-        try {
-            response = make(get().withJson().withPath("/raw/units/" + unitId));
-            check(response);
+        try (Response response = make(get().withJson().withPath("/raw/units/" + unitId))) {
+            try {
+                check(response);
+            } catch (MetaDataNotFoundException e) {
+                // Nothing: we'll return response
+            }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (
             IllegalStateException
@@ -464,12 +462,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             | MetaDataClientServerException e
         ) {
             throw new VitamClientException(e);
-        } catch (MetaDataNotFoundException e) {
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
@@ -495,10 +487,12 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public RequestResponse<JsonNode> getObjectGroupByIdRaw(String objectGroupId) throws VitamClientException {
-        Response response = null;
-        try {
-            response = make(get().withJson().withPath("/raw/objectgroups/" + objectGroupId));
-            check(response);
+        try (Response response = make(get().withJson().withPath("/raw/objectgroups/" + objectGroupId))) {
+            try {
+                check(response);
+            } catch (MetaDataNotFoundException e) {
+                // Nothing: we'll return response
+            }
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         } catch (
             IllegalStateException
@@ -508,12 +502,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             | MetaDataClientServerException e
         ) {
             throw new VitamClientException(e);
-        } catch (MetaDataNotFoundException e) {
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
-        } finally {
-            if (response != null) {
-                response.close();
-            }
         }
     }
 
@@ -782,6 +770,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public Response streamUnits(JsonNode selectQuery)
         throws MetaDataClientServerException, MetadataScrollThresholdExceededException, MetadataScrollLimitExceededException {
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(
                 get()
@@ -794,6 +783,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             Status status = response.getStatusInfo().toEnum();
 
             if (status.getFamily() == SUCCESSFUL) {
+                doNotCloseResponse = true;
                 return response;
             }
 
@@ -808,7 +798,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         } finally {
-            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
@@ -818,6 +808,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public Response streamObjects(JsonNode selectQuery)
         throws MetaDataClientServerException, MetadataScrollThresholdExceededException, MetadataScrollLimitExceededException {
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(
                 get()
@@ -829,6 +820,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
             Status status = response.getStatusInfo().toEnum();
             if (status.getFamily() == SUCCESSFUL) {
+                doNotCloseResponse = true;
                 return response;
             }
             switch (status) {
@@ -842,7 +834,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } catch (VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         } finally {
-            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
