@@ -62,6 +62,7 @@
 				<configuration>
 					<to>
 						<image>${env.SERVICE_DOCKER_PUSH_URL}/vitam/workspace</image>
+						<image>${env.SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect</image>
 						<tags>
 							<tag>${git.commit.id.describe-short}</tag>
 							<tag>${project.version}</tag>
