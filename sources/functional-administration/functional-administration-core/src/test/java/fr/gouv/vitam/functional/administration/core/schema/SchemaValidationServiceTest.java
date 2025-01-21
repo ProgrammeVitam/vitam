@@ -273,9 +273,9 @@ public class SchemaValidationServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_when_importing_some_paths_with_not_found_leaf() throws Exception {
+    public void should_fail_when_importing_some_paths_with_leaf_not_found() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        final File fileSchema = PropertiesUtils.getResourceFile("schema/schema-with-missed-leaf.json");
+        final File fileSchema = PropertiesUtils.getResourceFile("schema/schema-with-missing-leaf.json");
         final List<SchemaInputModel> schemaModelList = JsonHandler.getFromFileAsTypeReference(
             fileSchema,
             listOfSchemaInputType
@@ -309,7 +309,80 @@ public class SchemaValidationServiceTest {
                 )
         )
             .isInstanceOf(SchemaImportValidationException.class)
-            .hasMessage("Path leaf missed = SomeDate");
+            .hasMessage("Path leaf not found in ontology: SomeDate");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_importing_some_paths_with_leaf_not_found_with_related_name() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final List<OntologyModel> ontologyModelList = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile("schema/ok-ontologies.json"),
+            listOfOntologyType
+        );
+        Map<String, OntologyModel> ontologyEltsMapByIdentifier = ontologyModelList
+            .stream()
+            .collect(Collectors.toMap(OntologyModel::getIdentifier, ontologyElt -> ontologyElt));
+        DbRequestResult result = new DbRequestResult().setCount(0).setTotal(0).setOffset(0);
+        when(mongoDbAccessReferential.findDocumentsWithoutRestrictionOnCurrentTenant(any(), any())).thenReturn(result);
+        RequestResponseOK<OntologyModel> ontologyResponse = new RequestResponseOK<OntologyModel>().addAllResults(
+            ontologyModelList
+        );
+        when(ontologyService.findOntologies(any())).thenReturn(ontologyResponse);
+
+        // When / then
+        final List<SchemaInputModel> schemaModelList = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile("schema/schema-with-missing-leaf-with-related.json"),
+            listOfSchemaInputType
+        );
+        assertThatThrownBy(
+            () ->
+                schemaValidationService.validateExternalSchemaInputs(
+                    schemaModelList,
+                    internalSchemaList,
+                    ontologyEltsMapByIdentifier,
+                    new HashMap<>()
+                )
+        )
+            .isInstanceOf(SchemaImportValidationException.class)
+            .hasMessage("Path leaf not found in ontology: identifier (existing relative: Identifier)");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_importing_some_paths_with_leaf_not_found_and_leaf_not_found_with_related_name()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        final List<OntologyModel> ontologyModelList = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile("schema/ok-ontologies.json"),
+            listOfOntologyType
+        );
+        Map<String, OntologyModel> ontologyEltsMapByIdentifier = ontologyModelList
+            .stream()
+            .collect(Collectors.toMap(OntologyModel::getIdentifier, ontologyElt -> ontologyElt));
+        DbRequestResult result = new DbRequestResult().setCount(0).setTotal(0).setOffset(0);
+        when(mongoDbAccessReferential.findDocumentsWithoutRestrictionOnCurrentTenant(any(), any())).thenReturn(result);
+        RequestResponseOK<OntologyModel> ontologyResponse = new RequestResponseOK<OntologyModel>().addAllResults(
+            ontologyModelList
+        );
+        when(ontologyService.findOntologies(any())).thenReturn(ontologyResponse);
+
+        // When / then
+        final List<SchemaInputModel> schemaModelList = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile("schema/schema-with-missing-leaf-and-missing-leaf-with-related.json"),
+            listOfSchemaInputType
+        );
+        assertThatThrownBy(
+            () ->
+                schemaValidationService.validateExternalSchemaInputs(
+                    schemaModelList,
+                    internalSchemaList,
+                    ontologyEltsMapByIdentifier,
+                    new HashMap<>()
+                )
+        )
+            .isInstanceOf(SchemaImportValidationException.class)
+            .hasMessage("Path leaf not found in ontology: SomeDate, identifier (existing relative: Identifier)");
     }
 
     @Test

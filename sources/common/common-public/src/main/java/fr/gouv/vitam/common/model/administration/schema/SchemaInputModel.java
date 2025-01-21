@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.model.administration.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -65,7 +66,6 @@ public class SchemaInputModel {
     /**
      * The schema elt cardinality
      */
-
     @JsonProperty(value = TAG_PATH_CARDINALITY, required = true)
     private SchemaCardinality cardinality;
 
@@ -78,14 +78,12 @@ public class SchemaInputModel {
     /**
      * short name of the element
      */
-
     @JsonProperty(value = TAG_SHORT_NAME, required = true)
     private String shortName;
 
     /**
      * short full path of the element
      */
-
     @JsonProperty(value = TAG_PATH, required = true)
     private String path;
 
@@ -109,6 +107,11 @@ public class SchemaInputModel {
 
     public Boolean isObject() {
         return isObject;
+    }
+
+    @JsonIgnore
+    public Boolean notObject() {
+        return !isObject;
     }
 
     public SchemaInputModel setObject(Boolean isObject) {

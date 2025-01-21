@@ -1,0 +1,9 @@
+[
+  {
+    "Cardinality": "MANY",
+    "Path": "identifier",
+    "ShortName": "MyText",
+    "Description": "MyText",
+    "IsObject": false
+  }
+]
