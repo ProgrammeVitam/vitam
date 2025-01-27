@@ -624,6 +624,17 @@ public class AgenciesServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void should_not_throw_exception_when_file_contain_bom() throws Exception {
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(any())).thenReturn(getJsonResult(StatusCode.OK.name()));
+
+        File file = PropertiesUtils.getResourceFile("agencies/agencies-files-with-BOM.csv");
+        agencyService.parseFile(file);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_remove_duplicates_from_file() throws Exception {
         // Given
         Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
