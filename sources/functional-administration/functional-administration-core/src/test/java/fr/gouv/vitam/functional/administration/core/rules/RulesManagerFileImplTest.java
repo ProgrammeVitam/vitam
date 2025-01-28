@@ -371,6 +371,22 @@ public class RulesManagerFileImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testimportRulesFileWithBOM() throws Exception {
+        int tenantId = 0;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+
+        rulesFileManager.importFile(PropertiesUtils.getResourceAsStream("rules/rules-with-bom.csv"), FILE_TO_TEST_OK);
+
+        List<FileRules> fileRules = convertResponseResultToFileRules(
+            rulesFileManager.findDocuments(new Select().getFinalSelect())
+        );
+        assertEquals(7, fileRules.size());
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testimportRulesFileWithEmptyLine() throws Exception {
         int tenantId = 12;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
