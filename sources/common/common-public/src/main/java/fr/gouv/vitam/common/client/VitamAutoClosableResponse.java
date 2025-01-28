@@ -50,6 +50,7 @@ public class VitamAutoClosableResponse extends Response {
 
     private VitamAutoClosableResponseInputStream autoClosableResponseInputStream;
     private final Response response;
+    private boolean isResponseClosed = false;
 
     public VitamAutoClosableResponse(Response response) {
         this.response = Objects.requireNonNull(response);
@@ -63,8 +64,10 @@ public class VitamAutoClosableResponse extends Response {
             // The response will be closed automatically when the input stream is closed by the caller.
             return;
         }
-
-        StreamUtils.consumeAnyEntityAndClose(response);
+        if (!isResponseClosed) { // We make sure we close only once. Useful for try-with-resources on responses that may already have been closed
+            StreamUtils.consumeAnyEntityAndClose(response);
+            isResponseClosed = true;
+        }
     }
 
     @Override

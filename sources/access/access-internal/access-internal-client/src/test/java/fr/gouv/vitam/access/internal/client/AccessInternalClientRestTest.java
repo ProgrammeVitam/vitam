@@ -35,6 +35,8 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -43,6 +45,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -62,10 +65,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -85,13 +90,17 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -102,10 +111,25 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     private static AccessInternalClientRest client;
     private static final ExpectedResults mock = mock(ExpectedResults.class);
 
-    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
-        AccessInternalClientRestTest.class,
-        AccessInternalClientFactory.getInstance()
-    );
+    public static VitamServerTestRunner vitamServerTestRunner;
+
+    private static final int POOL_SIZE = 1;
+
+    static {
+        final VitamConfigurationParameters vitamConfigurationParameters = new VitamConfigurationParameters();
+
+        vitamConfigurationParameters.setMaxTotalClient(POOL_SIZE);
+        vitamConfigurationParameters.setMaxClientPerHost(POOL_SIZE);
+        vitamConfigurationParameters.setDelayGetClient(50);
+        VitamConfiguration.importConfigurationParameters(vitamConfigurationParameters);
+
+        vitamServerTestRunner = new VitamServerTestRunner(
+            AccessInternalClientRestTest.class,
+            AccessInternalClientFactory.getInstance()
+        );
+
+        VitamConfiguration.setHttpClientRetry(1); // Must be set after `new VitamServerTestRunner()` that sets a value of 3
+    }
 
     @BeforeClass
     public static void init() throws Throwable {
@@ -341,7 +365,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
                 case "Unauthorized":
                     return Response.status(Status.UNAUTHORIZED).build();
                 default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                    return Response.status(INTERNAL_SERVER_ERROR).build();
             }
         }
 
@@ -371,7 +395,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
                 case "sync_strategy":
                     return Response.status(Status.NOT_ACCEPTABLE).build();
                 default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                    return Response.status(INTERNAL_SERVER_ERROR).build();
             }
         }
 
@@ -390,7 +414,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
                 case "sync_strategy":
                     return Response.status(Status.NOT_ACCEPTABLE).build();
                 default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                    return Response.status(INTERNAL_SERVER_ERROR).build();
             }
         }
 
@@ -493,6 +517,55 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
 
     @RunWithCustomExecutor
     @Test
+    public void selectUnitsClosesResponsesOnError() {
+        assertMethodCallClosesResponsesOnError(() -> client.selectUnits(mock()));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void selectUnitsByUnitPersistentIdentifierClosesResponsesOnError() {
+        assertMethodCallClosesResponsesOnError(() -> client.selectUnitsByUnitPersistentIdentifier("42", mock()));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void downloadTraceabilityFileClosesResponsesOnError() {
+        assertMethodCallClosesResponsesOnError(() -> client.downloadTraceabilityFile("42"));
+    }
+
+    private void assertMethodCallClosesResponsesOnError(Callable functionToTest) {
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+
+        // Mock internal service and return a response with the provided status (with a payload, to have a response to close)
+        final Answer<Response> responseAnswer = invocation ->
+            Response.status(INTERNAL_SERVER_ERROR).entity(new FakeInputStream(1000)).build();
+        when(mock.get()).thenAnswer(responseAnswer);
+        when(mock.post()).thenAnswer(responseAnswer);
+        when(mock.put()).thenAnswer(responseAnswer);
+        when(mock.delete()).thenAnswer(responseAnswer);
+        when(mock.head()).thenAnswer(responseAnswer);
+        when(mock.options()).thenAnswer(responseAnswer);
+        when(mock.headContainer()).thenAnswer(responseAnswer);
+        when(mock.headFolder()).thenAnswer(responseAnswer);
+
+        // Call the client one more time than the pool size to make sure that the pool is not filled with unclosed responses
+        IntStream.range(0, POOL_SIZE + 1).forEach(i -> {
+            try {
+                functionToTest.call();
+                fail("Should throw"); // As we mocked internal service to make the call fail, we're expecting to throw an exception
+            } catch (Exception e) {
+                assertThat(e).isInstanceOf(AccessInternalClientServerException.class); // We expect a AccessInternalClientServerException
+                assertThat(e.getMessage())
+                    .describedAs(
+                        "the pool is full and the responses are not closed correctly, hence the ConnectionPoolTimeoutException"
+                    )
+                    .doesNotContain(ConnectionPoolTimeoutException.class.getName());
+            }
+        });
+    }
+
+    @RunWithCustomExecutor
+    @Test
     public void givenBadRequestException_whenSelect_ThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.FORBIDDEN).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
@@ -551,7 +624,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     @Test
     public void givenInternalServerError_whenSelectById_ThenRaiseAnException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.post()).thenReturn(Response.status(INTERNAL_SERVER_ERROR).build());
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
         assertThatThrownBy(() -> client.selectUnitbyId(queryJson, ID)).isInstanceOf(
@@ -623,7 +696,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @Test
     public void given500_whenUpdateUnit_ThenRaiseAnException() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.put()).thenReturn(Response.status(INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
         assertThatThrownBy(() -> client.updateUnitbyId(queryJson, ID)).isInstanceOf(
             AccessInternalClientServerException.class
@@ -641,7 +714,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @Test
     public void givenQueryCorrectWhenSelectObjectByIdThenRaiseInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.get()).thenReturn(Response.status(INTERNAL_SERVER_ERROR).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsl);
         assertThatThrownBy(() -> client.selectObjectbyId(queryJson, ID)).isInstanceOf(
             AccessInternalClientServerException.class
@@ -692,7 +765,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     @Test
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.get()).thenReturn(Response.status(INTERNAL_SERVER_ERROR).build());
         assertThatThrownBy(() -> client.getObject(ID, USAGE, VERSION, UNIT_ID)).isInstanceOf(
             AccessInternalClientServerException.class
         );
@@ -829,7 +902,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void startEliminationAnalysisWhenServerErrorThenReturnInternalServerErrorVitamResponse() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.post()).thenReturn(Response.status(INTERNAL_SERVER_ERROR).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02",
@@ -907,7 +980,7 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
     public void startEliminationActionWhenServerErrorThenReturnInternalServerErrorVitamResponse() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.post()).thenReturn(Response.status(INTERNAL_SERVER_ERROR).build());
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
             "2000-01-02",
