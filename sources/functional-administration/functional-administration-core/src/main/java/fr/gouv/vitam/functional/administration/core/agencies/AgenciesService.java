@@ -86,15 +86,17 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -240,7 +242,13 @@ public class AgenciesService {
         Map<Integer, List<ErrorReportAgencies>> errorsMap = new HashMap<>();
         int lineNumber = 1;
         final Map<String, AgenciesModel> agenciesModelMap = new HashMap<>();
-        try (FileReader reader = new FileReader(csvFile)) {
+
+        try (
+            Reader reader = new InputStreamReader(
+                BOMInputStream.builder().setFile(csvFile).get(),
+                StandardCharsets.UTF_8
+            )
+        ) {
             final CSVParser parser = new CSVParser(
                 reader,
                 CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false)
