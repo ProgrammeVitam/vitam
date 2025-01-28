@@ -1,0 +1,8 @@
+﻿RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+AccessRule_1Y,AccessRule,AccessRule 1 YEAR,description,1,YEAR
+AppraisalRule_1M,AppraisalRule,AppraisalRule 1 MONTH,description,1,MONTH
+ClassificationRule_1D,ClassificationRule,ClassificationRule 1 DAY,description,1,DAY
+DisseminationRule_UNLIM,DisseminationRule,DisseminationRule unlimited,description,unlimited,YEAR
+HoldRule_UNDEF,HoldRule,HoldRule undefined,description,,
+ReuseRule_1Y,ReuseRule,ReuseRule 1 YEAR,description,1,YEAR
+StorageRule_1Y,StorageRule,StorageRule 1 YEAR,description,1,YEAR
