@@ -291,6 +291,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             limit
         );
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(
                 post()
@@ -305,13 +306,14 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 throw new LogbookClientException("Missing " + VitamHttpHeader.X_CONTENT_LENGTH.getName() + " header");
             }
             long contentLength = Long.parseLong(contentLengthHeader);
+            doNotCloseResponse = true;
             return new ExactSizeInputStream(response.readEntity(InputStream.class), contentLength);
         } catch (PreconditionFailedClientException e) {
             throw new LogbookClientException(e);
         } catch (VitamClientInternalException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+            if (response != null && !doNotCloseResponse) {
                 consumeAnyEntityAndClose(response);
             }
         }

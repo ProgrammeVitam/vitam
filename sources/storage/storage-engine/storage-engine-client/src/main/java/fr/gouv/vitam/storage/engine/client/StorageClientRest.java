@@ -498,10 +498,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             .withContentType(MediaType.APPLICATION_JSON_TYPE)
             .withAccept(MediaType.APPLICATION_OCTET_STREAM_TYPE);
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(request);
             checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
-            return handleCommonResponseStatus(response);
+            final Response result = handleCommonResponseStatus(response);
+            doNotCloseResponse = true;
+            return result;
         } catch (final VitamClientInternalException | StorageAlreadyExistsClientException e) {
             final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(
                 VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR
@@ -510,7 +513,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         } catch (StorageNotFoundClientException e) {
             throw new StorageNotFoundException(e);
         } finally {
-            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }

@@ -158,11 +158,13 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(
                 get().withPath(INGEST_URL + "/" + objectId + "/" + type.getCollectionName()).withOctetAccept()
             );
             check(response);
+            doNotCloseResponse = true;
             return response;
         } catch (
             VitamClientException | NotAcceptableClientException | IngestInternalServerUnavailableClientException e
@@ -171,7 +173,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         } catch (IngestInternalClientNotFoundException e) {
             throw new IngestInternalClientNotFoundException(e);
         } finally {
-            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
