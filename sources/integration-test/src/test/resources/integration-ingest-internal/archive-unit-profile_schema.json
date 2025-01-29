@@ -2871,6 +2871,8 @@
     "ShortName": "Identifiant",
     "Path": "PersistentIdentifier.PersistentIdentifierContent",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6240,6 +6242,8 @@
     "ShortName": "Informations sur la signature",
     "Path": "SigningInformation",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6255,6 +6259,8 @@
     "ShortName": "Preuve complémentaire",
     "Path": "SigningInformation.AdditionalProof",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6272,6 +6278,8 @@
     "ShortName": "Description",
     "Path": "SigningInformation.AdditionalProof.AdditionalProofInformation",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "LARGE",
@@ -6290,6 +6298,8 @@
     "ShortName": "Rôle de l'unité encapsulée",
     "Path": "SigningInformation.DetachedSigningRole",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6322,6 +6332,8 @@
     "ShortName": "Signature",
     "Path": "SigningInformation.SignatureDescription",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6337,6 +6349,8 @@
     "ShortName": "Signataire",
     "Path": "SigningInformation.SignatureDescription.Signer",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6354,6 +6368,8 @@
     "ShortName": "Activité",
     "Path": "SigningInformation.SignatureDescription.Signer.Activity",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6372,6 +6388,8 @@
     "ShortName": "Date de naissance",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthDate",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6389,6 +6407,8 @@
     "ShortName": "Nom de naissance",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthName",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6405,6 +6425,8 @@
     "ShortName": "Lieu de naissance",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6422,6 +6444,8 @@
     "ShortName": "Adresse",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace.Address",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6440,6 +6464,8 @@
     "ShortName": "Ville",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace.City",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6458,6 +6484,8 @@
     "ShortName": "Pays",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace.Country",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6476,6 +6504,8 @@
     "ShortName": "Nom de lieu",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace.Geogname",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6494,6 +6524,8 @@
     "ShortName": "Code postal",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace.PostalCode",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6512,6 +6544,8 @@
     "ShortName": "Région",
     "Path": "SigningInformation.SignatureDescription.Signer.BirthPlace.Region",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6530,6 +6564,8 @@
     "ShortName": "Nom de l'entité",
     "Path": "SigningInformation.SignatureDescription.Signer.Corpname",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6548,6 +6584,8 @@
     "ShortName": "Date de décès",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathDate",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6563,6 +6601,8 @@
     "ShortName": "Lieu de décès",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6580,6 +6620,8 @@
     "ShortName": "Adresse",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace.Address",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6598,6 +6640,8 @@
     "ShortName": "Ville",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace.City",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6616,6 +6660,8 @@
     "ShortName": "Pays",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace.Country",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6634,6 +6680,8 @@
     "ShortName": "Nom de lieu",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace.Geogname",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6652,6 +6700,8 @@
     "ShortName": "Code postal",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace.PostalCode",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6670,6 +6720,8 @@
     "ShortName": "Région",
     "Path": "SigningInformation.SignatureDescription.Signer.DeathPlace.Region",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6688,6 +6740,8 @@
     "ShortName": "Prénom",
     "Path": "SigningInformation.SignatureDescription.Signer.FirstName",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6726,6 +6780,8 @@
     "ShortName": "Fonction",
     "Path": "SigningInformation.SignatureDescription.Signer.Function",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6744,6 +6800,8 @@
     "ShortName": "Sexe",
     "Path": "SigningInformation.SignatureDescription.Signer.Gender",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6762,6 +6820,8 @@
     "ShortName": "Nom d'usage",
     "Path": "SigningInformation.SignatureDescription.Signer.GivenName",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6780,6 +6840,8 @@
     "ShortName": "Identifiant",
     "Path": "SigningInformation.SignatureDescription.Signer.Identifier",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6798,6 +6860,8 @@
     "ShortName": "Droits",
     "Path": "SigningInformation.SignatureDescription.Signer.Mandate",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6816,6 +6880,8 @@
     "ShortName": "Nationalité",
     "Path": "SigningInformation.SignatureDescription.Signer.Nationality",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6834,6 +6900,8 @@
     "ShortName": "Position",
     "Path": "SigningInformation.SignatureDescription.Signer.Position",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6852,6 +6920,8 @@
     "ShortName": "Rôle",
     "Path": "SigningInformation.SignatureDescription.Signer.Role",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6870,6 +6940,8 @@
     "ShortName": "Date de signature",
     "Path": "SigningInformation.SignatureDescription.Signer.SigningTime",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6905,6 +6977,8 @@
     "ShortName": "Validateur",
     "Path": "SigningInformation.SignatureDescription.Validator",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6922,6 +6996,8 @@
     "ShortName": "Activité",
     "Path": "SigningInformation.SignatureDescription.Validator.Activity",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6940,6 +7016,8 @@
     "ShortName": "Date de naissance",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthDate",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6957,6 +7035,8 @@
     "ShortName": "Nom de naissance",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthName",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -6973,6 +7053,8 @@
     "ShortName": "Lieu de naissance",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -6990,6 +7072,8 @@
     "ShortName": "Adresse",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace.Address",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7008,6 +7092,8 @@
     "ShortName": "Ville",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace.City",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7026,6 +7112,8 @@
     "ShortName": "Pays",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace.Country",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7044,6 +7132,8 @@
     "ShortName": "Nom de lieu",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace.Geogname",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7062,6 +7152,8 @@
     "ShortName": "Code postal",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace.PostalCode",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7080,6 +7172,8 @@
     "ShortName": "Région",
     "Path": "SigningInformation.SignatureDescription.Validator.BirthPlace.Region",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7098,6 +7192,8 @@
     "ShortName": "Nom de l'entité",
     "Path": "SigningInformation.SignatureDescription.Validator.Corpname",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7116,6 +7212,8 @@
     "ShortName": "Date de décès",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathDate",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -7131,6 +7229,8 @@
     "ShortName": "Lieu de décès",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -7148,6 +7248,8 @@
     "ShortName": "Adresse",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace.Address",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7166,6 +7268,8 @@
     "ShortName": "Ville",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace.City",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7184,6 +7288,8 @@
     "ShortName": "Pays",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace.Country",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7202,6 +7308,8 @@
     "ShortName": "Nom de lieu",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace.Geogname",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7220,6 +7328,8 @@
     "ShortName": "Code postal",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace.PostalCode",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7238,6 +7348,8 @@
     "ShortName": "Région",
     "Path": "SigningInformation.SignatureDescription.Validator.DeathPlace.Region",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7256,6 +7368,8 @@
     "ShortName": "Prénom",
     "Path": "SigningInformation.SignatureDescription.Validator.FirstName",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7294,6 +7408,8 @@
     "ShortName": "Fonction",
     "Path": "SigningInformation.SignatureDescription.Validator.Function",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7312,6 +7428,8 @@
     "ShortName": "Sexe",
     "Path": "SigningInformation.SignatureDescription.Validator.Gender",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7330,6 +7448,8 @@
     "ShortName": "Nom d'usage",
     "Path": "SigningInformation.SignatureDescription.Validator.GivenName",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7348,6 +7468,8 @@
     "ShortName": "Identifiant",
     "Path": "SigningInformation.SignatureDescription.Validator.Identifier",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7366,6 +7488,8 @@
     "ShortName": "Droits",
     "Path": "SigningInformation.SignatureDescription.Validator.Mandate",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7384,6 +7508,8 @@
     "ShortName": "Nationalité",
     "Path": "SigningInformation.SignatureDescription.Validator.Nationality",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7402,6 +7528,8 @@
     "ShortName": "Position",
     "Path": "SigningInformation.SignatureDescription.Validator.Position",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7420,6 +7548,8 @@
     "ShortName": "Rôle",
     "Path": "SigningInformation.SignatureDescription.Validator.Role",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
@@ -7438,6 +7568,8 @@
     "ShortName": "Date de validation",
     "Path": "SigningInformation.SignatureDescription.Validator.ValidationTime",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -7455,6 +7587,8 @@
     "ShortName": "Rôle",
     "Path": "SigningInformation.SigningRole",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -7470,6 +7604,8 @@
     "ShortName": "Information d'horodatage",
     "Path": "SigningInformation.TimestampingInformation",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"
@@ -7487,6 +7623,8 @@
     "ShortName": "Description de l'horodatage",
     "Path": "SigningInformation.TimestampingInformation.AdditionalTimestampingInformation",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "StringSize": "LARGE",
@@ -7505,6 +7643,8 @@
     "ShortName": "Horodatage de la signature",
     "Path": "SigningInformation.TimestampingInformation.TimeStamp",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "EffectiveCardinality": "ZERO"

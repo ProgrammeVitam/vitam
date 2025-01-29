@@ -2757,6 +2757,8 @@
     "ApiField": "PersistentIdentifierContent",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6018,6 +6020,8 @@
     "ApiField": "SigningInformation",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6034,6 +6038,8 @@
     "ApiField": "AdditionalProof",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6050,6 +6056,8 @@
     "ApiField": "AdditionalProofInformation",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6067,6 +6075,8 @@
     "ApiField": "DetachedSigningRole",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6102,6 +6112,8 @@
     "ApiField": "SignatureDescription",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6118,6 +6130,8 @@
     "ApiField": "Signer",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6134,6 +6148,8 @@
     "ApiField": "Activity",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6151,6 +6167,8 @@
     "ApiField": "BirthDate",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6168,6 +6186,8 @@
     "ApiField": "BirthName",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6185,6 +6205,8 @@
     "ApiField": "BirthPlace",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6201,6 +6223,8 @@
     "ApiField": "Address",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6218,6 +6242,8 @@
     "ApiField": "City",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6235,6 +6261,8 @@
     "ApiField": "Country",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6252,6 +6280,8 @@
     "ApiField": "Geogname",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6269,6 +6299,8 @@
     "ApiField": "PostalCode",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6286,6 +6318,8 @@
     "ApiField": "Region",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6303,6 +6337,8 @@
     "ApiField": "Corpname",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6320,6 +6356,8 @@
     "ApiField": "DeathDate",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6337,6 +6375,8 @@
     "ApiField": "DeathPlace",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6353,6 +6393,8 @@
     "ApiField": "Address",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6370,6 +6412,8 @@
     "ApiField": "City",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6387,6 +6431,8 @@
     "ApiField": "Country",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6404,6 +6450,8 @@
     "ApiField": "Geogname",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6421,6 +6469,8 @@
     "ApiField": "PostalCode",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6438,6 +6488,8 @@
     "ApiField": "Region",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6455,6 +6507,8 @@
     "ApiField": "FirstName",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6491,6 +6545,8 @@
     "ApiField": "Function",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6508,6 +6564,8 @@
     "ApiField": "Gender",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6525,6 +6583,8 @@
     "ApiField": "GivenName",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6542,6 +6602,8 @@
     "ApiField": "Identifier",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6559,6 +6621,8 @@
     "ApiField": "Mandate",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6576,6 +6640,8 @@
     "ApiField": "Nationality",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6593,6 +6659,8 @@
     "ApiField": "Position",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6610,6 +6678,8 @@
     "ApiField": "Role",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6627,6 +6697,8 @@
     "ApiField": "SigningTime",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6663,6 +6735,8 @@
     "ApiField": "Validator",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6679,6 +6753,8 @@
     "ApiField": "Activity",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6696,6 +6772,8 @@
     "ApiField": "BirthDate",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6713,6 +6791,8 @@
     "ApiField": "BirthName",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6730,6 +6810,8 @@
     "ApiField": "BirthPlace",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6746,6 +6828,8 @@
     "ApiField": "Address",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6763,6 +6847,8 @@
     "ApiField": "City",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6780,6 +6866,8 @@
     "ApiField": "Country",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6797,6 +6885,8 @@
     "ApiField": "Geogname",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6814,6 +6904,8 @@
     "ApiField": "PostalCode",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6831,6 +6923,8 @@
     "ApiField": "Region",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6848,6 +6942,8 @@
     "ApiField": "Corpname",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6865,6 +6961,8 @@
     "ApiField": "DeathDate",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6882,6 +6980,8 @@
     "ApiField": "DeathPlace",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6898,6 +6998,8 @@
     "ApiField": "Address",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6915,6 +7017,8 @@
     "ApiField": "City",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6932,6 +7036,8 @@
     "ApiField": "Country",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6949,6 +7055,8 @@
     "ApiField": "Geogname",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6966,6 +7074,8 @@
     "ApiField": "PostalCode",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -6983,6 +7093,8 @@
     "ApiField": "Region",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7000,6 +7112,8 @@
     "ApiField": "FirstName",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7036,6 +7150,8 @@
     "ApiField": "Function",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7053,6 +7169,8 @@
     "ApiField": "Gender",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7070,6 +7188,8 @@
     "ApiField": "GivenName",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7087,6 +7207,8 @@
     "ApiField": "Identifier",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7104,6 +7226,8 @@
     "ApiField": "Mandate",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7121,6 +7245,8 @@
     "ApiField": "Nationality",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7138,6 +7264,8 @@
     "ApiField": "Position",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7155,6 +7283,8 @@
     "ApiField": "Role",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7172,6 +7302,8 @@
     "ApiField": "ValidationTime",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7189,6 +7321,8 @@
     "ApiField": "SigningRole",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7206,6 +7340,8 @@
     "ApiField": "TimestampingInformation",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7222,6 +7358,8 @@
     "ApiField": "AdditionalTimestampingInformation",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",
@@ -7239,6 +7377,8 @@
     "ApiField": "TimeStamp",
     "Collection": "Unit",
     "SedaVersions": [
+      "2.1",
+      "2.2",
       "2.3"
     ],
     "Category": "DESCRIPTION",

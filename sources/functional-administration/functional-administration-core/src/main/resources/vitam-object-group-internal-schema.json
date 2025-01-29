@@ -950,7 +950,6 @@
     "ApiField": "PersistentIdentifierContent",
     "Collection": "ObjectGroup",
     "SedaVersions": [
-      "2.2",
       "2.3"
     ],
     "StringSize": "SHORT",
