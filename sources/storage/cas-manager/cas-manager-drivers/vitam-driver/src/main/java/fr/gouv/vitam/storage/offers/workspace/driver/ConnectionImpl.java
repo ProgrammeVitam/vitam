@@ -224,15 +224,17 @@ public class ConnectionImpl extends AbstractConnection {
             .withOctetAccept();
 
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(requestbuilder);
             checkCustomResponseStatusForUnavailableDataFromAsyncOffer(response);
             checkStorageException(response);
+            doNotCloseResponse = true;
             return new StorageGetResult(request.getTenantId(), request.getType(), request.getGuid(), response);
         } catch (final VitamClientInternalException e) {
             throw new StorageDriverException(getDriverName(), true, e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+            if (response != null && !doNotCloseResponse) {
                 consumeAnyEntityAndClose(response);
             }
         }

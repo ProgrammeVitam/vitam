@@ -305,9 +305,11 @@ public class WorkspaceClient extends DefaultClient {
             objectName
         );
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(get().withPath(CONTAINERS + containerName + OBJECTS + objectName).withOctetAccept());
             check(response);
+            doNotCloseResponse = true;
             return response;
         } catch (
             VitamClientInternalException
@@ -317,7 +319,7 @@ public class WorkspaceClient extends DefaultClient {
         ) {
             throw new ContentAddressableStorageServerException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
@@ -366,11 +368,13 @@ public class WorkspaceClient extends DefaultClient {
             objectURIs.toArray()
         );
         Response response = null;
+        boolean doNotCloseResponse = false;
         try {
             response = make(
                 get().withPath(CONTAINERS + containerName + "/objects").withBody(objectURIs).withJsonOctet()
             );
             check(response);
+            doNotCloseResponse = true;
             return response;
         } catch (
             VitamClientInternalException
@@ -380,7 +384,7 @@ public class WorkspaceClient extends DefaultClient {
         ) {
             throw new ContentAddressableStorageServerException(e);
         } finally {
-            if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
+            if (response != null && !doNotCloseResponse) {
                 response.close();
             }
         }
