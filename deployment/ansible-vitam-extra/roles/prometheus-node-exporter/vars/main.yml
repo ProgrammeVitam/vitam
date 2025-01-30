@@ -6,3 +6,5 @@ prometheus_node_exporter_app_path:    "{{ vitam_defaults.folder.root_path | defa
 prometheus_node_exporter_bin_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/bin/node_exporter"
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
+
+node_exporter_version: "{{ prometheus.node_exporter.version | default('1.7.0') }}"

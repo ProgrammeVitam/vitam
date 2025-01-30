@@ -2,4 +2,27 @@
 
 apiVersion: 1
 deleteDatasources: []
-{{ { 'datasources': grafana.grafana_datasources } | to_nice_yaml(width=80, indent=2) }}
+
+datasources:
+{% if groups['hosts_prometheus'] | length > 0 %}
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus-server.service.{{ consul_domain }}:{{ prometheus.server.port | default(9090) }}/prometheus
+    basicAuth: false
+    editable: true
+{% endif %}
+{% if groups['hosts_alertmanager'] | length > 0 %}
+  - name: DS_PROMETHEUS_ALERTMANAGER
+    type: camptocamp-prometheus-alertmanager-datasource
+    access: proxy
+    url: http://prometheus-alertmanager.service.{{ consul_domain }}:{{ prometheus.alertmanager.api_port | default(9093) }}
+    basicAuth: false
+    editable: true
+    jsonData:
+      keepCookies: []
+      severity_critical: '4'
+      severity_high: '3'
+      severity_warning: '2'
+      severity_info: '1'
+{% endif %}

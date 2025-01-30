@@ -6,16 +6,16 @@
     dest: "{{ grafana_path_provisioning }}/datasources/datasources.yml"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default ('0440') }}"
+    mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
 
 - name: Copy dashboard json files to provisioning dashboard folder
   copy:
     src: "{{ item }}.json"
-    dest: "{{ grafana_path_provisioning }}/dashboards/{{ item }}.json"
+    dest: "{{ grafana_path_dashboards }}/{{ item }}.json"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default ('0440') }}"
+    mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   with_items:
     - vitam_main_dashboard
     - vitam_elasticsearch_dashboard
@@ -26,37 +26,19 @@
     - vitam_mongodb_dashboard
     - vitam_mongodb_global_overview
 
-- name: Set the correct data source name in the dashboard for prometheus
-  replace:
-    dest: "{{ grafana_path_provisioning }}/dashboards/{{ item }}.json"
-    regexp: '"(?:\${)?DS_PROMETHEUS+(?:})?"'
-    replace: '"Prometheus"'
-  changed_when: false
-  with_items:
-    - vitam_standard_dashboard
-  when: grafana.grafana_dashboards | length > 0
-
-- name: Set the correct data source name in the dashboard for alertmanager
-  replace:
-    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_standard_dashboard.json"
-    regexp: '"(?:\${)?DS_ALERTMANAGER+(?:})?"'
-    replace: '"Prometheus AlertManager"'
-  changed_when: false
-  when: grafana.grafana_dashboards | length > 0
-
 - name: Copy reconstruction dashboard on secondary sites
   copy:
-    src: "vitam_secondary_site_reconstruction.json"
-    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_secondary_site_reconstruction.json"
+    src: vitam_secondary_site_reconstruction.json
+    dest: "{{ grafana_path_dashboards }}/vitam_secondary_site_reconstruction.json"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default ('0440') }}"
+    mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   when: primary_site | lower != "true"
 
 - name: Remove reconstruction dashboard from primary site
   file:
     state: absent
-    path: "{{ grafana_path_provisioning }}/dashboards/vitam_secondary_site_reconstruction.json"
+    path: "{{ grafana_path_dashboards }}/vitam_secondary_site_reconstruction.json"
   when: primary_site | lower == "true"
 
 - name: Get declared tape offers
@@ -70,20 +52,20 @@
 - name: Get configured tape offers
   set_fact:
     tape_offers: []
-    tape_offer_ids: "{{ groups['hosts_storage_offer_default'] | map ('extract', hostvars, 'offer_conf') | list  | unique | intersect((tape_offers | default([]))) }}"
+    tape_offer_ids: "{{ groups['hosts_storage_offer_default'] | map ('extract', hostvars, 'offer_conf') | list | unique | intersect((tape_offers | default([]))) }}"
 
 - name: Copy vitam tape offer dashboard json files to provisioning dashboard folder
   copy:
     src: vitam_tape_storage_offer_dashboard.json
-    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_tape_storage_offer_dashboard-{{ item }}.json"
+    dest: "{{ grafana_path_dashboards }}/vitam_tape_storage_offer_dashboard-{{ item }}.json"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default ('0440') }}"
+    mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   with_items: "{{ tape_offer_ids }}"
 
 - name: Set offer id in tape storage dashboards
   replace:
-    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_tape_storage_offer_dashboard-{{ item }}.json"
+    dest: "{{ grafana_path_dashboards }}/vitam_tape_storage_offer_dashboard-{{ item }}.json"
     regexp: '_OFFER_ID_'
     replace: '{{ item }}'
   changed_when: false
@@ -92,8 +74,8 @@
 - name: Create Grafana Dashboard provisioning file
   template:
     src: dashboards.yml.j2
-    dest: "{{ grafana_path_provisioning }}/dashboards/dashboards.yml"
+    dest: "{{ grafana_path_dashboards }}/dashboards.yml"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default ('0440') }}"
+    mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"

@@ -1865,7 +1865,7 @@
         "includeAll": false,
         "label": "datasource",
         "multi": false,
-        "name": "DS_PROMETHEUS",
+        "name": "Prometheus",
         "options": [],
         "query": "prometheus",
         "queryValue": "",
