@@ -55,7 +55,7 @@
     type: application
   processors:
     - dissect:
-        tokenizer: '%{date_time} [[%{thread}]] [%{operation_id}] [%{tenant_id|integer}] %{log_level} %{logger} - %{log_message}'
+        tokenizer: '%{date_time} [[%{thread}]] [%{request_id}] [%{tenant_id|integer}] %{log_level->} %{logger} - %{log_message}'
         target_prefix: ""
         trim_values: all
     - timestamp:
@@ -88,7 +88,7 @@
     type: application
   processors:
     - dissect:
-        tokenizer: '%{date_time} [[%{thread}]] [%{request_id}] [%{tenant_id|integer}] %{log_level} %{logger} - %{log_message}'
+        tokenizer: '%{date_time} [[%{thread}]] [%{request_id}] [%{tenant_id|integer}] %{log_level->} %{logger} - %{log_message}'
         target_prefix: ""
         trim_values: all
     - timestamp:
