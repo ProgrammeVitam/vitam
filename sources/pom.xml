@@ -229,7 +229,7 @@
         <jdeb.vafer.version>1.10</jdeb.vafer.version>
         <maven.jaxb2.version>0.15.3</maven.jaxb2.version>
         <jaxb2-basics.version>1.11.1</jaxb2-basics.version>
-        <swagger-maven-plugin.version>2.2.20</swagger-maven-plugin.version>
+        <swagger-maven-plugin.version>2.2.27</swagger-maven-plugin.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <Saxon-HE.version>12.4</Saxon-HE.version>
         <quartz.version>2.3.2</quartz.version>
