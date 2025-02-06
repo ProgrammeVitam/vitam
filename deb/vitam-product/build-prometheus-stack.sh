@@ -43,7 +43,7 @@ if curl --head --silent --fail "${INTERNAL_REPO}/${PACKAGE_NAME}" > /dev/null; t
     curl -k -L ${INTERNAL_REPO}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
 else
     echo "File does not exist in internal cache repository."
-    curl -k -L ${PACKAGE_URL}/${PACKAGE_NAME} -o ${PACKAGE_NAME}
+    curl -k -L ${PACKAGE_URL} -o ${PACKAGE_NAME}
 fi
 
 echo "Untar ${PACKAGE_NAME}"
