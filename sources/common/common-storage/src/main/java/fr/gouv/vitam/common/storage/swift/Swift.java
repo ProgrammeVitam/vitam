@@ -572,8 +572,16 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects = getObjectStorageService()
-                .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            // Swift container listing (with or without marker) is somehow idempotent (since result sorted ins ascending order, starting from nextMarker if any)
+            // We can retry retrieving them on error.
+            RetryableOnException<List<? extends SwiftObject>, ContentAddressableStorageException> retryable =
+                new RetryableOnException<>(getRetryableParameters());
+
+            List<? extends SwiftObject> swiftObjects = retryable.exec(
+                () ->
+                    getObjectStorageService()
+                        .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+            );
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -645,8 +653,16 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects = getObjectStorageService()
-                .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            // Swift container listing (with or without marker) is somehow idempotent (since result sorted ins ascending order, starting from nextMarker if any)
+            // We can retry retrieving them on error.
+            RetryableOnException<List<? extends SwiftObject>, ContentAddressableStorageException> retryable =
+                new RetryableOnException<>(getRetryableParameters());
+
+            List<? extends SwiftObject> swiftObjects = retryable.exec(
+                () ->
+                    getObjectStorageService()
+                        .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+            );
 
             if (swiftObjects.isEmpty()) {
                 break;

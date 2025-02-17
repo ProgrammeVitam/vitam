@@ -1152,11 +1152,10 @@ public class SwiftTest {
         assertThat(objectEntries).isEmpty();
 
         // Expected 3x GET
-        // FIXME : Retry to be added in another commit
-        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")), 1);
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")), 3);
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
