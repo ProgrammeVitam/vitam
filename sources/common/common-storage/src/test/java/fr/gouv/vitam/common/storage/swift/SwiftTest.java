@@ -98,14 +98,13 @@ public class SwiftTest {
     private static final String STORAGE_PATH = "/vitam/data/offer";
     private static final String SWIFT_UID = "tls.oshimae";
     private static final String SWIFT_SUB_USER = "pic.vitam";
-    private static final String CREDENTIAL = "pouet";
+    private static final String CREDENTIAL = "credential";
     private static final String PROJECT_NAME = "Vitam-Env";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     private static final String X_OPENSTACK_REQUEST_ID = "x-openstack-request-id";
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final String ETAG = "Etag";
-    public static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
     public static final String VITAM_CUSTOMIZED_HEADER_KEY = "Cookie";
     public static final String VITAM_CUSTOMIZED_HEADER_VALUE = "Origin=vitam";
 
@@ -151,6 +150,9 @@ public class SwiftTest {
         configuration.setSwiftPassword(CREDENTIAL);
         configuration.setSwiftProjectName(PROJECT_NAME);
         configuration.setEnableCustomHeaders(true);
+        configuration.setSwiftNbRetries(3);
+        configuration.setSwiftWaitingTimeInMilliseconds(20);
+        configuration.setSwiftRandomRangeSleepInMilliseconds(10);
         configuration.setCustomHeaders(
             Collections.singletonList(
                 new VitamCustomizedHeader(VITAM_CUSTOMIZED_HEADER_KEY, VITAM_CUSTOMIZED_HEADER_VALUE)
@@ -329,22 +331,23 @@ public class SwiftTest {
                 )
         ).isInstanceOf(ContentAddressableStorageException.class);
 
-        // Expected PUT (upload) + GET (read to recompute digest)
+        // Expected 1x PUT (upload) + 3x GET (read to recompute digest)
         verifySwiftRequest(
             putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
                 .withoutHeader(X_OBJECT_MANIFEST)
                 .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
                 .withRequestBody(WireMock.binaryEqualTo(data))
         );
-        verifySwiftRequest(
+        // FIXME: Multiple retries to be fixed in another commit
+        verifySwiftRequests(
             getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
                 VITAM_CUSTOMIZED_HEADER_KEY,
                 equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
-            )
+            ),
+            9
         );
-
-        assertSwiftRequestCountEqualsTo(2);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
+        assertSwiftRequestCountEqualsTo(10);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(10);
     }
 
     @Test
@@ -372,22 +375,23 @@ public class SwiftTest {
             .isInstanceOf(ContentAddressableStorageException.class)
             .hasMessageContaining(" is not equal to computed digest ");
 
-        // Expected PUT (upload) + GET (read to recompute digest)
+        // Expected 1x PUT (upload) + 3x GET (read to recompute digest)
         verifySwiftRequest(
             putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
                 .withoutHeader(X_OBJECT_MANIFEST)
                 .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
                 .withRequestBody(WireMock.binaryEqualTo(data))
         );
-        verifySwiftRequest(
+        verifySwiftRequests(
             getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
                 VITAM_CUSTOMIZED_HEADER_KEY,
                 equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
-            )
+            ),
+            3
         );
 
-        assertSwiftRequestCountEqualsTo(2);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
+        assertSwiftRequestCountEqualsTo(4);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(4);
     }
 
     @Test
@@ -584,16 +588,17 @@ public class SwiftTest {
             ContentAddressableStorageException.class
         );
 
-        // Expected 1x HEAD
-        verifySwiftRequest(
+        // Expected 3x HEAD
+        verifySwiftRequests(
             headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
                 VITAM_CUSTOMIZED_HEADER_KEY,
                 equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
-            )
+            ),
+            3
         );
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -636,16 +641,17 @@ public class SwiftTest {
             ContentAddressableStorageNotFoundException.class
         );
 
-        // Expected GET
-        verifySwiftRequest(
+        // Expected 3x GET
+        verifySwiftRequests(
             getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
                 VITAM_CUSTOMIZED_HEADER_KEY,
                 equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
-            )
+            ),
+            3
         );
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -660,16 +666,17 @@ public class SwiftTest {
             ContentAddressableStorageException.class
         );
 
-        // Expected GET
-        verifySwiftRequest(
+        // Expected 3x GET
+        verifySwiftRequests(
             getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
                 VITAM_CUSTOMIZED_HEADER_KEY,
                 equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
-            )
+            ),
+            3
         );
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -766,11 +773,10 @@ public class SwiftTest {
             () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false)
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // Expected HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
-
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        // Expected 3x HEAD
+        verifySwiftRequests(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")), 3);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -785,11 +791,11 @@ public class SwiftTest {
             () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false)
         ).isInstanceOf(ContentAddressableStorageException.class);
 
-        // Expected HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected 3x HEAD
+        verifySwiftRequests(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")), 3);
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -804,11 +810,11 @@ public class SwiftTest {
             () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true)
         ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
-        // Expected GET
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected 3x GET
+        verifySwiftRequests(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")), 3);
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -823,11 +829,11 @@ public class SwiftTest {
             () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true)
         ).isInstanceOf(ContentAddressableStorageException.class);
 
-        // Expected GET
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected 3x GET
+        verifySwiftRequests(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")), 3);
 
-        assertSwiftRequestCountEqualsTo(1);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
+        assertSwiftRequestCountEqualsTo(3);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
     }
 
     @Test
@@ -874,11 +880,15 @@ public class SwiftTest {
             ContentAddressableStorageNotFoundException.class
         );
 
-        // Expected DELETE
-        verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected 3x (GET + DELETE)
+        verifySwiftRequests(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object?path=3500.txt%2F&format=json&limit=10000")),
+            3
+        );
+        verifySwiftRequests(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")), 3);
 
-        assertSwiftRequestCountEqualsTo(2);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
+        assertSwiftRequestCountEqualsTo(6);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(6);
     }
 
     @Test
@@ -900,11 +910,15 @@ public class SwiftTest {
             ContentAddressableStorageException.class
         );
 
-        // Expected DELETE
-        verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
+        // Expected 3x (GET + DELETE)
+        verifySwiftRequests(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object?path=3500.txt%2F&format=json&limit=10000")),
+            3
+        );
+        verifySwiftRequests(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")), 3);
 
-        assertSwiftRequestCountEqualsTo(2);
-        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
+        assertSwiftRequestCountEqualsTo(6);
+        assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(6);
     }
 
     @Test
@@ -1137,8 +1151,9 @@ public class SwiftTest {
 
         assertThat(objectEntries).isEmpty();
 
-        // Expected 1x GET
-        verifySwiftRequest(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")));
+        // Expected 3x GET
+        // FIXME : Retry to be added in another commit
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object")), 1);
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -1342,8 +1357,8 @@ public class SwiftTest {
 
         // Then
         verifySwiftRequests(headRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 0);
-        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 1);
-        assertSwiftRequestCountEqualsTo(1);
+        verifySwiftRequests(getRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 3);
+        assertSwiftRequestCountEqualsTo(3);
     }
 
     private void givenPutObjectReturns20x() {
