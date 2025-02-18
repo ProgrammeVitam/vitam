@@ -38,9 +38,14 @@ for FILE in ${CONFIG_BACKUP_DIR}/*.conf; do
 
       # Run mongodump on a specific ip instead of consul's name to avoid the following error
       # Failed: error writing data for collection `xxx` to disk: error reading collection: (CursorNotFound) Cursor not found (namespace: 'xxx', id: 1234).
-      mongo_ip=$(host ${host%%:*})
+      mongo_hostname=${host%%:*}
+      mongo_port=${host##*:}
+      mongo_ips=$(dig +short ${mongo_hostname})
 
-      mongodump --host ${mongo_ip##* } --port ${host##*:} -u ${user} -p ${password} -o ${RESTIC_BACKUP_DIR} |& tee -a ${RESTIC_LOG_FILE}
+      mongo_uri=$(echo ${mongo_ips} | tr '\n' ' ' | sed "s/ /:${mongo_port},/g")
+      mongo_uri=${mongo_uri%?} # Remove the trailing comma
+
+      mongodump --host="${mongo_uri}" -u ${user} -p ${password} -o ${RESTIC_BACKUP_DIR} |& tee -a ${RESTIC_LOG_FILE}
     fi
 
     if [ $PIPESTATUS -eq 0 ]; then
