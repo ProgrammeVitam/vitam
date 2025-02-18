@@ -79,6 +79,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDigestMismatchException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -335,7 +336,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
         String computedDigest = computeObjectDigest(containerName, objectName, digestType);
         if (!objectDigest.equals(computedDigest)) {
-            throw new ContentAddressableStorageException(
+            throw new ContentAddressableStorageDigestMismatchException(
                 "Illegal state for container " +
                 containerName +
                 " and object " +

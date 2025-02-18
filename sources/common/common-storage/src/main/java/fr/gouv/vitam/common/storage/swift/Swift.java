@@ -24,12 +24,14 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.storage.swift;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -48,6 +50,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDigestMismatchException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -73,6 +76,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -88,6 +92,7 @@ public class Swift extends ContentAddressableStorageAbstract {
     public static final String X_OBJECT_META_DIGEST = "X-Object-Meta-Digest";
     public static final String X_OBJECT_META_DIGEST_TYPE = "X-Object-Meta-Digest-Type";
     public static final String X_OBJECT_MANIFEST = "X-Object-Manifest";
+    public static final String X_NEWEST = "X-Newest";
 
     private final Supplier<OSClient> osClient;
 
@@ -292,26 +297,98 @@ public class Swift extends ContentAddressableStorageAbstract {
         DigestType digestType,
         long size
     ) throws ContentAddressableStorageException {
-        RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
-            new RetryableOnException<>(getRetryableParameters());
-        retryableOnException.exec(() -> {
-            String computedDigest = computeObjectDigest(containerName, objectName, digestType);
-            if (!objectDigest.equals(computedDigest)) {
-                throw new ContentAddressableStorageException(
-                    "Illegal state for container " +
-                    containerName +
-                    " and object " +
-                    objectName +
-                    ". Stream digest " +
-                    objectDigest +
-                    " is not equal to computed digest " +
-                    computedDigest
-                );
-            }
-            return null;
-        });
-
+        checkObjectDigest(containerName, objectName, digestType, objectDigest);
         updateMetadataObject(containerName, objectName, digestType, objectDigest, size);
+    }
+
+    private void checkObjectDigest(String containerName, String objectName, DigestType digestType, String objectDigest)
+        throws ContentAddressableStorageException {
+        // Try read object WITHOUT X-Newest header. On retry (2nd+ calls), we'll read object WITH X-Newest=true header
+        // Compute object digest and compare to expected (written) object digest:
+        //   > On digest match (200 with valid digest)                      ==> OK
+        //   > On digest mismatch (HTTP 200 with wrong digest or HTTP 404)  ==> Retry ONCE & right away with X-Newest header.
+        //   > On technical error (HTTP 500)                                ==> Retry N times after delay with X-Newest header.
+        // Total number of tries must not exceed "swiftNbRetries"
+
+        for (int i = 0; i < this.swiftNbRetries; i++) {
+            // Only add X-Newest header for retries
+            boolean forceCheckInAllReplicas = (i > 0);
+
+            // At most retry "swiftNbRetries" times
+            boolean isLastRetry = (i == this.swiftNbRetries - 1);
+
+            try {
+                checkObjectDigest(containerName, objectName, digestType, objectDigest, forceCheckInAllReplicas);
+                return;
+            } catch (ContentAddressableStorageDigestMismatchException | ContentAddressableStorageNotFoundException e) {
+                // Retry at most once
+                if (forceCheckInAllReplicas || isLastRetry) {
+                    throw e;
+                }
+                LOGGER.warn("Object digest check failed. Retrying with " + X_NEWEST + "...", e);
+            } catch (ContentAddressableStorageException e) {
+                if (isLastRetry) {
+                    // Max retries reached
+                    throw e;
+                }
+                LOGGER.warn("Object digest computation failed. Retrying after a delay...", e);
+                sleepBeforeRetry();
+            }
+        }
+    }
+
+    private void checkObjectDigest(
+        String containerName,
+        String objectName,
+        DigestType digestType,
+        String objectDigest,
+        boolean checkAllReplicas
+    ) throws ContentAddressableStorageException {
+        Map<String, String> headers = new HashMap<>();
+        if (checkAllReplicas) {
+            headers.put(X_NEWEST, "true");
+        }
+        try (
+            InputStream stream = getObjectStorageService()
+                .download(containerName, objectName, enrichHeadersRequestWithVitamCookie(headers))
+                .getInputStream()
+        ) {
+            // Compute digest
+            final Digest digest = new Digest(digestType);
+            digest.update(stream);
+            String computedDigest = digest.toString();
+
+            // Check digest
+            if (computedDigest.equals(objectDigest)) {
+                LOGGER.debug("Object {}/{} digest {} checked successfully", containerName, objectName, computedDigest);
+                return;
+            }
+
+            throw new ContentAddressableStorageDigestMismatchException(
+                "Illegal state for container " +
+                containerName +
+                " and  object " +
+                objectName +
+                ". Stream digest " +
+                objectDigest +
+                " is not equal to computed digest " +
+                computedDigest
+            );
+        } catch (ContentAddressableStorageNotFoundException e) {
+            throw new ContentAddressableStorageNotFoundException(
+                String.format(
+                    "Inconsistent object swift state. Written object %s/%s not found...",
+                    containerName,
+                    objectName
+                ),
+                e
+            );
+        } catch (final IOException e) {
+            throw new ContentAddressableStorageException(
+                "Cannot check digest for object " + containerName + "/" + objectName,
+                e
+            );
+        }
     }
 
     private void updateMetadataObject(
@@ -321,22 +398,11 @@ public class Swift extends ContentAddressableStorageAbstract {
         String digest,
         long size
     ) throws ContentAddressableStorageException {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         Map<String, String> headers = new HashMap<>();
         if (size > swiftLimit) {
             headers.put(X_OBJECT_MANIFEST, getLargeObjectPrefix(containerName, objectName));
         }
-        storeDigest(headers, containerName, objectName, digest, digestType);
-    }
-
-    private void storeDigest(
-        Map<String, String> headers,
-        String containerName,
-        String objectName,
-        String digest,
-        DigestType digestType
-    ) throws ContentAddressableStorageException {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        // Not necessary to put the "X-Object-Meta-"
         headers.put(X_OBJECT_META_DIGEST, digest);
         headers.put(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
 
@@ -361,17 +427,80 @@ public class Swift extends ContentAddressableStorageAbstract {
     @Override
     public String getObjectDigest(String containerName, String objectName, DigestType digestType, boolean noCache)
         throws ContentAddressableStorageException {
-        if (!noCache) {
-            Stopwatch stopwatch = Stopwatch.createStarted();
+        if (noCache) {
+            return computeObjectDigest(containerName, objectName, digestType);
+        }
 
-            RetryableOnException<Map<String, String>, ContentAddressableStorageException> retryableOnException =
-                new RetryableOnException<>(getRetryableParameters());
-            Map<String, String> metadata = retryableOnException.exec(
-                () ->
-                    getObjectStorageService()
-                        .getMetadata(containerName, objectName, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+        Map<String, String> metadata = getObjectMetadata(containerName, objectName);
+
+        if (checkDigestProperty(metadata) && checkDigestTypeProperty(metadata, digestType)) {
+            return metadata
+                .entrySet()
+                .stream()
+                .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .get();
+        } else {
+            LOGGER.warn(
+                String.format(
+                    "Could not retrieve cached digest for object '%s' in container '%s'",
+                    objectName,
+                    containerName
+                )
             );
+            Pair<String, Long> objectDigestAndSize = computeObjectDigestAndSize(containerName, objectName, digestType);
+            updateMetadataObject(
+                containerName,
+                objectName,
+                digestType,
+                objectDigestAndSize.getLeft(),
+                objectDigestAndSize.getRight()
+            );
+            return objectDigestAndSize.getLeft();
+        }
+    }
 
+    private Map<String, String> getObjectMetadata(String containerName, String objectName)
+        throws ContentAddressableStorageException {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+            // First call ==> get object metadata WITHOUT X-Newest header
+            // 2nd+ call  ==> get object metadata object WITH X-Newest=true header
+            // Error handling :
+            //   > HTTP 200 ==> OK
+            //   > HTTP 404 ==> Retry ONCE & right away with X-Newest header.
+            //   > HTTP 500 ==> Retry N times after delay with X-Newest header.
+            // Total number of tries must not exceed "swiftNbRetries"
+
+            for (int i = 0; i < this.swiftNbRetries; i++) {
+                // Only add X-Newest header for retries
+                boolean forceCheckInAllReplicas = (i > 0);
+                boolean isLastRetry = (i == this.swiftNbRetries - 1);
+
+                try {
+                    Map<String, String> headers = new HashMap<>();
+                    if (forceCheckInAllReplicas) {
+                        headers.put(X_NEWEST, "true");
+                    }
+                    return getObjectStorageService()
+                        .getMetadata(containerName, objectName, enrichHeadersRequestWithVitamCookie(headers));
+                } catch (ContentAddressableStorageNotFoundException e) {
+                    // Retry at most once
+                    if (forceCheckInAllReplicas || isLastRetry) {
+                        throw e;
+                    }
+                    LOGGER.warn("Object not found. Retrying with " + X_NEWEST + "...", e);
+                } catch (ContentAddressableStorageException e) {
+                    if (isLastRetry) {
+                        // Max retries reached
+                        throw e;
+                    }
+                    LOGGER.warn("Object metadata failed. Retrying after a delay...", e);
+                    sleepBeforeRetry();
+                }
+            }
+        } finally {
             PerformanceLogger.getInstance()
                 .log(
                     "STP_Offer_" + getConfiguration().getProvider(),
@@ -379,40 +508,8 @@ public class Swift extends ContentAddressableStorageAbstract {
                     "READ_DIGEST_FROM_METADATA",
                     stopwatch.elapsed(TimeUnit.MILLISECONDS)
                 );
-
-            if (null != metadata && checkDigestProperty(metadata) && checkDigestTypeProperty(metadata, digestType)) {
-                return metadata
-                    .entrySet()
-                    .stream()
-                    .filter(e -> e.getKey().equalsIgnoreCase(X_OBJECT_META_DIGEST))
-                    .map(Map.Entry::getValue)
-                    .findFirst()
-                    .get();
-            } else {
-                LOGGER.warn(
-                    String.format(
-                        "Could not retrieve cached digest for object '%s' in container '%s'",
-                        objectName,
-                        containerName
-                    )
-                );
-                Pair<String, Long> objectDigestAndSize = computeObjectDigestAndSize(
-                    containerName,
-                    objectName,
-                    digestType
-                );
-                updateMetadataObject(
-                    containerName,
-                    objectName,
-                    digestType,
-                    objectDigestAndSize.getLeft(),
-                    objectDigestAndSize.getRight()
-                );
-                return objectDigestAndSize.getLeft();
-            }
         }
-
-        return computeObjectDigest(containerName, objectName, digestType);
+        throw new IllegalStateException("Unreachable statement");
     }
 
     private boolean checkDigestTypeProperty(Map<String, String> metadata, DigestType digestType) {
@@ -438,13 +535,45 @@ public class Swift extends ContentAddressableStorageAbstract {
             containerName,
             objectName
         );
-        RetryableOnException<ObjectContent, ContentAddressableStorageException> retryableOnException =
-            new RetryableOnException<>(getRetryableParameters());
-        return retryableOnException.exec(
-            () ->
-                getObjectStorageService()
-                    .download(containerName, objectName, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
-        );
+        // First call ==> read object WITHOUT X-Newest header
+        // 2nd+ call  ==> read object WITH X-Newest=true header
+        // Error handling :
+        //   > HTTP 200 ==> OK
+        //   > HTTP 404 ==> Retry ONCE & right away with X-Newest header.
+        //   > HTTP 500 ==> Retry N times after delay with X-Newest header.
+        // Total number of tries must not exceed "swiftNbRetries"
+
+        for (int i = 0; i < this.swiftNbRetries; i++) {
+            // Only add X-Newest header for retries
+            boolean forceCheckInAllReplicas = (i > 0);
+
+            // At most retry "swiftNbRetries" times
+            boolean isLastRetry = (i == this.swiftNbRetries - 1);
+
+            try {
+                HashMap<String, String> headers = new HashMap<>();
+                if (forceCheckInAllReplicas) {
+                    headers.put(X_NEWEST, "true");
+                }
+                return getObjectStorageService()
+                    .download(containerName, objectName, enrichHeadersRequestWithVitamCookie(headers));
+            } catch (ContentAddressableStorageNotFoundException e) {
+                // Retry at most once
+                if (forceCheckInAllReplicas || isLastRetry) {
+                    throw e;
+                }
+                LOGGER.warn("Object not found. Retrying with " + X_NEWEST + "...", e);
+            } catch (ContentAddressableStorageException e) {
+                if (isLastRetry) {
+                    // Max retries reached
+                    throw e;
+                }
+                LOGGER.warn("Object digest computation failed. Retrying after a delay...", e);
+                sleepBeforeRetry();
+            }
+        }
+
+        throw new IllegalStateException("Unreachable statement");
     }
 
     @Override
@@ -457,6 +586,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         RetryableOnException<Void, ContentAddressableStorageException> retryableOnException =
             new RetryableOnException<>(getRetryableParameters());
         retryableOnException.exec(() -> {
+            // On error, retry both listing & deleting (in case some segments have been deleted, retrying them would throw exception)
             List<ObjectEntry> swiftObjects = new ArrayList<>();
             listObjectSegments(containerName, objectName, swiftObjects::add);
             getObjectStorageService()
@@ -575,8 +705,16 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects = getObjectStorageService()
-                .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            // Swift container listing (with or without marker) is somehow idempotent (since result sorted ins ascending order, starting from nextMarker if any)
+            // We can retry retrieving them on error.
+            RetryableOnException<List<? extends SwiftObject>, ContentAddressableStorageException> retryable =
+                new RetryableOnException<>(getRetryableParameters());
+
+            List<? extends SwiftObject> swiftObjects = retryable.exec(
+                () ->
+                    getObjectStorageService()
+                        .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+            );
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -648,8 +786,16 @@ public class Swift extends ContentAddressableStorageAbstract {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects = getObjectStorageService()
-                .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()));
+            // Swift container listing (with or without marker) is somehow idempotent (since result sorted ins ascending order, starting from nextMarker if any)
+            // We can retry retrieving them on error.
+            RetryableOnException<List<? extends SwiftObject>, ContentAddressableStorageException> retryable =
+                new RetryableOnException<>(getRetryableParameters());
+
+            List<? extends SwiftObject> swiftObjects = retryable.exec(
+                () ->
+                    getObjectStorageService()
+                        .list(containerName, objectListOptions, enrichHeadersRequestWithVitamCookie(new HashMap<>()))
+            );
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -709,5 +855,17 @@ public class Swift extends ContentAddressableStorageAbstract {
             LOGGER.debug("The vitam enable custom header property used by offers is disabled!");
         }
         return headers;
+    }
+
+    private void sleepBeforeRetry() throws ContentAddressableStorageException {
+        int randomRangeSleep = this.swiftRandomRangeSleepInMilliseconds == 0
+            ? 0
+            : ThreadLocalRandom.current().nextInt(this.swiftRandomRangeSleepInMilliseconds);
+        try {
+            Thread.sleep(randomRangeSleep + this.swiftWaitingTimeInMilliseconds);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ContentAddressableStorageException("Interrupted thread", e);
+        }
     }
 }

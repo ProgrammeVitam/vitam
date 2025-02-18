@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDigestMismatchException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -170,7 +171,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     ) throws ContentAddressableStorageException {
         String computedDigest = computeObjectDigest(containerName, objectName, digestType);
         if (!objectDigest.equals(computedDigest)) {
-            throw new ContentAddressableStorageException(
+            throw new ContentAddressableStorageDigestMismatchException(
                 "Illegal state for container " +
                 containerName +
                 " and  object " +
