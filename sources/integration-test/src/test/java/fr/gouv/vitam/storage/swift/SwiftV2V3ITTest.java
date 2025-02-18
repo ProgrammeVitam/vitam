@@ -99,7 +99,8 @@ public class SwiftV2V3ITTest {
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v2.0");
         configurationSwift.setEnableCustomHeaders(false);
         configurationSwift.setSwiftDisableKeepAlive(true);
-
+        configurationSwift.setSwiftWaitingTimeInMilliseconds(10);
+        configurationSwift.setSwiftRandomRangeSleepInMilliseconds(20);
         return configurationSwift;
     }
 
@@ -114,6 +115,8 @@ public class SwiftV2V3ITTest {
         configurationSwift.setSwiftKeystoneAuthUrl("http://127.0.0.1:35357/v3");
         configurationSwift.setEnableCustomHeaders(false);
         configurationSwift.setSwiftDisableKeepAlive(false);
+        configurationSwift.setSwiftWaitingTimeInMilliseconds(10);
+        configurationSwift.setSwiftRandomRangeSleepInMilliseconds(20);
 
         return configurationSwift;
     }

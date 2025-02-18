@@ -98,7 +98,7 @@ vitam_offers:
     swiftReadTimeout: 60000
     # Disable keep-alive. Optional, defaults to false.
     swiftDisableKeepAlive: false
-    #Default number of retries on errors
+    #Default number of (re)tries on errors
     swiftNbRetries: 3
     #Time (in seconds) to renew a token before expiration occurs (blocking) (optional, 60 by default)
     swiftHardRenewTokenDelayBeforeExpireTime: 60
