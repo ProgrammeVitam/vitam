@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.input.ProxyInputStream;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.core.transport.HttpResponse;
@@ -139,12 +140,16 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
             }
 
             if (isSuccessResponse(resp)) {
-                LOGGER.debug("Getting object {}/{} succeeded", location.getContainerName(), location.getObjectName());
+                LOGGER.debug(
+                    "Getting object information {}/{} succeeded",
+                    location.getContainerName(),
+                    location.getObjectName()
+                );
                 return Optional.of(ParseObjectFunction.create(location).apply(resp));
             }
 
             throw new ContentAddressableStorageException(
-                "Get object " +
+                "Get object information " +
                 location.getContainerName() +
                 "/" +
                 location.getObjectName() +
@@ -265,7 +270,7 @@ public class VitamSwiftObjectStorageService extends BaseObjectStorageService {
         checkNotNull(objectName);
 
         // DELETE SEGMENTS
-        if (objectNameSegments != null && objectNameSegments.size() > 0) {
+        if (CollectionUtils.isNotEmpty(objectNameSegments)) {
             for (String objectNameSegment : objectNameSegments) {
                 ObjectLocation segmentLocation = ObjectLocation.create(containerName, objectNameSegment);
                 HttpResponse respForDeletedSegment = delete(Void.class, segmentLocation.getURI()).executeWithResponse();
