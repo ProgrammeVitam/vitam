@@ -837,7 +837,7 @@ public class SwiftTest {
         swiftInstanceRule.stubFor(
             get(urlPathEqualTo("/swift/v1/0_object"))
                 .withQueryParam("format", equalTo("json"))
-                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("limit", equalTo("10000"))
                 .withQueryParam("marker", absent())
                 .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
         );
@@ -862,7 +862,7 @@ public class SwiftTest {
         swiftInstanceRule.stubFor(
             get(urlPathEqualTo("/swift/v1/0_object"))
                 .withQueryParam("format", equalTo("json"))
-                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("limit", equalTo("10000"))
                 .withQueryParam("marker", absent())
                 .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
         );
@@ -888,7 +888,7 @@ public class SwiftTest {
         swiftInstanceRule.stubFor(
             get(urlPathEqualTo("/swift/v1/0_object"))
                 .withQueryParam("format", equalTo("json"))
-                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("limit", equalTo("10000"))
                 .withQueryParam("marker", absent())
                 .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
         );
@@ -914,7 +914,7 @@ public class SwiftTest {
         swiftInstanceRule.stubFor(
             get(urlPathEqualTo("/swift/v1/0_object"))
                 .withQueryParam("format", equalTo("json"))
-                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("limit", equalTo("10000"))
                 .withQueryParam("marker", absent())
                 .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
         );
@@ -955,7 +955,7 @@ public class SwiftTest {
             swiftInstanceRule.stubFor(
                 get(urlPathEqualTo("/swift/v1/0_object"))
                     .withQueryParam("format", equalTo("json"))
-                    .withQueryParam("limit", equalTo("100"))
+                    .withQueryParam("limit", equalTo("10000"))
                     .withQueryParam(
                         "marker",
                         i == 0
@@ -1045,7 +1045,7 @@ public class SwiftTest {
             swiftInstanceRule.stubFor(
                 get(urlPathEqualTo("/swift/v1/0_object"))
                     .withQueryParam("format", equalTo("json"))
-                    .withQueryParam("limit", equalTo("100"))
+                    .withQueryParam("limit", equalTo("10000"))
                     .withQueryParam(
                         "marker",
                         i == 0

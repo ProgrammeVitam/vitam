@@ -568,7 +568,8 @@ public class Swift extends ContentAddressableStorageAbstract {
 
         String nextMarker = null;
         do {
-            ObjectListOptions objectListOptions = ObjectListOptions.create().limit(LISTING_MAX_RESULTS);
+            ObjectListOptions objectListOptions = ObjectListOptions.create()
+                .limit(getConfiguration().getSwiftListObjectBulkSize());
 
             if (nextMarker != null) {
                 objectListOptions.marker(nextMarker);
@@ -641,7 +642,7 @@ public class Swift extends ContentAddressableStorageAbstract {
         do {
             ObjectListOptions objectListOptions = ObjectListOptions.create()
                 .path(objectName + "/")
-                .limit(LISTING_MAX_RESULTS);
+                .limit(getConfiguration().getSwiftListObjectBulkSize());
 
             if (nextMarker != null) {
                 objectListOptions.marker(nextMarker);
