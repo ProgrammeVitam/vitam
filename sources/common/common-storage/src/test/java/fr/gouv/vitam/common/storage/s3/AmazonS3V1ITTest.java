@@ -100,6 +100,8 @@ public class AmazonS3V1ITTest {
         configurationMinio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationMinio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationMinio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        // Relatively small bulk size for test
+        configurationMinio.setS3ListObjectBulkSize(100);
 
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
@@ -115,6 +117,8 @@ public class AmazonS3V1ITTest {
         configurationMinioSsl.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationMinioSsl.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationMinioSsl.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        // Relatively small bulk size for test
+        configurationMinioSsl.setS3ListObjectBulkSize(100);
 
         configurationOpenio = new StorageConfiguration();
         configurationOpenio.setProvider(PROVIDER);
@@ -129,6 +133,8 @@ public class AmazonS3V1ITTest {
         configurationOpenio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
         configurationOpenio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationOpenio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+        // Relatively small bulk size for test
+        configurationOpenio.setS3ListObjectBulkSize(100);
 
         containerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
         objectName = GUIDFactory.newGUID().getId();
@@ -308,6 +314,7 @@ public class AmazonS3V1ITTest {
 
     private void listingScenario(AmazonS3V1 amazonS3V1) throws Exception {
         int nbIter = 2;
+        int bulkSize = amazonS3V1.getConfiguration().getS3ListObjectBulkSize();
         // create a container
         assertThatCode(() -> {
             amazonS3V1.createContainer(containerName);
@@ -325,7 +332,9 @@ public class AmazonS3V1ITTest {
         amazonS3V1.listContainer(containerName, objectListingListener);
 
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
-        verify(objectListingListener, times(nbIter * 100 + 50)).handleObjectEntry(objectEntryArgumentCaptor.capture());
+        verify(objectListingListener, times(nbIter * bulkSize + 50)).handleObjectEntry(
+            objectEntryArgumentCaptor.capture()
+        );
 
         objectEntryArgumentCaptor
             .getAllValues()
@@ -336,7 +345,7 @@ public class AmazonS3V1ITTest {
             .stream()
             .map(ObjectEntry::getObjectId)
             .collect(Collectors.toSet());
-        Set<String> expectedFileNames = IntStream.range(0, nbIter * 100 + 50)
+        Set<String> expectedFileNames = IntStream.range(0, nbIter * bulkSize + 50)
             .mapToObj(i -> objectName + i)
             .collect(Collectors.toSet());
         assertThat(capturedFileNames).isEqualTo(expectedFileNames);
