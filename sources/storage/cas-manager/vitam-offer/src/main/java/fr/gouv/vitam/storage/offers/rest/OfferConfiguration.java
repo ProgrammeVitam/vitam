@@ -35,14 +35,9 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
 public class OfferConfiguration extends DbConfigurationImpl {
 
     private String provider;
-    private String swiftKeystoneAuthUrl;
-    private String swiftDomain;
-    private String swiftUser;
-    private String swiftPassword;
     private String storagePath;
     private String contextPath;
     private boolean authentication;
-    private String swiftProjectName;
 
     @JsonProperty("offerLogCompaction")
     private OfferLogCompactionConfiguration offerLogCompactionConfiguration;
@@ -72,70 +67,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
      */
     public OfferConfiguration setProvider(String provider) {
         this.provider = provider;
-        return this;
-    }
-
-    /**
-     * @return the swiftKeystoneAuthUrl
-     */
-    public String getSwiftKeystoneAuthUrl() {
-        return swiftKeystoneAuthUrl;
-    }
-
-    /**
-     * @param swiftKeystoneAuthUrl the swiftKeystoneAuthUrl to set
-     * @return this
-     */
-    public OfferConfiguration setSwiftKeystoneAuthUrl(String swiftKeystoneAuthUrl) {
-        this.swiftKeystoneAuthUrl = swiftKeystoneAuthUrl;
-        return this;
-    }
-
-    /**
-     * @return the tenantName
-     */
-    public String getSwiftDomain() {
-        return swiftDomain;
-    }
-
-    /**
-     * @param swiftDomain the tenantName to set
-     * @return this
-     */
-    public OfferConfiguration setSwiftDomain(String swiftDomain) {
-        this.swiftDomain = swiftDomain;
-        return this;
-    }
-
-    /**
-     * @return the swiftUser
-     */
-    public String getSwiftUser() {
-        return swiftUser;
-    }
-
-    /**
-     * @param swiftUser the userName to set
-     * @return this
-     */
-    public OfferConfiguration setSwiftUser(String swiftUser) {
-        this.swiftUser = swiftUser;
-        return this;
-    }
-
-    /**
-     * @return the swiftPassword
-     */
-    public String getSwiftPassword() {
-        return swiftPassword;
-    }
-
-    /**
-     * @param swiftPassword the swiftPassword to set
-     * @return this
-     */
-    public OfferConfiguration setSwiftPassword(String swiftPassword) {
-        this.swiftPassword = swiftPassword;
         return this;
     }
 
@@ -184,22 +115,6 @@ public class OfferConfiguration extends DbConfigurationImpl {
      */
     public OfferConfiguration setAuthentication(boolean authentication) {
         this.authentication = authentication;
-        return this;
-    }
-
-    /**
-     * @return swiftProjectName
-     */
-    public String getSwiftProjectName() {
-        return swiftProjectName;
-    }
-
-    /**
-     * @param swiftProjectName the swiftProjectName to set or unset
-     * @return OfferConfiguration
-     */
-    public OfferConfiguration setSwiftProjectName(String swiftProjectName) {
-        this.swiftProjectName = swiftProjectName;
         return this;
     }
 
