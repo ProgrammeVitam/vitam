@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDigestMismatchException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import org.jclouds.blobstore.BlobStore;
@@ -158,7 +159,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     ) throws ContentAddressableStorageException {
         String computedDigest = computeObjectDigest(containerName, objectName, digestType);
         if (!objectDigest.equals(computedDigest)) {
-            throw new ContentAddressableStorageException(
+            throw new ContentAddressableStorageDigestMismatchException(
                 "Illegal state for container " +
                 containerName +
                 " and object " +

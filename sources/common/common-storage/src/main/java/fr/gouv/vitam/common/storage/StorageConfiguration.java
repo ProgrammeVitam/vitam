@@ -154,7 +154,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private List<VitamCustomizedHeader> customHeaders;
 
-    private int swiftNbRetries = 1;
+    private int swiftNbRetries = 3;
     private int swiftWaitingTimeInMilliseconds = 10_000;
     private int swiftRandomRangeSleepInMilliseconds = 10_000;
 
