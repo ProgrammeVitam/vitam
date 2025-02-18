@@ -57,7 +57,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract.LISTING_MAX_RESULTS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -107,6 +106,8 @@ public class AmazonS3V1ITTest {
         configurationMinio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationMinio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
         configurationMinio.setS3MaxUploadPartSizeMB(5);
+        // Relatively small bulk size for test
+        configurationMinio.setS3ListObjectBulkSize(100);
 
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
@@ -123,6 +124,8 @@ public class AmazonS3V1ITTest {
         configurationMinioSsl.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationMinioSsl.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
         configurationMinioSsl.setS3MaxUploadPartSizeMB(5);
+        // Relatively small bulk size for test
+        configurationMinioSsl.setS3ListObjectBulkSize(100);
 
         configurationOpenio = new StorageConfiguration();
         configurationOpenio.setProvider(PROVIDER);
@@ -138,6 +141,8 @@ public class AmazonS3V1ITTest {
         configurationOpenio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
         configurationOpenio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
         configurationOpenio.setS3MaxUploadPartSizeMB(5);
+        // Relatively small bulk size for test
+        configurationOpenio.setS3ListObjectBulkSize(100);
 
         containerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
         objectName1 = GUIDFactory.newGUID().getId();
@@ -323,7 +328,8 @@ public class AmazonS3V1ITTest {
 
     private void listingScenario(AmazonS3V1 amazonS3V1) throws Exception {
         // Given
-        int nbSmallObjects = 2 * LISTING_MAX_RESULTS + 10;
+        int bulkSize = amazonS3V1.getConfiguration().getS3ListObjectBulkSize();
+        int nbSmallObjects = 2 * bulkSize + 10;
         int nbLargeObjects = 10;
         int overriddenSmallObjectIndex = 123;
         int overriddenLargeObjectIndex = 1;

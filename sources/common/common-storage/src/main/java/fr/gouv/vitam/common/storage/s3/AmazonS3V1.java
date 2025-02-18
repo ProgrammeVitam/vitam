@@ -1041,7 +1041,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             do {
                 ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
                 listObjectsV2Request.setBucketName(bucketName);
-                listObjectsV2Request.setMaxKeys(LISTING_MAX_RESULTS);
+                listObjectsV2Request.setMaxKeys(getConfiguration().getS3ListObjectBulkSize());
                 listObjectsV2Request.setContinuationToken(continuationToken);
 
                 ListObjectsV2Result listObjectsV2Result = client.listObjectsV2(listObjectsV2Request);
