@@ -616,7 +616,7 @@ public class AmazonS3V1MockedServerTest {
     @Test
     public void list_container_should_not_throw_exception_when_objects_available() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&max-keys=100&fetch-owner=false").willReturn(
+            get(BUCKET_1 + "/?list-type=2&max-keys=1000&fetch-owner=false").willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
@@ -626,7 +626,7 @@ public class AmazonS3V1MockedServerTest {
         );
 
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=100&fetch-owner=false").willReturn(
+            get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=1000&fetch-owner=false").willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
@@ -654,7 +654,7 @@ public class AmazonS3V1MockedServerTest {
     @Test
     public void list_container_should_throw_exception_when_bucket_does_not_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&max-keys=100&fetch-owner=false").willReturn(
+            get(BUCKET_1 + "/?list-type=2&max-keys=1000&fetch-owner=false").willReturn(
                 aResponse()
                     .withStatus(404)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -677,7 +677,7 @@ public class AmazonS3V1MockedServerTest {
     @Test
     public void list_container_should_throw_exception_when_s3_error() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&max-keys=100&fetch-owner=false").willReturn(aResponse().withStatus(500))
+            get(BUCKET_1 + "/?list-type=2&max-keys=1000&fetch-owner=false").willReturn(aResponse().withStatus(500))
         );
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
         assertThatThrownBy(() -> {

@@ -118,6 +118,10 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      * S3 client execution timeout
      */
     private int s3ClientExecutionTimeout;
+    /**
+     * S3 page size for ObjectList for S3. Default S3 value is 1_000 which is also max value.
+     */
+    private int s3ListObjectBulkSize = 1000;
 
     /**
      * Disable multi-part upload for
@@ -153,6 +157,11 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int swiftNbRetries = 1;
     private int swiftWaitingTimeInMilliseconds = 10_000;
     private int swiftRandomRangeSleepInMilliseconds = 10_000;
+
+    /**
+     * Swift page size for ObjectList for Swift. Default Swift value is 10_000 which is also max value.
+     */
+    private int swiftListObjectBulkSize = 10_000;
 
     /**
      * @return the swiftUrl
@@ -488,6 +497,14 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
+    public int getS3ListObjectBulkSize() {
+        return s3ListObjectBulkSize;
+    }
+
+    public void setS3ListObjectBulkSize(int s3ListObjectBulkSize) {
+        this.s3ListObjectBulkSize = s3ListObjectBulkSize;
+    }
+
     public TapeLibraryConfiguration getTapeLibraryConfiguration() {
         return tapeLibraryConfiguration;
     }
@@ -591,5 +608,13 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     ) {
         this.s3MultiPartCleanWaitingTimeInMilliseconds = s3MultiPartCleanWaitingTimeInMilliseconds;
         return this;
+    }
+
+    public int getSwiftListObjectBulkSize() {
+        return swiftListObjectBulkSize;
+    }
+
+    public void setSwiftListObjectBulkSize(int swiftListObjectBulkSize) {
+        this.swiftListObjectBulkSize = swiftListObjectBulkSize;
     }
 }
