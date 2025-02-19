@@ -7,7 +7,6 @@
       - mongodb-database-tools
       - "{{ 'dnsutils' if ansible_os_family == 'Debian' else 'bind-utils' }}"
     state: latest
-  when: ansible_os_family == "RedHat"
 
 - name: Install cron if necessary for Debian
   package:
