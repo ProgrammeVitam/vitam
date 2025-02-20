@@ -13,7 +13,6 @@
       - mongodb-database-tools
       - "{{ 'dnsutils' if ansible_os_family == 'Debian' else 'bind-utils' }}"
     state: latest
-  when: ansible_os_family == "RedHat"
 
 - name: Check that the restic directories exist
   file:
