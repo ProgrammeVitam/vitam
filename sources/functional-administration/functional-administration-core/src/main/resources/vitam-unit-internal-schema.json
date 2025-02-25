@@ -545,7 +545,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Addressee.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -1112,7 +1112,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Agent.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -1717,7 +1717,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "AuthorizedAgent.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -3363,7 +3363,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Recipient.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -4717,7 +4717,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Sender.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -5399,7 +5399,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Signature.Signer.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -5954,7 +5954,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Signature.Validator.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -6647,7 +6647,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "SigningInformation.SignatureDescription.Signer.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -7252,7 +7252,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "SigningInformation.SignatureDescription.Validator.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -8157,7 +8157,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Transmitter.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
@@ -8762,7 +8762,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "Writer.Nationality",
     "SedaField": "Nationality",
-    "ShortName": "nationalité"
+    "ShortName": "Nationalité"
   },
   {
     "FieldName": "Position",
