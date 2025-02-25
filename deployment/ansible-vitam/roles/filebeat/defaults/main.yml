@@ -24,6 +24,8 @@ cots_list:
   # - alertmanager
 
 filebeat:
+  config:
+    ignore_older: "24h"
   system:
     enable_log: false
     enable_auth: false

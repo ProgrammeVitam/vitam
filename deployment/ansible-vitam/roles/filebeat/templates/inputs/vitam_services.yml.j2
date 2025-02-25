@@ -10,6 +10,7 @@
   enabled: true
   paths:
     - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}/accesslog-{{ vitam_component }}.*.log"
+  ignore_older: {{ filebeat.config.ignore_older }}
   fields_under_root: true
   fields:
     kind: access
@@ -47,6 +48,7 @@
   enabled: true
   paths:
     - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}/{{ vitam_component }}_security.*.log"
+  ignore_older: {{ filebeat.config.ignore_older }}
   fields_under_root: true
   fields:
     kind: security
@@ -80,6 +82,7 @@
   enabled: true
   paths:
     - "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}/{{ vitam_component }}.*.log"
+  ignore_older: {{ filebeat.config.ignore_older }}
   fields_under_root: true
   fields:
     kind: log
