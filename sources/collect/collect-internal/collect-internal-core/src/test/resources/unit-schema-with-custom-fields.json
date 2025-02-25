@@ -6549,6 +6549,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Rôle de l'unité encapsulée",
     "Path": "SigningInformation.DetachedSigningRole",
+    "StringSize": "SHORT",
     "SedaVersions": [
       "2.3"
     ],
@@ -7772,6 +7773,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Rôle",
     "Path": "SigningInformation.SigningRole",
+    "StringSize": "SHORT",
     "SedaVersions": [
       "2.3"
     ],
