@@ -145,7 +145,10 @@
     - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
       run_once: true
       tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/alertes-de-securite-dashboard.ndjson"
+      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}"
+      with_items:
+        - alertes-de-securite-dashboard.ndjson
+        - Composants-Vitam.ndjson
       delegate_to: localhost
       args:
         warn: false
@@ -153,25 +156,11 @@
     - name: load specific filebeat dashboards into Elasticsearch log .kibana index via shell command
       run_once: true
       tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}"
-      with_items:
-        - Filebeat-Composants-Vitam.ndjson
-        - Filebeat-Access-Vitam.ndjson
+      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/Access-Vitam.ndjson"
       delegate_to: localhost
       args:
         warn: false
       when: syslog.name | default('filebeat') == "filebeat"
-
-    - name: load specific rsyslog dashboard into Elasticsearch log .kibana index via shell command
-      run_once: true
-      tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}"
-      with_items:
-        - rsyslog-Composants-Vitam.ndjson
-      delegate_to: localhost
-      args:
-        warn: false
-      when: syslog.name | default('filebeat') != "filebeat"
 
   when: composant.groupe == 'log'
 
