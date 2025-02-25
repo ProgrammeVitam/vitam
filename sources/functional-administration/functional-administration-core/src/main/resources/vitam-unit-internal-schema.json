@@ -6072,6 +6072,7 @@
     "Cardinality": "MANY",
     "Indexed": true,
     "Path": "SigningInformation.DetachedSigningRole",
+    "StringSize": "SHORT",
     "ApiField": "DetachedSigningRole",
     "Collection": "Unit",
     "SedaVersions": [
@@ -7318,6 +7319,7 @@
     "Cardinality": "MANY_REQUIRED",
     "Indexed": true,
     "Path": "SigningInformation.SigningRole",
+    "StringSize": "SHORT",
     "ApiField": "SigningRole",
     "Collection": "Unit",
     "SedaVersions": [
