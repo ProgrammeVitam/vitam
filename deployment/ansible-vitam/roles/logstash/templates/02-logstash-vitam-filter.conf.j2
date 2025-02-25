@@ -20,7 +20,7 @@ filter
     # Todo move this at the end (to find vitam-* for real vitam components)
     if [input] == "syslog" {
         mutate {
-            rename => { "logsource" => "hostname" }
+            rename => { "logsource" => "host.hostname" }
         }
         grok {
             break_on_match => false
@@ -260,7 +260,7 @@ filter
         if [file]      { mutate { rename => { "file"      => "logstash_file"      } } }
         if [line]      { mutate { rename => { "line"      => "logstash_line"      } } }
         if [method]    { mutate { rename => { "method"    => "logstash_method"    } } }
-        if [host]      { mutate { rename => { "host"      => "hostname"           } } }
+        if [host]      { mutate { rename => { "host"      => "host.hostname"      } } }
 
         date {
             match => [ "timestamp" , "ISO8601" ]
