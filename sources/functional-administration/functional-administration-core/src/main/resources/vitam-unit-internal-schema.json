@@ -3756,7 +3756,7 @@
     ],
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References",
-    "ShortName": "References"
+    "ShortName": "Référence"
   },
   {
     "FieldName": "ArchiveUnitRefId",
@@ -3775,7 +3775,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.ArchiveUnitRefId",
     "SedaField": "ArchiveUnitRefId",
-    "ShortName": "Référence à une ArchiveUnit interne"
+    "ShortName": "Unité"
   },
   {
     "FieldName": "DataObjectReference",
@@ -3793,7 +3793,7 @@
     ],
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.DataObjectReference",
-    "ShortName": "DataObjectReference"
+    "ShortName": "Object"
   },
   {
     "FieldName": "DataObjectGroupReferenceId",
@@ -3812,7 +3812,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.DataObjectReference.DataObjectGroupReferenceId",
     "SedaField": "DataObjectGroupReferenceId",
-    "ShortName": "Référence à un groupe d'objets"
+    "ShortName": "ID du groupe d'objets"
   },
   {
     "FieldName": "DataObjectReferenceId",
@@ -3831,7 +3831,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.DataObjectReference.DataObjectReferenceId",
     "SedaField": "DataObjectReferenceId",
-    "ShortName": "Référence à un objet ou à un groupe d'objets interne(s)"
+    "ShortName": "ID de l'objet"
   },
   {
     "FieldName": "ExternalReference",
@@ -3850,7 +3850,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.ExternalReference",
     "SedaField": "ExternalReference",
-    "ShortName": "Référence à un objet externe, présent ni dans le message, ni dans le SAE"
+    "ShortName": "Référence externe"
   },
   {
     "FieldName": "RepositoryArchiveUnitPID",
@@ -3869,7 +3869,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.RepositoryArchiveUnitPID",
     "SedaField": "RepositoryArchiveUnitPID",
-    "ShortName": "Référence à une ArchiveUnit déjà conservée"
+    "ShortName": "Unité déjà archivée"
   },
   {
     "FieldName": "RepositoryObjectPID",
@@ -3888,7 +3888,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "RelatedObjectReference.References.RepositoryObjectPID",
     "SedaField": "RepositoryObjectPID",
-    "ShortName": "Référence à un objet ou à un groupe d'objets déjà conservé(s)"
+    "ShortName": "Objet déjà archivé"
   },
   {
     "FieldName": "Replaces",
