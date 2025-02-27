@@ -1904,7 +1904,7 @@
     "Category": "DESCRIPTION",
     "ApiPath": "CustodialHistory.CustodialHistoryFile.DataObjectGroupReferenceId",
     "SedaField": "DataObjectGroupReferenceId",
-    "ShortName": "Référence à un groupe d'objets"
+    "ShortName": "ID du groupe d'objets"
   },
   {
     "FieldName": "DataObjectReferenceId",

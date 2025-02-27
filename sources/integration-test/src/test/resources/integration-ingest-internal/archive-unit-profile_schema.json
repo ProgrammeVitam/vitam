@@ -1969,7 +1969,7 @@
     "Cardinality": "ONE_REQUIRED",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à un groupe d'objets",
+    "ShortName": "ID du groupe d'objets",
     "Path": "CustodialHistory.CustodialHistoryFile.DataObjectGroupReferenceId",
     "SedaVersions": [
       "2.1",
@@ -3892,7 +3892,7 @@
     "Cardinality": "MANY",
     "Type": "OBJECT",
     "Origin": "INTERNAL",
-    "ShortName": "References",
+    "ShortName": "Référence",
     "Path": "RelatedObjectReference.References",
     "SedaVersions": [
       "2.1",
@@ -3911,7 +3911,7 @@
     "Cardinality": "ONE",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à une ArchiveUnit interne",
+    "ShortName": "Unité",
     "Path": "RelatedObjectReference.References.ArchiveUnitRefId",
     "SedaVersions": [
       "2.1",
@@ -3929,7 +3929,7 @@
     "Cardinality": "ONE",
     "Type": "OBJECT",
     "Origin": "INTERNAL",
-    "ShortName": "DataObjectReference",
+    "ShortName": "Object",
     "Path": "RelatedObjectReference.References.DataObjectReference",
     "SedaVersions": [
       "2.1",
@@ -3948,7 +3948,7 @@
     "Cardinality": "ONE",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à un groupe d'objets",
+    "ShortName": "ID du groupe d'objets",
     "Path": "RelatedObjectReference.References.DataObjectReference.DataObjectGroupReferenceId",
     "SedaVersions": [
       "2.1",
@@ -3968,7 +3968,7 @@
     "Cardinality": "ONE",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à un objet ou à un groupe d'objets interne(s)",
+    "ShortName": "ID de l'objet",
     "Path": "RelatedObjectReference.References.DataObjectReference.DataObjectReferenceId",
     "SedaVersions": [
       "2.1",
@@ -3988,7 +3988,7 @@
     "Cardinality": "ONE",
     "Type": "TEXT",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à un objet externe, présent ni dans le message, ni dans le SAE",
+    "ShortName": "Référence externe",
     "Path": "RelatedObjectReference.References.ExternalReference",
     "SedaVersions": [
       "2.1",
@@ -4008,7 +4008,7 @@
     "Cardinality": "ONE",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à une ArchiveUnit déjà conservée",
+    "ShortName": "Unité déjà archivée",
     "Path": "RelatedObjectReference.References.RepositoryArchiveUnitPID",
     "SedaVersions": [
       "2.1",
@@ -4028,7 +4028,7 @@
     "Cardinality": "ONE",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "Référence à un objet ou à un groupe d'objets déjà conservé(s)",
+    "ShortName": "Objet déjà archivé",
     "Path": "RelatedObjectReference.References.RepositoryObjectPID",
     "SedaVersions": [
       "2.1",

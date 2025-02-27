@@ -257,7 +257,7 @@
         "Description": "Mapping : unit-es-mapping.json. Référence à un groupe d'objets-données listé dans les métadonnées de transport.",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
-        "ShortName": "Référence à un groupe d'objets",
+        "ShortName": "ID du groupe d'objets",
         "Collections": [
             "Unit"
         ]
@@ -573,7 +573,7 @@
         "Description": "Mapping : unit-es-mapping.json. Référence à une ArchiveUnit interne.",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
-        "ShortName": "Référence à une ArchiveUnit interne",
+        "ShortName": "Unité",
         "Collections": [
             "Unit"
         ]
@@ -584,7 +584,7 @@
         "Description": "Mapping : unit-es-mapping.json. Référence à un objet-données ou à un groupe d'objets-données interne(s).",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
-        "ShortName": "Référence à un objet ou à un groupe d'objets interne(s)",
+        "ShortName": "ID de l'objet",
         "Collections": [
             "Unit"
         ]
@@ -595,7 +595,7 @@
         "Description": "Mapping : unit-es-mapping.json. Référence à un ArchiveUnit déjà conservé dans un système d'archivage.",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
-        "ShortName": "Référence à une ArchiveUnit déjà conservée",
+        "ShortName": "Unité déjà archivée",
         "Collections": [
             "Unit"
         ]
@@ -606,7 +606,7 @@
         "Description": "Mapping : unit-es-mapping.json. Référence à un un objet-données ou à un groupe d'objets-données déjà conservé(s) dans un système d'archivage.",
         "Type": "KEYWORD",
         "Origin": "INTERNAL",
-        "ShortName": "Référence à un objet ou à un groupe d'objets déjà conservé(s)",
+        "ShortName": "Objet déjà archivé",
         "Collections": [
             "Unit"
         ]
