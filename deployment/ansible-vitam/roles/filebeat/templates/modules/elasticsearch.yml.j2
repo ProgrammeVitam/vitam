@@ -20,7 +20,7 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{?node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
@@ -30,7 +30,12 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "node_name"]
+            fields: ["date_time", "message"]
+        # drop stdout events as they are already catch with `logger: "StatusLogger"`
+        - drop_event:
+            when:
+              equals:
+                logger: "stdout"
 
   audit:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_audit | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_audit | bool | lower }}
@@ -50,7 +55,7 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{?node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
@@ -60,7 +65,7 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "node_name"]
+            fields: ["date_time", "message"]
 
   slowlog:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_slowlog | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_slowlog | bool | lower }}
@@ -80,7 +85,7 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{?node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
@@ -90,7 +95,7 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "node_name"]
+            fields: ["date_time", "message"]
 
   deprecation:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_deprecation | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_deprecation | bool | lower }}
@@ -110,7 +115,7 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{node_name}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{?node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
@@ -120,4 +125,4 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "node_name"]
+            fields: ["date_time", "message"]
