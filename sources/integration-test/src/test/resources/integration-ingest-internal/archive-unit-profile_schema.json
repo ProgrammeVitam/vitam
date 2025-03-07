@@ -6302,6 +6302,7 @@
       "2.2",
       "2.3"
     ],
+    "StringSize": "SHORT",
     "EffectiveCardinality": "ZERO"
   },
   {
@@ -7591,6 +7592,7 @@
       "2.2",
       "2.3"
     ],
+    "StringSize": "SHORT",
     "EffectiveCardinality": "ZERO"
   },
   {
