@@ -131,51 +131,29 @@
         - alertes-de-securite-dashboard.json
         - mongodb-es-synchro-errors-dashboard.json
         - StorageOfferPerf.json
+        - Composants-Vitam.json
       register: kibana_result
       until: kibana_result.status in [200,201]
       retries: "{{ kibana.import_retries }}"
       delay: "{{ kibana.import_delay }}"
 
-    - name: load specific Filebeat dashboard into Elasticsearch log .kibana index
+    - name: load specific filebeat dashboards into Elasticsearch log .kibana index
       run_once: true
       tags: load_kibana
       uri:
-        url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+        url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/Access-Vitam?overwrite=true"
         method: POST
-        body: "{\"attributes\": {{ lookup('file', '{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}') }} }"
+        body: "{\"attributes\": {{ lookup('file', '{{ role_path }}/files/{{ composant.groupe }}/dashboard/Access-Vitam.json') }} }"
         body_format: json
-        status_code: 200, 201
+        status_code: 200
         headers:
           kbn-xsrf: "{{ kibana.header_value }}"
         timeout: "{{ composant.api_call_timeout }}"
-      with_items:
-        - Filebeat-Composants-Vitam.json
-        - Filebeat-Access-Vitam.json
       register: kibana_result
-      until: kibana_result.status in [200,201]
+      until: kibana_result.status == 200
       retries: "{{ kibana.import_retries }}"
       delay: "{{ kibana.import_delay }}"
       when: syslog.name | default('filebeat') == "filebeat"
-
-    - name: load specific rsyslog dashboard into Elasticsearch log .kibana index
-      run_once: true
-      tags: load_kibana
-      uri:
-        url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
-        method: POST
-        body: "{\"attributes\": {{ lookup('file', '{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}') }} }"
-        body_format: json
-        status_code: 200, 201
-        headers:
-          kbn-xsrf: "{{ kibana.header_value }}"
-        timeout: "{{ composant.api_call_timeout }}"
-      with_items:
-        - rsyslog-Composants-Vitam.json
-      register: kibana_result
-      until: kibana_result.status in [200,201]
-      retries: "{{ kibana.import_retries }}"
-      delay: "{{ kibana.import_delay }}"
-      when: syslog.name | default('filebeat') != "filebeat"
 
   when: composant.groupe == 'log'
 
