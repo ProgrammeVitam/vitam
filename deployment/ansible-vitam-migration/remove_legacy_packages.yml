@@ -1,0 +1,44 @@
+---
+
+- hosts: localhost
+  any_errors_fatal: true
+  gather_facts: false
+  vars_prompt:
+    name: "confirmation"
+    prompt: "This playbook will delete legacy vitam binaries.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: false
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+      tags: always
+
+- hosts: vitam,reverse,hosts_dev_tools
+  gather_facts: false
+  tasks:
+    - name: remove legacy vitam packages
+      package:
+        name:
+          - vitam*
+          - elasticsearch
+          - kibana
+          - logstash
+          - filebeat
+          - metricbeat
+          - packetbeat
+          - grafana
+          - mongodb*
+          - consul
+        state: absent
+
+    - name: remove legacy configuration files
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "/vitam/conf/consul"
+        - "/vitam/log/consul"
+        - "/vitam/data/consul"
+        - "/vitam/log/kibana"
+        - "/vitam/data/prometheus"
