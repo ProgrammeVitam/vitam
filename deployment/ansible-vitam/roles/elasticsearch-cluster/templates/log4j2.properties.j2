@@ -9,7 +9,7 @@ appender.console.name = console
 appender.console.layout.type = PatternLayout
 appender.console.layout.pattern = [%d{ISO8601}][%-5p][%-25c{1.}] [%node_name]%marker %m%consoleException%n
 
-{% if external_siem is defined or (groups['hosts_logstash']|length) > 0 %}
+{% if syslog.name in ["rsyslog", "syslog-ng"] and (external_siem is defined or groups['hosts_logstash']|length > 0) %}
 appender.syslog.type = Syslog
 appender.syslog.name = syslog
 appender.syslog.appName = {{ composant.cluster_name }}
@@ -25,6 +25,16 @@ appender.syslog.layout.pattern = {{ composant.cluster_name }}: [%d{ISO8601}][%-5
 # appender.syslog.mdcId = esdata
 
 rootLogger.appenderRef.syslog.ref = syslog
+{% else %}
+# Disabling the Syslog Appender
+# By setting `appender.syslog.type = Null`, this appender becomes inactive:
+# - No logs are sent to a Syslog daemon (e.g., rsyslog on 514/UDP).
+# - Prevents errors (e.g., AccessControlException) if rsyslog is not installed or configured.
+# - Logs are redirected to another active appender, here `console`, to be captured by Filebeat.
+# Used as a fallback when rsyslog is not present on the system.
+appender.syslog.type = Null
+appender.syslog.name = syslog
+rootLogger.appenderRef.console.ref = console
 {% endif %}
 
 appender.rolling.type = RollingFile
