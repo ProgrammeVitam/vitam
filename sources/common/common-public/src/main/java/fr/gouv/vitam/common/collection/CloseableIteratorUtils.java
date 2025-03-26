@@ -77,6 +77,20 @@ public final class CloseableIteratorUtils {
         return new CloseableIteratorWrapper<>(iterable.iterator());
     }
 
+    public static <E> CloseableIterable<E> toCloseableIterable(CloseableIterator<E> closeableIterator) {
+        return new CloseableIterable<>() {
+            @Override
+            public void close() {
+                closeableIterator.close();
+            }
+
+            @Override
+            public Iterator<E> iterator() {
+                return closeableIterator;
+            }
+        };
+    }
+
     private static class CloseableIteratorWrapper<E> implements CloseableIterator<E> {
 
         private final Iterator<E> iterator;
