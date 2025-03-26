@@ -63,6 +63,12 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_PLATFORM_ID;
 import static fr.gouv.vitam.common.GlobalDataRest.X_TIMESTAMP;
 import static fr.gouv.vitam.common.VitamConfiguration.ADMIN_PATH;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static javax.ws.rs.HttpMethod.DELETE;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.HEAD;
+import static javax.ws.rs.HttpMethod.OPTIONS;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.HttpMethod.PUT;
 import static javax.ws.rs.core.HttpHeaders.ACCEPT_ENCODING;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
@@ -222,35 +228,46 @@ abstract class AbstractCommonClient implements BasicClient {
         }
 
         try {
-            Object body = request.getBody();
-            if (body instanceof InputStream) {
-                if (this.clientFactory.useAuthorizationFilterAndHaveSecret()) {
-                    String xTimestamp = getXTimestamp();
-                    request.withHeader(X_TIMESTAMP, xTimestamp);
-                    request.withHeader(X_PLATFORM_ID, getXPlatformId(request, xTimestamp));
-                }
-                Response response = builder(request).method(
-                    request.getHttpMethod(),
-                    Entity.entity(body, request.getContentType())
-                );
-                return new VitamAutoClosableResponse(response);
-            }
-
-            DelegateRetry<Response, ProcessingException> delegate = () -> {
+            DelegateRetry<Response, ProcessingException> invocation = () -> {
                 if (this.clientFactory.useAuthorizationFilterAndHaveSecret()) {
                     String xTimestamp = getXTimestamp();
                     request.withHeaderReplaceExisting(X_TIMESTAMP, xTimestamp);
                     request.withHeaderReplaceExisting(X_PLATFORM_ID, getXPlatformId(request, xTimestamp));
                 }
+                Object body = request.getBody();
                 if (body == null) {
                     return builder(request).method(request.getHttpMethod());
                 }
                 return builder(request).method(request.getHttpMethod(), Entity.entity(body, request.getContentType()));
             };
 
-            return new VitamAutoClosableResponse(retryable().exec(delegate));
+            if (isNonRetryable(request)) {
+                return new VitamAutoClosableResponse(invocation.call());
+            }
+
+            return new VitamAutoClosableResponse(retryable().exec(invocation));
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
+        }
+    }
+
+    private static boolean isNonRetryable(VitamRequestBuilder request) {
+        if (request.getBody() instanceof InputStream) {
+            return true;
+        }
+        switch (request.getHttpMethod()) {
+            case GET:
+            case HEAD:
+            case DELETE:
+            case OPTIONS:
+            case PUT:
+                // According to HTTP specs, these methods should be idempotent ==> retryable
+                // Not sure that all vitam usages are conform, especially for PUT...
+                return false;
+            case POST:
+                return true;
+            default:
+                throw new IllegalStateException("Unexpected value: " + request.getHttpMethod());
         }
     }
 
