@@ -35,13 +35,15 @@ import java.util.Iterator;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * ScrollSpliterator
  *
  * @param <T>
  */
-public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
+public class ScrollSpliterator<T> extends AbstractSpliterator<T> implements Iterable<T> {
 
     private final SelectMultiQuery query;
     private final Function<SelectMultiQuery, RequestResponse<T>> repository;
@@ -112,5 +114,14 @@ public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
         hits = requestResponse.getHits();
         results = requestResponse.getResults().iterator();
         scrollId = hits.getScrollId();
+    }
+
+    public Stream<T> toStream() {
+        return StreamSupport.stream(this, false);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.toStream().iterator();
     }
 }

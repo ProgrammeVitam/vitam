@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,6 +37,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterable;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -50,8 +53,9 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -85,6 +89,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportHeader;
@@ -106,7 +113,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -115,28 +121,24 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static com.google.common.collect.Iterables.partition;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.sedaVersion;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.SEDAVERSION;
-import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.getDeserializationObjectMapper;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * create manifest and put in on workspace
  */
 public class CreateManifest extends ActionHandler {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CreateManifest.class);
 
     static final int MANIFEST_XML_RANK = 0;
     static final int GUID_TO_INFO_RANK = 1;
@@ -147,12 +149,12 @@ public class CreateManifest extends ActionHandler {
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
     private static final String REASON_FIELD = "Reason";
     private static final String JSONL_EXTENSION = ".jsonl";
+    public static final String UNITS_JSONL_FILE = "units.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
         LogbookLifeCyclesClientFactory.getInstance();
 
-    private final ObjectNode projection;
     private final ObjectMapper objectMapper;
 
     /**
@@ -166,16 +168,6 @@ public class CreateManifest extends ActionHandler {
     @VisibleForTesting
     CreateManifest(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
-
-        ObjectNode fields = JsonHandler.createObjectNode();
-        fields.put(UNITUPS.exactToken(), 1);
-        fields.put(ID.exactToken(), 1);
-        fields.put(ORIGINATING_AGENCY.exactToken(), 1);
-        fields.put(OBJECT.exactToken(), 1);
-        fields.put(SEDAVERSION.exactToken(), 1);
-
-        this.projection = JsonHandler.createObjectNode();
-        this.projection.set(FIELDS.exactToken(), fields);
         this.objectMapper = getDeserializationObjectMapper();
     }
 
@@ -239,30 +231,25 @@ public class CreateManifest extends ActionHandler {
                 exportRequest.getExportRequestParameters()
             );
 
-            ListMultimap<String, String> multimap = ArrayListMultimap.create();
+            ListMultimap<String, String> unitIdToChildUnitIds = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
+
+            File unitsJsonlFile = exportUnits(handlerIO, exportRequest, client);
+
             String originatingAgency = VitamConfiguration.getDefaultOriginatingAgencyForExport(
                 ParameterHelper.getTenantParameter()
             );
             Map<String, String> unitIdToObjectGroupId = new HashMap<>();
-
-            SelectParserMultiple parser = new SelectParserMultiple();
-            parser.parse(exportRequest.getDslRequest());
-
-            SelectMultiQuery request = parser.getRequest();
-            request.setProjection(projection);
-
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
-                client,
-                request
-            );
-
-            for (JsonNode item : StreamSupport.stream(scrollRequest, false).collect(Collectors.toList())) {
-                prepareGraphCreation(multimap, originatingAgencies, unitIdToObjectGroupId, item, sedaVersionToExport);
-            }
-
-            if (checkEmptinessSelectedUnits(itemStatus, scrollRequest.estimateSize())) {
-                return new ItemStatus(PLUGIN_NAME).setItemsStatus(PLUGIN_NAME, itemStatus);
+            try (CloseableIterable<JsonNode> units = listUnits(unitsJsonlFile, new TypeReference<>() {})) {
+                for (JsonNode unit : units) {
+                    prepareGraphCreation(
+                        unitIdToChildUnitIds,
+                        originatingAgencies,
+                        unitIdToObjectGroupId,
+                        unit,
+                        sedaVersionToExport
+                    );
+                }
             }
 
             if (originatingAgencies.size() == 1) {
@@ -299,11 +286,10 @@ public class CreateManifest extends ActionHandler {
 
                 select.setQuery(in);
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
-                ArrayNode objects = (ArrayNode) response.get(TAG_RESULTS);
-
-                for (JsonNode object : objects) {
+                ArrayNode objectGroups = (ArrayNode) response.get(TAG_RESULTS);
+                for (JsonNode object : objectGroups) {
                     String objectGroupId = object.get(id()).textValue();
-                    List<String> linkedUnits = unitsForObjectGroupId.get(objectGroupId);
+                    List<String> parentUnits = unitsForObjectGroupId.get(objectGroupId);
                     JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(
                         objectGroupId,
                         new Select().getFinalSelect()
@@ -339,19 +325,17 @@ public class CreateManifest extends ActionHandler {
                     }
 
                     JsonNode currentObject = JsonHandler.toJsonNode(objectGroup);
-
-                    Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream =
-                        (exportRequest.isExportWithLogBookLFC())
-                            ? RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
-                                .getResults()
-                                .stream()
-                                .map(LogbookLifeCycleObjectGroup::new)
-                            : Stream.empty();
+                    Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = (exportWithLogBookLFC)
+                        ? RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
+                            .getResults()
+                            .stream()
+                            .map(LogbookLifeCycleObjectGroup::new)
+                        : Stream.empty();
 
                     idBinaryWithFileName.putAll(
                         manifestBuilder.writeGOT(
                             currentObject,
-                            linkedUnits.get(linkedUnits.size() - 1),
+                            parentUnits.get(parentUnits.size() - 1),
                             logbookLifeCycleObjectGroupStream
                         )
                     );
@@ -359,28 +343,6 @@ public class CreateManifest extends ActionHandler {
                     exportedObjectGroupIds.add(objectGroupId);
                 }
             }
-
-            SelectParserMultiple initialQueryParser = new SelectParserMultiple();
-            initialQueryParser.parse(exportRequest.getDslRequest());
-
-            scrollRequest = new ScrollSpliterator<>(
-                initialQueryParser.getRequest(),
-                query -> {
-                    try {
-                        JsonNode node = client.selectUnits(query.getFinalSelect());
-                        return RequestResponseOK.getFromJsonNode(node);
-                    } catch (
-                        MetaDataExecutionException
-                        | MetaDataDocumentSizeException
-                        | MetaDataClientServerException
-                        | InvalidParseOperationException e
-                    ) {
-                        throw new IllegalStateException(e);
-                    }
-                },
-                VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-                VitamConfiguration.getElasticSearchScrollLimit()
-            );
 
             // If we export no GOT, we exclude object groups
             final Map<String, String> filteredOgs = unitIdToObjectGroupId
@@ -391,43 +353,50 @@ public class CreateManifest extends ActionHandler {
 
             manifestBuilder.startDescriptiveMetadata();
 
-            Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(scrollRequest);
-            while (unitIterator.hasNext()) {
-                ArchiveUnitModel unit;
-                ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(
-                    unitIterator.next(),
-                    ArchiveUnitModel.class
-                );
+            try (CloseableIterable<JsonNode> unitIterator = listUnits(unitsJsonlFile, new TypeReference<>() {})) {
+                for (JsonNode unit : unitIterator) {
+                    ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(unit, ArchiveUnitModel.class);
+                    final JsonNode response = exportWithLogBookLFC
+                        ? logbookLifeCyclesClient.selectUnitLifeCycleById(
+                            archiveUnitModel.getId(),
+                            select.getFinalSelect()
+                        )
+                        : null;
+                    final LogbookLifeCycleUnit logbookLFC = Optional.ofNullable(response)
+                        .map(r -> r.get(TAG_RESULTS))
+                        .map(node -> node.get(0))
+                        .map(LogbookLifeCycleUnit::new)
+                        .orElse(null);
 
-                final JsonNode response = exportWithLogBookLFC
-                    ? logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(), select.getFinalSelect())
-                    : null;
-                final LogbookLifeCycleUnit logbookLFC = Optional.ofNullable(response)
-                    .map(r -> r.get(TAG_RESULTS))
-                    .map(node -> node.get(0))
-                    .map(LogbookLifeCycleUnit::new)
-                    .orElse(null);
+                    manifestBuilder.writeArchiveUnitWithLFC(
+                        archiveUnitModel,
+                        unitIdToChildUnitIds,
+                        filteredOgs,
+                        logbookLFC
+                    );
 
-                unit = manifestBuilder.writeArchiveUnitWithLFC(archiveUnitModel, multimap, filteredOgs, logbookLFC);
+                    if (ArchiveTransfer.equals(exportRequest.getExportType())) {
+                        List<String> opts = ListUtils.defaultIfNull(archiveUnitModel.getOpts(), new ArrayList<>());
+                        TransferStatus status = opts.isEmpty() ? TransferStatus.OK : TransferStatus.ALREADY_IN_TRANSFER;
+                        opts.add(param.getContainerName());
+                        ObjectNode updateMultiQuery = getUpdateQuery(opts);
 
-                if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                    List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
-                    TransferStatus status = opts.isEmpty() ? TransferStatus.OK : TransferStatus.ALREADY_IN_TRANSFER;
-                    opts.add(param.getContainerName());
-                    ObjectNode updateMultiQuery = getUpdateQuery(opts);
+                        if (TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
+                            itemStatus.increment(StatusCode.WARNING);
+                            ObjectNode infoNode = JsonHandler.createObjectNode();
+                            infoNode.put(
+                                REASON_FIELD,
+                                String.format("unit %s already in transfer", archiveUnitModel.getId())
+                            );
+                            String evDetData = JsonHandler.unprettyPrint(infoNode);
+                            itemStatus.setEvDetailData(evDetData);
+                        }
 
-                    if (TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
-                        itemStatus.increment(StatusCode.WARNING);
-                        ObjectNode infoNode = JsonHandler.createObjectNode();
-                        infoNode.put(REASON_FIELD, String.format("unit %s already in transfer", unit.getId()));
-                        String evDetData = JsonHandler.unprettyPrint(infoNode);
-                        itemStatus.setEvDetailData(evDetData);
+                        client.updateUnitById(updateMultiQuery, archiveUnitModel.getId());
+                        TransferReportLine reportLine = new TransferReportLine(archiveUnitModel.getId(), status);
+                        buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
+                        buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                     }
-
-                    client.updateUnitById(updateMultiQuery, unit.getId());
-                    TransferReportLine reportLine = new TransferReportLine(unit.getId(), status);
-                    buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
-                    buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                 }
             }
 
@@ -492,12 +461,12 @@ public class CreateManifest extends ActionHandler {
                     false
                 );
             }
+            return new ItemStatus(PLUGIN_NAME).setItemsStatus(PLUGIN_NAME, itemStatus);
         } catch (ExportException e) {
-            itemStatus.increment(StatusCode.KO);
+            LOGGER.error(String.format("Export failed with message [%s]", e.getMessage()), e);
             ObjectNode infoNode = JsonHandler.createObjectNode();
             infoNode.put(REASON_FIELD, e.getMessage());
-            String evDetData = JsonHandler.unprettyPrint(infoNode);
-            itemStatus.setEvDetailData(evDetData);
+            return buildItemStatus(PLUGIN_NAME, StatusCode.KO, infoNode);
         } catch (
             IOException
             | MetaDataExecutionException
@@ -513,8 +482,36 @@ public class CreateManifest extends ActionHandler {
             | DatatypeConfigurationException e
         ) {
             throw new ProcessingException(e);
+        } catch (ProcessingStatusException e) {
+            LOGGER.error(String.format("Report generation failed with status [%s]", e.getStatusCode()), e);
+            return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), e.getEventDetails());
         }
-        return new ItemStatus(PLUGIN_NAME).setItemsStatus(PLUGIN_NAME, itemStatus);
+    }
+
+    private File exportUnits(HandlerIO handlerIO, ExportRequest exportRequest, MetaDataClient client)
+        throws IOException, InvalidParseOperationException, ProcessingStatusException {
+        File unitsJsonl = handlerIO.getNewLocalFile(UNITS_JSONL_FILE);
+        try (JsonLineWriter unitsJsonlWriter = new JsonLineWriter(new FileOutputStream(unitsJsonl))) {
+            SelectParserMultiple parser = new SelectParserMultiple();
+            parser.parse(exportRequest.getDslRequest());
+            SelectMultiQuery request = parser.getRequest();
+            request.resetUsedProjection();
+            ScrollSpliterator<JsonNode> unitsToExportScrollSpliterator =
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(client, request);
+
+            checkEmptinessSelectedUnits(unitsToExportScrollSpliterator.estimateSize());
+
+            for (JsonNode unit : unitsToExportScrollSpliterator) {
+                unitsJsonlWriter.addEntry(unit);
+            }
+        }
+        return unitsJsonl;
+    }
+
+    private <T> CloseableIterable<T> listUnits(File unitsJsonl, TypeReference<T> typeReference) throws IOException {
+        return CloseableIteratorUtils.toCloseableIterable(
+            new JsonLineGenericIterator<>(new FileInputStream(unitsJsonl), typeReference)
+        );
     }
 
     private AccessContractModel getAccessContractModel(AdminManagementClient adminManagementClient)
@@ -657,22 +654,18 @@ public class CreateManifest extends ActionHandler {
         return Iterables.getLast(qualifier.getVersions());
     }
 
-    private boolean checkEmptinessSelectedUnits(ItemStatus itemStatus, long total) {
+    private void checkEmptinessSelectedUnits(long total) throws ProcessingStatusException {
         if (total == 0) {
-            itemStatus.increment(StatusCode.KO);
             ObjectNode infoNode = JsonHandler.createObjectNode();
             infoNode.put(REASON_FIELD, "the DSL query has no result");
-            String evdev = JsonHandler.unprettyPrint(infoNode);
-            itemStatus.setEvDetailData(evdev);
-            return true;
+            throw new ProcessingStatusException(StatusCode.KO, infoNode, "Empty result list");
         }
-        return false;
     }
 
     private void prepareGraphCreation(
-        ListMultimap<String, String> multimap,
+        ListMultimap<String, String> unitIdToChildUnitIds,
         Set<String> originatingAgencies,
-        Map<String, String> ogs,
+        Map<String, String> unitIdToObjectGroupId,
         JsonNode unit,
         String sedaVersionToExport
     ) throws ExportException {
@@ -685,25 +678,25 @@ public class CreateManifest extends ActionHandler {
                 unit.get(id()).asText();
             throw new ExportException(errorMsg);
         }
-        createGraph(multimap, originatingAgencies, ogs, unit);
+        createGraph(unitIdToChildUnitIds, originatingAgencies, unitIdToObjectGroupId, unit);
     }
 
     private void createGraph(
-        ListMultimap<String, String> multimap,
+        ListMultimap<String, String> unitIdToChildUnitIds,
         Set<String> originatingAgencies,
-        Map<String, String> ogs,
+        Map<String, String> unitIdToObjectGroupId,
         JsonNode unit
     ) {
         String archiveUnitId = unit.get(id()).asText();
         ArrayNode nodes = (ArrayNode) unit.get(VitamFieldsHelper.unitups());
         for (JsonNode node : nodes) {
-            multimap.put(node.asText(), archiveUnitId);
+            unitIdToChildUnitIds.put(node.asText(), archiveUnitId);
         }
         Optional<JsonNode> originatingAgency = Optional.ofNullable(unit.get(VitamFieldsHelper.originatingAgency()));
         originatingAgency.ifPresent(jsonNode -> originatingAgencies.add(jsonNode.asText()));
         JsonNode objectIdNode = unit.get(VitamFieldsHelper.object());
         if (objectIdNode != null) {
-            ogs.put(archiveUnitId, objectIdNode.asText());
+            unitIdToObjectGroupId.put(archiveUnitId, objectIdNode.asText());
         }
     }
 
