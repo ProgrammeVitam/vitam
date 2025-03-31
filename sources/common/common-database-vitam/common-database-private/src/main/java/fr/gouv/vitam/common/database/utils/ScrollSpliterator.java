@@ -43,7 +43,7 @@ import java.util.stream.StreamSupport;
  *
  * @param <T>
  */
-public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
+public class ScrollSpliterator<T> extends AbstractSpliterator<T> implements Iterable<T> {
 
     private final SelectMultiQuery query;
     private final Function<SelectMultiQuery, RequestResponse<T>> repository;
@@ -118,5 +118,10 @@ public class ScrollSpliterator<T> extends AbstractSpliterator<T> {
 
     public Stream<T> toStream() {
         return StreamSupport.stream(this, false);
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return this.toStream().iterator();
     }
 }
