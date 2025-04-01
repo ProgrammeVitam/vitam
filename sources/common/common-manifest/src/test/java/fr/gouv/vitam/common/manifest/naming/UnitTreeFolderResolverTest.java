@@ -27,11 +27,7 @@
 
 package fr.gouv.vitam.common.manifest.naming;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.ExportException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -252,30 +248,22 @@ public class UnitTreeFolderResolverTest {
         assertThat(resolver.resolve("og11")).isEqualTo("MyUnit3/________");
     }
 
-    private static JsonNode givenUnit(String guid, String title, List<String> parents, String objectGroupId) {
+    private static ArchiveUnitTreeExportModel givenUnit(
+        String guid,
+        String title,
+        List<String> parents,
+        String objectGroupId
+    ) {
         return givenUnit(guid, title, Collections.emptyMap(), parents, objectGroupId);
     }
 
-    private static JsonNode givenUnit(
+    private static ArchiveUnitTreeExportModel givenUnit(
         String guid,
         String title,
         Map<String, String> title_,
         List<String> parents,
         String objectGroupId
     ) {
-        ObjectNode unit = JsonHandler.createObjectNode().put("#id", guid);
-        unit.set("#unitups", JsonHandler.createStringArrayNode(parents.toArray(String[]::new)));
-        if (title != null) {
-            unit.put("Title", title);
-        }
-        if (title_ != null && !title_.isEmpty()) {
-            ObjectNode title_node = JsonHandler.createObjectNode();
-            title_.forEach(title_node::put);
-            unit.set("Title_", title_node);
-        }
-        if (objectGroupId != null) {
-            unit.put(VitamFieldsHelper.object(), objectGroupId);
-        }
-        return unit;
+        return new ArchiveUnitTreeExportModel(guid, title, title_, parents, objectGroupId);
     }
 }

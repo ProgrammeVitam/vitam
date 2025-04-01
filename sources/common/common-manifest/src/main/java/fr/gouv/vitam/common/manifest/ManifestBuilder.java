@@ -351,15 +351,15 @@ public class ManifestBuilder implements AutoCloseable {
         );
     }
 
-    public ArchiveUnitModel writeArchiveUnit(
+    public void writeArchiveUnit(
         ArchiveUnitModel archiveUnitModel,
         ListMultimap<String, String> multimap,
         Map<String, String> ogs
     ) throws JAXBException, DatatypeConfigurationException, ExportException {
-        return writeArchiveUnitWithLFC(archiveUnitModel, multimap, ogs, null);
+        writeArchiveUnitWithLFC(archiveUnitModel, multimap, ogs, null);
     }
 
-    public ArchiveUnitModel writeArchiveUnitWithLFC(
+    public void writeArchiveUnitWithLFC(
         ArchiveUnitModel archiveUnitModel,
         ListMultimap<String, String> multimap,
         Map<String, String> ogs,
@@ -374,7 +374,6 @@ public class ManifestBuilder implements AutoCloseable {
             archiveUnitType.getManagement().setLogBook(logBookType);
         }
         marshaller.marshal(archiveUnitType, writer);
-        return archiveUnitModel;
     }
 
     private ArchiveUnitType mapUnitModelToXML(
