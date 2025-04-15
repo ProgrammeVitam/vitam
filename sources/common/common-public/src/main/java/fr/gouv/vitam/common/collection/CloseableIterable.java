@@ -26,4 +26,6 @@
  */
 package fr.gouv.vitam.common.collection;
 
-public interface CloseableIterable<E> extends Iterable<E>, AutoCloseable {}
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+
+public interface CloseableIterable<E> extends Iterable<E>, VitamAutoCloseable {}
