@@ -137,6 +137,7 @@
   getent:
     database: passwd
     key: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+  tags: update_vitam_configuration
 
 - name: Deploy systemd service file
   template:
@@ -365,20 +366,24 @@
     - "vitam - reload consul configuration"
 
 - import_tasks: consul.yml
+  tags: consul_conf
 
 - import_tasks: selinux_contexts.yml
 
 - meta: flush_handlers
+  tags: always
 
 - name: "Ensure {{ package_name }} service is disabled and stopped on secondary site"
   service:
     name: "vitam-{{ vitam_struct.vitam_component }}"
     enabled: false
     state: stopped
+  tags: always
   when: ( primary_site | lower == "false" ) and
     ( vitam_struct.vitam_component not in vitam_secondary_site_components )
 
-- block:
+- name: test service & debug if necessary
+  block:
 
     - name: "Ensure {{ package_name }} service is started at boot"
       service:
@@ -414,8 +419,16 @@
       delay: "{{ vitam_defaults.services.status_retries_delay }}"
       when: consul_disabled is not defined or consul_disabled | lower != 'true'
 
-  tags:
-    - update_vitam_configuration
-    - update_vitam_certificates
+  tags: always
+
+  rescue:
+
+    - name: getting error logs
+      shell: "journalctl --reverse --lines 100 -xu {{ vitam_struct.vitam_component }}"
+      register: journalctl_logs
+    - name: printing error logs
+      fail:
+        msg: "{{ journalctl_logs.stdout_lines }}"
+
   when: ( primary_site | lower == "true" ) or
     ( vitam_struct.vitam_component in vitam_secondary_site_components )
