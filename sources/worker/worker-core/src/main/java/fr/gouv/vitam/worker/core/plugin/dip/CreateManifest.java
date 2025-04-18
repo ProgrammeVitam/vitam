@@ -158,11 +158,12 @@ public class CreateManifest extends ActionHandler {
     static final int REPORT = 3;
 
     public static final String PLUGIN_NAME = "CREATE_MANIFEST";
-    private static final int MAX_ELEMENT_IN_QUERY = 1000;
+    private static final int DEFAULT_MAX_ELEMENT_IN_QUERY = 1000;
     private static final String REASON_FIELD = "Reason";
     private static final String JSONL_EXTENSION = ".jsonl";
     public static final String UNITS_JSONL_FILE = "units.jsonl";
 
+    private final int maxElementsInQuery;
     private final MetaDataClientFactory metaDataClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
         LogbookLifeCyclesClientFactory.getInstance();
@@ -174,13 +175,19 @@ public class CreateManifest extends ActionHandler {
      */
     @SuppressWarnings("unused")
     public CreateManifest() {
-        this(MetaDataClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), DEFAULT_MAX_ELEMENT_IN_QUERY);
     }
 
     @VisibleForTesting
     CreateManifest(MetaDataClientFactory metaDataClientFactory) {
+        this(metaDataClientFactory, DEFAULT_MAX_ELEMENT_IN_QUERY);
+    }
+
+    @VisibleForTesting
+    CreateManifest(MetaDataClientFactory metaDataClientFactory, int maxElementsInQuery) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.objectMapper = getDeserializationObjectMapper();
+        this.maxElementsInQuery = maxElementsInQuery;
     }
 
     @Override
@@ -298,7 +305,7 @@ public class CreateManifest extends ActionHandler {
 
             Iterable<List<Entry<String, String>>> partitions = partition(
                 unitIdToObjectGroupId.entrySet(),
-                MAX_ELEMENT_IN_QUERY
+                maxElementsInQuery
             );
             for (List<Entry<String, String>> partition : partitions) {
                 ListMultimap<String, String> unitsForObjectGroupId = partition
@@ -314,7 +321,8 @@ public class CreateManifest extends ActionHandler {
                 JsonNode response = client.selectObjectGroups(select.getFinalSelect());
                 ArrayNode objectGroups = (ArrayNode) response.get(TAG_RESULTS);
                 for (JsonNode object : objectGroups) {
-                    String objectGroupId = object.get(id()).textValue();
+                    final String objectGroupId = object.get(id()).textValue();
+                    if (exportedObjectGroupIds.contains(objectGroupId)) continue; // Do not add object group more than once
                     List<String> parentUnits = unitsForObjectGroupId.get(objectGroupId);
                     JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(
                         objectGroupId,
