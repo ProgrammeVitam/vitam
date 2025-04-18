@@ -29,12 +29,14 @@ package fr.gouv.vitam.worker.core.plugin.dip;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -49,17 +51,20 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.xmlunit.builder.Input;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -70,7 +75,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
@@ -88,6 +95,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.xmlunit.matchers.EvaluateXPathMatcher.hasXPath;
 
 public class CreateManifestTest {
@@ -109,6 +117,7 @@ public class CreateManifestTest {
     private static final int TENANT_ID = 0;
 
     private CreateManifest createManifest;
+    private HandlerIO handlerIO;
 
     private static final Map<String, String> prefix2Uri = new HashMap<>();
 
@@ -119,13 +128,13 @@ public class CreateManifestTest {
     @Before
     public void setUp() throws Exception {
         createManifest = new CreateManifest(metaDataClientFactory);
+        handlerIO = mock(HandlerIO.class);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_create_manifest() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -135,43 +144,22 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/query.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroup.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json"))
+            loadJson("/CreateManifest/resultMetadata.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json"))
+            loadJson("/CreateManifest/resultObjectGroup.json")
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
+        File manifestFile = mockHandlerIO(MANIFEST_XML_RANK);
+        mockHandlerIO(REPORT);
+        File guidToPathFile = mockHandlerIO(GUID_TO_INFO_RANK);
+        File binaryFile = mockHandlerIO(BINARIES_RANK);
 
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
@@ -274,9 +262,8 @@ public class CreateManifestTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testAccesControlManifestCreation() throws Exception {
+    public void testAccessControlManifestCreation() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -287,46 +274,25 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/query.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroup.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json"))
+            loadJson("/CreateManifest/resultMetadata.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json"))
+            loadJson("/CreateManifest/resultObjectGroup.json")
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
+        File manifestFile = mockHandlerIO(MANIFEST_XML_RANK);
+        mockHandlerIO(REPORT);
+        File guidToPathFile = mockHandlerIO(GUID_TO_INFO_RANK);
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
+        File binaryFile = mockHandlerIO(BINARIES_RANK);
 
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setExportWithLogBookLFC(true);
         exportRequest.setDslRequest(queryUnit);
@@ -384,7 +350,6 @@ public class CreateManifestTest {
     @RunWithCustomExecutor
     public void givenSipWhenUnitsLinkedToOneDataObjectGroupThenDipContainOneDataObjectGroupElement() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -395,46 +360,25 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/querybug5160.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/querybug5160.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroupbug5160.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroupbug5160.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadatabug5160.json"))
+            loadJson("/CreateManifest/resultMetadatabug5160.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup5160.json"))
+            loadJson("/CreateManifest/resultObjectGroup5160.json")
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
+        File manifestFile = mockHandlerIO(MANIFEST_XML_RANK);
+        mockHandlerIO(REPORT);
+        mockHandlerIO(GUID_TO_INFO_RANK);
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
+        mockHandlerIO(BINARIES_RANK);
 
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
         ExportRequest exportRequest = new ExportRequest();
         exportRequest.setExportWithLogBookLFC(true);
         exportRequest.setDslRequest(queryUnit);
@@ -459,7 +403,6 @@ public class CreateManifestTest {
     @RunWithCustomExecutor
     public void should_create_report() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -469,44 +412,22 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/query.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroup.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json"))
+            loadJson("/CreateManifest/resultMetadata.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json"))
+            loadJson("/CreateManifest/resultObjectGroup.json")
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
-
+        mockHandlerIO(MANIFEST_XML_RANK);
+        File reportFile = mockHandlerIO(REPORT);
+        mockHandlerIO(GUID_TO_INFO_RANK);
+        mockHandlerIO(BINARIES_RANK);
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
 
@@ -538,7 +459,6 @@ public class CreateManifestTest {
     @RunWithCustomExecutor
     public void should_transfer_with_warning() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -548,46 +468,22 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/query.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroup.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")
-            )
+            loadJson("/CreateManifest/resultMetadataWithTransfer.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json"))
+            loadJson("/CreateManifest/resultObjectGroup.json")
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
-        File guidToPathFile = tempFolder.newFile();
-        given(handlerIO.getOutput(GUID_TO_INFO_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, guidToPathFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(guidToPathFile.getPath())).willReturn(guidToPathFile);
-
-        File binaryFile = tempFolder.newFile();
-        given(handlerIO.getOutput(BINARIES_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, binaryFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(binaryFile.getPath())).willReturn(binaryFile);
-
+        mockHandlerIO(MANIFEST_XML_RANK);
+        mockHandlerIO(REPORT);
+        mockHandlerIO(GUID_TO_INFO_RANK);
+        mockHandlerIO(BINARIES_RANK);
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
 
@@ -613,7 +509,6 @@ public class CreateManifestTest {
     @RunWithCustomExecutor
     public void should_return_KO_status_when_exceeding_threshold() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -623,34 +518,20 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/query.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroup.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")
-            )
+            loadJson("/CreateManifest/resultMetadataWithTransfer.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json"))
+            loadJson("/CreateManifest/resultObjectGroup.json")
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
-
+        mockHandlerIO(MANIFEST_XML_RANK);
+        mockHandlerIO(REPORT);
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
 
@@ -671,7 +552,6 @@ public class CreateManifestTest {
     @RunWithCustomExecutor
     public void should_return_KO_status_when_exceeding_threshold_with_only_manifest() throws Exception {
         // Given
-        HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -681,36 +561,22 @@ public class CreateManifestTest {
 
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
-        JsonNode queryUnit = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/query.json")
-        );
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
 
-        JsonNode queryObjectGroup = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json")
-        );
+        JsonNode queryObjectGroup = loadJson("/CreateManifest/queryObjectGroup.json");
 
         given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
-            JsonHandler.getFromInputStream(
-                getClass().getResourceAsStream("/CreateManifest/resultMetadataWithTransfer.json")
-            )
+            loadJson("/CreateManifest/resultMetadataWithTransfer.json")
         );
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
             JsonHandler.createObjectNode().set(RequestResponseOK.TAG_RESULTS, JsonHandler.createArrayNode())
         );
 
-        File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(
-            new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath())
-        );
-        given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
-
+        mockHandlerIO(MANIFEST_XML_RANK);
         File unitsJsonlFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
-
-        File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(REPORT)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
-        given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
+        mockHandlerIO(REPORT);
 
         ExportRequest exportRequest = getExportRequest(queryUnit);
         // We set threshold to 10 to be sure it's smaller than manifest size
@@ -743,5 +609,104 @@ public class CreateManifestTest {
         exportRequestParameters.setTransferringAgency("TransferringAgency");
         exportRequest.setExportRequestParameters(exportRequestParameters);
         return exportRequest;
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_not_duplicate_object_groups_in_manifest_file() throws Exception {
+        // Given
+        final int maxElementsInQuery = 2; // Should be lower than units size to make sure there are several partitions
+
+        final JsonNode metadataJson = loadJson("/CreateManifest/resultMetadataWithCommonObjectGroup.json");
+        final List<JsonNode> unitsJson = StreamSupport.stream(
+            metadataJson.get("$results").spliterator(),
+            false
+        ).collect(Collectors.toList());
+
+        // Making sure that maxElementsInQuery is lower than units size
+        assertThat(maxElementsInQuery).isLessThan(unitsJson.size());
+
+        // Override maxElementsInQuery in createManifest to have multiple partitions
+        createManifest = new CreateManifest(metaDataClientFactory, maxElementsInQuery);
+
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setEveryDataObjectVersion(true);
+        accessContractModel.setEveryOriginatingAgency(true);
+
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        JsonNode queryUnit = loadJson("/CreateManifest/query.json");
+
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(metadataJson);
+
+        // Make selectObjectGroups return object groups corresponding to the ids in the query
+        final ArgumentCaptor<JsonNode> jsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        when(metaDataClient.selectObjectGroups(jsonNodeArgumentCaptor.capture())).thenAnswer(invocation -> {
+            final List<String> objectGroupIds = StreamSupport.stream(
+                jsonNodeArgumentCaptor.getValue().get("$query").get("$in").get("#id").spliterator(),
+                false
+            )
+                .map(JsonNode::asText)
+                .collect(Collectors.toList());
+            return JsonHandler.getFromString(
+                "{'$results': [" +
+                objectGroupIds
+                    .stream()
+                    .map(
+                        ogId ->
+                            "{'#id': '" +
+                            ogId +
+                            "', '#qualifiers': [{'versions': [{'DataObjectVersion': 'PhysicalMaster_1', '#id': 'aeaaaaaaaabgthlqabqgsalltyqvysiaaaaq'}], 'qualifier': '" +
+                            DataObjectVersionType.BINARY_MASTER.getName() +
+                            "'}]}"
+                    )
+                    .collect(Collectors.joining(",")) +
+                "]}"
+            );
+        });
+
+        File manifestFile = mockHandlerIO(MANIFEST_XML_RANK);
+        mockHandlerIO(REPORT);
+        mockHandlerIO(GUID_TO_INFO_RANK);
+        mockHandlerIO(BINARIES_RANK);
+        File unitsJsonlFile = tempFolder.newFile();
+        given(handlerIO.getNewLocalFile(UNITS_JSONL_FILE)).willReturn(unitsJsonlFile);
+
+        ExportRequest exportRequest = new ExportRequest();
+        exportRequest.setExportWithLogBookLFC(true);
+        exportRequest.setDslRequest(queryUnit);
+        given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
+
+        WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
+
+        // When
+        ItemStatus itemStatus = createManifest.execute(wp, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        final Set<String> expectedObjectGroupIds = unitsJson
+            .stream()
+            .map(unit -> unit.get("#object").asText())
+            .collect(Collectors.toSet());
+        final String manifestXml = FileUtils.readFileToString(manifestFile, "UTF-8");
+        expectedObjectGroupIds.forEach(
+            expectedObjectGroupId ->
+                assertThat(manifestXml).containsOnlyOnce("<DataObjectGroup id=\"" + expectedObjectGroupId + "\"")
+        );
+    }
+
+    private File mockHandlerIO(int output) throws IOException {
+        final File file = tempFolder.newFile();
+        given(handlerIO.getOutput(output)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, file.getPath()));
+        given(handlerIO.getNewLocalFile(file.getPath())).willReturn(file);
+        return file;
+    }
+
+    private JsonNode loadJson(String fileName) throws InvalidParseOperationException {
+        return JsonHandler.getFromInputStream(getClass().getResourceAsStream(fileName));
     }
 }
