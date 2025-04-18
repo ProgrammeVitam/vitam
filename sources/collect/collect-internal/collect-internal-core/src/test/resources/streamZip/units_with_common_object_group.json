@@ -1,0 +1,46 @@
+[
+  {
+    "#id": "u1",
+    "#object": "og1",
+    "#opi": "42",
+    "#originating_agency": "Vitam",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "1",
+    "DescriptionLevel": "1",
+    "#unitups": []
+  },
+  {
+    "#id": "u2",
+    "#object": "og2",
+    "#opi": "42",
+    "#originating_agency": "Vitam",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "1",
+    "DescriptionLevel": "1",
+    "#unitups": []
+  },
+  {
+    "#id": "u1.1",
+    "#object": "og1",
+    "#opi": "42",
+    "#originating_agency": "Vitam",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "1",
+    "DescriptionLevel": "1",
+    "#unitups": []
+  },
+  {
+    "#id": "u2.1",
+    "#object": "og2",
+    "#opi": "42",
+    "#originating_agency": "Vitam",
+    "#unitType": "INGEST",
+    "#management": {},
+    "Title": "1",
+    "DescriptionLevel": "1",
+    "#unitups": []
+  }
+]
