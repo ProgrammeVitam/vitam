@@ -1,2 +1,2 @@
-FROM mongo:7.0.8
+FROM mongo:7.0.19
 ADD init/*.js /docker-entrypoint-initdb.d
