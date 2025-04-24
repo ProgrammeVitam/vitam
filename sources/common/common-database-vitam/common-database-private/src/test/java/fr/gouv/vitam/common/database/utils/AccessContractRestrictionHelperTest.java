@@ -265,7 +265,9 @@ public class AccessContractRestrictionHelperTest {
             );
         // Then
         JsonAssert.assertJsonEquals(
-            PropertiesUtils.getResourceAsString("AccessContract/select_query_ACCESS_BY_PRODUCERS_objects.json"),
+            PropertiesUtils.getResourceAsString(
+                "AccessContract/select_query_ACCESS_BY_PRODUCERS_AND_EXPIRED_MANAGEMENT_RULES_objects.json"
+            ),
             result,
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
         );
@@ -282,7 +284,9 @@ public class AccessContractRestrictionHelperTest {
             );
         // Then
         JsonAssert.assertJsonEquals(
-            PropertiesUtils.getResourceAsString("AccessContract/select_query_ACCESS_BY_PRODUCERS_objects.json"),
+            PropertiesUtils.getResourceAsString(
+                "AccessContract/select_query_ACCESS_BY_PRODUCERS_OR_EXPIRED_MANAGEMENT_RULES_objects.json"
+            ),
             result,
             JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
         );

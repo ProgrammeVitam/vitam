@@ -173,7 +173,7 @@ public final class AccessContractRestrictionHelper {
             case ACCESS_BY_PRODUCERS_OR_EXPIRED_MANAGEMENT_RULES -> {
                 if (applyRuleRestrictions) {
                     addRestrictionForOriginatingAgencyOrManagementRules(restrictionsForQuery, accessContract);
-                } else {
+                } else if (isUnit) {
                     addRestrictionForOriginatingAgency(restrictionsForQuery, accessContract, isUnit);
                 }
             }
