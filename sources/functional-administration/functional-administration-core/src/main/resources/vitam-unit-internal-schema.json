@@ -2128,7 +2128,7 @@
     ],
     "Category": "DESCRIPTION",
     "ApiPath": "Event.evDetData",
-    "SedaField": "eventDetailData",
+    "SedaField": "EventDetailData",
     "ShortName": "Message technique détaillant l'événement"
   },
   {

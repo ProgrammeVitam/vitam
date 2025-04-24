@@ -2827,7 +2827,7 @@
   },
   {
     "Identifier": "evDetData",
-    "SedaField": "eventDetailData",
+    "SedaField": "EventDetailData",
     "ApiField": "evDetData",
     "Description": "Mapping : unit-es-mapping.json",
     "Type": "KEYWORD",
