@@ -142,7 +142,7 @@
 - name: Deploy systemd service file
   template:
     src: "vitam-{{ 'container-' if install_mode == 'container' and vitam_struct.vitam_component not in legacy_components_list else '' }}componentid.service.j2"
-    dest: "{{ systemd_directory }}/vitam-{{ vitam_struct.vitam_component }}.service"
+    dest: "{{ systemd_directory }}/{{ package_name }}.service"
     owner: "root"
     group: "root"
     mode: "0644"
@@ -375,7 +375,7 @@
 
 - name: "Ensure {{ package_name }} service is disabled and stopped on secondary site"
   service:
-    name: "vitam-{{ vitam_struct.vitam_component }}"
+    name: "{{ package_name }}"
     enabled: false
     state: stopped
   tags: always
@@ -387,7 +387,7 @@
 
     - name: "Ensure {{ package_name }} service is started at boot"
       service:
-        name: "vitam-{{ vitam_struct.vitam_component }}"
+        name: "{{ package_name }}"
         state: started
         enabled: "{{ vitam_struct.at_boot | default(service_at_boot) }}"
 
@@ -424,7 +424,7 @@
   rescue:
 
     - name: getting error logs
-      shell: "journalctl --reverse --lines 100 -xu {{ vitam_struct.vitam_component }}"
+      shell: "journalctl --reverse --lines 100 -xu {{ package_name }}"
       register: journalctl_logs
     - name: printing error logs
       fail:
