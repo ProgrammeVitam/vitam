@@ -77,12 +77,6 @@ public class SedaSchemaInfoResolver {
 
     @Deprecated
     private static void hotfixSchemaModels(List<SchemaResponse> schemaModels) {
-        // FIXME : Patch seda field "eventDetailData" -> "EventDetailData" (Bug #14048)
-        schemaModels
-            .stream()
-            .filter(model -> model.getPath().equals("Event.evDetData"))
-            .forEach(model -> model.setSedaField("EventDetailData"));
-
         // FIXME : Patch SedaField for INTERNAL OBJECT schema model entries (Bug #14047)
         schemaModels
             .stream()
