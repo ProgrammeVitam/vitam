@@ -2285,7 +2285,7 @@
   },
   {
     "FieldName": "evDetData",
-    "SedaField": "eventDetailData",
+    "SedaField": "EventDetailData",
     "Collection": "Unit",
     "ApiPath": "Event.evDetData",
     "ApiField": "evDetData",
