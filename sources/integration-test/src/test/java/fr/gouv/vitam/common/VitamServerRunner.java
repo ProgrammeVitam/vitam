@@ -885,6 +885,8 @@ public class VitamServerRunner extends ExternalResource {
         logbookMain.start();
         SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
         // Wait startup
+        waitServerStart(LogbookOperationsClientFactory.getInstance().getClient());
+        waitServerStart(LogbookLifeCyclesClientFactory.getInstance().getClient());
     }
 
     public void stopLogbookServer(boolean mockWhenStop) throws VitamApplicationServerException {
