@@ -428,6 +428,25 @@ public class VitamTestHelper {
         waitOperation(VitamServerRunner.NB_TRY, VitamServerRunner.SLEEP_TIME, operationId);
     }
 
+    public static void pauseOperation(String operationId) throws VitamClientException, InternalServerException {
+        try (
+            ProcessingManagementClient processingManagementClient = ProcessingManagementClientFactory.getInstance()
+                .getClient()
+        ) {
+            processingManagementClient.updateOperationActionProcess(ProcessAction.PAUSE.getValue(), operationId);
+        }
+        waitOperation(operationId, ProcessState.PAUSE);
+    }
+
+    public static void resumeOperation(String operationId) throws VitamClientException, InternalServerException {
+        try (
+            ProcessingManagementClient processingManagementClient = ProcessingManagementClientFactory.getInstance()
+                .getClient()
+        ) {
+            processingManagementClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationId);
+        }
+    }
+
     public static void insertWaitForStepEssentialFiles(String containerName) {
         try (
             final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance(WorkspaceType.VITAM).getClient()

@@ -567,20 +567,23 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                     // Force status code to KO
                     this.processWorkflow.setTargetStatus(StatusCode.KO);
                     this.executeFinalStep(workerParameters);
+                } else if (ProcessState.PAUSE.equals(targetState)) {
+                    // Process is running in step-by-step mode, or a PAUSE action was requested (and the step may not be completed)
+                    // Ensure that the current step is completed before going to the next step.
+                    if (currentStep.getElementProcessed().get() == currentStep.getElementToProcess().get()) {
+                        stepIndex++;
+                    }
+                    this.processWorkflow.setState(ProcessState.PAUSE);
+                    try {
+                        this.tryPersistProcessWorkflow();
+                    } finally {
+                        if (null != waitMonitor) {
+                            waitMonitor.complete(Boolean.TRUE);
+                        }
+                    }
                 } else {
                     stepIndex++;
-                    if (ProcessState.PAUSE.equals(targetState)) {
-                        this.processWorkflow.setState(ProcessState.PAUSE);
-                        try {
-                            this.tryPersistProcessWorkflow();
-                        } finally {
-                            if (null != waitMonitor) {
-                                waitMonitor.complete(Boolean.TRUE);
-                            }
-                        }
-                    } else {
-                        this.findAndExecuteNextStep(workerParameters, false);
-                    }
+                    this.findAndExecuteNextStep(workerParameters, false);
                 }
             }
         } else {
