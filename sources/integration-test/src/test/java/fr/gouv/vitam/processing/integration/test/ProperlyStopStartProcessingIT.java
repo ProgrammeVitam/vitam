@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -40,6 +41,7 @@ import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -51,13 +53,27 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
@@ -77,6 +93,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -95,13 +112,21 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static fr.gouv.vitam.common.VitamTestHelper.awaitForWorkflowTerminationWithStatus;
 import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFiles;
+import static fr.gouv.vitam.common.VitamTestHelper.pauseOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.resumeOperation;
+import static fr.gouv.vitam.common.VitamTestHelper.selectLogbookOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -117,7 +142,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         ProperlyStopStartProcessingIT.class,
         mongoRule.getMongoDatabase().getName(),
         ElasticsearchRule.getClusterName(),
-        Sets.newHashSet(WorkspaceMain.class, ProcessManagementMain.class)
+        Sets.newHashSet(MetadataMain.class, LogbookMain.class, WorkspaceMain.class, ProcessManagementMain.class)
     );
 
     private static final Integer TENANT_ID = 0;
@@ -182,6 +207,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         );
         workerBean.setWorkerId(String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
         // Ensure processing is started
+        runner.startLogbookServer();
         runner.startProcessManagementServer();
         ProcessingManagementClientFactory.getInstance()
             .getClient()
@@ -235,7 +261,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final String operationId = operationGuid.toString();
-        simulateIngest(operationId);
+        simulateIngest(operationGuid);
 
         ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
             .findOneProcessWorkflow(operationId, TENANT_ID);
@@ -294,13 +320,111 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
+    public void given_running_operation_when_pause_then_resume_operation_when_operation_completes_successfully()
+        throws Exception {
+        ProcessingIT.prepareVitamSession();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final String operationId = operationGuid.toString();
+        simulateIngest(operationGuid);
+
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(operationId, TENANT_ID);
+
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        assertThat(resp).isNotNull();
+        assertThat(resp.isOk()).isTrue();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+
+        // Wait step STP_UNIT_CHECK_AND_PROCESS
+        waitStep(processWorkflow, STEP_INDEX);
+
+        // Pause operation
+        pauseOperation(operationId);
+
+        // Check status
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_API_PAUSE);
+
+        // Resume operation and await termination
+        resumeOperation(operationId);
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        // Check status
+        processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
+        assertThat(processWorkflow).isNotNull();
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+
+        // Checks all steps
+        checkAllSteps(processWorkflow);
+        checkLogbookOperation(operationId, processWorkflow);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_running_operation_when_pause_operation_and_restart_processing_then_resume_operation_when_operation_completes_successfully()
+        throws Exception {
+        ProcessingIT.prepareVitamSession();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final String operationId = operationGuid.toString();
+        simulateIngest(operationGuid);
+
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(operationId, TENANT_ID);
+
+        RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .executeOperationProcess(operationId, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        assertThat(resp).isNotNull();
+        assertThat(resp.isOk()).isTrue();
+        assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
+
+        // Wait step STP_UNIT_CHECK_AND_PROCESS
+        waitStep(processWorkflow, STEP_INDEX);
+
+        // Pause operation
+        pauseOperation(operationId);
+
+        // Restart processing
+        runner.stopProcessManagementServer(false);
+        runner.startProcessManagementServer();
+
+        // Check status
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_API_PAUSE);
+
+        // Resume operation and await termination
+        resumeOperation(operationId);
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+
+        // Check status
+        processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
+        assertThat(processWorkflow).isNotNull();
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+
+        // Checks all steps and logbook operation
+        checkAllSteps(processWorkflow);
+        checkLogbookOperation(operationId, processWorkflow);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void given_pause_operations_when_stop_processing_then_pause_operations_when_start_processing_then_start_paused_operations()
         throws Exception {
         ProcessingIT.prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final String operationId = operationGuid.toString();
-        simulateIngest(operationId);
+        simulateIngest(operationGuid);
 
         ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
             .findOneProcessWorkflow(operationId, TENANT_ID);
@@ -361,7 +485,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final String operationId = operationGuid.toString();
-        simulateIngest(operationId);
+        simulateIngest(operationGuid);
 
         ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
             .findOneProcessWorkflow(operationId, TENANT_ID);
@@ -431,6 +555,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     public void simulate_crash_test_on_step_index_before_distributor_complete_distribution() throws Exception {
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
+        runner.stopLogbookServer(true);
 
         ProcessingIT.prepareVitamSession();
         final String operationId = "aeeaaaaaacbfmfhuaa64malrmquyediaaaaq";
@@ -494,6 +619,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         throws Exception {
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
+        runner.stopLogbookServer(true);
 
         ProcessingIT.prepareVitamSession();
         final String operationId = "aeeaaaaaacbfmfhuaa64malrmquyediaaaaq";
@@ -558,6 +684,8 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void simulate_crash_test_on_step_index_when_step_action_cancel_before_distributor_complete_distribution()
         throws Exception {
+        // This test uses mock impl of logbook
+        runner.stopLogbookServer(true);
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
 
@@ -601,6 +729,8 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void simulate_crash_test_on_step_index_when_step_action_complete() throws Exception {
+        // This test uses mock impl of logbook
+        runner.stopLogbookServer(true);
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
 
@@ -661,6 +791,8 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void simulate_crash_test_on_all_complete_steps_but_process_in_pause_fatal() throws Exception {
+        // This test uses mock impl of logbook
+        runner.stopLogbookServer(true);
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
 
@@ -728,6 +860,8 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void simulate_crash_test_on_complete_step_with_status_fatal() throws Exception {
+        // This test uses mock impl of logbook
+        runner.stopLogbookServer(true);
         // We simulate case where Processing crash in the middle of distribution
         runner.stopProcessManagementServer(false);
 
@@ -833,10 +967,33 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         }
     }
 
-    private void simulateIngest(String containerName)
+    private void simulateIngest(GUID operationGuid)
         throws ContentAddressableStorageServerException, BadRequestException, InternalServerException, IOException {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+
+        String containerName = operationGuid.toString();
+
         workspaceClient.createContainer(containerName);
+
+        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            operationGuid,
+            Contexts.DEFAULT_WORKFLOW.getEventType(),
+            operationGuid,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            containerName,
+            operationGuid
+        );
+
+        // call ingest
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            client.create(initParameters);
+        } catch (
+            LogbookClientAlreadyExistsException | LogbookClientBadRequestException | LogbookClientServerException e
+        ) {
+            throw new RuntimeException(e);
+        }
+
         ProcessingManagementClientFactory.getInstance()
             .getClient()
             .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
@@ -855,6 +1012,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         int stepIndex = 0;
         for (ProcessStep step : processWorkflow.getSteps()) {
             // check status
+            assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
             assertTrue(
                 step.getStepStatusCode().equals(StatusCode.OK) || step.getStepStatusCode().equals(StatusCode.WARNING)
             );
@@ -867,5 +1025,41 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
                 .as("Compare elementProcessed with expected number > step :" + step.getStepName())
                 .isEqualTo(elementCountPerStep[stepIndex++]);
         }
+    }
+
+    private void checkLogbookOperation(String operationId, ProcessWorkflow processWorkflow)
+        throws LogbookClientException, InvalidParseOperationException {
+        LogbookOperation logbookOperation = selectLogbookOperation(operationId);
+
+        // Check first and last events
+        assertThat(logbookOperation.getEvType()).isEqualTo(processWorkflow.getWorkflowId());
+        assertThat(logbookOperation.getOutcome()).isEqualTo(StatusCode.STARTED.name());
+
+        LogbookEventOperation lastEvent = logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1);
+        assertThat(lastEvent.getEvType()).isEqualTo(processWorkflow.getWorkflowId());
+        assertThat(lastEvent.getOutcome()).isEqualTo(processWorkflow.getStatus().name());
+
+        // check step events
+        Set<String> startedStepEventsByStepNames = logbookOperation
+            .getEvents()
+            .stream()
+            .filter(e -> e.getEvType().matches("STP_[a-zA-Z_]+\\.STARTED"))
+            .map(e -> StringUtils.substringBefore(e.getEvType(), "."))
+            .collect(Collectors.toSet());
+
+        Map<String, LogbookEventOperation> completedStepEventsByStepName = logbookOperation
+            .getEvents()
+            .subList(0, logbookOperation.getEvents().size() - 1)
+            .stream()
+            .filter(e -> e.getEvParentId() == null)
+            .filter(e -> e.getEvType().startsWith("STP_") && !e.getEvType().contains("."))
+            .collect(Collectors.toMap(LogbookEvent::getEvType, e -> e));
+
+        assertThat(startedStepEventsByStepNames).containsExactlyInAnyOrderElementsOf(
+            completedStepEventsByStepName.keySet()
+        );
+        assertThat(completedStepEventsByStepName.values())
+            .extracting(LogbookEventOperation::getOutcome)
+            .allMatch(Predicates.in(List.of(StatusCode.OK.name(), StatusCode.WARNING.name())));
     }
 }
