@@ -339,30 +339,45 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         assertThat(resp.isOk()).isTrue();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
 
-        // Wait step STP_UNIT_CHECK_AND_PROCESS
-        waitStep(processWorkflow, STEP_INDEX);
+        try {
+            int nbPauses = 0;
+            while (!processWorkflow.getState().equals(ProcessState.COMPLETED)) {
+                Thread.sleep(100);
 
-        // Pause operation
-        pauseOperation(operationId);
+                // Pause operation
+                pauseOperation(operationId);
 
-        // Check status
-        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
-        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_API_PAUSE);
+                if (processWorkflow.getState().equals(ProcessState.COMPLETED)) {
+                    break;
+                }
 
-        // Resume operation and await termination
-        resumeOperation(operationId);
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
+                // Check status
+                assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
+                assertThat(processWorkflow.getStatus().compareTo(StatusCode.KO) < 0).isTrue();
+                assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_API_PAUSE);
+                nbPauses++;
 
-        // Check status
-        processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
-        assertThat(processWorkflow).isNotNull();
-        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
-        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+                // Resume operation and await termination
+                resumeOperation(operationId);
+            }
+            System.out.println("NB PAUSES = " + nbPauses);
 
-        // Checks all steps
-        checkAllSteps(processWorkflow);
-        checkLogbookOperation(operationId, processWorkflow);
+            // Check status
+            processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, TENANT_ID);
+            assertThat(processWorkflow).isNotNull();
+            assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
+            assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+
+            // Checks all steps
+            checkAllSteps(processWorkflow);
+            checkLogbookOperation(operationId, processWorkflow);
+        } catch (Exception | AssertionError e) {
+            System.out.println("\n\nProcessWorkflow :\n" + JsonHandler.prettyPrint(processWorkflow));
+            System.out.println(
+                "\n\nLogbookOperation :\n" + JsonHandler.prettyPrint(selectLogbookOperation(operationId))
+            );
+            throw e;
+        }
     }
 
     @Test

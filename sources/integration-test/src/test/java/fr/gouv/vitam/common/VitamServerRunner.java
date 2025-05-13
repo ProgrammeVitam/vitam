@@ -123,7 +123,7 @@ public class VitamServerRunner extends ExternalResource {
     // Constants
 
     public static final long SLEEP_TIME = 20L;
-    public static final long NB_TRY = 18000;
+    public static final long NB_TRY = 6000;
 
     public static final int PORT_SERVICE_IDENTITY = 8005;
     public static final int PORT_SERVICE_IDENTITY_ADMIN = 28005;
