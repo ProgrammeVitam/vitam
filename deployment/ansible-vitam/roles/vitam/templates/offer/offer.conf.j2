@@ -23,3 +23,4 @@ offerLogCompaction:
 
 maxBatchThreadPoolSize: {{ vitam_offers[offer_conf]["maxBatchThreadPoolSize"] | default(32) }}
 batchMetadataComputationTimeout: {{ vitam_offers[offer_conf]["batchMetadataComputationTimeout"] | default(600) }}
+cleanupObjectsOnWriteError: {{ vitam_offers[offer_conf]["cleanupObjectsOnWriteError"] | default(true) }}

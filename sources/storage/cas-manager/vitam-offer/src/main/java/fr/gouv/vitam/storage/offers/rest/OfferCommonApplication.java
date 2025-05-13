@@ -117,7 +117,8 @@ public class OfferCommonApplication {
                 configuration.getOfferLogCompactionConfiguration(),
                 offerLogAndCompactedOfferLogService,
                 configuration.getMaxBatchThreadPoolSize(),
-                configuration.getBatchMetadataComputationTimeout()
+                configuration.getBatchMetadataComputationTimeout(),
+                configuration.isCleanupObjectsOnWriteError()
             );
             // Decorate default offer service with a sanity check wrapper
             this.defaultOfferService = new SanityCheckOfferServiceDecorator(
