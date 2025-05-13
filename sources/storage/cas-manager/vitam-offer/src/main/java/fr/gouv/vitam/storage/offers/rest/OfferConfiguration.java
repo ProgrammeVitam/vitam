@@ -55,6 +55,13 @@ public class OfferConfiguration extends DbConfigurationImpl {
     private int batchMetadataComputationTimeout = 600;
 
     /**
+     * Deletes WORM (Write Once Read Many) objects on write errors, to limit the probability of incomplete non-rewritable / non-overridable objects.
+     * True (default) for fast auto-recovery in most failure cases, but may cause data loses in rare cases of concurrent (re-)writes by other threads.
+     */
+    @JsonProperty("cleanupObjectsOnWriteError")
+    private boolean cleanupObjectsOnWriteError = true;
+
+    /**
      * @return the provider
      */
     public String getProvider() {
@@ -144,6 +151,15 @@ public class OfferConfiguration extends DbConfigurationImpl {
 
     public OfferConfiguration setBatchMetadataComputationTimeout(int batchMetadataComputationTimeout) {
         this.batchMetadataComputationTimeout = batchMetadataComputationTimeout;
+        return this;
+    }
+
+    public boolean isCleanupObjectsOnWriteError() {
+        return cleanupObjectsOnWriteError;
+    }
+
+    public OfferConfiguration setCleanupObjectsOnWriteError(boolean cleanupObjectsOnWriteError) {
+        this.cleanupObjectsOnWriteError = cleanupObjectsOnWriteError;
         return this;
     }
 }

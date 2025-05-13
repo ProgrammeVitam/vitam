@@ -74,6 +74,7 @@ import fr.gouv.vitam.storage.offers.rest.OfferLogCompactionConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
@@ -116,12 +117,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -209,7 +213,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
     }
 
@@ -407,6 +412,106 @@ public class DefaultOfferServiceTest {
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
         verify(offerDatabaseService, times(1)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE, 1L);
+    }
+
+    @Test
+    public void createObject_tryDeleteObjectOnWriteError() throws Exception {
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)
+        ).thenReturn(1L);
+
+        ContentAddressableStorage storage = mock(ContentAddressableStorage.class);
+
+        doReturn(true).when(storage).isExistingContainer(CONTAINER_PATH);
+        doReturn(false).when(storage).isExistingObject(CONTAINER_PATH, OBJECT_ID);
+
+        doThrow(new ContentAddressableStorageServerException("Some prb"))
+            .when(storage)
+            .writeObject(anyString(), anyString(), any(), any(), anyLong());
+
+        offerService = new DefaultOfferServiceImpl(
+            storage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
+        );
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertThatThrownBy(
+                () ->
+                    offerService.createObject(
+                        CONTAINER_PATH,
+                        OBJECT_ID,
+                        in,
+                        OBJECT_TYPE,
+                        8766L,
+                        VitamConfiguration.getDefaultDigestType()
+                    )
+            )
+                .isInstanceOf(ContentAddressableStorageServerException.class)
+                .hasMessage("Some prb");
+        }
+
+        // check
+        verify(offerDatabaseService, never()).save(anyString(), anyString(), any(), anyLong());
+        verify(storage).deleteObject(CONTAINER_PATH, OBJECT_ID);
+    }
+
+    @Test
+    public void createObject_doNotTryToDeleteObjectOnWriteErrorWhenDisabled() throws Exception {
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)
+        ).thenReturn(1L);
+
+        ContentAddressableStorage storage = mock(ContentAddressableStorage.class);
+
+        doReturn(true).when(storage).isExistingContainer(CONTAINER_PATH);
+        doReturn(false).when(storage).isExistingObject(CONTAINER_PATH, OBJECT_ID);
+
+        doThrow(new ContentAddressableStorageServerException("Some prb"))
+            .when(storage)
+            .writeObject(anyString(), anyString(), any(), any(), anyLong());
+
+        offerService = new DefaultOfferServiceImpl(
+            storage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            false
+        );
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertThatThrownBy(
+                () ->
+                    offerService.createObject(
+                        CONTAINER_PATH,
+                        OBJECT_ID,
+                        in,
+                        OBJECT_TYPE,
+                        8766L,
+                        VitamConfiguration.getDefaultDigestType()
+                    )
+            )
+                .isInstanceOf(ContentAddressableStorageServerException.class)
+                .hasMessage("Some prb");
+        }
+
+        // check
+        verify(offerDatabaseService, never()).save(anyString(), anyString(), any(), anyLong());
+        verify(storage, never()).deleteObject(CONTAINER_PATH, OBJECT_ID);
     }
 
     @Test
@@ -812,7 +917,8 @@ public class DefaultOfferServiceTest {
             config,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         List<OfferLog> logs = Arrays.asList(
@@ -849,7 +955,8 @@ public class DefaultOfferServiceTest {
             config,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         List<OfferLog> logs = Arrays.asList(
@@ -906,7 +1013,8 @@ public class DefaultOfferServiceTest {
             config,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         List<OfferLog> logs1 = Arrays.asList(
@@ -1000,7 +1108,8 @@ public class DefaultOfferServiceTest {
             config,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         OfferLog offerLog = new OfferLog(1, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE);
@@ -1092,7 +1201,8 @@ public class DefaultOfferServiceTest {
             config,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         when(
@@ -1307,7 +1417,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         doAnswer(args -> {
@@ -1359,7 +1470,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         doAnswer(args -> {
@@ -1416,7 +1528,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            BATCH_METADATA_COMPUTATION_TIMEOUT
+            BATCH_METADATA_COMPUTATION_TIMEOUT,
+            true
         );
 
         doAnswer(args -> {
@@ -1457,7 +1570,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doAnswer(args -> {
@@ -1499,7 +1613,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doReturn("accessRequestId")
@@ -1526,7 +1641,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doReturn("accessRequestId")
@@ -1553,7 +1669,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doReturn(Map.of("accessRequest1", AccessRequestStatus.EXPIRED, "accessRequest2", AccessRequestStatus.READY))
@@ -1585,7 +1702,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doReturn(Map.of("accessRequest1", AccessRequestStatus.EXPIRED, "accessRequest2", AccessRequestStatus.READY))
@@ -1612,7 +1730,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         // When
@@ -1635,7 +1754,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         // When / Then
@@ -1658,7 +1778,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doReturn(true).when(contentAddressableStorage).checkObjectAvailability("container", List.of("obj1", "obj2"));
@@ -1683,7 +1804,8 @@ public class DefaultOfferServiceTest {
             null,
             offerLogAndCompactedOfferLogService,
             MAX_BATCH_THREAD_POOL_SIZE,
-            1
+            1,
+            true
         );
 
         doReturn(true).when(contentAddressableStorage).checkObjectAvailability("container", List.of("obj1", "obj2"));

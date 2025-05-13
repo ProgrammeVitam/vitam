@@ -56,7 +56,7 @@ vitam_strategy:
 # WARNING : for offer names, please only use [a-z][a-z0-9-]* pattern
 vitam_offers:
   offer-fs-1:
-    # param can be filesystem-hash (recomended) or filesystem (not recomended)
+    # param can be filesystem-hash (recommended) or filesystem (not recommended)
     provider: filesystem-hash
     ### Optional parameters
     # Offer log compaction
@@ -71,6 +71,9 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+    # Clean up non-rewritable / non-overridable objects on write errors.
+    # True (default) for fast auto-recovery in most failure cases, but may cause data loses in rare cases of concurrent (re-)writes by other threads. Use at your own risk.
+    cleanupObjectsOnWriteError: true
 ################################################################################
   offer-swift-1:
     # provider : openstack-swift for v1 or openstack-swift-v3 for v3
@@ -116,6 +119,9 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+    # Clean up non-rewritable / non-overridable objects on write errors.
+    # True (default) for fast auto-recovery in most failure cases, but may cause data loses in rare cases of concurrent (re-)writes by other threads. Use at your own risk.
+    cleanupObjectsOnWriteError: true
     # Enable / Disable use of vitam custom headers for offer requests
     enableCustomHeaders: false
     # List of vitam custom headers used by offer requests
@@ -167,6 +173,9 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+    # Clean up non-rewritable / non-overridable objects on write errors.
+    # True (default) for fast auto-recovery in most failure cases, but may cause data loses in rare cases of concurrent (re-)writes by other threads. Use at your own risk.
+    cleanupObjectsOnWriteError: true
 ################################################################################
   offer-tape-1:
     provider: tape-library
@@ -188,6 +197,9 @@ vitam_offers:
     maxBatchThreadPoolSize: 32
     # Batch metadata computation timeout in seconds
     batchMetadataComputationTimeout: 600
+    # Clean up non-rewritable / non-overridable objects on write errors.
+    # True (default) for fast auto-recovery in most failure cases, but may cause data loses in rare cases of concurrent (re-)writes by other threads. Use at your own risk.
+    cleanupObjectsOnWriteError: true
 ################################################################################
   # WARNING: Swift V1 is deprecated
   # example_swift_v1:
