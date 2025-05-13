@@ -104,6 +104,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService;
     private final ExecutorService batchExecutorService;
     private final int batchMetadataComputationTimeoutIsSeconds;
+    private final boolean cleanupObjectsOnWriteError;
 
     public DefaultOfferServiceImpl(
         ContentAddressableStorage defaultStorage,
@@ -114,7 +115,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         OfferLogCompactionConfiguration offerLogCompactionConfig,
         OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService,
         int maxBatchThreadPoolSize,
-        int batchMetadataComputationTimeout
+        int batchMetadataComputationTimeout,
+        boolean cleanupObjectsOnWriteError
     ) {
         this.defaultStorage = defaultStorage;
         this.offerLogCompactionDatabaseService = offerLogCompactionDatabaseService;
@@ -125,6 +127,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         this.offerLogAndCompactedOfferLogService = offerLogAndCompactedOfferLogService;
         this.batchMetadataComputationTimeoutIsSeconds = batchMetadataComputationTimeout;
         this.batchExecutorService = ExecutorUtils.createScalableBatchExecutorService(maxBatchThreadPoolSize);
+        this.cleanupObjectsOnWriteError = cleanupObjectsOnWriteError;
     }
 
     @Override
@@ -303,7 +306,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         } catch (ContentAddressableStorageNotFoundException e) {
             throw e;
         } catch (Exception ex) {
-            trySilentlyDeleteWormObject(containerName, objectId, type);
+            trySilentlyDeletePotentiallyIncompleteWormObject(containerName, objectId, type);
             // Propagate the initial exception
             throw ex;
         } finally {
@@ -468,7 +471,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return containerInformation;
     }
 
-    private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
+    private void trySilentlyDeletePotentiallyIncompleteWormObject(
+        String containerName,
+        String objectId,
+        DataCategory type
+    ) {
         if (type.canUpdate()) {
             LOGGER.error(
                 "Write file failed for " +
@@ -476,6 +483,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 "/" +
                 objectId +
                 ". No need to cleanup (object is rewritable)"
+            );
+            return;
+        }
+
+        if (!cleanupObjectsOnWriteError) {
+            LOGGER.warn(
+                "Potentially partially written object: " +
+                containerName +
+                "/" +
+                objectId +
+                ". Automatic cleanup is disabled"
             );
             return;
         }
