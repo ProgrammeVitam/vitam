@@ -435,7 +435,7 @@ public class VitamTestHelper {
         ) {
             processingManagementClient.updateOperationActionProcess(ProcessAction.PAUSE.getValue(), operationId);
         }
-        waitOperation(operationId, ProcessState.PAUSE);
+        waitOperation(operationId);
     }
 
     public static void resumeOperation(String operationId) throws VitamClientException, InternalServerException {
