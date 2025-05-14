@@ -1,4 +1,15 @@
 ---
 
 apiVersion: 1
-{{ { 'providers': grafana.grafana_dashboards } | to_nice_yaml(width=80, indent=2) }}
+
+providers:
+  - name: vitam-dashboard
+    orgId: 1
+    folder: ''
+    folderUid: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: "{{ grafana_path_dashboards }}"

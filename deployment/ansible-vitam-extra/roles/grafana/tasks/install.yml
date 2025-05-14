@@ -7,72 +7,77 @@
     name: "{{ grafana_package }}"
     state: present
   register: result
-  retries: "{{ packages_install_retries_number | default(1) }}"
+  retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
-  delay: "{{ packages_install_retries_delay | default(10) }}"
+  delay: "{{ packages_install_retries_delay }}"
   notify: "grafana - restart service"
   when: install_mode != "container"
 
+- name: Create grafana group
+  group:
+    name: "{{ grafana_group }}"
+    state: present
+
+- name: Create grafana user
+  user:
+    name: "{{ grafana_user }}"
+    state: present
+    groups: "{{ grafana_group }}"
+
+- name: Ensure grafana directories are present
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/grafana/"
+    state: directory
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  loop:
+    - conf
+    - data
+    - log
+  notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
+
+- name: Ensure grafana provisioning sub directory is present
+  file:
+    path: "{{ grafana_path_provisioning }}"
+    state: directory
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
+
+- name: Ensure grafana provisioning sub directories are present
+  file:
+    path: "{{ grafana_path_provisioning }}/{{ item }}"
+    state: directory
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  loop:
+    - datasources
+    - dashboards
+    - plugins
+    - alerting
+  notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
+
+# When upgrade the Grafana version, get the corresponding grafana.ini file and replace templates/grafana.ini.j2 with corresponding changes
+- name: Apply grafana custom configuration
+  template:
+    src: grafana.ini.j2
+    dest: "{{ grafana_conf_dir if install_mode == 'container' else '/etc/grafana' }}/grafana.ini"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ '0666' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  tags: update_grafana_configuration
+  notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
+
 - block:
-
-  - name: Create Grafana group
-    group:
-      name: grafana
-      state: present
-
-  - name: Create Grafana user
-    user:
-      name: grafana
-      state: present
-      groups: grafana
-
-  - name: Ensure grafana directories are present
-    file:
-      path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/grafana/"
-      state: directory
-      owner: "{{ grafana_user }}"
-      group: "{{ grafana_group }}"
-      mode: "{{ '0666' if install_mode == 'container' else  vitam_defaults.folder.conf_permission | default ('0640') }}"
-    loop:
-      - lib
-      - log
-      - conf
-    notify: "grafana - restart docker"
-
-  - name: Apply grafana custom configuration
-    template:
-      src: "grafana.ini.j2"
-      dest: /vitam/conf/grafana/grafana.ini
-      owner: "{{ grafana_user }}"
-      group: "{{ grafana_group }}"
-      mode: "{{ '0666' if install_mode == 'container' else  vitam_defaults.folder.conf_permission | default ('0640') }}"
-    tags: update_grafana_configuration
-    notify: "grafana - restart docker"
-
-  - name: Ensure grafana sub directories are present
-    file:
-      path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/grafana/provisioning"
-      state: directory
-      owner: "{{ grafana_user }}"
-      group: "{{ grafana_group }}"
-      mode: "{{ '0777' if install_mode == 'container' else  vitam_defaults.folder.conf_permission | default ('0640') }}"
-
-  - name: Ensure grafana sub directories are present
-    file:
-      path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/grafana/provisioning/{{ item }}"
-      state: directory
-      owner: "{{ grafana_user }}"
-      group: "{{ grafana_group }}"
-      mode: "{{ '0777' if install_mode == 'container' else  vitam_defaults.folder.conf_permission | default ('0640') }}"
-    loop:
-      - datasources
-      - dashboards
 
   - name: Pull Docker image
     docker_image:
       name: "{{ container_repository.registry_url }}/vitam-external/grafana/grafana:{{ grafana_version }}"
       state: present
-    ignore_errors: True
+    ignore_errors: true
 
   - name: Start Docker container
     docker_container:
@@ -80,40 +85,21 @@
       image: "{{ container_repository.registry_url }}/vitam-external/grafana/grafana:{{ grafana_version }}"
       state: started
       restart_policy: always
-      ports:
-        - "3000:3000"
       volumes:
-        - "/vitam/conf/grafana:/vitam/conf/grafana:rw"
-        - "/vitam/lib/grafana:/var/lib/grafana:rw"
-        - "/vitam/log/grafana:/var/log/grafana:rw"
+        - "{{ grafana_conf_dir }}:{{ grafana_conf_dir }}:rw"
+        - "{{ grafana_path_provisioning }}:{{ grafana_path_provisioning }}:rw"
+        - "{{ grafana_data_dir }}:{{ grafana_data_dir }}:rw"
+        - "{{ grafana_log_dir }}:{{ grafana_log_dir }}:rw"
+      network_mode: host
       env:
         GF_PATHS_CONFIG: "/vitam/conf/grafana/grafana.ini"
-      user: 0
+        GF_PATHS_DATA: "{{ grafana_data_dir }}"
+        GF_PATHS_PROVISIONING: "{{ grafana_path_provisioning }}"
+        GF_PATHS_PLUGINS: "{{ grafana_path_plugins }}"
+        GF_PATHS_LOGS: "{{ grafana_log_dir }}"
+      user: "{{ grafana_user }}"
 
   when: install_mode == "container"
-
-- name: Ensure grafana directories are present
-  file:
-    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/grafana/"
-    state: directory
-    owner: "{{ grafana_user }}"
-    group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
-  loop:
-    - lib
-    - log
-  when: install_mode != "container"
-
-# When upgrade the Grafana version, get the corresponding grafana.ini file and replace templates/grafana.ini.j2 with corresponding changes
-- name: Apply grafana custom configuration
-  template:
-    src: "grafana.ini.j2"
-    dest: "{{ '/vitam/conf/grafana' if install_mode == 'container' else '/etc/grafana' }}/grafana.ini"
-    owner: "{{ grafana_user }}"
-    group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default ('0640') }}"
-  tags: update_grafana_configuration
-  notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
 
 - meta: flush_handlers
 
@@ -136,7 +122,7 @@
 
 - name: Deploy consul agent service declaration
   template:
-    src: "service-grafana.json.j2"
+    src: service-grafana.json.j2
     dest: "{{ consul_folder_conf }}/service-grafana.json"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
@@ -147,9 +133,9 @@
   notify:
     - "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
 
-- name: Wait for grafana-server port {{ grafana.http_port | default(3000) }} to be open
+- name: "Wait for grafana-server port {{ grafana.http_port | default(3000) }} to be open"
   wait_for:
     host: "{{ ip_admin }}"
     port: "{{ grafana.http_port | default(3000) }}"
-    state: "started"
+    state: started
     timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"

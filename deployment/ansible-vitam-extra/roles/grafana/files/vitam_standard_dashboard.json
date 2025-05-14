@@ -42,7 +42,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "description": "",
       "fieldConfig": {
@@ -114,7 +114,7 @@
           "annotations": false,
           "datasource": {
             "type": "camptocamp-prometheus-alertmanager-datasource",
-            "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+            "uid": "DS_PROMETHEUS_ALERTMANAGER"
           },
           "expr": "severity!=\\\"1\\\"",
           "labelSelector": "*",
@@ -140,7 +140,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "gridPos": {
         "h": 3,
@@ -174,7 +174,7 @@
           "annotations": false,
           "datasource": {
             "type": "camptocamp-prometheus-alertmanager-datasource",
-            "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+            "uid": "DS_PROMETHEUS_ALERTMANAGER"
           },
           "expr": "alertname=\"MemoryUsage\",severity=\"warning\"",
           "filters": "alertname=MemoryUsage",
@@ -191,7 +191,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "gridPos": {
         "h": 3,
@@ -225,7 +225,7 @@
           "annotations": false,
           "datasource": {
             "type": "camptocamp-prometheus-alertmanager-datasource",
-            "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+            "uid": "DS_PROMETHEUS_ALERTMANAGER"
           },
           "expr": "alertname=\"high_cpu_load\",severity=\"warning\"",
           "filters": "high_cpu_load",
@@ -242,7 +242,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "gridPos": {
         "h": 3,
@@ -384,7 +384,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "gridPos": {
         "h": 3,
@@ -430,7 +430,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "description": "",
       "gridPos": {
@@ -465,7 +465,7 @@
           "annotations": false,
           "datasource": {
             "type": "camptocamp-prometheus-alertmanager-datasource",
-            "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+            "uid": "DS_PROMETHEUS_ALERTMANAGER"
           },
           "expr": "alertname=\"high_cpu_load\",severity=\"critical\"",
           "filters": "alertname=\"high_cpu_load\"",
@@ -494,7 +494,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "gridPos": {
         "h": 3,
@@ -540,7 +540,7 @@
     {
       "datasource": {
         "type": "camptocamp-prometheus-alertmanager-datasource",
-        "uid": "${DS_PROMETHEUS_ALERTMANAGER}"
+        "uid": "DS_PROMETHEUS_ALERTMANAGER"
       },
       "gridPos": {
         "h": 4,
