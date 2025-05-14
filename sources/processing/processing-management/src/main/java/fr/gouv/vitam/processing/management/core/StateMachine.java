@@ -569,7 +569,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 } else if (ProcessState.PAUSE.equals(targetState)) {
                     // Process is running in step-by-step mode, or a PAUSE action was requested (and the step may not be completed)
                     // Ensure that the current step is completed before going to the next step.
-                    if (currentStep.getElementProcessed().get() == currentStep.getElementToProcess().get()) {
+                    if (
+                        this.currentStep.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_COMPLETE &&
+                        currentStep.getElementProcessed().get() == currentStep.getElementToProcess().get()
+                    ) {
                         stepIndex++;
                     }
                     this.processWorkflow.setState(ProcessState.PAUSE);
