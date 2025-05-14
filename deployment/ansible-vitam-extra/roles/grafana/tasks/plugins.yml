@@ -2,16 +2,16 @@
 
 - name: Cleanup plugins directory
   file:
-    path: "{{ grafana_data_dir }}/plugins"
+    path: "{{ grafana_path_plugins }}"
     state: absent
 
 - name: Create plugins directory
   file:
-    path: "{{ grafana_data_dir }}/plugins"
+    path: "{{ grafana_path_plugins }}"
     state: directory
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
 
 - name: Install unzip package
   package:
@@ -25,7 +25,7 @@
 - name: Install plugins
   unarchive:
     src: "{{ item }}"
-    dest: "{{ grafana_data_dir }}/plugins"
+    dest: "{{ grafana_path_plugins }}"
   with_fileglob:
     - "{{ role_path }}/files/plugins/*.zip"
   notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"

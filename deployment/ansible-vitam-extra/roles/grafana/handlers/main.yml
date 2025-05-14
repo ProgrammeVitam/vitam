@@ -4,7 +4,7 @@
   systemd:
     name: grafana-server
     state: restarted
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: "grafana - restart docker"
   docker_container:
