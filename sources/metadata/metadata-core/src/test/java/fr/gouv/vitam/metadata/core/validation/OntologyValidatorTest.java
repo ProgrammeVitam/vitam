@@ -36,17 +36,30 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.zone.ZoneRulesException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static fr.gouv.vitam.metadata.core.validation.OntologyValidator.stringExceedsMaxLuceneUtf8StorageSize;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class OntologyValidatorTest {
 
@@ -430,7 +443,7 @@ public class OntologyValidatorTest {
     @Test
     public void ontologyWhenDateTimeAsDateConversionThenOK() throws Exception {
         // Given
-        JsonNode data = JsonHandler.createObjectNode().put("date", "2000-01-01T00:00:00");
+        JsonNode data = JsonHandler.createObjectNode().put("date", "2000-01-01");
 
         // When
         ObjectNode updatedData = ontologyValidator.verifyAndReplaceFields(data);
@@ -448,7 +461,7 @@ public class OntologyValidatorTest {
         ObjectNode updatedData = ontologyValidator.verifyAndReplaceFields(data);
 
         // Then
-        JsonNode expectedConversion = JsonHandler.createObjectNode().put("date", "2019-03-01T10:05:08.583594");
+        JsonNode expectedConversion = JsonHandler.createObjectNode().put("date", "2019-03-01T10:05:08.583");
         assertThat(updatedData).isEqualTo(expectedConversion);
     }
 
@@ -938,7 +951,7 @@ public class OntologyValidatorTest {
         );
         final OntologyValidator ontologyValidator = new OntologyValidator(() -> ontologyModels);
         JsonNode jsonArcUnit = JsonHandler.getFromString(
-            "{\"MyField\":[{\"MyDate\":\"2016/10/12\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00-05:00\"},{\"MyDate\":\"2004-04-12T13:20:00Z\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"12045-01-01\"},{\"MyDate\":\"2004-04-12-05:00\"},{\"MyDate\":\"2004-04-12Z\"}]}"
+            "{\"MyField\":[{\"MyDate\":\"2016/10/12\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00-05:00\"},{\"MyDate\":\"2004-04-12T13:20:00Z\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"12045-01-01\"},{\"MyDate\":\"2004-04-12T00:00:00-05:00\"},{\"MyDate\":\"2004-04-12Z\"}]}"
         );
 
         // When
@@ -946,7 +959,7 @@ public class OntologyValidatorTest {
 
         // Then
         JsonNode expected = JsonHandler.getFromString(
-            "{\"MyField\":[{\"MyDate\":\"2016-10-12\"},{\"MyDate\":\"2004-04-12T13:20:15.5\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"+12045-01-01\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"2004-04-12\"}]}"
+            "{\"MyField\":[{\"MyDate\":\"2016-10-12\"},{\"MyDate\":\"2004-04-12T13:20:15.500\"},{\"MyDate\":\"2004-04-12T13:20:00-05:00\"},{\"MyDate\":\"2004-04-12T13:20:00\"},{\"MyDate\":\"2004-04-12\"},{\"MyDate\":\"-0045-01-01\"},{\"MyDate\":\"+12045-01-01\"},{\"MyDate\":\"2004-04-12T00:00:00-05:00\"},{\"MyDate\":\"2004-04-12\"}]}"
         );
         JsonAssert.assertJsonEquals(expected, result);
     }
@@ -984,5 +997,61 @@ public class OntologyValidatorTest {
         assertThat(stringExceedsMaxLuceneUtf8StorageSize("😊", 6)).isFalse();
         assertThat(stringExceedsMaxLuceneUtf8StorageSize("a😊", 6)).isFalse();
         assertThat(stringExceedsMaxLuceneUtf8StorageSize("aa😊", 6)).isTrue();
+    }
+
+    @Test
+    public void testAllZoneAbbreviations()
+        throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method method = OntologyValidator.class.getDeclaredMethod("mapDateToOntology", String.class);
+        method.setAccessible(true);
+
+        Map<String, String> shortIds = ZoneId.SHORT_IDS;
+        LocalDate date = LocalDate.of(2024, 3, 26); //Date chosen to observe the effect of daylight saving time (DST)
+        LocalTime time = LocalTime.of(8, 0);
+
+        for (Map.Entry<String, String> entry : shortIds.entrySet()) {
+            String abbreviation = entry.getKey();
+            ZoneId zoneId = ZoneId.of(abbreviation, ZoneId.SHORT_IDS);
+            ZonedDateTime zdt = ZonedDateTime.of(date, time, zoneId);
+            OffsetDateTime odt = zdt.toOffsetDateTime();
+
+            String input = date + "T" + time + " " + abbreviation;
+            String expected = odt.withNano(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
+            String actual = (String) method.invoke(ontologyValidator, input);
+
+            Assert.assertEquals("Failed for abbreviation: " + abbreviation, expected, actual);
+        }
+    }
+
+    @Test
+    public void testMapDateToOntology_InvalidInputs_UsingReflection() throws Exception {
+        Method method = OntologyValidator.class.getDeclaredMethod("mapDateToOntology", String.class);
+        method.setAccessible(true); // Accès à la méthode privée
+        String[] invalidCases = { "not-a-date", "2024-13-01", "2024-02-30", "2024-03-26T99:99:99" };
+
+        for (String input : invalidCases) {
+            try {
+                String actual = (String) method.invoke(ontologyValidator, input);
+                fail("Expected exception for input: " + input + " but got result: " + actual);
+            } catch (InvocationTargetException ex) {
+                Throwable cause = ex.getCause();
+                assertTrue(
+                    "Expected IllegalArgumentException for input: " + input + " but got: " + cause.getClass(),
+                    cause instanceof IllegalArgumentException
+                );
+            }
+        }
+
+        String invalidZone = "2024-03-26 XXX";
+        try {
+            String actual = (String) method.invoke(ontologyValidator, invalidZone);
+            fail("Expected exception for input: " + invalidZone + " but got result: " + actual);
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getCause();
+            assertTrue(
+                "Expected IllegalArgumentException for input: " + invalidZone + " but got: " + cause.getClass(),
+                cause instanceof ZoneRulesException
+            );
+        }
     }
 }
