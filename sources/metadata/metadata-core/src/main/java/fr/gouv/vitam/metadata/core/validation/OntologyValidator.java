@@ -37,16 +37,12 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.OntologyLoader;
+import fr.gouv.vitam.common.date.converter.XsdDateToMongoConverter;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -54,20 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.time.temporal.ChronoField.HOUR_OF_DAY;
-
 public class OntologyValidator {
-
-    private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()
-        .appendOptional(
-            DateTimeFormatter.ofPattern("u-MM-dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]")
-        )
-        .appendOptional(
-            DateTimeFormatter.ofPattern("u/MM/dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]")
-        )
-        .toFormatter();
 
     private static float MAX_UTF8_BYTES_PER_CHAR = StandardCharsets.UTF_8.newEncoder().maxBytesPerChar();
 
@@ -313,10 +296,8 @@ public class OntologyValidator {
         return textValue.getBytes(CharsetUtils.UTF8).length >= maxUtf8Length;
     }
 
-    private String mapDateToOntology(String field) {
-        TemporalAccessor parse = XSD_DATATYPE_DATE_FORMATTER.parse(field);
-        return parse.isSupported(HOUR_OF_DAY)
-            ? parse.query(LocalDateTime::from).format(ISO_LOCAL_DATE_TIME)
-            : parse.query(LocalDate::from).format(ISO_LOCAL_DATE);
+    private String mapDateToOntology(String input) {
+        XsdDateToMongoConverter xsdDateToMongoConverter = new XsdDateToMongoConverter();
+        return xsdDateToMongoConverter.mapDateXmlToMongo(input);
     }
 }

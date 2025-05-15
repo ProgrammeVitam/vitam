@@ -498,12 +498,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
+
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
+
             LOGGER.warn("Result: " + jsonResponse);
             final JsonNode ogResults = jsonResponse.get(RESULTS);
             assertNotNull(ogResults);
             final JsonNode objectGroup = ogResults.get(0);
             assertNotNull(objectGroup);
+            assertEquals("2016-05-05T20:45:20.487+02:00", objectGroup.get("FileInfo").get("LastModified").asText());
 
             checkApproximateDates(dateBeforeIngest, objectGroup);
 
