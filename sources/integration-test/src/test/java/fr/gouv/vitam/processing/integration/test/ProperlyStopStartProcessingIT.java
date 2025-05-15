@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.exception.ConflictClientException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -357,8 +358,16 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
             while (!processWorkflow.getState().equals(ProcessState.COMPLETED)) {
                 Thread.sleep(100);
 
-                // Pause operation
-                pauseOperation(operationId);
+                // Try pause operation
+                try {
+                    pauseOperation(operationId);
+                } catch (VitamClientInternalException e) {
+                    if (e.getMessage().contains("Conflict")) {
+                        // Process completed concurrently. Ignore...
+                        break;
+                    }
+                    throw e;
+                }
 
                 if (processWorkflow.getState().equals(ProcessState.COMPLETED)) {
                     break;
