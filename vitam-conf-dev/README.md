@@ -75,34 +75,22 @@ Should be useful: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .bas
        DefaultOffer, ProcessManagement, BatchReport, Worker, AdminManagement, IngestInternal, IngestExternal,
        AccessInternal, AccessExternal, IhmDemo
 
-8. Changer la configuration des composants metadata et ihm-recette (si besoin) pour pointer vers les fichiers mappings
-   d'elasticsearch des collections Unit et ObjectGroup comme suit :
-    1. La liste des variables mappingPath de l'attribut elasticsearchExternalMetadataMappings:
-       elasticsearchExternalMetadataMappings:
-        - collection: Unit
-          mappingFile: `path/to/vitam/vitam-conf-dev/conf/metadata/mapping/unit-es-mapping.json`
-        - collection: ObjectGroup
-          mappingFile: `path/to/vitam/vitam-conf-dev/conf/metadata/mapping/og-es-mapping.json`
-          les fichiers unit-es-mapping.json et og-es-mapping.json seront de préférence (pas obligatoire) des liens
-          symboliques vers les fichier se trouvant
-          dans `path/to/vitam/deployment/environments/files/elasticsearch-mappings`.
-
-9. One vitam-build-repo AND vitam-deploy-cots are done without error, launch your configured multirun task in order to
+8. Once vitam-build-repo AND vitam-deploy-cots are done without error, launch your configured multirun task in order to
    launch all vitam modules.
     1. If Some servers are not correctly launched, check in your docker cots that all vitam services are successfully
        launched with `systemctl -a | grep vitam`
 
-10. Run the `init_data_vitam.sh` file to init vitam with SecurityProfiles/Ontology/Contexts/Certificate.
+9. Run the `init_data_vitam.sh` file to init vitam with SecurityProfiles/Ontology/Contexts/Certificate.
 
-11. Run the cucumber `_init.feature` in order to initialize with necessary data like contracts.
+10. Run the cucumber `_init.feature` in order to initialize with necessary data like contracts.
 
-12. Launch mongo-express docker container:
+11. Launch mongo-express docker container:
     1. Login to programmevitam docker repo with `docker login https://docker.programmevitam.fr` and your vitam LDAP
        credentials
     2. Run mongo express
        with `docker run -d -p 10081:8081 --name="mongo-express" -e ME_CONFIG_MONGODB_ADMINUSERNAME="vitamdb-admin" -e ME_CONFIG_MONGODB_ADMINPASSWORD="azerty" -e ME_CONFIG_MONGODB_SERVER="172.17.0.2" --link vitam-rpm-cots-dev:mongo docker.programmevitam.fr/mongo-express`
 
-13. Pour utiliser une deuxième offre de type FS:
+12. Pour utiliser une deuxième offre de type FS:
     1. Exécuter le script `init_offer2_database.sh` qui initialisera une base offer2 dans le mongo
     2. Ajouter un deuxième serveur application offer dans intellij:
        a. Main class: fr.gouv.vitam.storage.offers.rest.DefaultOfferMain
@@ -114,7 +102,7 @@ Should be useful: Add 'export VITAMDEV_GIT_REPO=/path/to/git/vitam/repo' in .bas
        f. AccessLog (Add new log entry): /vitam/log/offer2/accesslog-offer.*.log
     3. Si nécessaire créer les dossier `/vitam/data/offer2` et `/vitam/log/offer2`
 
-14. Pour utiliser une troisième offre de type TAPE:
+13. Pour utiliser une troisième offre de type TAPE:
     1. Récupérer le repository `vtl-utils` et exécuter les scripts pour lancer le serveur et configurer le client sur la
        machine locale
     2. Copier le fichier `conf/offer3/default-storage.conf.sample` vers `conf/offer3/default-storage.conf` et y

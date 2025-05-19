@@ -79,7 +79,6 @@ import fr.gouv.vitam.metadata.core.config.MetaDataConfigurationValidator;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -151,7 +150,7 @@ public class WebApplicationResourceDelete {
         AdminManagementConfiguration adminConfiguration;
         LogbookConfiguration logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
-        MappingLoader mappingLoader;
+
         if (webApplicationConfig.isDbAuthentication()) {
             adminConfiguration =
                 new AdminManagementConfiguration(webApplicationConfig.getMongoDbNodes(),
@@ -166,7 +165,7 @@ public class WebApplicationResourceDelete {
                     true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword())
                     .setLogbookTenantIndexation(logbookLogbookIndexationConfiguration);
 
-            mappingLoader = new MappingLoader(webApplicationConfig.getElasticsearchExternalMetadataMappings());
+
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                 .getElasticsearchNodes(),

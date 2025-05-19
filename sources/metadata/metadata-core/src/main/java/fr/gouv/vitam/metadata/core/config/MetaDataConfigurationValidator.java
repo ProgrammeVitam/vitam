@@ -77,6 +77,14 @@ public final class MetaDataConfigurationValidator {
 
         CollectionConfigurationUtils.validate(config.getDefaultCollectionConfiguration().getUnit(), false);
         CollectionConfigurationUtils.validate(config.getDefaultCollectionConfiguration().getObjectgroup(), false);
+
+        if (config.getDefaultCollectionConfiguration().getUnit().getMappingFile() == null) {
+            throw new IllegalStateException("Invalid configuration. Missing unit mapping file");
+        }
+
+        if (config.getDefaultCollectionConfiguration().getObjectgroup().getMappingFile() == null) {
+            throw new IllegalStateException("Invalid configuration. Missing objectgroup mapping file");
+        }
     }
 
     private static void validateTenantGroupNames(MetadataIndexationConfiguration indexationConfiguration) {

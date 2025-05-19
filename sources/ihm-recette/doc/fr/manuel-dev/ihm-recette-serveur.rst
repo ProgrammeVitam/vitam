@@ -73,4 +73,3 @@ Fichier ``ihm-recette.conf``
 * dbName, masterdataDbName, logbookDbName, metadataDbName, mongoDbNodes, clusterName, elasticsearchNodes
 * testSystemSipDirectory, testSystemReportDirectory
 * sipDirectory, performanceReportDirectory
-* elasticsearchExternalMetadataMappings (liste des collections respectivement Unit et ObjectGroup et les fichiers de mappings associés d'elasticsearch)
