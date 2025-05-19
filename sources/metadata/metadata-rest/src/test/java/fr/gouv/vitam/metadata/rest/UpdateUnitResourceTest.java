@@ -60,6 +60,7 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
@@ -85,6 +86,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static io.restassured.RestAssured.given;
@@ -222,6 +224,22 @@ public class UpdateUnitResourceTest {
             ElasticsearchRule.VITAM_CLUSTER,
             esNodes
         );
+        Optional<ElasticsearchExternalMetadataMapping> unitMappingOpt = mappingLoader
+            .getElasticsearchExternalMappings()
+            .stream()
+            .filter(elt -> elt.getCollection().contains("Unit"))
+            .findFirst();
+        Optional<ElasticsearchExternalMetadataMapping> objectGroupMapping = mappingLoader
+            .getElasticsearchExternalMappings()
+            .stream()
+            .filter(elt -> elt.getCollection().contains("ObjectGroup"))
+            .findFirst();
+        if (unitMappingOpt.isEmpty()) {
+            throw new IllegalArgumentException("Empty unit mapping file settings");
+        }
+        if (objectGroupMapping.isEmpty()) {
+            throw new IllegalArgumentException("Empty OG mapping file settings");
+        }
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
@@ -229,8 +247,8 @@ public class UpdateUnitResourceTest {
             new MetadataIndexationConfiguration()
                 .setDefaultCollectionConfiguration(
                     new DefaultCollectionConfiguration()
-                        .setUnit(new CollectionConfiguration(1, 0))
-                        .setObjectgroup(new CollectionConfiguration(1, 0))
+                        .setUnit(new CollectionConfiguration(1, 0, unitMappingOpt.get().getMappingFile()))
+                        .setObjectgroup(new CollectionConfiguration(1, 0, objectGroupMapping.get().getMappingFile()))
                 )
         );
         configuration.setWorkspaceUrl("http://localhost:8094");

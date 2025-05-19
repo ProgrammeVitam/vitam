@@ -40,9 +40,11 @@ elasticsearchTenantIndexation:
     unit:
       number_of_shards: 3
       number_of_replicas: 10
+      mappingFile: ./mapping/unit-es-mapping.json
     objectgroup:
       number_of_shards: 3
       number_of_replicas: 11
+      mappingFile: ./mapping/og-es-mapping.json
 
   dedicated_tenants:
     - tenants: '10-20'

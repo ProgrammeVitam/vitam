@@ -73,6 +73,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
@@ -110,6 +111,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
@@ -181,7 +183,16 @@ public class MetadataResourceTest {
         );
 
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-
+        Optional<ElasticsearchExternalMetadataMapping> unitMappingOpt = mappingLoader
+            .getElasticsearchExternalMappings()
+            .stream()
+            .filter(elt -> elt.getCollection().contains("Unit"))
+            .findFirst();
+        Optional<ElasticsearchExternalMetadataMapping> objectGroupMapping = mappingLoader
+            .getElasticsearchExternalMappings()
+            .stream()
+            .filter(elt -> elt.getCollection().contains("ObjectGroup"))
+            .findFirst();
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration = new MetaDataConfiguration(
@@ -220,8 +231,8 @@ public class MetadataResourceTest {
             new MetadataIndexationConfiguration()
                 .setDefaultCollectionConfiguration(
                     new DefaultCollectionConfiguration()
-                        .setUnit(new CollectionConfiguration(1, 0))
-                        .setObjectgroup(new CollectionConfiguration(1, 0))
+                        .setUnit(new CollectionConfiguration(1, 0, unitMappingOpt.get().getMappingFile()))
+                        .setObjectgroup(new CollectionConfiguration(1, 0, objectGroupMapping.get().getMappingFile()))
                 )
         );
         configuration.setWorkspaceUrl("http://localhost:8094");

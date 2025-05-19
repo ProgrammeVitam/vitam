@@ -70,14 +70,6 @@ public class AdminManagementConfigurationValidator {
     private static void validateIndexationConfiguration(
         FunctionalAdminIndexationConfiguration indexationConfiguration
     ) {
-        if (indexationConfiguration == null) {
-            throw new IllegalStateException("Invalid configuration. Missing ES tenant indexation");
-        }
-
-        if (indexationConfiguration.getDefaultConfiguration() == null) {
-            throw new IllegalStateException("Invalid configuration. Missing default configuration");
-        }
-
         CollectionConfigurationUtils.validate(indexationConfiguration.getDefaultConfiguration(), false);
 
         for (CollectionConfiguration collectionConfiguration : indexationConfiguration
@@ -92,18 +84,22 @@ public class AdminManagementConfigurationValidator {
     ) {
         if (customSearchOnFieldsConfiguration == null) return;
 
+        if (customSearchOnFieldsConfiguration.getDefaultCustomSearchCollectionConfiguration() == null) {
+            throw new IllegalStateException("Invalid configuration. Missing default configuration");
+        }
+
         //Default config validation
         if (customSearchOnFieldsConfiguration.getDefaultCustomSearchCollectionConfiguration() != null) {
             CollectionSearchConfigurationUtils.validate(
                 customSearchOnFieldsConfiguration.getDefaultCustomSearchCollectionConfiguration().getUnitFields(),
-                true
+                false
             );
 
             CollectionSearchConfigurationUtils.validate(
                 customSearchOnFieldsConfiguration
                     .getDefaultCustomSearchCollectionConfiguration()
                     .getObjectgroupFields(),
-                true
+                false
             );
         }
 
