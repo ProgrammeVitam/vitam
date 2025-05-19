@@ -30,17 +30,21 @@ pipeline {
                 withCredentials([
                 [$class: 'UsernamePasswordMultiBinding', credentialsId: 'app-jenkins',usernameVariable: 'CI_USR', passwordVariable: 'CI_PSW'],
                 string(credentialsId: "service-nexus-url", variable: 'SERVICE_NEXUS_URL') ]) {
-                    sh '''
-                    npm config get cache
-                    npm config get
-                    npm config ls -l
-                    echo $HOME
-                    cat /etc/passwd
-                    whoami
-                    '''
-
-                    sh '$MVN_COMMAND -f sources/pom.xml install  -Djib.skip=false -Dmaven.test.skip=true -DskipTests=true -Djacoco.skip=true -Dlicense.skip -Denv.SERVICE_NEXUS_URL=$SERVICE_NEXUS_URL -DsendCredentialsOverHttp=true -Djib.to.auth.username=$CI_USR -Djib.to.auth.password=$CI_PSW'
-                }
+                    script {
+                        env.CONTAINER_VERSION = sh(script: "mvn help:evaluate -f sources/pom.xml -Dexpression=project.version -q -DforceStdout",returnStdout: true).trim()
+                    }
+                    nvm('v18.20.3') {
+                        
+                        sh '$MVN_COMMAND -f sources/pom.xml install  -Djib.skip=false -Dmaven.test.skip=true -DskipTests=true -Djacoco.skip=true -Dlicense.skip -Denv.SERVICE_NEXUS_URL=$SERVICE_NEXUS_URL -DsendCredentialsOverHttp=true -Djib.to.auth.username=$CI_USR -Djib.to.auth.password=$CI_PSW'
+                        sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION}"
+                        sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect:${CONTAINER_VERSION}"
+                        sh "docker push ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect:${CONTAINER_VERSION}"
+                        sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace:${CONTAINER_VERSION}"
+                        sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect:${CONTAINER_VERSION}"
+                        sh "docker push ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect:${CONTAINER_VERSION}"
+                                   
+                    }
+                }   
             }
         }
 
@@ -95,14 +99,13 @@ pipeline {
                         '$SERVICE_DOCKER_PUSH_URL/vitam/ihm-recette',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/ingest-internal',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/ingest-external',
-                        '$SERVICE_DOCKER_PUSH_URL/vitam/ingest-security',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/logbook',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/metadata',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/metadata-collect',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/offer',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/processing',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/scheduler',
-                        '$SERVICE_DOCKER_PUSH_URL/vitam/storage-engine',
+                        '$SERVICE_DOCKER_PUSH_URL/vitam/storage',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/worker',
                         '$SERVICE_DOCKER_PUSH_URL/vitam/workspace'
                         // Add more images as needed
