@@ -85,6 +85,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
+import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
@@ -109,6 +110,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertFalse;
@@ -196,11 +198,28 @@ public class WebApplicationResourceDeleteTest {
             new FunctionalAdminIndexationConfiguration()
                 .setDefaultConfiguration(new CollectionConfiguration(1, 0))
         );
+
+        Optional<ElasticsearchExternalMetadataMapping> unitMappingOpt = mappingLoader
+            .getElasticsearchExternalMappings()
+            .stream()
+            .filter(elt -> elt.getCollection().startsWith("Unit"))
+            .findFirst();
+        Optional<ElasticsearchExternalMetadataMapping> objectGroupMapping = mappingLoader
+            .getElasticsearchExternalMappings()
+            .stream()
+            .filter(elt -> elt.getCollection().startsWith("ObjectGroup"))
+            .findFirst();
+        if (unitMappingOpt.isEmpty()) {
+            throw new IllegalArgumentException("Empty unit mapping file settings");
+        }
+        if (objectGroupMapping.isEmpty()) {
+            throw new IllegalArgumentException("Empty OG mapping file settings");
+        }
         realAdminConfig.setMetadataIndexationConfiguration(
             new MetadataIndexationConfiguration()
                 .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setUnit(new CollectionConfiguration(1, 0))
-                    .setObjectgroup(new CollectionConfiguration(1, 0)))
+                    .setUnit(new CollectionConfiguration(1, 0, unitMappingOpt.get().getMappingFile()))
+                    .setObjectgroup(new CollectionConfiguration(1, 0, objectGroupMapping.get().getMappingFile())))
         );
         realAdminConfig.setLogbookIndexationConfiguration(
             new LogbookIndexationConfiguration()
@@ -214,7 +233,6 @@ public class WebApplicationResourceDeleteTest {
             ElasticsearchTestHelper.loadElasticSearchSettings()
         );
         realAdminConfig.getElasticsearchNodes().get(0).setHttpPort(ElasticsearchRule.PORT);
-        realAdminConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 

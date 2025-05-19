@@ -1,0 +1,13 @@
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_shards: 3
+    number_of_replicas: 10
+
+
+customSearchOnFields:
+  default_config:
+
+
+accessionRegisterSymbolicThreadPoolSize: 4
+ruleAuditThreadPoolSize: 4

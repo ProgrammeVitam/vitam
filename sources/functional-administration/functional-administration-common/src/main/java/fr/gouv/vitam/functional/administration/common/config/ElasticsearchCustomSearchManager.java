@@ -37,6 +37,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ElasticsearchCustomSearchManager {
 
@@ -46,114 +47,76 @@ public class ElasticsearchCustomSearchManager {
         new HashMap<>();
 
     public ElasticsearchCustomSearchManager(AdminManagementConfiguration configuration, List<Integer> tenantIds) {
-        Map<Integer, String> tenantToTenantGroupMap = new HashMap<>();
-        Map<Integer, CollectionCustomSearchConfiguration> customTenantUnitConfiguration = new HashMap<>();
-        Map<String, CollectionCustomSearchConfiguration> groupedTenantUnitConfiguration = new HashMap<>();
-
-        Map<Integer, CollectionCustomSearchConfiguration> customTenantObjectGroupConfiguration = new HashMap<>();
-        Map<String, CollectionCustomSearchConfiguration> groupedTenantObjectGroupConfiguration = new HashMap<>();
-
-        if (configuration != null && configuration.getCustomSearchOnFieldsConfiguration() != null) {
-            CollectionCustomSearchConfiguration defaultUnitConfiguration = configuration
-                .getCustomSearchOnFieldsConfiguration()
-                .getDefaultCustomSearchCollectionConfiguration()
-                .getUnitFields();
-
-            CollectionCustomSearchConfiguration defaultObjectGroupConfiguration = configuration
-                .getCustomSearchOnFieldsConfiguration()
-                .getDefaultCustomSearchCollectionConfiguration()
-                .getObjectgroupFields();
-
-            handleDedicatedTenantsConfigurations(
-                configuration,
-                tenantIds,
-                defaultUnitConfiguration,
-                defaultObjectGroupConfiguration,
-                customTenantUnitConfiguration,
-                customTenantObjectGroupConfiguration
-            );
-
-            handleTenantsGroupsConfiguration(
-                configuration,
-                tenantIds,
-                defaultUnitConfiguration,
-                groupedTenantUnitConfiguration,
-                defaultObjectGroupConfiguration,
-                groupedTenantObjectGroupConfiguration,
-                tenantToTenantGroupMap
-            );
-
-            tenantIds
-                .stream()
-                .forEach(tenantId -> {
-                    CollectionCustomSearchConfiguration unitConfiguration = customTenantUnitConfiguration.getOrDefault(
-                        tenantId,
-                        defaultUnitConfiguration
-                    );
-
-                    if (CollectionUtils.isNotEmpty(unitConfiguration.getCollectionSearchConfigurations())) {
-                        for (CollectionSearchConfiguration customSearchConfiguration : unitConfiguration.getCollectionSearchConfigurations()) {
-                            this.unitCustomSearchsTypesByTenantAndFieldMap.put(
-                                    Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
-                                    customSearchConfiguration.getTypes()
-                                );
-                        }
-                    }
-                    CollectionCustomSearchConfiguration objectGroupConfiguration =
-                        customTenantObjectGroupConfiguration.getOrDefault(tenantId, defaultObjectGroupConfiguration);
-
-                    if (CollectionUtils.isNotEmpty(objectGroupConfiguration.getCollectionSearchConfigurations())) {
-                        for (CollectionSearchConfiguration customSearchConfiguration : objectGroupConfiguration.getCollectionSearchConfigurations()) {
-                            this.objectGroupCustomSearchsTypesByTenantAndFieldMap.put(
-                                    Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
-                                    customSearchConfiguration.getTypes()
-                                );
-                        }
-                    }
-                });
-
-            tenantGroupToTenantMap
-                .keySet()
-                .forEach(tenantGroupName -> {
-                    CollectionCustomSearchConfiguration unitConfiguration = groupedTenantUnitConfiguration.get(
-                        tenantGroupName
-                    );
-
-                    CollectionCustomSearchConfiguration objectGroupConfiguration =
-                        groupedTenantObjectGroupConfiguration.get(tenantGroupName);
-
-                    for (Integer tenantId : tenantGroupToTenantMap.get(tenantGroupName)) {
-                        if (CollectionUtils.isNotEmpty(unitConfiguration.getCollectionSearchConfigurations())) {
-                            for (CollectionSearchConfiguration customSearchConfiguration : unitConfiguration.getCollectionSearchConfigurations()) {
-                                this.unitCustomSearchsTypesByTenantAndFieldMap.put(
-                                        Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
-                                        customSearchConfiguration.getTypes()
-                                    );
-                            }
-                        }
-
-                        if (CollectionUtils.isNotEmpty(objectGroupConfiguration.getCollectionSearchConfigurations())) {
-                            for (CollectionSearchConfiguration customSearchConfiguration : objectGroupConfiguration.getCollectionSearchConfigurations()) {
-                                this.objectGroupCustomSearchsTypesByTenantAndFieldMap.put(
-                                        Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
-                                        customSearchConfiguration.getTypes()
-                                    );
-                            }
-                        }
-                    }
-                });
+        if (configuration == null || configuration.getCustomSearchOnFieldsConfiguration() == null) {
+            return;
         }
+
+        Optional<CollectionCustomSearchConfiguration> defaultUnitConfiguration = getDefaultUnitConfiguration(
+            configuration
+        );
+
+        Optional<CollectionCustomSearchConfiguration> defaultObjectGroupConfiguration =
+            getDefaultObjectGroupConfiguration(configuration);
+
+        if (defaultUnitConfiguration.isEmpty() && defaultObjectGroupConfiguration.isEmpty()) return;
+
+        handleDedicatedTenantsConfigurations(
+            configuration,
+            tenantIds,
+            defaultUnitConfiguration.orElseGet(null),
+            defaultObjectGroupConfiguration.orElseGet(null)
+        );
+
+        handleTenantsGroupsConfiguration(
+            configuration,
+            tenantIds,
+            defaultUnitConfiguration.orElseGet(null),
+            defaultObjectGroupConfiguration.orElseGet(null)
+        );
+    }
+
+    private Optional<CollectionCustomSearchConfiguration> getDefaultObjectGroupConfiguration(
+        AdminManagementConfiguration configuration
+    ) {
+        Optional<CollectionCustomSearchConfiguration> defaultObjectGroupConfigurationOpt = Optional.empty();
+        if (
+            configuration.getCustomSearchOnFieldsConfiguration().getDefaultCustomSearchCollectionConfiguration() != null
+        ) {
+            defaultObjectGroupConfigurationOpt = Optional.of(
+                configuration
+                    .getCustomSearchOnFieldsConfiguration()
+                    .getDefaultCustomSearchCollectionConfiguration()
+                    .getObjectgroupFields()
+            );
+        }
+        return defaultObjectGroupConfigurationOpt;
+    }
+
+    private Optional<CollectionCustomSearchConfiguration> getDefaultUnitConfiguration(
+        AdminManagementConfiguration configuration
+    ) {
+        Optional<CollectionCustomSearchConfiguration> defaultUnitConfigurationOpt = Optional.empty();
+        if (
+            configuration.getCustomSearchOnFieldsConfiguration().getDefaultCustomSearchCollectionConfiguration() != null
+        ) {
+            defaultUnitConfigurationOpt = Optional.of(
+                configuration
+                    .getCustomSearchOnFieldsConfiguration()
+                    .getDefaultCustomSearchCollectionConfiguration()
+                    .getUnitFields()
+            );
+        }
+        return defaultUnitConfigurationOpt;
     }
 
     private void handleTenantsGroupsConfiguration(
         AdminManagementConfiguration configuration,
         List<Integer> tenantIds,
         CollectionCustomSearchConfiguration defaultUnitConfiguration,
-        Map<String, CollectionCustomSearchConfiguration> groupedTenantUnitConfiguration,
-        CollectionCustomSearchConfiguration defaultObjectGroupConfiguration,
-        Map<String, CollectionCustomSearchConfiguration> groupedTenantObjectGroupConfiguration,
-        Map<Integer, String> tenantToTenantGroupMap
+        CollectionCustomSearchConfiguration defaultObjectGroupConfiguration
     ) {
+        Map<String, CollectionCustomSearchConfiguration> groupedTenantUnitConfiguration = new HashMap<>();
+        Map<String, CollectionCustomSearchConfiguration> groupedTenantObjectGroupConfiguration = new HashMap<>();
         if (
             CollectionUtils.isNotEmpty(
                 configuration.getCustomSearchOnFieldsConfiguration().getGroupedTenantConfiguration()
@@ -184,23 +147,53 @@ public class ElasticsearchCustomSearchManager {
                 for (TenantRange tenantRange : tenantRanges) {
                     for (int tenantId : tenantIds) {
                         if (tenantRange.isInRange(tenantId)) {
-                            tenantToTenantGroupMap.put(tenantId, groupedTenantConfiguration.getName());
                             tenantGroupToTenantMap.get(groupedTenantConfiguration.getName()).add(tenantId);
                         }
                     }
                 }
             }
         }
+        tenantGroupToTenantMap
+            .keySet()
+            .forEach(tenantGroupName -> {
+                CollectionCustomSearchConfiguration unitConfiguration = groupedTenantUnitConfiguration.get(
+                    tenantGroupName
+                );
+
+                CollectionCustomSearchConfiguration objectGroupConfiguration =
+                    groupedTenantObjectGroupConfiguration.get(tenantGroupName);
+
+                for (Integer tenantId : tenantGroupToTenantMap.get(tenantGroupName)) {
+                    if (CollectionUtils.isNotEmpty(unitConfiguration.getCollectionSearchConfigurations())) {
+                        for (CollectionSearchConfiguration customSearchConfiguration : unitConfiguration.getCollectionSearchConfigurations()) {
+                            this.unitCustomSearchsTypesByTenantAndFieldMap.put(
+                                    Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
+                                    customSearchConfiguration.getTypes()
+                                );
+                        }
+                    }
+
+                    if (CollectionUtils.isNotEmpty(objectGroupConfiguration.getCollectionSearchConfigurations())) {
+                        for (CollectionSearchConfiguration customSearchConfiguration : objectGroupConfiguration.getCollectionSearchConfigurations()) {
+                            this.objectGroupCustomSearchsTypesByTenantAndFieldMap.put(
+                                    Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
+                                    customSearchConfiguration.getTypes()
+                                );
+                        }
+                    }
+                }
+            });
     }
 
-    private static void handleDedicatedTenantsConfigurations(
+    private void handleDedicatedTenantsConfigurations(
         AdminManagementConfiguration configuration,
         List<Integer> tenantIds,
         CollectionCustomSearchConfiguration defaultUnitConfiguration,
-        CollectionCustomSearchConfiguration defaultObjectGroupConfiguration,
-        Map<Integer, CollectionCustomSearchConfiguration> customTenantUnitConfiguration,
-        Map<Integer, CollectionCustomSearchConfiguration> customTenantObjectGroupConfiguration
+        CollectionCustomSearchConfiguration defaultObjectGroupConfiguration
     ) {
+        Map<Integer, CollectionCustomSearchConfiguration> customTenantUnitConfiguration = new HashMap<>();
+        Map<Integer, CollectionCustomSearchConfiguration> customTenantObjectGroupConfiguration = new HashMap<>();
+
         if (
             CollectionUtils.isNotEmpty(
                 configuration.getCustomSearchOnFieldsConfiguration().getDedicatedTenantCustomSearchConfiguration()
@@ -232,6 +225,34 @@ public class ElasticsearchCustomSearchManager {
                 }
             }
         }
+        tenantIds
+            .stream()
+            .forEach(tenantId -> {
+                CollectionCustomSearchConfiguration unitConfiguration = customTenantUnitConfiguration.getOrDefault(
+                    tenantId,
+                    defaultUnitConfiguration
+                );
+
+                if (CollectionUtils.isNotEmpty(unitConfiguration.getCollectionSearchConfigurations())) {
+                    for (CollectionSearchConfiguration customSearchConfiguration : unitConfiguration.getCollectionSearchConfigurations()) {
+                        this.unitCustomSearchsTypesByTenantAndFieldMap.put(
+                                Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
+                                customSearchConfiguration.getTypes()
+                            );
+                    }
+                }
+                CollectionCustomSearchConfiguration objectGroupConfiguration =
+                    customTenantObjectGroupConfiguration.getOrDefault(tenantId, defaultObjectGroupConfiguration);
+
+                if (CollectionUtils.isNotEmpty(objectGroupConfiguration.getCollectionSearchConfigurations())) {
+                    for (CollectionSearchConfiguration customSearchConfiguration : objectGroupConfiguration.getCollectionSearchConfigurations()) {
+                        this.objectGroupCustomSearchsTypesByTenantAndFieldMap.put(
+                                Pair.of(tenantId, customSearchConfiguration.getFieldPath()),
+                                customSearchConfiguration.getTypes()
+                            );
+                    }
+                }
+            });
     }
 
     public List<String> getCustomSearchTypes(String collection, int tenantId, String path) {

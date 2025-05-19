@@ -81,8 +81,7 @@ customSearchOnFields:
         fields:
           - fieldPath: Title
             types:
-              - Strict
-              - Minimal
+              - SomeSearch
           - fieldPath: Description
             types:
               - SomeSearch2
@@ -103,8 +102,9 @@ customSearchOnFields:
         fields:
           - fieldPath: Title
             types:
-              - Strict
-              - Minimal
+              - GroupSearch1
+              - GroupSearch2
+              - GroupSearch3
           - fieldPath: Description
             types:
               - SomeSearchGrp

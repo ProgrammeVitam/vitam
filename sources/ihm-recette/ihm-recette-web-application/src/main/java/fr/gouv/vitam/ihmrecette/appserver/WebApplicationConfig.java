@@ -33,9 +33,7 @@ import fr.gouv.vitam.common.server.application.configuration.FunctionalAdminAdmi
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.config.FunctionalAdminIndexationConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration;
-import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.List;
 
@@ -59,7 +57,6 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     private String testSystemReportDirectory;
     private int ingestMaxThread;
     private FunctionalAdminAdmin functionalAdminAdmin;
-    private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
     private String workspaceUrl;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
@@ -89,14 +86,12 @@ public class WebApplicationConfig extends DbConfigurationImpl {
      * @param mongoDbNodes nodes mongoDb
      * @param dbName mongoDb name
      * @param clusterName elastic search cluster name
-     * @param elasticsearchNodes nodes elastic search
      */
     public WebApplicationConfig(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes, MappingLoader mappingLoader) {
+        List<ElasticsearchNode> elasticsearchNodes) {
         super(mongoDbNodes, dbName);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
-        this.elasticsearchExternalMetadataMappings = mappingLoader.getElasticsearchExternalMappings();
     }
 
     /**
@@ -294,15 +289,6 @@ public class WebApplicationConfig extends DbConfigurationImpl {
     public void setFunctionalAdminAdmin(
         FunctionalAdminAdmin functionalAdminAdmin) {
         this.functionalAdminAdmin = functionalAdminAdmin;
-    }
-
-    public List<ElasticsearchExternalMetadataMapping> getElasticsearchExternalMetadataMappings() {
-        return elasticsearchExternalMetadataMappings;
-    }
-
-    public void setElasticsearchExternalMetadataMappings(
-        List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings) {
-        this.elasticsearchExternalMetadataMappings = elasticsearchExternalMetadataMappings;
     }
 
     public String getWorkspaceUrl() {

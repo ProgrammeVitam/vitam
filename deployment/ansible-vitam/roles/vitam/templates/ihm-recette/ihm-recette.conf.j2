@@ -48,13 +48,6 @@ elasticsearchNodes:
   httpPort: {{ elasticsearch.data.port_http }}
 {% endfor %}
 
-# ElasticSearch External Metadata Mapping
-elasticsearchExternalMetadataMappings:
-- collection: Unit
-  mappingFile: {{ vitam.ihm_recette.elasticsearch_mapping_dir }}/unit-es-mapping.json
-- collection: ObjectGroup
-  mappingFile: {{ vitam.ihm_recette.elasticsearch_mapping_dir }}/og-es-mapping.json
-
 # Functional Admin Configuration
 functionalAdminAdmin:
    functionalAdminServerHost: {{ vitam.functional_administration.host }}
@@ -86,9 +79,11 @@ metadataIndexationSettings:
     unit:
       number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_shards | default('1') }}
       number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.unit.number_of_replicas | default('2') }}
+      mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/unit-es-mapping.json
     objectgroup:
       number_of_shards: {{ vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_shards | default('1') }}
       number_of_replicas: {{ vitam_elasticsearch_tenant_indexation.default_config.objectgroup.number_of_replicas | default('2') }}
+      mappingFile: {{ vitam.metadata.elasticsearch_mapping_dir }}/og-es-mapping.json
 
 {% if vitam_elasticsearch_tenant_indexation.dedicated_tenants is defined and vitam_elasticsearch_tenant_indexation.dedicated_tenants is not none %}
   dedicated_tenants:

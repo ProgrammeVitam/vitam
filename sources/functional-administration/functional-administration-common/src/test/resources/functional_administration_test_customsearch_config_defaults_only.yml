@@ -1,0 +1,29 @@
+# ElasticSearch tenant indexation
+
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_shards: 3
+    number_of_replicas: 10
+
+
+customSearchOnFields:
+  default_config:
+    unit:
+      fields:
+        - fieldPath: Title
+          types:
+            - Strict
+            - Minimal
+        - fieldPath: Description
+          types:
+            - Minimal
+    objectgroup:
+      fields:
+        - fieldPath: Metadata
+          types:
+            - Strict
+            - EnglishMinimal
+        - fieldPath: SomePath
+          types:
+            - SomeSearch
