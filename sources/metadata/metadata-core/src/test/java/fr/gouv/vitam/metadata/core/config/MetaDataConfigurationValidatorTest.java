@@ -148,4 +148,22 @@ public class MetaDataConfigurationValidatorTest {
             IllegalStateException.class
         );
     }
+
+    @Test
+    public void testConfigKO_InvalidDefaultConf_With_Missing_MappingFile() throws Exception {
+        // Given
+        MetaDataConfiguration config;
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "metadata_test_config_invalid_defaults_missing_mappingfile.yml"
+            )
+        ) {
+            config = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
+
+        // When / Then
+        assertThatThrownBy(() -> MetaDataConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
+    }
 }

@@ -1,0 +1,27 @@
+# ElasticSearch tenant indexation
+elasticsearchTenantIndexation:
+  default_config:
+    number_of_shards: 3
+    number_of_replicas: 10
+
+elasticsearchConfigurationFile: elasticsearch-configuration.json
+customSearchOnFields:
+  dedicated_tenants:
+    - tenants: '2, 3'
+      unit:
+        fields:
+          - fieldPath: Title
+            types:
+              - Strict
+              - Minimal
+          - fieldPath: Description
+            types:
+              - Strict
+      objectgroup:
+        fields:
+          - fieldPath: Description
+            types:
+              - Strict
+
+accessionRegisterSymbolicThreadPoolSize: 4
+ruleAuditThreadPoolSize: 4

@@ -1,0 +1,11 @@
+# ElasticSearch tenant indexation
+customSearchOnFields:
+
+  default_config:
+
+  dedicated_tenants:
+    - tenants: '1, 4, 11-20'
+
+  grouped_tenants:
+    - name: 'grp1'
+      tenants: '7-10'

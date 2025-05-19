@@ -106,4 +106,80 @@ public class AdminManagementConfigurationValidatorTest {
             );
         }
     }
+
+    @Test
+    public void testConfigKO_MissingDefaultConfCustomSearch() throws Exception {
+        // Given
+        AdminManagementConfiguration config;
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "functional_administration_test_config_missing_default_custom_search.yml"
+            )
+        ) {
+            config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            config.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
+        }
+
+        // When / Then
+        assertThatThrownBy(() -> AdminManagementConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
+    }
+
+    @Test
+    public void testConfigKO_InvalidDefaultConfCustomSearch() throws Exception {
+        // Given
+        AdminManagementConfiguration config;
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "functional_administration_test_config_invalid_defaults_custom_search.yml"
+            )
+        ) {
+            config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            config.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
+        }
+
+        // When / Then
+        assertThatThrownBy(() -> AdminManagementConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
+    }
+
+    @Test
+    public void testConfigOK_custom_search_defaults_only() throws Exception {
+        // Given
+        AdminManagementConfiguration config;
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "./functional_administration_test_customsearch_config_defaults_only.yml"
+            )
+        ) {
+            config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            config.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
+        }
+
+        // When / Then
+        assertThatCode(
+            () -> AdminManagementConfigurationValidator.validateConfiguration(config)
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testConfigOK_without_custom_search() throws Exception {
+        // Given
+        AdminManagementConfiguration config;
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "./functional_administration_test_config_without_custom_search.yml"
+            )
+        ) {
+            config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            config.setElasticsearchConfigurationFile(ElasticsearchTestHelper.loadElasticSearchSettings());
+        }
+
+        // When / Then
+        assertThatCode(
+            () -> AdminManagementConfigurationValidator.validateConfiguration(config)
+        ).doesNotThrowAnyException();
+    }
 }
