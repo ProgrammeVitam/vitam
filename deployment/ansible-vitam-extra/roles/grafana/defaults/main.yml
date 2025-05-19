@@ -2,8 +2,14 @@
 
 grafana_user: grafana
 grafana_group: grafana
-grafana_path_provisioning: "{{ '/vitam/conf/grafana/provisioning' if install_mode == 'container' else '/etc/grafana/provisioning' }}"
-grafana_data_dir: "{{ '/vitam/lib/grafana' if install_mode == 'container' else '/var/lib/grafana' }}"
+
+grafana_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/grafana"
+grafana_path_provisioning: "{{ grafana_conf_dir }}/provisioning"
+grafana_path_dashboards: "{{ grafana_path_provisioning }}/dashboards"
+grafana_path_plugins: "{{ grafana_path_provisioning }}/plugins"
+grafana_path_alerting: "{{ grafana_path_provisioning }}/alerting"
+grafana_data_dir: "{{ vitam_defaults.folder.root_path }}/data/grafana"
+grafana_log_dir: "{{ vitam_defaults.folder.root_path }}/log/grafana"
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 

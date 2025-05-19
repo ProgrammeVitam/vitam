@@ -10,21 +10,23 @@
 ;instance_name = ${HOSTNAME}
 
 #################################### Paths #####################################
+# In 'install_mode: container', the following [paths] values are ignored.
+# See: https://grafana.com/docs/grafana/latest/setup-grafana/configure-docker/#default-paths
 [paths]
 # Path to where grafana can store temp files, sessions, and the sqlite3 db (if that is used)
-;data = /var/lib/grafana
+data = {{ grafana_data_dir }}
 
 # Temporary files in `data` directory older than given duration will be removed
 ;temp_data_lifetime = 24h
 
 # Directory where grafana can store logs
-logs = {{ vitam_defaults.folder.root_path | default('/vitam') }}/log/grafana
+logs = {{ grafana_log_dir }}
 
 # Directory where grafana will automatically scan and look for plugins
-;plugins = /var/lib/grafana/plugins
+plugins = {{ grafana_path_plugins }}
 
 # folder that contains provisioning config files that grafana will apply on startup and while running.
-;provisioning = conf/provisioning
+provisioning = {{ grafana_path_provisioning }}
 
 #################################### Server ####################################
 [server]

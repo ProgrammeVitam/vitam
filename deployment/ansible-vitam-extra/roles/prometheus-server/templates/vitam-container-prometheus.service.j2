@@ -5,7 +5,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/prom/prometheus:v2.49.1
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/prom/prometheus:v{{ prometheus_version }}
 ExecStartPre=-/usr/bin/docker stop prometheus-server
 ExecStartPre=-/usr/bin/docker rm prometheus-server
 ExecStart=/usr/bin/docker run --rm --net=host --ulimit memlock=-1:-1 --name prometheus-server \
@@ -13,7 +13,7 @@ ExecStart=/usr/bin/docker run --rm --net=host --ulimit memlock=-1:-1 --name prom
         -v "/vitam/conf/prometheus:/vitam/conf/prometheus:rw" \
         -v "/vitam/log/prometheus:/vitam/log/prometheus:rw" \
         -v "/vitam/app/prometheus:/vitam/app/prometheus:rw" \
-        {{ container_repository.registry_url }}/vitam-external/prom/prometheus:v2.49.1 \
+        {{ container_repository.registry_url }}/vitam-external/prom/prometheus:v{{ prometheus_version }} \
         --web.listen-address={{ prometheus.server.listen_address |default(ip_admin) }}:{{ prometheus.server.port | default(9090) }} \
         --web.external-url=http://{{ prometheus.server.external_url |default(ip_admin) }}:{{ prometheus.server.port | default(9090) }}/prometheus \
         --config.file=/vitam/conf/prometheus/prometheus.yml \

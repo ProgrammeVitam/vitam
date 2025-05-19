@@ -9,3 +9,4 @@ prometheus_server_log_path:    "{{ vitam_defaults.folder.root_path | default('/v
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 
+prometheus_version: "{{ prometheus.server.version | default('2.51.2') }}"
