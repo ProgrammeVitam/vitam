@@ -11,7 +11,7 @@
 
 pipeline {
     agent {
-        label 'java11'
+        label 'java21'
     }
 
     environment {
@@ -30,7 +30,7 @@ pipeline {
         MONGO_VERSION="8.0.8"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
-        JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+        JAVA_HOME="/usr/lib/jvm/jdk-21.0.7-oracle-x64"
     }
 
     options {
@@ -49,6 +49,10 @@ pipeline {
    stages {
 
        stage("Tools configuration") {
+           tools {
+               jdk 'java21' // java11 || java17 || java21
+               maven 'maven-3.9' // maven-3.8 || maven-3.9
+           }
            steps {
                // Maven : nothing to do, the settings.xml file is passed to maven by command arg & configured by env variables
                // Npm : we could have chosen "npm config" command, but, using a file, we keep the same principle as for maven
@@ -62,6 +66,10 @@ pipeline {
 }
 
         stage("Detecting changes for build") {
+           tools {
+               jdk 'java21' // java11 || java17 || java21
+               maven 'maven-3.9' // maven-3.8 || maven-3.9
+           }
             steps {
                 script {
                     // OMA : to get info from scm checkout
@@ -134,6 +142,10 @@ pipeline {
         }
 
         stage ("Execute unit and integration tests on master branches") {
+           tools {
+               jdk 'java21' // java11 || java17 || java21
+               maven 'maven-3.9' // maven-3.8 || maven-3.9
+           }
             when {
                 anyOf {
                     branch "develop*"
@@ -180,6 +192,10 @@ pipeline {
         }
 
         stage ("Execute unit and integration tests on merge requests") {
+           tools {
+               jdk 'java21' // java11 || java17 || java21
+               maven 'maven-3.9' // maven-3.8 || maven-3.9
+           }
             when {
                 not{
                     anyOf {
@@ -239,6 +255,10 @@ pipeline {
         }
 
         stage("Build packages") {
+           tools {
+               jdk 'java21' // java11 || java17 || java21
+               maven 'maven-3.9' // maven-3.8 || maven-3.9
+           }
             when {
                 anyOf {
                     branch "develop*"

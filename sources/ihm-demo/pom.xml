@@ -40,14 +40,14 @@
   <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
   <properties>
     <!-- Global Properties -->
-    <private.java.version>17</private.java.version>
-    <public.java.version>11</public.java.version>
+    <private.java.version>21</private.java.version>
+    <public.java.version>17</public.java.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- JDK version -->
-    <jdk.version.rpm>java-17-openjdk-headless</jdk.version.rpm>
-    <jdk.version.debian>openjdk-17-jre-headless</jdk.version.debian>
+    <jdk.version.rpm>java-21-openjdk-headless</jdk.version.rpm>
+    <jdk.version.debian>openjdk-21-jre-headless</jdk.version.debian>
 
     <!-- Build environment Properties -->
     <project.scm.id>vitam-gitlab</project.scm.id>
@@ -262,7 +262,7 @@
           <version>3.4.0</version>
           <configuration>
             <from>
-              <image>gcr.io/distroless/java17</image>
+              <image>gcr.io/distroless/java21</image>
             </from>
             <allowInsecureRegistries>true</allowInsecureRegistries>
             <container>

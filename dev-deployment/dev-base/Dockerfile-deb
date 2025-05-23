@@ -23,7 +23,7 @@ RUN apt-get clean && apt-get update && apt-get upgrade -y
 
 RUN apt-get remove -y openjdk*
 
-RUN apt-get update && apt-get install -y openjdk-17-jdk-headless
+RUN apt-get update && apt-get install -y openjdk-21-jdk-headless
 
 #RUN apt-get install -y systemd-sysv
 
@@ -58,7 +58,7 @@ RUN /var/lib/dpkg/info/ca-certificates-java.postinst configure
 RUN apt-get clean && apt-get update && apt-get install -y curl && apt-get clean
 
 # Add Java to path
-ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk-amd64
 
 # Install & configure maven
 RUN curl -k https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.8.7/apache-maven-3.8.7-bin.tar.gz --output /tmp/maven.tgz \
@@ -119,7 +119,7 @@ RUN chmod 664 /etc/sudoers.d/sudo-nopwd
 ENV TERM xterm
 
 # If we don't install openjdk a 2nd time, sometimes it doesn't work, why ???
-RUN apt-get install -y openjdk-17-jdk-headless
+RUN apt-get install -y openjdk-21-jdk-headless
 
 ##################################  CONTAINER SETTINGS  #################################
 

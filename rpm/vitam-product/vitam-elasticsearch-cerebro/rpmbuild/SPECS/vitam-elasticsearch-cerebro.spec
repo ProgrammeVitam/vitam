@@ -10,7 +10,7 @@ URL:           https://github.com/lmenezes/cerebro
 Source0:       https://github.com/lmenezes/cerebro/releases/download/v%{version}/cerebro-%{version}.zip
 
 Requires:      systemd
-Requires:      java-17-openjdk-headless
+Requires:      java-21-openjdk-headless
 Requires:      vitam-user-vitam
 
 %global appfolder /vitam/app/cerebro
