@@ -1,7 +1,7 @@
 pipeline {
 
     agent {
-        label 'java11'
+        label 'java21'
     }
 
     environment {
@@ -21,7 +21,7 @@ pipeline {
         MONGO_VERSION="8.0.8"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
-        JAVA_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
+        JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
     }
 
     stages {

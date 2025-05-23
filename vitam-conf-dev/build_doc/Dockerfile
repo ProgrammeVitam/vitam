@@ -1,7 +1,7 @@
 FROM debian:bookworm-slim
 
 RUN apt update
-RUN apt install -y net-tools wget unzip curl openjdk-17-jdk rpm librpm-dev dpkg dpkg-dev perl gnupg2 build-essential make python3-pip "latexmk" "texlive-latex-base" "texlive-*" "tetex-*" "tokyocabinet*" "texlive-*"
+RUN apt install -y net-tools wget unzip curl openjdk-21-jdk rpm librpm-dev dpkg dpkg-dev perl gnupg2 build-essential make python3-pip "latexmk" "texlive-latex-base" "texlive-*" "tetex-*" "tokyocabinet*" "texlive-*"
 
 RUN curl https://archive.apache.org/dist/maven/maven-3/3.8.7/binaries/apache-maven-3.8.7-bin.tar.gz -o apache-maven-3.8.7-bin.tar.gz && tar -xzf apache-maven-3.8.7-bin.tar.gz --directory /usr/local/ && ln -s --force /usr/local/apache-maven-3.8.7 /usr/local/maven
 

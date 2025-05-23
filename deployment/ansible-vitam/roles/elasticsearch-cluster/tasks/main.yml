@@ -12,7 +12,7 @@
 - name: Set default directory for Debian
   set_fact:
     sysconfig_dir: "default"
-    jvm_security_path: "/usr/lib/jvm/java-17-openjdk-amd64/jre/lib/security"
+    jvm_security_path: "/usr/lib/jvm/java-21-openjdk-amd64/jre/lib/security"
   when: ansible_os_family == "Debian"
 
 - name: Set Elasticsearch memory if the value is defined at composant level.

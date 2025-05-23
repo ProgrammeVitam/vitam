@@ -127,7 +127,7 @@
 				<artifactId>jib-maven-plugin</artifactId>
 				<configuration>
                     <from>
-                            <image>gcr.io/distroless/java17</image>
+                            <image>gcr.io/distroless/java21</image>
                         </from>
                         <allowInsecureRegistries>true</allowInsecureRegistries>
                         <container>

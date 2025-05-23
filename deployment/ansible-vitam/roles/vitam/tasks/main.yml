@@ -1,25 +1,27 @@
 ---
 
-- name: Remove openjdk 11
+- name: Remove old openjdk packages
   package:
-    name: "{{ 'openjdk-11-jre-headless' if ansible_os_family == 'Debian' else 'java-11-openjdk-headless' }}"
+    name:
+      - "{{ 'openjdk-11-jre-headless' if ansible_os_family == 'Debian' else 'java-11-openjdk-headless' }}"
+      - "{{ 'openjdk-17-jre-headless' if ansible_os_family == 'Debian' else 'java-17-openjdk-headless' }}"
     state: absent
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  when: (install_mode != "container") or (vitam_struct.vitam_component in legacy_components_list)
+  when: install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
   tags: update_package_vitam
 
-- name: Install openjdk 17
+- name: Install openjdk 21
   package:
-    name: "{{ 'openjdk-17-jre-headless' if ansible_os_family == 'Debian' else 'java-17-openjdk-headless' }}"
+    name: "{{ 'jdk-21' if ansible_os_family == 'Debian' else 'java-21-openjdk-headless' }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  when: (install_mode != "container") or (vitam_struct.vitam_component in legacy_components_list)
+  when: install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
   tags: update_package_vitam
 
 - include_tasks: tape_offer.yml

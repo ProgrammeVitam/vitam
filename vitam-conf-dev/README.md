@@ -5,7 +5,7 @@
     2. Clone with git vitam-itest at `https://github.com/ProgrammeVitam/vitam-itests.git`.
 
 3. Initialize project settings (npm/maven/certificates):
-    1. Install Java JDK and Maven `sudo apt install openjdk-17-jre-headless`, `sudo apt install openjdk-17-jdk-headless`
+    1. Install Java JDK and Maven `sudo apt install openjdk-21-jre-headless`, `sudo apt install openjdk-21-jdk-headless`
        , `sudo apt install maven`
     2. JAVA_HOME and M2_HOME must be set in bashrc or bashprofile (These values can be get with `mvn -version` command)
     3. Run the `vitam-conf-dev/scripts/maven-setup-chapelle-edition.sh`

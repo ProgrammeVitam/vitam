@@ -4,7 +4,7 @@
 sudo chown -R $(id -u):$(id -g) ~/
 
 # Init env vars
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64/
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64/
 export M2_HOME=/usr/local/maven
 export PATH="$PATH:$M2_HOME/bin"
 cd /code
