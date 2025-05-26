@@ -97,7 +97,6 @@
 				<configuration>
 					<to>
 						<image>${env.SERVICE_DOCKER_PUSH_URL}/vitam/metadata</image>
-						<image>${env.SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect</image>
 						<tags>
 							<tag>${git.commit.id.describe-short}</tag>
 							<tag>${project.version}</tag>
