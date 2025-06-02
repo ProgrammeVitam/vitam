@@ -26,7 +26,7 @@ IP.2 = 127.0.0.1
 EOM
 
 echo "Generate certificate..."
-openssl req -x509 -nodes -days 730 -newkey rsa:2048 -keyout private.key -out public.crt -config openssl.conf
+openssl req -x509 -nodes -days 3000 -newkey rsa:2048 -keyout private.key -out public.crt -config openssl.conf
 echo "To check public.crt, use command : openssl x509 -noout -text -in public.crt"
 
 echo "Generate p12 from key/crt couple..."

@@ -27,36 +27,6 @@
 
 package fr.gouv.vitam.common.storage.s3;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.ApacheHttpClientConfig;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.SdkBaseException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.internal.BucketNameUtils;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.CopyObjectResult;
-import com.amazonaws.services.s3.model.CopyPartRequest;
-import com.amazonaws.services.s3.model.CopyPartResult;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.model.UploadPartRequest;
-import com.amazonaws.services.s3.model.UploadPartResult;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -78,56 +48,105 @@ import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectListingListener;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDigestMismatchException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.ssl.SSLContexts;
+import org.apache.http.ssl.SSLContextBuilder;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.MetadataDirective;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Amazon SDK S3 V1 abstract implementation Manage with all common amazon sdk s3
- * v1 methods.
+ * Amazon SDK S3 V2 implementation
  */
-public class AmazonS3V1 extends ContentAddressableStorageAbstract {
+public class AmazonS3V2 extends ContentAddressableStorageAbstract {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AmazonS3V1.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AmazonS3V2.class);
 
-    // Amazon SDK S3 V1 already adds the "X-Amz-Meta-" before
+    // Amazon SDK S3 V2 metadata keys
     private static final String X_OBJECT_META_DIGEST = "Digest";
     private static final String X_OBJECT_META_DIGEST_TYPE = "Digest-Type";
-    private static final HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = NoopHostnameVerifier.INSTANCE;
+    private static final String NO_SUCH_BUCKET_ERROR_CODE = "NoSuchBucket";
     private static final AlertService ALERT_SERVICE = new AlertServiceImpl();
     private static final long MB_TO_BYTES = 1024L * 1024L;
+    private static final int MAX_RETRIES = 3;
+    private static final int NO_RETRIES = 1;
 
-    /**
-     * Amazon SDK S3 V1 client
-     */
-    private final AmazonS3 client;
     private final boolean s3DisableMultipartUpload;
     private final long s3MaxUploadPartSize;
     private final int s3MultiPartCleanNbRetries;
     private final int s3MultiPartCleanWaitingTimeInMilliseconds;
 
-    public AmazonS3V1(StorageConfiguration configuration)
+    private final SdkHttpClient httpClient;
+    private final S3Client s3ClientWithRetry;
+    private final S3Client s3ClientWithoutRetry;
+
+    public AmazonS3V2(StorageConfiguration configuration)
         throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
         super(configuration);
         checkConfiguration(configuration);
@@ -136,53 +155,27 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         this.s3MultiPartCleanNbRetries = configuration.getS3MultiPartCleanNbRetries();
         this.s3MultiPartCleanWaitingTimeInMilliseconds = configuration.getS3MultiPartCleanWaitingTimeInMilliseconds();
 
-        LOGGER.debug("Instanciation of amazon S3 V1 client");
+        // Build S3 client
+        this.httpClient = createHttpClient(configuration);
+        this.s3ClientWithRetry = createS3Client(configuration, httpClient, true);
+        this.s3ClientWithoutRetry = createS3Client(configuration, httpClient, false);
+    }
 
-        EndpointConfiguration endpointConfiguration = new EndpointConfiguration(
-            configuration.getS3Endpoint(),
-            configuration.getS3RegionName()
-        );
-
-        ClientConfiguration clientConfig = new ClientConfiguration();
-        if (StringUtils.isNotBlank(configuration.getS3SignerType())) {
-            clientConfig.setSignerOverride(configuration.getS3SignerType());
-        }
-        if (configuration.getS3MaxConnections() > 0) {
-            clientConfig.setMaxConnections(configuration.getS3MaxConnections());
-        }
-        if (configuration.getS3ConnectionTimeout() >= 0) {
-            clientConfig.setConnectionTimeout(configuration.getS3ConnectionTimeout());
-        }
-        if (configuration.getS3SocketTimeout() >= 0) {
-            clientConfig.setSocketTimeout(configuration.getS3SocketTimeout());
-        }
-        clientConfig.setRequestTimeout(configuration.getS3RequestTimeout());
-        clientConfig.setClientExecutionTimeout(configuration.getS3ClientExecutionTimeout());
-
-        if (configuration.getS3Endpoint().startsWith("https")) {
-            ApacheHttpClientConfig apacheClient = clientConfig.getApacheHttpClientConfig();
-            File file = new File(configuration.getS3TrustStore());
-            SSLContext ctx = SSLContexts.custom()
-                .loadTrustMaterial(file, configuration.getS3TrustStorePassword().toCharArray())
-                .build();
-            SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(
-                ctx,
-                ALLOW_ALL_HOSTNAME_VERIFIER
-            );
-            apacheClient.withSslSocketFactory(sslConnectionSocketFactory);
-        }
-
-        AWSCredentials credentials = new BasicAWSCredentials(
-            configuration.getS3AccessKey(),
-            configuration.getS3SecretKey()
-        );
-
-        this.client = AmazonS3ClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(credentials))
-            .withClientConfiguration(clientConfig)
-            .withEndpointConfiguration(endpointConfiguration)
-            .withPathStyleAccessEnabled(configuration.isS3PathStyleAccessEnabled())
-            .build();
+    @VisibleForTesting
+    public AmazonS3V2(
+        StorageConfiguration configuration,
+        SdkHttpClient httpClient,
+        S3Client s3ClientWithRetry,
+        S3Client s3ClientWithoutRetry
+    ) {
+        super(configuration);
+        this.httpClient = httpClient;
+        this.s3ClientWithRetry = s3ClientWithRetry;
+        this.s3ClientWithoutRetry = s3ClientWithoutRetry;
+        this.s3DisableMultipartUpload = configuration.isS3DisableMultipartUpload();
+        this.s3MaxUploadPartSize = configuration.getS3MaxUploadPartSizeMB() * MB_TO_BYTES;
+        this.s3MultiPartCleanNbRetries = configuration.getS3MultiPartCleanNbRetries();
+        this.s3MultiPartCleanWaitingTimeInMilliseconds = configuration.getS3MultiPartCleanWaitingTimeInMilliseconds();
     }
 
     private static void checkConfiguration(StorageConfiguration configuration) {
@@ -203,14 +196,81 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         }
     }
 
-    @VisibleForTesting
-    AmazonS3V1(StorageConfiguration configuration, AmazonS3 client) {
-        super(configuration);
-        this.client = client;
-        this.s3DisableMultipartUpload = configuration.isS3DisableMultipartUpload();
-        this.s3MaxUploadPartSize = configuration.getS3MaxUploadPartSizeMB() * MB_TO_BYTES;
-        this.s3MultiPartCleanNbRetries = configuration.getS3MultiPartCleanNbRetries();
-        this.s3MultiPartCleanWaitingTimeInMilliseconds = configuration.getS3MultiPartCleanWaitingTimeInMilliseconds();
+    private static SdkHttpClient createHttpClient(StorageConfiguration configuration)
+        throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, KeyManagementException {
+        return ApacheHttpClient.builder()
+            .maxConnections(configuration.getS3MaxConnections())
+            .connectionTimeout(Duration.ofMillis(configuration.getS3ConnectionTimeout()))
+            .socketTimeout(Duration.ofMillis(configuration.getS3SocketTimeout()))
+            .socketFactory(createSSLConnectionSocketFactory(configuration))
+            .build();
+    }
+
+    private static SSLConnectionSocketFactory createSSLConnectionSocketFactory(StorageConfiguration configuration)
+        throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, KeyManagementException {
+        // HTTPS configuration
+        if (!configuration.getS3Endpoint().startsWith("https://")) {
+            return null;
+        }
+        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        try (FileInputStream fis = new FileInputStream(configuration.getS3TrustStore())) {
+            trustStore.load(fis, configuration.getS3TrustStorePassword().toCharArray());
+        }
+
+        SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(trustStore, null).build();
+
+        HostnameVerifier hostnameVerifier = configuration.isS3IgnoreCertificateHostnameValidation()
+            ? NoopHostnameVerifier.INSTANCE
+            : SSLConnectionSocketFactory.getDefaultHostnameVerifier();
+
+        return new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+    }
+
+    private static S3Client createS3Client(
+        StorageConfiguration configuration,
+        SdkHttpClient httpClient,
+        boolean retryable
+    ) {
+        // Credentials
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(
+            configuration.getS3AccessKey(),
+            configuration.getS3SecretKey()
+        );
+
+        // Use https://s3-server/my-bucket/my-object syntax instead of https://my-bucket.s3-server/my-object
+        S3Configuration serviceConfiguration = S3Configuration.builder()
+            .pathStyleAccessEnabled(configuration.isS3PathStyleAccessEnabled())
+            .build();
+
+        return S3Client.builder()
+            .endpointOverride(URI.create(configuration.getS3Endpoint()))
+            .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+            .region(
+                StringUtils.isEmpty(configuration.getS3RegionName())
+                    ? Region.US_EAST_1
+                    : Region.of(configuration.getS3RegionName())
+            )
+            .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .httpClient(httpClient)
+            .serviceConfiguration(serviceConfiguration)
+            .overrideConfiguration(
+                cfg ->
+                    cfg
+                        .apiCallTimeout(
+                            configuration.getS3ClientExecutionTimeout() != 0
+                                ? Duration.ofMillis(configuration.getS3ClientExecutionTimeout())
+                                : null
+                        )
+                        .apiCallAttemptTimeout(
+                            configuration.getS3RequestTimeout() != 0
+                                ? Duration.ofMillis(configuration.getS3RequestTimeout())
+                                : null
+                        )
+                        .retryStrategy(
+                            StandardRetryStrategy.builder().maxAttempts(retryable ? MAX_RETRIES : NO_RETRIES).build()
+                        )
+            )
+            .build();
     }
 
     @Override
@@ -222,35 +282,11 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         );
         String bucketName = generateBucketName(containerName);
         try {
-            client.createBucket(bucketName);
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to create container with name: %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                    containerName,
-                    e.getErrorCode(),
-                    e.getErrorType(),
-                    e.getErrorMessage()
-                ),
-                e
-            );
-            if (
-                AmazonS3APIErrorCodes.BUCKET_ALREADY_EXISTS.getErrorCode().equals(e.getErrorCode()) ||
-                AmazonS3APIErrorCodes.BUCKET_ALREADY_OWNED_BY_YOU.getErrorCode().equals(e.getErrorCode())
-            ) {
-                LOGGER.warn("Container " + containerName + " already exists");
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to create container", e);
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to create container with name: %s. Reason: errorMessage=%s",
-                    containerName,
-                    e.getMessage()
-                ),
-                e
-            );
+            CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).build();
+            s3ClientWithRetry.createBucket(request);
+        } catch (BucketAlreadyExistsException | BucketAlreadyOwnedByYouException e) {
+            LOGGER.warn("Container " + containerName + " already exists", e);
+        } catch (SdkException e) {
             throw new ContentAddressableStorageServerException("Error when trying to create container", e);
         }
     }
@@ -267,19 +303,23 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             return true;
         }
         try {
-            boolean exists = client.doesBucketExistV2(bucketName);
+            boolean exists = bucketExists(bucketName);
             cacheExistsContainer(containerName, exists);
             return exists;
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when checking existence of container %s. Reason: errorMessage=%s",
-                    containerName,
-                    e.getMessage()
-                ),
-                e
-            );
+        } catch (SdkException e) {
             throw new ContentAddressableStorageServerException("Error when trying to check existence of container", e);
+        }
+    }
+
+    private boolean bucketExists(String bucketName) throws SdkException {
+        try {
+            // If headBucket doesn't throw an exception, the bucket exists
+            HeadBucketRequest request = HeadBucketRequest.builder().bucket(bucketName).build();
+            s3ClientWithRetry.headBucket(request);
+            return true;
+        } catch (NoSuchBucketException e) {
+            LOGGER.debug("Container '" + bucketName + " does not exist", e);
+            return false;
         }
     }
 
@@ -360,31 +400,29 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         try {
             Stopwatch stopwatch = Stopwatch.createStarted();
 
-            ObjectMetadata objectMetadata = createObjectMetadata(size);
-            uploadId = initiateMultipartUpload(bucketName, objectName, objectMetadata);
+            uploadId = initiateMultipartUpload(bucketName, objectName, Collections.emptyMap());
 
-            List<PartETag> partETags = new ArrayList<>();
+            List<CompletedPart> completedParts = new ArrayList<>();
 
             long sentBytes = 0L;
             long nbParts = (size + this.s3MaxUploadPartSize - 1) / this.s3MaxUploadPartSize;
 
             for (int partNumber = 1; sentBytes < size; partNumber++) {
                 long partSize = Math.min(this.s3MaxUploadPartSize, (size - sentBytes));
-                PartETag partETag = uploadPart(
+                CompletedPart completedPart = uploadPart(
                     bucketName,
                     objectName,
                     stream,
                     partNumber,
                     nbParts,
                     partSize,
-                    uploadId,
-                    sentBytes
+                    uploadId
                 );
-                partETags.add(partETag);
+                completedParts.add(completedPart);
                 sentBytes += partSize;
             }
 
-            completeMultipartUpload(bucketName, objectName, uploadId, partETags);
+            completeMultipartUpload(bucketName, objectName, uploadId, completedParts);
             uploadSucceeded = true;
             LOGGER.info(
                 "Large object {}/{} uploaded successfully  ({} bytes, {} ms)",
@@ -393,14 +431,9 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 size,
                 stopwatch.elapsed(TimeUnit.MILLISECONDS)
             );
-        } catch (SdkBaseException e) {
+        } catch (SdkException e) {
             throw new ContentAddressableStorageServerException(
-                String.format(
-                    "Error when trying to upload object %s/%s. Reason: errorMessage=%s",
-                    bucketName,
-                    objectName,
-                    e.getMessage()
-                ),
+                "Error when trying to upload object " + bucketName + "/" + objectName,
                 e
             );
         } finally {
@@ -411,26 +444,28 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         }
     }
 
-    private String initiateMultipartUpload(String containerName, String objectName, ObjectMetadata objectMetadata)
-        throws SdkBaseException {
+    private String initiateMultipartUpload(String containerName, String objectName, Map<String, String> metadata)
+        throws SdkException {
         LOGGER.debug("Initiating multipart upload {}/{}", containerName, objectName);
-        InitiateMultipartUploadResult initiateMultipartUploadResult = client.initiateMultipartUpload(
-            new InitiateMultipartUploadRequest(containerName, objectName, objectMetadata)
-        );
-        String uploadId = initiateMultipartUploadResult.getUploadId();
+        CreateMultipartUploadRequest request = CreateMultipartUploadRequest.builder()
+            .bucket(containerName)
+            .key(objectName)
+            .metadata(metadata)
+            .build();
+        CreateMultipartUploadResponse multipartUpload = s3ClientWithRetry.createMultipartUpload(request);
+        String uploadId = multipartUpload.uploadId();
         LOGGER.debug("Initiated multipart upload {}", uploadId);
         return uploadId;
     }
 
-    private PartETag uploadPart(
+    private CompletedPart uploadPart(
         String containerName,
         String objectName,
         InputStream stream,
         int partNumber,
         long nbParts,
         long partSize,
-        String uploadId,
-        long offset
+        String uploadId
     ) throws ContentAddressableStorageServerException {
         LOGGER.info(
             "Multipart upload of {}/{} - Part {}/{} ({} bytes)",
@@ -447,16 +482,18 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 .setPropagateClose(false)
                 .get()
         ) {
-            UploadPartRequest uploadPartRequest = new UploadPartRequest()
-                .withInputStream(partInputStream)
-                .withBucketName(containerName)
-                .withUploadId(uploadId)
-                .withFileOffset(0)
-                .withPartSize(partSize)
-                .withPartNumber(partNumber)
-                .withKey(objectName);
-            UploadPartResult uploadPartResult = client.uploadPart(uploadPartRequest);
-            return uploadPartResult.getPartETag();
+            UploadPartRequest request = UploadPartRequest.builder()
+                .bucket(containerName)
+                .uploadId(uploadId)
+                .contentLength(partSize)
+                .partNumber(partNumber)
+                .key(objectName)
+                .build();
+            UploadPartResponse uploadPartResult = s3ClientWithoutRetry.uploadPart(
+                request,
+                fixedLengthInputStreamRequestBody(partInputStream, partSize)
+            );
+            return CompletedPart.builder().partNumber(partNumber).eTag(uploadPartResult.eTag()).build();
         } catch (IOException e) {
             throw new ContentAddressableStorageServerException(e);
         }
@@ -466,17 +503,17 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         String bucketName,
         String objectName,
         String uploadId,
-        List<PartETag> partETags
+        List<CompletedPart> completedParts
     ) {
         LOGGER.debug("Completing multi-part upload {} of {}/{}", uploadId, bucketName, objectName);
         // Complete the multipart upload.
-        CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest(
-            bucketName,
-            objectName,
-            uploadId,
-            partETags
-        );
-        client.completeMultipartUpload(compRequest);
+        CompleteMultipartUploadRequest request = CompleteMultipartUploadRequest.builder()
+            .bucket(bucketName)
+            .key(objectName)
+            .uploadId(uploadId)
+            .multipartUpload(u -> u.parts(completedParts))
+            .build();
+        s3ClientWithRetry.completeMultipartUpload(request);
     }
 
     private void tryCleanupMultiPartUpload(String bucketName, String objectName, String uploadId) {
@@ -496,7 +533,12 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                     objectName,
                     uploadId
                 );
-                client.abortMultipartUpload(new AbortMultipartUploadRequest(bucketName, objectName, uploadId));
+                AbortMultipartUploadRequest request = AbortMultipartUploadRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectName)
+                    .uploadId(uploadId)
+                    .build();
+                s3ClientWithRetry.abortMultipartUpload(request);
                 return null;
             });
 
@@ -521,38 +563,22 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
     private void putSmallObject(String bucketName, String objectName, InputStream stream, long size)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setContentLength(size);
         try {
-            client.putObject(bucketName, objectName, stream, objectMetadata);
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to upload object %s/%s. Reason: errorMessage=%s",
-                    bucketName,
-                    objectName,
-                    e.getMessage()
-                ),
-                e
-            );
-            if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
+            PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectName)
+                .contentLength(size)
+                .build();
+            s3ClientWithoutRetry.putObject(request, fixedLengthInputStreamRequestBody(stream, size));
+        } catch (S3Exception e) {
+            if (NO_SUCH_BUCKET_ERROR_CODE.equals(e.awsErrorDetails().errorCode())) {
                 throw new ContentAddressableStorageNotFoundException(
                     "Error when trying to upload object : container does not exists",
                     e
                 );
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to upload object", e);
             }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to upload object %s/%s. Reason: errorMessage=%s",
-                    bucketName,
-                    objectName,
-                    e.getMessage()
-                ),
-                e
-            );
+            throw new ContentAddressableStorageServerException("Error when trying to upload object", e);
+        } catch (SdkException | IOException e) {
             throw new ContentAddressableStorageServerException("Error when trying to upload object", e);
         }
     }
@@ -569,7 +595,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         if (useMultipartUpload(size)) {
             storeLargeObjectDigest(bucketName, objectName, digestType, digest, size);
         } else {
-            storeSmallObjectDigest(bucketName, objectName, digestType, digest, size);
+            storeSmallObjectDigest(bucketName, objectName, digestType, digest);
         }
         PerformanceLogger.getInstance()
             .log(
@@ -580,56 +606,30 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             );
     }
 
-    private void storeSmallObjectDigest(
-        String bucketName,
-        String objectName,
-        DigestType digestType,
-        String digest,
-        Long size
-    ) throws ContentAddressableStorageException {
-        ObjectMetadata metadataToUpdate = createObjectMetadata(digestType, digest, size);
-
-        CopyObjectRequest request = new CopyObjectRequest(
-            bucketName,
-            objectName,
-            bucketName,
-            objectName
-        ).withNewObjectMetadata(metadataToUpdate);
+    private void storeSmallObjectDigest(String bucketName, String objectName, DigestType digestType, String digest)
+        throws ContentAddressableStorageException {
+        Map<String, String> metadataToUpdate = createObjectMetadata(digestType, digest);
 
         try {
-            CopyObjectResult updateMetadataResult = client.copyObject(request);
-            if (updateMetadataResult == null) {
-                LOGGER.error("Failed to update object metadata -> try remove object");
-                throw new ContentAddressableStorageServerException(
-                    "Cannot put object " + bucketName + "/" + objectName
-                );
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to update metadata of object %s/%s. Reason: errorMessage=%s",
-                    bucketName,
-                    objectName,
-                    e.getMessage()
-                ),
-                e
-            );
+            CopyObjectRequest request = CopyObjectRequest.builder()
+                .sourceBucket(bucketName)
+                .sourceKey(objectName)
+                .destinationBucket(bucketName)
+                .destinationKey(objectName)
+                .metadata(metadataToUpdate)
+                .metadataDirective(MetadataDirective.REPLACE)
+                .build();
+            s3ClientWithRetry.copyObject(request);
+        } catch (SdkException e) {
             throw new ContentAddressableStorageServerException("Error when trying to update metadata of object", e);
         }
     }
 
-    private static ObjectMetadata createObjectMetadata(Long size) {
-        ObjectMetadata metadataToUpdate = new ObjectMetadata();
-        metadataToUpdate.setContentLength(size);
-        return metadataToUpdate;
-    }
-
-    private static ObjectMetadata createObjectMetadata(DigestType digestType, String digest, Long size) {
-        ObjectMetadata metadataToUpdate = new ObjectMetadata();
-        metadataToUpdate.setContentLength(size);
-        metadataToUpdate.addUserMetadata(X_OBJECT_META_DIGEST, digest);
-        metadataToUpdate.addUserMetadata(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
-        return metadataToUpdate;
+    private static Map<String, String> createObjectMetadata(DigestType digestType, String digest) {
+        return Map.ofEntries(
+            Map.entry(X_OBJECT_META_DIGEST, digest),
+            Map.entry(X_OBJECT_META_DIGEST_TYPE, digestType.getName())
+        );
     }
 
     private void storeLargeObjectDigest(
@@ -652,10 +652,10 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         try {
             Stopwatch stopwatch = Stopwatch.createStarted();
 
-            ObjectMetadata metadataToUpdate = createObjectMetadata(digestType, digest, size);
+            Map<String, String> metadataToUpdate = createObjectMetadata(digestType, digest);
             copyObjectUploadId = initiateMultipartUpload(bucketName, objectName, metadataToUpdate);
 
-            List<PartETag> partETags = new ArrayList<>();
+            List<CompletedPart> completedParts = new ArrayList<>();
 
             long offset = 0L;
             long nbParts = (size + this.s3MaxUploadPartSize - 1) / this.s3MaxUploadPartSize;
@@ -663,7 +663,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             for (int partNumber = 1; offset < size; partNumber++) {
                 long partSize = Math.min(this.s3MaxUploadPartSize, (size - offset));
 
-                PartETag partETag = copyPart(
+                CompletedPart completedPart = copyPart(
                     bucketName,
                     objectName,
                     partNumber,
@@ -672,11 +672,11 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                     copyObjectUploadId,
                     offset
                 );
-                partETags.add(partETag);
+                completedParts.add(completedPart);
                 offset += partSize;
             }
 
-            completeMultipartUpload(bucketName, objectName, copyObjectUploadId, partETags);
+            completeMultipartUpload(bucketName, objectName, copyObjectUploadId, completedParts);
             copySucceeded = true;
             LOGGER.info(
                 "Large object {}/{} updated successfully with digest {} ({} bytes, {} ms)",
@@ -686,14 +686,9 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 size,
                 stopwatch.elapsed(TimeUnit.MILLISECONDS)
             );
-        } catch (SdkBaseException e) {
+        } catch (SdkException e) {
             throw new ContentAddressableStorageServerException(
-                String.format(
-                    "Error when trying to updating large object digest %s/%s. Reason: errorMessage=%s",
-                    bucketName,
-                    objectName,
-                    e.getMessage()
-                ),
+                "Error when trying to updating large object digest " + bucketName + "/" + objectName,
                 e
             );
         } finally {
@@ -703,7 +698,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         }
     }
 
-    private PartETag copyPart(
+    private CompletedPart copyPart(
         String containerName,
         String objectName,
         int partNumber,
@@ -721,18 +716,21 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             partSize
         );
 
-        // Copy this part.
-        CopyPartRequest copyRequest = new CopyPartRequest()
-            .withSourceBucketName(containerName)
-            .withSourceKey(objectName)
-            .withDestinationBucketName(containerName)
-            .withDestinationKey(objectName)
-            .withUploadId(uploadId)
-            .withFirstByte(offset)
-            .withLastByte(offset + partSize - 1)
-            .withPartNumber(partNumber);
-        CopyPartResult copyPartResult = client.copyPart(copyRequest);
-        return copyPartResult.getPartETag();
+        UploadPartCopyRequest uploadPartCopyRequest = UploadPartCopyRequest.builder()
+            .sourceBucket(containerName)
+            .sourceKey(objectName)
+            .destinationBucket(containerName)
+            .destinationKey(objectName)
+            .uploadId(uploadId)
+            .copySourceRange(String.format("bytes=%d-%d", offset, offset + partSize - 1))
+            .partNumber(partNumber)
+            .build();
+        UploadPartCopyResponse uploadPartCopyResponse = s3ClientWithRetry.uploadPartCopy(uploadPartCopyRequest);
+
+        return CompletedPart.builder()
+            .partNumber(partNumber)
+            .eTag(uploadPartCopyResponse.copyPartResult().eTag())
+            .build();
     }
 
     @Override
@@ -744,48 +742,29 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             objectName
         );
         String bucketName = generateBucketName(containerName);
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, objectName);
         try {
-            S3Object object = client.getObject(getObjectRequest);
-            long size = object.getObjectMetadata().getContentLength();
-            InputStream inputStream = object.getObjectContent();
-            return new ObjectContent(inputStream, size);
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to download object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                    objectName,
-                    containerName,
-                    e.getErrorCode(),
-                    e.getErrorType(),
-                    e.getErrorMessage()
-                ),
+            // Get the object and its metadata
+            GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).key(objectName).build();
+            ResponseInputStream<GetObjectResponse> responseInputStream = s3ClientWithRetry.getObject(request);
+
+            long size = responseInputStream.response().contentLength();
+
+            return new ObjectContent(responseInputStream, size);
+        } catch (NoSuchKeyException e) {
+            throw new ContentAddressableStorageNotFoundException(
+                "Error when trying to download object " + containerName + "/" + objectName + ". Object not found.",
                 e
             );
-            if (AmazonS3APIErrorCodes.NO_SUCH_KEY.getErrorCode().equals(e.getErrorCode())) {
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName,
-                    e
-                );
-            } else if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
-                    e
-                );
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to download object", e);
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to download object %s from container %s. Reason: errorMessage=%s",
-                    objectName,
-                    containerName,
-                    e.getMessage()
-                ),
+        } catch (NoSuchBucketException e) {
+            throw new ContentAddressableStorageNotFoundException(
+                "Error when trying to download object " + containerName + "/" + objectName + ". Container not found.",
                 e
             );
-            throw new ContentAddressableStorageServerException("Error when trying to download object", e);
+        } catch (SdkException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error when trying to download object " + containerName + "/" + objectName,
+                e
+            );
         }
     }
 
@@ -798,40 +777,21 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             objectName
         );
         String bucketName = generateBucketName(containerName);
-        DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, objectName);
+
         try {
-            client.deleteObject(deleteObjectRequest);
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to delete object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                    objectName,
-                    containerName,
-                    e.getErrorCode(),
-                    e.getErrorType(),
-                    e.getErrorMessage()
-                ),
+            // Delete the object
+            DeleteObjectRequest request = DeleteObjectRequest.builder().bucket(bucketName).key(objectName).build();
+            s3ClientWithRetry.deleteObject(request);
+        } catch (NoSuchBucketException e) {
+            throw new ContentAddressableStorageNotFoundException(
+                "Error when trying to delete object " + containerName + "/" + objectName + ". Container not found.",
                 e
             );
-            if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
-                    e
-                );
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to delete object", e);
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to delete object %s from container %s. Reason: errorMessage=%s",
-                    objectName,
-                    containerName,
-                    e.getMessage()
-                ),
+        } catch (SdkException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error when trying to delete object " + containerName + "/" + objectName,
                 e
             );
-            throw new ContentAddressableStorageServerException("Error when trying to delete object " + objectName, e);
         }
     }
 
@@ -841,18 +801,20 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         LOGGER.debug(String.format("Check existence of object %s in container %s", objectName, containerName));
         String bucketName = generateBucketName(containerName);
         try {
-            return client.doesObjectExist(bucketName, objectName);
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to check existence of object %s in container %s. Reason: errorMessage=%s",
-                    objectName,
-                    containerName,
-                    e.getMessage()
-                ),
+            try {
+                // If headObject doesn't throw an exception, the object exists
+                HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucketName).key(objectName).build();
+                s3ClientWithRetry.headObject(request);
+                return true;
+            } catch (NoSuchKeyException | NoSuchBucketException e) {
+                // Object or container doesn't exist
+                return false;
+            }
+        } catch (SdkException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error when trying to check existence of object " + containerName + "/" + objectName,
                 e
             );
-            throw new ContentAddressableStorageServerException("Error when trying to check existence of object", e);
         }
     }
 
@@ -865,11 +827,9 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             Stopwatch stopwatch = Stopwatch.createStarted();
             String bucketName = generateBucketName(containerName);
             try {
-                GetObjectMetadataRequest getObjectMetadataRequest = new GetObjectMetadataRequest(
-                    bucketName,
-                    objectName
-                );
-                ObjectMetadata objectMetadata = client.getObjectMetadata(getObjectMetadataRequest);
+                HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucketName).key(objectName).build();
+                HeadObjectResponse headObjectResponse = s3ClientWithRetry.headObject(request);
+
                 PerformanceLogger.getInstance()
                     .log(
                         "STP_Offer_" + getConfiguration().getProvider(),
@@ -877,41 +837,29 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                         "READ_DIGEST_FROM_METADATA",
                         stopwatch.elapsed(TimeUnit.MILLISECONDS)
                     );
-                return getDigestFromObjectMetadata(containerName, objectName, digestType, bucketName, objectMetadata);
-            } catch (AmazonServiceException e) {
-                LOGGER.debug(
-                    String.format(
-                        "Error when trying to compute digest of object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                        objectName,
-                        containerName,
-                        e.getErrorCode(),
-                        e.getErrorType(),
-                        e.getErrorMessage()
-                    ),
+
+                // Get the digest from the metadata
+                return getDigestFromObjectMetadata(
+                    containerName,
+                    objectName,
+                    digestType,
+                    bucketName,
+                    headObjectResponse
+                );
+            } catch (NoSuchKeyException e) {
+                throw new ContentAddressableStorageNotFoundException(
+                    "Error when trying to compute digest of object " +
+                    objectName +
+                    " from container " +
+                    containerName +
+                    ". Object not found.",
                     e
                 );
-                if (AmazonS3APIErrorCodes.NOT_FOUND.getErrorCode().equals(e.getErrorCode())) {
-                    throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName,
-                        e
-                    );
-                } else {
-                    throw new ContentAddressableStorageServerException(
-                        "Error when trying to compute digest of object",
-                        e
-                    );
-                }
-            } catch (SdkBaseException e) {
-                LOGGER.debug(
-                    String.format(
-                        "Error when trying to compute digest of object %s from container %s. Reason: errorMessage=%s",
-                        objectName,
-                        containerName,
-                        e.getMessage()
-                    ),
+            } catch (SdkException e) {
+                throw new ContentAddressableStorageServerException(
+                    "Error when trying to compute digest of object " + containerName + "/" + objectName,
                     e
                 );
-                throw new ContentAddressableStorageServerException("Error when trying to compute digest of object", e);
             }
         }
 
@@ -923,16 +871,16 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         String objectName,
         DigestType digestType,
         String bucketName,
-        ObjectMetadata objectMetadata
+        HeadObjectResponse headObjectResponse
     ) throws ContentAddressableStorageException {
         if (
-            null != objectMetadata &&
-            objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST) &&
-            objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST_TYPE) &&
-            digestType.getName().equals(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST_TYPE)) &&
-            null != objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST)
+            null != headObjectResponse &&
+            headObjectResponse.metadata().containsKey(X_OBJECT_META_DIGEST) &&
+            headObjectResponse.metadata().containsKey(X_OBJECT_META_DIGEST_TYPE) &&
+            digestType.getName().equals(headObjectResponse.metadata().get(X_OBJECT_META_DIGEST_TYPE)) &&
+            null != headObjectResponse.metadata().get(X_OBJECT_META_DIGEST)
         ) {
-            return objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST);
+            return headObjectResponse.metadata().get(X_OBJECT_META_DIGEST);
         } else {
             LOGGER.warn(
                 String.format(
@@ -975,8 +923,8 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         String bucketName = generateBucketName(containerName);
         try {
             MetadatasStorageObject result = new MetadatasStorageObject();
-            GetObjectMetadataRequest getObjectMetadataRequest = new GetObjectMetadataRequest(bucketName, objectId);
-            ObjectMetadata objectMetadata = client.getObjectMetadata(getObjectMetadataRequest);
+            HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucketName).key(objectId).build();
+            HeadObjectResponse headObjectResponse = s3ClientWithRetry.headObject(request);
             // ugly
             result.setType(containerName.split("_")[1]);
             result.setObjectName(objectId);
@@ -988,43 +936,22 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                         objectId,
                         VitamConfiguration.getDefaultDigestType(),
                         bucketName,
-                        objectMetadata
+                        headObjectResponse
                     )
             );
-            result.setFileSize(objectMetadata.getContentLength());
-            result.setLastModifiedDate(objectMetadata.getLastModified().toString());
+            result.setFileSize(headObjectResponse.contentLength());
+            result.setLastModifiedDate(headObjectResponse.lastModified().toString());
             return result;
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to get metadata of object %s in container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                    objectId,
-                    containerName,
-                    e.getErrorCode(),
-                    e.getErrorType(),
-                    e.getErrorMessage()
-                ),
+        } catch (NoSuchKeyException e) {
+            throw new ContentAddressableStorageNotFoundException(
+                "Error when trying to get metadata of object " + containerName + "/" + objectId + ". Object not found.",
                 e
             );
-            if (AmazonS3APIErrorCodes.NOT_FOUND.getErrorCode().equals(e.getErrorCode())) {
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId,
-                    e
-                );
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to get metadata of object", e);
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to get metadata of object %s in container %s. Reason: errorMessage=%s",
-                    objectId,
-                    containerName,
-                    e.getMessage()
-                ),
+        } catch (SdkException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error when trying to get metadata of object " + containerName + "/" + objectId,
                 e
             );
-            throw new ContentAddressableStorageServerException("Error when trying to get metadata of object", e);
         }
     }
 
@@ -1040,56 +967,43 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         try {
             String continuationToken = null;
             do {
-                ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
-                listObjectsV2Request.setBucketName(bucketName);
-                listObjectsV2Request.setMaxKeys(getConfiguration().getS3ListObjectBulkSize());
-                listObjectsV2Request.setContinuationToken(continuationToken);
+                // Create a request to list objects
+                ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .maxKeys(getConfiguration().getS3ListObjectBulkSize())
+                    .continuationToken(continuationToken)
+                    .build();
 
-                ListObjectsV2Result listObjectsV2Result = client.listObjectsV2(listObjectsV2Request);
+                // List objects
+                ListObjectsV2Response listObjectsV2Response = s3ClientWithRetry.listObjectsV2(listObjectsV2Request);
 
-                for (S3ObjectSummary objectSummary : listObjectsV2Result.getObjectSummaries()) {
-                    objectListingListener.handleObjectEntry(
-                        new ObjectEntry(objectSummary.getKey(), objectSummary.getSize())
-                    );
+                // Process each object
+                for (S3Object s3Object : listObjectsV2Response.contents()) {
+                    LOGGER.debug("Found object {}/{} ({} bytes)", containerName, s3Object.key(), s3Object.size());
+                    objectListingListener.handleObjectEntry(new ObjectEntry(s3Object.key(), s3Object.size()));
                 }
 
-                continuationToken = listObjectsV2Result.getNextContinuationToken();
+                // Get the continuation token for the next page
+                continuationToken = listObjectsV2Response.nextContinuationToken();
             } while (continuationToken != null);
-        } catch (AmazonServiceException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to list objects from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                    containerName,
-                    e.getErrorCode(),
-                    e.getErrorType(),
-                    e.getErrorMessage()
-                ),
+        } catch (NoSuchBucketException e) {
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
                 e
             );
-            if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
-                    e
-                );
-            } else {
-                throw new ContentAddressableStorageServerException("Error when trying to list objects", e);
-            }
-        } catch (SdkBaseException e) {
-            LOGGER.debug(
-                String.format(
-                    "Error when trying to list objects from container %s. Reason: errorMessage=%s",
-                    containerName,
-                    e.getMessage()
-                ),
+        } catch (SdkException e) {
+            throw new ContentAddressableStorageServerException(
+                "Error when trying to list objects of container " + containerName,
                 e
             );
-            throw new ContentAddressableStorageServerException("Error when trying to list objects", e);
         }
     }
 
     @Override
     public void close() {
-        // nothing to do
+        s3ClientWithRetry.close();
+        s3ClientWithoutRetry.close();
+        httpClient.close();
     }
 
     /**
@@ -1098,7 +1012,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
      *
      * @param containerName vitam container name
      * @return bucket name valid according to s3 API specification
-     * @see <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html">Bucket restrictions and limitations</a>
+     * @see <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html">General purpose bucket naming rules</a>
      */
     public String generateBucketName(String containerName) {
         String bucketName = containerName.replaceAll("[^A-Za-z0-9]", ".").toLowerCase();
@@ -1110,5 +1024,18 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
 
     private boolean useMultipartUpload(long size) {
         return !s3DisableMultipartUpload && (size > this.s3MaxUploadPartSize);
+    }
+
+    private static RequestBody fixedLengthInputStreamRequestBody(InputStream inputStream, long contentLength)
+        throws IOException {
+        ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(inputStream, contentLength);
+        AtomicBoolean alreadyConsumed = new AtomicBoolean(false);
+        ContentStreamProvider contentStreamProvider = () -> {
+            if (alreadyConsumed.getAndSet(true)) {
+                throw new IllegalStateException("Cannot create a new stream. Already consumed");
+            }
+            return exactSizeInputStream;
+        };
+        return RequestBody.fromContentProvider(contentStreamProvider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 }

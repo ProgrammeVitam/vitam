@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -105,6 +104,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
 import org.xml.sax.SAXException;
@@ -887,28 +887,28 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 descContent.getSystemId().add(unit.getSystemId());
             }
 
-            if (!CollectionUtils.isNullOrEmpty(unit.getFilePlanPosition())) {
+            if (CollectionUtils.isNotEmpty(unit.getFilePlanPosition())) {
                 descContent.getFilePlanPosition().addAll(unit.getFilePlanPosition());
             }
-            if (!CollectionUtils.isNullOrEmpty(unit.getOriginatingSystemId())) {
+            if (CollectionUtils.isNotEmpty(unit.getOriginatingSystemId())) {
                 descContent.getOriginatingSystemId().addAll(unit.getOriginatingSystemId());
             }
-            if (!CollectionUtils.isNullOrEmpty(unit.getArchivalAgencyArchiveUnitIdentifier())) {
+            if (CollectionUtils.isNotEmpty(unit.getArchivalAgencyArchiveUnitIdentifier())) {
                 descContent
                     .getArchivalAgencyArchiveUnitIdentifier()
                     .addAll(unit.getArchivalAgencyArchiveUnitIdentifier());
             }
-            if (!CollectionUtils.isNullOrEmpty(unit.getOriginatingAgencyArchiveUnitIdentifier())) {
+            if (CollectionUtils.isNotEmpty(unit.getOriginatingAgencyArchiveUnitIdentifier())) {
                 descContent
                     .getOriginatingAgencyArchiveUnitIdentifier()
                     .addAll(unit.getOriginatingAgencyArchiveUnitIdentifier());
             }
-            if (!CollectionUtils.isNullOrEmpty(unit.getTransferringAgencyArchiveUnitIdentifier())) {
+            if (CollectionUtils.isNotEmpty(unit.getTransferringAgencyArchiveUnitIdentifier())) {
                 descContent
                     .getTransferringAgencyArchiveUnitIdentifier()
                     .addAll(unit.getTransferringAgencyArchiveUnitIdentifier());
             }
-            if (!CollectionUtils.isNullOrEmpty(unit.getPersistentIdentifier())) {
+            if (CollectionUtils.isNotEmpty(unit.getPersistentIdentifier())) {
                 List<PersistentIdentifierModel> listOfPersistentIdentifierModel = unit.getPersistentIdentifier();
 
                 for (PersistentIdentifierModel persistentIdentifierModel : listOfPersistentIdentifierModel) {
@@ -947,28 +947,28 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 descContent.getSystemId().add(archiveUnitAtrExtra.getSystemId());
 
-                if (!CollectionUtils.isNullOrEmpty(archiveUnitAtrExtra.getFilePlanPosition())) {
+                if (CollectionUtils.isNotEmpty(archiveUnitAtrExtra.getFilePlanPosition())) {
                     descContent.getFilePlanPosition().addAll(archiveUnitAtrExtra.getFilePlanPosition());
                 }
-                if (!CollectionUtils.isNullOrEmpty(archiveUnitAtrExtra.getOriginatingSystemId())) {
+                if (CollectionUtils.isNotEmpty(archiveUnitAtrExtra.getOriginatingSystemId())) {
                     descContent.getOriginatingSystemId().addAll(archiveUnitAtrExtra.getOriginatingSystemId());
                 }
-                if (!CollectionUtils.isNullOrEmpty(archiveUnitAtrExtra.getArchivalAgencyArchiveUnitIdentifier())) {
+                if (CollectionUtils.isNotEmpty(archiveUnitAtrExtra.getArchivalAgencyArchiveUnitIdentifier())) {
                     descContent
                         .getArchivalAgencyArchiveUnitIdentifier()
                         .addAll(archiveUnitAtrExtra.getArchivalAgencyArchiveUnitIdentifier());
                 }
-                if (!CollectionUtils.isNullOrEmpty(archiveUnitAtrExtra.getOriginatingAgencyArchiveUnitIdentifier())) {
+                if (CollectionUtils.isNotEmpty(archiveUnitAtrExtra.getOriginatingAgencyArchiveUnitIdentifier())) {
                     descContent
                         .getOriginatingAgencyArchiveUnitIdentifier()
                         .addAll(archiveUnitAtrExtra.getOriginatingAgencyArchiveUnitIdentifier());
                 }
-                if (!CollectionUtils.isNullOrEmpty(archiveUnitAtrExtra.getTransferringAgencyArchiveUnitIdentifier())) {
+                if (CollectionUtils.isNotEmpty(archiveUnitAtrExtra.getTransferringAgencyArchiveUnitIdentifier())) {
                     descContent
                         .getTransferringAgencyArchiveUnitIdentifier()
                         .addAll(archiveUnitAtrExtra.getTransferringAgencyArchiveUnitIdentifier());
                 }
-                if (!CollectionUtils.isNullOrEmpty(archiveUnitAtrExtra.getPersistentIdentifier())) {
+                if (CollectionUtils.isNotEmpty(archiveUnitAtrExtra.getPersistentIdentifier())) {
                     List<PersistentIdentifierModel> listOfPersistentIdentifierModel =
                         archiveUnitAtrExtra.getPersistentIdentifier();
 
@@ -1239,7 +1239,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     ) {
         if (guidToDataObjectAtrExtraMap.containsKey(dataObjectSystemGUID)) {
             DataObjectAtrExtra dataObjectAtrExtra = guidToDataObjectAtrExtraMap.get(dataObjectSystemGUID);
-            if (!CollectionUtils.isNullOrEmpty(dataObjectAtrExtra.getPersistentIdentifier())) {
+            if (CollectionUtils.isNotEmpty(dataObjectAtrExtra.getPersistentIdentifier())) {
                 for (PersistentIdentifierModel persistentIdentifierModel : dataObjectAtrExtra.getPersistentIdentifier()) {
                     binaryOrPhysicalDataObject.getPersistentIdentifier().add(persistentIdentifierModel);
                 }

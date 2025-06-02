@@ -90,34 +90,29 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      */
     private String s3SecretKey;
     /**
-     * S3 Signature algorithm (default null for V4, or 'S3SignerType' for V2 or
-     * 'AWSS3V4SignerType' for V4)
-     */
-    private String s3SignerType;
-    /**
      * S3 access bucket in 'path-style' instead of default 'virtual-hosted-style'
      */
     private boolean s3PathStyleAccessEnabled;
     /**
      * S3 max number of open http connections
      */
-    private int s3MaxConnections;
+    private int s3MaxConnections = 50;
     /**
-     * S3 connection timeout
+     * S3 connection timeout (ms)
      */
-    private int s3ConnectionTimeout;
+    private int s3ConnectionTimeout = 10_000;
     /**
-     * S3 socket timeout
+     * S3 socket timeout (ms)
      */
-    private int s3SocketTimeout;
+    private int s3SocketTimeout = 50_000;
     /**
-     * S3 request timeout
+     * S3 request timeout ms (default = 0 / infinite)
      */
     private int s3RequestTimeout;
     /**
-     * S3 client execution timeout
+     * S3 client execution timeout ms (default = 0 / infinite)
      */
-    private int s3ClientExecutionTimeout;
+    private int s3ClientExecutionTimeout = 0;
     /**
      * S3 page size for ObjectList for S3. Default S3 value is 1_000 which is also max value.
      */
@@ -141,6 +136,12 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      * Wait delay for S3 multi-part upload cleanup
      */
     private int s3MultiPartCleanWaitingTimeInMilliseconds = 10_000;
+
+    /**
+     * Ignore certificate hostname validation when connecting to remote S3 server (unsecure, for compatibility reasons).
+     * Default to false
+     */
+    private boolean s3IgnoreCertificateHostnameValidation = false;
 
     /**
      * Tape library configuration
@@ -434,15 +435,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
-    public String getS3SignerType() {
-        return s3SignerType;
-    }
-
-    public StorageConfiguration setS3SignerType(String s3SignerType) {
-        this.s3SignerType = s3SignerType;
-        return this;
-    }
-
     public boolean isS3PathStyleAccessEnabled() {
         return s3PathStyleAccessEnabled;
     }
@@ -607,6 +599,17 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         int s3MultiPartCleanWaitingTimeInMilliseconds
     ) {
         this.s3MultiPartCleanWaitingTimeInMilliseconds = s3MultiPartCleanWaitingTimeInMilliseconds;
+        return this;
+    }
+
+    public boolean isS3IgnoreCertificateHostnameValidation() {
+        return s3IgnoreCertificateHostnameValidation;
+    }
+
+    public StorageConfiguration setS3IgnoreCertificateHostnameValidation(
+        boolean s3IgnoreCertificateHostnameValidation
+    ) {
+        this.s3IgnoreCertificateHostnameValidation = s3IgnoreCertificateHostnameValidation;
         return this;
     }
 

@@ -104,7 +104,7 @@ Les paramètres communs aux types d'offres sont:
   - provider :: String : le type de l'offre de stockage (valeur par défaut si chaîne vide: filesystem) Les valeurs possibles sont:
     - filesystem
     - openstack-swift
-    - amazon-s3-v1
+    - amazon-s3-v2
 
 Pour une offre Filesystem, les paramètres de configuration sont :
   - storagePath :: String : path de stockage pour l'offre FileSystem
@@ -118,9 +118,6 @@ Pour une offre S3 les paramètres de configuration sont :
   - s3SecretKey :: String : Secret Access key
   - s3RegionName :: String : region (pour les requêtes signées en algorithme V4)
   - s3Endpoint :: String : URL du stockage
-  - s3SignerType :: String : type de signature utilisé (cf documentation officielle Amazon sur la `signature des requêtes <https://docs.aws.amazon.com/fr_fr/AmazonS3/latest/dev/UsingAWSSDK.html#specify-signature-version>`_). Valeurs possibles :
-     - 'AWSS3V4SignerType' : signature V4 (valeur par défaut si chaîne vide)
-     - 'S3SignerType' : signature V2
   - s3TrustStore :: String : chemin vers le fichier TrustStore contenant le certificat racine de l'autorité du certificat du stockage (obligatoire en cas de SSL)
   - s3PathStyleEnabled :: Boolean : type d'accès aux buckets S3 (cf documentation officielle Amazon sur l'`hébergement virtuel de compartiments <https://docs.aws.amazon.com/fr_fr/AmazonS3/latest/dev/VirtualHosting.html>`_). Valeurs possibles :
      - 'true' : l'accès en mode "path-style" (exemple d'URI : ``http://mys3domain/mybucket/``)

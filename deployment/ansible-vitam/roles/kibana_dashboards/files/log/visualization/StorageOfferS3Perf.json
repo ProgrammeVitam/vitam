@@ -5,6 +5,6 @@
   "description": "",
   "version": 1,
   "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[{\"meta\":{\"index\":\"logstash-vitam*\",\"negate\":false,\"disabled\":false,\"alias\":null,\"type\":\"phrase\",\"key\":\"stepName.keyword\",\"value\":\"Offer_openstack-amazon-s3-v1\",\"params\":{\"query\":\"Offer_openstack-amazon-s3-v1\",\"type\":\"phrase\"}},\"query\":{\"match\":{\"stepName.keyword\":{\"query\":\"Offer_openstack-amazon-s3-v1\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
+    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query\":\"\",\"language\":\"lucene\"},\"filter\":[{\"meta\":{\"index\":\"logstash-vitam*\",\"negate\":false,\"disabled\":false,\"alias\":null,\"type\":\"phrase\",\"key\":\"stepName.keyword\",\"value\":\"Offer_amazon-s3-v2\",\"params\":{\"query\":\"Offer_amazon-s3-v2\",\"type\":\"phrase\"}},\"query\":{\"match\":{\"stepName.keyword\":{\"query\":\"Offer_amazon-s3-v2\",\"type\":\"phrase\"}}},\"$state\":{\"store\":\"appState\"}}]}"
   }
 }

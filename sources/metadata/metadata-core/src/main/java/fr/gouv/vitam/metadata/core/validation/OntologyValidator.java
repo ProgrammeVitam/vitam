@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.validation;
 
-import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -83,8 +82,7 @@ public class OntologyValidator {
 
         if (!errors.isEmpty()) {
             String error =
-                "metadata contains fields declared in ontology with a wrong format : " +
-                CollectionUtils.join(errors, ",");
+                "metadata contains fields declared in ontology with a wrong format : " + String.join(",", errors);
             throw new MetadataValidationException(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE, error);
         }
 

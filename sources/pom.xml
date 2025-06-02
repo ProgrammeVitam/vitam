@@ -161,7 +161,7 @@
         <!-- object storing-->
         <jclouds.version>2.5.0</jclouds.version>
         <openstack4j.version>3.12</openstack4j.version>
-        <awssdk.v1.version>1.12.690</awssdk.v1.version>
+        <awssdk.v2.version>2.31.47</awssdk.v2.version>
 
         <!-- jetty -->
         <jetty.version>10.0.20</jetty.version>
@@ -1105,9 +1105,14 @@
                 <version>${openstack4j.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-s3</artifactId>
-                <version>${awssdk.v1.version}</version>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${awssdk.v2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>apache-client</artifactId>
+                <version>${awssdk.v2.version}</version>
             </dependency>
             <dependency>
                 <groupId>co.elastic.clients</groupId>

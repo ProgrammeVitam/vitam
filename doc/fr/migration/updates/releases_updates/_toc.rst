@@ -23,4 +23,5 @@ Le schéma ci-dessous décrit le principe général pour effectuer plusieurs mon
    v7_1_update.rst
    v8_0_update.rst
    v8_1_update.rst
+   v9_0_update.rst
    migration_container.rst
