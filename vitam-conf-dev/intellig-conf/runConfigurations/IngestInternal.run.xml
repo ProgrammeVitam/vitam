@@ -1,7 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="IngestInternal" type="Application" factoryName="Application">
-    <option name="ALTERNATIVE_JRE_PATH" value="17" />
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <log_file alias="Logs" path="$vitamLocalShareFolder$/log/ingest-internal/ingest-internal.*.log" />
     <log_file alias="AccessLogs" path="$vitamLocalShareFolder$/log/ingest-internal/accesslog-ingest-internal.*.log" />
     <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain" />
