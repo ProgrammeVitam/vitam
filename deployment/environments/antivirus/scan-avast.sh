@@ -1,148 +1,172 @@
 #!/bin/bash
 
-##########################################################################
-# Role:                                                                  #
-# Scan a single file using Avast Business Antivirus for Linux            #
-##########################################################################
-# Args:                                                                  #
-# - file to scan                                                         #
-##########################################################################
-# Expected return values:                                                #
-# - 0: scan OK - no virus                                                #
+################################################################################
+# Role:                                                                        #
+# Scan a single file using Avast Business Antivirus for Linux                  #
+################################################################################
+# Args:                                                                        #
+# - file to scan                                                               #
+################################################################################
+# Expected Vitam's return values:                                              #
+# - 0: scan OK - no virus                                                      #
 RET_OK=0
-# - 1: virus found and corrected                                         #
+# - 1: virus found and corrected                                               #
 RET_VIRUS_FOUND_FIXED=1
-# - 2: virus found but not corrected                                     #
+# - 2: virus found but not corrected                                           #
 RET_VIRUS_FOUND_NOTFIXED=2
-# - 3: Fatal scan not performed                                          #
+# - 3: Fatal scan not performed                                                #
 RET_FAILURE=3
-# Default return code : scan NOK                                         #
+# Default return code : scan NOK                                               #
 RET=$RET_FAILURE
-##########################################################################
-# For verbose mode, you can add -a parameter to the scan command         #
-SCAN_PARAMS='-ifup'
-# For verbose mode, you can remove the -q parameter to the unzip command #
+################################################################################
+# See `scan -h` command for all the available parameters                       #
+# Keep at least the -J parameter for JSON output                               #
+SCAN_PARAMS='-Jifup'
+# For verbose mode, you can remove the -q parameter to the unzip command       #
 UNZIP_PARAMS=''
-##########################################################################
+# Set regex pattern for ignored warnings (with -J in SCAN_PARAMS)              #
+IGNORED_PATTERN='The file is a decompression bomb'
+################################################################################
 
 custom_scan () {
   local FILE_TO_SCAN="$1"
 
+  declare -A ignored_list
+  declare -A rejected_list
+  declare -A too_big_files
+  declare -A virus_detections
+
   scan $SCAN_PARAMS "$FILE_TO_SCAN" &>> ${WORKING_DIR}/scan.log
-  local RET=$? # return code of scan
-  if [ $RET != $RET_OK ]; then
+  local ret_code=$?
+  # The exit status is 0 if no infected files are found and 1 otherwise.
+  # If an error occurred, the exit status is 2.
+  # Infected status takes precedence over error status, thus a scan where some file could not be scanned and some infection was found returns 1.
+
+  # Properly handle REASON without -J param
+  if [[ $ret_code -eq 2 ]]; then
+    REASON="Rejected files found !"
+  elif [[ $ret_code -eq 1 ]]; then
     REASON="Virus found !"
-    RET=$(($RET+1)) # Increase the return code to fit the expected Vitam's scan code
+    ret_code=$(($ret_code+1)) # Increase the return code to fit the expected Vitam's scan code
   fi
 
-  # Specific case for scan not performed properly (probably because of big files, decompression bombs or ZIP archive corrupted)
-  if [ $RET == $RET_FAILURE ]; then
+  # Analyse JSON logs from scan
+  while read -r line; do
+    [[ "$line" =~ ^\{.*\}$ ]] || continue
+    echo "$line"
 
-    # Specific case for decompression bomb
-    # Examples output:
-    # avast: /vitam/data/ingest-external/upload/SIP_Test_decompression.zip|>content/ID6999.docx|>word/media/image8.emf: The file is a decompression bomb
-    # avast: /vitam/data/ingest-external/aeeaaaaabshmriqsaafowal4jqrjleyaaaaq/aeeaaaaabshmriqsaafowal4jqrjleyaaaaq|>content/ID15.docx|>word/embeddings/Microsoft_PowerPoint_Presentation1.pptx|>ppt/media/image1.emf: The file is a decompression bomb
-    local DECOMPRESSION_BOMBS=$(cat ${WORKING_DIR}/scan.log | grep -e 'The file is a decompression bomb' | cut -d':' -f2 | grep -E '^.*\|>' | cut -d'>' -f2-)
-    if [ -n "$DECOMPRESSION_BOMBS" ]; then
+    path=$(jq -r 'if .path[1] then .path[1] else .path[0] end // empty' <<< "$line")
 
-      # Whitelist => emf,wmf,log
-      for BOMB in $DECOMPRESSION_BOMBS; do
-        if [ -n "$(echo $BOMB | grep -vE '^.*\.(emf|wmf|log)$')" ]; then
-          REAL_BOMBS+="$BOMB "
-        else
-          IGNORED_BOMBS+="$BOMB "
+    # Handle virus detections
+    if jq -e '.virus? // empty' <<< "$line" > /dev/null; then
+      # Without -i parameter to the SCAN_PARAMS, the searched field is .virus
+      virus=$(jq -r '.virus' <<< "$line")
+    elif jq -e '.detections? // empty' <<< "$line" > /dev/null; then
+      # With -i parameter to the SCAN_PARAMS, the searched field is .detections
+      virus=$(jq -c '.detections' <<< "$line")
+    else
+      virus=""
+    fi
+    if [[ -n "$path" && -n "$virus" ]]; then
+      virus_detections["$path"]="$virus"
+    fi
+
+    # Handle warnings with classification
+    warning_str=$(jq -r '.warning_str // empty' <<< "$line")
+    if [[ -n "$path" && -n "$warning_str" ]]; then
+      if [[ "$warning_str" == "Compressed file is too big to be processed" ]]; then
+        too_big_files["$path"]="$warning_str"
+      elif [[ -n "$IGNORED_PATTERN" && "$warning_str" =~ $IGNORED_PATTERN ]]; then
+        ignored_list["$path"]="$warning_str"
+      else
+        rejected_list["$path"]="$warning_str"
+      fi
+    fi
+  done < "${WORKING_DIR}/scan.log"
+
+  # --- Print summaries ---
+  if (( ${#ignored_list[@]} > 0 )); then
+    ret_code=$RET_VIRUS_FOUND_FIXED
+    REASON="${#ignored_list[@]} warnings found but ignored."
+    echo "INFO: ${REASON}" |& tee -a ${WORKING_DIR}/scan.log
+    for path in "${!ignored_list[@]}"; do
+      echo "  $path: ${ignored_list[$path]}" |& tee -a ${WORKING_DIR}/scan.log
+    done
+  fi
+
+  if (( ${#rejected_list[@]} > 0 )); then
+    ret_code=$RET_VIRUS_FOUND_NOTFIXED
+    REASON="${#rejected_list[@]} rejected files found !"
+    echo "ERROR: ${REASON}" |& tee -a ${WORKING_DIR}/scan.log
+    for path in "${!rejected_list[@]}"; do
+      echo "  $path: ${rejected_list[$path]}" |& tee -a ${WORKING_DIR}/scan.log
+    done
+  fi
+
+  if (( ${#virus_detections[@]} > 0 )); then
+    ret_code=$RET_VIRUS_FOUND_NOTFIXED
+    REASON="${#virus_detections[@]} Virus found !"
+    echo "ERROR: $REASON" |& tee -a ${WORKING_DIR}/scan.log
+    for path in "${!virus_detections[@]}"; do
+      echo "  $path: ${virus_detections[$path]}" |& tee -a ${WORKING_DIR}/scan.log
+    done
+  fi
+
+  # Do not loop over big files if there are already detected errors
+  if [[ $ret_code -ne $RET_VIRUS_FOUND_NOTFIXED ]]; then
+    if (( ${#too_big_files[@]} > 0 )); then
+      echo "INFO: ${#too_big_files[@]} files could not be processed due to size." |& tee -a ${WORKING_DIR}/scan.log
+      echo "INFO: Starting individual scan..." |& tee -a ${WORKING_DIR}/scan.log
+      for path in "${!too_big_files[@]}"; do
+        unzip_and_scan "$FILE_TO_SCAN" "$path"
+        # Exit loop if rc != 0
+        if [ $? -ne 0 ]; then
+          ret_code=$RET_VIRUS_FOUND_NOTFIXED
+          break
         fi
       done
-
-      # If we don't have real decompression bomb (maybe we have too big files)
-      if [ -n "$IGNORED_BOMBS" ]; then
-        echo "INFO: $(printf '%s\n' $IGNORED_BOMBS | wc -l) decompression bombs ignored..." |& tee -a ${WORKING_DIR}/scan.log
-        printf '  %s\n' $IGNORED_BOMBS |& tee -a ${WORKING_DIR}/scan.log
-        RET=$RET_VIRUS_FOUND_FIXED
-      fi
-      if [ -n "$REAL_BOMBS" ]; then
-        REASON="$(printf '%s\n' $REAL_BOMBS | wc -l) real decompression bombs found !"
-        echo "ERROR: ${REASON}" |& tee -a ${WORKING_DIR}/scan.log
-        printf ' %s\n' $REAL_BOMBS |& tee -a ${WORKING_DIR}/scan.log
-        RET=$RET_VIRUS_FOUND_NOTFIXED
-      fi
-
     fi
-
-    # Specific case for corrupted archive
-    # Examples output:
-    # avast: /vitam/data/ingest-external/upload/SIP-Perf-1-18x400M.zip|>content/ID58.tmp: ZIP archive is corrupted
-    # avast: /vitam/data/ingest-external/upload/SIP-Perf-1-18x400M.zip|>content/ID43093.pdf|>word/theme/theme1.xml: ZIP archive is corrupted
-    local CORRUPTED_FILES=$(cat ${WORKING_DIR}/scan.log | grep -e 'ZIP archive is corrupted' | cut -d':' -f2 | cut -d'>' -f2-)
-    if [ -n "$CORRUPTED_FILES" ]; then
-      REASON="$(printf '%s\n' ${CORRUPTED_FILES} | wc -l) corrupted files found !"
-      echo "ERROR: ${REASON}" |& tee -a ${WORKING_DIR}/scan.log
-      printf '  %s\n' $CORRUPTED_FILES |& tee -a ${WORKING_DIR}/scan.log
-      RET=$RET_VIRUS_FOUND_NOTFIXED
-    fi
-
-    if [ $RET != $RET_VIRUS_FOUND_NOTFIXED ]; then
-      # Specific case for big files
-      # Example output for zip: avast: /vitam/data/ingest-external/upload/SIP-Perf-1-1x500M.zip|>content/ID13.tmp: Compressed file is too big to be processed
-      # Example output for tar.gz: avast: /vitam/data/ingest-external/upload/SIP-Perf-1-1x500M.tar.gz|>SIP-Perf-1-1x500M.tar: Compressed file is too big to be processed
-      # Example output for tar.bz2: avast: /vitam/data/ingest-external/upload/SIP-Perf-1-1x500M.tar.bz2|>{bzip}: Compressed file is too big to be processed
-      local FILES_TO_INDIVIDUALLY_SCAN=($(cat ${WORKING_DIR}/scan.log | grep -e 'Compressed file is too big to be processed' | cut -d':' -f2 | cut -d'>' -f2 | uniq | sed 's/|//'))
-      if [ -n "$FILES_TO_INDIVIDUALLY_SCAN" ]; then
-        # echo "Starting individual scan for ${#FILES_TO_INDIVIDUALLY_SCAN[@]} big files..." |& tee -a ${WORKING_DIR}/scan.log
-        unzip_and_scan "$FILE_TO_SCAN" "${FILES_TO_INDIVIDUALLY_SCAN[@]}"
-        RET=$?
-      fi
-    fi
-
   fi
 
-  return $RET
-
+  return $ret_code
 }
 
 unzip_and_scan () {
   local ARCHIVE="$1"
-  shift #Remove first element after attribute it
-  local FILES="$@"
+  local FILE="$2"
 
-  echo "INFO: Starting individual scan for $# files..." |& tee -a ${WORKING_DIR}/scan.log
+  echo "INFO: Scanning $FILE" |& tee -a ${WORKING_DIR}/scan.log
+  local TMP_FILE="${WORKING_DIR}/${FILE}"
 
-  for FILE in $FILES
-  do
+  if [ "$TYPE_SIP" == 'application/zip' ]; then
+    unzip $UNZIP_PARAMS "$ARCHIVE" "${FILE}" -d "$WORKING_DIR" |& tee -a ${WORKING_DIR}/scan.log
+    # $? == 11 file not found; skipping to avoid infinite loop
+  elif [ "$TYPE_SIP" == 'application/x-tar' ]; then
+    tar xvf "$ARCHIVE" --directory "$WORKING_DIR" "${FILE}" |& tee -a ${WORKING_DIR}/scan.log
+  elif [ "$TYPE_SIP" == 'application/gzip' ] || [ "$TYPE_SIP" == 'application/x-gzip' ]; then
+    mkdir -p "$TMP_FILE"
+    tar xvzf "$ARCHIVE" --directory "$TMP_FILE" |& tee -a ${WORKING_DIR}/scan.log #uncompress the entire archive
+    # gunzip -c $ARCHIVE > $TMP_FILE |& tee -a ${WORKING_DIR}/scan.log
+  elif [ "$TYPE_SIP" == 'application/x-bzip2' ]; then
+    mkdir -p "$TMP_FILE"
+    tar xvjf "$ARCHIVE" --directory "$TMP_FILE" |& tee -a ${WORKING_DIR}/scan.log #uncompress the entire archive
+  else
+    echo "ERROR: $ARCHIVE: mime-type $TYPE_SIP is not supported" |& tee -a ${WORKING_DIR}/scan.log
+    return $RET_FAILURE
+  fi
 
-    local TMP_FILE="${WORKING_DIR}/${FILE}"
+  # Normal scan...
+  scan $SCAN_PARAMS "$TMP_FILE" &>> ${WORKING_DIR}/scan.log
+  local RET=$? # return code of scan
 
-    if [ "$TYPE_SIP" == 'application/zip' ]; then
-      unzip $UNZIP_PARAMS "$ARCHIVE" "${FILE}" -d "$WORKING_DIR" |& tee -a ${WORKING_DIR}/scan.log
-      # $? == 11 file not found; skipping to avoid infinite loop
-    elif [ "$TYPE_SIP" == 'application/x-tar' ]; then
-      tar xvf "$ARCHIVE" --directory "$WORKING_DIR" "${FILE}" |& tee -a ${WORKING_DIR}/scan.log
-    elif [ "$TYPE_SIP" == 'application/gzip' ] || [ "$TYPE_SIP" == 'application/x-gzip' ]; then
-      mkdir -p "$TMP_FILE"
-      tar xvzf "$ARCHIVE" --directory "$TMP_FILE" |& tee -a ${WORKING_DIR}/scan.log #uncompress the entire archive
-      # gunzip -c $ARCHIVE > $TMP_FILE |& tee -a ${WORKING_DIR}/scan.log
-    elif [ "$TYPE_SIP" == 'application/x-bzip2' ]; then
-      mkdir -p "$TMP_FILE"
-      tar xvjf "$ARCHIVE" --directory "$TMP_FILE" |& tee -a ${WORKING_DIR}/scan.log #uncompress the entire archive
-    else
-      echo "ERROR: $ARCHIVE: mime-type $TYPE_SIP is not supported" |& tee -a ${WORKING_DIR}/scan.log
-      return $RET_FAILURE
-    fi
+  rm -f "$TMP_FILE"
 
-    # Normal scan...
-    scan $SCAN_PARAMS "$TMP_FILE" &>> ${WORKING_DIR}/scan.log
-    local RET=$? # return code of scan
+  if [ $RET != $RET_OK ]; then
+    REASON="Virus found !"
+    return $RET_VIRUS_FOUND_NOTFIXED
+  fi
 
-    rm -f "$TMP_FILE"
-
-    if [ $RET != $RET_OK ]; then
-      REASON="Virus found !"
-      return $RET_VIRUS_FOUND_NOTFIXED
-    fi
-
-  done
   return $RET
-
 }
 
 ################################################################################
@@ -181,7 +205,7 @@ else # one argument, let's go
     if [ $RET == $RET_OK ]; then
       RET_MSG='[OK]'
     elif [ $RET == $RET_VIRUS_FOUND_FIXED ]; then
-      RET_MSG='[OK: Virus found but ignored.]'
+      RET_MSG="[OK: $REASON]"
       RET=$RET_OK # FORCE O UNTIL RET=1 WELL HANDLED BY VITAM
     elif [ $RET == $RET_VIRUS_FOUND_NOTFIXED ]; then
       RET_MSG="[KO: $REASON]"
