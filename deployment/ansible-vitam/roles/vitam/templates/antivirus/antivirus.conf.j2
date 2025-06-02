@@ -1,0 +1,4 @@
+path: "{{ vitam_defaults.folder.root_path }}/data/ingest-external" # Scanned files are stored in the ingest-external folder
+jettyConfig: jetty-config.xml
+antiVirusScriptName: scan-{{ vitam_struct.engine }}.sh
+timeoutScanDelay: {{ vitam_struct.scantimeout | default(1200000) }}

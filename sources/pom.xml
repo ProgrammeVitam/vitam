@@ -32,6 +32,7 @@
     <modules>
         <module>common</module>
         <module>access</module>
+        <module>antivirus</module>
         <module>ingest</module>
         <module>processing</module>
         <module>worker</module>
@@ -203,6 +204,8 @@
         <json-sanitize.version>1.2.2</json-sanitize.version>
         <commons-collections4.version>4.4</commons-collections4.version>
         <esapi.version>2.6.0.0</esapi.version>
+        <openapi-generator-maven-plugin.version>7.4.0</openapi-generator-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
         <!-- removed to support xerces with 1.1 support <xerces.version>2.11.0</xerces.version> -->
         <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
         <xml-resolver.version>1.2</xml-resolver.version>

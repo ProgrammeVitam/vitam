@@ -14,6 +14,7 @@
     <runConfiguration name="IngestInternal" type="Application" />
     <runConfiguration name="AccessExternal" type="Application" />
     <runConfiguration name="IngestExternal" type="Application" />
+    <runConfiguration name="Antivirus" type="Application" />
     <method v="2" />
   </configuration>
 </component>

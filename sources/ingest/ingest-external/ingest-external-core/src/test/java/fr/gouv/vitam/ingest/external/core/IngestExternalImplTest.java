@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.ingest.external.core;
 
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -46,15 +47,18 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
+import fr.gouv.vitamui.antivirus.client.AntivirusApi;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
+import fr.gouv.vitamui.antivirus.client.invoker.ApiException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,9 +66,12 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class IngestExternalImplTest {
@@ -82,6 +89,7 @@ public class IngestExternalImplTest {
     private static final FormatIdentifier formatIdentifier = mock(FormatIdentifier.class);
 
     private IngestInternalClientFactory ingestInternalClientFactory;
+    private AntivirusClientFactory antivirusClientFactory = mock(AntivirusClientFactory.class);
     private IngestInternalClient ingestInternalClient;
 
     @Rule
@@ -108,15 +116,25 @@ public class IngestExternalImplTest {
             new RequestResponseOK<>()
         );
 
+        AntivirusApi antivirusApi = mock(AntivirusApi.class);
+        doNothing().when(antivirusApi).scanByPath(eq("no-virus.txt"));
+        doNothing().when(antivirusApi).scanByPath(endsWith(".zip"));
+        doThrow(new ApiException(Response.Status.BAD_REQUEST.getStatusCode(), "Virus found"))
+            .when(antivirusApi)
+            .scanByPath(eq("fixed-virus.txt"));
+        doThrow(new ApiException(Response.Status.BAD_REQUEST.getStatusCode(), "Virus found"))
+            .when(antivirusApi)
+            .scanByPath(eq("unfixed-virus.txt"));
+        when(antivirusClientFactory.getAntivirusApi()).thenReturn(antivirusApi);
+
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
-        config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
-        config.setTimeoutScanDelay(timeoutScanDelay);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
         ingestExternalImpl = new IngestExternalImpl(
             config,
             formatIdentifierFactory,
             ingestInternalClientFactory,
+            antivirusClientFactory,
             manifestDigestValidator
         );
     }
@@ -242,7 +260,7 @@ public class IngestExternalImplTest {
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
-    private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
+    static List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
         final List<FormatIdentifierResponse> list = new ArrayList<>();
         list.add(new FormatIdentifierResponse("ZIP Format", "application/zip", "x-fmt/263", "pronom"));
         return list;
@@ -265,7 +283,6 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void givenNoPerformedAntivirusScan() throws Exception {
-        JavaExecuteScript javaExecuteScript = mock(JavaExecuteScript.class);
         setVirusScanScriptWithNoAntivirusScan(SCRIPT_SCAN_CLAMAV_OK);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
@@ -275,7 +292,6 @@ public class IngestExternalImplTest {
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
-        verifyNoInteractions(javaExecuteScript);
     }
 
     @RunWithCustomExecutor
@@ -368,13 +384,12 @@ public class IngestExternalImplTest {
     private void setVirusScanScript(String script) {
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
-        config.setAntiVirusScriptName(script);
-        config.setTimeoutScanDelay(timeoutScanDelay);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
         ingestExternalImpl = new IngestExternalImpl(
             config,
             formatIdentifierFactory,
             ingestInternalClientFactory,
+            antivirusClientFactory,
             manifestDigestValidator
         );
     }
@@ -382,14 +397,13 @@ public class IngestExternalImplTest {
     private void setVirusScanScriptWithNoAntivirusScan(String script) {
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
-        config.setAntiVirusScriptName(script);
-        config.setTimeoutScanDelay(timeoutScanDelay);
         config.setIgnoreAntivirusCheck(true);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
         ingestExternalImpl = new IngestExternalImpl(
             config,
             formatIdentifierFactory,
             ingestInternalClientFactory,
+            antivirusClientFactory,
             manifestDigestValidator
         );
     }

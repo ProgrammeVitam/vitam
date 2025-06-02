@@ -353,6 +353,7 @@ log_servers
 hosts_elasticsearch_log
 prometheus
 hosts_grafana
+hosts_antivirus
 
 [hosts_cerebro]
 # TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
@@ -386,6 +387,11 @@ hosts_logstash
 [hosts_elasticsearch_log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
 # IF you connect VITAM to external SIEM, DO NOT FILL THE SECTION
+
+
+[hosts_antivirus]
+# TODO: Put here servers where this service will be deployed : antivirus
+# TODO: For the moment, must be the same as hosts_ingest_external otherwise ansible will fail
 
 
 ########### Extra VITAM applications ###########

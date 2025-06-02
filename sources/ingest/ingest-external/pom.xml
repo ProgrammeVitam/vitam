@@ -11,7 +11,7 @@
     <name>Ingest External</name>
 
     <packaging>pom</packaging>
-    	<modules>
+    <modules>
 		<module>ingest-external-common</module>
 		<module>ingest-external-api</module>
 		<module>ingest-external-core</module>

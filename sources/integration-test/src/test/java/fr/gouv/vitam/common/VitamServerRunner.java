@@ -32,6 +32,8 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.antivirus.rest.AntivirusConfiguration;
+import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.batch.report.rest.server.BatchReportConfiguration;
@@ -98,6 +100,7 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
 import org.quartz.SchedulerException;
@@ -148,6 +151,7 @@ public class VitamServerRunner extends ExternalResource {
     public static final int PORT_SERVICE_PROCESSING = 8097;
     public static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
     public static final int PORT_SERVICE_INGEST_INTERNAL_ADMIN = 28095;
+    public static final int PORT_SERVICE_ANTIVIRUS = 8098;
     public static final int PORT_SERVICE_INGEST_EXTERNAL = 8443;
     public static final int PORT_SERVICE_INGEST_EXTERNAL_ADMIN = 28001;
     public static final int PORT_SERVICE_ACCESS_INTERNAL = 8092;
@@ -186,6 +190,8 @@ public class VitamServerRunner extends ExternalResource {
     public static final String INGEST_INTERNAL_CONF = "common/ingest-internal.conf";
     public static final String INGEST_EXTERNAL_CONF = "common/ingest-external.conf";
     public static final String INGEST_EXTERNAL_CLIENT_CONF = "common/ingest-external-client.conf";
+    public static final String ANTIVIRUS_CLIENT_CONF = "common/antivirus-client.conf";
+    public static final String ANTIVIRUS_CONF = "common/antivirus.conf";
     public static final String BATCH_REPORT_CONF = "common/batch-report.conf";
     public static final String BATCH_REPORT_CLIENT_PATH = "common/batch-report-client.conf";
     public static final String PROCESSING_CONF = "common/processing.conf";
@@ -215,6 +221,7 @@ public class VitamServerRunner extends ExternalResource {
     private static DefaultOfferMain defaultOfferMain;
     private static StorageMain storageMain;
     private static AdminManagementMain adminManagementMain;
+    private static AntivirusMain antivirusMain;
     private static IngestInternalMain ingestInternalMain;
     private static IngestExternalMain ingestExternalMain;
     private static AccessInternalMain accessInternalMain;
@@ -408,6 +415,11 @@ public class VitamServerRunner extends ExternalResource {
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
 
+            // Antivirus
+            if (servers.contains(AntivirusMain.class)) {
+                startAntivirusServer();
+            }
+
             // AccessInternalMain
             if (servers.contains(AccessInternalMain.class)) {
                 startAccessInternalServer();
@@ -477,6 +489,32 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner stop  SchedulerMain");
         schedulerMain.stop();
         schedulerMain = null;
+    }
+
+    private void startAntivirusServer() throws VitamApplicationServerException, IOException {
+        if (null != antivirusMain) {
+            AntivirusClientFactory.getInstance().changeServerPort(PORT_SERVICE_ANTIVIRUS);
+            return;
+        }
+        SystemPropertyUtil.set(AntivirusMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_ANTIVIRUS));
+        LOGGER.warn("=== VitamServerRunner start Antivirus");
+        // Read path from ingest external configuration
+        File ingestExternalFile = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
+        final IngestExternalConfiguration serverConfiguration = readYaml(
+            ingestExternalFile,
+            IngestExternalConfiguration.class
+        );
+        String path = serverConfiguration.getPath();
+        // Set the path for the antivirus service
+        File antivirusFile = PropertiesUtils.findFile(ANTIVIRUS_CONF);
+        final AntivirusConfiguration antivirusConfiguration = readYaml(antivirusFile, AntivirusConfiguration.class);
+        antivirusConfiguration.setPath(path);
+        writeYaml(antivirusFile, antivirusConfiguration);
+        // Start the antivirus server
+        antivirusMain = new AntivirusMain(ANTIVIRUS_CONF);
+        antivirusMain.start();
+        AntivirusClientFactory.changeMode(ANTIVIRUS_CLIENT_CONF);
+        SystemPropertyUtil.clear(AntivirusMain.PARAMETER_JETTY_SERVER_PORT);
     }
 
     private void startIngestInternalServer() throws VitamApplicationServerException {
@@ -549,7 +587,6 @@ public class VitamServerRunner extends ExternalResource {
         String userDir = StringUtils.substringBeforeLast(dir, "/sources/");
 
         LOGGER.error("User dir :" + userDir);
-        serverConfiguration.setAntiVirusScriptName(userDir + DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH);
         writeYaml(ingestExternalFile, serverConfiguration);
 
         SystemPropertyUtil.set(

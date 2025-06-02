@@ -127,3 +127,8 @@ vitam:
             # memory: "-Xms128m -Xmx512m"
             # gc: ""
             # java: ""
+    antivirus:
+        jvm_opts:
+            # memory: "-Xms128m -Xmx512m"
+            # gc: ""
+            # java: ""

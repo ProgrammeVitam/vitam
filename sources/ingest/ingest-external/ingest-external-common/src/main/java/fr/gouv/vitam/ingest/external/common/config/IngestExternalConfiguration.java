@@ -35,8 +35,6 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class IngestExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String path;
-    private String antiVirusScriptName;
-    private long timeoutScanDelay;
     private String baseUploadPath;
     private LocalFileAction fileActionAfterUpload;
     private String successfulUploadDir;
@@ -65,38 +63,6 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
      */
     public IngestExternalConfiguration setPath(String path) {
         this.path = path;
-        return this;
-    }
-
-    /**
-     * @return antiVirusScriptName
-     */
-    public String getAntiVirusScriptName() {
-        return antiVirusScriptName;
-    }
-
-    /**
-     * @param antiVirusScriptName the antivirus script name to set
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setAntiVirusScriptName(String antiVirusScriptName) {
-        this.antiVirusScriptName = antiVirusScriptName;
-        return this;
-    }
-
-    /**
-     * @return long
-     */
-    public long getTimeoutScanDelay() {
-        return timeoutScanDelay;
-    }
-
-    /**
-     * @param timeoutScanDelay set to configuration
-     * @return IngestExternalConfiguration
-     */
-    public IngestExternalConfiguration setTimeoutScanDelay(long timeoutScanDelay) {
-        this.timeoutScanDelay = timeoutScanDelay;
         return this;
     }
 

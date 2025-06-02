@@ -38,6 +38,7 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
 import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -84,7 +85,8 @@ public class BusinessApplication extends Application {
                     configuration,
                     secureEndpointRegistry,
                     FormatIdentifierFactory.getInstance(),
-                    IngestInternalClientFactory.getInstance()
+                    IngestInternalClientFactory.getInstance(),
+                    AntivirusClientFactory.getInstance()
                 )
             );
             singletons.add(new SanityCheckerCommonFilter());

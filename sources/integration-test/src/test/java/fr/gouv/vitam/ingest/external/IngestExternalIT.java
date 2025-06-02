@@ -38,6 +38,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -141,7 +142,8 @@ public class IngestExternalIT extends VitamRuleRunner {
             AccessInternalMain.class,
             IngestInternalMain.class,
             AccessExternalMain.class,
-            IngestExternalMain.class
+            IngestExternalMain.class,
+            AntivirusMain.class
         )
     );
 

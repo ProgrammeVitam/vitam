@@ -1,0 +1,32 @@
+openapi: 3.0.1
+info:
+  title: Antivirus
+  contact:
+    name: Programme Vitam
+    email: contact@programmevitam.fr
+  version: 9.0.0-SNAPSHOT
+tags:
+  - name: Antivirus
+    description: Client for the Antivirus
+paths:
+  /antivirus/v1/scanByPath/{path}:
+    get:
+      tags:
+        - Antivirus
+      summary: Scan a file on the local filesystem
+      operationId: scanByPath
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The file does not contain any virus.
+        '400':
+          description: The file is infected by a virus
+        '404':
+          description: The file was not found or is not readable.
+        '500':
+          description: Unexpected technical error

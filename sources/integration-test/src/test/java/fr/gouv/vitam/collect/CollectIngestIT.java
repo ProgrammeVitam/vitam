@@ -37,6 +37,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
@@ -161,6 +162,7 @@ public class CollectIngestIT extends VitamRuleRunner {
             IngestInternalMain.class,
             AccessExternalMain.class,
             IngestExternalMain.class,
+            AntivirusMain.class,
             CollectInternalMain.class,
             CollectExternalMain.class
         )

@@ -39,6 +39,7 @@ import fr.gouv.vitam.access.external.client.exception.AdminExternalClientExcepti
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -168,7 +169,8 @@ public class AccessExternalIT extends VitamRuleRunner {
             AccessInternalMain.class,
             IngestInternalMain.class,
             AccessExternalMain.class,
-            IngestExternalMain.class
+            IngestExternalMain.class,
+            AntivirusMain.class
         )
     );
 
