@@ -40,6 +40,11 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public static final int MIN_UPLOAD_PART_SIZE_MB = 5;
     public static final int MAX_UPLOAD_PART_SIZE_MB = 5 * 1024;
+    private static final int DEFAULT_MAX_CONNECTIONS = 50;
+    private static final int DEFAULT_CONNECTION_TIMEOUT_MS = 10_000;
+    private static final int DEFAULT_SOCKET_TIMEOUT = 50_000;
+    private static final int DEFAULT_INFINITE_REQUEST_TIMEOUT_MS = 0; // 0 = infinite
+    private static final int DEFAULT_INFINITE_CALL_EXECUTION_TIMEOUT = 0; // 0 = infinite
 
     private String provider;
     private String swiftKeystoneAuthUrl;
@@ -96,23 +101,24 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     /**
      * S3 max number of open http connections
      */
-    private int s3MaxConnections = 50;
+    private int s3MaxConnections = DEFAULT_MAX_CONNECTIONS;
     /**
      * S3 connection timeout (ms)
      */
-    private int s3ConnectionTimeout = 10_000;
+    private int s3ConnectionTimeout = DEFAULT_CONNECTION_TIMEOUT_MS;
     /**
      * S3 socket timeout (ms)
      */
-    private int s3SocketTimeout = 50_000;
+    private int s3SocketTimeout = DEFAULT_SOCKET_TIMEOUT;
     /**
      * S3 request timeout ms (default = 0 / infinite)
      */
-    private int s3RequestTimeout;
+    private int s3RequestTimeout = DEFAULT_INFINITE_REQUEST_TIMEOUT_MS;
+
     /**
      * S3 client execution timeout ms (default = 0 / infinite)
      */
-    private int s3ClientExecutionTimeout = 0;
+    private int s3ClientExecutionTimeout = DEFAULT_INFINITE_CALL_EXECUTION_TIMEOUT;
     /**
      * S3 page size for ObjectList for S3. Default S3 value is 1_000 which is also max value.
      */
@@ -138,10 +144,10 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int s3MultiPartCleanWaitingTimeInMilliseconds = 10_000;
 
     /**
-     * Ignore certificate hostname validation when connecting to remote S3 server (unsecure, for compatibility reasons).
+     * Ignore certificate hostname validation when connecting to the remote S3 server (unsecure, for compatibility reasons).
      * Default to false
      */
-    private boolean s3IgnoreCertificateHostnameValidation = false;
+    private boolean s3IgnoreCertificateHostnameValidation;
 
     /**
      * Tape library configuration

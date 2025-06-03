@@ -84,6 +84,14 @@ public class AmazonS3V2ITTest {
     private static final String PROVIDER = "amazon-s3-v2";
     private static final String MINIO_IMAGE = "minio/minio:RELEASE.2020-04-15T00-39-01Z";
     private static final String OPENIO_IMAGE = "openio/sds:18.10";
+    private static final String MINIO_SECRET_KEY = "aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd";
+    private static final String MINIO_ACCESS_KEY = "MKU4HW1K9HSST78MDY3T";
+    private static final String OPENIO_ACCESS_KEY = "demo:demo";
+    private static final String OPENIO_SECRET_KEY = "DEMO_PASS";
+    private static final String MINIO_SSL_TRUSTSTORE = "src/test/resources/s3/tls/s3TrustStore.jks";
+    private static final String MINIO_TRUSTSTORE_PASSWORD = "s3pass";
+    private static final String BASE_LOCALHOST_HTTPS_URL = "https://127.0.0.1:";
+    private static final String BASE_LOCALHOST_HTTP_URL = "http://127.0.0.1:";
 
     private static GenericContainer<?> minio;
     private static GenericContainer<?> minioSSL;
@@ -127,8 +135,8 @@ public class AmazonS3V2ITTest {
 
         minio = new GenericContainer<>(DockerImageName.parse(MINIO_IMAGE))
             .withCommand("server", "/data")
-            .withEnv("MINIO_ACCESS_KEY", "MKU4HW1K9HSST78MDY3T")
-            .withEnv("MINIO_SECRET_KEY", "aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd")
+            .withEnv("MINIO_ACCESS_KEY", MINIO_ACCESS_KEY)
+            .withEnv("MINIO_SECRET_KEY", MINIO_SECRET_KEY)
             .withExposedPorts(9000)
             .waitingFor(new HttpWaitStrategy().forPath("/minio/health/live"));
         minio.start();
@@ -137,8 +145,8 @@ public class AmazonS3V2ITTest {
         minioSSL = new GenericContainer<>(DockerImageName.parse(MINIO_IMAGE))
             .withClasspathResourceMapping("s3/tls", "/root/.minio", BindMode.READ_ONLY)
             .withCommand("server", "/data", "--certs-dir", "/root/.minio")
-            .withEnv("MINIO_ACCESS_KEY", "MKU4HW1K9HSST78MDY3T")
-            .withEnv("MINIO_SECRET_KEY", "aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd")
+            .withEnv("MINIO_ACCESS_KEY", MINIO_ACCESS_KEY)
+            .withEnv("MINIO_SECRET_KEY", MINIO_SECRET_KEY)
             .withExposedPorts(9000)
             .waitingFor(new HttpWaitStrategy().allowInsecure().usingTls().forPath("/minio/health/live"));
         minioSSL.start();
@@ -166,32 +174,22 @@ public class AmazonS3V2ITTest {
         configurationMinio.setProvider(PROVIDER);
         configurationMinio.setS3RegionName("");
         configurationMinio.setS3Endpoint("http://localhost:" + minio.getMappedPort(9000));
-        configurationMinio.setS3AccessKey("MKU4HW1K9HSST78MDY3T");
-        configurationMinio.setS3SecretKey("aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd");
+        configurationMinio.setS3AccessKey(MINIO_ACCESS_KEY);
+        configurationMinio.setS3SecretKey(MINIO_SECRET_KEY);
         configurationMinio.setS3PathStyleAccessEnabled(true);
-        configurationMinio.setS3ConnectionTimeout(10_000);
-        configurationMinio.setS3SocketTimeout(50_000);
-        configurationMinio.setS3MaxConnections(50);
-        configurationMinio.setS3RequestTimeout(0);
-        configurationMinio.setS3ClientExecutionTimeout(0);
         configurationMinio.setS3MaxUploadPartSizeMB(5);
         // Relatively small bulk size for test
         configurationMinio.setS3ListObjectBulkSize(100);
 
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
-        configurationMinioSsl.setS3RegionName("");
-        configurationMinioSsl.setS3Endpoint("https://127.0.0.1:" + minioSSL.getMappedPort(9000));
-        configurationMinioSsl.setS3AccessKey("MKU4HW1K9HSST78MDY3T");
-        configurationMinioSsl.setS3SecretKey("aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd");
+        configurationMinioSsl.setS3RegionName(Region.US_EAST_1.id());
+        configurationMinioSsl.setS3Endpoint(BASE_LOCALHOST_HTTPS_URL + minioSSL.getMappedPort(9000));
+        configurationMinioSsl.setS3AccessKey(MINIO_ACCESS_KEY);
+        configurationMinioSsl.setS3SecretKey(MINIO_SECRET_KEY);
         configurationMinioSsl.setS3PathStyleAccessEnabled(true);
-        configurationMinioSsl.setS3TrustStore("src/test/resources/s3/tls/s3TrustStore.jks");
-        configurationMinioSsl.setS3TrustStorePassword("s3pass");
-        configurationMinioSsl.setS3ConnectionTimeout(10_000);
-        configurationMinioSsl.setS3SocketTimeout(50_000);
-        configurationMinioSsl.setS3MaxConnections(50);
-        configurationMinioSsl.setS3RequestTimeout(0);
-        configurationMinioSsl.setS3ClientExecutionTimeout(0);
+        configurationMinioSsl.setS3TrustStore(MINIO_SSL_TRUSTSTORE);
+        configurationMinioSsl.setS3TrustStorePassword(MINIO_TRUSTSTORE_PASSWORD);
         configurationMinioSsl.setS3MaxUploadPartSizeMB(5);
         // Relatively small bulk size for test
         configurationMinioSsl.setS3ListObjectBulkSize(100);
@@ -199,16 +197,11 @@ public class AmazonS3V2ITTest {
         configurationOpenio = new StorageConfiguration();
         configurationOpenio.setProvider(PROVIDER);
         configurationOpenio.setS3RegionName(Region.US_WEST_1.id());
-        configurationOpenio.setS3Endpoint("http://127.0.0.1:" + openio.getMappedPort(6007));
-        configurationOpenio.setS3AccessKey("demo:demo");
-        configurationOpenio.setS3SecretKey("DEMO_PASS");
+        configurationOpenio.setS3Endpoint(BASE_LOCALHOST_HTTP_URL + openio.getMappedPort(6007));
+        configurationOpenio.setS3AccessKey(OPENIO_ACCESS_KEY);
+        configurationOpenio.setS3SecretKey(OPENIO_SECRET_KEY);
         configurationOpenio.setS3ConnectionTimeout(200);
         configurationOpenio.setS3PathStyleAccessEnabled(true);
-        configurationOpenio.setS3ConnectionTimeout(10_000);
-        configurationOpenio.setS3SocketTimeout(50_000);
-        configurationOpenio.setS3MaxConnections(50);
-        configurationOpenio.setS3RequestTimeout(0);
-        configurationOpenio.setS3ClientExecutionTimeout(0);
         configurationOpenio.setS3MaxUploadPartSizeMB(5);
         // Relatively small bulk size for test
         configurationOpenio.setS3ListObjectBulkSize(100);

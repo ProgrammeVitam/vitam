@@ -162,7 +162,7 @@ public class AmazonS3V2 extends ContentAddressableStorageAbstract {
     }
 
     @VisibleForTesting
-    public AmazonS3V2(
+    AmazonS3V2(
         StorageConfiguration configuration,
         SdkHttpClient httpClient,
         S3Client s3ClientWithRetry,
