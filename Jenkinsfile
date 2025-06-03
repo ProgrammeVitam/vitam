@@ -28,8 +28,6 @@ pipeline {
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         ES_VERSION="8.18.0"
         MONGO_VERSION="8.0.8"
-        MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
-        OPENIO_VERSION="18.10"
         JAVA_HOME="/usr/lib/jvm/jdk-21.0.7-oracle-x64"
     }
 
@@ -96,21 +94,13 @@ pipeline {
         stage('Reinit host & containers') {
             steps {
                 // Force termination / cleanup of containers
-                sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
+                sh 'docker rm -f elasticsearch mongodb swift'
 
                 // Cleanup any remaining docker volumes
                 sh 'docker volume prune -f'
 
                 // Cleanup M2 repo
                 sh 'rm -fr ${M2_REPO}/repository/fr/gouv/vitam/'
-
-                // prepare storage for minIO SSL
-                dir("${pwd}/dataminiossl") {
-                    // bad rustine, as minIO docker writes as root
-                    //  sh "sudo chmod -R 777 ${pwd}/dataminiossl"
-                    deleteDir()
-                }
-                sh "mkdir ${pwd}/dataminiossl"
             }
         }
         stage ("Prepare Docker containers for testing") {
@@ -119,16 +109,10 @@ pipeline {
                     script {
                         // openstack swift+keystone
                         sh 'docker run -d -m 1g -p 5000:5000 -p 35357:35357 -p 8080:8080 --name swift ${SERVICE_DOCKER_PULL_URL}/jeantil/openstack-keystone-swift:pike'
-                        // minIO with SSL
-                        sh "docker run -d -m 512m --name miniossl -p 127.0.0.1:9000:9000 --user \$(id -u):\$(id -g) -v ${pwd}/dataminiossl:/data -v ${WORKSPACE}/sources/common/common-storage/src/test/resources/s3/tls:/root/.minio/certs -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                         // elasticsearch
                         sh 'docker run -d -m 2g --name elasticsearch -p 9200:9200 -p 9300:9300 -e "xpack.security.enabled=false" -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
                         // mongodb
                         sh "docker run -d -m 1g --name mongodb -p 27017:27017 -v $WORKSPACE/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd 'test \$(echo \"rs.status().ok\" | mongo --quiet) -eq 1' --health-start-period 30s --health-interval 10s $SERVICE_DOCKER_PULL_URL/mongo:$MONGO_VERSION mongod --bind_ip_all --replSet rs0"
-                        // minIO without SSL
-                        sh "docker run -d -m 512m --name minionossl -p 127.0.0.1:9999:9000 -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
-                        // openio
-                        sh 'docker run -d -m 512m --name openio -p 127.0.0.1:6007:6007 -e "REGION=us-west-1" ${SERVICE_DOCKER_PULL_URL}/openio/sds:${OPENIO_VERSION}'
                         // Configure elasticsearch
                         sh 'while ! curl -v http://localhost:9200; do sleep 2; done'
                         sh 'curl -X PUT http://localhost:9200/_index_template/default -H \'Content-Type: application/json\' -d \'{"index_patterns": ["*"], "priority": 1,"template": { "settings": {"index.number_of_shards": "1", "index.number_of_replicas": "0"}}}\''
@@ -170,7 +154,7 @@ pipeline {
                                 sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
                             } finally {
                                 // Force termination / cleanup of containers
-                                sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
+                                sh 'docker rm -f elasticsearch mongodb swift'
                             }
                         }
                     }
@@ -222,7 +206,7 @@ pipeline {
                                 sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
                             } finally {
                                 // Force termination / cleanup of containers
-                                sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
+                                sh 'docker rm -f elasticsearch mongodb swift'
                             }
                         }
                     }

@@ -52,9 +52,9 @@ public enum StorageProvider {
     SWIFT_AUTH_V3("openstack-swift-v3", false),
     /**
      * S3 storage offer
-     * Amazon SDK S3 v1
+     * Amazon SDK S3 v2
      */
-    AMAZON_S3_V1("amazon-s3-v1", false),
+    AMAZON_S3_V2("amazon-s3-v2", false),
     /**
      * File system storage offer with a hashed directory structure
      */

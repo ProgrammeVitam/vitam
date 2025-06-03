@@ -129,6 +129,11 @@ public class ExactSizeInputStream extends FilterInputStream {
     }
 
     @Override
+    public boolean markSupported() {
+        return false;
+    }
+
+    @Override
     public synchronized void mark(int readlimit) {}
 
     @Override

@@ -130,17 +130,13 @@ vitam_offers:
     #    value: 'Origin=vitam'
 ################################################################################
   offer-s3-1:
-    # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
-    provider: 'amazon-s3-v1'
+    # provider : can only be amazon-s3-v2 for Amazon SDK S3 V2
+    provider: 'amazon-s3-v2'
     # s3Endpoint : URL of connection to S3
     s3Endpoint: http://172.17.0.2:6007
     ### Optional parameters
     # s3RegionName (optional): Region name (default value us-east-1)
     s3RegionName: us-west-1
-    # s3SignerType (optional): Signing algorithm.
-    #     - signature V4 : 'AWSS3V4SignerType' (default value)
-    #     - signature V2 : 'S3SignerType'
-    s3SignerType: AWSS3V4SignerType
     # s3PathStyleAccessEnabled (optional): 'true' to access bucket in "path-style", else "virtual-hosted-style" (true by default)
     s3PathStyleAccessEnabled: true
     # s3MaxConnections (optional): Max total connection (concurrent connections) (50 by default)
@@ -161,6 +157,8 @@ vitam_offers:
     s3MultiPartCleanNbRetries: 3
     # Wait delay for S3 multipart upload cleanup (in milliseconds)
     s3MultiPartCleanWaitingTimeInMilliseconds: 10_000
+    # Ignore S3 HTTPS certificate hostname validation (defaults to false, not for production environments)
+    s3IgnoreCertificateHostnameValidation: false
     # Offer log compaction
     offer_log_compaction:
       ## Expiration, here offer logs 21 days old will be compacted

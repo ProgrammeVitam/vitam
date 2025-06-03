@@ -178,11 +178,11 @@ Les offres correspondant à l'exemple ``other_strategies`` sont les suivantes:
         offer-fs-3:
             provider: filesystem-hash
         offer-s3-1:
-            provider: amazon-s3-v1
+            provider: amazon-s3-v2
         offer-s3-2:
-            provider: amazon-s3-v1
+            provider: amazon-s3-v2
         offer-s3-3:
-            provider: amazon-s3-v1
+            provider: amazon-s3-v2
 
 
 Exemple pour le site 1 (site primaire):

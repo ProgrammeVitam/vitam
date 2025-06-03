@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.s3;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.regions.Regions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -47,6 +45,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.regions.Region;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -66,16 +65,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-public class AmazonS3V1MockedServerTest {
+public class AmazonS3V2MockedServerTest {
 
-    private static final String PROVIDER = "amazon-s3-v1";
+    private static final String PROVIDER = "amazon-s3-v2";
     private static final String S3_CONF_FILE = "s3/s3-conf-mock.json";
 
     private StorageConfiguration configuration;
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int s3Port = junitHelper.findAvailablePort();
 
-    private AmazonS3V1 amazonS3V1;
+    private AmazonS3V2 amazonS3V2;
 
     @ClassRule
     public static WireMockClassRule s3WireMockRule = new WireMockClassRule(s3Port);
@@ -90,6 +89,7 @@ public class AmazonS3V1MockedServerTest {
     private static final String OBJECT_ID_1 = "object1id";
 
     private static final String CONTENT_TYPE = "Content-Type";
+    private static final String CONTENT_LENGTH = "Content-Length";
     private static final String AMZ_REQUEST_ID = "X-Amz-Request-Id";
 
     @Before
@@ -98,24 +98,19 @@ public class AmazonS3V1MockedServerTest {
         configuration = new StorageConfiguration();
         configuration.setProvider(PROVIDER);
         configuration.setStoragePath(jsonNode.findValue("STORAGE_PATH").textValue());
-        configuration.setS3RegionName(Regions.DEFAULT_REGION.name());
+        configuration.setS3RegionName(Region.US_WEST_1.id());
         configuration.setS3Endpoint(jsonNode.findValue("S3_ENDPOINT").textValue() + s3Port);
         configuration.setS3AccessKey(jsonNode.findValue("S3_ACCESSKEY").textValue());
         configuration.setS3SecretKey(jsonNode.findValue("S3_SECRETKEY").textValue());
         configuration.setS3PathStyleAccessEnabled(true);
-        configuration.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
-        configuration.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
-        configuration.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
-        configuration.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
-        configuration.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
-        amazonS3V1 = new AmazonS3V1(configuration);
+        amazonS3V2 = new AmazonS3V2(configuration);
         s3WireMockRule.resetAll();
     }
 
     @Test
     public void exists_container_should_return_false_when_bucket_does_not_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?acl").willReturn(
+            head(urlMatching(BUCKET_1)).willReturn(
                 aResponse()
                     .withStatus(404)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -123,14 +118,14 @@ public class AmazonS3V1MockedServerTest {
                     .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream("s3/s3_bucket_1unit_404.xml")))
             )
         );
-        boolean exists = amazonS3V1.isExistingContainer(CONTAINER_1);
+        boolean exists = amazonS3V2.isExistingContainer(CONTAINER_1);
         assertThat(exists).isFalse();
     }
 
     @Test
     public void exists_container_should_return_true_when_bucket_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_0 + "/?acl").willReturn(
+            head(urlMatching(BUCKET_0)).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -138,22 +133,22 @@ public class AmazonS3V1MockedServerTest {
                     .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream("s3/s3_bucket_200.xml")))
             )
         );
-        boolean exists = amazonS3V1.isExistingContainer(CONTAINER_0);
+        boolean exists = amazonS3V2.isExistingContainer(CONTAINER_0);
         assertThat(exists).isTrue();
     }
 
     @Test
-    public void exists_container_should_throw_exception_when_s3_has_server_error() throws Exception {
-        s3WireMockRule.stubFor(get(BUCKET_1 + "/?acl").willReturn(aResponse().withStatus(500)));
+    public void exists_container_should_throw_exception_when_s3_has_server_error() {
+        s3WireMockRule.stubFor(head(urlMatching(BUCKET_1)).willReturn(aResponse().withStatus(500)));
         assertThatThrownBy(() -> {
-            amazonS3V1.isExistingContainer(CONTAINER_1);
+            amazonS3V2.isExistingContainer(CONTAINER_1);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
     @Test
     public void exists_object_should_return_false_when_bucket_does_not_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?acl").willReturn(
+            head(urlMatching(BUCKET_1)).willReturn(
                 aResponse()
                     .withStatus(404)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -162,14 +157,14 @@ public class AmazonS3V1MockedServerTest {
             )
         );
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(aResponse().withStatus(404)));
-        boolean exists = amazonS3V1.isExistingObject(CONTAINER_1, OBJECT_ID_1);
+        boolean exists = amazonS3V2.isExistingObject(CONTAINER_1, OBJECT_ID_1);
         assertThat(exists).isFalse();
     }
 
     @Test
     public void exists_object_should_return_false_when_object_does_not_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_0 + "/?acl").willReturn(
+            head(urlMatching(BUCKET_0)).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -178,14 +173,14 @@ public class AmazonS3V1MockedServerTest {
             )
         );
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_0 + "/" + OBJECT_ID_1)).willReturn(aResponse().withStatus(404)));
-        boolean exists = amazonS3V1.isExistingObject(CONTAINER_0, OBJECT_ID_1);
+        boolean exists = amazonS3V2.isExistingObject(CONTAINER_0, OBJECT_ID_1);
         assertThat(exists).isFalse();
     }
 
     @Test
     public void exists_object_should_return_true_when_object_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_0 + "/?acl").willReturn(
+            head(urlMatching(BUCKET_0)).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -205,23 +200,23 @@ public class AmazonS3V1MockedServerTest {
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
             )
         );
-        boolean exists = amazonS3V1.isExistingObject(CONTAINER_0, OBJECT_ID_0);
+        boolean exists = amazonS3V2.isExistingObject(CONTAINER_0, OBJECT_ID_0);
         assertThat(exists).isTrue();
     }
 
     @Test
-    public void exists_object_should_throw_exception_when_s3_has_server_error() throws Exception {
-        s3WireMockRule.stubFor(get(BUCKET_1 + "/?acl").willReturn(aResponse().withStatus(500)));
+    public void exists_object_should_throw_exception_when_s3_has_server_error() {
+        s3WireMockRule.stubFor(get(BUCKET_1).willReturn(aResponse().withStatus(500)));
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(aResponse().withStatus(500)));
         assertThatThrownBy(() -> {
-            amazonS3V1.isExistingObject(CONTAINER_1, OBJECT_ID_1);
+            amazonS3V2.isExistingObject(CONTAINER_1, OBJECT_ID_1);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
     @Test
     public void create_container_should_not_throw_exception_when_bucket_already_exists() throws Exception {
         s3WireMockRule.stubFor(
-            put(BUCKET_1 + "/").willReturn(
+            put(BUCKET_1).willReturn(
                 aResponse()
                     .withStatus(409)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -234,37 +229,37 @@ public class AmazonS3V1MockedServerTest {
             )
         );
         assertThatCode(() -> {
-            amazonS3V1.createContainer(CONTAINER_1);
+            amazonS3V2.createContainer(CONTAINER_1);
         }).doesNotThrowAnyException();
     }
 
     @Test
-    public void create_container_should_not_throw_exception_when_bucket_is_created() throws Exception {
+    public void create_container_should_not_throw_exception_when_bucket_is_created() {
         s3WireMockRule.stubFor(
-            put(BUCKET_0 + "/").willReturn(aResponse().withStatus(200).withHeader(AMZ_REQUEST_ID, "XXXXXX"))
+            put(BUCKET_0).willReturn(aResponse().withStatus(200).withHeader(AMZ_REQUEST_ID, "XXXXXX"))
         );
         assertThatCode(() -> {
-            amazonS3V1.createContainer(CONTAINER_0);
+            amazonS3V2.createContainer(CONTAINER_0);
         }).doesNotThrowAnyException();
     }
 
     @Test
-    public void create_container_should_throw_exception_when_s3_has_server_error() throws Exception {
+    public void create_container_should_throw_exception_when_s3_has_server_error() {
         s3WireMockRule.stubFor(put(BUCKET_1 + "/").willReturn(aResponse().withStatus(500)));
         assertThatCode(() -> {
-            amazonS3V1.createContainer(CONTAINER_1);
+            amazonS3V2.createContainer(CONTAINER_1);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
     @Test
-    public void delete_object_should_not_throw_exception_when_object_does_exists_or_not() throws Exception {
+    public void delete_object_should_not_throw_exception_when_object_does_exists_or_not() {
         s3WireMockRule.stubFor(
             delete(BUCKET_1 + "/" + OBJECT_ID_1).willReturn(
                 aResponse().withStatus(204).withHeader(AMZ_REQUEST_ID, "XXXXXX")
             )
         );
         assertThatCode(() -> {
-            amazonS3V1.deleteObject(CONTAINER_1, OBJECT_ID_1);
+            amazonS3V2.deleteObject(CONTAINER_1, OBJECT_ID_1);
         }).doesNotThrowAnyException();
     }
 
@@ -280,17 +275,17 @@ public class AmazonS3V1MockedServerTest {
             )
         );
         assertThatCode(() -> {
-            amazonS3V1.deleteObject(CONTAINER_1, OBJECT_ID_1);
+            amazonS3V2.deleteObject(CONTAINER_1, OBJECT_ID_1);
         })
             .isInstanceOf(ContentAddressableStorageNotFoundException.class)
-            .hasMessageContaining(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+            .hasMessageContaining("Error when trying to delete object 1_Unit/object1id. Container not found.");
     }
 
     @Test
-    public void delete_object_should_throw_exception_when_s3_has_server_error() throws Exception {
+    public void delete_object_should_throw_exception_when_s3_has_server_error() {
         s3WireMockRule.stubFor(delete(BUCKET_1 + "/" + OBJECT_ID_1).willReturn(aResponse().withStatus(500)));
         assertThatCode(() -> {
-            amazonS3V1.deleteObject(CONTAINER_1, OBJECT_ID_1);
+            amazonS3V2.deleteObject(CONTAINER_1, OBJECT_ID_1);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
@@ -302,11 +297,12 @@ public class AmazonS3V1MockedServerTest {
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
                     .withHeader(CONTENT_TYPE, "application/octet-stream")
+                    .withHeader(CONTENT_LENGTH, "3500")
                     .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(FILE_0)))
             )
         );
         assertThatCode(() -> {
-            amazonS3V1.getObject(CONTAINER_0, OBJECT_ID_0);
+            amazonS3V2.getObject(CONTAINER_0, OBJECT_ID_0);
         }).doesNotThrowAnyException();
     }
 
@@ -318,12 +314,12 @@ public class AmazonS3V1MockedServerTest {
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
                     .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withHeader("Content-Length", "3500")
+                    .withHeader(CONTENT_LENGTH, "3500")
                     .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(FILE_0)))
             )
         );
 
-        ObjectContent object = amazonS3V1.getObject(CONTAINER_0, OBJECT_ID_0);
+        ObjectContent object = amazonS3V2.getObject(CONTAINER_0, OBJECT_ID_0);
         assertThat(object.getSize()).isEqualTo(3_500L);
         String downloadedFile = IOUtils.toString(object.getInputStream(), StandardCharsets.UTF_8);
         String file = IOUtils.toString(PropertiesUtils.getResourceAsStream(FILE_0), StandardCharsets.UTF_8);
@@ -343,10 +339,10 @@ public class AmazonS3V1MockedServerTest {
         );
 
         assertThatThrownBy(() -> {
-            amazonS3V1.getObject(CONTAINER_0, OBJECT_ID_0);
+            amazonS3V2.getObject(CONTAINER_0, OBJECT_ID_0);
         })
             .isInstanceOf(ContentAddressableStorageNotFoundException.class)
-            .hasMessageContaining(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            .hasMessageContaining("Error when trying to download object 0_Unit/object0id. Object not found.");
     }
 
     @Test
@@ -362,29 +358,29 @@ public class AmazonS3V1MockedServerTest {
         );
 
         assertThatThrownBy(() -> {
-            amazonS3V1.getObject(CONTAINER_1, OBJECT_ID_1);
+            amazonS3V2.getObject(CONTAINER_1, OBJECT_ID_1);
         })
             .isInstanceOf(ContentAddressableStorageNotFoundException.class)
-            .hasMessageContaining(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+            .hasMessageContaining("Error when trying to download object 1_Unit/object1id. Container not found.");
     }
 
     @Test
-    public void get_object_should_throw_exception_when_s3_has_server_error() throws Exception {
+    public void get_object_should_throw_exception_when_s3_has_server_error() {
         s3WireMockRule.stubFor(get(BUCKET_0 + "/" + OBJECT_ID_0).willReturn(aResponse().withStatus(500)));
         assertThatCode(() -> {
-            amazonS3V1.getObject(CONTAINER_0, OBJECT_ID_0);
+            amazonS3V2.getObject(CONTAINER_0, OBJECT_ID_0);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
     @Test
-    public void get_object_digest_should_not_throw_exception_when_object_exists() throws Exception {
+    public void get_object_digest_should_not_throw_exception_when_object_exists() {
         s3WireMockRule.stubFor(
             head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
                     .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withHeader("Content-Length", "6906")
+                    .withHeader(CONTENT_LENGTH, "6906")
                     .withHeader(
                         "X-Amz-Meta-Digest",
                         "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418"
@@ -393,39 +389,39 @@ public class AmazonS3V1MockedServerTest {
             )
         );
         assertThatCode(() -> {
-            amazonS3V1.getObjectDigest(CONTAINER_1, OBJECT_ID_1, DigestType.SHA512, false);
+            amazonS3V2.getObjectDigest(CONTAINER_1, OBJECT_ID_1, DigestType.SHA512, false);
         }).doesNotThrowAnyException();
     }
 
     @Test
-    public void get_object_digest_should_throw_exception_when_object_or_bucket_does_not_exists() throws Exception {
+    public void get_object_digest_should_throw_exception_when_object_or_bucket_does_not_exists() {
         s3WireMockRule.stubFor(
             head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(
                 aResponse().withStatus(404).withHeader(AMZ_REQUEST_ID, "XXXXXX")
             )
         );
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectDigest(CONTAINER_1, OBJECT_ID_1, DigestType.SHA512, false);
+            amazonS3V2.getObjectDigest(CONTAINER_1, OBJECT_ID_1, DigestType.SHA512, false);
         }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     @Test
-    public void get_object_digest_should_throw_exception_when_s3_has_server_error() throws Exception {
+    public void get_object_digest_should_throw_exception_when_s3_has_server_error() {
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(aResponse().withStatus(500)));
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectDigest(CONTAINER_1, OBJECT_ID_1, DigestType.SHA512, false);
+            amazonS3V2.getObjectDigest(CONTAINER_1, OBJECT_ID_1, DigestType.SHA512, false);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
     @Test
-    public void get_object_metadatas_should_not_throw_exception_when_object_exists() throws Exception {
+    public void get_object_metadatas_should_not_throw_exception_when_object_exists() {
         s3WireMockRule.stubFor(
             head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
                     .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withHeader("Content-Length", "6906")
+                    .withHeader(CONTENT_LENGTH, "6906")
                     .withHeader("Content-Type", "application/octet-stream")
                     .withHeader("Last-Modified", "Tue, 15 Jan 2019 14:51:19 GMT")
                     .withHeader(
@@ -436,27 +432,27 @@ public class AmazonS3V1MockedServerTest {
             )
         );
         assertThatCode(() -> {
-            amazonS3V1.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
+            amazonS3V2.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
         }).doesNotThrowAnyException();
     }
 
     @Test
-    public void get_object_metadatas_should_throw_exception_when_object_or_bucket_does_not_exists() throws Exception {
+    public void get_object_metadatas_should_throw_exception_when_object_or_bucket_does_not_exists() {
         s3WireMockRule.stubFor(
             head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(
                 aResponse().withStatus(404).withHeader(AMZ_REQUEST_ID, "XXXXXX")
             )
         );
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
+            amazonS3V2.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
         }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     @Test
-    public void get_object_metadatas_should_throw_exception_when_s3_has_server_error() throws Exception {
+    public void get_object_metadatas_should_throw_exception_when_s3_has_server_error() {
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(aResponse().withStatus(500)));
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
+            amazonS3V2.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
@@ -485,14 +481,14 @@ public class AmazonS3V1MockedServerTest {
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
                     .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withHeader("Content-Length", "6906")
+                    .withHeader(CONTENT_LENGTH, "6906")
                     .withBody(IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(FILE_1)))
             )
         );
 
         assertThatCode(() -> {
             InputStream stream = PropertiesUtils.getResourceAsStream(FILE_1);
-            amazonS3V1.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
+            amazonS3V2.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
         }).doesNotThrowAnyException();
     }
 
@@ -510,17 +506,17 @@ public class AmazonS3V1MockedServerTest {
 
         assertThatThrownBy(() -> {
             InputStream stream = PropertiesUtils.getResourceAsStream(FILE_1);
-            amazonS3V1.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
+            amazonS3V2.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
         }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
     @Test
-    public void upload_object_should_throw_exception_when_when_s3_put_has_server_error() throws Exception {
+    public void upload_object_should_throw_exception_when_when_s3_put_has_server_error() {
         s3WireMockRule.stubFor(put(BUCKET_1 + "/" + OBJECT_ID_1).willReturn(aResponse().withStatus(500)));
 
         assertThatThrownBy(() -> {
             InputStream stream = PropertiesUtils.getResourceAsStream(FILE_1);
-            amazonS3V1.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
+            amazonS3V2.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
@@ -547,7 +543,7 @@ public class AmazonS3V1MockedServerTest {
 
         assertThatThrownBy(() -> {
             InputStream stream = PropertiesUtils.getResourceAsStream(FILE_1);
-            amazonS3V1.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
+            amazonS3V2.putObject(CONTAINER_1, OBJECT_ID_1, stream, DigestType.SHA512, 6_906L);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
@@ -582,7 +578,7 @@ public class AmazonS3V1MockedServerTest {
 
         assertThatThrownBy(() -> {
             InputStream stream = PropertiesUtils.getResourceAsStream(FILE_0);
-            amazonS3V1.putObject(CONTAINER_0, OBJECT_ID_0, stream, DigestType.SHA512, 3_500L);
+            amazonS3V2.putObject(CONTAINER_0, OBJECT_ID_0, stream, DigestType.SHA512, 3_500L);
         }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
@@ -609,14 +605,14 @@ public class AmazonS3V1MockedServerTest {
 
         assertThatThrownBy(() -> {
             InputStream stream = PropertiesUtils.getResourceAsStream(FILE_0);
-            amazonS3V1.putObject(CONTAINER_0, OBJECT_ID_0, stream, DigestType.SHA512, 3_500L);
+            amazonS3V2.putObject(CONTAINER_0, OBJECT_ID_0, stream, DigestType.SHA512, 3_500L);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 
     @Test
     public void list_container_should_not_throw_exception_when_objects_available() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&max-keys=1000&fetch-owner=false").willReturn(
+            get(BUCKET_1 + "?list-type=2&max-keys=1000").willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
@@ -626,7 +622,7 @@ public class AmazonS3V1MockedServerTest {
         );
 
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&continuation-token=object_53&max-keys=1000&fetch-owner=false").willReturn(
+            get(BUCKET_1 + "?list-type=2&max-keys=1000&continuation-token=object_53").willReturn(
                 aResponse()
                     .withStatus(200)
                     .withHeader(AMZ_REQUEST_ID, "XXXXXX")
@@ -639,7 +635,7 @@ public class AmazonS3V1MockedServerTest {
 
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
-        amazonS3V1.listContainer(CONTAINER_1, objectListingListener);
+        amazonS3V2.listContainer(CONTAINER_1, objectListingListener);
 
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
         verify(objectListingListener, times(150)).handleObjectEntry(objectEntryArgumentCaptor.capture());
@@ -654,7 +650,7 @@ public class AmazonS3V1MockedServerTest {
     @Test
     public void list_container_should_throw_exception_when_bucket_does_not_exists() throws Exception {
         s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&max-keys=1000&fetch-owner=false").willReturn(
+            get(BUCKET_1 + "?list-type=2&max-keys=1000").willReturn(
                 aResponse()
                     .withStatus(404)
                     .withHeader(CONTENT_TYPE, "application/xml")
@@ -666,7 +662,7 @@ public class AmazonS3V1MockedServerTest {
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
 
         assertThatThrownBy(() -> {
-            amazonS3V1.listContainer(CONTAINER_1, objectListingListener);
+            amazonS3V2.listContainer(CONTAINER_1, objectListingListener);
         })
             .isInstanceOf(ContentAddressableStorageNotFoundException.class)
             .hasMessageContaining(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
@@ -675,20 +671,18 @@ public class AmazonS3V1MockedServerTest {
     }
 
     @Test
-    public void list_container_should_throw_exception_when_s3_error() throws Exception {
-        s3WireMockRule.stubFor(
-            get(BUCKET_1 + "/?list-type=2&max-keys=1000&fetch-owner=false").willReturn(aResponse().withStatus(500))
-        );
+    public void list_container_should_throw_exception_when_s3_error() {
+        s3WireMockRule.stubFor(get(BUCKET_1 + "?list-type=2&max-keys=1000").willReturn(aResponse().withStatus(500)));
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
         assertThatThrownBy(() -> {
-            amazonS3V1.listContainer(CONTAINER_1, objectListingListener);
+            amazonS3V2.listContainer(CONTAINER_1, objectListingListener);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
         verifyNoInteractions(objectListingListener);
     }
 
     @Test
     public void get_container_informations_should_return_default_value() throws Exception {
-        ContainerInformation infos = amazonS3V1.getContainerInformation(CONTAINER_0);
+        ContainerInformation infos = amazonS3V2.getContainerInformation(CONTAINER_0);
         assertThat(infos).isNotNull();
         assertThat(infos.getUsableSpace()).isEqualTo(-1);
     }

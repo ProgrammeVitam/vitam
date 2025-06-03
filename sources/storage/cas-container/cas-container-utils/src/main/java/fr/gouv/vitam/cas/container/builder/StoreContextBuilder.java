@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
-import fr.gouv.vitam.common.storage.s3.AmazonS3V1;
+import fr.gouv.vitam.common.storage.s3.AmazonS3V2;
 import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
@@ -66,7 +66,7 @@ import java.security.cert.CertificateException;
  * @see StorageConfiguration
  * @see OpenstackSwift
  * @see Swift
- * @see AmazonS3V1
+ * @see AmazonS3V2
  * @see HashFileSystem
  * @see FileSystem
  */
@@ -96,8 +96,8 @@ public class StoreContextBuilder {
         } else if (StorageProvider.SWIFT_AUTH_V3.getValue().equalsIgnoreCase(configuration.getProvider())) {
             SwiftKeystoneFactoryV3 swiftKeystoneFactoryV3 = new SwiftKeystoneFactoryV3(configuration);
             return new Swift(swiftKeystoneFactoryV3, configuration);
-        } else if (StorageProvider.AMAZON_S3_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            return new AmazonS3V1(configuration);
+        } else if (StorageProvider.AMAZON_S3_V2.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            return new AmazonS3V2(configuration);
         } else if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             TapeLibraryFactory tapeLibraryFactory = TapeLibraryFactory.getInstance();
             tapeLibraryFactory.initialize(configuration.getTapeLibraryConfiguration(), mongoDatabase);

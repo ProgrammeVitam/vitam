@@ -33,13 +33,12 @@ customHeaders:
 
 {% endif %}
 
-{% if vitam_offers[offer_conf]["provider"] == "amazon-s3-v1" %}
+{% if vitam_offers[offer_conf]["provider"] == "amazon-s3-v2" %}
 s3RegionName: {{ vitam_offers[offer_conf]["s3RegionName"] }}
 s3Endpoint: {{ vitam_offers[offer_conf]["s3Endpoint"] }}
 s3AccessKey: {{ vitam_offers[offer_conf]["s3AccessKey"] }}
 s3SecretKey: {{ vitam_offers[offer_conf]["s3SecretKey"] }}
 s3PathStyleAccessEnabled: {{ vitam_offers[offer_conf]["s3PathStyleAccessEnabled"] | default(true) }}
-s3SignerType: {{ vitam_offers[offer_conf]["s3SignerType"] | default("AWSS3V4SignerType") }}
 s3MaxConnections: {{ vitam_offers[offer_conf]["s3MaxConnections"] | default(50) }}
 s3ConnectionTimeout: {{ vitam_offers[offer_conf]["s3ConnectionTimeout"] | default(10000) }}
 s3SocketTimeout: {{ vitam_offers[offer_conf]["s3SocketTimeout"] | default(50000) }}
@@ -49,6 +48,7 @@ s3DisableMultipartUpload: {{ vitam_offers[offer_conf]["s3DisableMultipartUpload"
 s3MaxUploadPartSizeMB: {{ vitam_offers[offer_conf]["s3MaxUploadPartSizeMB"] | default(5120) }}
 s3MultiPartCleanNbRetries: {{ vitam_offers[offer_conf]["s3MultiPartCleanNbRetries"] | default(3) }}
 s3MultiPartCleanWaitingTimeInMilliseconds: {{ vitam_offers[offer_conf]["s3MultiPartCleanWaitingTimeInMilliseconds"] | default(10000) }}
+s3IgnoreCertificateHostnameValidation: {{ vitam_offers[offer_conf]["s3IgnoreCertificateHostnameValidation"] | default(false) }}
 s3TrustStore: {{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks
 s3TrustStorePassword: {{ password_truststore }}
 {% endif %}
