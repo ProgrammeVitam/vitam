@@ -4,6 +4,10 @@ pipeline {
         label 'java21'
     }
 
+    tools {
+                jdk 'java21' // java11 || java17 || java21
+                maven 'maven-3.9' // maven-3.8 || maven-3.9
+    }
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DdeployAtEnd=true "
@@ -19,7 +23,6 @@ pipeline {
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         ES_VERSION="8.18.0"
         MONGO_VERSION="8.0.8"
-        JAVA_HOME="/usr/lib/jvm/java-21-openjdk-amd64"
     }
 
     stages {
