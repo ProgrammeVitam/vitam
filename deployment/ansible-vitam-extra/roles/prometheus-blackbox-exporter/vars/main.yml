@@ -1,9 +1,8 @@
 ---
-prometheus_blackbox_exporter_tmp_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/tmp/blackbox_exporter"
-prometheus_blackbox_exporter_config_path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/conf/blackbox_exporter"
-prometheus_blackbox_exporter_db_path:     "{{ vitam_defaults.folder.root_path | default('/vitam') }}/data/blackbox_exporter"
-prometheus_blackbox_exporter_app_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/app/blackbox_exporter"
-prometheus_blackbox_exporter_bin_path:    "{{ vitam_defaults.folder.root_path | default('/vitam') }}/bin/blackbox_exporter"
+
+prometheus_blackbox_exporter_config_path: "{{ vitam_defaults.folder.root_path }}/conf/blackbox_exporter"
+
+blackbox_exporter_port: "{{ prometheus.blackbox_exporter.port | default(9115) }}"
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 
