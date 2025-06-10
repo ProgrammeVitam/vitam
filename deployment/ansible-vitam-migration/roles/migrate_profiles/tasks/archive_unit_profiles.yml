@@ -8,7 +8,7 @@
 
 - name: Update archive unit profile
   uri:
-    url: "{{ _archive_unit_profiles_base_url }}/{{ item.Identifier }}"
+    url: "{{ _archive_unit_profiles_base_url }}/{{ item.Identifier | urlencode }}"
     method: PUT
     body:
       $action:
