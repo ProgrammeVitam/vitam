@@ -114,26 +114,6 @@
   when: composant.groupe == 'data'
 
 - block:
-
-    - name: load dashboards into Elasticsearch log .kibana index
-      run_once: true
-      tags: load_kibana
-      uri:
-        url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
-        method: POST
-        body: "{\"attributes\": {{ lookup('file', '{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}') }} }"
-        body_format: json
-        status_code: 200, 201
-        headers:
-          kbn-xsrf: "{{ kibana.header_value }}"
-        timeout: "{{ composant.api_call_timeout }}"
-      with_items:
-        - StorageOfferPerf.json
-      register: kibana_result
-      until: kibana_result.status in [200,201]
-      retries: "{{ kibana.import_retries }}"
-      delay: "{{ kibana.import_delay }}"
-
     - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
       run_once: true
       tags: load_kibana
@@ -142,6 +122,7 @@
         - alertes-de-securite-dashboard.ndjson
         - Composants-Vitam.ndjson
         - mongodb-es-synchro-errors-dashboard.ndjson
+        - Storage-Offre-average-time.ndjson
       delegate_to: localhost
       args:
         warn: false
