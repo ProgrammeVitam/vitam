@@ -9,7 +9,7 @@
 
   - name: "[{{ __profile.Identifier }}] Download archive profile file"
     uri:
-      url: "{{ _archive_profiles_base_url }}/{{ __profile.Identifier }}"
+      url: "{{ _archive_profiles_base_url }}/{{ __profile.Identifier | urlencode }}"
       method: GET
       headers:
         X-Tenant-Id: "{{ __profile._tenant }}"
@@ -39,7 +39,7 @@
 
 - name: "[{{ __profile.Identifier }}] Update archive profile"
   uri:
-    url: "{{ _archive_profiles_base_url }}/{{ __profile.Identifier }}"
+    url: "{{ _archive_profiles_base_url }}/{{ __profile.Identifier | urlencode }}"
     method: PUT
     body:
       $action:
