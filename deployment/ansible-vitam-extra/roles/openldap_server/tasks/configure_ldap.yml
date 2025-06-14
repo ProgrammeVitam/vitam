@@ -32,7 +32,7 @@
     src: ldap
     dest: "/etc/sysconfig/ldap"
     mode: 0755
-  when: openldap_server_enable_ssl and ansible_os_family == 'RedHat'
+  when: openldap_server_enable_ssl and ansible_os_family in ['RedHat', 'Rocky']
   notify:
    - restart slapd
 

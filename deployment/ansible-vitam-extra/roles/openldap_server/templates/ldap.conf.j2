@@ -18,7 +18,7 @@ URI     ldap://localhost
 #TIMELIMIT      15
 #DEREF          never
 TLS_CACERTDIR /etc/openldap/cacerts
-{% if ansible_os_family == 'RedHat' %}
+{% if ansible_os_family in ['RedHat', 'Rocky'] %}
 TLS_CACERT /etc/openldap/certs/cert.crt
 {% endif %}
 {% if ansible_os_family == 'Debian' %}

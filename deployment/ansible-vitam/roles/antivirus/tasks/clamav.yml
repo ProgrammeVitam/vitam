@@ -8,7 +8,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family in ['RedHat', 'Rocky']
 
 - name: install ClamAV packages
   package:
@@ -24,7 +24,7 @@
   user:
     name: clamav
     groups: "{{ vitam_defaults.users.group }}"
-    append: yes
+    append: true
 
 - name: ensure clam.d directory exists
   file:
@@ -33,7 +33,7 @@
     owner: root
     group: root
     mode: 0755
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family in ['RedHat', 'Rocky']
 
 - name: ensure clamav log directory exists
   file:
@@ -54,23 +54,11 @@
 - name: apply custom config file for clamAV
   template:
     src: clamav/scan.conf.j2
-    dest: /etc/clamd.d/scan.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - restart clamav
-  when: ansible_os_family == "RedHat"
-
-- name: apply custom config file for clamAV
-  template:
-    src: clamav/scan.conf.j2
-    dest: /etc/clamav/clamd.conf
+    dest: "{{ '/etc/clamav/clamd.conf' if ansible_os_family == 'Debian' else '/etc/clamd.d/scan.conf' }}"
     owner: root
     group: root
     mode: 0644
   notify: restart clamav
-  when: ansible_os_family == "Debian"
 
 - name: Install logrotate package
   package:
@@ -108,104 +96,88 @@
 
 - block:
 
-  - name: ensure clamAV daemon is started at boot
-    systemd:
-      name: "clamd@scan"
-      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
-      state: started
+    - name: Temporarily stop clamav-daemon service to safely create clamav-daemon.socket
+      systemd:
+        name: clamav-daemon
+        state: stopped
 
-  - name: active clamav updates
-    replace:
-      path: "/etc/sysconfig/freshclam"
-      regexp: '^FRESHCLAM_DELAY(.)*'
-      replace: '#FRESHCLAM_DELAY\1'
+    - name: Make sure /var/run/clamav exists
+      file:
+        name: /var/run/clamav
+        state: directory
+        owner: clamav
+        group: root
 
-  when: ansible_os_family == "RedHat" and ansible_distribution != "AlmaLinux"
+    # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
+    - name: apply systemD config file for clamAV under debian
+      template:
+        src: clamav/clamav-daemon.socket.j2
+        dest: /etc/systemd/system/clamav-daemon.socket
+        owner: root
+        group: root
+        mode: 0644
 
-- block:
+    - name: Modify /etc/apparmor.d/usr.sbin.clamd for log directory
+      replace:
+        path: /etc/apparmor.d/usr.sbin.clamd
+        regexp: '/var/log/clamav/\* krw,'
+        replace: "{{ vitam_defaults.folder.root_path }}/log/clamav/* krw,"
+      register: updated_apparmor_clamd
 
-  - name: Temporarily stop clamav-daemon service to safely create clamav-daemon.socket
-    systemd:
-      name: clamav-daemon
-      state: stopped
+    - name: Modify /etc/apparmor.d/usr.sbin.clamd for tmp directory
+      replace:
+        path: /etc/apparmor.d/usr.sbin.clamd
+        regexp: '^(\s+)/tmp/(.*)'
+        replace: "\\1{{ vitam_defaults.folder.root_path }}/tmp/clamav/\\2"
+      register: updated_apparmor_clamd
 
-  - name: Make sure /var/run/clamav exists
-    file:
-      name: /var/run/clamav
-      state: directory
-      owner: clamav
-      group: root
+    - name: reload apparmor clamd
+      command: aa-enforce /usr/sbin/clamd
+      when: updated_apparmor_clamd is changed
+      notify: restart clamav
 
-  # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
-  - name: apply systemD config file for clamAV under debian
-    template:
-      src: clamav/clamav-daemon.socket.j2
-      dest: /etc/systemd/system/clamav-daemon.socket
-      owner: root
-      group: root
-      mode: 0644
+    - name: Enable clamav-daemon.socket at boot & service is started
+      systemd:
+        name: clamav-daemon.socket
+        daemon_reload: true
+        enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
+        state: restarted
 
-  - name: Modify /etc/apparmor.d/usr.sbin.clamd for log directory
-    replace:
-      path: /etc/apparmor.d/usr.sbin.clamd
-      regexp: '/var/log/clamav/\* krw,'
-      replace: "{{ vitam_defaults.folder.root_path }}/log/clamav/* krw,"
-    register: updated_apparmor_clamd
+    - name: stop clamav-freshclam service to force update
+      systemd:
+        name: clamav-freshclam
+        state: stopped
 
-  - name: Modify /etc/apparmor.d/usr.sbin.clamd for tmp directory
-    replace:
-      path: /etc/apparmor.d/usr.sbin.clamd
-      regexp: '^(\s+)/tmp/(.*)'
-      replace: "\\1{{ vitam_defaults.folder.root_path }}/tmp/clamav/\\2"
-    register: updated_apparmor_clamd
+    - name: Modify /etc/apparmor.d/usr.bin.freshclam
+      replace:
+        path: /etc/apparmor.d/usr.bin.freshclam
+        regexp: '/var/log/clamav/\* krw,'
+        replace: '/vitam/log/clamav/* krw,'
+      register: updated_apparmor_freshclam
 
-  - name: reload apparmor clamd
-    command: aa-enforce /usr/sbin/clamd
-    when: updated_apparmor_clamd is changed
-    notify: restart clamav
+    - name: reload apparmor freshclam
+      command: aa-enforce /usr/bin/freshclam
+      when: updated_apparmor_freshclam is changed
 
-  - name: Enable clamav-daemon.socket at boot & service is started
-    systemd:
-      name: clamav-daemon.socket
-      daemon_reload: yes
-      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
-      state: restarted
+    - name: update database for clamAV
+      shell: freshclam
+      ignore_errors: true
+      notify:
+        - restart clamav
+        - restart freshclam
 
-  - name: stop clamav-freshclam service to force update
-    systemd:
-      name: clamav-freshclam
-      state: stopped
+    - meta: flush_handlers
 
-  - name: Modify /etc/apparmor.d/usr.bin.freshclam
-    replace:
-      path: /etc/apparmor.d/usr.bin.freshclam
-      regexp: '/var/log/clamav/\* krw,'
-      replace: '/vitam/log/clamav/* krw,'
-    register: updated_apparmor_freshclam
-
-  - name: reload apparmor freshclam
-    command: aa-enforce /usr/bin/freshclam
-    when: updated_apparmor_freshclam is changed
-
-  - name: update database for clamAV
-    shell: freshclam
-    ignore_errors: true
-    notify:
-      - restart clamav
-      - restart freshclam
-
-  - meta: flush_handlers
-
-  - name: ensure clamav-freshclam is started
-    systemd:
-      name: clamav-freshclam
-      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
-      state: started
-
-  - name: ensure clamav-daemon is started
-    systemd:
-      name: clamav-daemon
-      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
-      state: started
+    - name: ensure clamav-freshclam is started
+      systemd:
+        name: clamav-freshclam
+        enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
+        state: started
 
   when: ansible_os_family == "Debian"
+
+- name: "ensure {{ clamav_service_name }} is started at boot"
+  systemd:
+    name: "{{ clamav_service_name }}"
+    enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
+    state: started
