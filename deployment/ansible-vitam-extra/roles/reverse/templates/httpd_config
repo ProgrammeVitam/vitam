@@ -11,7 +11,7 @@
 {% if vitam_reverse_external_protocol == "https" %}
     # SSL
     SSLEngine on
-    {% if ansible_os_family == "RedHat" %}
+    {% if ansible_os_family in ['RedHat', 'Rocky'] %}
     # according to http://blog.noizeramp.com/2010/10/03/apache-2-and-ssl-configuration/
     SSLCertificateFile /etc/pki/tls/certs/localhost.crt
     SSLCertificateKeyFile /etc/pki/tls/private/localhost.key

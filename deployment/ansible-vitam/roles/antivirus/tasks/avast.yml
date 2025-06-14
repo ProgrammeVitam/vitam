@@ -38,7 +38,7 @@
     when: avast.repository.gpgcheck | default('no') | bool == true
 
   when:
-    - ansible_os_family == "RedHat"
+    - ansible_os_family in ['RedHat', 'Rocky']
     - avast.manage_repository | default(true) | bool == true
 
 # Debian config
