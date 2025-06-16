@@ -11,6 +11,8 @@ ExecStart={{ vitam_defaults.folder.root_path }}/bin/blackbox_exporter/blackbox_e
 
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
+StandardOutput=append:{{ vitam_defaults.folder.root_path }}/log/blackbox_exporter/blackbox-exporter.log
+StandardError=append:{{ vitam_defaults.folder.root_path }}/log/blackbox_exporter/blackbox-exporter.log
 
 [Install]
 WantedBy=multi-user.target
