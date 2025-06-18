@@ -6,9 +6,9 @@
     name: vitam-blackbox-exporter
     state: latest
   register: result
-  retries: "{{ packages_install_retries_number | default(1) }}"
+  retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
-  delay: "{{ packages_install_retries_delay | default(10) }}"
+  delay: "{{ packages_install_retries_delay }}"
   notify: "prometheus-blackbox-exporter - restart service"
 
 - name: Deploy systemd service file for vitam-blackbox-exporter
@@ -23,37 +23,34 @@
 #### Configuration ####
 - name: Check that blackbox_exporter directories exist
   file:
-    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/blackbox_exporter"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/blackbox_exporter"
     state: directory
-    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
-    group: "{{ vitam_defaults.users.group | default('vitam') }}"
-    mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - app
     - bin
     - conf
-    - lib
     - log
-    - data
-    - tmp
   notify: "prometheus-blackbox-exporter - restart service"
 
-#### Consul configuration   ####
+#### Consul configuration ####
 
 - name: Ensure consul config dir is OK
   file:
     path: "{{ consul_folder_conf }}"
     state: directory
-    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
-    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
 
 - name: Deploy consul agent service declaration
   template:
     src: "service-blackbox-exporter.json.j2"
     dest: "{{ consul_folder_conf }}/service-blackbox-exporter.json"
-    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
-    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   tags:
     - consul_conf
@@ -64,14 +61,40 @@
 
 - name: Deploy blackbox configuration
   template:
-    src: "blackbox.yml.j2"
+    src: blackbox.yml.j2
     dest: "{{ prometheus_blackbox_exporter_config_path }}/blackbox.yml"
-    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
-    group: "{{ vitam_defaults.users.group | default('vitam') }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   tags:
-    - blackbox_conf
+    - update_blackbox_exporter_configuration
   notify: "prometheus-blackbox-exporter - restart service"
+
+#### logrotate configuration ####
+- name: Install logrotate package
+  package:
+    name: logrotate
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  when: prometheus.blackbox_exporter.logrotate | default('enabled') | lower == 'enabled'
+
+- name: Enable logrotate for blackbox-exporter
+  template:
+    src: blackbox-exporter.logrotate.j2
+    dest: /etc/logrotate.d/vitam-blackbox-exporter
+    owner: root
+    group: root
+    mode: 0644
+  when: prometheus.blackbox_exporter.logrotate | default('enabled') | lower == 'enabled'
+
+- name: Disable logrotate for blackbox-exporter
+  file:
+    path: /etc/logrotate.d/vitam-blackbox-exporter
+    state: absent
+  when: prometheus.blackbox_exporter.logrotate | default('enabled') | lower == 'disabled'
 
 # Ensure that the installation is complete
 - meta: flush_handlers
@@ -84,9 +107,9 @@
     state: started
     enabled: "{{ prometheus.blackbox_exporter.at_boot | default(service_at_boot) }}"
 
-- name: Wait for blackbox_exporter port {{ prometheus.blackbox_exporter.port | default(9115) }} to be open
+- name: "Wait for vitam-blackbox-exporter port {{ blackbox_exporter_port }} to be open"
   wait_for:
     host: "{{ ip_admin }}"
-    port: "{{ prometheus.blackbox_exporter.port | default(9115) }}"
+    port: "{{ blackbox_exporter_port }}"
     state: "started"
-    timeout: "{{ vitam_defaults.services.start_timeout | default(300) }}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
