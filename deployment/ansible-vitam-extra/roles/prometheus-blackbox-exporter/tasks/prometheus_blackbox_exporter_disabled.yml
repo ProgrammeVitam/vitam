@@ -15,6 +15,11 @@
     state: absent
   notify: daemon reload
 
+- name: Remove logrotate configuration for blackbox-exporter
+  file:
+    path: /etc/logrotate.d/vitam-blackbox-exporter
+    state: absent
+
 - name: Remove consul agent service declaration for blackbox-exporter
   file:
     path: "{{ consul_folder_conf }}/service-blackbox-exporter.json"
