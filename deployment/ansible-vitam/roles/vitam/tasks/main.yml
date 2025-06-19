@@ -69,7 +69,7 @@
         - update_package_vitam
       notify:
         - "vitam - restart service"
-      when: ansible_os_family == "RedHat"
+      when: ansible_os_family in ['RedHat', 'Rocky']
 
   when: (force_vitam_version is defined and install_mode != "container") or (force_vitam_version is defined and (vitam_struct.vitam_component in legacy_components_list))
 
@@ -129,7 +129,7 @@
 - name: Set RedHat systemd directory
   set_fact:
     systemd_directory: "/usr/lib/systemd/system"
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family in ['RedHat', 'Rocky']
   tags:
     - update_vitam_configuration
 
