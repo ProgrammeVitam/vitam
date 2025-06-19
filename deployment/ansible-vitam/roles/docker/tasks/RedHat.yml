@@ -10,7 +10,7 @@
     gpgcheck: yes
     enabled: yes
 
-- name: Install docker packages for AlmaLinux
+- name: Install docker packages for RedHat family
   package:
     name:
       - docker-ce
@@ -25,10 +25,10 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
-- name: Install docker-py package for AlmaLinux
+- name: Install docker-py package for RedHat family
   pip:
     name: docker-py
-  when: ansible_distribution == 'AlmaLinux'
+  when: ansible_os_family in ['RedHat', 'Rocky']
 
 # KWA : check if still useful with newer docker versions
 - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)

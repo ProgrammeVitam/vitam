@@ -41,7 +41,7 @@
     dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/{{ item }}"
     mode: 0500
     owner: root
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family in ['RedHat', 'Rocky']
   notify: "vitam_browser - restart apache"
   with_items:
   - "httpd-offer-view.conf"

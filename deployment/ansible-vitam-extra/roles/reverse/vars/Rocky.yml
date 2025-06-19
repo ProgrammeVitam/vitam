@@ -1,0 +1,9 @@
+---
+
+apache_service: "httpd"
+apache_conf_dir: "conf.d"
+apache_user: "apache"
+apache_group: "apache"
+mime_type_package: "mailcap"
+
+package_list: ["{{ mime_type_package }}", "{{ apache_service }}", 'mod_ssl']
