@@ -8,7 +8,7 @@
 
 - name: Remove vitam-collect systemd service file
   file:
-    dest: "{{ '/usr' if ansible_os_family == 'RedHat' else '' }}/lib/systemd/system/vitam-collect.service"
+    dest: "{{ '/usr' if ansible_os_family in ['RedHat', 'Rocky'] else '' }}/lib/systemd/system/vitam-collect.service"
     state: absent
   notify: "collect - reload systemd services"
 

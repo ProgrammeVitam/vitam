@@ -12,7 +12,7 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   with_items: "{{ openldap_server_pkgs }}"
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family in ['RedHat', 'Rocky']
 
 - name: Install the OpenLDAP and required packages for Debian/Ubuntu
   apt:
@@ -40,7 +40,7 @@
   template:
     src: slapd.conf.j2
     dest: "{{ openldap_server_app_path }}/slapd.conf"
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family in ['RedHat', 'Rocky']
   notify:
    - restart slapd
 
