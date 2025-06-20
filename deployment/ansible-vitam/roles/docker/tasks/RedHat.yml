@@ -7,8 +7,8 @@
     baseurl: https://download.docker.com/linux/rhel/$releasever/$basearch/stable/
     gpgkey: https://download.docker.com/linux/rhel/gpg
     state: present
-    gpgcheck: yes
-    enabled: yes
+    gpgcheck: true
+    enabled: true
 
 - name: Install docker packages for RedHat family
   package:
@@ -28,11 +28,10 @@
 - name: Install docker-py package for RedHat family
   pip:
     name: docker-py
-  when: ansible_os_family in ['RedHat', 'Rocky']
 
 # KWA : check if still useful with newer docker versions
 - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
   sysctl:
     name: net.ipv4.ip_forward
-    sysctl_set: yes
+    sysctl_set: true
     value: '1'
