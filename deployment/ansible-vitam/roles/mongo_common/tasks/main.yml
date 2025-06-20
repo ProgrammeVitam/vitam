@@ -30,7 +30,7 @@
   stat:
     path: /usr/lib/systemd/system/tuned.service
   register: tuned_service_status
-  when: ansible_os_family == "RedHat"
+  when: ansible_os_family in ['RedHat', 'Rocky']
 
 - name: Check if tuned is installed
   stat:
@@ -38,7 +38,8 @@
   register: tuned_service_status
   when: ansible_os_family == "Debian"
 
-- set_fact: status_tuned_present="{{ tuned_service_status.stat.exists }}"
+- set_fact:
+    status_tuned_present: "{{ tuned_service_status.stat.exists }}"
   when: tuned_service_status.changed
 
 - block:
@@ -82,7 +83,7 @@
         dest: /usr/lib/systemd/system/disable_transparent_hugepages.service
         owner: root
         mode: 0700
-      when: ansible_os_family == "RedHat"
+      when: ansible_os_family in ['RedHat', 'Rocky']
 
     - name: add systemd service unit to disable THP
       copy:
@@ -95,9 +96,9 @@
     - name: enable systemd service unit to disable THP
       service:
         name: disable_transparent_hugepages.service
-        enabled: yes
+        enabled: true
         state: started
 
   when:
     - ansible_virtualization_type not in [ 'docker', 'container', 'lxc' ]
-    - transparent_hugepage_dir.stat.isdir is defined and transparent_hugepage_dir.stat.isdir
+    - transparent_hugepage_dir.stat.isdir | default(false) | bool
