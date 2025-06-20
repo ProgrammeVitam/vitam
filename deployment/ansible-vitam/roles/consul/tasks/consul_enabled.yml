@@ -138,7 +138,7 @@
     with_items:
       - vitam_dns_localhost_enforce.path
       - vitam_dns_localhost_enforce.service
-    when: ansible_os_family == "RedHat"
+    when: ansible_os_family in ['RedHat', 'Rocky']
 
   when:
     - ansible_virtualization_type not in ['docker', 'container']

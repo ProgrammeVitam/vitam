@@ -7,10 +7,10 @@
     baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
     gpgkey: https://download.docker.com/linux/centos/gpg
     state: present
-    gpgcheck: yes
-    enabled: yes
+    gpgcheck: true
+    enabled: true
 
-- name: Install docker packages for Centos & AlmaLinux
+- name: Install docker packages for RedHat family
   package:
     name:
       - docker-ce
@@ -18,21 +18,22 @@
       - containerd.io
       - docker-buildx-plugin
       - docker-compose-plugin
-      - "{{ 'python-pip' if ansible_distribution == 'AlmaLinux' else 'docker-python' }}"
+      - "{{ 'python-pip' if ansible_distribution in ['AlmaLinux', 'Rocky'] else 'docker-python' }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
-- name: Install docker-py package for AlmaLinux
+- name: Install docker-py package for RedHat family
   pip:
     name: docker-py
-  when: ansible_distribution == 'AlmaLinux'
+  when: ansible_distribution in ['AlmaLinux', 'Rocky']
 
   # KWA : check if still useful with newer docker versions
 - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
   sysctl:
     name: net.ipv4.ip_forward
-    sysctl_set: yes
+    sysctl_set: true
     value: '1'
+  when: ansible_distribution != 'CentOS'

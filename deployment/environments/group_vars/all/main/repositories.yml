@@ -7,12 +7,12 @@ install_mode: legacy
 
 ## Must be set when install_mode == 'legacy'
 # vitam_repositories:
-#   - key: repo1 # Mandatory: Only on CentOS/AlmaLinux
+#   - key: repo1 # Mandatory: Only on RedHat family (CentOS, AlmaLinux or RockyLinux)
 #     value: http://path_to_repo1 # Mandatory: Path to the repository
 #     gpgcheck: 1 # Optionnal: Default to 0 (equivalent as [trusted=yes] on Debian)
 #     gpgkey: path_to_custom_key # Optionnal: Only if gpgcheck is enabled; Default to official Vitam GPG Key
 #     subtree: "./" # Optionnal: Only on Debian; Default to ./
-#     proxy: http://proxy_url # Optionnal: Only on CentOS/AlmaLinux; Default to _none_
+#     proxy: http://proxy_url # Optionnal: Only on RedHat family (CentOS, AlmaLinux or RockyLinux); Default to _none_
 
 ## Must be set when install_mode == 'container'
 # container_repository:

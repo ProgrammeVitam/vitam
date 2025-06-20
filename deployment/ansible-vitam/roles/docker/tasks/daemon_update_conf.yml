@@ -30,3 +30,4 @@
     name: net.ipv4.ip_unprivileged_port_start
     sysctl_set: yes
     value: '0'
+  when: ansible_distribution != 'CentOS'
