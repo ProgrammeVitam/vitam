@@ -13,14 +13,14 @@
 
 - name: "Copy antivirus scripts & apply correct rights"
   copy:
-    src: "{{ inventory_dir }}/antivirus/scan-{{ vitam_struct.antivirus }}.sh"
-    dest: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}/scan-{{ vitam_struct.antivirus }}.sh"
+    src: "{{ inventory_dir }}/antivirus/scan-{{ vitam_struct.engine }}.sh"
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_struct.vitam_component }}/scan-{{ vitam_struct.engine }}.sh"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - include_tasks: clamav.yml
-  when: vitam_struct.antivirus == 'clamav'
+  when: vitam_struct.engine == 'clamav'
 
 - include_tasks: avast.yml
-  when: vitam_struct.antivirus == 'avast'
+  when: vitam_struct.engine == 'avast'

@@ -252,10 +252,8 @@ vitam:
     baseuri: "ingest-external"
     https_enabled: true
     secret_platform: "false"
-    antivirus: "clamav" # or avast
     # this variable has containerization purposes only : must not be used in production environment
     ignore_antivirus_check: false
-    #scantimeout: 1200000 # value in milliseconds; increase this value if huge files need to be analyzed in more than 20 min (default value)
     # Directory where files should be placed for local ingest
     upload_dir: "/vitam/data/ingest-external/upload"
     # Directory where successful ingested files will be moved to
@@ -545,6 +543,15 @@ vitam:
     https_enabled: false
     secret_platform: "true"
     context_path: "/workspace-collect"
+  antivirus:
+    vitam_component: antivirus
+    host: "antivirus.service.{{ consul_domain }}"
+    port_service: 8082
+    port_admin: 28082
+    baseuri: "antivirus"
+    https_enabled: false
+    secret_platform: "true"
+    engine: "clamav" # or avast
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
 vitam_tenant_rule_duration:

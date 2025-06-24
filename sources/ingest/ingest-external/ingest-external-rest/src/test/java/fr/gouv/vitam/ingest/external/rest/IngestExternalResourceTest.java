@@ -47,6 +47,8 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitamui.antivirus.client.AntivirusApi;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.hamcrest.BaseMatcher;
@@ -87,6 +89,7 @@ public class IngestExternalResourceTest {
 
     private static FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
     private static IngestInternalClientFactory ingestInternalClientFactory = mock(IngestInternalClientFactory.class);
+    private static AntivirusClientFactory antivirusClientFactory = mock(AntivirusClientFactory.class);
 
     private static IngestExternalMain application;
     private static FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
@@ -99,11 +102,14 @@ public class IngestExternalResourceTest {
         when(ingestInternalClient.getWorkflowDetails(anyString())).thenReturn(
             new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW")
         );
+        AntivirusApi antivirusApi = mock(AntivirusApi.class);
+        when(antivirusClientFactory.getAntivirusApi()).thenReturn(antivirusApi);
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         // TODO: 08/02/19 remove static (no time)
         BusinessApplicationTest.formatIdentifierFactory = formatIdentifierFactory;
         BusinessApplicationTest.ingestInternalClientFactory = ingestInternalClientFactory;
+        BusinessApplicationTest.antivirusClientFactory = antivirusClientFactory;
 
         // Update configuration with full upload folder path
         File configurationFile = PropertiesUtils.getResourceFile(INGEST_EXTERNAL_CONF);

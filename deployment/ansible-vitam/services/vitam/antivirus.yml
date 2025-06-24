@@ -1,0 +1,18 @@
+---
+
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Check that hosts_antivirus == hosts_ingest_external
+      fail:
+        msg: "The group 'hosts_antivirus' must be the same as 'hosts_ingest_external'."
+      when: (groups['hosts_antivirus'] | sort) != (groups['hosts_ingest_external'] | sort)
+
+- hosts: hosts_antivirus
+  any_errors_fatal: true
+  roles:
+    - antivirus
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.antivirus }}"
+  tags: antivirus

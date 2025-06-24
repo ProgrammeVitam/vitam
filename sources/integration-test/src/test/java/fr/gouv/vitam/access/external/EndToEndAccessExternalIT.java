@@ -38,6 +38,7 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.EnumObjectWhiteListedFields;
@@ -186,7 +187,8 @@ public class EndToEndAccessExternalIT extends VitamRuleRunner {
             DefaultOfferMain.class,
             BatchReportMain.class,
             AccessExternalMain.class,
-            IngestExternalMain.class
+            IngestExternalMain.class,
+            AntivirusMain.class
         )
     );
 

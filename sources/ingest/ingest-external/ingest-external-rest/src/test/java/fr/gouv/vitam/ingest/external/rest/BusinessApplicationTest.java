@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -53,6 +54,7 @@ public class BusinessApplicationTest extends Application {
 
     public static FormatIdentifierFactory formatIdentifierFactory;
     public static IngestInternalClientFactory ingestInternalClientFactory;
+    public static AntivirusClientFactory antivirusClientFactory;
 
     private Set<Object> singletons;
 
@@ -74,7 +76,8 @@ public class BusinessApplicationTest extends Application {
                     configuration,
                     secureEndpointRegistry,
                     formatIdentifierFactory,
-                    ingestInternalClientFactory
+                    ingestInternalClientFactory,
+                    antivirusClientFactory
                 )
             );
             singletons.add(new SanityCheckerCommonFilter());

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -42,31 +43,35 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
+import fr.gouv.vitamui.antivirus.client.AntivirusApi;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
+import fr.gouv.vitamui.antivirus.client.invoker.ApiException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class IngestExternalImplAntivirusTest {
 
     private static final String PATH = "/tmp";
-    private static final String SCRIPT_SCAN_CLAMAV_VIRUS = "scan-clamav_virus.sh";
-    private static final String SCRIPT_SCAN_CLAMAV_VIRUS_FIXED = "scan-clamav_virus_fixed.sh";
-    private static final String SCRIPT_SCAN_CLAMAV_UNKNOWN = "scan-clamav_unknown.sh";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final String EXECUTION_MODE = "continu";
     private InputStream stream;
     private static final Integer TENANT_ID = 0;
 
     private FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
+    private static final FormatIdentifier formatIdentifier = mock(FormatIdentifier.class);
     private IngestInternalClientFactory ingestInternalClientFactor = mock(IngestInternalClientFactory.class);
+    private AntivirusClientFactory antivirusClientFactory = mock(AntivirusClientFactory.class);
     private ManifestDigestValidator manifestDigestValidator = mock(ManifestDigestValidator.class);
 
     @Rule
@@ -91,14 +96,19 @@ public class IngestExternalImplAntivirusTest {
     @RunWithCustomExecutor
     @Test
     public void givenVirusFoundThenKo() throws Exception {
+        AntivirusApi antivirusApi = mock(AntivirusApi.class);
+        doThrow(new ApiException(Response.Status.BAD_REQUEST.getStatusCode(), "Virus found"))
+            .when(antivirusApi)
+            .scanByPath(anyString());
+        when(antivirusClientFactory.getAntivirusApi()).thenReturn(antivirusApi);
+
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
-        config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS);
-        config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl = new IngestExternalImpl(
             config,
             formatIdentifierFactory,
             ingestInternalClientFactor,
+            antivirusClientFactory,
             manifestDigestValidator
         );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -113,42 +123,24 @@ public class IngestExternalImplAntivirusTest {
 
     @RunWithCustomExecutor
     @Test
-    public void givenVirusFoundFixedThenKo() throws Exception {
+    public void givenClamavUnknownThenKo() throws Exception {
+        AntivirusApi antivirusApi = mock(AntivirusApi.class);
+        doThrow(new ApiException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "Antivirus error"))
+            .when(antivirusApi)
+            .scanByPath(anyString());
+        when(antivirusClientFactory.getAntivirusApi()).thenReturn(antivirusApi);
+
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
         config.setPath(PATH);
-        config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS_FIXED);
-        config.setTimeoutScanDelay(timeoutScanDelay);
         IngestExternalImpl ingestExternalImpl = new IngestExternalImpl(
             config,
             formatIdentifierFactory,
             ingestInternalClientFactor,
+            antivirusClientFactory,
             manifestDigestValidator
         );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
-
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
-        Assert.assertTrue(statusCode.equals(StatusCode.KO));
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void givenClamavUnknwonThenKo() throws Exception {
-        final IngestExternalConfiguration config = new IngestExternalConfiguration();
-        config.setPath(PATH);
-        config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_UNKNOWN);
-        config.setTimeoutScanDelay(timeoutScanDelay);
-        IngestExternalImpl ingestExternalImpl = new IngestExternalImpl(
-            config,
-            formatIdentifierFactory,
-            ingestInternalClientFactor,
-            manifestDigestValidator
-        );
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);

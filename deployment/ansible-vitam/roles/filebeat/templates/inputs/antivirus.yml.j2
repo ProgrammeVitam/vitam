@@ -1,5 +1,5 @@
 #jinja2: lstrip_blocks: True
-{% set composant_name = vitam.ingestexternal.antivirus | default('clamav') %}
+{% set composant_name = vitam.antivirus.engine | default('clamav') %}
 #
 # antivirus {{ composant_name }}
 #

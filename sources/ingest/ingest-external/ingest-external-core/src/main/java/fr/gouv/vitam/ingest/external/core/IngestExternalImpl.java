@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.ingest.external.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,8 +62,6 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.common.util.ExecutionOutput;
-import fr.gouv.vitam.ingest.external.common.util.JavaExecuteScript;
 import fr.gouv.vitam.ingest.external.core.exception.ManifestDigestValidationException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -75,6 +74,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
+import fr.gouv.vitamui.antivirus.client.AntivirusApi;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
+import fr.gouv.vitamui.antivirus.client.invoker.ApiException;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -132,17 +134,20 @@ public class IngestExternalImpl implements IngestExternal {
 
     private final FormatIdentifierFactory formatIdentifierFactory;
     private final IngestInternalClientFactory ingestInternalClientFactory;
+    private final AntivirusClientFactory antivirusClientFactory;
     private final ManifestDigestValidator manifestDigestValidator;
 
     public IngestExternalImpl(
         IngestExternalConfiguration config,
         FormatIdentifierFactory formatIdentifierFactory,
         IngestInternalClientFactory ingestInternalClientFactory,
+        AntivirusClientFactory antivirusClientFactory,
         ManifestDigestValidator manifestDigestValidator
     ) {
         this.config = config;
         this.formatIdentifierFactory = formatIdentifierFactory;
         this.ingestInternalClientFactory = ingestInternalClientFactory;
+        this.antivirusClientFactory = antivirusClientFactory;
         this.manifestDigestValidator = manifestDigestValidator;
     }
 
@@ -236,13 +241,10 @@ public class IngestExternalImpl implements IngestExternal {
     ) throws IngestExternalException {
         WorkspaceFileSystem workspaceFileSystem = preUploadResume.getWorkspaceFileSystem();
         try {
-            final String antiVirusScriptName = config.getAntiVirusScriptName();
-            final long timeoutScanDelay = config.getTimeoutScanDelay();
             final boolean ignoreAntivirusCheck = config.isIgnoreAntivirusCheck();
             final String containerNamePath = guid.getId();
             final String objectNamePath = guid.getId();
             final File file;
-            JavaExecuteScript javaExecuteScript = new JavaExecuteScript();
             try {
                 file = SafeFileChecker.checkSafeFilePath(config.getPath(), containerNamePath, objectNamePath);
             } catch (IllegalPathException e) {
@@ -253,21 +255,21 @@ public class IngestExternalImpl implements IngestExternal {
                 LOGGER.error(CAN_NOT_READ_FILE);
                 throw new IngestExternalException(CAN_NOT_READ_FILE);
             }
-            ExecutionOutput executionOutput;
 
             // CHECK ANTIVIRUS
             ItemStatus antivirusItemStatus = new ItemStatus(CHECK_ANTIVIRUS.getItemValue());
+            Status exitCode = Status.OK;
             try {
                 /*
-                 * Return values of script scan-clamav.sh return 0: scan OK - no virus 1: virus found and corrected 2:
-                 * virus found but not corrected 3: Fatal scan not performed
+                 * Calls the Ingest External Antivirus service
                  */
-                executionOutput = !ignoreAntivirusCheck
-                    ? javaExecuteScript.executeCommand(antiVirusScriptName, file.getAbsolutePath(), timeoutScanDelay)
-                    : new ExecutionOutput(STATUS_ANTIVIRUS_OK);
-            } catch (final Exception e) {
-                LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
-                throw new IngestExternalException(e);
+                AntivirusApi antivirusApi = antivirusClientFactory.getAntivirusApi();
+                antivirusApi.scanByPath(containerNamePath + "/" + objectNamePath);
+            } catch (final ApiException e) {
+                exitCode = Status.fromStatusCode(e.getCode());
+                if (exitCode == null) {
+                    exitCode = Status.INTERNAL_SERVER_ERROR;
+                }
             }
             InputStream inputStream = null;
             boolean isFileInfected = false;
@@ -275,25 +277,19 @@ public class IngestExternalImpl implements IngestExternal {
             boolean isSupportedMedia = false;
             ManifestFileName manifestFileName = null;
 
-            switch (executionOutput.getExitCode()) {
-                case STATUS_ANTIVIRUS_OK:
+            switch (exitCode) {
+                case OK:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
                     antivirusItemStatus.increment(OK);
                     break;
-                case STATUS_ANTIVIRUS_WARNING:
-                case STATUS_ANTIVIRUS_KO:
+                case BAD_REQUEST:
                     LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
                     antivirusItemStatus.increment(KO);
                     isFileInfected = true;
                     break;
-                case STATUS_ANTIVIRUS_NOT_PERFORMED:
-                case STATUS_ANTIVIRUS_EXCEPTION_OCCURRED:
-                    LOGGER.error(
-                        "{},{},{}",
-                        IngestExternalOutcomeMessage.FATAL_VIRUS.toString(),
-                        executionOutput.getStdout(),
-                        executionOutput.getStderr()
-                    );
+                case NOT_FOUND:
+                case INTERNAL_SERVER_ERROR:
+                    LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
                     antivirusItemStatus.increment(FATAL);
                     isFileInfected = true;
                     break;

@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Antivirus" type="Application" factoryName="Application">
+    <log_file alias="Logs" path="$vitamLocalShareFolder$/log/antivirus/antivirus.*.log" />
+    <log_file alias="AccessLogs" path="$vitamLocalShareFolder$/log/antivirus/accesslog-antivirus.*.log" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.antivirus.rest.AntivirusMain" />
+    <module name="antivirus-rest" />
+    <option name="PROGRAM_PARAMETERS" value="$vitamLocalShareFolder$/conf/antivirus/antivirus.conf" />
+    <option name="VM_PARAMETERS" value="-Dlogback.configurationFile=$vitamLocalShareFolder$/conf/antivirus/logback.xml -Dvitam.tmp.folder=$vitamLocalShareFolder$/tmp/antivirus -Dvitam.config.folder=$vitamLocalShareFolder$/conf/antivirus -Dvitam.data.folder=$vitamLocalShareFolder$/data/antivirus -Dvitam.log.folder=$vitamLocalShareFolder$/log/antivirus -Xmx128m -XX:+ExitOnOutOfMemoryError" />
+    <option name="WORKING_DIRECTORY" value="$vitamLocalShareFolder$/conf/antivirus/" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

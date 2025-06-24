@@ -66,6 +66,7 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
+import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.Consumes;
@@ -108,6 +109,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     private final SecureEndpointRegistry secureEndpointRegistry;
     private final FormatIdentifierFactory formatIdentifierFactory;
     private final IngestInternalClientFactory ingestInternalClientFactory;
+    private final AntivirusClientFactory antivirusClientFactory;
 
     /**
      * Constructor IngestExternalResource
@@ -119,12 +121,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
         IngestExternalConfiguration ingestExternalConfiguration,
         SecureEndpointRegistry secureEndpointRegistry,
         FormatIdentifierFactory formatIdentifierFactory,
-        IngestInternalClientFactory ingestInternalClientFactory
+        IngestInternalClientFactory ingestInternalClientFactory,
+        AntivirusClientFactory antivirusClientFactory
     ) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.formatIdentifierFactory = formatIdentifierFactory;
         this.ingestInternalClientFactory = ingestInternalClientFactory;
+        this.antivirusClientFactory = antivirusClientFactory;
         LOGGER.info("init Ingest External Resource server");
     }
 
@@ -306,6 +310,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
             ingestExternalConfiguration,
             formatIdentifierFactory,
             ingestInternalClientFactory,
+            antivirusClientFactory,
             new ManifestDigestValidator()
         );
         final LocalFileAction afterUploadAction = LocalFileAction.getLocalFileAction(

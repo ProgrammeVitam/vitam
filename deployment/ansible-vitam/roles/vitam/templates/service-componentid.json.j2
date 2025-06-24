@@ -51,11 +51,11 @@
         "interval": "{{ siegfried.consul_check }}s"
       }
 {% endif %}
-{% if vitam_struct.antivirus is defined and install_mode != "container" %}
+{% if vitam_struct.engine is defined and install_mode != "container" %}
       ,{
         "name": "Antivirus check",
-        "notes": "Is {{ vitam_struct.antivirus }} running ?",
-        "args": ["{{ vitam_folder_conf }}/scan-{{ vitam_struct.antivirus}}.sh","{{ vitam_folder_conf }}/scan-{{ vitam_struct.antivirus}}.sh"],
+        "notes": "Is {{ vitam_struct.engine }} running ?",
+        "args": ["{{ vitam_folder_conf }}/scan-{{ vitam_struct.engine}}.sh","{{ vitam_folder_conf }}/scan-{{ vitam_struct.engine}}.sh"],
         "interval": "30s",
         "timeout": "5s"
       }

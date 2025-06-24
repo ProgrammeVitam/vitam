@@ -4,7 +4,6 @@
   any_errors_fatal: true
   roles:
     - siegfried
-    - antivirus
     - create_upload_dir
     - vitam
   vars:
