@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -94,7 +95,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
-
 /**
  * Web Application Resource class for delete features
  */
@@ -103,9 +103,9 @@ import java.util.Queue;
 public class WebApplicationResourceDelete {
 
     private static final String CONTEXT_NAME = "Name";
-    private static final String CONTEXT_TO_SAVE = "admin-context";
-    private static final String SECURITY_PROFIL_NAME = "Name";
-    private static final String SECURITY_PROFIL_NAME_TO_SAVE = "admin-security-profile";
+    private static final String[] CONTEXTS_TO_SAVE = {"admin-context", "vitamui-context"};
+    private static final String SECURITY_PROFILE_NAME = "Name";
+    private static final String[] SECURITY_PROFILES_TO_SAVE = {"admin-security-profile", "vitamui-security-profile"};
     private static final String ONTOLOGY_ORIGIN = "Origin";
     private static final String ONTOLOGY_EXTERNAL = "EXTERNAL";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDelete.class);
@@ -757,14 +757,14 @@ public class WebApplicationResourceDelete {
      *
      * @return Response
      */
-    @Path("masterdata/securityProfil")
+    @Path("masterdata/securityProfile")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteMasterdataSecurityProfil() {
+    public Response deleteMasterdataSecurityProfile() {
         Delete delete = null;
 
         try {
-            delete = queryDeleteSecurityProfil();
+            delete = queryDeleteSecurityProfile();
 
             mongoDbAccessAdmin.deleteCollectionForTesting(FunctionalAdminCollections.SECURITY_PROFILE, delete);
 
@@ -941,7 +941,7 @@ public class WebApplicationResourceDelete {
 
         deleteMasterdataContext().close();
 
-        deleteMasterdataSecurityProfil().close();
+        deleteMasterdataSecurityProfile().close();
 
         return Response.status(Status.OK).build();
     }
@@ -968,9 +968,9 @@ public class WebApplicationResourceDelete {
             LOGGER.error("Cannot create delegate logbook operation", exc);
         }
 
-        deleteMetadaOg(tenantId, collectionKO, parameters, helper);
+        deleteMetadataOg(tenantId, collectionKO, parameters, helper);
 
-        deleteMetadaUnit(tenantId, collectionKO, parameters, helper);
+        deleteMetadataUnit(tenantId, collectionKO, parameters, helper);
 
         deleteRules(collectionKO, parameters, helper);
 
@@ -1023,7 +1023,7 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteMetadaOg(Integer tenantId, List<String> collectionKO, LogbookOperationParameters parameters,
+    public void deleteMetadataOg(Integer tenantId, List<String> collectionKO, LogbookOperationParameters parameters,
         LogbookOperationsClientHelper helper) {
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_METADATA_OG).setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetail,
@@ -1049,7 +1049,7 @@ public class WebApplicationResourceDelete {
         }
     }
 
-    public void deleteMetadaUnit(Integer tenantId, List<String> collectionKO, LogbookOperationParameters parameters,
+    public void deleteMetadataUnit(Integer tenantId, List<String> collectionKO, LogbookOperationParameters parameters,
         LogbookOperationsClientHelper helper) {
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_METADATA_UNIT).setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -1430,15 +1430,27 @@ public class WebApplicationResourceDelete {
     private Delete queryDeleteContext() throws InvalidCreateOperationException {
 
         final Delete delete = new Delete();
-        final Query query = QueryHelper.not().add(QueryHelper.eq(CONTEXT_NAME, CONTEXT_TO_SAVE));
+        final BooleanQuery orQuery = QueryHelper.or();
+
+        for (String contextToSave : CONTEXTS_TO_SAVE) {
+            orQuery.add(QueryHelper.eq(CONTEXT_NAME, contextToSave));
+        }
+
+        final Query query = QueryHelper.not().add(orQuery);
         delete.setQuery(query);
         return delete;
     }
 
-    private Delete queryDeleteSecurityProfil() throws InvalidCreateOperationException {
+    private Delete queryDeleteSecurityProfile() throws InvalidCreateOperationException {
 
         final Delete delete = new Delete();
-        final Query query = QueryHelper.not().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
+        final BooleanQuery orQuery = QueryHelper.or();
+
+        for (String securityProfileToSave : SECURITY_PROFILES_TO_SAVE) {
+            orQuery.add(QueryHelper.eq(SECURITY_PROFILE_NAME, securityProfileToSave));
+        }
+
+        final Query query = QueryHelper.not().add(orQuery);
         delete.setQuery(query);
         return delete;
     }
