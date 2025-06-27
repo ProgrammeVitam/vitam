@@ -9,7 +9,7 @@
   package:
     name:
       - vitam-ihm-recette
-      - "{{ 'openjdk-17-jre-headless' if ansible_os_family == 'Debian' else 'java-17-openjdk-headless' }}"
+      - "{{ 'jdk-21' if ansible_os_family == 'Debian' else 'java-21-openjdk-headless' }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
