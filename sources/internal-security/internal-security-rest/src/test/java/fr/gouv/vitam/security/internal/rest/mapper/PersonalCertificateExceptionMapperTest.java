@@ -27,11 +27,10 @@
 package fr.gouv.vitam.security.internal.rest.mapper;
 
 import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateException;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalCertificateExceptionMapperTest {

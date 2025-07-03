@@ -31,12 +31,12 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

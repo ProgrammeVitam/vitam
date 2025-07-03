@@ -30,25 +30,24 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import org.eclipse.jetty.server.HttpChannel;
-import org.eclipse.jetty.server.Request;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import org.eclipse.jetty.server.internal.HttpConnection;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -93,7 +92,7 @@ public class DefaultClientRetryTest extends ResteasyTestApplication {
     }
 
     @Path(RESOURCE_PATH)
-    @javax.ws.rs.ApplicationPath("webresources")
+    @ApplicationPath("webresources")
     public static class MockResource {
 
         private final ExpectedResults mock;
@@ -104,50 +103,51 @@ public class DefaultClientRetryTest extends ResteasyTestApplication {
 
         @GET
         @Produces(MediaType.APPLICATION_JSON)
-        public void fatalGet(@Context HttpServletRequest request) {
+        public void fatalGet() {
             mock.get();
-            abort(request);
+            abort();
         }
 
         @HEAD
         @Produces(MediaType.APPLICATION_JSON)
-        public void fatalHead(@Context HttpServletRequest request) {
+        public void fatalHead() {
             mock.head();
-            abort(request);
+            abort();
         }
 
         @OPTIONS
         @Produces(MediaType.APPLICATION_JSON)
-        public void abortOptions(@Context HttpServletRequest request) {
+        public void abortOptions() {
             mock.options();
-            abort(request);
+            abort();
         }
 
         @DELETE
         @Produces(MediaType.APPLICATION_JSON)
-        public void fatalDelete(@Context HttpServletRequest request) {
+        public void fatalDelete() {
             mock.delete();
-            abort(request);
+            abort();
         }
 
         @PUT
         @Produces(MediaType.APPLICATION_JSON)
-        public void fatalPut(@Context HttpServletRequest request) {
+        public void fatalPut() throws IOException {
             mock.put();
-            abort(request);
+            abort();
         }
 
         @POST
         @Produces(MediaType.APPLICATION_JSON)
-        public void fatalPost(@Context HttpServletRequest request) {
+        public void fatalPost() throws IOException {
             mock.post();
-            abort(request);
+            abort();
         }
 
-        private static void abort(HttpServletRequest request) {
-            Request baseRequest = Request.getBaseRequest(request);
-            HttpChannel channel = baseRequest.getHttpChannel();
-            channel.abort(new Exception("Forcibly closing connection"));
+        private static void abort() {
+            HttpConnection connection = HttpConnection.getCurrentConnection();
+            if (connection != null) {
+                connection.getEndPoint().close();
+            }
         }
     }
 

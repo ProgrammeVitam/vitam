@@ -29,6 +29,7 @@ package fr.gouv.vitam.access.internal.rest;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.serve.filter.AccessContractIdContainerFilter;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -37,10 +38,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -51,7 +51,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 /**
  * Business application for access internal declaring resources and filters
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private final CommonBusinessApplication commonBusinessApplication;
 

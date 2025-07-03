@@ -50,12 +50,12 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.junit.rules.ExternalResource;
 
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

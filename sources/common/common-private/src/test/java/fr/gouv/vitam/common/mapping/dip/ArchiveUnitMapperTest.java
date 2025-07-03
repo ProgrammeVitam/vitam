@@ -42,10 +42,10 @@ import fr.gouv.vitam.common.model.unit.OrganizationType;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import jakarta.xml.bind.JAXBElement;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
 import java.util.List;

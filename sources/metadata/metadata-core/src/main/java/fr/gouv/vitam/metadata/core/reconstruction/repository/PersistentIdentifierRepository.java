@@ -29,9 +29,9 @@ package fr.gouv.vitam.metadata.core.reconstruction.repository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.core.reconstruction.model.PurgedPersistentIdentifier;
+import jakarta.annotation.Nullable;
 import org.bson.Document;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public interface PersistentIdentifierRepository {

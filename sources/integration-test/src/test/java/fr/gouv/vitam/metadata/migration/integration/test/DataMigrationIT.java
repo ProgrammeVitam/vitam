@@ -453,7 +453,7 @@ public class DataMigrationIT extends VitamRuleRunner {
             int nbtimes = 0;
             (nbtimes <= VitamServerRunner.NB_TRY &&
                 (metadataAdminDataMigrationService.checkDataMigration(getBasicAuthnToken()).execute().code() !=
-                    javax.ws.rs.core.Response.Status.OK.getStatusCode()));
+                    jakarta.ws.rs.core.Response.Status.OK.getStatusCode()));
             nbtimes++
         ) {
             try {
@@ -472,7 +472,7 @@ public class DataMigrationIT extends VitamRuleRunner {
 
         InputStream expectedStoredDocument = CanonicalJsonFormatter.serialize(docWithLfc);
 
-        javax.ws.rs.core.Response response = null;
+        jakarta.ws.rs.core.Response response = null;
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
             response = client.getContainerAsync(
                 "default",
@@ -490,7 +490,7 @@ public class DataMigrationIT extends VitamRuleRunner {
 
     private void checkReport(String operationId, List<JsonNode> units)
         throws StorageNotFoundException, StorageServerClientException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
-        javax.ws.rs.core.Response response = null;
+        jakarta.ws.rs.core.Response response = null;
         try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
             response = client.getContainerAsync(
                 "default",

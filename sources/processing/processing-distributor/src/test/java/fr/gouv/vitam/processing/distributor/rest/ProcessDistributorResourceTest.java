@@ -38,12 +38,12 @@ import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.Set;
 

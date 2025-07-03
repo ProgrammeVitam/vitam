@@ -27,8 +27,8 @@
 package fr.gouv.vitam.common.client;
 
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import jakarta.ws.rs.client.Client;
 
-import javax.ws.rs.client.Client;
 import java.util.Map;
 
 /**

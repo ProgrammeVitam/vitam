@@ -57,10 +57,10 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.UpdateOperationModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
+import jakarta.xml.bind.JAXBElement;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBElement;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

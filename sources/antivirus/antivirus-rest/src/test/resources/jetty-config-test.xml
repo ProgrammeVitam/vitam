@@ -104,7 +104,7 @@
     <!-- RequestLogHandler after the default handler -->
     <!-- =========================================================== -->
     <Set name="handler">
-        <New id="Handlers" class="org.eclipse.jetty.server.handler.HandlerCollection">
+        <New id="Handlers" class="org.eclipse.jetty.server.Handler$Sequence">
             <Set name="handlers">
                 <Array type="org.eclipse.jetty.server.Handler">
                     <Item>

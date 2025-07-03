@@ -61,6 +61,8 @@ import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabili
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -77,8 +79,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;

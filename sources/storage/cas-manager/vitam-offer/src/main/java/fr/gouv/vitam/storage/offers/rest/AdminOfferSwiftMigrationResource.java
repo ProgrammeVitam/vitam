@@ -36,15 +36,14 @@ import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.storage.offers.migration.SwiftMigrationRequest;
 import fr.gouv.vitam.storage.offers.migration.SwiftMigrationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Path("/offer/v1/swift-migration")
 @Tag(name = "Admin-Offer")

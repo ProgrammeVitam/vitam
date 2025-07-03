@@ -34,11 +34,11 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.restassured.RestAssured;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
 import static io.restassured.RestAssured.given;
@@ -95,40 +95,45 @@ public class AntivirusResourceTest {
 
     @Test
     public final void testScanOk() {
-        given().when().get(SCAN_BY_PATH_URL + "/no-virus.txt").then().statusCode(Status.OK.getStatusCode());
+        given().when().get(SCAN_BY_PATH_URL + "?path=no-virus.txt").then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public final void testScanVirusFixed() {
-        given().when().get(SCAN_BY_PATH_URL + "/warning.txt").then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        given()
+            .when()
+            .get(SCAN_BY_PATH_URL + "?path=warning.txt")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testScanVirus() {
-        given().when().get(SCAN_BY_PATH_URL + "/virus.txt").then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        given().when().get(SCAN_BY_PATH_URL + "?path=virus.txt").then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testScanErrorOrException() {
         given()
             .when()
-            .get(SCAN_BY_PATH_URL + "/error.txt")
+            .get(SCAN_BY_PATH_URL + "?path=error.txt")
             .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
     public final void testScanBadParameters() {
-        given().when().get(SCAN_BY_PATH_URL).then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given().when().get(SCAN_BY_PATH_URL + "?path=").then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given().when().get(SCAN_BY_PATH_URL).then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
     public final void testScanNotFound() {
-        given().when().get(SCAN_BY_PATH_URL + "/notfound.txt").then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given().when().get(SCAN_BY_PATH_URL + "?path=notfound.txt").then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public final void testScanNotReadable() {
-        given().when().get(SCAN_BY_PATH_URL + "/notreadable.txt").then().statusCode(Status.OK.getStatusCode());
+        given().when().get(SCAN_BY_PATH_URL + "?path=notreadable.txt").then().statusCode(Status.OK.getStatusCode());
     }
 }

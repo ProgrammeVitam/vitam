@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
@@ -55,10 +56,9 @@ import fr.gouv.vitam.functional.administration.core.griffin.PreservationScenario
 import fr.gouv.vitam.functional.administration.core.ontologies.OntologyServiceImpl;
 import fr.gouv.vitam.functional.administration.core.schema.SchemaService;
 import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -73,7 +73,7 @@ import static fr.gouv.vitam.functional.administration.common.server.FunctionalAd
 /**
  * Business application for function administration declaring resources and filters
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private final CommonBusinessApplication commonBusinessApplication;
     private final Set<Object> singletons;

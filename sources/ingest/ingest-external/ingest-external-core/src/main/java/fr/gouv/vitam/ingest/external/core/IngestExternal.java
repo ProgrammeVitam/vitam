@@ -30,8 +30,8 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import jakarta.ws.rs.container.AsyncResponse;
 
-import javax.ws.rs.container.AsyncResponse;
 import java.io.InputStream;
 
 /**

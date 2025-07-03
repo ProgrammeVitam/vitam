@@ -31,10 +31,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import javax.ws.rs.container.ContainerRequestContext;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;

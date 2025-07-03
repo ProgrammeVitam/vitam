@@ -61,6 +61,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -70,7 +71,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;

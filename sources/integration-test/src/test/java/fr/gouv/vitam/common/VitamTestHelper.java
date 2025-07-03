@@ -91,10 +91,10 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 
-import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

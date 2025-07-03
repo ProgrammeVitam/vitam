@@ -79,6 +79,7 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import jakarta.ws.rs.core.Response.Status;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.After;
@@ -89,7 +90,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;

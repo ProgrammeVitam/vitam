@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.common.serverv2;
 
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 
 /**
  * Configuration Applucation

@@ -53,8 +53,8 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 

@@ -31,14 +31,14 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class IhmRecetteClient extends DefaultClient {
 

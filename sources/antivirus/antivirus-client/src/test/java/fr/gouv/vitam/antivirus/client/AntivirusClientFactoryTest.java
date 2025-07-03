@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitamui.antivirus.client;
+package fr.gouv.vitam.antivirus.client;
 
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;

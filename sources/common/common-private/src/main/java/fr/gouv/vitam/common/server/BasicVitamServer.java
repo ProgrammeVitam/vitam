@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.resource.PathResourceFactory;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.xml.XmlConfiguration;
 import org.xml.sax.SAXException;
@@ -93,14 +94,16 @@ public class BasicVitamServer implements VitamServer {
     protected BasicVitamServer(final String jettyConfigPath) throws VitamApplicationServerException {
         try {
             LOGGER.info("Starting server with configuration file : " + jettyConfigPath);
-            try (final Resource resource = Resource.newResource(PropertiesUtils.getConfigFile(jettyConfigPath))) {
-                serverConfiguration = new XmlConfiguration(resource);
-                server = new Server(vitamThreadPoolExecutor);
-                server = (Server) serverConfiguration.configure(server);
-                configured = true;
+            PathResourceFactory resourcePathResource = new PathResourceFactory();
+            final Resource resource = resourcePathResource.newResource(
+                PropertiesUtils.getConfigFile(jettyConfigPath).getPath()
+            );
+            serverConfiguration = new XmlConfiguration(resource);
+            server = new Server(vitamThreadPoolExecutor);
+            server = (Server) serverConfiguration.configure(server);
+            configured = true;
 
-                LOGGER.info("Server started.");
-            }
+            LOGGER.info("Server started.");
         } catch (final FileNotFoundException e) {
             setConfigured(false);
             LOGGER.error("Server configuration file not found.", e);

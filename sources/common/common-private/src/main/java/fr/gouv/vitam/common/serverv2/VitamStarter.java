@@ -44,22 +44,25 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 import fr.gouv.vitam.common.tenant.filter.TenantFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.ServletContextListener;
+import jakarta.ws.rs.core.Application;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Handler.Sequence;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.URLResourceFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContextListener;
-import javax.ws.rs.core.Application;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -152,38 +155,39 @@ public class VitamStarter {
      * @param configurationFile
      * @throws IllegalStateException
      */
-    private final void configure(VitamApplicationConfiguration configuration, String configurationFile) {
+    private void configure(VitamApplicationConfiguration configuration, String configurationFile) {
         try {
             configureVitamParameters();
 
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
 
-            final HandlerList handlerList = new HandlerList();
+            final Sequence sequence = new Sequence();
 
             if (deployStaticResources) {
                 URL staticResourcesUrl = this.getClass().getClassLoader().getResource("static");
                 if (staticResourcesUrl != null) {
                     final ResourceHandler staticContentHandler = new ResourceHandler();
-                    staticContentHandler.setDirectoriesListed(true);
                     staticContentHandler.setDirAllowed(true);
-                    staticContentHandler.setWelcomeFiles(new String[] { "index.html" });
-                    staticContentHandler.setResourceBase(staticResourcesUrl.toString());
+                    staticContentHandler.setWelcomeFiles("index.html");
+                    URLResourceFactory resourceFactory = new URLResourceFactory();
+                    Resource resource = resourceFactory.newResource(staticResourcesUrl);
+                    staticContentHandler.setBaseResource(resource);
                     final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
                     staticContext.setHandler(staticContentHandler);
-                    handlerList.addHandler(staticContext);
+                    sequence.addHandler(staticContext);
                 } else {
                     // Static resources of ihm-demo & ihm-recette may be missing in development mode
                     LOGGER.warn("Missing static resources");
                 }
             }
 
-            handlerList.addHandler(buildApplicationHandler(configurationFile, configuration));
+            sequence.addHandler(buildApplicationHandler(configurationFile, configuration));
 
             if (deployStaticResources) {
-                handlerList.addHandler(new DefaultHandler());
+                sequence.addHandler(new DefaultHandler());
             }
 
-            applicationHandlers.addHandler(handlerList);
+            applicationHandlers.addHandler(sequence);
             applicationHandlers.addHandler(buildAdminHandler(configurationFile));
 
             final String jettyConfig = configuration.getJettyConfig();
@@ -230,7 +234,7 @@ public class VitamStarter {
         throws VitamApplicationServerException {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
 
-        servletHolder.setInitParameter("javax.ws.rs.Application", businessApplication.getName());
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", businessApplication.getName());
         servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
 
         final ServletContextHandler context = new ServletContextHandler(
@@ -257,7 +261,7 @@ public class VitamStarter {
             );
         }
 
-        context.setVirtualHosts(new String[] { "@business" });
+        context.setVirtualHosts(List.of("@business"));
 
         if (configuration.isEnableXsrFilter()) {
             context.addFilter(
@@ -286,13 +290,13 @@ public class VitamStarter {
 
     protected Handler buildAdminHandler(String configurationFile) {
         final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
-        servletHolder.setInitParameter("javax.ws.rs.Application", adminApplication.getName());
+        servletHolder.setInitParameter("jakarta.ws.rs.Application", adminApplication.getName());
         servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
 
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
         context.addServlet(servletHolder, "/*");
 
-        context.setVirtualHosts(new String[] { "@admin" });
+        context.setVirtualHosts(List.of("@admin"));
 
         // no shiro, only internal network
         if (customListeners != null && !customListeners.isEmpty()) {
@@ -315,13 +319,14 @@ public class VitamStarter {
         }
         context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
         context.addEventListener(new EnvironmentLoaderListener());
+        FilterHolder shiroFilterHolder = new FilterHolder(ShiroFilter.class);
         context.addFilter(
-            ShiroFilter.class,
+            shiroFilterHolder,
             "/*",
             EnumSet.of(
-                DispatcherType.INCLUDE,
                 DispatcherType.REQUEST,
                 DispatcherType.FORWARD,
+                DispatcherType.INCLUDE,
                 DispatcherType.ERROR,
                 DispatcherType.ASYNC
             )

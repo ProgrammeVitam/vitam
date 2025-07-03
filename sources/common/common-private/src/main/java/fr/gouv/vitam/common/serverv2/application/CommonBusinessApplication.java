@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.server.ExternalHeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.RequestIdGeneratorContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.JacksonExceptionMapper;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -55,6 +56,7 @@ public class CommonBusinessApplication {
             resources.add(new HeaderIdContainerFilter());
         }
 
+        resources.add(new JacksonExceptionMapper());
         resources.add(new GenericExceptionMapper());
     }
 

@@ -36,9 +36,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import jakarta.validation.constraints.NotNull;
 import org.slf4j.MDC;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * <p>

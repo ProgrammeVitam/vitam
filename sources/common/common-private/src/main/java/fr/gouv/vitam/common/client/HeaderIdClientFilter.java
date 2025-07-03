@@ -27,11 +27,10 @@
 package fr.gouv.vitam.common.client;
 
 import fr.gouv.vitam.common.server.HeaderIdHelper;
-
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
 
 /**
  * Manage the headers from the client-side perspective.

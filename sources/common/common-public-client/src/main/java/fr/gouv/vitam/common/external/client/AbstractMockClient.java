@@ -28,16 +28,16 @@ package fr.gouv.vitam.common.external.client;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.Link.Builder;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.Link.Builder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Date;

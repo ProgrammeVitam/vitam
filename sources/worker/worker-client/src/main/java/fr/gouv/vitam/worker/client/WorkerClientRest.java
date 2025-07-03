@@ -41,19 +41,19 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.common.WorkerAccessRequest;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 
 /**
  * WorkerClient implementation for production environment using REST API.

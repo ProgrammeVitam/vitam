@@ -45,16 +45,16 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 
 public class BatchReportClientRest extends DefaultClient implements BatchReportClient {
 

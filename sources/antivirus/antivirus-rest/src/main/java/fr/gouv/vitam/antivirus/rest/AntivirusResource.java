@@ -37,12 +37,12 @@ import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
 @Path("/antivirus/v1")
@@ -79,9 +79,9 @@ public class AntivirusResource extends ApplicationStatusResource {
      *
      * @param path the path of the file that we want to scan, relative to the base path
      */
-    @Path("scanByPath/{path:.+}")
+    @Path("scanByPath")
     @GET
-    public Response scanByPath(@PathParam("path") String path) {
+    public Response scanByPath(@QueryParam("path") String path) {
         final String basePath = antivirusConfiguration.getPath();
         final String antiVirusScriptName = antivirusConfiguration.getAntiVirusScriptName();
         final long timeoutScanDelay = antivirusConfiguration.getTimeoutScanDelay();

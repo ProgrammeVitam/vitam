@@ -108,10 +108,10 @@ import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportHeader;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportLine;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferStatus;
 import fr.gouv.vitam.worker.core.utils.DataObjectVersionToPatternsConvertor;
+import jakarta.xml.bind.JAXBException;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.ListUtils;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.BufferedOutputStream;

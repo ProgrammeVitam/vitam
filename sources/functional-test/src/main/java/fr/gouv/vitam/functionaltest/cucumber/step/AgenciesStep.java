@@ -40,8 +40,8 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -88,9 +88,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import jakarta.ws.rs.core.Response;
 import org.bson.conversions.Bson;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;

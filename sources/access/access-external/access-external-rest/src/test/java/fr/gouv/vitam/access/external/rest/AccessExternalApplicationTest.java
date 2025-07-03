@@ -33,12 +33,11 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -98,11 +97,7 @@ public class AccessExternalApplicationTest {
 
     @Test
     public void shouldHeaderStripXSSWhenFilterThenReturnReturnNotAcceptable() throws VitamException {
-        application = new AccessExternalMain(
-            "src/test/resources/access-external-test.conf",
-            BusinessApplicationTest.class,
-            null
-        );
+        application = new AccessExternalMain("access-external-test.conf", BusinessApplicationTest.class, null);
         application.start();
 
         given()
@@ -149,7 +144,7 @@ public class AccessExternalApplicationTest {
 
     @Test
     public void shouldActivateShiroFilter() throws VitamException {
-        application = new AccessExternalMain("src/test/resources/access-external-test-ssl.conf");
+        application = new AccessExternalMain("access-external-test-ssl.conf");
         assertThatCode(() -> application.start()).doesNotThrowAnyException();
     }
 }

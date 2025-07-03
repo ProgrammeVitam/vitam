@@ -36,8 +36,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 public class OperationReportRepositoryImpl implements OperationReportRepository {

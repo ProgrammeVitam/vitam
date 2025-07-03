@@ -65,10 +65,10 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBException;
 import org.apache.commons.io.FileUtils;
 
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import java.io.File;
 import java.io.FileInputStream;

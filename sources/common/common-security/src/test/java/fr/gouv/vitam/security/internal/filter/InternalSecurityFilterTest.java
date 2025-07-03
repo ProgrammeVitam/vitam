@@ -44,6 +44,9 @@ import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.UriInfo;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
@@ -65,9 +68,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.UriInfo;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -204,7 +204,7 @@ public class InternalSecurityFilterTest {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
 
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(null);
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(null);
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
         when(httpServletRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(
             URLEncoder.encode(pem, StandardCharsets.UTF_8)
@@ -230,7 +230,7 @@ public class InternalSecurityFilterTest {
     public void whenCertificateInTheHeaderWithAllowedHeaderCertThenOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(true);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(null);
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(null);
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
         when(httpServletRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(pem.replaceAll("\\n", " "));
 
@@ -252,7 +252,7 @@ public class InternalSecurityFilterTest {
     public void whenContextInactivatedThenException() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -276,7 +276,7 @@ public class InternalSecurityFilterTest {
     public void whenStatusUriThenOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -299,7 +299,7 @@ public class InternalSecurityFilterTest {
     public void whenTenantUriThenOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -322,7 +322,7 @@ public class InternalSecurityFilterTest {
     public void whenOtherUriCheckTenantKO() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -345,7 +345,7 @@ public class InternalSecurityFilterTest {
     public void whenOtherUriCheckTenantOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -368,7 +368,7 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndAccessExternalThenCheckNotValidContractKO() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -392,7 +392,7 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndAccessExternalThenCheckContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -416,7 +416,7 @@ public class InternalSecurityFilterTest {
     public void whenNotEnableControlAndAccessExternalThenCheckNotValidContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -440,7 +440,7 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndIngestExternalThenCheckEmptyContractFail() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -463,7 +463,7 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndIngestExternalThenCheckContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
@@ -486,7 +486,7 @@ public class InternalSecurityFilterTest {
     public void whenNotEnableControlAndIngestExternalThenCheckEmptyContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
             new X509Certificate[] { cert }
         );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());

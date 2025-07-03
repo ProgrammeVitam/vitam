@@ -42,8 +42,8 @@ import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

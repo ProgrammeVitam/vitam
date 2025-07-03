@@ -27,8 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import fr.gouv.vitam.storage.driver.model.StorageObjectResult;
-
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Response of thread storage

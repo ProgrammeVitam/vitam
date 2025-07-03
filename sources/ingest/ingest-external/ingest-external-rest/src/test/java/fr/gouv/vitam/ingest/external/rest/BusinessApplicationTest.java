@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.ingest.external.rest;
 
+import fr.gouv.vitam.antivirus.client.AntivirusClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -36,11 +37,10 @@ import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;

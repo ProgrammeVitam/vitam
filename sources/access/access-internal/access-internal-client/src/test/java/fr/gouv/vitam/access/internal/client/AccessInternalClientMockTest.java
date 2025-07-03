@@ -30,10 +30,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;

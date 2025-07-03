@@ -32,11 +32,10 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.config.Ini;
-import org.apache.shiro.config.IniSecurityManagerFactory;
+import org.apache.shiro.env.BasicIniEnvironment;
+import org.apache.shiro.env.Environment;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.Factory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -74,10 +73,8 @@ public class PaginationHelperTest {
 
     @BeforeClass
     public static void setup() {
-        final Ini ini = new Ini();
-        ini.loadFromPath("src/test/resources/shiro.ini");
-        final Factory<SecurityManager> factory = new IniSecurityManagerFactory(ini);
-        final SecurityManager securityManager = factory.getInstance();
+        Environment env = new BasicIniEnvironment("classpath:shiro.ini");
+        SecurityManager securityManager = env.getSecurityManager();
         SecurityUtils.setSecurityManager(securityManager);
 
         final UsernamePasswordToken token = new UsernamePasswordToken("user", "user", true);

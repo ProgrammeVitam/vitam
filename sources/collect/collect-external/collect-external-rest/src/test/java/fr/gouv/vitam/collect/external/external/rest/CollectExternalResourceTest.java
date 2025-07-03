@@ -32,10 +32,10 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

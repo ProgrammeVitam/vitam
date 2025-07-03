@@ -46,6 +46,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsAccessionRegisterUpdatePlugin;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,8 +56,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.File;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;

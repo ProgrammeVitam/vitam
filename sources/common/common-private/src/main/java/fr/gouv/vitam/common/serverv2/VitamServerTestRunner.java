@@ -44,9 +44,14 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.tenant.filter.TenantFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
-import org.apache.shiro.util.Assert;
+import jakarta.servlet.DispatcherType;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+import org.apache.shiro.lang.util.Assert;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -54,15 +59,10 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
 import javax.net.ServerSocketFactory;
-import javax.servlet.DispatcherType;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.DatagramSocket;
@@ -401,14 +401,14 @@ public class VitamServerTestRunner { // NOSONAR
         try {
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
             final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
-            servletHolder.setInitParameter("javax.ws.rs.Application", application.getName());
+            servletHolder.setInitParameter("jakarta.ws.rs.Application", application.getName());
             final ServletContextHandler context = new ServletContextHandler(
                 hasSession ? ServletContextHandler.SESSIONS : ServletContextHandler.NO_SESSIONS
             );
 
             context.addServlet(servletHolder, "/*");
             context.setContextPath("/");
-            context.setVirtualHosts(new String[] { "@business" });
+            context.setVirtualHosts(List.of("@business"));
 
             // Authorization Filter
             // If you want to enable autorization filter
@@ -460,14 +460,14 @@ public class VitamServerTestRunner { // NOSONAR
             server.getServer().addConnector(admin);
 
             final ServletHolder servletHolderAdmin = new ServletHolder(new HttpServletDispatcher());
-            servletHolderAdmin.setInitParameter("javax.ws.rs.Application", adminAapplication.getName());
+            servletHolderAdmin.setInitParameter("jakarta.ws.rs.Application", adminAapplication.getName());
 
             final ServletContextHandler contextAdmin = new ServletContextHandler(
                 hasSession ? ServletContextHandler.SESSIONS : ServletContextHandler.NO_SESSIONS
             );
             contextAdmin.addServlet(servletHolderAdmin, "/*");
 
-            contextAdmin.setVirtualHosts(new String[] { "@admin" });
+            contextAdmin.setVirtualHosts(List.of("@admin"));
 
             StatisticsHandler statsAdmin = new StatisticsHandler();
             statsAdmin.setHandler(contextAdmin);

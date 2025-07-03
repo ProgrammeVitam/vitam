@@ -49,8 +49,8 @@ import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

@@ -48,6 +48,7 @@ import fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.ws.rs.core.Response;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -58,7 +59,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 

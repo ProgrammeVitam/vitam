@@ -44,14 +44,14 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.util.Iterator;
 import java.util.List;

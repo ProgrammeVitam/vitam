@@ -27,11 +27,11 @@
 package fr.gouv.vitam.common.server.application.junit;
 
 import com.google.common.base.Strings;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.util.Map;
 import java.util.Map.Entry;
 

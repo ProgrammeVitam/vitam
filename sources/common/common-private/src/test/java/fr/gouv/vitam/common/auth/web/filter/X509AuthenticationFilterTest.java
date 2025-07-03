@@ -29,6 +29,8 @@ package fr.gouv.vitam.common.auth.web.filter;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 import fr.gouv.vitam.common.shiro.junit.AbstractShiroTest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -53,8 +55,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -159,7 +159,9 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     @Test
     public void givenFilterAccessDenied() throws Exception {
         // Needs mock subject for login call
-        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] { cert });
+        when(request.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         Subject subjectUnderTest = mock(Subject.class);
         Mockito.doNothing().when(subjectUnderTest).login(any());
         setSubject(subjectUnderTest);
@@ -170,7 +172,9 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
 
     @Test
     public void givenFilterCreateToken() throws Exception {
-        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] { cert });
+        when(request.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         AuthenticationToken authToken = filter.createToken(request, response);
         assertNotNull(authToken);

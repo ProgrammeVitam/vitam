@@ -46,11 +46,11 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.DeletionRequestBody;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import jakarta.annotation.Nullable;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV_MEDIATYPE;
@@ -58,8 +58,8 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.delete;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 

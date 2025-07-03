@@ -40,13 +40,13 @@ import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections.EnumerationUtils;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
 
-import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;

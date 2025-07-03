@@ -32,11 +32,11 @@ import fr.gouv.vitam.common.external.client.configuration.SecureClientConfigurat
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 
 import static org.junit.Assert.assertEquals;

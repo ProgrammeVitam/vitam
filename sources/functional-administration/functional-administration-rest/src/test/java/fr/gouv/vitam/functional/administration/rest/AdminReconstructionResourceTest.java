@@ -59,6 +59,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessRefere
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -67,7 +68,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;

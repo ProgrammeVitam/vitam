@@ -35,9 +35,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import static fr.gouv.vitam.common.VitamConfiguration.ADMIN_PATH;
 

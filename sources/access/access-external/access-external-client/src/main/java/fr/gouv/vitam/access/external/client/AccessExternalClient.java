@@ -43,8 +43,8 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Collection;
 

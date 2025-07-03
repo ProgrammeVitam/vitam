@@ -43,11 +43,11 @@ import fr.gouv.vitam.common.server.application.TestResourceImpl;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;

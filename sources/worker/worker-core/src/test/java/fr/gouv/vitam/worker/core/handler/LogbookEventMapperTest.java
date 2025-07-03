@@ -30,12 +30,12 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.xml.SecureXMLFactoryUtils;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;

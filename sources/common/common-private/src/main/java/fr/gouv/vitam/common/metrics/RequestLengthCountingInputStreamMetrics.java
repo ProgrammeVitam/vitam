@@ -32,9 +32,9 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.prometheus.client.Summary;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import org.apache.commons.io.input.CountingInputStream;
 
-import javax.ws.rs.container.ContainerRequestContext;
 import java.io.IOException;
 import java.io.InputStream;
 

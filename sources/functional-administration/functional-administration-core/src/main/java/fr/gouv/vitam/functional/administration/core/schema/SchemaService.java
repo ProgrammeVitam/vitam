@@ -77,9 +77,9 @@ import fr.gouv.vitam.functional.administration.core.ontologies.OntologyService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;

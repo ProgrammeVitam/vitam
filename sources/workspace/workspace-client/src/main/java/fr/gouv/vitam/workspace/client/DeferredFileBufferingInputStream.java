@@ -55,7 +55,7 @@ public class DeferredFileBufferingInputStream extends ProxyInputStream {
         int maxInMemoryBufferSize,
         File tmpDirectory
     ) throws IOException {
-        super(null);
+        super((InputStream) null);
         try {
             ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(sourceInputStream, sourceSize);
 

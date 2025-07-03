@@ -58,9 +58,9 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.common.utils.TransactionRestrictionHelper;
+import jakarta.annotation.Nonnull;
+import jakarta.ws.rs.ProcessingException;
 
-import javax.annotation.Nonnull;
-import javax.ws.rs.ProcessingException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

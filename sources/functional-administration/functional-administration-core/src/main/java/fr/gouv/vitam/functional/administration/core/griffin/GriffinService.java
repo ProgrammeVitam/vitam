@@ -66,11 +66,12 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.format.DateTimeParseException;
@@ -104,8 +105,8 @@ import static fr.gouv.vitam.functional.administration.core.griffin.LogbookGriffi
 import static fr.gouv.vitam.functional.administration.core.griffin.LogbookGriffinHelper.createLogbookEventSuccess;
 import static fr.gouv.vitam.functional.administration.core.griffin.LogbookGriffinHelper.createLogbookEventWarning;
 import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
+import static jakarta.ws.rs.core.Response.Status.CREATED;
 import static java.util.stream.Collectors.toSet;
-import static javax.ws.rs.core.Response.Status.CREATED;
 
 public class GriffinService {
 
@@ -331,26 +332,28 @@ public class GriffinService {
     }
 
     private void validate(List<GriffinModel> listToImport) throws ReferentialException {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+        try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
+            Validator validator = validatorFactory.getValidator();
 
-        List<String> identifiers = new ArrayList<>();
-        for (GriffinModel model : listToImport) {
-            if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException(String.format("Duplicate griffin : '%s'.", model.getIdentifier()));
+            List<String> identifiers = new ArrayList<>();
+            for (GriffinModel model : listToImport) {
+                if (identifiers.contains(model.getIdentifier())) {
+                    throw new ReferentialException(String.format("Duplicate griffin : '%s'.", model.getIdentifier()));
+                }
+
+                Set<ConstraintViolation<GriffinModel>> constraint = validator.validate(model);
+                if (!constraint.isEmpty()) {
+                    throw new ReferentialException(
+                        String.format(
+                            "Invalid griffin for : '%s' : '%s'.",
+                            model.getIdentifier(),
+                            getConstraintsStrings(constraint)
+                        )
+                    );
+                }
+
+                identifiers.add(model.getIdentifier());
             }
-
-            Set<ConstraintViolation<GriffinModel>> constraint = validator.validate(model);
-            if (!constraint.isEmpty()) {
-                throw new ReferentialException(
-                    String.format(
-                        "Invalid griffin for : '%s' : '%s'.",
-                        model.getIdentifier(),
-                        getConstraintsStrings(constraint)
-                    )
-                );
-            }
-
-            identifiers.add(model.getIdentifier());
         }
     }
 

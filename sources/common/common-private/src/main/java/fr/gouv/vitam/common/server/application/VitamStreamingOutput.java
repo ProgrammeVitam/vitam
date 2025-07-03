@@ -28,8 +28,8 @@ package fr.gouv.vitam.common.server.application;
 
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import jakarta.ws.rs.core.StreamingOutput;
 
-import javax.ws.rs.core.StreamingOutput;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

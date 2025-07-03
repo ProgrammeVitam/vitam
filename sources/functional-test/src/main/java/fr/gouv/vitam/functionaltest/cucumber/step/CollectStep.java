@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.lang3.time.StopWatch;
@@ -53,7 +54,6 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Fail;
 import org.junit.Assume;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,7 +63,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;

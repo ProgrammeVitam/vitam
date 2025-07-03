@@ -31,12 +31,12 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

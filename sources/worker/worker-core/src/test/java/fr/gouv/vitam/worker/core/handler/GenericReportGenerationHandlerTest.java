@@ -44,12 +44,12 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.CommonReportService;
 import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
+import jakarta.annotation.Nonnull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;

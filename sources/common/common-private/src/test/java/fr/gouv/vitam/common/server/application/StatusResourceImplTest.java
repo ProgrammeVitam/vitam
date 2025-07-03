@@ -43,12 +43,12 @@ import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response.Status;
 import java.util.Map;
 import java.util.Set;
 

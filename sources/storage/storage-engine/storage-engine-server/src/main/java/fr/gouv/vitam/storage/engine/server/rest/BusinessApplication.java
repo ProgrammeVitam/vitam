@@ -28,12 +28,12 @@ package fr.gouv.vitam.storage.engine.server.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -44,7 +44,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 /**
  * Business application for storage engine declaring resources and fiters
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private final CommonBusinessApplication commonBusinessApplication;
 

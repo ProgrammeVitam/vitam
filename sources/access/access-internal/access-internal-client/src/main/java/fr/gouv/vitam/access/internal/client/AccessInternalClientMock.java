@@ -51,11 +51,11 @@ import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;

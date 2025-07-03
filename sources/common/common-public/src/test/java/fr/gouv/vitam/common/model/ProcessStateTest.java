@@ -27,9 +27,8 @@
 package fr.gouv.vitam.common.model;
 
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

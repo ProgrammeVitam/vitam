@@ -30,9 +30,9 @@ import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import jakarta.annotation.Nonnull;
+import jakarta.ws.rs.core.Response;
 
-import javax.annotation.Nonnull;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;

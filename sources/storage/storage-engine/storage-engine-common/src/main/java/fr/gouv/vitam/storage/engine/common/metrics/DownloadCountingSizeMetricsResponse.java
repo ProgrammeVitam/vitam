@@ -29,9 +29,9 @@ package fr.gouv.vitam.storage.engine.common.metrics;
 
 import fr.gouv.vitam.common.client.VitamAutoClosableResponse;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
 

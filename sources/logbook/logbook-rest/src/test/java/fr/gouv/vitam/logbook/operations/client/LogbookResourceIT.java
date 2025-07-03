@@ -90,6 +90,7 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.bson.Document;
 import org.junit.After;
@@ -101,7 +102,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.temporal.ChronoUnit;

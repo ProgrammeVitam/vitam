@@ -28,8 +28,7 @@ package fr.gouv.vitam.functional.administration.utils;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
-
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 public class ResponseErrorUtils {
 

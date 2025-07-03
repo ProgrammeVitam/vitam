@@ -58,6 +58,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
+import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.specimpl.BuiltResponse;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -68,7 +69,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;

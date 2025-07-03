@@ -34,12 +34,11 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.Response.Status.Family.REDIRECTION;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.Response.Status.Family.REDIRECTION;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 
 class SchedulerClientRest extends DefaultClient implements SchedulerClient {
 

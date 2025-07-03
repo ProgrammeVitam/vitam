@@ -33,12 +33,11 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -146,7 +145,7 @@ public class CollectExternalApplicationTest {
 
     @Test
     public void shouldActivateShiroFilter() throws VitamException {
-        application = new CollectExternalMain("src/test/resources/collect-external-test-ssl.conf");
+        application = new CollectExternalMain("collect-external-test-ssl.conf");
         assertThatCode(() -> application.start()).doesNotThrowAnyException();
     }
 }

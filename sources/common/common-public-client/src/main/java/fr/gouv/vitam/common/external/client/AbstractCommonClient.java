@@ -40,18 +40,18 @@ import fr.gouv.vitam.common.retryable.DelegateRetry;
 import fr.gouv.vitam.common.retryable.RetryableOnException;
 import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -60,16 +60,16 @@ import java.util.Map.Entry;
 import java.util.function.Predicate;
 
 import static fr.gouv.vitam.common.CommonMediaType.GZIP_TYPE;
+import static jakarta.ws.rs.HttpMethod.DELETE;
+import static jakarta.ws.rs.HttpMethod.GET;
+import static jakarta.ws.rs.HttpMethod.HEAD;
+import static jakarta.ws.rs.HttpMethod.OPTIONS;
+import static jakarta.ws.rs.HttpMethod.POST;
+import static jakarta.ws.rs.HttpMethod.PUT;
+import static jakarta.ws.rs.core.HttpHeaders.ACCEPT_ENCODING;
+import static jakarta.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javax.ws.rs.HttpMethod.DELETE;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.HEAD;
-import static javax.ws.rs.HttpMethod.OPTIONS;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-import static javax.ws.rs.core.HttpHeaders.ACCEPT_ENCODING;
-import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 abstract class AbstractCommonClient implements BasicClient {
 

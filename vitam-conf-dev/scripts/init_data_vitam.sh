@@ -12,7 +12,7 @@ echo "End"
 
 echo "Import context"
 echo "Begin"
-curl -d '[{"Name": "admin-context", "Status": "ACTIVE","Identifier": "CT-000001", "SecurityProfile": "admin-security-profile", "Permissions": [ {"tenant": 0, "AccessContracts": [], "IngestContracts": []},{"tenant": 1, "AccessContracts": [], "IngestContracts": []}, {"tenant": 2, "AccessContracts": [], "IngestContracts": []} ]}]' -H "Content-Type: application/json" -X POST http://functional-administration.service.consul:18004/v1/admin/contexts
+curl -d '[{"Name": "admin-context", "Status": "ACTIVE","Identifier": "CT-000001", "SecurityProfile": "admin-security-profile", "Permissions": [ {"tenant": 0, "AccessContracts": [], "IngestContracts": []},{"tenant": 1, "AccessContracts": [], "IngestContracts": []}, {"tenant": 2, "AccessContracts": [], "IngestContracts": []}, {"tenant": 3, "AccessContracts": [], "IngestContracts": []}, {"tenant": 4, "AccessContracts": [], "IngestContracts": []}, {"tenant": 5, "AccessContracts": [], "IngestContracts": []}, {"tenant": 6, "AccessContracts": [], "IngestContracts": []}, {"tenant": 7, "AccessContracts": [], "IngestContracts": []}, {"tenant": 8, "AccessContracts": [], "IngestContracts": []}, {"tenant": 9, "AccessContracts": [], "IngestContracts": []} ]}]' -H "Content-Type: application/json" -X POST http://functional-administration.service.consul:18004/v1/admin/contexts
 echo "End"
 
 echo "Import ihm-demo certificate"

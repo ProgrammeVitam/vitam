@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 /**
  * CommonMediaType contains a different archive mime type supported by Vitam

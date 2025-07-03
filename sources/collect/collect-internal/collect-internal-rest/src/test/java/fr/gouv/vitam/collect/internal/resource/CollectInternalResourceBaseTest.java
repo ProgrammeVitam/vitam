@@ -47,6 +47,9 @@ import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import io.restassured.RestAssured;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -55,9 +58,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.util.HashSet;
 import java.util.Set;
 

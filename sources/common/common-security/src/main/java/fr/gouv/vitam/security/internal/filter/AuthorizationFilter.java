@@ -29,13 +29,12 @@ package fr.gouv.vitam.security.internal.filter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.rest.Secured;
-
-import javax.annotation.Priority;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.DynamicFeature;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.FeatureContext;
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.DynamicFeature;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.FeatureContext;
 
 /**
  * Handles permission based access authorization for REST endpoints.

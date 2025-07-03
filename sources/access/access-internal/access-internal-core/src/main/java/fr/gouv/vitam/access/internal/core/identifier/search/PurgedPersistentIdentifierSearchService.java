@@ -35,8 +35,8 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.identifier.PurgedCollectionType;
 import fr.gouv.vitam.common.model.identifier.PurgedPersistentIdentifier;
+import jakarta.annotation.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.stream.Collectors;

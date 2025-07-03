@@ -46,10 +46,10 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferPartialSyncItem;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.exception.RuntimeStorageException;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

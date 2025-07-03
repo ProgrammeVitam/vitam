@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.security.internal.rest.server;
 
-import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
+import com.fasterxml.jackson.jakarta.rs.base.JsonParseExceptionMapper;
 import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -49,10 +49,10 @@ import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import fr.gouv.vitam.security.internal.rest.service.migration.SecurityDataMigrationRepository;
 import fr.gouv.vitam.security.internal.rest.service.migration.SecurityDataMigrationService;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;

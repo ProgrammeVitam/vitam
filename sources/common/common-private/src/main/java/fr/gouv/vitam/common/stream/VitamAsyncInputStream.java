@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.stream;
 
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.ProxyInputStream;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 

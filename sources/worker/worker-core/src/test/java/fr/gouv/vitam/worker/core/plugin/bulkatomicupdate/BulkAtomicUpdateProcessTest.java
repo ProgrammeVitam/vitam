@@ -65,6 +65,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import jakarta.ws.rs.core.Response;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,14 +77,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory.newWorkerParameters;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;

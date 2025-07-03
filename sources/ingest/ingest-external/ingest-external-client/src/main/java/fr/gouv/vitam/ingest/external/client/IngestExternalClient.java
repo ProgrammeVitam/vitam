@@ -33,8 +33,8 @@ import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 /**

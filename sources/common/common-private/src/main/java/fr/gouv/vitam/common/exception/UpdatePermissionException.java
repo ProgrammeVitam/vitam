@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.exception;
 
-import javax.ws.rs.ProcessingException;
+import jakarta.ws.rs.ProcessingException;
 
 /**
  * Description of AccessInternal permissions exception class.

@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.batch.report.rest.server;
 
-import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
+import com.fasterxml.jackson.jakarta.rs.base.JsonParseExceptionMapper;
 import fr.gouv.vitam.batch.report.rest.resource.AdminBatchReportResource;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;

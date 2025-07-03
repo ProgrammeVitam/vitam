@@ -59,9 +59,9 @@ import fr.gouv.vitam.metadata.api.model.PersistentIdentifierReconstructionReques
 import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import jakarta.annotation.Nullable;
+import jakarta.ws.rs.core.Response;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;

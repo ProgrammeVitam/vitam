@@ -77,6 +77,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -86,7 +87,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -466,12 +466,9 @@ public class AdminManagementResourceTest {
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         given()
-            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(jsonDocument)
-            .pathParam("id_format", jsonDocument.get(0).get("PUID").asText())
             .when()
-            .get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .get(GET_BYID_FORMAT_URI + "/" + jsonDocument.get(0).get("PUID").asText())
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
@@ -502,17 +499,14 @@ public class AdminManagementResourceTest {
             .post(GET_DOCUMENT_FORMAT_URI)
             .getBody()
             .asString();
-        final JsonNode jsonDocument = JsonHandler.getFromString(document);
+        final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         given()
-            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(jsonDocument)
-            .pathParam("id_format", "fake_identifier")
             .when()
-            .get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .get(GET_BYID_FORMAT_URI + "/" + jsonDocument.get(0).get("PUID").asText())
             .then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test

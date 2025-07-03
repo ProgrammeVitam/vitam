@@ -35,17 +35,17 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.nio.file.Path;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.BASE64;
 import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.FORMAT;
 import static fr.gouv.vitam.common.format.identification.siegfried.SiegfriedQueryParams.SCAN_ENTRIES_WITHIN_ZIP;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 
 public class SiegfriedClientRest extends DefaultClient implements SiegfriedClient {
 

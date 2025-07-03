@@ -28,11 +28,10 @@ package fr.gouv.vitam.common.server.application;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 
 public class GenericExceptionMapperTest {
 

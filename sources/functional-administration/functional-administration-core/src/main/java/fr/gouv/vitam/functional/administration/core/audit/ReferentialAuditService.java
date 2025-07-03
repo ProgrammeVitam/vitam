@@ -56,9 +56,9 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.iterators.ArrayIterator;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;

@@ -27,8 +27,7 @@
 package fr.gouv.vitam.common.model;
 
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
-
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * The different states of the ProcessWorkflow

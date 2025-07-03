@@ -44,9 +44,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException;
 import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import jakarta.annotation.Nullable;
+import jakarta.ws.rs.core.Response;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;

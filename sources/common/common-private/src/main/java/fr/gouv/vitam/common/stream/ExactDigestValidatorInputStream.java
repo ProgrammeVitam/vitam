@@ -44,7 +44,7 @@ public class ExactDigestValidatorInputStream extends ProxyInputStream {
     private final Digest digest;
 
     public ExactDigestValidatorInputStream(final InputStream in, DigestType digestType, String expectedDigest) {
-        super(null);
+        super((InputStream) null);
         this.digest = new Digest(digestType);
         super.in = this.digest.getDigestInputStream(in);
         this.expectedDigest = expectedDigest;

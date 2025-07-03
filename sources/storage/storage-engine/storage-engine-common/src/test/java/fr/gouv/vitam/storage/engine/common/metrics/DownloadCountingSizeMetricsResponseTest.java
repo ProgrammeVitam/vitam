@@ -33,11 +33,11 @@ import fr.gouv.vitam.common.metrics.VitamMetricsNames;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.Iterator;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.storage.driver.model;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Holds result data that come as a result of a request to retrieve an object on

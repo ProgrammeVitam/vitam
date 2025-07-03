@@ -81,7 +81,7 @@
     <maven.failsafe.version>3.2.5</maven.failsafe.version>
     <maven.javadoc.version>3.6.3</maven.javadoc.version>
     <maven.exec.version>3.2.0</maven.exec.version>
-    <maven.dependencycheck.version>9.0.10</maven.dependencycheck.version>
+    <maven.dependencycheck.version>10.0.0</maven.dependencycheck.version>
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <license-maven-plugin.version>4.3</license-maven-plugin.version>
@@ -112,12 +112,12 @@
     <mongo.version>4.6.1</mongo.version>
 
     <!-- object storing-->
-    <jclouds.version>2.5.0</jclouds.version>
+    <jclouds.version>2.7.0</jclouds.version>
     <openstack4j.version>3.12</openstack4j.version>
-    <awssdk.v1.version>1.12.690</awssdk.v1.version>
+    <awssdk.v2.version>2.31.47</awssdk.v2.version>
 
     <!-- jetty -->
-    <jetty.version>10.0.20</jetty.version>
+    <jetty.version>12.0.19</jetty.version>
 
     <!-- specific for IHM -->
     <frontend-maven-plugin.version>1.15.0</frontend-maven-plugin.version>
@@ -125,7 +125,6 @@
 
     <!-- Metrics -->
     <prometheus-version>0.16.0</prometheus-version>
-    <jclouds-slf4j.version>2.5.0</jclouds-slf4j.version>
     <skipITs>false</skipITs>
 
     <!-- vitam specific -->
@@ -137,61 +136,60 @@
 
     <!-- other -->
     <slf4j.version>2.0.12</slf4j.version>
-    <logback.version>1.3.15</logback.version>
-    <resteasy.client.version>5.0.9.Final</resteasy.client.version>
-    <resteasy.core.version>5.0.9.Final</resteasy.core.version>
-    <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
+    <logback.version>1.5.18</logback.version>
+    <resteasy.client.version>6.2.12.Final</resteasy.client.version>
+    <resteasy.core.version>6.2.12.Final</resteasy.core.version>
     <guava.version>33.1.0-jre</guava.version>
     <log4j2.version>2.17.1</log4j2.version>
     <commons-logging.version>1.3.1</commons-logging.version>
-    <commons-io.version>2.17.0</commons-io.version>
+    <commons-io.version>2.18.0</commons-io.version>
     <commons-codec.version>1.18.0</commons-codec.version>
     <commons-lang3>3.14.0</commons-lang3>
     <commons-text>1.11.0</commons-text>
     <easymock.version>5.2.0</easymock.version>
-    <jackson.version>2.17.0</jackson.version>
-    <apache-shiro.version>1.13.0</apache-shiro.version>
+    <jackson.version>2.18.3</jackson.version>
+    <apache-shiro.version>2.0.4</apache-shiro.version>
     <assertj.version>3.25.3</assertj.version>
-    <rest-assured.version>5.4.0</rest-assured.version>
+    <rest-assured.version>5.5.5</rest-assured.version>
     <org.json.version>20240303</org.json.version>
-    <javax.servlet.version>4.0.1</javax.servlet.version>
     <json-sanitize.version>1.2.2</json-sanitize.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <esapi.version>2.6.0.0</esapi.version>
+    <esapi.version>2.6.1.0</esapi.version>
     <xml-resolver.version>1.2</xml-resolver.version>
     <opencsv.version>5.9</opencsv.version>
     <commons-csv.version>1.10.0</commons-csv.version>
-    <bouncycastle.version>1.77</bouncycastle.version>
+    <bouncycastle.version>1.78.1</bouncycastle.version>
     <diffutils.version>1.3.0</diffutils.version>
     <json-flattener.version>0.16.6</json-flattener.version>
     <jaxb2.version>1.1.0</jaxb2.version>
-    <jaxb.version>2.3.9</jaxb.version>
+    <jaxb.version>4.0.5</jaxb.version>
     <httpclient.version>4.5.14</httpclient.version>
     <commons-compress.version>1.27.1</commons-compress.version>
     <zjsonpatch.version>0.4.16</zjsonpatch.version>
     <!-- Json Validation -->
     <json-schema-validator.version>2.2.14</json-schema-validator.version>
-    <javax-validation.version>2.0.1.Final</javax-validation.version>
-    <hibernate-validator.version>6.2.5.Final</hibernate-validator.version>
     <org.glassfish.web.version>3.0.1-b12</org.glassfish.web.version>
-    <javax.el-api.version>3.0.1-b06</javax.el-api.version>
     <retrofit2.version>2.11.0</retrofit2.version>
-    <org.xmlunit.version>2.9.1</org.xmlunit.version>
+    <org.xmlunit.version>2.10.0</org.xmlunit.version>
     <org.wiremock.version>3.0.4</org.wiremock.version>
     <io.reactivex.rxjava2.version>2.2.21</io.reactivex.rxjava2.version>
-    <cucumber.version>7.16.1</cucumber.version>
+    <cucumber.version>7.22.1</cucumber.version>
     <batik-css.version>1.17</batik-css.version>
-    <antisamy.version>1.7.5</antisamy.version>
+    <antisamy.version>1.7.8</antisamy.version>
     <jdeb.vafer.version>1.10</jdeb.vafer.version>
     <maven.jaxb2.version>0.15.3</maven.jaxb2.version>
-    <jaxb2-basics.version>1.11.1</jaxb2-basics.version>
-    <swagger-maven-plugin.version>2.2.20</swagger-maven-plugin.version>
-    <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
+    <jaxb2-basics.version>4.0.9</jaxb2-basics.version>
     <Saxon-HE.version>12.4</Saxon-HE.version>
     <quartz.version>2.3.2</quartz.version>
     <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
-    <jta.version>1.1</jta.version>
     <jib.skip>true</jib.skip>
+    <jetty-maven-plugin.version>11.0.25</jetty-maven-plugin.version>
+    <swagger-core.version>2.2.30</swagger-core.version>
+    <jakarta.ws.rs-api.version>4.0.0</jakarta.ws.rs-api.version>
+    <jakarta.transaction-api.version>2.0.1</jakarta.transaction-api.version>
+    <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
+    <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
+    <jakarta-validation.version>3.1.1</jakarta-validation.version>
   </properties>
 
 
@@ -940,18 +938,18 @@
       </plugin>
       <plugin>
         <groupId>io.swagger.core.v3</groupId>
-        <artifactId>swagger-maven-plugin</artifactId>
-        <version>${swagger-maven-plugin.version}</version>
+        <artifactId>swagger-maven-plugin-jakarta</artifactId>
+        <version>${swagger-core.version}</version>
         <dependencies>
           <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs-api</artifactId>
-            <version>${javax.ws.rs-api.version}</version>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>${jakarta.ws.rs-api.version}</version>
           </dependency>
           <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>${javax.servlet.version}</version>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet-api.version}</version>
           </dependency>
         </dependencies>
         <configuration>
@@ -1014,11 +1012,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.swagger.core.v3</groupId>
-        <artifactId>swagger-jaxrs2</artifactId>
-        <version>${swagger-maven-plugin.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.jclouds</groupId>
         <artifactId>jclouds-core</artifactId>
         <version>${jclouds.version}</version>
@@ -1027,22 +1020,11 @@
         <groupId>org.apache.jclouds.api</groupId>
         <artifactId>filesystem</artifactId>
         <version>${jclouds.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.jclouds.api</groupId>
         <artifactId>openstack-swift</artifactId>
         <version>${jclouds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>${javax.ws.rs.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.openstack4j.core</groupId>
@@ -1053,6 +1035,10 @@
             <groupId>com.github.fge</groupId>
             <artifactId>jackson-coreutils</artifactId>
           </exclusion>
+          <exclusion>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -1061,9 +1047,14 @@
         <version>${openstack4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-s3</artifactId>
-        <version>${awssdk.v1.version}</version>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>s3</artifactId>
+        <version>${awssdk.v2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>apache-client</artifactId>
+        <version>${awssdk.v2.version}</version>
       </dependency>
       <dependency>
         <groupId>co.elastic.clients</groupId>
@@ -1091,20 +1082,20 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+        <artifactId>jackson-jakarta-rs-json-provider</artifactId>
         <version>${jackson.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-        <artifactId>jackson-jaxrs-base</artifactId>
+        <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+        <artifactId>jackson-jakarta-rs-base</artifactId>
         <version>${jackson.version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-module-jaxb-annotations</artifactId>
+        <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
@@ -1184,6 +1175,12 @@
         <groupId>org.jboss.resteasy</groupId>
         <artifactId>resteasy-client</artifactId>
         <version>${resteasy.client.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.jboss.spec.javax.ws.rs</groupId>
+            <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.jboss.resteasy</groupId>
@@ -1218,23 +1215,13 @@
       <!-- Utility? -->
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
+        <artifactId>jetty-server</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-xml</artifactId>
         <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId>
-        <version>${javax.servlet.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -1252,14 +1239,9 @@
         <version>${commons-collections4.version}</version>
       </dependency>
       <dependency>
-        <groupId>net.sf.opencsv</groupId>
+        <groupId>com.opencsv</groupId>
         <artifactId>opencsv</artifactId>
         <version>${opencsv.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>${javax-validation.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -1348,22 +1330,32 @@
         </exclusions>
       </dependency>
 
+      <!-- shiro dependencies -->
       <dependency>
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-core</artifactId>
         <version>${apache-shiro.version}</version>
+        <classifier>jakarta</classifier>
       </dependency>
       <dependency>
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-web</artifactId>
         <version>${apache-shiro.version}</version>
+        <classifier>jakarta</classifier>
       </dependency>
       <dependency>
         <groupId>org.apache.shiro</groupId>
-        <artifactId>shiro-all</artifactId>
+        <artifactId>shiro-lang</artifactId>
         <version>${apache-shiro.version}</version>
-        <type>pom</type>
+        <classifier>jakarta</classifier>
       </dependency>
+      <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-jakarta-ee</artifactId>
+        <version>${apache-shiro.version}</version>
+        <classifier>jakarta</classifier>
+      </dependency>
+
       <dependency>
         <groupId>xml-resolver</groupId>
         <artifactId>xml-resolver</artifactId>
@@ -1493,14 +1485,7 @@
         <version>${quartz-mongodb.version}</version>
       </dependency>
 
-      <dependency>
-        <groupId>javax.transaction</groupId>
-        <artifactId>jta</artifactId>
-        <version>${jta.version}</version>
-      </dependency>
-
       <!-- ####################### Tests ####################### -->
-
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
@@ -1589,44 +1574,6 @@
         <artifactId>common-junit</artifactId>
         <version>${project.version}</version>
         <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava-testlib</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>co.elastic.clients</groupId>
-            <artifactId>elasticsearch-java</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-core</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <dependency>
@@ -1652,6 +1599,36 @@
             <artifactId>assertj-core</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta.annotation-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-jaxrs2-jakarta</artifactId>
+        <version>${swagger-core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.transaction</groupId>
+        <artifactId>jakarta.transaction-api</artifactId>
+        <version>${jakarta.transaction-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>${jakarta-validation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>${jakarta.servlet-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>${jakarta.ws.rs-api.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

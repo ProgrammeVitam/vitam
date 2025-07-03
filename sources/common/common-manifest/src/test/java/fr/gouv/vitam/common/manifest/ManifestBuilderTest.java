@@ -42,10 +42,10 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import jakarta.xml.bind.JAXBException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;

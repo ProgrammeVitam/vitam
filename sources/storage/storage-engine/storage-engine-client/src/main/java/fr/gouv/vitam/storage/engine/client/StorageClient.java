@@ -55,8 +55,8 @@ import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectAvailability
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;

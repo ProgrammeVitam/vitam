@@ -28,8 +28,7 @@ package fr.gouv.vitam.common.model.storage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 public final class StatusByAccessRequest {
 

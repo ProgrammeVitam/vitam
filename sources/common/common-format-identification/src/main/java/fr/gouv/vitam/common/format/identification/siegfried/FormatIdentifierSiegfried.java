@@ -40,8 +40,8 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import jakarta.ws.rs.core.MediaType;
 
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

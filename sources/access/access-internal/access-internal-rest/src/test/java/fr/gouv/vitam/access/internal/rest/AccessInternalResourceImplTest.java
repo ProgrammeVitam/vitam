@@ -82,15 +82,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1525,7 +1525,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void streamObjects_test() throws Exception {
         when(metaDataClient.streamObjects(any())).thenReturn(
-            javax.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
+            jakarta.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
         );
         given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -1543,7 +1543,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void getObjectsByObjectPersistentIdentifier_test() throws Exception {
         when(metaDataClient.streamObjects(any())).thenReturn(
-            javax.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
+            jakarta.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
         );
         given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -1564,7 +1564,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void downloadObjectsByUnitPersistentIdentifier_test() throws Exception {
         when(metaDataClient.streamObjects(any())).thenReturn(
-            javax.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
+            jakarta.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
         );
         given()
             .contentType(MediaType.APPLICATION_JSON)

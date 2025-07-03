@@ -27,12 +27,12 @@
 package fr.gouv.vitam.common.external.client;
 
 import fr.gouv.vitam.common.external.client.AbstractMockClient.FakeInboundResponse;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.Test;
 
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response.Status;
 import java.lang.annotation.Annotation;
 
 import static org.junit.Assert.assertEquals;

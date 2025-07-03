@@ -32,9 +32,8 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
+import jakarta.annotation.Nonnull;
 import org.bson.Document;
-
-import javax.annotation.Nonnull;
 
 public class PreservationScenario extends VitamDocument<PreservationScenario> {
 

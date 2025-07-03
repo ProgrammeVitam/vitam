@@ -71,6 +71,9 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticse
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -80,9 +83,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -784,7 +784,7 @@ public class LogbookResourceTest {
             .when()
             .post(CHECK_LOGBOOK_COHERENCE_URI)
             .then()
-            .statusCode(javax.ws.rs.core.Response.Status.OK.getStatusCode());
+            .statusCode(jakarta.ws.rs.core.Response.Status.OK.getStatusCode());
     }
 
     @Test

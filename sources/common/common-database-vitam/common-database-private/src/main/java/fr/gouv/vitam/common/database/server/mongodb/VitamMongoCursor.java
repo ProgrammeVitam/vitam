@@ -29,8 +29,7 @@ package fr.gouv.vitam.common.database.server.mongodb;
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
 import com.mongodb.client.MongoCursor;
-
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class VitamMongoCursor<T> implements MongoCursor<T> {
 

@@ -43,15 +43,15 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.get;
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 

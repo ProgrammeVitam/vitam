@@ -28,6 +28,9 @@
 package fr.gouv.vitam.ingest.external.core;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.antivirus.client.AntivirusApi;
+import fr.gouv.vitam.antivirus.client.AntivirusClientFactory;
+import fr.gouv.vitam.antivirus.client.invoker.ApiException;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -74,18 +77,15 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
-import fr.gouv.vitamui.antivirus.client.AntivirusApi;
-import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
-import fr.gouv.vitamui.antivirus.client.invoker.ApiException;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -257,47 +257,51 @@ public class IngestExternalImpl implements IngestExternal {
             }
 
             // CHECK ANTIVIRUS
-            ItemStatus antivirusItemStatus = new ItemStatus(CHECK_ANTIVIRUS.getItemValue());
-            Status exitCode = Status.OK;
-            try {
-                /*
-                 * Calls the Ingest External Antivirus service
-                 */
-                AntivirusApi antivirusApi = antivirusClientFactory.getAntivirusApi();
-                antivirusApi.scanByPath(containerNamePath + "/" + objectNamePath);
-            } catch (final ApiException e) {
-                exitCode = Status.fromStatusCode(e.getCode());
-                if (exitCode == null) {
-                    exitCode = Status.INTERNAL_SERVER_ERROR;
-                }
-            }
-            InputStream inputStream = null;
             boolean isFileInfected = false;
+            final ObjectNode itemStatusFromExternal = JsonHandler.createObjectNode();
+            ItemStatus antivirusItemStatus = new ItemStatus(CHECK_ANTIVIRUS.getItemValue());
+            InputStream inputStream = null;
             String mimeType = "";
             boolean isSupportedMedia = false;
             ManifestFileName manifestFileName = null;
 
-            switch (exitCode) {
-                case OK:
-                    LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
-                    antivirusItemStatus.increment(OK);
-                    break;
-                case BAD_REQUEST:
-                    LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
-                    antivirusItemStatus.increment(KO);
-                    isFileInfected = true;
-                    break;
-                case NOT_FOUND:
-                case INTERNAL_SERVER_ERROR:
-                    LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
-                    antivirusItemStatus.increment(FATAL);
-                    isFileInfected = true;
-                    break;
-                default:
-                    break;
-            }
+            if (ignoreAntivirusCheck) {
+                antivirusItemStatus.increment(OK);
+            } else {
+                Status exitCode = Status.OK;
+                try {
+                    /*
+                     * Calls the Ingest External Antivirus service
+                     */
+                    AntivirusApi antivirusApi = antivirusClientFactory.getAntivirusApi();
+                    antivirusApi.scanByPath(containerNamePath + "/" + objectNamePath);
+                } catch (final ApiException e) {
+                    exitCode = Status.fromStatusCode(e.getCode());
+                    if (exitCode == null) {
+                        exitCode = Status.INTERNAL_SERVER_ERROR;
+                    }
+                }
 
-            final ObjectNode itemStatusFromExternal = JsonHandler.createObjectNode();
+                switch (exitCode) {
+                    case OK:
+                        LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
+                        antivirusItemStatus.increment(OK);
+                        break;
+                    case BAD_REQUEST:
+                        LOGGER.error(IngestExternalOutcomeMessage.KO_VIRUS.toString());
+                        antivirusItemStatus.increment(KO);
+                        isFileInfected = true;
+                        break;
+                    case NOT_FOUND:
+                    case INTERNAL_SERVER_ERROR:
+                        LOGGER.error(IngestExternalOutcomeMessage.FATAL_VIRUS.toString());
+                        antivirusItemStatus.increment(FATAL);
+                        isFileInfected = true;
+                        break;
+                    default:
+                        break;
+                }
+            }
             itemStatusFromExternal.set(CHECK_ANTIVIRUS.getItemParam(), JsonHandler.toJsonNode(antivirusItemStatus));
 
             if (!isFileInfected) {

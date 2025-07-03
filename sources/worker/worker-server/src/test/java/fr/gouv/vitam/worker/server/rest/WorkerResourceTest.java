@@ -50,13 +50,13 @@ import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.impl.WorkerImpl;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -164,7 +164,7 @@ public class WorkerResourceTest {
             .when()
             .post(WORKER_STEP_URI)
             .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test

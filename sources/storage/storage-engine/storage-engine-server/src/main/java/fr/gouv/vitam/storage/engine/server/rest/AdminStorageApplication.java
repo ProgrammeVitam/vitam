@@ -38,10 +38,10 @@ import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;

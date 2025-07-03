@@ -38,8 +38,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.ws.rs.core.Response.Status;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

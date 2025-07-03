@@ -62,6 +62,7 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.After;
 import org.junit.Before;
@@ -70,7 +71,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;

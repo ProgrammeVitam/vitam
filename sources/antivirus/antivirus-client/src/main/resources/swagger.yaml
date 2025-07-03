@@ -9,7 +9,7 @@ tags:
   - name: Antivirus
     description: Client for the Antivirus
 paths:
-  /antivirus/v1/scanByPath/{path}:
+  /antivirus/v1/scanByPath:
     get:
       tags:
         - Antivirus
@@ -17,7 +17,7 @@ paths:
       operationId: scanByPath
       parameters:
         - name: path
-          in: path
+          in: query
           required: true
           schema:
             type: string

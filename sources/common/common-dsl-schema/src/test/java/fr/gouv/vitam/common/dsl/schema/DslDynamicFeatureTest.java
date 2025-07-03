@@ -28,11 +28,11 @@ package fr.gouv.vitam.common.dsl.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.FeatureContext;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.FeatureContext;
 import java.util.ArrayList;
 import java.util.List;
 

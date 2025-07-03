@@ -51,19 +51,18 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Objects;
@@ -77,11 +76,11 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_QUERY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 
 @Path("/collect-external/v1/projects")
 @Tag(name = "Collect")
@@ -107,7 +106,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_READ, description = "Récupère la liste des projets par tenant")
     public Response getProjects() {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -121,7 +120,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
 
     @GET
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_QUERY_READ, description = "Récupérer une liste des projets par query")
     public Response searchProject(CriteriaProjectDto criteriaProjectDto) {
         final JsonNode criteriaProjectJsonNode;
@@ -161,7 +160,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
 
     @POST
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_CREATE, description = "Créer un projet avec une transaction")
     public Response initProject(ProjectDto projectDto) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -180,7 +179,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
 
     @PUT
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_UPDATE, description = "Mise à jour d'un projet")
     public Response updateProject(ProjectDto projectDto) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -200,7 +199,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     @Path("/{projectId}")
     @GET
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_ID_READ, description = "Récupère un projet par son id")
     public Response getProjectById(@PathParam("projectId") String projectId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -218,7 +217,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
 
     @Path("/{projectId}")
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_ID_DELETE, description = "Supprime un projet par son id")
     public Response deleteProjectById(@PathParam("projectId") String projectId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -237,7 +236,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     /* Not exposed by the client , we keep Code for future usage
     @Path("/{projectId}/units")
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_ID_UNITS, description = "Récupère toutes les unités archivistique d'un projet")
     @Deprecated */
     public Response getUnitsByProjectId(@PathParam("projectId") String projectId, JsonNode queryDsl) {
@@ -258,7 +257,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     @Path("/{projectId}/transactions")
     @GET
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = PROJECT_ID_TRANSACTIONS, description = "Récupérer la liste des transactions du projet")
     public Response getAllTransactions(@PathParam("projectId") String projectId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -277,7 +276,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     @Path("/{projectId}/transactions")
     @POST
     @Consumes(APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_CREATE, description = "Crée une transaction")
     public Response initTransaction(TransactionDto transactionDto, @PathParam("projectId") String projectId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {

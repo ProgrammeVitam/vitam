@@ -33,10 +33,10 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 
 import static org.junit.Assert.assertEquals;
