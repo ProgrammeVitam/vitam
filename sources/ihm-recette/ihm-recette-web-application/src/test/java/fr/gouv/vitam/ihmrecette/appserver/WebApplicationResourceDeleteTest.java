@@ -127,9 +127,9 @@ public class WebApplicationResourceDeleteTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDeleteTest.class);
 
     private static final String CONTEXT_NAME = "Name";
-    private static final String ADMIN_CONTEXT = "admin-context";
+    private static final String[] CONTEXTS_TO_SAVE = {"admin-context", "vitamui-context"};
     private static final String SECURITY_PROFIL_NAME = "Name";
-    private static final String SECURITY_PROFIL_NAME_TO_SAVE = "admin-security-profile";
+    private static final String[] SECURITY_PROFILES_TO_SAVE = {"admin-security-profile", "vitamui-security-profile"};
     // Take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
@@ -582,16 +582,18 @@ public class WebApplicationResourceDeleteTest {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
             final GUID adminContext = addAdminContextData(FunctionalAdminCollections.CONTEXT);
-            // Needs two contexts for testing purposes (admin context won't be deleted)
-            final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
+            final GUID vitamuiContext = addVitamuiContextData(FunctionalAdminCollections.CONTEXT);
+            final GUID idContextToDelete = addData(FunctionalAdminCollections.CONTEXT);
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
-            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, vitamuiContext.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContextToDelete.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/masterdata/context");
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
-            assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, vitamuiContext.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContextToDelete.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -605,16 +607,18 @@ public class WebApplicationResourceDeleteTest {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
             final GUID adminSecurity = addAdminSecurityData(FunctionalAdminCollections.SECURITY_PROFILE);
-            // Needs two contexts for testing purposes (admin context won't be deleted)
-            final GUID idSecurity = addData(FunctionalAdminCollections.SECURITY_PROFILE);
+            final GUID vitamuiSecurity = addVitamuiSecurityData(FunctionalAdminCollections.SECURITY_PROFILE);
+            final GUID idSecurityToDelete = addData(FunctionalAdminCollections.SECURITY_PROFILE);
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
-            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, vitamuiSecurity.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurityToDelete.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
                 .cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
-                .delete("delete/masterdata/securityProfil");
+                .delete("delete/masterdata/securityProfile");
             assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
-            assertFalse(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, vitamuiSecurity.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurityToDelete.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -646,9 +650,11 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             final GUID adminContext = addAdminContextData(FunctionalAdminCollections.CONTEXT);
-            final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
+            final GUID vitamuiContext = addVitamuiContextData(FunctionalAdminCollections.CONTEXT);
+            final GUID idContextToDelete = addData(FunctionalAdminCollections.CONTEXT);
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
-            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, vitamuiContext.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContextToDelete.getId()));
 
             final GUID idOntology = addData(FunctionalAdminCollections.ONTOLOGY);
             assertTrue(existsData(FunctionalAdminCollections.ONTOLOGY, idOntology.getId()));
@@ -669,10 +675,10 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
-            assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
-            assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
-            //Admin context must still exist
+            assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContextToDelete.getId()));
+            //Admin and VitamUI contexts must still exist
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, vitamuiContext.getId()));
         } catch (final ReferentialException | InvalidParseOperationException | DocumentAlreadyExistsException e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -748,7 +754,7 @@ public class WebApplicationResourceDeleteTest {
             case RULES:
                 data1.put("RuleId", "APP-00001");
                 data1.put("RuleType", "AppraisalRule");
-                data1.put("RuleValue", "Dossier individuel d’agent civil");
+                data1.put("RuleValue", "Dossier individuel d'agent civil");
                 data1.put("RuleDuration", "80");
                 data1.put("RuleMeasurement", "Year");
                 data1.put("CreationDate", "2019-02-10");
@@ -843,7 +849,7 @@ public class WebApplicationResourceDeleteTest {
     public GUID addAdminContextData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
         InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
-        final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
+        final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, CONTEXTS_TO_SAVE[0]));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
         GUID adminContext;
@@ -852,7 +858,7 @@ public class WebApplicationResourceDeleteTest {
         } else {
             adminContext = GUIDFactory.newGUID();
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
-            data1.put(CONTEXT_NAME, ADMIN_CONTEXT);
+            data1.put(CONTEXT_NAME, CONTEXTS_TO_SAVE[0]);
             data1.put("Identifier", "Identifier");
             data1.put("CreationDate", "2019-02-13");
             data1.put("LastUpdate", "2019-02-13");
@@ -860,18 +866,44 @@ public class WebApplicationResourceDeleteTest {
             final ObjectNode permissionNode = JsonHandler.createObjectNode();
             permissionNode.put("tenant", TENANT_ID);
             data1.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
-            data1.put("SecurityProfile", "admin-security-profile");
+            data1.put("SecurityProfile", SECURITY_PROFILES_TO_SAVE[0]);
             data1.put("Status", "ACTIVE");
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
         }
         return adminContext;
     }
 
+    public GUID addVitamuiContextData(FunctionalAdminCollections collection)
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
+        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
+        final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, CONTEXTS_TO_SAVE[1]));
+        JsonNode select = query.getCurrentObject();
+        DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
+        GUID vitamuiContext;
+        if (result.getCount() > 0) {
+            vitamuiContext = GUIDReader.getGUID(result.getDocuments(Context.class, ContextModel.class).get(0).getId());
+        } else {
+            vitamuiContext = GUIDFactory.newGUID();
+            final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", vitamuiContext.getId());
+            data1.put(CONTEXT_NAME, CONTEXTS_TO_SAVE[1]);
+            data1.put("Identifier", "Identifier");
+            data1.put("CreationDate", "2019-02-13");
+            data1.put("LastUpdate", "2019-02-13");
+            data1.put("EnableControl", true);
+            final ObjectNode permissionNode = JsonHandler.createObjectNode();
+            permissionNode.put("tenant", TENANT_ID);
+            data1.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+            data1.put("SecurityProfile", SECURITY_PROFILES_TO_SAVE[1]);
+            data1.put("Status", "ACTIVE");
+            mongoDbAccessAdmin.insertDocument(data1, collection).close();
+        }
+        return vitamuiContext;
+    }
 
     public GUID addAdminSecurityData(FunctionalAdminCollections collection)
         throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
         InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
-        final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
+        final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFILES_TO_SAVE[0]));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);
         GUID adminContext;
@@ -880,13 +912,34 @@ public class WebApplicationResourceDeleteTest {
         } else {
             adminContext = GUIDFactory.newGUID();
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
-            data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE);
+            data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFILES_TO_SAVE[0]);
             data1.put("Identifier", "admin-security-profile");
             data1.set("Permissions", new ArrayNode(null));
             data1.put("FullAccess", true);
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
         }
         return adminContext;
+    }
+
+    public GUID addVitamuiSecurityData(FunctionalAdminCollections collection)
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
+        InvalidParseOperationException, SchemaValidationException, DocumentAlreadyExistsException {
+        final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFILES_TO_SAVE[1]));
+        JsonNode select = query.getCurrentObject();
+        DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);
+        GUID vitamuiContext;
+        if (result.getCount() > 0) {
+            vitamuiContext = GUIDReader.getGUID(result.getDocuments(Context.class, ContextModel.class).get(0).getId());
+        } else {
+            vitamuiContext = GUIDFactory.newGUID();
+            final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", vitamuiContext.getId());
+            data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFILES_TO_SAVE[1]);
+            data1.put("Identifier", "vitamui-security-profile");
+            data1.set("Permissions", new ArrayNode(null));
+            data1.put("FullAccess", true);
+            mongoDbAccessAdmin.insertDocument(data1, collection).close();
+        }
+        return vitamuiContext;
     }
 
     public boolean existsData(FunctionalAdminCollections collection, String id) {
