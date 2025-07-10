@@ -54,6 +54,10 @@ public class AccessExternalClientFactory extends VitamClientFactory<AccessExtern
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
     }
 
+    public AccessExternalClientFactory(SecureClientConfiguration secureClientConfiguration) {
+        super(secureClientConfiguration, RESOURCE_PATH, false);
+    }
+
     /**
      * Get the AccessClientFactory instance
      *
