@@ -40,10 +40,17 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ProjectService {
+
+    public static final String ARCHIVING_FIELDS_CREATION_CONSTRAINT =
+        "Fields 'ArchivingSystemId' and 'ArchivingSystemTenant' must be null when 'ConnectedToArchivingSystem' is not true, and must not be null when 'ConnectedToArchivingSystem' is true";
+
+    public static final String ARCHIVING_FIELDS_MODIFICATION_FORBIDDEN =
+        "Fields 'ArchivingSystemId', 'ArchivingSystemTenant' and 'ConnectedToArchivingSystem' must not be changed";
 
     private final ProjectRepository projectRepository;
 
@@ -55,24 +62,41 @@ public class ProjectService {
      * create a project model
      */
     public ProjectDto createProject(ProjectDto projectDto) throws CollectInternalException {
+        Boolean connectedToArchivingSystem = projectDto.getConnectedToArchivingSystem();
+        String archivingSystemId = projectDto.getArchivingSystemId();
+        Integer archivingSystemTenant = projectDto.getArchivingSystemTenant();
+
+        if (Boolean.TRUE.equals(connectedToArchivingSystem)) {
+            if (
+                Objects.isNull(archivingSystemId) || Objects.isNull(archivingSystemTenant)
+            ) throw new CollectInternalException(ARCHIVING_FIELDS_CREATION_CONSTRAINT);
+        } else {
+            if (
+                Objects.nonNull(archivingSystemId) || Objects.nonNull(archivingSystemTenant)
+            ) throw new CollectInternalException(ARCHIVING_FIELDS_CREATION_CONSTRAINT);
+        }
+
         // Set project initials
         final String creationDate = LocalDateUtil.nowFormatted();
 
         JsltTransformer.validate(projectDto.getTransformationRules());
 
-        ProjectModel projectModel = new ProjectModel(
-            GUIDFactory.newGUID().getId(),
-            projectDto.getName(),
-            CollectHelper.mapProjectDtoToManifestContext(projectDto),
-            ProjectStatus.OPEN,
-            creationDate,
-            creationDate,
-            projectDto.getUnitUp(),
-            projectDto.getUnitUps(),
-            ParameterHelper.getTenantParameter(),
-            projectDto.getAutomaticIngest(),
-            projectDto.getTransformationRules()
-        );
+        ProjectModel projectModel = new ProjectModel.Builder()
+            .id(GUIDFactory.newGUID().getId())
+            .name(projectDto.getName())
+            .manifestContext(CollectHelper.mapProjectDtoToManifestContext(projectDto))
+            .status(ProjectStatus.OPEN)
+            .creationDate(creationDate)
+            .lastUpdate(creationDate)
+            .unitUp(projectDto.getUnitUp())
+            .unitUps(projectDto.getUnitUps())
+            .tenant(ParameterHelper.getTenantParameter())
+            .automaticIngest(projectDto.getAutomaticIngest())
+            .archivingSystemId(archivingSystemId)
+            .archivingSystemTenant(archivingSystemTenant)
+            .connectedToArchivingSystem(connectedToArchivingSystem)
+            .transformationRules(projectDto.getTransformationRules())
+            .build();
 
         projectRepository.createProject(projectModel);
 
@@ -89,26 +113,41 @@ public class ProjectService {
         return projectRepository.findProjectById(id).map(CollectHelper::convertProjectModeltoProjectDto);
     }
 
-    public ProjectDto updateProject(ProjectDto projectDto) throws CollectInternalException {
+    public ProjectDto updateProject(ProjectDto projectDto, ProjectDto existingProjectDto)
+        throws CollectInternalException {
+        if (
+            !Objects.equals(existingProjectDto.getArchivingSystemId(), projectDto.getArchivingSystemId()) ||
+            !Objects.equals(existingProjectDto.getArchivingSystemTenant(), projectDto.getArchivingSystemTenant()) ||
+            !Objects.equals(
+                existingProjectDto.getConnectedToArchivingSystem(),
+                projectDto.getConnectedToArchivingSystem()
+            )
+        ) {
+            throw new CollectInternalException(ARCHIVING_FIELDS_MODIFICATION_FORBIDDEN);
+        }
+
         // Update project initials
         projectDto.setStatus(projectDto.getStatus() != null ? projectDto.getStatus() : TransactionStatus.OPEN.name());
         final String lastUpdate = LocalDateUtil.nowFormatted();
 
         JsltTransformer.validate(projectDto.getTransformationRules());
 
-        ProjectModel projectModel = new ProjectModel(
-            projectDto.getId(),
-            projectDto.getName(),
-            CollectHelper.mapProjectDtoToManifestContext(projectDto),
-            ProjectStatus.valueOf(projectDto.getStatus()),
-            projectDto.getCreationDate(),
-            lastUpdate,
-            projectDto.getUnitUp(),
-            projectDto.getUnitUps(),
-            projectDto.getTenant(),
-            projectDto.getAutomaticIngest(),
-            projectDto.getTransformationRules()
-        );
+        ProjectModel projectModel = new ProjectModel.Builder()
+            .id(projectDto.getId())
+            .name(projectDto.getName())
+            .manifestContext(CollectHelper.mapProjectDtoToManifestContext(projectDto))
+            .status(ProjectStatus.valueOf(projectDto.getStatus()))
+            .creationDate(existingProjectDto.getCreationDate())
+            .lastUpdate(lastUpdate)
+            .unitUp(projectDto.getUnitUp())
+            .unitUps(projectDto.getUnitUps())
+            .tenant(existingProjectDto.getTenant())
+            .automaticIngest(projectDto.getAutomaticIngest())
+            .archivingSystemId(existingProjectDto.getArchivingSystemId())
+            .archivingSystemTenant(existingProjectDto.getArchivingSystemTenant())
+            .connectedToArchivingSystem(existingProjectDto.getConnectedToArchivingSystem())
+            .transformationRules(projectDto.getTransformationRules())
+            .build();
 
         projectRepository.updateProject(projectModel);
 

@@ -53,6 +53,8 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import static fr.gouv.vitam.collect.internal.core.service.ProjectService.ARCHIVING_FIELDS_CREATION_CONSTRAINT;
+import static fr.gouv.vitam.collect.internal.core.service.ProjectService.ARCHIVING_FIELDS_MODIFICATION_FORBIDDEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -118,6 +120,9 @@ public class ProjectServiceTest {
                 .setMessageIdentifier("MessageIdentifier")
                 .setTransferringAgencyIdentifier("TransferringAgencyIdentifier")
                 .setTransformationRules("{}")
+                .setConnectedToArchivingSystem(Boolean.TRUE)
+                .setArchivingSystemId("Remote-Vitam")
+                .setArchivingSystemTenant(1)
         );
 
         assertThat(project.getId()).isNotNull();
@@ -135,6 +140,99 @@ public class ProjectServiceTest {
         assertThat(project.getMessageIdentifier()).isEqualTo("MessageIdentifier");
         assertThat(project.getTransferringAgencyIdentifier()).isEqualTo("TransferringAgencyIdentifier");
         assertThat(project.getTransformationRules()).isEqualTo("{}");
+        assertThat(project.getConnectedToArchivingSystem()).isEqualTo(Boolean.TRUE);
+        assertThat(project.getArchivingSystemId()).isEqualTo("Remote-Vitam");
+        assertThat(project.getArchivingSystemTenant()).isEqualTo(1);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createProject_shouldFailWhenArchivingFieldsAreInconsistent() {
+        // Case 1: connected = true but missing archivingSystemId
+        ProjectDto case1 = new ProjectDto()
+            .setConnectedToArchivingSystem(true)
+            .setArchivingSystemId(null)
+            .setArchivingSystemTenant(42); // only tenant provided
+
+        assertThatThrownBy(() -> projectService.createProject(case1))
+            .isInstanceOf(CollectInternalException.class)
+            .hasMessageContaining(ARCHIVING_FIELDS_CREATION_CONSTRAINT);
+
+        // Case 2: connected = false but archiving fields are set
+        ProjectDto case2 = new ProjectDto()
+            .setConnectedToArchivingSystem(false)
+            .setArchivingSystemId("System-X")
+            .setArchivingSystemTenant(42);
+
+        assertThatThrownBy(() -> projectService.createProject(case2))
+            .isInstanceOf(CollectInternalException.class)
+            .hasMessageContaining(ARCHIVING_FIELDS_CREATION_CONSTRAINT);
+
+        // Case 3: connected = false but archivingSystemId is set alone
+        ProjectDto case3 = new ProjectDto().setConnectedToArchivingSystem(false).setArchivingSystemId("System-Y");
+
+        assertThatThrownBy(() -> projectService.createProject(case3))
+            .isInstanceOf(CollectInternalException.class)
+            .hasMessageContaining(ARCHIVING_FIELDS_CREATION_CONSTRAINT);
+
+        // Case 4: connected = true but both archiving fields are missing
+        ProjectDto case4 = new ProjectDto().setConnectedToArchivingSystem(true);
+
+        assertThatThrownBy(() -> projectService.createProject(case4))
+            .isInstanceOf(CollectInternalException.class)
+            .hasMessageContaining(ARCHIVING_FIELDS_CREATION_CONSTRAINT);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void updateProject_shouldNotAllowArchivingSystemFieldsModification() throws CollectInternalException {
+        ProjectDto createdProject = projectService.createProject(
+            new ProjectDto()
+                .setName("My Project")
+                .setArchivingSystemId("Remote-Vitam")
+                .setArchivingSystemTenant(1)
+                .setConnectedToArchivingSystem(Boolean.TRUE)
+        );
+
+        ProjectDto updateAttempt = new ProjectDto()
+            .setId(createdProject.getId())
+            .setArchivingSystemId("HACKED-System")
+            .setArchivingSystemTenant(99)
+            .setConnectedToArchivingSystem(Boolean.FALSE);
+
+        assertThatThrownBy(() -> projectService.updateProject(updateAttempt, createdProject))
+            .isInstanceOf(CollectInternalException.class)
+            .hasMessageContaining(ARCHIVING_FIELDS_MODIFICATION_FORBIDDEN);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void updateProject_shouldAllowArchivingSystemFieldsModification() throws CollectInternalException {
+        // Create the initial project with archiving fields set
+        ProjectDto createdProject = projectService.createProject(
+            new ProjectDto()
+                .setName("My Project")
+                .setArchivingSystemId("Remote-Vitam")
+                .setArchivingSystemTenant(1)
+                .setConnectedToArchivingSystem(Boolean.TRUE)
+        );
+
+        // Attempt to update the project without modifying archiving fields
+        ProjectDto updateAttempt = new ProjectDto()
+            .setId(createdProject.getId())
+            .setName("Updated Project Name") // allowed change
+            .setArchivingSystemId("Remote-Vitam") // unchanged
+            .setArchivingSystemTenant(1) // unchanged
+            .setConnectedToArchivingSystem(Boolean.TRUE); // unchanged
+
+        ProjectDto updatedProject = projectService.updateProject(updateAttempt, createdProject);
+
+        // Vérifications
+        assertThat(updatedProject.getId()).isEqualTo(createdProject.getId());
+        assertThat(updatedProject.getName()).isEqualTo("Updated Project Name");
+        assertThat(updatedProject.getArchivingSystemId()).isEqualTo("Remote-Vitam");
+        assertThat(updatedProject.getArchivingSystemTenant()).isEqualTo(1);
+        assertThat(updatedProject.getConnectedToArchivingSystem()).isTrue();
     }
 
     @Test
@@ -163,7 +261,7 @@ public class ProjectServiceTest {
         logicalClock.freezeTime();
         final LocalDateTime currentTime = LocalDateUtil.now();
         // When
-        projectService.updateProject(projectDto);
+        projectService.updateProject(projectDto, projectDto);
         // Then
         Mockito.verify(projectRepository).updateProject(
             argThat(

@@ -103,6 +103,15 @@ public class ProjectDto implements Serializable {
     @JsonProperty("AutomaticIngest")
     private Boolean automaticIngest;
 
+    @JsonProperty("ArchivingSystemId")
+    private String archivingSystemId;
+
+    @JsonProperty("ArchivingSystemTenant")
+    private Integer archivingSystemTenant;
+
+    @JsonProperty("ConnectedToArchivingSystem")
+    private Boolean connectedToArchivingSystem;
+
     public ProjectDto() {
         //Empty constructor for serialization
     }
@@ -129,7 +138,10 @@ public class ProjectDto implements Serializable {
         String comment,
         String unitUp,
         Integer tenant,
-        Boolean automaticIngest
+        Boolean automaticIngest,
+        String archivingSystemId,
+        Integer archivingSystemTenant,
+        Boolean connectedToArchivingSystem
     ) {
         this.id = id;
         this.name = name;
@@ -149,6 +161,9 @@ public class ProjectDto implements Serializable {
         this.unitUp = unitUp;
         this.tenant = tenant;
         this.automaticIngest = automaticIngest;
+        this.archivingSystemId = archivingSystemId;
+        this.archivingSystemTenant = archivingSystemTenant;
+        this.connectedToArchivingSystem = connectedToArchivingSystem;
     }
 
     public String getId() {
@@ -319,6 +334,33 @@ public class ProjectDto implements Serializable {
 
     public ProjectDto setAutomaticIngest(Boolean automaticIngest) {
         this.automaticIngest = automaticIngest;
+        return this;
+    }
+
+    public String getArchivingSystemId() {
+        return archivingSystemId;
+    }
+
+    public ProjectDto setArchivingSystemId(String archivingSystemId) {
+        this.archivingSystemId = archivingSystemId;
+        return this;
+    }
+
+    public Boolean getConnectedToArchivingSystem() {
+        return connectedToArchivingSystem;
+    }
+
+    public ProjectDto setConnectedToArchivingSystem(Boolean connectedToArchivingSystem) {
+        this.connectedToArchivingSystem = connectedToArchivingSystem;
+        return this;
+    }
+
+    public Integer getArchivingSystemTenant() {
+        return archivingSystemTenant;
+    }
+
+    public ProjectDto setArchivingSystemTenant(Integer archivingSystemTenant) {
+        this.archivingSystemTenant = archivingSystemTenant;
         return this;
     }
 

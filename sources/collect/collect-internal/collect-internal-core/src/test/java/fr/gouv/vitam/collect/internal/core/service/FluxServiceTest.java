@@ -1547,30 +1547,35 @@ public class FluxServiceTest {
     }
 
     private static ProjectModel createProject() {
-        return new ProjectModel(
-            GUIDFactory.newGUID().getId(),
-            "projectName",
-            new ManifestContext(
-                "acquisitionInformation",
-                "legalStatus",
-                "archivalAgreement",
-                "messageIdentifier",
-                "archivalAgencyIdentifier",
-                "transferringAgencyIdentifier",
-                "originatingAgencyIdentifier",
-                "submissionAgencyIdentifier",
-                "archivalProfil",
-                "comment"
-            ),
-            ProjectStatus.OPEN,
-            "creation date",
-            "last update",
-            "rootUnitUp",
-            List.of(new MetadataUnitUp("unit1", "Key", "1"), new MetadataUnitUp("unit2", "Key", "2")),
-            TENANT_ID,
-            false,
-            null
-        );
+        return new ProjectModel.Builder()
+            .id(GUIDFactory.newGUID().getId())
+            .name("projectName")
+            .manifestContext(
+                new ManifestContext(
+                    "acquisitionInformation",
+                    "legalStatus",
+                    "archivalAgreement",
+                    "messageIdentifier",
+                    "archivalAgencyIdentifier",
+                    "transferringAgencyIdentifier",
+                    "originatingAgencyIdentifier",
+                    "submissionAgencyIdentifier",
+                    "archivalProfil",
+                    "comment"
+                )
+            )
+            .status(ProjectStatus.OPEN)
+            .creationDate("creation date")
+            .lastUpdate("last update")
+            .unitUp("rootUnitUp")
+            .unitUps(List.of(new MetadataUnitUp("unit1", "Key", "1"), new MetadataUnitUp("unit2", "Key", "2")))
+            .tenant(TENANT_ID)
+            .automaticIngest(false)
+            .archivingSystemId(null)
+            .archivingSystemTenant(null)
+            .connectedToArchivingSystem(null)
+            .transformationRules(null)
+            .build();
     }
 
     public RequestResponse<SchemaResponse> loadUnitSchema() throws InvalidParseOperationException, IOException {
