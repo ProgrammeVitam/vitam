@@ -26,8 +26,9 @@
  */
 package fr.gouv.vitam.common.client;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+
 import java.util.Objects;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACCESS_CONTRAT_ID;

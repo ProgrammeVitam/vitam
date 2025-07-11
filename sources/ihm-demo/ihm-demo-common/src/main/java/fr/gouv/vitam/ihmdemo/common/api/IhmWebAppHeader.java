@@ -28,7 +28,7 @@ package fr.gouv.vitam.ihmdemo.common.api;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.HttpHeaders;
 
 /**
  * Enum use to represent possible HTTP header for Vitam application. Also define a regular expression to check if values

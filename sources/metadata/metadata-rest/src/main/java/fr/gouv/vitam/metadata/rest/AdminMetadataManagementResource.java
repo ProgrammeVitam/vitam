@@ -31,8 +31,7 @@ import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 @Path("/metadata/v1")
 @Tag(name = "Metadata")

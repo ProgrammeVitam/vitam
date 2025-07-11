@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.ingest.external.core;
 
+import fr.gouv.vitam.antivirus.client.AntivirusApi;
+import fr.gouv.vitam.antivirus.client.AntivirusClientFactory;
+import fr.gouv.vitam.antivirus.client.invoker.ApiException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -50,15 +53,12 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
-import fr.gouv.vitamui.antivirus.client.AntivirusApi;
-import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
-import fr.gouv.vitamui.antivirus.client.invoker.ApiException;
+import jakarta.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;

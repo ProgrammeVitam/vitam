@@ -50,13 +50,13 @@ import fr.gouv.vitam.processing.management.api.ProcessManagement;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

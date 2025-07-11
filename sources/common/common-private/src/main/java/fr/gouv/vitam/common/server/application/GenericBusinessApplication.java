@@ -24,36 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.common.server.application;
 
-package ch.qos.logback.access.jetty;
+import jakarta.ws.rs.core.Application;
 
-import org.eclipse.jetty.http.HttpFields;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VitamJettyServerAdapter extends JettyServerAdapter {
+public class GenericBusinessApplication extends Application {
 
-    public VitamJettyServerAdapter(Request jettyRequest, Response jettyResponse) {
-        super(jettyRequest, jettyResponse);
-    }
-
-    /*
-     * Rewrite method to support new jetty version
-     */
     @Override
-    public Map<String, String> buildResponseHeaderMap() {
-        Map<String, String> responseHeaderMap = new HashMap<>();
-        HttpFields httpFields = response.getHttpFields();
-        Enumeration<String> e = httpFields.getFieldNames();
-        while (e.hasMoreElements()) {
-            String key = e.nextElement();
-            String value = response.getHeader(key);
-            responseHeaderMap.put(key, value);
-        }
-        return responseHeaderMap;
+    public Map<String, Object> getProperties() {
+        Map<String, Object> props = new HashMap<>();
+        props.put("resteasy.provider.exception.mapper", true);
+        return props;
     }
 }

@@ -38,8 +38,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 public class AccessInternalMain {
 

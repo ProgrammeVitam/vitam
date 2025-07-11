@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.batch.report.rest.server;
 
-import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
+import com.fasterxml.jackson.jakarta.rs.base.JsonParseExceptionMapper;
 import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.BulkUpdateUnitMetadataReportRepository;
@@ -51,9 +51,9 @@ import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;

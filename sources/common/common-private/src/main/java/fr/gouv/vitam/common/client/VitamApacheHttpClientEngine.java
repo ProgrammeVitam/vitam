@@ -30,6 +30,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Invocation;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.http.ConnectionReuseStrategy;
@@ -88,8 +90,6 @@ import org.jboss.resteasy.util.DelegatingOutputStream;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Invocation;
 import java.io.BufferedInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;

@@ -27,13 +27,13 @@
 package fr.gouv.vitam.common.auth.web.filter;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.servlet.http.HttpServletRequest;
 import java.security.cert.X509Certificate;
 
 import static org.assertj.core.api.Assertions.assertThat;

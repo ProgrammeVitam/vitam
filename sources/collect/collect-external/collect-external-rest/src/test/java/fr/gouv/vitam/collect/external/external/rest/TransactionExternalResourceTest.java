@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.NullInputStream;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
@@ -53,14 +54,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
 import static io.restassured.RestAssured.given;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -208,7 +208,7 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
                 "}"
             )
             .when()
-            .post("/transactions//units")
+            .post("/transactions/bad/path")
             .then()
             .statusCode(Response.Status.NOT_FOUND.getStatusCode());
     }

@@ -68,6 +68,9 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -83,9 +86,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -709,10 +709,23 @@ public class DefaultOfferResourceTest {
         // test
         given()
             .header(GlobalDataRest.X_TENANT_ID, 1)
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, "false")
+            .when()
+            .get(OBJECTS_URI + "/" + UNIT_CODE + "/" + "no_such_id" + METADATA)
+            .then()
+            .statusCode(404);
+    }
+
+    @Test
+    public void getObjectMetadataInvalid() {
+        // test
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .header(GlobalDataRest.X_OFFER_NO_CACHE, "false")
             .when()
             .get(OBJECTS_URI + "/" + UNIT_CODE + "/" + "" + METADATA)
             .then()
-            .statusCode(404);
+            .statusCode(400);
     }
 
     @Test

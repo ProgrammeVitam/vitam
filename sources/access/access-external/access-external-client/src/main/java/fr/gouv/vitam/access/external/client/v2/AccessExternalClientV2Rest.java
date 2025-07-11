@@ -34,12 +34,11 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.export.dip.DipRequest;
-
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import static fr.gouv.vitam.common.client.VitamRequestBuilder.post;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.fromStatusCode;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.fromStatusCode;
 
 class AccessExternalClientV2Rest extends DefaultClient implements AccessExternalClientV2 {
 

@@ -90,6 +90,7 @@ import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeCheck;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeOperation;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -110,7 +111,6 @@ import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
 
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;

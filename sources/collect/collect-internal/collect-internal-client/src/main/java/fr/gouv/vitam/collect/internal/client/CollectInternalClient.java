@@ -38,9 +38,9 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.DeletionRequestBody;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import jakarta.annotation.Nullable;
+import jakarta.ws.rs.core.Response;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 /**

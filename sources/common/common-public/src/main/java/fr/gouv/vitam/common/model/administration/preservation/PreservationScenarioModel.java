@@ -32,9 +32,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

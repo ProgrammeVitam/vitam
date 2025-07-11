@@ -40,11 +40,11 @@ import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.SslConfig;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import jakarta.ws.rs.Path;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.Path;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
@@ -89,7 +89,7 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
     }
 
     @Path(BASE_URI)
-    @javax.ws.rs.ApplicationPath("webresources")
+    @jakarta.ws.rs.ApplicationPath("webresources")
     private static class SslResource extends ApplicationStatusResource {
         // Empty
     }

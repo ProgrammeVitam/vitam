@@ -28,9 +28,8 @@ package fr.gouv.vitam.common.client;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Basic client api for vitam client either in Mock or Rest mode

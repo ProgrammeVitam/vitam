@@ -27,13 +27,12 @@
 package fr.gouv.vitam.security.internal.filter;
 
 import fr.gouv.vitam.common.security.rest.Secured;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.FeatureContext;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.FeatureContext;
 
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.SECURITYPROFILES_CREATE_JSON;
 import static org.mockito.ArgumentMatchers.any;

@@ -20,8 +20,8 @@
             <artifactId>jetty-server</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
+            <groupId>org.eclipse.jetty.ee10</groupId>
+            <artifactId>jetty-ee10-servlet</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -29,12 +29,16 @@
         </dependency>
         <!-- Access log Logback -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-access</artifactId>
+            <groupId>ch.qos.logback.access</groupId>
+            <artifactId>logback-access-common</artifactId>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback.access</groupId>
+            <artifactId>logback-access-jetty12</artifactId>
         </dependency>
         <dependency>
             <groupId>com.mikesamuel</groupId>
@@ -62,6 +66,7 @@
         <dependency>
             <groupId>org.owasp.esapi</groupId>
             <artifactId>esapi</artifactId>
+            <classifier>jakarta</classifier>
             <exclusions>
                 <exclusion>
                     <artifactId>log4j</artifactId>
@@ -90,22 +95,33 @@
             </exclusions>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.opengis.cite.xerces/xercesImpl-xsd11 -->
         <dependency>
             <groupId>org.opengis.cite.xerces</groupId>
             <artifactId>xercesImpl-xsd11</artifactId>
         </dependency>
-        <!-- <dependency> <groupId>xerces</groupId> <artifactId>xercesImpl</artifactId>
-            </dependency> -->
 
+        <!-- jakarta dependencies -->
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-core</artifactId>
+            <classifier>jakarta</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-web</artifactId>
+            <classifier>jakarta</classifier>
         </dependency>
+
+        <!-- jakarta dependencies -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
@@ -217,9 +233,9 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>${maven.jaxb2.version}</version>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>${jaxb-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <configuration>
@@ -236,9 +252,9 @@
                             </schemaIncludes>
                             <plugins>
                                 <plugin>
-                                    <groupId>org.jvnet.jaxb2_commons</groupId>
-                                    <artifactId>jaxb2-basics-annotate</artifactId>
-                                    <version>${jaxb2.version}</version>
+                                    <groupId>org.jvnet.jaxb</groupId>
+                                    <artifactId>jaxb-plugin-annotate</artifactId>
+                                    <version>${jaxb-plugin-annotate.version}</version>
                                 </plugin>
                             </plugins>
                         </configuration>
@@ -249,9 +265,9 @@
                 </executions>
                 <dependencies>
                     <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-basics</artifactId>
-                        <version>${jaxb2-basics.version}</version>
+                        <groupId>org.jvnet.jaxb</groupId>
+                        <artifactId>jaxb-plugins</artifactId>
+                        <version>${jaxb-maven-plugin.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>

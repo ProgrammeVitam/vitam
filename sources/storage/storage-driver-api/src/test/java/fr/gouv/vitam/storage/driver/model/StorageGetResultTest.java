@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.storage.driver.model;
 
+import jakarta.ws.rs.core.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 
 import static org.junit.Assert.assertEquals;

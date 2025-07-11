@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.security.internal.rest.mapper;
 
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IllegalArgumentExceptionMapperTest {

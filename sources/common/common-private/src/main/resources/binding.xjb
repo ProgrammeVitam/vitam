@@ -1,6 +1,6 @@
-<jxb:bindings version="2.0"
+<jxb:bindings version="3.0"
               xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-              xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+              xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
               xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"
               xmlns:annox="http://annox.dev.java.net"
               xmlns:xs="http://www.w3.org/2001/XMLSchema">
@@ -31,7 +31,7 @@
                 </jxb:property>
             </jxb:bindings>
             <annox:annotate>
-                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                <annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement"
                                 name="ArchiveUnit" />
             </annox:annotate>
         </jxb:bindings>
@@ -41,19 +41,19 @@
 
         <jxb:bindings node="xs:complexType[@name='DataObjectPackageType']">
             <annox:annotate>
-                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                <annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement"
                                 name="DataObjectPackage" />
             </annox:annotate>
         </jxb:bindings>
         <jxb:bindings node="xs:complexType[@name='ArchiveTransferReplyType']">
             <annox:annotate>
-                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                <annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement"
                                 name="ArchiveTransferReply"/>
             </annox:annotate>
         </jxb:bindings>
         <jxb:bindings node="xs:complexType[@name='ArchiveDeliveryRequestReplyType']">
             <annox:annotate>
-                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                <annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement"
                                 name="ArchiveDeliveryRequestReply"/>
             </annox:annotate>
         </jxb:bindings>
@@ -63,14 +63,14 @@
 
         <jxb:bindings node="xs:complexType[@name='BinaryDataObjectType']">
             <annox:annotate>
-                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                <annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement"
                                 name="BinaryDataObject"/>
             </annox:annotate>
 
         </jxb:bindings>
         <jxb:bindings node="xs:complexType[@name='PhysicalDataObjectType']">
             <annox:annotate>
-                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                <annox:annotate annox:class="jakarta.xml.bind.annotation.XmlRootElement"
                                 name="PhysicalDataObject"/>
             </annox:annotate>
 

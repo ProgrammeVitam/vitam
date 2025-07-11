@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
-import javax.xml.bind.annotation.XmlRegistry;
+import jakarta.xml.bind.annotation.XmlRegistry;
 
 /**
  * create instance for JAXB model (necessary to jaxb)

@@ -27,8 +27,8 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

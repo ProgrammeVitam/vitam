@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.access.internal.core.identifier.exception;
 
-import javax.ws.rs.NotFoundException;
+import jakarta.ws.rs.NotFoundException;
 
 public class PersistentIdentifierNotFoundException extends NotFoundException {
 

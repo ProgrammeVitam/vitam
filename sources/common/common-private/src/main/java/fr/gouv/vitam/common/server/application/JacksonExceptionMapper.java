@@ -24,24 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.common.server.application;
 
-package ch.qos.logback.access.jetty;
+import com.fasterxml.jackson.core.JsonParseException;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.ExceptionMapper;
 
-import ch.qos.logback.access.spi.AccessEvent;
-import ch.qos.logback.access.spi.IAccessEvent;
-import ch.qos.logback.core.spi.FilterReply;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
-
-public class VitamRequestLogImpl extends RequestLogImpl {
+public class JacksonExceptionMapper implements ExceptionMapper<JsonParseException> {
 
     @Override
-    public void log(Request jettyRequest, Response jettyResponse) {
-        JettyServerAdapter adapter = new VitamJettyServerAdapter(jettyRequest, jettyResponse);
-        IAccessEvent accessEvent = new AccessEvent(this, jettyRequest, jettyResponse, adapter);
-        if (getFilterChainDecision(accessEvent) == FilterReply.DENY) {
-            return;
-        }
-        aai.appendLoopOnAppenders(accessEvent);
+    public Response toResponse(JsonParseException exception) {
+        VitamError vitamError = new VitamError(VitamCodeHelper.getCode(VitamCode.INCORRECT_JSON_PARSE));
+        vitamError
+            .setHttpCode(Status.BAD_REQUEST.getStatusCode())
+            .setDescription("Invalid JSON: " + exception.getMessage());
+        return Response.status(Response.Status.BAD_REQUEST).entity(vitamError).build();
     }
 }

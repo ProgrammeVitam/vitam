@@ -36,13 +36,13 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.json.JsonHandler;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.NullInputStream;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

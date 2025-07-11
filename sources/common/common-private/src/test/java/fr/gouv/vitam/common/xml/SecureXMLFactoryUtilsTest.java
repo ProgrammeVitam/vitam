@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -76,7 +77,7 @@ public class SecureXMLFactoryUtilsTest {
         XMLEventReader eventReader = XMLInputFactory.newInstance()
             .createXMLEventReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
         String textContent = eventReaderToText(eventReader);
-        assertThat(textContent).contains("root:x:0:0");
+        assertThat(textContent).containsAnyOf("root:x:0:0", "root:*:0:0");
     }
 
     @Test
@@ -106,7 +107,7 @@ public class SecureXMLFactoryUtilsTest {
         XMLStreamReader reader = XMLInputFactory.newInstance()
             .createXMLStreamReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE));
         String text = streamReaderToText(reader);
-        assertThat(text).contains("root:x:0:0");
+        assertThat(text).containsAnyOf("root:x:0:0", "root:*:0:0");
     }
 
     @Test
@@ -115,7 +116,7 @@ public class SecureXMLFactoryUtilsTest {
         XMLStreamReader reader = XMLInputFactory.newInstance()
             .createXMLStreamReader(new InputStreamReader(PropertiesUtils.getResourceAsStream(XML_FILE_WITH_XXE)));
         String text = streamReaderToText(reader);
-        assertThat(text).contains("root:x:0:0");
+        assertThat(text).containsAnyOf("root:x:0:0", "root:*:0:0");
     }
 
     @Test

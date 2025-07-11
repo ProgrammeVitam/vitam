@@ -82,9 +82,9 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyReferentOfferException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.EnumUtils;
 
-import javax.ws.rs.core.Response;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashMap;

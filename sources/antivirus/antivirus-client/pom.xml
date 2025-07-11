@@ -63,16 +63,16 @@
                             <inputSpec>${project.basedir}/src/main/resources/swagger.yaml</inputSpec>
                             <generatorName>java</generatorName>
                             <output>${project.build.directory}/generated-sources/openapi</output>
-                            <apiPackage>fr.gouv.vitamui.antivirus.client</apiPackage>
+                            <apiPackage>fr.gouv.vitam.antivirus.client</apiPackage>
                             <generateModelTests>false</generateModelTests>
                             <generateModels>false</generateModels>
                             <generateApiTests>false</generateApiTests>
-                            <modelPackage>fr.gouv.vitamui.antivirus.client.domain</modelPackage>
-                            <invokerPackage>fr.gouv.vitamui.antivirus.client.invoker</invokerPackage>
+                            <modelPackage>fr.gouv.vitam.antivirus.client.domain</modelPackage>
+                            <invokerPackage>fr.gouv.vitam.antivirus.client.invoker</invokerPackage>
                             <library>resteasy</library>
                             <configOptions>
                                 <dateLibrary>java8</dateLibrary>
-                                <useJakartaEe>false</useJakartaEe> <!-- change when migrating to Jakarta -->
+                                <useJakartaEe>true</useJakartaEe>
                                 <useAbstractionForFiles>true</useAbstractionForFiles>
                             </configOptions>
                         </configuration>

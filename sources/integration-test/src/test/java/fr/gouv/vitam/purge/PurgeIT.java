@@ -75,6 +75,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeDeleteService;
 import fr.gouv.vitam.worker.core.plugin.purge.PurgeObjectGroupParams;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -84,7 +85,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.Collections;

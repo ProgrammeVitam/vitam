@@ -38,12 +38,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MultivaluedHashMap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.KeyStore;
@@ -85,7 +85,7 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
     private static String pemNotGranted = null;
 
     @Path(BASE_URI)
-    @javax.ws.rs.ApplicationPath("webresources")
+    @jakarta.ws.rs.ApplicationPath("webresources")
     private static class SslResource extends ApplicationStatusResource {
         // Empty
     }

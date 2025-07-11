@@ -36,9 +36,9 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import jakarta.annotation.Nonnull;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.annotation.Nonnull;
-import javax.ws.rs.core.Response.Status;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;

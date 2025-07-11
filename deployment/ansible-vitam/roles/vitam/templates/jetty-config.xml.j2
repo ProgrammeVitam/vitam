@@ -101,7 +101,7 @@
     <!-- RequestLogHandler after the default handler                 -->
     <!-- =========================================================== -->
     <Set name="handler">
-        <New id="Handlers" class="org.eclipse.jetty.server.handler.HandlerCollection">
+        <New id="Handlers" class="org.eclipse.jetty.server.Handler$Sequence">
             <Set name="handlers">
                 <Array type="org.eclipse.jetty.server.Handler">
                     <Item>
@@ -116,7 +116,7 @@
     </Set>
 
     <Set name="RequestLog">
-            <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.VitamRequestLogImpl">
+            <New id="RequestLogImpl" class="ch.qos.logback.access.jetty.RequestLogImpl">
                 <Set name="fileName">{{ vitam_folder_conf }}/logback-access.xml</Set>
             </New>
     </Set>

@@ -29,11 +29,11 @@ package fr.gouv.vitam.common.auth.web.filter;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.shiro.ShiroException;
+import org.apache.shiro.lang.ShiroException;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URLDecoder;
@@ -48,7 +48,7 @@ import java.util.StringTokenizer;
 public class CertUtils {
 
     public static final String REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE = "Personae";
-    public static final String JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE = "javax.servlet.request.X509Certificate";
+    public static final String JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE = "jakarta.servlet.request.X509Certificate";
     private static final String NGINX_URL_ENCODED_PEM_HEADER_SIGNATURE = "-----BEGIN%20CERTIFICATE-----";
     private static final String BEGIN_CERT_PREFIX = "-----BEGIN";
     private static final String END_CERT_PREFIX = "-----END";

@@ -28,10 +28,10 @@ package fr.gouv.vitam.elastic.kibana.interceptor.rest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -42,7 +42,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 /**
  * Business application for elastic-kibana-interceptor declaring resources and filters
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private Set<Object> singletons;
 

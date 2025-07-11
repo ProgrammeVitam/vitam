@@ -44,9 +44,9 @@ import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.core.Response;
 import java.util.concurrent.Callable;
 
 /**

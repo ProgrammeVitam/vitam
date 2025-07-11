@@ -30,6 +30,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.client.FunctionAdministrationOntologyLoader;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
@@ -41,9 +42,9 @@ import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +59,7 @@ import static java.lang.String.format;
 /**
  * Business Application for ihm recette declaring resources and filters
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private static final String STORAGE_CONF_FILE = "storage.conf";
 

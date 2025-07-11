@@ -50,9 +50,9 @@ import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

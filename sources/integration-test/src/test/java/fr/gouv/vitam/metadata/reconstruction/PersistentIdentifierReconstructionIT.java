@@ -95,6 +95,7 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
@@ -103,7 +104,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -341,7 +341,7 @@ public class PersistentIdentifierReconstructionIT extends VitamRuleRunner {
     private InputStream readStoredReport(String filename)
         throws StorageServerClientException, StorageNotFoundException, StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            javax.ws.rs.core.Response reportResponse = null;
+            jakarta.ws.rs.core.Response reportResponse = null;
 
             try {
                 reportResponse = storageClient.getContainerAsync(

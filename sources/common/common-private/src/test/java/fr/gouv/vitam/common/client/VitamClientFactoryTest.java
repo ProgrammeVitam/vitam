@@ -29,9 +29,8 @@ package fr.gouv.vitam.common.client;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import jakarta.ws.rs.client.Client;
 import org.junit.Test;
-
-import javax.ws.rs.client.Client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

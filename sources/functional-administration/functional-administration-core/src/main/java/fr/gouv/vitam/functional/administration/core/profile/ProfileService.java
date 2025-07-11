@@ -36,8 +36,8 @@ import fr.gouv.vitam.common.model.administration.profile.CreateProfileModel;
 import fr.gouv.vitam.common.model.administration.profile.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.List;
 

@@ -82,6 +82,7 @@ import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationCheckResourceAvailability;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import jakarta.ws.rs.core.Response;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.After;
@@ -92,7 +93,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;

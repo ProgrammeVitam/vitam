@@ -27,8 +27,7 @@
 package fr.gouv.vitam.common.client;
 
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-
-import javax.ws.rs.client.Client;
+import jakarta.ws.rs.client.Client;
 
 /**
  * Default VitamClientFactory for Test purpose only

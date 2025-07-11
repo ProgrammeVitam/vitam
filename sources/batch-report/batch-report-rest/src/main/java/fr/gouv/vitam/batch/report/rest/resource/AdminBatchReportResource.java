@@ -28,8 +28,7 @@ package fr.gouv.vitam.batch.report.rest.resource;
 
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 @Path("/batchreport/v1")
 @Tag(name = "Batch-Report")

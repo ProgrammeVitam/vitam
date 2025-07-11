@@ -99,10 +99,10 @@ import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
 import fr.gouv.vitam.worker.core.mapping.RuleMapper;
 import fr.gouv.vitam.worker.core.utils.ConfigurationUtil;
 import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
+import jakarta.annotation.Nonnull;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

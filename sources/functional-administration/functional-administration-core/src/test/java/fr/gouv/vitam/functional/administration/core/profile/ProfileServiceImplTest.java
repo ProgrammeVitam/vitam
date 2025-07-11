@@ -66,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.ws.rs.core.Response;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -330,7 +331,7 @@ public class ProfileServiceImplTest {
         );
         assertThat(requestResponse.isOk()).isTrue();
 
-        javax.ws.rs.core.Response responseDown = profileService.downloadProfileFile(profileModel.getIdentifier());
+        Response responseDown = profileService.downloadProfileFile(profileModel.getIdentifier());
         assertThat(responseDown.hasEntity()).isTrue();
     }
 

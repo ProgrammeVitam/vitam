@@ -178,7 +178,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.STORAGETRAC
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildContainerName;
 import static fr.gouv.vitam.storage.engine.server.rest.StorageMain.PARAMETER_JETTY_SERVER_PORT;
-import static javax.ws.rs.core.Response.Status.CREATED;
+import static jakarta.ws.rs.core.Response.Status.CREATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1604,7 +1604,7 @@ public class TapeOfferStorageIT {
         objectReferentialRepository.insertOrUpdate(tapeObjectReferentialEntity);
 
         // Try read
-        javax.ws.rs.core.Response response = storageClient.getContainerAsync(
+        jakarta.ws.rs.core.Response response = storageClient.getContainerAsync(
             DEFAULT_STRATEGY,
             objectName,
             UNIT,

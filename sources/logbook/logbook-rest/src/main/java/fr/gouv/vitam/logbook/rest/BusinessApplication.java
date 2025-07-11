@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
@@ -43,10 +44,9 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAc
 import fr.gouv.vitam.logbook.common.server.reconstruction.LogbookReconstructionMetrics;
 import fr.gouv.vitam.logbook.common.server.reconstruction.LogbookReconstructionMetricsCache;
 import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -59,7 +59,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 /**
  * Logbook application declaring resources and filters
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private final CommonBusinessApplication commonBusinessApplication;
 

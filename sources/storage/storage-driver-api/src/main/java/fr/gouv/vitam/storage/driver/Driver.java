@@ -29,8 +29,8 @@ package fr.gouv.vitam.storage.driver;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import jakarta.annotation.Nonnull;
 
-import javax.annotation.Nonnull;
 import java.util.Properties;
 
 /**

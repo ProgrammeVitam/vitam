@@ -35,9 +35,9 @@ import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import jakarta.xml.bind.JAXBElement;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Arrays;
 import java.util.Collections;

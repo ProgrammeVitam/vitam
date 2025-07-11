@@ -25,8 +25,9 @@
  * accept its terms.
  */
 
-package fr.gouv.vitamui.antivirus.client;
+package fr.gouv.vitam.antivirus.client;
 
+import fr.gouv.vitam.antivirus.client.invoker.ApiClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -34,9 +35,8 @@ import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitamui.antivirus.client.invoker.ApiClient;
+import jakarta.ws.rs.client.Client;
 
-import javax.ws.rs.client.Client;
 import java.io.IOException;
 
 /**

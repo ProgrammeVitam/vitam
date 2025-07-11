@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
@@ -55,8 +56,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
 
 import static fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeLifecycleTraceabilityActionPlugin.TRACEABILITY_EVENT_FILE_NAME;
 import static fr.gouv.vitam.worker.core.plugin.lfc_traceability.FinalizeLifecycleTraceabilityActionPlugin.TRACEABILITY_ZIP_FILE_NAME;

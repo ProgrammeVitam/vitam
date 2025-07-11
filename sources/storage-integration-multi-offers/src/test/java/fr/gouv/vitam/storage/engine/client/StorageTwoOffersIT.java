@@ -120,7 +120,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
@@ -418,7 +418,7 @@ public class StorageTwoOffersIT {
         assertThat(informationObject1.get(OFFER_ID)).isNotNull();
 
         // Try to download object & object2 in STRATEGY
-        javax.ws.rs.core.Response objectToGetFromStrategy = storageClient.getContainerAsync(
+        jakarta.ws.rs.core.Response objectToGetFromStrategy = storageClient.getContainerAsync(
             STRATEGY_ID,
             OFFER_ID,
             object,
@@ -433,7 +433,7 @@ public class StorageTwoOffersIT {
         );
 
         // Try to download object & object2 in EVERY OFFER
-        javax.ws.rs.core.Response objectToGetFromOffer1 = storageClient.getContainerAsync(
+        jakarta.ws.rs.core.Response objectToGetFromOffer1 = storageClient.getContainerAsync(
             STRATEGY_ID,
             OFFER_ID,
             object,
@@ -1427,7 +1427,7 @@ public class StorageTwoOffersIT {
         ).isInstanceOf(StorageNotFoundException.class);
 
         // Try to get inserted Object from first offer
-        javax.ws.rs.core.Response responseStorage = storageClient.getContainerAsync(
+        jakarta.ws.rs.core.Response responseStorage = storageClient.getContainerAsync(
             STRATEGY_ID,
             OFFER_ID,
             objectToInsert,

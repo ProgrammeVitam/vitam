@@ -28,8 +28,7 @@ package fr.gouv.vitam.metadata.core.model;
 
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.json.JsonHandler;
-
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 public class RequestById {
 

@@ -32,7 +32,7 @@ import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 import java.io.File;
 
 import static io.restassured.RestAssured.given;
@@ -46,7 +46,7 @@ public class ServerApplicationTest {
 
     @Test(expected = IllegalStateException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        new IhmDemoMain("src/test/resources/notFound.conf");
+        new IhmDemoMain("notFound.conf");
     }
 
     @Test

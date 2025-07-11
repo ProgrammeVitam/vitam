@@ -67,10 +67,10 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.HandlerUtils;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
+import jakarta.annotation.Nonnull;
 import org.apache.commons.text.StringEscapeUtils;
 import org.bson.Document;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

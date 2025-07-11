@@ -33,14 +33,14 @@ import fr.gouv.vitam.common.metrics.ResponseLengthCountingOutputStreamMetrics;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerResponseContext;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.NullOutputStream;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

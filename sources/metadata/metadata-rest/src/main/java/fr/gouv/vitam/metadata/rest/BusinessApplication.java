@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
+import fr.gouv.vitam.common.server.application.GenericBusinessApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
@@ -48,10 +49,9 @@ import fr.gouv.vitam.metadata.core.reconstruction.repository.ReconstructionOpera
 import fr.gouv.vitam.metadata.core.reconstruction.repository.impl.OperationReportRepositoryImpl;
 import fr.gouv.vitam.metadata.core.reconstruction.repository.impl.ReconstructionOperationRepositoryImpl;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Context;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -62,7 +62,7 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 /**
  * Metadata resources and filter
  */
-public class BusinessApplication extends Application {
+public class BusinessApplication extends GenericBusinessApplication {
 
     private final CommonBusinessApplication commonBusinessApplication;
 

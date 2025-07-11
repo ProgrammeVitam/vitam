@@ -28,10 +28,9 @@ package fr.gouv.vitam.common.server.application.resources;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 
 /**
  * TestResourceImpl implements ApplicationStatusResource
@@ -39,7 +38,7 @@ import javax.ws.rs.Produces;
 @Path("/test/v1")
 @Consumes("application/json")
 @Produces("application/json")
-@javax.ws.rs.ApplicationPath("webresources")
+@jakarta.ws.rs.ApplicationPath("webresources")
 public class TestResourceImpl extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestResourceImpl.class);

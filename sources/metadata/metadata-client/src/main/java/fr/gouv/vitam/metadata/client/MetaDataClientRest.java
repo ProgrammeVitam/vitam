@@ -61,10 +61,10 @@ import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import jakarta.annotation.Nullable;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.annotation.Nullable;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -84,9 +84,9 @@ import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_BULK
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SELECT_UNITS_QUERY_NULL;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.SIZE_TOO_LARGE;
 import static fr.gouv.vitam.metadata.client.ErrorMessage.UPDATE_UNITS_QUERY_BULK_NULL;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.OK;
 
 public class MetaDataClientRest extends DefaultClient implements MetaDataClient {
 

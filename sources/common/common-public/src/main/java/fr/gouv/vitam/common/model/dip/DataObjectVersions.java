@@ -27,9 +27,9 @@
 package fr.gouv.vitam.common.model.dip;
 
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
+import jakarta.annotation.Nullable;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;

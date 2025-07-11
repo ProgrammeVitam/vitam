@@ -28,9 +28,8 @@ package fr.gouv.vitam.common.dsl.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import org.junit.Test;
-
-import javax.ws.rs.container.ContainerRequestContext;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.spy;

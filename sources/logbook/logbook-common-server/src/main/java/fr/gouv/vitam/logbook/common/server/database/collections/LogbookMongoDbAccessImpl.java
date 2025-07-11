@@ -100,10 +100,10 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import jakarta.annotation.Nonnull;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;

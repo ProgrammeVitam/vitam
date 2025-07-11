@@ -43,10 +43,10 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import jakarta.ws.rs.core.Response;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;

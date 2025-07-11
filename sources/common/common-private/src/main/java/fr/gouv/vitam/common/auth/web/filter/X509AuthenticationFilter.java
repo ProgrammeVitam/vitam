@@ -31,14 +31,14 @@ package fr.gouv.vitam.common.auth.web.filter;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
-import org.apache.shiro.ShiroException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.lang.ShiroException;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 import java.security.cert.X509Certificate;
 
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;

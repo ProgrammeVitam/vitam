@@ -28,8 +28,7 @@ package fr.gouv.vitam.access.external.client.exception;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
-
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 public class AdminExternalClientException extends VitamClientException {
 

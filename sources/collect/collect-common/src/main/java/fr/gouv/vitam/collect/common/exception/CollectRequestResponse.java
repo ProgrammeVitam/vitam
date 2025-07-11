@@ -28,8 +28,8 @@ package fr.gouv.vitam.collect.common.exception;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.core.Response;
 import java.util.List;
 
 public class CollectRequestResponse {

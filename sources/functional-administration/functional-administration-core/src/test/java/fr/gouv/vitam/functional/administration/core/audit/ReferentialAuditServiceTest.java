@@ -43,6 +43,7 @@ import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupServi
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import jakarta.ws.rs.core.Response;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.jboss.resteasy.specimpl.BuiltResponse;
@@ -53,7 +54,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;

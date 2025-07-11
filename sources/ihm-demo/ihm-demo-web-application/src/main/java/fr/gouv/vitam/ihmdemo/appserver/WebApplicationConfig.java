@@ -28,7 +28,7 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMApplicationConfiguration;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
 /**

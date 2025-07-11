@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.input.NullInputStream;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
@@ -56,17 +57,16 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static io.restassured.RestAssured.given;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -322,7 +322,7 @@ public class ProjectExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void shouldGetInternalServerErrorWhenSearchProjectWithNonJsonQuery() {
+    public void shouldGetBadRequestWhenSearchProjectWithNonJsonQuery() {
         given()
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON) // If Content-Type: application/json is set, searchProject is called instead getProjects
@@ -331,7 +331,7 @@ public class ProjectExternalResourceTest extends ResteasyTestApplication {
             .when()
             .get(PROJECTS_URI)
             .then()
-            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+            .statusCode(BAD_REQUEST.getStatusCode())
             .body("description", Matchers.containsString("Unrecognized token 'no_json_content'"));
     }
 

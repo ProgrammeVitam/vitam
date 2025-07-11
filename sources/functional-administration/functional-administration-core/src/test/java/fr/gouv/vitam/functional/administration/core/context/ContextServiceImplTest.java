@@ -72,6 +72,7 @@ import fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupServi
 import fr.gouv.vitam.functional.administration.core.contract.ContractService;
 import fr.gouv.vitam.functional.administration.core.security.profile.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import jakarta.ws.rs.core.Response;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -82,7 +83,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;

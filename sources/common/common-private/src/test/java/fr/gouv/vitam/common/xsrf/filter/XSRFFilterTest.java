@@ -27,14 +27,13 @@
 package fr.gouv.vitam.common.xsrf.filter;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.HttpMethod;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.HttpMethod;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

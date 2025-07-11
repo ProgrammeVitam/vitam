@@ -27,6 +27,8 @@
 package fr.gouv.vitam.ingest.external.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.antivirus.client.AntivirusApi;
+import fr.gouv.vitam.antivirus.client.AntivirusClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -47,10 +49,10 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitamui.antivirus.client.AntivirusApi;
-import fr.gouv.vitamui.antivirus.client.AntivirusClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.AfterClass;
@@ -59,8 +61,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;

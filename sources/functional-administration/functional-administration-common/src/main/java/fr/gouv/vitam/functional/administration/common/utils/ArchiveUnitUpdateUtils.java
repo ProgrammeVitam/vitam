@@ -39,8 +39,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import jakarta.annotation.Nonnull;
 
-import javax.annotation.Nonnull;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;

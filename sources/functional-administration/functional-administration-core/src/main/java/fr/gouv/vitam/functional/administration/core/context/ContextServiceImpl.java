@@ -90,10 +90,10 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

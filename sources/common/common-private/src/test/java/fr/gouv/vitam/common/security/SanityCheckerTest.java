@@ -31,14 +31,14 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -48,6 +48,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -300,6 +301,16 @@ public class SanityCheckerTest {
             @Override
             public String getHeaderString(String name) {
                 return map.get(name).get(0);
+            }
+
+            @Override
+            public boolean containsHeaderString(String s, String s1, Predicate<String> predicate) {
+                return false;
+            }
+
+            @Override
+            public boolean containsHeaderString(String name, Predicate<String> valuePredicate) {
+                return HttpHeaders.super.containsHeaderString(name, valuePredicate);
             }
 
             @Override

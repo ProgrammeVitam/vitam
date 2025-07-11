@@ -52,10 +52,10 @@ import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -66,7 +66,7 @@ import static fr.gouv.vitam.common.client.VitamRequestBuilder.put;
 import static fr.gouv.vitam.common.parameter.ParameterHelper.getTenantParameter;
 import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_CROSS_TENANT;
 import static fr.gouv.vitam.logbook.common.LogbookDataRest.X_SLICED_OPERATIONS;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
 

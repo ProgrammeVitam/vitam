@@ -38,10 +38,10 @@ import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import io.restassured.http.ContentType;
+import jakarta.ws.rs.core.Response;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Optional;
 

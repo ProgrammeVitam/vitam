@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+import jakarta.ws.rs.container.ContainerRequestContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,8 +42,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.container.ContainerRequestContext;
 
 import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION;
 import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE;

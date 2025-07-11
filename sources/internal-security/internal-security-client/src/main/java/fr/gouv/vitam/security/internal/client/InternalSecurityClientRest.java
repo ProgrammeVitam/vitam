@@ -36,13 +36,13 @@ import fr.gouv.vitam.security.internal.common.exception.IdentityNotFoundExceptio
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.util.Optional;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
-import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
+import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class InternalSecurityClientRest extends DefaultClient implements InternalSecurityClient {
 

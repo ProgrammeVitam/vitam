@@ -28,6 +28,8 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import fr.gouv.vitam.functional.administration.core.griffin.GriffinService;
 import fr.gouv.vitam.functional.administration.core.griffin.PreservationScenarioService;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,8 +37,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;

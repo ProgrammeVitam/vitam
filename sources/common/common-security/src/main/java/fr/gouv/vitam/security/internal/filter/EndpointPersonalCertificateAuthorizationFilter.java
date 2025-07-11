@@ -46,11 +46,11 @@ import fr.gouv.vitam.security.internal.common.exception.PersonalCertificateExcep
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.common.service.ParsedCertificate;
 import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 
 /**

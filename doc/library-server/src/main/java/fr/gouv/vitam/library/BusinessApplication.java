@@ -26,9 +26,10 @@
  */
 package fr.gouv.vitam.library;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
+
 import java.util.HashSet;
 import java.util.Set;
 

@@ -82,19 +82,19 @@ import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import io.prometheus.client.Histogram;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -113,10 +113,10 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_UNITS_COUNT;
 import static fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics.OBJECT_SCROLL_COUNTER;
 import static fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics.OBJECT_SCROLL_DURATION_HISTOGRAM;
 import static fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics.UNIT_SCROLL_DURATION_HISTOGRAM;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.OK;
 
 @Path("/v1")
 @Tag(name = "Metadata")

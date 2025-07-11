@@ -28,12 +28,12 @@ package fr.gouv.vitam.storage.engine.server.rest.writeprotection;
 
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 

@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.shiro.util.Assert;
+import org.junit.Assert;
 import org.junit.rules.ExternalResource;
 
 import javax.net.ServerSocketFactory;
@@ -367,9 +367,9 @@ public class JunitHelper extends ExternalResource {
         protected abstract boolean isPortAvailable(int port);
 
         int findAvailablePort(int minPort, int maxPort) {
-            Assert.isTrue(minPort > 0, "'minPort' must be greater than 0");
-            Assert.isTrue(maxPort >= minPort, "'maxPort' must be greater than or equal to 'minPort'");
-            Assert.isTrue(maxPort <= MAX_PORT, "'maxPort' must be less than or equal to " + MAX_PORT);
+            Assert.assertTrue("'minPort' must be greater than 0", minPort > 0);
+            Assert.assertTrue("'maxPort' must be greater than or equal to 'minPort'", maxPort >= minPort);
+            Assert.assertTrue("'maxPort' must be less than or equal to " + MAX_PORT, maxPort <= MAX_PORT);
 
             Integer candidatePort = null;
             for (int port = minPort; port <= maxPort; port++) {

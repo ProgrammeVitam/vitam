@@ -59,10 +59,10 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.O
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;

@@ -27,7 +27,7 @@
 
 package fr.gouv.vitam.common.error;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * List of Vitam errors.
@@ -1229,6 +1229,14 @@ public enum VitamCode {
         "48",
         Status.BAD_REQUEST,
         "Schema check mode error"
+    ),
+
+    INCORRECT_JSON_PARSE(
+        ServiceName.VITAM,
+        DomainName.VALIDATION,
+        "00",
+        Status.BAD_REQUEST,
+        "JSON body could be parsed"
     );
 
     private final ServiceName service;

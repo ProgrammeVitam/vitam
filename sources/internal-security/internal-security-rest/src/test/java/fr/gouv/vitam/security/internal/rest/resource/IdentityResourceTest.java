@@ -28,6 +28,8 @@ package fr.gouv.vitam.security.internal.rest.resource;
 
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -35,8 +37,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 import static java.util.Optional.of;

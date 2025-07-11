@@ -61,6 +61,7 @@ import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookP
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
@@ -72,7 +73,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Arrays;
