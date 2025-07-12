@@ -192,7 +192,7 @@
         <commons-lang3>3.14.0</commons-lang3>
         <commons-text>1.11.0</commons-text>
         <jackson.version>2.17.0</jackson.version>
-        <apache-shiro.version>1.13.0</apache-shiro.version>
+        <apache-shiro.version>2.0.5</apache-shiro.version>
         <assertj.version>3.25.3</assertj.version>
         <rest-assured.version>5.4.0</rest-assured.version>
         <staxon.version>1.3</staxon.version>
