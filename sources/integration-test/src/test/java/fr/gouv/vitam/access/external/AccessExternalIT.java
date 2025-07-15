@@ -1254,8 +1254,8 @@ public class AccessExternalIT extends VitamRuleRunner {
         FacetResult facetCollections = getFacetResultByName(facetResults, "Facet_Collections");
         FacetResult facetCollectionsCardinality = getFacetResultByName(facetResults, "Facet_Collections_card");
 
-        validateFacetResultBucketCount(facetTypeDetail, "STRING", 245);
-        validateFacetResultBucketCount(facetCollections, "Unit", 161);
+        validateFacetResultBucketCount(facetTypeDetail, "STRING", 246);
+        validateFacetResultBucketCount(facetCollections, "Unit", 162);
         validateSingleValueFacet(facetCollectionsCardinality, 22d);
     }
 

@@ -4454,5 +4454,18 @@
       "Unit",
       "ObjectGroup"
     ]
+  },
+  {
+    "Identifier": "_vups",
+    "ApiField": "_vups",
+    "Description": "Arborescence virtuelle",
+    "Type": "KEYWORD",
+    "StringSize": "MEDIUM",
+    "TypeDetail": "STRING",
+    "Origin": "INTERNAL",
+    "ShortName": "Arborescence virtuelle",
+    "Collections": [
+      "Unit"
+    ]
   }
 ]

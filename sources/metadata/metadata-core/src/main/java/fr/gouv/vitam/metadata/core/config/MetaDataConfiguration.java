@@ -101,6 +101,9 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     @JsonProperty("elasticsearchConfigurationFile")
     private String elasticsearchConfigurationFile;
 
+    @JsonProperty("virtualPaths")
+    private MetadataVirtualPathsConfiguration virtualPathsConfiguration;
+
     /**
      * MetaDataConfiguration constructor
      *
@@ -430,5 +433,16 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setElasticsearchConfigurationFile(String elasticsearchConfigurationFile) {
         this.elasticsearchConfigurationFile = elasticsearchConfigurationFile;
+    }
+
+    public MetadataVirtualPathsConfiguration getVirtualPathsConfiguration() {
+        return virtualPathsConfiguration;
+    }
+
+    public MetaDataConfiguration setVirtualPathsConfiguration(
+        MetadataVirtualPathsConfiguration virtualPathsConfiguration
+    ) {
+        this.virtualPathsConfiguration = virtualPathsConfiguration;
+        return this;
     }
 }

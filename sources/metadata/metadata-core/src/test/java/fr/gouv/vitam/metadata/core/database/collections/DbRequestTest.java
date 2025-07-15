@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -81,6 +82,7 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
 import fr.gouv.vitam.common.model.administration.OntologyType;
+import fr.gouv.vitam.common.model.config.VirtualPathConfiguration;
 import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -100,6 +102,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.MetadataVirtualPathsConfiguration;
+import fr.gouv.vitam.metadata.core.config.VirtualPathsManager;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -112,6 +117,7 @@ import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.After;
@@ -124,6 +130,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -170,6 +177,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollectio
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -182,6 +190,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DbRequestTest {
 
@@ -291,6 +300,7 @@ public class DbRequestTest {
         "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
 
     private static final String MAPPING_FOLDER = "mapping";
+    public static final String VIRTUAL_PATHS = "#vups";
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -368,7 +378,7 @@ public class DbRequestTest {
         MetadataCollectionsTestUtils.afterTestClass(indexManager, true);
     }
 
-    private static final JsonNode buildQueryJsonWithOptions(String query, String data) throws Exception {
+    private static JsonNode buildQueryJsonWithOptions(String query, String data) throws Exception {
         return JsonHandler.getFromString(
             new StringBuilder()
                 .append("{ $roots : [ ], ")
@@ -405,7 +415,8 @@ public class DbRequestTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             // INSERT
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
@@ -416,7 +427,7 @@ public class DbRequestTest {
             dbRequest.execInsertUnitRequest(insertParser);
 
             // SELECT
-            JsonNode selectRequest = createSelectRequestWithUUID(uuid);
+            JsonNode selectRequest = createSelectRequestWithUUID(uuid, List.of(id(), TITLE, DESCRIPTION));
             // Now considering select request and parsing it as in Data Server (GET command)
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
             selectParser.parse(selectRequest);
@@ -465,6 +476,86 @@ public class DbRequestTest {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testExecRequestWithVirtualPaths() throws Exception {
+        String virtualPathSource = "FilePlanPosition";
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
+        MetadataVirtualPathsConfiguration virtualPathsConfiguration = new MetadataVirtualPathsConfiguration();
+        VirtualPathConfiguration defaultConfiguration = new VirtualPathConfiguration();
+        defaultConfiguration.setSourceFields(List.of(virtualPathSource));
+        virtualPathsConfiguration.setDefaultConfiguration(defaultConfiguration);
+        VitamConfiguration.setTenants(Lists.newArrayList(TENANT_ID_0));
+        try {
+            MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+            when(metaDataConfiguration.getVirtualPathsConfiguration()).thenReturn(virtualPathsConfiguration);
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
+
+            // Test inserting units
+            final JsonNode insertRequest = createInsertRequestWithVirtualPathsSources(uuid, virtualPathSource);
+            final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+            insertParser.parse(insertRequest);
+
+            dbRequest.execInsertUnitRequest(insertParser);
+
+            selectAndCheckVirtualPathsResults(
+                dbRequest,
+                uuid,
+                List.of("/value1/value2/value3", "/value1", "/value1/value2")
+            );
+
+            // Test updating units
+            final JsonNode unit = JsonHandler.getFromFile(
+                PropertiesUtils.getResourceFile("generated_archive_unit.json")
+            );
+            ArrayNode virtualPathValues = JsonHandler.createArrayNode().add("value3/value4").add("value3/value5");
+
+            final JsonNode updateRequest = createUnitUpdateRequestOnVirtualPath(
+                uuid,
+                unit,
+                virtualPathSource,
+                virtualPathValues
+            );
+
+            final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
+            updateParser.parse(updateRequest);
+
+            OntologyValidator ontologyValidator = mock(OntologyValidator.class);
+            doAnswer(args -> args.getArgument(0)).when(ontologyValidator).verifyAndReplaceFields(any());
+            RequestById requestById = new RequestById(uuid.toString(), updateParser);
+            dbRequest.execUpdateRequest(
+                List.of(requestById),
+                UNIT,
+                ontologyValidator,
+                mock(UnitValidator.class),
+                Collections.emptyList(),
+                true,
+                false
+            );
+
+            selectAndCheckVirtualPathsResults(dbRequest, uuid, List.of("/value3", "/value3/value4", "/value3/value5"));
+        } finally {
+            // clean
+            UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+        }
+    }
+
+    private void selectAndCheckVirtualPathsResults(DbRequest dbRequest, GUID uuid, List<String> virtualPathsValues)
+        throws InvalidParseOperationException, InvalidCreateOperationException, MetaDataExecutionException, BadRequestException, VitamDBException {
+        // SELECT
+        JsonNode selectRequest = createSelectRequestWithUUID(uuid, List.of(id(), TITLE, DESCRIPTION, VIRTUAL_PATHS));
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser.parse(selectRequest);
+
+        final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser, Collections.emptyList());
+        assertEquals("Must have 1 result", 1, result.getNbResult());
+        assertEquals("Must have 1 result", 1, result.getCurrentIds().size());
+        Unit unitResult = (Unit) result.getFinal().getFirst();
+        List<String> vups = unitResult.getList("_vups", String.class);
+        assertThatList(vups).containsExactlyInAnyOrderElementsOf(virtualPathsValues);
+    }
+
     /**
      * Test method for execRequest
      * .
@@ -475,10 +566,12 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequest() throws Exception {
         // input data
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             // INSERT
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
             // Now considering insert request and parsing it as in Data Server (POST command)
@@ -489,7 +582,7 @@ public class DbRequestTest {
             dbRequest.execInsertUnitRequest(insertParser);
 
             // SELECT
-            JsonNode selectRequest = createSelectRequestWithUUID(uuid);
+            JsonNode selectRequest = createSelectRequestWithUUID(uuid, List.of(id(), TITLE, DESCRIPTION));
             // Now considering select request and parsing it as in Data Server (GET command)
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
             selectParser.parse(selectRequest);
@@ -547,6 +640,7 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testExecRequestWithNegativeDepthLevel_One() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final String guidParent1 = "aeaqaaaaaaagsoddab2wcak75hnwm6aaaaba";
         final String guidParent2 = "aeaqaaaaaaegexzwab76uak74nta33aaaaba";
@@ -554,7 +648,7 @@ public class DbRequestTest {
         final String operation = "aedqaaaaachtcmknab2okak74ntaehqaaaaq";
 
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
 
@@ -631,13 +725,14 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestWithNegativeDepthLevel_Two() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final String guidParent = "aeaqaaaaaaagsoddab2wcak75hnwm6aaaaba";
         final String guidChild1 = "aeaqaaaaaadu6tbzablxaak75hfyaoiaaaba";
         final String guidChild2 = "aeaqaaaaaaegexzwab76uak74nta33aaaaba";
         final String operation = "aedqaaaaachtcmknab2okak74ntaehqaaaaq";
 
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
 
@@ -710,10 +805,11 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestThroughRequestParserHelper() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             RequestParserMultiple requestParser = null;
             // INSERT
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
@@ -727,7 +823,7 @@ public class DbRequestTest {
             dbRequest.execInsertUnitRequest(insertParserMultiple);
 
             // SELECT
-            JsonNode selectRequest = createSelectRequestWithUUID(uuid);
+            JsonNode selectRequest = createSelectRequestWithUUID(uuid, List.of(id(), TITLE, DESCRIPTION));
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser = RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
@@ -789,9 +885,10 @@ public class DbRequestTest {
     public void testExecRequestThroughAllCommands() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         // input data
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             RequestParserMultiple requestParser = null;
             // INSERT
             final JsonNode insertRequest = createInsertRequestWithUUID(uuid);
@@ -805,7 +902,7 @@ public class DbRequestTest {
             dbRequest.execInsertUnitRequest(insertParserMultiple);
 
             // SELECT
-            JsonNode selectRequest = createSelectRequestWithUUID(uuid);
+            JsonNode selectRequest = createSelectRequestWithUUID(uuid, List.of(id(), TITLE, DESCRIPTION));
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser = RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
@@ -870,11 +967,12 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestMultiple() throws Exception {
         // input data
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         final GUID uuid2 = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             RequestParserMultiple requestParser = null;
 
             // INSERT
@@ -915,7 +1013,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
 
             // SELECT
-            selectRequest = createSelectRequestWithUUID(uuid);
+            selectRequest = createSelectRequestWithUUID(uuid, List.of(id(), TITLE, DESCRIPTION));
             // Now considering select request and parsing it as in Data Server (GET command)
             requestParser = RequestParserHelper.getParser(selectRequest, mongoDbVarNameAdapter);
             LOGGER.debug("SelectParser: {}", requestParser);
@@ -991,7 +1089,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         // Base ontology with custom external types
@@ -1042,7 +1140,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<>(UNIT::getCollection),
             new MongoDbMetadataRepository<>(OBJECTGROUP::getCollection),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
@@ -1102,7 +1201,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         // Base ontology with custom external types
@@ -1137,7 +1236,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
@@ -1181,7 +1281,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         // Base ontology
@@ -1209,7 +1309,7 @@ public class DbRequestTest {
             .loadArchiveUnitProfile("AUP_IDENTIFIER");
 
         // When
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
         update.addActions(set("Boo.Baa", "Illegal string value"));
@@ -1255,7 +1355,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         // Base ontology
@@ -1275,7 +1375,7 @@ public class DbRequestTest {
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
 
         // When
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(unset("Title"));
 
@@ -1323,9 +1423,9 @@ public class DbRequestTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final GUID uuid1 = GUIDFactory.newUnitGUID(TENANT_ID_0);
         final GUID uuid2 = GUIDFactory.newUnitGUID(TENANT_ID_0);
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
             // INSERT
@@ -1401,10 +1501,11 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testInsertUnitRequest() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         final GUID uuid2 = GUIDFactory.newUnitGUID(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         InsertParserMultiple insertParser;
 
         insertParser = (InsertParserMultiple) RequestParserHelper.getParser(
@@ -1425,10 +1526,11 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void shouldIndexElasticSearchWithGoodUnitSchema() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         final GUID uuid2 = GUIDFactory.newUnitGUID(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
 
         InsertParserMultiple insertParserMultiple1 = (InsertParserMultiple) RequestParserHelper.getParser(
             createInsertRequestWithUUID(uuid),
@@ -1591,10 +1693,10 @@ public class DbRequestTest {
      * @throws IllegalArgumentException
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser) throws Exception {
-        final Result result = dbRequest.execRequest(requestParser, Collections.emptyList());
+        final Result<MetadataDocument<?>> result = dbRequest.execRequest(requestParser, Collections.emptyList());
         LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
-        assertEquals("Must have 1 result", result.getNbResult(), 1);
-        assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
+        assertEquals("Must have 1 result", 1, result.getNbResult());
+        assertEquals("Must have 1 result", 1, result.getCurrentIds().size());
         UNIT.getEsClient().refreshIndex(UNIT, TENANT_ID_0);
         UNIT.getEsClient().refreshIndex(OBJECTGROUP, TENANT_ID_0);
     }
@@ -1647,16 +1749,36 @@ public class DbRequestTest {
         return update.getFinalUpdate();
     }
 
+    private JsonNode createUnitUpdateRequestOnVirtualPath(GUID uuid, JsonNode unit, String field, JsonNode value)
+        throws Exception {
+        final UpdateMultiQuery update = new UpdateMultiQuery();
+
+        Map<String, JsonNode> map = new HashMap<>();
+        unit.fieldNames().forEachRemaining(key -> map.put(key, unit.get(key)));
+
+        map.put(field, value);
+        update.addActions(set(map));
+        update.addQueries(eq(id(), uuid.toString()));
+        return update.getFinalUpdate();
+    }
+
     /**
      * @param uuid
      * @return
      */
-    private JsonNode createSelectRequestWithUUID(GUID uuid)
+    private JsonNode createSelectRequestWithUUID(GUID uuid, List<String> projectionFields)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
-        select
-            .addUsedProjection(id(), TITLE, DESCRIPTION)
-            .addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+        select.addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+        if (CollectionUtils.isNotEmpty(projectionFields)) {
+            projectionFields.forEach(field -> {
+                try {
+                    select.addUsedProjection(field);
+                } catch (InvalidParseOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
         LOGGER.debug("SelectString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
@@ -1695,6 +1817,35 @@ public class DbRequestTest {
             .put(MY_FLOAT, 2.0);
         data.putArray(ARRAY_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
         data.putArray(ARRAY2_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        insert.addData(data);
+        LOGGER.debug("InsertString: " + insert.getFinalInsert());
+        return insert.getFinalInsert();
+    }
+
+    private JsonNode createInsertRequestWithVirtualPathsSources(GUID uuid, String field)
+        throws InvalidParseOperationException {
+        // INSERT
+        final List<String> list = Arrays.asList("val1", "val2");
+        final List<String> virtualPaths = Arrays.asList("value1/value2", "value1/value2/value3");
+        final ObjectNode data = JsonHandler.createObjectNode()
+            .put(id(), uuid.toString())
+            .put(TITLE, VALUE_MY_TITLE)
+            .put(DESCRIPTION, "Ma description est bien détaillée")
+            .put(CREATED_DATE, "" + LocalDateUtil.now())
+            .put(MY_INT, 20)
+            .put(tenant(), TENANT_ID_0)
+            .put("underscore", "underscore")
+            .put("_underscore", "underscore")
+            .put(field, VALUE_MY_TITLE)
+            .put("_nbc", 100)
+            .put("_unitType", "object")
+            .put(MY_BOOLEAN, false)
+            .putNull(EMPTY_VAR)
+            .put(MY_FLOAT, 2.0);
+        data.putArray(ARRAY_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
+        data.putArray(ARRAY2_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
+        data.putArray(field).addAll((ArrayNode) JsonHandler.toJsonNode(virtualPaths));
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addData(data);
         LOGGER.debug("InsertString: " + insert.getFinalInsert());
@@ -1838,9 +1989,10 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testInsertGORequest() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         InsertParserMultiple insertParser;
 
         insertParser = (InsertParserMultiple) RequestParserHelper.getParser(
@@ -1863,9 +2015,10 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testOGElasticsearchIndex() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         InsertParserMultiple insertParser;
         insertParser = (InsertParserMultiple) RequestParserHelper.getParser(
             createInsertRequestWithUUID(uuid),
@@ -1946,7 +2099,8 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testUnitParentForlastInsertFilterProjection() throws Exception {
-        final DbRequest dbRequest = new DbRequest();
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
 
         final GUID uuidGot = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
@@ -1995,9 +2149,10 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testRequestWithObjectGroupQuery() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final GUID uuid01 = GUIDFactory.newUnitGUID(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper.getParser(
             createInsertRequestWithUUID(uuid01),
             mongoDbVarNameAdapter
@@ -2024,8 +2179,9 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testSelectResult() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
@@ -2038,8 +2194,8 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectUnitResult() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-
-        final DbRequest dbRequest = new DbRequest();
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
@@ -2057,8 +2213,9 @@ public class DbRequestTest {
     @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
     public void shouldSelectNoResultSinceOtherTenantUsed() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_2);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         // unit is insterted with TENANT_ID_0 = 0
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_2);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -2078,10 +2235,10 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithES() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_2);
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         // OG ???
 
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
@@ -2288,8 +2445,8 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithESTenant1() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
-
-        final DbRequest dbRequest = new DbRequest();
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES_1_TENANT_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
@@ -2308,8 +2465,8 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithESTenant1ButTenant0() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
-
-        final DbRequest dbRequest = new DbRequest();
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES_1_TENANT_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
@@ -2329,8 +2486,9 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testUpdateUnitResult() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         // insert title ARchive 3
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
         String requestInsertTestEsUpdate = IOUtils.toString(
@@ -2505,8 +2663,9 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testUpdateUnitSameUpdateTwiceForceUpdateFalse_onlyUpdateFirstTime() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         // insert title ARchive 3
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
         String requestInsertTestEsUpdate = IOUtils.toString(
@@ -2599,8 +2758,9 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testUpdateKOSchemaUnitResultThrowsException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         // insert title ARchive 3
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE_KO);
@@ -2632,7 +2792,8 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testInsertUnitWithTenant() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
@@ -2674,9 +2835,9 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testInsertGOWithTenant() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         InsertParserMultiple insertParser = (InsertParserMultiple) RequestParserHelper.getParser(
             createInsertRequestGOTenant(uuid),
             mongoDbVarNameAdapter
@@ -2699,10 +2860,11 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void testOrAndMatch() throws Exception {
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
 
         final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         InsertParserMultiple requestParser;
         // INSERT 1
         ObjectNode data = JsonHandler.createObjectNode()
@@ -2827,7 +2989,13 @@ public class DbRequestTest {
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
         try {
-            final DbRequest dbRequest = new DbRequest();
+            MetaDataConfiguration metaDataConfiguration;
+            try (
+                final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config_defaults_only.yml")
+            ) {
+                metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+            }
+            final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
             RequestParserMultiple requestParser;
 
             // SELECT
@@ -2871,7 +3039,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
@@ -2974,7 +3142,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(
             uuid,
@@ -3011,7 +3180,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         // Corrupted unit
@@ -3083,7 +3252,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
         assertThatThrownBy(
             () ->
@@ -3110,7 +3280,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
@@ -3161,7 +3331,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
         assertThatThrownBy(
             () ->
@@ -3188,7 +3359,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
@@ -3219,7 +3390,7 @@ public class DbRequestTest {
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         // When
-        final DbRequest dbRequest = new DbRequest();
+        final DbRequest dbRequest = new DbRequest(metaDataConfiguration);
         assertThatThrownBy(
             () ->
                 dbRequest.execRuleRequest(
@@ -3245,7 +3416,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
@@ -3290,7 +3461,8 @@ public class DbRequestTest {
         DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         JsonNode history = new History("BatmanHistory", 1L, JsonHandler.createObjectNode()).getArrayNode();
@@ -3329,7 +3501,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
@@ -3368,7 +3540,8 @@ public class DbRequestTest {
         DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         // When
@@ -3392,7 +3565,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         final Unit initialUnit = new Unit(
@@ -3436,7 +3609,8 @@ public class DbRequestTest {
         DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         // When
@@ -3457,7 +3631,7 @@ public class DbRequestTest {
     @Test
     public void shouldAllowInheritanceBeforeBlockingRule() throws Exception {
         // First case : Allow Inheritance before trying to Block Rule
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
@@ -3510,7 +3684,8 @@ public class DbRequestTest {
         DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(
@@ -3560,7 +3735,8 @@ public class DbRequestTest {
         new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         updatedDocument = dbRequest.execRuleRequest(
@@ -3603,7 +3779,7 @@ public class DbRequestTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
-
+        MetaDataConfiguration metaDataConfiguration = mock(MetaDataConfiguration.class);
         String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
 
         // Base ontology with custom external types
@@ -3653,7 +3829,8 @@ public class DbRequestTest {
         DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
-            fieldHistoryManager
+            fieldHistoryManager,
+            new VirtualPathsManager(metaDataConfiguration)
         );
 
         UpdateMultiQuery update = new UpdateMultiQuery();

@@ -136,3 +136,26 @@ mongodShardsConf:
       dbPort: {{ mongodb.mongod_port }}
   {% endfor %}
 {% endfor %}
+
+{% if vitam_virtual_paths is defined and vitam_virtual_paths is not none %}
+# virtual Paths settings
+virtualPaths:
+ {% if vitam_virtual_paths.default_fields is defined and vitam_virtual_paths.default_fields is not none %}
+  default_config:
+   source_fields :
+   {% for entry in vitam_virtual_paths.default_fields %}
+    - {{ entry }}
+   {% endfor %}
+{% endif %}
+
+ {% if vitam_virtual_paths.dedicated_tenants is defined and vitam_virtual_paths.dedicated_tenants is not none %}
+  dedicated_tenants:
+   {% for entry in vitam_virtual_paths.dedicated_tenants %}
+   - tenants: '{{ entry.tenants }}'
+     source_fields:
+    {% for entryField in entry.fields %}
+      - {{ entryField }}
+    {% endfor %}
+   {% endfor %}
+ {% endif %}
+{% endif %}

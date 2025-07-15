@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public final class MetaDataConfigurationValidator {
 
@@ -52,6 +51,28 @@ public final class MetaDataConfigurationValidator {
         }
 
         validateElasticsearchIndexationConfiguration(metaDataConfiguration.getIndexationConfiguration());
+
+        validateVirtualPathsConfiguration(metaDataConfiguration.getVirtualPathsConfiguration());
+    }
+
+    private static void validateVirtualPathsConfiguration(MetadataVirtualPathsConfiguration virtualPathsConfiguration) {
+        if (virtualPathsConfiguration == null) {
+            return;
+        }
+        List<String> tenantRangeStrings = new ArrayList<>();
+        if (virtualPathsConfiguration.getDefaultConfiguration() == null) {
+            throw new IllegalStateException("Invalid configuration. Missing default virtual paths configuration");
+        }
+
+        if (CollectionUtils.isNotEmpty(virtualPathsConfiguration.getDedicatedTenantConfiguration())) {
+            virtualPathsConfiguration
+                .getDedicatedTenantConfiguration()
+                .stream()
+                .map(DedicatedVirtualPathsTenantConfiguration::getTenants)
+                .forEach(tenantRangeStrings::add);
+        }
+
+        validateTenantRangeValues(tenantRangeStrings);
     }
 
     private static void validateElasticsearchIndexationConfiguration(
@@ -137,16 +158,20 @@ public final class MetaDataConfigurationValidator {
                 .forEach(tenantRangeStrings::add);
         }
 
+        validateTenantRangeValues(tenantRangeStrings);
+    }
+
+    private static void validateTenantRangeValues(List<String> tenantRangeStrings) {
         if (tenantRangeStrings.contains(null)) {
             throw new IllegalStateException(
-                "Invalid configuration. Missing tenants from dedicated tenant or grouped tenant configuration"
+                "Invalid configuration. Missing tenants from dedicated tenant configuration"
             );
         }
 
         List<TenantRange> tenantRanges = tenantRangeStrings
             .stream()
             .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
-            .collect(Collectors.toList());
+            .toList();
 
         // Check tenant range overlapping
         for (int i = 0; i < tenantRanges.size(); i++) {

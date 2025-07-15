@@ -59,6 +59,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import jakarta.json.stream.JsonParser;
 import org.assertj.core.util.Lists;
@@ -71,6 +72,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -226,7 +228,10 @@ public class MongoDbAccessMetadataImplTest {
     @RunWithCustomExecutor
     public void should_aggregate_unit_per_operation_id_and_originating_agency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         mongoDbAccess = new MongoDbAccessMetadataImpl(
             mongoRule.getMongoClient(),
             mongoRule.getMongoDatabase().getName(),
@@ -238,7 +243,7 @@ public class MongoDbAccessMetadataImplTest {
 
         // Given
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, indexManager);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, indexManager, metaDataConfiguration);
 
         final String operationId = "1234";
         ArrayList<Document> units = Lists.newArrayList(
@@ -302,7 +307,10 @@ public class MongoDbAccessMetadataImplTest {
     @RunWithCustomExecutor
     public void should_aggregate_object_group_per_operation_id_and_originating_agency_scenario() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         mongoDbAccess = new MongoDbAccessMetadataImpl(
             mongoRule.getMongoClient(),
             mongoRule.getMongoDatabase().getName(),
@@ -314,7 +322,7 @@ public class MongoDbAccessMetadataImplTest {
 
         // Given
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, indexManager);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, indexManager, metaDataConfiguration);
         initGotsForAccessionRegisterTest(
             "/got_1_sp1.json",
             "/got_2_sp1.json",
@@ -349,7 +357,10 @@ public class MongoDbAccessMetadataImplTest {
     @RunWithCustomExecutor
     public void should_aggregate_object_group_per_operation_id_and_originating_agency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         mongoDbAccess = new MongoDbAccessMetadataImpl(
             mongoRule.getMongoClient(),
             mongoRule.getMongoDatabase().getName(),
@@ -361,7 +372,7 @@ public class MongoDbAccessMetadataImplTest {
 
         // Given
         ElasticsearchMetadataIndexManager indexManager = mock(ElasticsearchMetadataIndexManager.class);
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, 100, 300, 100, 300, indexManager);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300, indexManager, metaDataConfiguration);
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
         initGotsForAccessionRegisterTest(
             "/object_sp1_1.json",
@@ -418,6 +429,11 @@ public class MongoDbAccessMetadataImplTest {
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
 
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
+
         SearchResponse<ObjectNode> archiveUnitResponse = searchResult(
             PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_1.data")
         );
@@ -444,11 +460,8 @@ public class MongoDbAccessMetadataImplTest {
             ),
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         // When
@@ -462,6 +475,10 @@ public class MongoDbAccessMetadataImplTest {
     public void should_fill_all_accession_register_symbolic_information()
         throws IOException, MetaDataExecutionException {
         // Given
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
 
@@ -491,11 +508,8 @@ public class MongoDbAccessMetadataImplTest {
             ),
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         // When
@@ -519,6 +533,10 @@ public class MongoDbAccessMetadataImplTest {
     public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link()
         throws IOException, InvalidParseOperationException, MetaDataExecutionException {
         // Given
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
 
@@ -554,11 +572,8 @@ public class MongoDbAccessMetadataImplTest {
             ),
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         // When
@@ -578,6 +593,10 @@ public class MongoDbAccessMetadataImplTest {
     public void should_add_number_of_binaries_and_binaries_total_size_to_related_accession_register_when_object_group_counted()
         throws IOException, MetaDataExecutionException {
         // Given
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
 
@@ -621,11 +640,8 @@ public class MongoDbAccessMetadataImplTest {
             ),
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         // When
@@ -645,6 +661,10 @@ public class MongoDbAccessMetadataImplTest {
     public void should_add_zero_binaries_and_zero_binaries_total_size_to_related_accession_register_when_object_group_NOT_counted()
         throws IOException, MetaDataExecutionException {
         // Given
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
 
@@ -688,11 +708,8 @@ public class MongoDbAccessMetadataImplTest {
             ),
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         // When
@@ -712,6 +729,10 @@ public class MongoDbAccessMetadataImplTest {
     public void should_NOT_created_new_accession_register_with_object_group_information_when_no_related_accession_register()
         throws IOException, MetaDataExecutionException {
         // Given
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
         when(client.getClient()).thenReturn(esClient.getClient());
 
@@ -741,11 +762,8 @@ public class MongoDbAccessMetadataImplTest {
             ),
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         // When

@@ -760,7 +760,9 @@ public abstract class BuilderToken {
          */
         UPLOAD_PATH("uploadPath"),
 
-        OPERATION_TRANSFERS("opts");
+        OPERATION_TRANSFERS("opts"),
+
+        VIRTUAL_UPS("vups");
 
         private final String exactToken;
 
