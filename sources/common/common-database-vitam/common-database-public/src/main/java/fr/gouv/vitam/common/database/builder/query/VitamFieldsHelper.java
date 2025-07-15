@@ -76,6 +76,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VALID_COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VIRTUAL_UPS;
 
 /**
  * Vitam Field Helper to facilitate the usage of field names
@@ -214,6 +215,7 @@ public class VitamFieldsHelper {
 
     /**
      * Initial upload Path (collect-only)
+     *
      * @return #uploadPath
      */
     public static String uploadPath() {
@@ -398,6 +400,13 @@ public class VitamFieldsHelper {
 
     public static String opts() {
         return OPERATION_TRANSFERS.exactToken();
+    }
+
+    /**
+     * @return #vups
+     */
+    public static String vups() {
+        return VIRTUAL_UPS.exactToken();
     }
 
     /**

@@ -102,11 +102,8 @@ public class BusinessApplication extends GenericBusinessApplication {
                 mongoAccessMetadata,
                 VitamConfiguration.getOntologyCacheMaxEntries(),
                 VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
-                metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
-                metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
-                metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
-                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
-                indexManager
+                indexManager,
+                metaDataConfiguration
             );
 
             MetadataRuleService metadataRuleService = new MetadataRuleService(metadata);

@@ -32,6 +32,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
@@ -99,6 +100,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.config.VirtualPathsManager;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -121,6 +124,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -151,7 +155,7 @@ public class DbRequest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
 
     private static final JsonPointer JSON_POINTER_TO_OPS = JsonPointer.compile("/$push/_ops/0");
-
+    private static final String PATH_SEPARATOR = "/";
     /**
      * Quick projection for ID Only
      */
@@ -174,23 +178,27 @@ public class DbRequest {
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
     private final MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
     private final FieldHistoryManager fieldHistoryManager;
+    private final VirtualPathsManager virtualPathsManager;
 
     @VisibleForTesting
     DbRequest(
         MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
         MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository,
-        FieldHistoryManager fieldHistoryManager
+        FieldHistoryManager fieldHistoryManager,
+        VirtualPathsManager virtualPathsManager
     ) {
         this.mongoDbUnitRepository = mongoDbUnitRepository;
         this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
         this.fieldHistoryManager = fieldHistoryManager;
+        this.virtualPathsManager = virtualPathsManager;
     }
 
-    public DbRequest() {
+    public DbRequest(MetaDataConfiguration metaDataConfiguration) {
         this(
             new MongoDbMetadataRepository<>(MetadataCollections.UNIT::getCollection),
             new MongoDbMetadataRepository<>(MetadataCollections.OBJECTGROUP::getCollection),
-            new FieldHistoryManager(HISTORY_TRIGGER_NAME)
+            new FieldHistoryManager(HISTORY_TRIGGER_NAME),
+            new VirtualPathsManager(metaDataConfiguration)
         );
     }
 
@@ -271,6 +279,10 @@ public class DbRequest {
             // Unit validation
             unitValidator.validateUnit(transformedUpdatedDocument);
 
+            List<String> virtualFields = virtualPathsManager.getVirtualPathsFields();
+            if (CollectionUtils.isNotEmpty(virtualFields)) {
+                fillVirtualPaths(updatedJsonDocument, virtualFields);
+            }
             // Make Update
             final Bson condition;
             if (atomicVersion == null) {
@@ -288,6 +300,7 @@ public class DbRequest {
             }
 
             updatedDocument.setApproximateUpdateDate(LocalDateUtil.now());
+
             LOGGER.debug("DEBUG update {}", transformedUpdatedDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
@@ -1539,6 +1552,22 @@ public class DbRequest {
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
                 if (metadataCollection == MetadataCollections.UNIT) {
                     fieldHistoryManager.trigger(currentJsonDocument, updatedJsonDocument);
+                    List<String> virtualFields = virtualPathsManager.getVirtualPathsFields();
+                    if (CollectionUtils.isNotEmpty(virtualFields)) {
+                        boolean anyChangesOnVirtualFieldsSrc = false;
+                        for (String virtualField : virtualFields) {
+                            JsonNode currentVirtualPathNode = currentJsonDocument.get(virtualField);
+                            JsonNode toUpdateVirtualPathNode = updatedJsonDocument.get(virtualField);
+                            anyChangesOnVirtualFieldsSrc = !Objects.equals(
+                                currentVirtualPathNode,
+                                toUpdateVirtualPathNode
+                            );
+                            if (anyChangesOnVirtualFieldsSrc) break;
+                        }
+                        if (anyChangesOnVirtualFieldsSrc) {
+                            fillVirtualPaths(updatedJsonDocument, virtualFields);
+                        }
+                    }
                 }
                 final Integer docVersion = currentDocument.getVersion();
                 int newDocVersion = incrementDocumentVersionIfRequired(metadataCollection, mongoInMemory, docVersion);
@@ -2030,7 +2059,10 @@ public class DbRequest {
 
                 unit.mergeWith(unitGraphModel);
                 setDateCreationAndModification(unit);
-
+                List<String> virtualFields = virtualPathsManager.getVirtualPathsFields();
+                if (CollectionUtils.isNotEmpty(virtualFields)) {
+                    fillVirtualPaths(unit, virtualFields);
+                }
                 // save mongo
                 unitToSave.add(unit);
 
@@ -2154,6 +2186,90 @@ public class DbRequest {
             MetadataCollections.UNIT.getEsClient().clearScroll(scrollId);
         } catch (DatabaseException e) {
             throw new VitamRuntimeException(e);
+        }
+    }
+
+    private void fillVirtualPaths(Unit archiveUnit, List<String> virtualPathFields) {
+        archiveUnit.remove(SedaConstants.VIRTUAL_UPS);
+
+        for (String virtualField : virtualPathFields) {
+            if (!archiveUnit.containsKey(virtualField)) {
+                continue;
+            }
+            List<String> virtualPathsElts = extractFieldValues(archiveUnit, virtualField);
+            if (CollectionUtils.isEmpty(virtualPathsElts)) {
+                continue;
+            }
+            Set<String> virtualPathsSet = buildAllPaths(virtualPathsElts);
+            archiveUnit.put(SedaConstants.VIRTUAL_UPS, virtualPathsSet);
+        }
+    }
+
+    private Set<String> buildAllPaths(List<String> paths) {
+        Set<String> virtualPathsSet = new HashSet<>();
+
+        for (String path : paths) {
+            if (StringUtils.isBlank(path)) {
+                continue;
+            }
+
+            List<String> parts = Arrays.asList(path.split(PATH_SEPARATOR));
+            StringBuilder currentPath = new StringBuilder();
+            parts
+                .stream()
+                .filter(StringUtils::isNotBlank)
+                .forEach(part -> {
+                    currentPath.append(PATH_SEPARATOR).append(part.trim());
+                    virtualPathsSet.add(String.valueOf(currentPath));
+                });
+        }
+        return virtualPathsSet;
+    }
+
+    private List<String> extractFieldValues(Unit unitDoc, String fieldName) {
+        Object val = unitDoc.get(fieldName);
+
+        if (val instanceof String str) {
+            return List.of(str);
+        } else if (val instanceof List<?> list) {
+            return list.stream().map(Object::toString).toList();
+        } else if (val instanceof Map<?, ?> map) {
+            return map.values().stream().map(Object::toString).toList();
+        } else if (val != null) {
+            return List.of(val.toString());
+        } else throw new IllegalArgumentException("Could not extract field value for field " + fieldName);
+    }
+
+    private List<String> toStringList(JsonNode node) {
+        List<String> list = new ArrayList<>();
+        if (node == null || node.isNull()) {
+            return list;
+        }
+        if (node.isArray()) {
+            for (JsonNode element : node) {
+                list.add(element.asText());
+            }
+        } else {
+            list.add(node.asText());
+        }
+        return list;
+    }
+
+    private void fillVirtualPaths(JsonNode archiveUnit, List<String> virtualPathFields) {
+        ObjectNode archiveUnitNode = (ObjectNode) archiveUnit;
+        archiveUnitNode.remove(SedaConstants.VIRTUAL_UPS);
+        for (String virtualField : virtualPathFields) {
+            if (!archiveUnit.has(virtualField)) {
+                continue;
+            }
+            JsonNode pathsNode = archiveUnitNode.get(virtualField);
+            Set<String> virtualPathsSet = buildAllPaths(toStringList(pathsNode));
+
+            ArrayNode pathsArray = JsonHandler.createArrayNode();
+            for (String path : virtualPathsSet) {
+                pathsArray.add(path);
+            }
+            archiveUnitNode.set(SedaConstants.VIRTUAL_UPS, pathsArray);
         }
     }
 }

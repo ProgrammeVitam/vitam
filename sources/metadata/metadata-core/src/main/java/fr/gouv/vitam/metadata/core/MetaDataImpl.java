@@ -106,6 +106,7 @@ import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
@@ -206,24 +207,18 @@ public class MetaDataImpl {
         MongoDbAccessMetadataImpl mongoDbAccess,
         int ontologyCacheMaxEntries,
         int ontologyCacheTimeoutInSeconds,
-        int archiveUnitProfileCacheMaxEntries,
-        int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries,
-        int schemaValidatorCacheTimeoutInSeconds,
-        ElasticsearchMetadataIndexManager indexManager
+        ElasticsearchMetadataIndexManager indexManager,
+        MetaDataConfiguration metaDataConfiguration
     ) {
         this(
             mongoDbAccess,
             AdminManagementClientFactory.getInstance(),
             IndexationHelper.getInstance(),
-            new DbRequest(),
+            new DbRequest(metaDataConfiguration),
             ontologyCacheMaxEntries,
             ontologyCacheTimeoutInSeconds,
-            archiveUnitProfileCacheMaxEntries,
-            archiveUnitProfileCacheTimeoutInSeconds,
-            schemaValidatorCacheMaxEntries,
-            schemaValidatorCacheTimeoutInSeconds,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
     }
 
@@ -235,11 +230,8 @@ public class MetaDataImpl {
         DbRequest dbRequest,
         int ontologyCacheMaxEntries,
         int ontologyCacheTimeoutInSeconds,
-        int archiveUnitProfileCacheMaxEntries,
-        int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries,
-        int schemaValidatorCacheTimeoutInSeconds,
-        ElasticsearchMetadataIndexManager indexManager
+        ElasticsearchMetadataIndexManager indexManager,
+        MetaDataConfiguration metaDataConfiguration
     ) {
         this.mongoDbAccess = mongoDbAccess;
         this.indexationHelper = indexationHelper;
@@ -265,13 +257,13 @@ public class MetaDataImpl {
 
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
             adminManagementClientFactory,
-            archiveUnitProfileCacheMaxEntries,
-            archiveUnitProfileCacheTimeoutInSeconds
+            metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
+            metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds()
         );
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(
-            schemaValidatorCacheMaxEntries,
-            schemaValidatorCacheTimeoutInSeconds
+            metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
+            metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds()
         );
 
         this.unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
@@ -288,21 +280,15 @@ public class MetaDataImpl {
         MongoDbAccessMetadataImpl mongoDbAccessMetadata,
         int ontologyCacheMaxEntries,
         int ontologyCacheTimeoutInSeconds,
-        int archiveUnitProfileCacheMaxEntries,
-        int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries,
-        int schemaValidatorCacheTimeoutInSeconds,
-        ElasticsearchMetadataIndexManager indexManager
+        ElasticsearchMetadataIndexManager indexManager,
+        MetaDataConfiguration metaDataConfiguration
     ) {
         return new MetaDataImpl(
             mongoDbAccessMetadata,
             ontologyCacheMaxEntries,
             ontologyCacheTimeoutInSeconds,
-            archiveUnitProfileCacheMaxEntries,
-            archiveUnitProfileCacheTimeoutInSeconds,
-            schemaValidatorCacheMaxEntries,
-            schemaValidatorCacheTimeoutInSeconds,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
     }
 

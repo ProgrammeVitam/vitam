@@ -1888,6 +1888,9 @@
     "_av": {
       "type": "long"
     },
+    "_vups": {
+      "type": "keyword"
+    },
     "_storage": {
       "properties": {
         "_nbc": {

@@ -56,7 +56,8 @@ public class ComputedFieldsTest {
         MetadataDocument.GRAPH_LAST_PERSISTED_DATE,
         MetadataDocument.ORIGINATING_AGENCIES,
         Unit.COMPUTED_INHERITED_RULES,
-        Unit.VALID_COMPUTED_INHERITED_RULES
+        Unit.VALID_COMPUTED_INHERITED_RULES,
+        Unit.VIRTUAL_UPS
     );
 
     private static final List<String> expectedUnitMainFields = Arrays.asList(

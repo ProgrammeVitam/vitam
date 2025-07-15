@@ -63,6 +63,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
@@ -89,6 +90,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -181,6 +183,10 @@ public class MetaDataImplTest {
 
     @Before
     public void setUp() throws Exception {
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config_defaults_only.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         request = mock(DbRequest.class);
         indexationHelper = mock(IndexationHelper.class);
         mongoDbAccessFactory = mock(MongoDbAccessMetadataImpl.class);
@@ -201,11 +207,8 @@ public class MetaDataImplTest {
             request,
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -606,6 +609,10 @@ public class MetaDataImplTest {
 
     @Test
     public void reindexCollectionUnknownTest() throws Exception {
+        MetaDataConfiguration metaDataConfiguration;
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config_defaults_only.yml")) {
+            metaDataConfiguration = PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+        }
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("fakeName");
         List<Integer> tenants = Collections.singletonList(0);
@@ -623,11 +630,8 @@ public class MetaDataImplTest {
             request,
             100,
             300,
-            100,
-            300,
-            100,
-            300,
-            indexManager
+            indexManager,
+            metaDataConfiguration
         );
         // When
         ReindexationResult result = metaDataImpl.reindex(parameters);

@@ -4457,5 +4457,18 @@
     "Collections": [
       "Agencies"
     ]
+  },
+  {
+    "Identifier": "_vups",
+    "ApiField": "_vups",
+    "Description": "Arborescence virtuelle",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Arborescence virtuelle",
+    "Collections": [
+      "Unit"
+    ]
   }
 ]

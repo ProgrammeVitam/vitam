@@ -100,11 +100,8 @@ public class AdminMetadataApplication extends Application {
                 mongoDbAccessMetadata,
                 VitamConfiguration.getOntologyCacheMaxEntries(),
                 VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
-                metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
-                metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
-                metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
-                metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
-                indexManager
+                indexManager,
+                metaDataConfiguration
             );
 
             final AdminMetadataManagementResource adminMetadataReconstructionResource =

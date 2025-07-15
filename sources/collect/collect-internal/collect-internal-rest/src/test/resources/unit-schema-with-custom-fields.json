@@ -12518,5 +12518,20 @@
     "ShortName": "My enum",
     "Path": "Invoice.Provider.MyEnum",
     "TypeDetail": "ENUM"
+  },
+  {
+    "FieldName": "_vups",
+    "Collection": "Unit",
+    "ApiPath": "#vups",
+    "ApiField": "#vups",
+    "Category": "OTHER",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Cardinality": "MANY",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Virtual UPS",
+    "Path": "_vups",
+    "StringSize": "MEDIUM",
+    "TypeDetail": "STRING"
   }
 ]

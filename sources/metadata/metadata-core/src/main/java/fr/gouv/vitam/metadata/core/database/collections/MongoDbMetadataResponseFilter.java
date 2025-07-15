@@ -215,6 +215,9 @@ public class MongoDbMetadataResponseFilter {
                         VitamFieldsHelper.managementContractId()
                     );
                     break;
+                case VUPS:
+                    replace(document, Unit.VIRTUAL_UPS, PROJECTIONARGS.VUPS.exactToken());
+                    break;
                 case DUA:
                 case ALL:
                 default:

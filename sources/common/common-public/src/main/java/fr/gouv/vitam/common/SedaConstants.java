@@ -652,6 +652,11 @@ public class SedaConstants {
 
     public static final String TAG_LOGBOOK = "LogBook";
 
+    /**
+     * Virtual up tree
+     */
+    public static final String VIRTUAL_UPS = "_vups";
+
     private SedaConstants() {
         // Empty constructor
     }

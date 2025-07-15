@@ -12059,5 +12059,19 @@
     "Path": "_uploadPath",
     "StringSize": "MEDIUM",
     "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "_vups",
+    "Collection": "Unit",
+    "ApiPath": "#vups",
+    "Category": "OTHER",
+    "Description": "Arborescence virtuelle",
+    "Cardinality": "MANY",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Virtual UPS",
+    "Path": "_vups",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
   }
 ]

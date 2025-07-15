@@ -84,7 +84,8 @@ public class MetadataDocumentHelper {
         MAX("_max"),
         UDS("_uds"),
         COMPUTEDINHERITEDRULES("_computedInheritedRules"),
-        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules");
+        VALIDCOMPUTEDINHERITEDRULES("_validComputedInheritedRules"),
+        VIRTUAL_UPS("_vups");
 
         private final String fieldName;
 
@@ -106,7 +107,8 @@ public class MetadataDocumentHelper {
         APPROXIMATE_UPDATE_DATE("_aud"),
         TRANSFER_OPERATION("_opts"),
         COLLECT_BATCH_ID("_batchId"),
-        COLLECT_UPLOAD_PATH("_uploadPath");
+        COLLECT_UPLOAD_PATH("_uploadPath"),
+        VIRTUAL_UPS("_vups");
 
         private final String fieldName;
 
