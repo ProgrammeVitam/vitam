@@ -52,6 +52,7 @@ public class AntivirusResourceTest {
     private static final String ANTIVIRUS_TEST_CONF = "antivirus-test.conf";
     private static JunitHelper junitHelper;
     private static int serverPort;
+    private static String basePath;
 
     private static AntivirusMain application;
 
@@ -60,11 +61,12 @@ public class AntivirusResourceTest {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
         File configurationFile = PropertiesUtils.getResourceFile(ANTIVIRUS_TEST_CONF);
+        basePath = configurationFile.getParentFile().getCanonicalPath();
         final AntivirusConfiguration configuration = PropertiesUtils.readYaml(
             configurationFile,
             AntivirusConfiguration.class
         );
-        configuration.setPath(configurationFile.getParentFile().getCanonicalPath());
+        configuration.setBasePaths(new String[] { basePath });
         PropertiesUtils.writeYaml(configurationFile, configuration);
 
         RestAssured.port = serverPort;
@@ -95,28 +97,36 @@ public class AntivirusResourceTest {
 
     @Test
     public final void testScanOk() {
-        given().when().get(SCAN_BY_PATH_URL + "?path=no-virus.txt").then().statusCode(Status.OK.getStatusCode());
+        given()
+            .when()
+            .get(SCAN_BY_PATH_URL + "?path=" + basePath + "/no-virus.txt")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public final void testScanVirusFixed() {
         given()
             .when()
-            .get(SCAN_BY_PATH_URL + "?path=warning.txt")
+            .get(SCAN_BY_PATH_URL + "?path=" + basePath + "/warning.txt")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testScanVirus() {
-        given().when().get(SCAN_BY_PATH_URL + "?path=virus.txt").then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        given()
+            .when()
+            .get(SCAN_BY_PATH_URL + "?path=" + basePath + "/virus.txt")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     public final void testScanErrorOrException() {
         given()
             .when()
-            .get(SCAN_BY_PATH_URL + "?path=error.txt")
+            .get(SCAN_BY_PATH_URL + "?path=" + basePath + "/error.txt")
             .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -129,11 +139,19 @@ public class AntivirusResourceTest {
 
     @Test
     public final void testScanNotFound() {
-        given().when().get(SCAN_BY_PATH_URL + "?path=notfound.txt").then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given()
+            .when()
+            .get(SCAN_BY_PATH_URL + "?path=" + basePath + "/notfound.txt")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public final void testScanNotReadable() {
-        given().when().get(SCAN_BY_PATH_URL + "?path=notreadable.txt").then().statusCode(Status.OK.getStatusCode());
+        given()
+            .when()
+            .get(SCAN_BY_PATH_URL + "?path=" + basePath + "/notreadable.txt")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 }

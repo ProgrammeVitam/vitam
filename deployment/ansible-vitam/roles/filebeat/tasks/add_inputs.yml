@@ -32,7 +32,7 @@
     src: inputs/antivirus.yml.j2
     dest: /etc/filebeat/inputs.d/antivirus.yml
     mode: 0644
-  when: inventory_hostname in groups['hosts_ingest_external']
+  when: inventory_hostname in groups['hosts_ingest_external'] or inventory_hostname in groups['hosts_worker']
   notify: "filebeat - restart service"
 
 - set_fact:

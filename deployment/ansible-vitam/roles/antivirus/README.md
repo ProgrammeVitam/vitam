@@ -1,7 +1,7 @@
 Role Name
 =========
 
-ANtivirus installation.
+Antivirus installation.
 Reference block is clamAV
 
 License

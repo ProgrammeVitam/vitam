@@ -57,6 +57,8 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int schemaValidatorCacheMaxEntries = 100;
     private int schemaValidatorCacheTimeoutInSeconds = 300;
 
+    private boolean ignoreAntivirusCheck;
+
     /**
      * WorkerConfiguration empty constructor for YAMLFactory
      */
@@ -321,5 +323,13 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     public WorkerConfiguration setSchemaValidatorCacheTimeoutInSeconds(int schemaValidatorCacheTimeoutInSeconds) {
         this.schemaValidatorCacheTimeoutInSeconds = schemaValidatorCacheTimeoutInSeconds;
         return this;
+    }
+
+    public boolean isIgnoreAntivirusCheck() {
+        return ignoreAntivirusCheck;
+    }
+
+    public void setIgnoreAntivirusCheck(boolean ignoreAntivirusCheck) {
+        this.ignoreAntivirusCheck = ignoreAntivirusCheck;
     }
 }

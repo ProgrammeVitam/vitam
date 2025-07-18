@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
  */
 public class AntivirusConfiguration extends DefaultVitamApplicationConfiguration {
 
-    private String path;
+    private String[] basePaths;
     private String antiVirusScriptName;
     private long timeoutScanDelay;
 
@@ -48,16 +48,16 @@ public class AntivirusConfiguration extends DefaultVitamApplicationConfiguration
     /**
      * @return path
      */
-    public String getPath() {
-        return path;
+    public String[] getBasePaths() {
+        return basePaths;
     }
 
     /**
-     * @param path to set to configuration
+     * @param basePaths to set to configuration
      * @return AntivirusConfiguration
      */
-    public AntivirusConfiguration setPath(String path) {
-        this.path = path;
+    public AntivirusConfiguration setBasePaths(String[] basePaths) {
+        this.basePaths = basePaths;
         return this;
     }
 

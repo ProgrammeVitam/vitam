@@ -34,3 +34,6 @@ archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.worker.archiveUnitProfileCache
 # Schema validator cache settings (max entries in cache & retention timeout in seconds)
 schemaValidatorCacheMaxEntries: {{ vitam.metadata.schemaValidatorCacheMaxEntries }}
 schemaValidatorCacheTimeoutInSeconds: {{ vitam.worker.schemaValidatorCacheTimeoutInSeconds }}
+
+# Antivirus configuration
+ignoreAntivirusCheck: {{ vitam_struct.ignore_antivirus_check | default(false) | bool }}

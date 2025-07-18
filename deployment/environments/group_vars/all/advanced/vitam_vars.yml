@@ -478,6 +478,8 @@ vitam:
     # Dip/transfer threshold file size
     binarySizePlatformThreshold: 1
     binarySizePlatformThresholdSizeUnit: "GIGABYTE"
+    # this variable has containerization purposes only : must not be used in production environment
+    ignore_antivirus_check: false
   workspace:
     vitam_component: workspace
     host: "workspace.service.{{ consul_domain }}"

@@ -186,7 +186,6 @@ log_servers
 hosts_elasticsearch_log
 prometheus
 hosts_grafana
-hosts_antivirus
 
 [hosts_cerebro]
 localhost
@@ -206,9 +205,6 @@ hosts_logstash
 [hosts_kibana_log]
 
 [hosts_elasticsearch_log]
-
-[hosts_antivirus]
-localhost
 
 ########### Extra VITAM applications ###########
 [prometheus:children]

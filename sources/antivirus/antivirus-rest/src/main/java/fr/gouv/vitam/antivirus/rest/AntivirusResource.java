@@ -44,6 +44,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 import java.io.File;
+import java.util.Arrays;
 
 @Path("/antivirus/v1")
 @Tag(name = "Antivirus")
@@ -82,13 +83,21 @@ public class AntivirusResource extends ApplicationStatusResource {
     @Path("scanByPath")
     @GET
     public Response scanByPath(@QueryParam("path") String path) {
-        final String basePath = antivirusConfiguration.getPath();
+        final String[] basePaths = antivirusConfiguration.getBasePaths();
         final String antiVirusScriptName = antivirusConfiguration.getAntiVirusScriptName();
         final long timeoutScanDelay = antivirusConfiguration.getTimeoutScanDelay();
         final File file;
         try {
             SanityChecker.checkParameter(path);
-            file = SafeFileChecker.checkSafeFilePath(basePath, path.split("/"));
+            String basePath = Arrays.stream(basePaths).filter(path::startsWith).findFirst().orElse(null);
+            if (basePath == null) {
+                throw new IllegalPathException("File " + path + " is not within valid base paths");
+            }
+            String relativePath = path.substring(basePath.length());
+            if (relativePath.startsWith("/")) {
+                relativePath = relativePath.substring(1);
+            }
+            file = SafeFileChecker.checkSafeFilePath(basePath, relativePath.split("/"));
         } catch (InvalidParseOperationException e) { // Should not occur as the regex forces a non-empty path
             LOGGER.error(MESSAGE_INVALID_PATH_PARAM, e);
             return Response.status(Status.NOT_FOUND).build();

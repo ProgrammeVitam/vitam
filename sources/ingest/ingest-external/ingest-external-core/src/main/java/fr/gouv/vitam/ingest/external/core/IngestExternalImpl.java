@@ -274,7 +274,7 @@ public class IngestExternalImpl implements IngestExternal {
                      * Calls the Ingest External Antivirus service
                      */
                     AntivirusApi antivirusApi = antivirusClientFactory.getAntivirusApi();
-                    antivirusApi.scanByPath(containerNamePath + "/" + objectNamePath);
+                    antivirusApi.scanByPath(config.getPath() + "/" + containerNamePath + "/" + objectNamePath);
                 } catch (final ApiException e) {
                     exitCode = Status.fromStatusCode(e.getCode());
                     if (exitCode == null) {
