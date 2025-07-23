@@ -186,6 +186,9 @@ public class CollectHelper {
             projectDto.setComment(projectModel.getManifestContext().getComment());
             projectDto.setAcquisitionInformation(projectModel.getManifestContext().getAcquisitionInformation());
             projectDto.setLegalStatus(projectModel.getManifestContext().getLegalStatus());
+            projectDto.setArchivingSystemId(projectModel.getArchivingSystemId());
+            projectDto.setArchivingSystemTenant(projectModel.getArchivingSystemTenant());
+            projectDto.setConnectedToArchivingSystem(projectModel.getConnectedToArchivingSystem());
             projectDto.setUnitUp(projectModel.getUnitUp());
         }
         return projectDto;

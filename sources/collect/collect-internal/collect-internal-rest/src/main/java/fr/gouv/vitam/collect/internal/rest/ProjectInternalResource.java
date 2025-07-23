@@ -165,10 +165,7 @@ public class ProjectInternalResource {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            projectDto.setTenant(tenantId);
-            projectDto.setCreationDate(projectOpt.get().getCreationDate());
-            ProjectDto updatedProject = projectService.updateProject(projectDto);
+            ProjectDto updatedProject = projectService.updateProject(projectDto, projectOpt.get());
 
             return CollectRequestResponse.toResponseOK(updatedProject);
         } catch (InvalidParseOperationException | CollectInternalException | IllegalArgumentException e) {

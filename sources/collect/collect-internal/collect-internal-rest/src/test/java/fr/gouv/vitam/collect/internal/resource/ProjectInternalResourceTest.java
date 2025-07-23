@@ -226,7 +226,7 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
     public void updateProject() throws Exception {
         ProjectDto projectDto = new ProjectDto().setName("name");
         ProjectDto updatedProjectDto = new ProjectDto().setName("updatedName");
-        doReturn(updatedProjectDto).when(projectService).updateProject(any());
+        doReturn(updatedProjectDto).when(projectService).updateProject(any(), any());
         when(projectService.findProject(any())).thenReturn(Optional.of(projectDto));
         given()
             .contentType(ContentType.JSON)
@@ -252,7 +252,7 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .then()
             .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
         verify(projectService, never()).findProject(any());
-        verify(projectService, never()).updateProject(any());
+        verify(projectService, never()).updateProject(any(), any());
     }
 
     @Test
@@ -267,7 +267,7 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .put(PROJECTS)
             .then()
             .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-        verify(projectService, never()).updateProject(any());
+        verify(projectService, never()).updateProject(any(), any());
     }
 
     @Test

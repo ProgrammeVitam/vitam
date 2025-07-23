@@ -60,6 +60,9 @@ public class CollectHelperTest {
             "comment",
             "unitUp",
             1,
+            null,
+            null,
+            null,
             null
         );
     }

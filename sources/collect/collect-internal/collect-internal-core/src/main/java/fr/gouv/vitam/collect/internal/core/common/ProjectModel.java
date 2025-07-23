@@ -68,6 +68,15 @@ public class ProjectModel {
     @JsonProperty("AutomaticIngest")
     private Boolean automaticIngest;
 
+    @JsonProperty("ArchivingSystemId")
+    private String archivingSystemId;
+
+    @JsonProperty("ArchivingSystemTenant")
+    private Integer archivingSystemTenant;
+
+    @JsonProperty("ConnectedToExternalSystem")
+    private Boolean connectedToArchivingSystem;
+
     /**
      * JSLT transformation rules (beta)
      */
@@ -76,32 +85,6 @@ public class ProjectModel {
     private String transformationRules;
 
     public ProjectModel() {}
-
-    public ProjectModel(
-        String id,
-        String name,
-        ManifestContext manifestContext,
-        ProjectStatus status,
-        String creationDate,
-        String lastUpdate,
-        String unitUp,
-        List<MetadataUnitUp> unitUps,
-        Integer tenant,
-        Boolean automaticIngest,
-        String transformationRules
-    ) {
-        this.id = id;
-        this.name = name;
-        this.manifestContext = manifestContext;
-        this.status = status;
-        this.creationDate = creationDate;
-        this.lastUpdate = lastUpdate;
-        this.unitUps = unitUps;
-        this.unitUp = unitUp;
-        this.tenant = tenant;
-        this.automaticIngest = automaticIngest;
-        this.transformationRules = transformationRules;
-    }
 
     public String getId() {
         return id;
@@ -187,6 +170,30 @@ public class ProjectModel {
         return transformationRules;
     }
 
+    public String getArchivingSystemId() {
+        return archivingSystemId;
+    }
+
+    public void setArchivingSystemId(String archivingSystemId) {
+        this.archivingSystemId = archivingSystemId;
+    }
+
+    public Boolean getConnectedToArchivingSystem() {
+        return connectedToArchivingSystem;
+    }
+
+    public Integer getArchivingSystemTenant() {
+        return archivingSystemTenant;
+    }
+
+    public void setArchivingSystemTenant(Integer archivingSystemTenant) {
+        this.archivingSystemTenant = archivingSystemTenant;
+    }
+
+    public void setConnectedToArchivingSystem(Boolean connectedToArchivingSystem) {
+        this.connectedToArchivingSystem = connectedToArchivingSystem;
+    }
+
     public ProjectModel setTransformationRules(String transformationRules) {
         this.transformationRules = transformationRules;
         return this;
@@ -203,5 +210,88 @@ public class ProjectModel {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public static class Builder {
+
+        private final ProjectModel instance;
+
+        public Builder() {
+            this.instance = new ProjectModel();
+        }
+
+        public Builder id(String id) {
+            instance.setId(id);
+            return this;
+        }
+
+        public Builder name(String name) {
+            instance.setName(name);
+            return this;
+        }
+
+        public Builder manifestContext(ManifestContext context) {
+            instance.setManifestContext(context);
+            return this;
+        }
+
+        public Builder status(ProjectStatus status) {
+            instance.setStatus(status);
+            return this;
+        }
+
+        public Builder creationDate(String creationDate) {
+            instance.setCreationDate(creationDate);
+            return this;
+        }
+
+        public Builder lastUpdate(String lastUpdate) {
+            instance.setLastUpdate(lastUpdate);
+            return this;
+        }
+
+        public Builder unitUp(String unitUp) {
+            instance.setUnitUp(unitUp);
+            return this;
+        }
+
+        public Builder unitUps(List<MetadataUnitUp> unitUps) {
+            instance.setUnitUps(unitUps);
+            return this;
+        }
+
+        public Builder tenant(Integer tenant) {
+            instance.setTenant(tenant);
+            return this;
+        }
+
+        public Builder automaticIngest(Boolean automaticIngest) {
+            instance.setAutomaticIngest(automaticIngest);
+            return this;
+        }
+
+        public Builder archivingSystemId(String archivingSystemId) {
+            instance.setArchivingSystemId(archivingSystemId);
+            return this;
+        }
+
+        public Builder archivingSystemTenant(Integer archivingSystemTenant) {
+            instance.setArchivingSystemTenant(archivingSystemTenant);
+            return this;
+        }
+
+        public Builder connectedToArchivingSystem(Boolean connected) {
+            instance.setConnectedToArchivingSystem(connected);
+            return this;
+        }
+
+        public Builder transformationRules(String transformationRules) {
+            instance.setTransformationRules(transformationRules);
+            return this;
+        }
+
+        public ProjectModel build() {
+            return instance;
+        }
     }
 }
