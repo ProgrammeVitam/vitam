@@ -4,7 +4,7 @@
 
   <groupId>fr.gouv.vitam</groupId>
   <artifactId>ihm-recette</artifactId>
-  <version>8.0.1</version>
+  <version>8.0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>ihm-recette</name>
   <description>IHM Admin recette VITAM</description>
