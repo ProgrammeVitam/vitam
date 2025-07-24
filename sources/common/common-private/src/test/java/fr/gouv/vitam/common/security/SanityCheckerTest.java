@@ -27,9 +27,13 @@
 package fr.gouv.vitam.common.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Before;
 import org.junit.Test;
@@ -126,6 +130,17 @@ public class SanityCheckerTest {
         for (final String pathFile : pathsXMLowaspKO) {
             filesOwaspKO.add(PropertiesUtils.findFile(pathFile));
         }
+    }
+
+    @Test(timeout = 30_000)
+    public void sanitizeLargeArrays() throws Exception {
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+        TextNode stringValue = new TextNode(GUIDFactory.newGUID().toString());
+        for (int i = 0; i < 10_000; i++) {
+            arrayNode.add(stringValue);
+        }
+        ObjectNode json = JsonHandler.createObjectNode().set("someArray", arrayNode);
+        SanityChecker.checkJsonAll(json);
     }
 
     @Test(expected = InvalidParseOperationException.class)
