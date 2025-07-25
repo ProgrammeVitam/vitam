@@ -561,7 +561,7 @@ public class SanityChecker {
                         if (!jsonNode.isValueNode()) {
                             checkJsonSanity(jsonNode);
                         } else {
-                            validateJSONField(value);
+                            validateJSONField(jsonNode);
                         }
                     }
                 } else if (!value.isValueNode()) {
@@ -574,7 +574,7 @@ public class SanityChecker {
     }
 
     private static void validateJSONField(JsonNode value) throws InvalidParseOperationException {
-        final String svalue = JsonHandler.writeAsString(value);
+        final String svalue = value.asText();
         checkSanityTags(svalue, getLimitFieldSize());
         checkHtmlPattern(svalue);
     }

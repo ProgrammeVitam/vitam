@@ -42,7 +42,6 @@ import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -101,7 +100,7 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
             MetaDataClientFactory.getInstance(),
             BatchReportClientFactory.getInstance(),
             WorkspaceClientFactory.getInstance(WorkspaceType.VITAM),
-            GlobalDatas.LIMIT_LOAD
+            VitamConfiguration.getBatchSize()
         );
         // Default constructor for workflow initialization by Worker
     }
