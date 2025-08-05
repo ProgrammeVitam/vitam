@@ -288,16 +288,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_DIRECTORY)) {
                 // List from Storage
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                    final List<URI> objectsListUri = JsonHandler.getFromStringAsTypeReference(
+                    final List<URI> objectsListUri = JsonHandler.getFromJsonNode(
                         workspaceClient
                             .getListUriDigitalObjectFromFolder(
                                 workParams.getContainerName(),
                                 step.getDistribution().getElement()
                             )
                             .toJsonNode()
-                            .get("$results")
-                            .get(0)
-                            .toString(),
+                            .get("$results"),
                         LIST_URI_TYPE_REFERENCE
                     );
                     for (URI uri : objectsListUri) {

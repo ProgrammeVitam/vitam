@@ -137,6 +137,7 @@ public class CheckObjectSizeActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckSizeActionPluginTest",
             "workerId",
@@ -175,6 +176,7 @@ public class CheckObjectSizeActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckSizeActionPluginTest",
             "workerId",
@@ -213,6 +215,7 @@ public class CheckObjectSizeActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckSizeActionPluginTest",
             "workerId",
@@ -261,6 +264,7 @@ public class CheckObjectSizeActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckSizeActionPluginTest",
             "workerId",

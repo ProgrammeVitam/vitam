@@ -1477,6 +1477,7 @@ public class ExtractSedaActionHandlerTest {
         HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "ExtractSedaActionHandlerTest",
             "workerId",
@@ -1680,6 +1681,7 @@ public class ExtractSedaActionHandlerTest {
             super(
                 WorkFlowExecutionContext.VITAM,
                 workspaceClientFactory,
+                null,
                 logbookLifeCyclesClientFactory,
                 "ExtractSedaActionHandlerTest",
                 "workerId",

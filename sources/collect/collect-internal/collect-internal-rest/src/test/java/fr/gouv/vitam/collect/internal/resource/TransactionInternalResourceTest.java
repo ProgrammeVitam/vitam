@@ -121,7 +121,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .when()
             .get(TRANSACTIONS + "/1")
             .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -236,7 +236,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .when()
             .delete(TRANSACTIONS + "/1")
             .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test

@@ -131,6 +131,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "Test",
             "workerId",

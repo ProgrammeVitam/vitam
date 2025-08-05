@@ -137,6 +137,7 @@ public class ListArchiveUnitsActionHandlerTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",

@@ -45,11 +45,13 @@ import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectAtrExtra;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
@@ -76,6 +78,7 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractMetadataListener.class);
     private final ArchiveUnitListener archiveUnitListener;
     private final HandlerIO handlerIO;
+    private final WorkerParameters params;
     private final IngestSession ingestSession;
 
     private final JsonLineDataBase objectsDatabase;
@@ -87,7 +90,8 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
         JsonLineDataBase unitsDatabase,
         JsonLineDataBase objectsDatabase,
         MetaDataClientFactory metaDataClientFactory,
-        JsonLineWriter jsonLineWriter
+        JsonLineWriter jsonLineWriter,
+        WorkerParameters params
     ) {
         archiveUnitListener = new ArchiveUnitListener(
             handlerIO,
@@ -100,6 +104,7 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
         this.handlerIO = handlerIO;
         this.ingestSession = ingestSession;
         this.objectsDatabase = objectsDatabase;
+        this.params = params;
     }
 
     /*
@@ -188,8 +193,12 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
                 dataObjectInfo.setAlgo(DigestType.fromValue(versionsModel.getAlgorithm()));
                 dataObjectInfo.setMessageDigest(versionsModel.getMessageDigest());
 
-                long gotSize = checkAndComputeSize(versionsModel, dataObjectInfo);
-                dataObjectInfo.setSize(gotSize);
+                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                    // FIXME : Ensure limitation is documented
+                    long gotSize = checkAndComputeSize(versionsModel, dataObjectInfo);
+                    dataObjectInfo.setSize(gotSize);
+                }
+
                 detail.setVersion(
                     Objects.requireNonNullElse(
                         dataObject.getDataObjectVersion(),

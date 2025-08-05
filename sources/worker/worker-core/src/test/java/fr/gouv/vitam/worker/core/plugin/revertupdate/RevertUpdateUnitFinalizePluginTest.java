@@ -123,10 +123,14 @@ public class RevertUpdateUnitFinalizePluginTest {
             null,
             null,
             null,
+            null,
+            null,
             batchReportClient,
             null,
             logbookOperationsClient,
             storageClient,
+            null,
+            null,
             null
         );
     }

@@ -26,6 +26,9 @@
     "className": "fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin",
     "propertiesFile": "store_object_group_plugin.properties"
   },
+  "OBJ_STORAGE_COLLECT": {
+    "className": "fr.gouv.vitam.worker.core.plugin.StoreObjectGroupCollectActionPlugin"
+  },
   "UNITS_RULES_COMPUTE": {
     "className": "fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin",
     "propertiesFile": "units_rules_compute_plugin.properties"
@@ -433,6 +436,9 @@
   },
   "DELETE_GOT_VERSIONS_FINALIZATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.deleteGotVersions.handlers.DeleteGotVersionsFinalizationPlugin"
+  },
+  "COLLECT_INGEST_FINALISATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.CollectIngestFinalizationPlugin"
   },
   "CHECK_OBJECT_GROUP_SCHEMA": {
     "className": "fr.gouv.vitam.worker.core.plugin.CheckObjectGroupSchemaActionPlugin",

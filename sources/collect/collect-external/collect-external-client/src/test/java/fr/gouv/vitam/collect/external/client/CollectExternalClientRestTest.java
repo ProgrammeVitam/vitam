@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -69,11 +70,13 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SIP_UPLOAD;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -237,6 +240,15 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
             "SEN_850200_C"
         );
         Assertions.assertThat(((RequestResponseOK<String>) response).getFirstResult()).isEqualTo("MyVirtualTx");
+    }
+
+    @Test
+    public void uploadSIPToTransaction() throws Exception {
+        Mockito.when(mock.post()).thenReturn(
+            Response.ok(new RequestResponseOK<JsonNode>().addResult(JsonHandler.toJsonNode("TX_ID"))).build()
+        );
+        var response = client.uploadSipToTransaction(new VitamContext(TENANT_ID), "TX_ID", new NullInputStream(100));
+        Assertions.assertThat(response).isNotNull();
     }
 
     @Test
@@ -552,6 +564,19 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
                     .addResult(new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "unitId", null))
                     .setHttpCode(202)
             ).build();
+        }
+
+        @Path("/transactions/{transactionId}/uploadSip")
+        @POST
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(APPLICATION_JSON)
+        @Secured(permission = TRANSACTION_SIP_UPLOAD, description = "Envoyer un SIP à une transaction")
+        public Response uploadSipToTransaction(
+            @PathParam("transactionId") String transactionId,
+            InputStream inputStream
+        ) throws IOException {
+            inputStream.close();
+            return expectedResponse.post();
         }
     }
 }

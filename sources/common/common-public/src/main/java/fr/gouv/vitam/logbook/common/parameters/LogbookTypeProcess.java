@@ -159,7 +159,11 @@ public enum LogbookTypeProcess {
     /**
      * Delete GOT versions
      */
-    DELETE_GOT_VERSIONS;
+    DELETE_GOT_VERSIONS,
+    /**
+     * SIP INGEST workflow in a collect transaction
+     */
+    COLLECT_SIP_INGEST;
 
     /**
      * Get the LogbookTypeProcess matching the given type

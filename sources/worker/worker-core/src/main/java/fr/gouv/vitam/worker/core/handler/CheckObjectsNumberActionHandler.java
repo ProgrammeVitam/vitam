@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -238,21 +237,19 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             // To fix this, uncomment the next line and remove what is comming next.
             // return workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants
             // .CONTENT_SIP_FOLDER);
-            final List<URI> uriListWorkspace = JsonHandler.getFromStringAsTypeReference(
+            final List<URI> uriListWorkspace = JsonHandler.getFromJsonNode(
                 workspaceClient
                     .getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER)
                     .toJsonNode()
-                    .get("$results")
-                    .get(0)
-                    .toString(),
-                new TypeReference<List<URI>>() {}
+                    .get("$results"),
+                new TypeReference<>() {}
             );
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
             return uriListWorkspace
                 .stream()
                 .filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR))
                 .collect(Collectors.toList());
-        } catch (InvalidParseOperationException | InvalidFormatException e) {
+        } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
     }

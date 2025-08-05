@@ -105,6 +105,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             OBJ,
             "workerId",
@@ -149,6 +150,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             OBJ,
             "workerId",
@@ -187,6 +189,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         final HandlerIO action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "",
             "",

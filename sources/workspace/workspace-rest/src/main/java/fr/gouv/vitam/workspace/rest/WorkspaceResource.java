@@ -52,6 +52,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
+import fr.gouv.vitam.workspace.common.BulkMoveRequest;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 import io.swagger.v3.oas.annotations.Operation;
@@ -66,12 +67,14 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.StreamingOutput;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.archivers.ArchiveException;
 
 import java.io.IOException;
@@ -474,6 +477,50 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
     /**
+     * Moves multiple objects from source paths to destination paths within the same container
+     *
+     * @param containerName container where the objects reside
+     * @param bulkMoveRequest source and destination path pairs
+     * @return Response
+     */
+    @Path("/containers/{containerName}/bulk-move")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Move multiple objects in container",
+        description = "Permet de déplacer plusieurs objets dans le container"
+    )
+    public Response bulkMove(@PathParam(CONTAINER_NAME) String containerName, BulkMoveRequest bulkMoveRequest) {
+        try {
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName
+            );
+            ParametersChecker.checkParameter("Missing bulk move request", bulkMoveRequest);
+            ParametersChecker.checkParameter("Missing bulk move request", bulkMoveRequest.entries());
+            if (CollectionUtils.isEmpty(bulkMoveRequest.entries())) {
+                throw new IllegalArgumentException("Empty query");
+            }
+
+            workspace.checkWorkspaceContainerSanity(containerName);
+
+            workspace.moveObjects(containerName, bulkMoveRequest.entries());
+
+            return Response.status(Status.OK).build();
+        } catch (ContentAddressableStorageAlreadyExistException | IllegalPathException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * zip a specific folder into a other directory
      *
      * @param containerName
@@ -515,6 +562,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      *
      * @param containerName name of container
      * @param folderName name of folder
+     * @param limit optional parameter to limit the number of results
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -526,7 +574,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     )
     public Response getUriDigitalObjectListByFolder(
         @PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName
+        @PathParam(FOLDER_NAME) String folderName,
+        @QueryParam("limit") Integer limit
     ) {
         List<URI> uriList;
         try {
@@ -536,7 +585,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 folderName
             );
             workspace.checkWorkspaceDirSanity(containerName, folderName);
-            uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
+
+            uriList = workspace.getListUriDigitalObjectFromFolder(
+                containerName,
+                folderName,
+                (limit != null && limit > 0) ? limit : Integer.MAX_VALUE
+            );
         } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();

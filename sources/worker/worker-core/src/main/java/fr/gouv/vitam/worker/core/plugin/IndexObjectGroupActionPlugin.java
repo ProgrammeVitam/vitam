@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -47,15 +46,16 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
@@ -83,21 +83,13 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     public static final String INVALID_OR_MISSING_QUALIFIERS = "Invalid or missing _qualifiers";
     public static final String MISSING_VERSIONS = "Missing versions";
     public static final String MISSING_VERSION = "Missing version";
-    private final MetaDataClientFactory metaDataClientFactory;
 
-    public IndexObjectGroupActionPlugin() {
-        this(MetaDataClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public IndexObjectGroupActionPlugin(MetaDataClientFactory metaDataClientFactory) {
-        this.metaDataClientFactory = metaDataClientFactory;
-    }
+    public IndexObjectGroupActionPlugin() {}
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
+        try (MetaDataClient metadataClient = handler.getMetaDataClient()) {
             List<ItemStatus> aggregateItemStatus = new ArrayList<>();
             List<JsonNode> objectGroups = new ArrayList<>();
             for (String objectId : workerParameters.getObjectNameList()) {
@@ -174,8 +166,15 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         throws ProcessingException {
         ParametersChecker.checkNullOrEmptyParameters(params);
 
-        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
-            final ObjectNode json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
+        final ObjectNode json;
+        try (MetaDataClient metadataClient = handlerIO.getMetaDataClient()) {
+            if (WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                json = (ObjectNode) handlerIO.getJsonFromWorkspace(
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName()
+                );
+            } else {
+                json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
+            }
 
             return handleExistingObjectGroup(json, metadataClient, params, itemStatus);
         } catch (final MetaDataException | VitamClientException e) {

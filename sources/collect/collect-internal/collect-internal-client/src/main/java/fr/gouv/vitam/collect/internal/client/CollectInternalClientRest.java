@@ -635,4 +635,18 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
+
+    @Override
+    public void uploadSipToTransaction(String transactionId, InputStream inputStream) throws VitamClientException {
+        try (
+            Response response = make(
+                post()
+                    .withPath(TRANSACTION_PATH + "/" + transactionId + "/uploadSip")
+                    .withBody(inputStream)
+                    .withContentType(CommonMediaType.ZIP_TYPE)
+            )
+        ) {
+            check(response);
+        }
+    }
 }

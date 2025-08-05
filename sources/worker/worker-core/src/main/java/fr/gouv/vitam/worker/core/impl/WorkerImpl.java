@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.StatusAggregationBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -356,6 +357,12 @@ public class WorkerImpl implements Worker {
                 }
 
                 if (FLUSH_LFC.equals(action.getActionDefinition().getLifecycleState())) {
+                    if (WorkFlowExecutionContext.COLLECT.equals(workParams.getExecutionContext())) {
+                        throw new IllegalStateException(
+                            "FLUSH_LFC is not supported for COLLECT workflows - " +
+                            action.getActionDefinition().getActionKey()
+                        );
+                    }
                     lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
                 }
 
@@ -371,8 +378,9 @@ public class WorkerImpl implements Worker {
                     break;
                 }
             }
-
-            lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
+            if (!WorkFlowExecutionContext.COLLECT.equals(workParams.getExecutionContext())) {
+                lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
+            }
 
             clearEvDetDataForDistributedSteps(step, responses);
         } catch (ProcessingException e) {

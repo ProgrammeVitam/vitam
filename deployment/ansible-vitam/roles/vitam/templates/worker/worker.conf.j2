@@ -9,8 +9,11 @@ urlMetadata: {{vitam.metadata | client_url}}
 urlMetadataCollect: {{vitam.metadata_collect | client_url}}
 {% endif %}
 urlWorkspace: {{vitam.workspace | client_url}}
+
 {% if groups['hosts_workspace_collect'] | length > 0 %}
+# Collect configuration
 urlWorkspaceCollect: {{vitam.workspace_collect | client_url}}
+urlCollectInternal: {{ vitam.collect_internal | client_url }}
 {% endif %}
 
 # Configuration jetty

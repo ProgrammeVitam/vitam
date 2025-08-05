@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -184,23 +185,22 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                     }
 
-                    Stopwatch checkObjectNumber = Stopwatch.createStarted();
-
-                    ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
-
-                    PerformanceLogger.getInstance()
-                        .log(
-                            "STP_INGEST_CONTROL_SIP",
-                            "CHECK_DATAOBJECTPACKAGE",
-                            "checkObjectNumber",
-                            checkObjectNumber.elapsed(TimeUnit.MILLISECONDS)
-                        );
-
-                    itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
-
-                    if (checkObjectNumberStatus.shallStop(true)) {
-                        resetItemStatusMeter(itemStatus);
-                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                        // FIXME : Add limitation documentation
+                        Stopwatch checkObjectNumber = Stopwatch.createStarted();
+                        ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
+                        PerformanceLogger.getInstance()
+                            .log(
+                                "STP_INGEST_CONTROL_SIP",
+                                "CHECK_DATAOBJECTPACKAGE",
+                                "checkObjectNumber",
+                                checkObjectNumber.elapsed(TimeUnit.MILLISECONDS)
+                            );
+                        itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
+                        if (checkObjectNumberStatus.shallStop(true)) {
+                            resetItemStatusMeter(itemStatus);
+                            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                        }
                     }
 
                     Stopwatch extractSeda = Stopwatch.createStarted();

@@ -449,4 +449,16 @@ public interface CollectExternalClient extends MockOrRestClient {
         String transactionId,
         JsonNode reclassificationRequest
     ) throws VitamClientException;
+
+    /**
+     * ingest SIP to transaction
+     *
+     * @param vitamContext the vitam context
+     * @param transactionId
+     * @param stream
+     * @return response
+     * @throws VitamClientException
+     */
+    RequestResponse<Void> uploadSipToTransaction(VitamContext vitamContext, String transactionId, InputStream stream)
+        throws VitamClientException;
 }

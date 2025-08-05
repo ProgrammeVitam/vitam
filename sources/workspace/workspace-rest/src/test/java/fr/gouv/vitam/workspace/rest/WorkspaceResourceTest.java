@@ -42,6 +42,8 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
+import fr.gouv.vitam.workspace.common.BulkMoveEntry;
+import fr.gouv.vitam.workspace.common.BulkMoveRequest;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import io.restassured.RestAssured;
@@ -1084,5 +1086,150 @@ public class WorkspaceResourceTest {
         assertThat(response.getHeader(VitamHttpHeader.X_CONTENT_LENGTH.getName())).isEqualTo(data.length + "");
         assertThat(response.getHeader(VitamHttpHeader.X_CHUNK_LENGTH.getName())).isEqualTo(data.length + "");
         assertThat(response.getBody().asInputStream()).hasSameContentAs(new ByteArrayInputStream(data));
+    }
+
+    @Test
+    public void should_bulk_move_files_successfully() throws Exception {
+        // Given
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        String sourceFile1 = "source/file1.txt";
+        String sourceFile2 = "source/file2.txt";
+        String destFile1 = "destination/file1.txt";
+        String destFile2 = "destination/file2.txt";
+
+        // Create source files
+        with()
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("content1", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + sourceFile1)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("content2", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/" + sourceFile2)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // When
+        given()
+            .contentType(ContentType.JSON)
+            .body(
+                new BulkMoveRequest(
+                    List.of(new BulkMoveEntry(sourceFile1, destFile1), new BulkMoveEntry(sourceFile2, destFile2))
+                )
+            )
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/bulk-move")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
+        // Then
+        // Source files should not exist
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/" + sourceFile1);
+
+        given()
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/" + sourceFile2);
+
+        // Destination files should exist
+        given()
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/" + destFile1);
+
+        given()
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .head("/containers/" + CONTAINER_NAME + "/objects/" + destFile2);
+
+        // Content should be preserved
+        Response response1 = given()
+            .accept(ContentType.BINARY)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + destFile1)
+            .andReturn();
+        assertThat(IOUtils.toString(response1.getBody().asInputStream(), StandardCharsets.UTF_8)).isEqualTo("content1");
+
+        Response response2 = given()
+            .accept(ContentType.BINARY)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/containers/" + CONTAINER_NAME + "/objects/" + destFile2)
+            .andReturn();
+        assertThat(IOUtils.toString(response2.getBody().asInputStream(), StandardCharsets.UTF_8)).isEqualTo("content2");
+    }
+
+    @Test
+    public void should_return_not_found_when_container_not_found_in_bulk_move() {
+        // When
+        given()
+            .contentType(ContentType.JSON)
+            .body(new BulkMoveRequest(List.of(new BulkMoveEntry("source.txt", "dest.txt"))))
+            .when()
+            .post("/containers/nonexistent/bulk-move")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void should_return_not_found_when_source_file_not_found_in_bulk_move() {
+        // Given
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        // When
+        given()
+            .contentType(ContentType.JSON)
+            .body(new BulkMoveRequest(List.of(new BulkMoveEntry("nonexistent.txt", "dest.txt"))))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/bulk-move")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void should_return_bad_request_when_destination_file_already_exists() {
+        // Given
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        with()
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("content1", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/source.txt")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.BINARY)
+            .body(IOUtils.toInputStream("content2", StandardCharsets.UTF_8))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/objects/dest.txt")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        // When
+        given()
+            .contentType(ContentType.JSON)
+            .body(new BulkMoveRequest(List.of(new BulkMoveEntry("source.txt", "dest.txt"))))
+            .when()
+            .post("/containers/" + CONTAINER_NAME + "/bulk-move")
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 }

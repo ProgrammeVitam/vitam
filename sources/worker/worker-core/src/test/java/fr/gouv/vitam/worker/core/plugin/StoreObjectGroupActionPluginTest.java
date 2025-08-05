@@ -132,6 +132,7 @@ public class StoreObjectGroupActionPluginTest {
                 WorkFlowExecutionContext.VITAM,
                 null,
                 null,
+                null,
                 CONTAINER_NAME,
                 "workerId",
                 com.google.common.collect.Lists.newArrayList()

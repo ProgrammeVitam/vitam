@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.common;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -51,6 +53,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import jakarta.ws.rs.core.Response;
 
 import java.io.File;
@@ -349,6 +352,16 @@ public interface HandlerIO extends VitamAutoCloseable {
     WorkspaceClient getWorkspaceClient();
 
     /**
+     * @return the WorkspaceCollectClientFactory for the current execution context
+     */
+    WorkspaceCollectClientFactory getWorkspaceCollectClientFactory();
+
+    /**
+     * @return the WorkspaceCollectClient for the current execution context
+     */
+    WorkspaceClient getWorkspaceCollectClient();
+
+    /**
      * @return the metadata client for the current execution context
      */
     MetaDataClientFactory getMetaDataClientFactory();
@@ -397,6 +410,16 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @return the storage client for the current execution context
      */
     StorageClient getStorageClient();
+
+    /**
+     * @return the collect internal client factory for the current execution context
+     */
+    CollectInternalClientFactory getCollectInternalClientFactory();
+
+    /**
+     * @return the collect internal client for the current execution context
+     */
+    CollectInternalClient getCollectInternalClient();
 
     WorkFlowExecutionContext getWorkFlowExecutionContext();
 }

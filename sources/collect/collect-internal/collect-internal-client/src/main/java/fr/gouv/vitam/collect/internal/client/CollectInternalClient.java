@@ -383,4 +383,13 @@ public interface CollectInternalClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> startDeletion(String transactionId, DeletionRequestBody deletionRequestBody)
         throws VitamClientException;
+
+    /**
+     * Performs an ingest of a SIP into a collect transaction.
+     *
+     * @param transactionId transaction Id
+     * @param inputStream SIP payload.
+     * @return Response given response
+     */
+    void uploadSipToTransaction(String transactionId, InputStream inputStream) throws VitamClientException;
 }

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.processing.data.core.management;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -239,13 +238,8 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         throws ProcessingStorageWorkspaceException {
         Map<String, ProcessWorkflow> result = new ConcurrentHashMap<>();
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
-            List<URI> uris = JsonHandler.getFromStringAsTypeReference(
-                client
-                    .getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
-                    .toJsonNode()
-                    .get("$results")
-                    .get(0)
-                    .toString(),
+            List<URI> uris = JsonHandler.getFromJsonNode(
+                client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName).toJsonNode().get("$results"),
                 new TypeReference<>() {}
             );
             for (URI uri : uris) {
@@ -273,7 +267,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
                     LOGGER.error("Error on loading old workflow {} -> cannot be resume", uri.getPath(), e);
                 }
             }
-        } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             throw new ProcessingStorageWorkspaceException(e);
         }
         return result;

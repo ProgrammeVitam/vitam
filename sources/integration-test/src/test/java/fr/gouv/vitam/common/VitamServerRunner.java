@@ -100,6 +100,7 @@ import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import org.apache.commons.lang3.StringUtils;
@@ -1492,7 +1493,7 @@ public class VitamServerRunner extends ExternalResource {
 
     public void startWorkspaceCollectServer() throws IOException, VitamApplicationServerException {
         if (null != workspaceCollectMain) {
-            WorkspaceClientFactory.changeMode(WORKSPACE_COLLECT_URL, WorkFlowExecutionContext.COLLECT);
+            WorkspaceCollectClientFactory.changeMode(WORKSPACE_COLLECT_URL, WorkFlowExecutionContext.COLLECT);
             return;
         }
         SystemPropertyUtil.set(
@@ -1506,7 +1507,7 @@ public class VitamServerRunner extends ExternalResource {
             workspaceConfigFile,
             fr.gouv.vitam.common.storage.StorageConfiguration.class
         );
-        workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/");
+        workspaceConfiguration.setStoragePath(VitamConfiguration.getVitamDataFolder() + "/storage/collect");
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
 

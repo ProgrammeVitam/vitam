@@ -140,6 +140,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",

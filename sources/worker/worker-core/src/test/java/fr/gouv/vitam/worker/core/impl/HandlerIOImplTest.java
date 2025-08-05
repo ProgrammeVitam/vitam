@@ -39,6 +39,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.junit.Before;
@@ -77,6 +78,9 @@ public class HandlerIOImplTest {
     private WorkspaceClientFactory workspaceClientFactory;
 
     @Mock
+    private WorkspaceCollectClientFactory workspaceCollectClientFactory;
+
+    @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     @Mock
@@ -89,6 +93,7 @@ public class HandlerIOImplTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            workspaceCollectClientFactory,
             logbookLifeCyclesClientFactory,
             GUIDFactory.newGUID().getId(),
             GUIDFactory.newGUID().getId(),
@@ -189,6 +194,7 @@ public class HandlerIOImplTest {
         final HandlerIOImpl io2 = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            workspaceCollectClientFactory,
             logbookLifeCyclesClientFactory,
             "containerName",
             "workerId2",

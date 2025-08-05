@@ -34,7 +34,6 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.antivirus.rest.AntivirusMain;
@@ -49,32 +48,22 @@ import fr.gouv.vitam.collect.internal.CollectInternalMain;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.DataLoader;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
-import fr.gouv.vitam.common.VitamTestHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -82,7 +71,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -97,7 +85,6 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -129,16 +116,10 @@ import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
 import static fr.gouv.vitam.collect.CollectTestHelper.uploadZipTransaction;
 import static fr.gouv.vitam.common.TestZipUtils.unzipFile;
 import static fr.gouv.vitam.common.TestZipUtils.zipFolder;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-public class CollectIngestIT extends VitamRuleRunner {
-
-    private static final Integer TENANT_ID = 0;
-
-    private static final String ACCESS_CONTRACT = "aName3";
+public class CollectIngestIT extends AbstractCollectIT {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -172,8 +153,6 @@ public class CollectIngestIT extends VitamRuleRunner {
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor()
     );
-
-    private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @Before
     public void setUp() throws Exception {
@@ -253,7 +232,7 @@ public class CollectIngestIT extends VitamRuleRunner {
 
         InputStream inputStream = generateSip(idTransaction);
 
-        switchToVitamMetadataHack();
+        switchToVitamMetadataHack(runner);
 
         String processId;
 
@@ -347,7 +326,7 @@ public class CollectIngestIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_ingest_sip_with_complex_attachement() throws Exception {
         // Ingest holding schema SIP
-        switchToVitamMetadataHack();
+        switchToVitamMetadataHack(runner);
 
         String holdingSchemeIngestProcessId = ingestToVitam(
             PropertiesUtils.getResourceAsStream("collect/complex_attachment_holding_scheme.zip"),
@@ -359,7 +338,7 @@ public class CollectIngestIT extends VitamRuleRunner {
             .stream()
             .collect(Collectors.toMap(unit -> unit.get("Title").asText(), unit -> unit.get("#id").asText()));
 
-        switchToCollectMetadataHack();
+        switchToCollectMetadataHack(runner);
 
         // Prepare ZIP file
         File zipFile = PropertiesUtils.getResourceFile("collect/complex_attachement_with_update_operation.zip");
@@ -427,7 +406,7 @@ public class CollectIngestIT extends VitamRuleRunner {
 
         InputStream sip = generateSip(transaction.getId());
 
-        switchToVitamMetadataHack();
+        switchToVitamMetadataHack(runner);
 
         String ingestProcessId = ingestToVitam(sip);
 
@@ -468,18 +447,6 @@ public class CollectIngestIT extends VitamRuleRunner {
                 )
             )
         );
-    }
-
-    private static void switchToVitamMetadataHack() throws VitamApplicationServerException, IOException {
-        // turn off metadata-collect and run metadata
-        runner.stopMetadataCollectServer(true);
-        runner.startMetadataServer();
-    }
-
-    private static void switchToCollectMetadataHack() throws IOException, VitamApplicationServerException {
-        // turn off metadata and run metadata-collect
-        runner.stopMetadataServer(true);
-        runner.startMetadataCollectServer();
     }
 
     @Test
@@ -558,77 +525,6 @@ public class CollectIngestIT extends VitamRuleRunner {
         throw new RuntimeException("Opération échouée après plusieurs tentatives");
     }
 
-    private List<JsonNode> selectVitamMetadataUnitsByOpi(String... processIds)
-        throws InvalidCreateOperationException, VitamClientException {
-        try (AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance().getClient()) {
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.in(VitamFieldsHelper.initialOperation(), processIds));
-            vitamContext.setAccessContract(ACCESS_CONTRACT);
-            return (
-                (RequestResponseOK<JsonNode>) accessExternalClient.selectUnits(vitamContext, select.getFinalSelect())
-            ).getResults();
-        }
-    }
-
-    private String ingestToVitam(InputStream inputStream) throws VitamException {
-        return ingestToVitam(inputStream, DEFAULT_WORKFLOW);
-    }
-
-    private String ingestToVitam(InputStream inputStream, Contexts contexts) throws VitamException {
-        String processId;
-        try (
-            IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
-            AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()
-        ) {
-            RequestResponse<Void> ingest = ingestExternalClient.ingest(
-                vitamContext,
-                inputStream,
-                contexts.name(),
-                ProcessAction.RESUME.name()
-            );
-            processId = ingest.getVitamHeaders().get(GlobalDataRest.X_REQUEST_ID);
-
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
-            boolean process_timeout = vitamPoolingClient.wait(
-                TENANT_ID,
-                processId,
-                ProcessState.COMPLETED,
-                1800,
-                1_000L,
-                TimeUnit.MILLISECONDS
-            );
-            if (!process_timeout) {
-                Assertions.fail("Sip processing not finished : operation (" + processId + "). Timeout exceeded.");
-            }
-
-            RequestResponse<ItemStatus> operationResponse = adminExternalClient.getOperationProcessExecutionDetails(
-                new VitamContext(TENANT_ID),
-                processId
-            );
-            assertTrue(operationResponse.isOk());
-            VitamTestHelper.verifyOperation(processId, StatusCode.OK);
-        }
-        return processId;
-    }
-
-    private static InputStream generateSip(String idTransaction)
-        throws VitamClientException, InvalidParseOperationException {
-        InputStream inputStream;
-        try (CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient()) {
-            inputStream = client.generateSip(idTransaction);
-            RequestResponse<JsonNode> transactionResponse = client.getTransactionById(idTransaction);
-            assertThat(transactionResponse.getStatus()).isEqualTo(200);
-
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            TransactionDto transactionDtoResult = JsonHandler.getFromJsonNode(
-                requestResponseOK.getFirstResult(),
-                TransactionDto.class
-            );
-            assertThat(transactionDtoResult.getStatus()).isEqualTo(TransactionStatus.SENDING.toString());
-        }
-        return inputStream;
-    }
-
     private String getTransactionStatus(String transactionId)
         throws VitamClientException, InvalidParseOperationException {
         try (CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient()) {
@@ -641,9 +537,5 @@ public class CollectIngestIT extends VitamRuleRunner {
             );
             return transactionDtoResult.getStatus();
         }
-    }
-
-    private static JsonNode getUnitByTitle(List<JsonNode> results, String title) {
-        return results.stream().filter(unit -> title.equals(unit.get("Title").asText())).findFirst().orElseThrow();
     }
 }

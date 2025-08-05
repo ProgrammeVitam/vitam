@@ -55,6 +55,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreRespons
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -97,6 +98,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
+    private WorkspaceCollectClientFactory workspaceCollectClientFactory;
     private MetaDataClient metaDataClient;
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
@@ -161,6 +163,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            workspaceCollectClientFactory,
             logbookLifeCyclesClientFactory,
             CONTAINER_NAME,
             "workerId",

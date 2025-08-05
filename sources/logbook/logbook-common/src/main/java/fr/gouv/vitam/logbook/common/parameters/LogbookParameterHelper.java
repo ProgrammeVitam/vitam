@@ -175,6 +175,39 @@ public class LogbookParameterHelper {
         String outcomeDetailMessage,
         GUID eventIdentifierRequest
     ) {
+        return newLogbookOperationParameters(
+            eventIdentifier.getId(),
+            eventType,
+            eventIdentifierProcess != null ? eventIdentifierProcess.getId() : null,
+            eventTypeProcess,
+            outcome,
+            outcomeDetailMessage,
+            eventIdentifierRequest.getId()
+        );
+    }
+
+    /**
+     * Get a new LogbookOperationParameters object
+     *
+     * @param eventIdentifier the event id of LogbookOperationParameters to create
+     * @param eventType the event type of LogbookOperationParameters to create
+     * @param eventIdentifierProcess the event id process of LogbookOperationParameters to create
+     * @param eventTypeProcess the event type process of LogbookOperationParameters to create
+     * @param outcome the outcome of LogbookOperationParameters to create
+     * @param outcomeDetailMessage the outcome detail message of of LogbookOperationParameters to create
+     * @param eventIdentifierRequest the event id request of LogbookOperationParameters to create
+     * @return the LogbookOperationParameters
+     * @throws IllegalArgumentException if any parameter is null or empty
+     */
+    public static LogbookOperationParameters newLogbookOperationParameters(
+        String eventIdentifier,
+        String eventType,
+        String eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome,
+        String outcomeDetailMessage,
+        String eventIdentifierRequest
+    ) {
         ParametersChecker.checkParameter(
             NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
             eventIdentifier,
@@ -192,13 +225,53 @@ public class LogbookParameterHelper {
         String personalCertificate = vitamSession.getPersonalCertificate();
 
         return (LogbookOperationParameters) parameters
-            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier)
+            .putParameterValue(LogbookParameterName.eventType, eventType)
+            .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess)
+            .setTypeProcess(eventTypeProcess)
+            .setStatus(outcome)
+            .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
+            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest)
+            .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
+            .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess)
+            .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
+            .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId)
+            .putParameterValue(LogbookParameterName.agentIdentifierPersonae, personalCertificate);
+    }
+
+    public static LogbookOperationParameters newLogbookOperationParameters(
+        String eventIdentifier,
+        String eventType,
+        GUID eventIdentifierProcess,
+        LogbookTypeProcess eventTypeProcess,
+        StatusCode outcome,
+        String outcomeDetailMessage,
+        String eventIdentifierRequest
+    ) {
+        ParametersChecker.checkParameter(
+            NO_PARAMETER_CAN_BE_NULL_OR_EMPTY,
+            eventIdentifier,
+            eventIdentifierProcess,
+            eventIdentifierRequest,
+            outcome,
+            eventTypeProcess
+        );
+        ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
+        final LogbookOperationParameters parameters = newLogbookOperationParameters();
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        String applicationSessionId = vitamSession.getApplicationSessionId();
+        String contextId = vitamSession.getContextId();
+        String personalCertificate = vitamSession.getPersonalCertificate();
+
+        return (LogbookOperationParameters) parameters
+            .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier)
             .putParameterValue(LogbookParameterName.eventType, eventType)
             .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
             .setTypeProcess(eventTypeProcess)
             .setStatus(outcome)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
-            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId())
+            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest)
             .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
             .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId())
             .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)

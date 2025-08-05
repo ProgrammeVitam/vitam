@@ -179,6 +179,7 @@ public enum SecurityProfilePermissions {
     TRANSACTION_BINARY_READ("transaction:binary:read"),
     TRANSACTION_BINARY_UPSERT("transaction:binary:upsert"),
     TRANSACTION_ZIP_CREATE("transaction:zip:create"),
+    TRANSACTION_SIP_UPLOAD("transaction:sip:upload"),
     TRANSACTION_UNIT_WITH_INHERITED_RULES_READ("transaction:unitsWithInheritedRules:read"),
     PROJECT_CREATE("project:create"),
     PROJECT_READ("project:read"),

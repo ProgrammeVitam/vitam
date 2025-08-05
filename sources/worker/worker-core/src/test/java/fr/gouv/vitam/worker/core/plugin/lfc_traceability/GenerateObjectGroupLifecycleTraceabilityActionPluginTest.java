@@ -170,6 +170,7 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "GenerateLifecycleTraceabilityActionHandlerTest",
             "workerId",

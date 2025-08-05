@@ -64,6 +64,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -100,13 +101,13 @@ public class IndexObjectGroupActionPluginTest {
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(metaDataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
+            this.metaDataClientFactory,
             "IndexObjectGroupActionPluginTest",
             "workerId",
             newArrayList("objectName.json")
@@ -116,6 +117,7 @@ public class IndexObjectGroupActionPluginTest {
         in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
         handlerIO.addInIOParameters(in);
+        doReturn(metadataClient).when(metaDataClientFactory).getClient();
     }
 
     @After
@@ -128,7 +130,7 @@ public class IndexObjectGroupActionPluginTest {
         when(metadataClient.insertObjectGroup(any())).thenReturn(JsonHandler.createObjectNode());
         handlerIO.getInput().clear();
         handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
-        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        plugin = new IndexObjectGroupActionPlugin();
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
             .setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
@@ -159,7 +161,7 @@ public class IndexObjectGroupActionPluginTest {
         handlerIO
             .getInput()
             .add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
-        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        plugin = new IndexObjectGroupActionPlugin();
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
             .setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
@@ -195,7 +197,7 @@ public class IndexObjectGroupActionPluginTest {
         handlerIO
             .getInput()
             .add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
-        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        plugin = new IndexObjectGroupActionPlugin();
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
             .setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
@@ -214,7 +216,7 @@ public class IndexObjectGroupActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
-        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        plugin = new IndexObjectGroupActionPlugin();
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
             .setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
@@ -232,7 +234,7 @@ public class IndexObjectGroupActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
-        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
+        plugin = new IndexObjectGroupActionPlugin();
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
             .setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")

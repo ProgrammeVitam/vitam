@@ -116,18 +116,6 @@ public class CollectReclassificationIT extends VitamRuleRunner {
 
     private static final String XML = ".xml";
     private static final String ZIP_EXAMPLE_FILE = "collect/collect-example.zip";
-    private static final String METADATA_PATH = "/metadata/v1";
-    private static final String PROCESSING_PATH = "/processing/v1";
-    private static final String WORKER_PATH = "/worker/v1";
-    private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String WORKSPACE_COLLECT_PATH = "/workspace-collect/v1";
-    private static final String LOGBOOK_PATH = "/logbook/v1";
-    private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
-    private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
-    private static final String STORAGE_PATH = "/storage/v1";
-    private static final String OFFER_PATH = "/offer/v1";
-    private static final String BATCH_REPORT_PATH = "/batchreport/v1";
-
     private static String prefix;
 
     public static void prepareVitamSession() {

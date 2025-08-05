@@ -110,6 +110,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "FinalizeObjectGroupLifecycleTraceabilityActionPluginTest",
             "workerId",

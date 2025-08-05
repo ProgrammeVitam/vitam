@@ -141,6 +141,7 @@ public class UpdateObjectGroupPluginTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "UpdateObjectGroupPluginTest",
             "workerId",

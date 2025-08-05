@@ -52,6 +52,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipExcepti
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.api.model.TimeToLive;
+import fr.gouv.vitam.workspace.common.BulkMoveRequest;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
@@ -439,7 +440,21 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public RequestResponse<List<URI>> getListUriDigitalObjectFromFolder(String containerName, String folderName)
+    public RequestResponse<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
+        throws ContentAddressableStorageServerException {
+        return getListUriDigitalObjectFromFolder(containerName, folderName, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Get list of URI digital object from folder with result set limit
+     *
+     * @param containerName container name
+     * @param folderName folder name
+     * @param limit the maximum number of URIs to return in one batch
+     * @return RequestResponse containing list of URI
+     * @throws ContentAddressableStorageServerException if error occurs
+     */
+    public RequestResponse<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName, int limit)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(
             ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -447,14 +462,19 @@ public class WorkspaceClient extends DefaultClient {
             folderName
         );
         try (
-            Response response = make(get().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept())
+            Response response = make(
+                get()
+                    .withPath(CONTAINERS + containerName + FOLDERS + folderName)
+                    .withQueryParam("limit", String.valueOf(limit))
+                    .withJsonAccept()
+            )
         ) {
             check(response);
             List<URI> uris = response.readEntity(URI_LIST_TYPE);
-            return new RequestResponseOK().addResult(uris == null ? Collections.<URI>emptyList() : uris);
+            return new RequestResponseOK<URI>().addAllResults(uris == null ? Collections.emptyList() : uris);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
-            return new RequestResponseOK().addResult(Collections.<URI>emptyList());
+            return new RequestResponseOK<>();
         } catch (
             VitamClientInternalException
             | ContentAddressableStorageNotAcceptableException
@@ -601,6 +621,38 @@ public class WorkspaceClient extends DefaultClient {
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
         return computeObjectDigest(containerName, objectId, digestAlgorithm).equals(digest);
+    }
+
+    /**
+     * Moves multiple objects from source paths to destination paths within the same container
+     *
+     * @param containerName container where the objects reside
+     * @param bulkMoveRequest list of source/destination paths relative to the container
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container or any source object cannot be located
+     * @throws ContentAddressableStorageServerException Thrown when move action failed due to some other failure
+     */
+    public void bulkMove(String containerName, BulkMoveRequest bulkMoveRequest)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            bulkMoveRequest
+        );
+
+        try (
+            Response response = make(
+                post().withPath(CONTAINERS + containerName + "/bulk-move").withBody(bulkMoveRequest).withJson()
+            )
+        ) {
+            check(response);
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
+            throw new ContentAddressableStorageServerException(e);
+        }
     }
 
     public void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
