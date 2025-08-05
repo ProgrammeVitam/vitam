@@ -86,6 +86,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicyTypeEnum;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
@@ -461,7 +462,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     unitsDatabase,
                     objectsDatabase,
                     metaDataClientFactory,
-                    jsonLineUnitsWriter
+                    jsonLineUnitsWriter,
+                    params
                 );
 
                 unmarshaller.setListener(listener);
@@ -473,7 +475,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     unitsDatabase,
                     objectsDatabase,
                     globalCompositeItemStatus,
-                    jsonLineUnitsWriter
+                    jsonLineUnitsWriter,
+                    params
                 );
 
                 if (!ingestSession.getExistingUnitGuids().isEmpty()) {
@@ -794,7 +797,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         JsonLineDataBase unitsDatabase,
         JsonLineDataBase objectsDatabase,
         ItemStatus globalCompositeItemStatus,
-        JsonLineWriter jsonLineUnitsWriter
+        JsonLineWriter jsonLineUnitsWriter,
+        WorkerParameters params
     ) throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", ingestContext);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
@@ -879,7 +883,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         handlerIO,
                         ingestContext,
                         ingestSession,
-                        ArchiveUnitType.class
+                        ArchiveUnitType.class,
+                        params
                     );
                     continue;
                 }
@@ -890,7 +895,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         handlerIO,
                         ingestContext,
                         ingestSession,
-                        DataObjectGroupType.class
+                        DataObjectGroupType.class,
+                        params
                     );
                     continue;
                 }
@@ -902,7 +908,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         handlerIO,
                         ingestContext,
                         ingestSession,
-                        BinaryDataObjectType.class
+                        BinaryDataObjectType.class,
+                        params
                     );
                     continue;
                 }
@@ -913,7 +920,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         handlerIO,
                         ingestContext,
                         ingestSession,
-                        PhysicalDataObjectType.class
+                        PhysicalDataObjectType.class,
+                        params
                     );
                     continue;
                 }
@@ -1222,7 +1230,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             Stopwatch checkCycle = Stopwatch.createStarted();
 
-            checkCycle(handlerIO, ingestContext, ingestSession, evDetDataJson);
+            checkCycle(handlerIO, ingestContext, ingestSession, evDetDataJson, params);
 
             PERFORMANCE_LOGGER.log(
                 "STP_INGEST_CONTROL_SIP",
@@ -1248,13 +1256,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 ingestSession,
                 ingestContext.getIngestContract()
             );
+
             saveObjectGroupsToWorkspace(
                 handlerIO,
                 ingestContext,
                 ingestSession,
                 objectsDatabase,
                 storageObjectGroupInfo,
-                storageObjectInfo
+                storageObjectInfo,
+                params
             );
 
             PERFORMANCE_LOGGER.log(
@@ -1273,7 +1283,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 ingestContext,
                 ingestSession,
                 unitsDatabase,
-                storageUnitInfo
+                storageUnitInfo,
+                params
             );
 
             PERFORMANCE_LOGGER.log(
@@ -1367,7 +1378,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerIO handlerIO,
         IngestContext ingestContext,
         IngestSession ingestSession,
-        RuntimeException e
+        RuntimeException e,
+        WorkerParameters params
     )
         throws IOException, ProcessingException, InvalidParseOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         if (e.getCause() instanceof ProcessingNotFoundException) {
@@ -1378,41 +1390,44 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 ingestSession.getGuidToUnitId().put(exception.getGuid(), exception.getManifestId());
                 saveGuids(handlerIO, ingestSession);
 
-                createLifeCycleForError(
-                    ingestSession.getGuidToLifeCycleParameters(),
-                    exception.getTaskKey(),
-                    getMessageItemStatusAUNotFound(
-                        exception.getManifestId(),
+                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                    createLifeCycleForError(
+                        ingestSession.getGuidToLifeCycleParameters(),
+                        exception.getTaskKey(),
+                        getMessageItemStatusAUNotFound(
+                            exception.getManifestId(),
+                            exception.getGuid(),
+                            exception.isValidGuid()
+                        ),
                         exception.getGuid(),
-                        exception.isValidGuid()
-                    ),
-                    exception.getGuid(),
-                    true,
-                    false,
-                    ingestContext.getOperationId(),
-                    ingestContext.getTypeProcess()
-                );
-
+                        true,
+                        false,
+                        ingestContext.getOperationId(),
+                        ingestContext.getTypeProcess()
+                    );
+                }
                 throw exception;
             }
 
             if (exception.getType() == ExceptionType.GOT) {
                 ingestSession.getDataObjectIdToGuid().put(exception.getGuid(), exception.getGuid());
                 saveGuids(handlerIO, ingestSession);
-                createLifeCycleForError(
-                    ingestSession.getGuidToLifeCycleParameters(),
-                    exception.getTaskKey(),
-                    getMessageItemStatusOGNotFound(
-                        exception.getManifestId(),
+                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                    createLifeCycleForError(
+                        ingestSession.getGuidToLifeCycleParameters(),
+                        exception.getTaskKey(),
+                        getMessageItemStatusOGNotFound(
+                            exception.getManifestId(),
+                            exception.getGuid(),
+                            exception.isValidGuid()
+                        ),
                         exception.getGuid(),
-                        exception.isValidGuid()
-                    ),
-                    exception.getGuid(),
-                    false,
-                    true,
-                    ingestContext.getOperationId(),
-                    ingestContext.getTypeProcess()
-                );
+                        false,
+                        true,
+                        ingestContext.getOperationId(),
+                        ingestContext.getTypeProcess()
+                    );
+                }
                 throw exception;
             }
         }
@@ -1487,7 +1502,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerIO handlerIO,
         IngestContext ingestContext,
         IngestSession ingestSession,
-        String evDetData
+        String evDetData,
+        WorkerParameters params
     )
         throws CycleFoundException, LogbookClientNotFoundException, InvalidParseOperationException, LogbookClientBadRequestException, LogbookClientServerException {
         final DirectedGraph directedGraph = new DirectedGraph(ingestSession.getArchiveUnitTree());
@@ -1515,7 +1531,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             String wellFormedJson = JsonHandler.writeAsString(llcEvDetData);
             llcp.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
             handlerIO.getHelper().updateDelegate(llcp);
-            bulkLifeCycleUnit(handlerIO, ingestContext.getOperationId(), Lists.newArrayList(unitGuid));
+            if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                bulkLifeCycleUnit(handlerIO, ingestContext.getOperationId(), Lists.newArrayList(unitGuid));
+            }
         }
         throw new CycleFoundException(GRAPH_CYCLE_MSG, cycleMessage, evDetData);
     }
@@ -1618,7 +1636,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         IngestContext ingestContext,
         IngestSession ingestSession,
         JsonLineDataBase unitsDatabase,
-        JsonNode storageUnitInfo
+        JsonNode storageUnitInfo,
+        WorkerParameters params
     )
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException, ProcessingException, InvalidParseOperationException {
         // Finalize Archive units extraction process
@@ -1639,7 +1658,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             List<LogbookEvent> logbookLifeCycle = null;
 
             // 1- create Unit life cycles
-            createUnitLifeCycle(handlerIO, ingestSession, unitGuid, ingestContext.getOperationId());
+            if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                createUnitLifeCycle(handlerIO, ingestSession, unitGuid, ingestContext.getOperationId());
+            }
 
             // 2- Update temporary files
             final File unitCompleteTmpFile = handlerIO.getNewLocalFile(unitGuid);
@@ -1683,8 +1704,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ) {
                 postReplaceInternalReferenceForRelatedObjectReference(ingestSession, archiveUnit);
             }
+
             // Write to new File
+
             JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
+
             // Write to workspace
             handlerIO.transferFileToWorkspace(
                 IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + unitGuid + JSON_EXTENSION,
@@ -1693,31 +1717,41 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 asyncIO
             );
 
-            // 3- Update created Unit life cycles
-            addFinalStatusToUnitLifeCycle(
-                handlerIO,
-                ingestContext,
-                ingestSession,
-                unitGuid,
-                manifestUnitId,
-                isRootArchive
-            );
+            if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                // 3- Update created Unit life cycles
+                addFinalStatusToUnitLifeCycle(
+                    handlerIO,
+                    ingestContext,
+                    ingestSession,
+                    unitGuid,
+                    manifestUnitId,
+                    isRootArchive
+                );
 
-            if (logbookLifeCycle != null) {
-                createExternalLifeCycleLogbook(handlerIO, logbookLifeCycle, ingestContext.getOperationId(), unitGuid);
+                if (logbookLifeCycle != null) {
+                    createExternalLifeCycleLogbook(
+                        handlerIO,
+                        logbookLifeCycle,
+                        ingestContext.getOperationId(),
+                        unitGuid
+                    );
+                }
             }
-
             uuids.add(unitGuid);
 
             if (uuids.size() == BATCH_SIZE) {
-                bulkLifeCycleUnit(handlerIO, ingestContext.getOperationId(), uuids);
+                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                    bulkLifeCycleUnit(handlerIO, ingestContext.getOperationId(), uuids);
+                }
                 uuids.clear();
             }
         }
 
         // finish missing AU
         if (!uuids.isEmpty()) {
-            bulkLifeCycleUnit(handlerIO, ingestContext.getOperationId(), uuids);
+            if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                bulkLifeCycleUnit(handlerIO, ingestContext.getOperationId(), uuids);
+            }
             uuids.clear();
         }
     }
@@ -2638,7 +2672,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         IngestSession ingestSession,
         JsonLineDataBase objectsDatabase,
         JsonNode storageObjectGroupInfo,
-        JsonNode storageObjectInfo
+        JsonNode storageObjectInfo,
+        WorkerParameters params
     ) throws ProcessingException {
         boolean existingGot = false;
         Map<String, ObjectNode> listObjectToValidate = new HashMap<>();
@@ -2711,8 +2746,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             final File tmpFile = handlerIO.getNewLocalFile(objectGroupGuid + JSON_EXTENSION);
 
-            uuids.add(objectGroupGuid);
-
+            if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                uuids.add(objectGroupGuid);
+            }
             try {
                 final Map<String, List<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
@@ -2788,12 +2824,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     );
 
                     if (!events.isEmpty()) {
-                        createExternalLifeCycleLogbook(
-                            handlerIO,
-                            events,
-                            ingestContext.getOperationId(),
-                            objectGroupGuid
-                        );
+                        if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                            createExternalLifeCycleLogbook(
+                                handlerIO,
+                                events,
+                                ingestContext.getOperationId(),
+                                objectGroupGuid
+                            );
+                        }
                     }
                 }
 
@@ -2850,6 +2888,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         listObjectToValidate.put(existingOg, objectGroup);
                     }
                 }
+
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
                 handlerIO.transferFileToWorkspace(
@@ -2858,47 +2897,49 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     true,
                     asyncIO
                 );
-                // Create unreferenced object group
-                createObjectGroupLifeCycle(
-                    handlerIO,
-                    ingestSession.getGuidToLifeCycleParameters(),
-                    objectGroupGuid,
-                    ingestContext.getOperationId(),
-                    ingestContext.getTypeProcess()
-                );
 
-                if (!existingGot) {
-                    // Update Object Group lifeCycle creation event
-                    // Set new eventId for task and set status then update delegate
-                    String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
-                    handlerIO
-                        .getHelper()
-                        .updateDelegate(
-                            (LogbookLifeCycleObjectGroupParameters) ingestSession
-                                .getGuidToLifeCycleParameters()
-                                .get(objectGroupGuid)
-                                .setFinalStatus(HANDLER_ID, null, StatusCode.OK, null)
-                                .putParameterValue(eventIdentifier, eventId)
-                        );
-                    // Add creation sub task event (add new eventId and set status for subtask before update delegate)
-                    handlerIO
-                        .getHelper()
-                        .updateDelegate(
-                            (LogbookLifeCycleObjectGroupParameters) ingestSession
-                                .getGuidToLifeCycleParameters()
-                                .get(objectGroupGuid)
-                                .setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK, null)
-                                .putParameterValue(
-                                    eventIdentifier,
-                                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString()
-                                )
-                                .putParameterValue(parentEventIdentifier, eventId)
-                        );
-                }
+                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                    // Create unreferenced object group
+                    createObjectGroupLifeCycle(
+                        handlerIO,
+                        ingestSession.getGuidToLifeCycleParameters(),
+                        objectGroupGuid,
+                        ingestContext.getOperationId(),
+                        ingestContext.getTypeProcess()
+                    );
 
-                if (uuids.size() == BATCH_SIZE) {
-                    bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
-                    uuids.clear();
+                    if (!existingGot) {
+                        // Update Object Group lifeCycle creation event
+                        // Set new eventId for task and set status then update delegate
+                        String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
+                        handlerIO
+                            .getHelper()
+                            .updateDelegate(
+                                (LogbookLifeCycleObjectGroupParameters) ingestSession
+                                    .getGuidToLifeCycleParameters()
+                                    .get(objectGroupGuid)
+                                    .setFinalStatus(HANDLER_ID, null, StatusCode.OK, null)
+                                    .putParameterValue(eventIdentifier, eventId)
+                            );
+                        // Add creation sub task event (add new eventId and set status for subtask before update delegate)
+                        handlerIO
+                            .getHelper()
+                            .updateDelegate(
+                                (LogbookLifeCycleObjectGroupParameters) ingestSession
+                                    .getGuidToLifeCycleParameters()
+                                    .get(objectGroupGuid)
+                                    .setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK, null)
+                                    .putParameterValue(
+                                        eventIdentifier,
+                                        GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString()
+                                    )
+                                    .putParameterValue(parentEventIdentifier, eventId)
+                            );
+                    }
+                    if (uuids.size() == BATCH_SIZE) {
+                        bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
+                        uuids.clear();
+                    }
                 }
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("Can not parse ObjectGroup", e);
@@ -2918,16 +2959,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
 
-        if (!uuids.isEmpty()) {
-            try {
-                bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
-                uuids.clear();
-            } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
-                throw new VitamRuntimeException(e);
+        if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+            if (!uuids.isEmpty()) {
+                try {
+                    bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
+                    uuids.clear();
+                } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
+                    throw new VitamRuntimeException(e);
+                }
             }
         }
 
-        manageExistingObjectGroups(handlerIO, ingestContext, ingestSession, uuids);
+        manageExistingObjectGroups(handlerIO, ingestContext, ingestSession, uuids, params);
         // Check Linking to Object Group by bad SP
         if (!listObjectToValidate.isEmpty()) {
             try {
@@ -3026,7 +3069,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerIO handlerIO,
         IngestContext ingestContext,
         IngestSession ingestSession,
-        List<String> uuids
+        List<String> uuids,
+        WorkerParameters params
     ) throws ProcessingException {
         Set<String> toIgnore = new HashSet<>();
         if (!ingestSession.getExistingGOTs().isEmpty()) {
@@ -3093,19 +3137,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     continue;
                 }
 
-                uuids.add(gotGuid);
+                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                    uuids.add(gotGuid);
+                    createObjectGroupLifeCycle(
+                        handlerIO,
+                        ingestSession.getGuidToLifeCycleParameters(),
+                        gotGuid,
+                        ingestContext.getOperationId(),
+                        ingestContext.getTypeProcess()
+                    );
 
-                createObjectGroupLifeCycle(
-                    handlerIO,
-                    ingestSession.getGuidToLifeCycleParameters(),
-                    gotGuid,
-                    ingestContext.getOperationId(),
-                    ingestContext.getTypeProcess()
-                );
-
-                if (uuids.size() == BATCH_SIZE) {
-                    bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
-                    uuids.clear();
+                    if (uuids.size() == BATCH_SIZE) {
+                        bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
+                        uuids.clear();
+                    }
                 }
             } catch (final LogbookClientBadRequestException e) {
                 LOGGER.error(LOGBOOK_LF_BAD_REQUEST_EXCEPTION_MSG, e);
@@ -3119,12 +3164,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
 
-        if (!uuids.isEmpty()) {
-            try {
-                bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
-                uuids.clear();
-            } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
-                throw new VitamRuntimeException(e);
+        if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+            if (!uuids.isEmpty()) {
+                try {
+                    bulkLifeCycleObjectGroup(handlerIO, ingestContext.getOperationId(), uuids);
+                    uuids.clear();
+                } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
+                    throw new VitamRuntimeException(e);
+                }
             }
         }
     }
@@ -3374,13 +3421,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         HandlerIO handlerIO,
         IngestContext ingestContext,
         IngestSession ingestSession,
-        Class<?> clasz
+        Class<?> clasz,
+        WorkerParameters params
     )
         throws InvalidParseOperationException, LogbookClientAlreadyExistsException, LogbookClientNotFoundException, IOException, LogbookClientBadRequestException, LogbookClientServerException, ProcessingException {
         try {
             unmarshaller.unmarshal(reader, clasz);
         } catch (RuntimeException e) {
-            handleJaxbUnmarshalRuntimeException(handlerIO, ingestContext, ingestSession, e);
+            handleJaxbUnmarshalRuntimeException(handlerIO, ingestContext, ingestSession, e, params);
         } catch (JAXBException e) {
             throw new InvalidParseOperationException(e);
         }

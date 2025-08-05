@@ -144,7 +144,7 @@ public class MetadataService {
         Optional<ProjectModel> project = projectRepository.findProjectById(transactionModel.getProjectId());
 
         if (project.isEmpty()) {
-            throw new CollectInternalException("Cannot find project");
+            throw new CollectInternalServerSideException("Cannot find project " + transactionModel.getProjectId());
         }
 
         ProjectModel projectModel = project.get();

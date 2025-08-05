@@ -144,6 +144,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",

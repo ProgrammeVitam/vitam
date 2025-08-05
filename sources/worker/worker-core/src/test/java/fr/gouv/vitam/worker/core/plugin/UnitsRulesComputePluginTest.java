@@ -144,6 +144,7 @@ public class UnitsRulesComputePluginTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             GUIDFactory.newGUID().toString(),
             GUIDFactory.newGUID().toString(),

@@ -35,6 +35,7 @@ import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -92,6 +93,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNIT
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_RECLASSIFICATION;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_REOPEN;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SIP_UPLOAD;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_WITH_INHERITED_RULES_READ;
@@ -101,6 +103,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.OK;
 import static jakarta.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
@@ -115,7 +118,6 @@ public class TransactionExternalResource extends ApplicationStatusResource {
 
     private static final String UNAUTHORIZED_DSL_PARAMETER = "DSL parameter is unauthorized";
 
-    private static final String COULD_NOT_VALIDATE_REQUEST = "Could not validate request";
     private final CollectInternalClientFactory collectInternalClientFactory;
     private final IngestExternalClientFactory ingestExternalClientFactory;
 
@@ -582,6 +584,37 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error("Error when launching deletion", e);
             return Response.status(BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * Upload SIP to transaction
+     *
+     * @param inputStream SIP data input stream
+     */
+    @Path("/{transactionId}/uploadSip")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_SIP_UPLOAD, description = "Envoyer un SIP à une transaction")
+    public Response uploadSipToTransaction(@PathParam("transactionId") String transactionId, InputStream inputStream) {
+        try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
+            SanityChecker.checkParameter(transactionId);
+            ParametersChecker.checkParameter("You must supply a file!", inputStream);
+            client.uploadSipToTransaction(transactionId, inputStream);
+            return Response.ok().build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            return Response.status(PRECONDITION_FAILED).build();
+        } catch (CollectInternalClientNotFoundException e) {
+            LOGGER.error("Error when uploading SIP to transaction - Not Found", e);
+            return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (CollectInternalClientInvalidRequestException e) {
+            LOGGER.error("Error when uploading SIP to transaction - BAD REQUEST ", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (final Exception e) {
+            LOGGER.error("Error when uploading SIP to transaction - Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 }

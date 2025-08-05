@@ -1,0 +1,233 @@
+{
+  "id": "COLLECT_SIP_INGEST",
+  "name": "Collect Ingest Workflow",
+  "identifier": "COLLECT_SIP_INGEST",
+  "typeProc": "COLLECT_SIP_INGEST",
+  "comment": "Collect Ingest SIP Workflow",
+  "executionContext": "COLLECT",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_INGEST_CONTROL_SIP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_SEDA",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "sedaParams.json",
+                "uri": "WORKSPACE:Maps/sedaParams.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_HEADER",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkOriginatingAgency",
+                "uri": "VALUE:true"
+              },
+              {
+                "name": "checkProfile",
+                "uri": "VALUE:true"
+              }
+            ],
+            "out": [
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PREPARE_STORAGE_INFO",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:false"
+              },
+              {
+                "name": "UnitType",
+                "uri": "VALUE:INGEST"
+              },
+              {
+                "name": "storageInfo.json",
+                "uri": "WORKSPACE:StorageInfo/storageInfo.json"
+              },
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unitsLevel.file",
+                "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
+              },
+              {
+                "name": "mapsDOtoOG.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
+              },
+              {
+                "name": "mapsDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "mapsDOtoVersionBDO.file",
+                "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
+              },
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              },
+              {
+                "name": "mapsObjectGroup.file",
+                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "existingObjectGroup.file",
+                "uri": "WORKSPACE:UpdateObjectGroup/existing_object_group.json"
+              },
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              },
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              },
+              {
+                "name": "mapsExisitingGotToNewGotForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json"
+              },
+              {
+                "name": "mapsExisitingUnitsForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_UNITS_GUID_FOR_ATTACHMENT_MAP.json"
+              },
+              {
+                "name": "mapsExisitingGotsForAttachment.file",
+                "uri": "WORKSPACE:Maps/EXISTING_GOTS_GUID_FOR_ATTACHMENT_MAP.json"
+              },
+              {
+                "name": "mapsUnitIdToUnitDetail.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_ARCHIVE_DETAIL_MAP.jsonl"
+              },
+              {
+                "name": "mapsDOGuidToDO.file",
+                "uri": "WORKSPACE:Maps/DO_GUID_TO_DO_MAP.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OBJ_STORING",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup",
+        "bulkSize": 1000
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "OBJ_STORAGE_COLLECT",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_INDEXATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_METADATA",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "bulkSize": 1000
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNIT_METADATA_INDEXATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_COLLECT_INGEST_FINALISATION",
+      "behavior": "FINALLY",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COLLECT_INGEST_FINALISATION",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -56,7 +56,7 @@ public class CollectInternalClientFactory extends VitamClientFactory<CollectInte
      * @return the instance
      */
     public static CollectInternalClientFactory getInstance() {
-        return getInstance(WorkFlowExecutionContext.VITAM);
+        return getInstance(WorkFlowExecutionContext.COLLECT);
     }
 
     /**
@@ -67,7 +67,8 @@ public class CollectInternalClientFactory extends VitamClientFactory<CollectInte
      */
     public static CollectInternalClientFactory getInstance(WorkFlowExecutionContext executionContext) {
         return switch (executionContext) {
-            case VITAM, COLLECT -> COLLECT_CLIENT_FACTORY;
+            case COLLECT -> COLLECT_CLIENT_FACTORY;
+            case VITAM -> throw new IllegalArgumentException("Illegal execution context: " + executionContext);
         };
     }
 
@@ -111,7 +112,7 @@ public class CollectInternalClientFactory extends VitamClientFactory<CollectInte
     /**
      * @param configuration Generate MOCK vitamClientType for null configuration
      */
-    static void changeMode(ClientConfiguration configuration) {
+    public static void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 }

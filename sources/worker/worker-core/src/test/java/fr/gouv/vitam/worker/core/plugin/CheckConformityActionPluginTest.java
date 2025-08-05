@@ -218,6 +218,7 @@ public class CheckConformityActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckConformityActionHandlerTest",
             "workerId",
@@ -271,6 +272,7 @@ public class CheckConformityActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckConformityActionHandlerTest",
             "workerId",
@@ -318,6 +320,7 @@ public class CheckConformityActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckConformityActionHandlerTest",
             "workerId",
@@ -364,6 +367,7 @@ public class CheckConformityActionPluginTest {
         final HandlerIOImpl handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "CheckConformityActionHandlerTest",
             "workerId",

@@ -38,6 +38,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.common.BulkMoveEntry;
+import fr.gouv.vitam.workspace.common.BulkMoveRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -115,6 +117,14 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
 
         public MockObjectResource(ExpectedResults mock) {
             this.mock = mock;
+        }
+
+        @Path("{containerName}/bulk-move")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkMove(@PathParam("containerName") String containerName, BulkMoveRequest bulkMoveRequest) {
+            return mock.post();
         }
 
         @Path("{containerName}/objects/{objectName}")
@@ -475,6 +485,33 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         System.out.println(client.toString());
-        client.bulkGetObjects(CONTAINER_NAME, Arrays.asList("id1", "id2"));
+        client.bulkGetObjects(CONTAINER_NAME, List.of("id1", "id2"));
+    }
+
+    // bulkMove tests
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullContainerWhenBulkMoveThenRaiseAnException() throws Exception {
+        client.bulkMove(null, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
+    }
+
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void givenServerErrorWhenBulkMoveThenRaiseAnException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.bulkMove(CONTAINER_NAME, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenContainerNotFoundWhenBulkMoveThenRaiseAnException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.bulkMove(CONTAINER_NAME, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
+    }
+
+    @Test
+    public void givenValidParametersWhenBulkMoveThenSuccess() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        client.bulkMove(
+            CONTAINER_NAME,
+            new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"), new BulkMoveEntry("source2", "dest2")))
+        );
     }
 }

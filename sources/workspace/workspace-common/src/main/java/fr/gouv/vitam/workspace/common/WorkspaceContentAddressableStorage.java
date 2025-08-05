@@ -121,15 +121,16 @@ public interface WorkspaceContentAddressableStorage {
     boolean isExistingFolder(String containerName, String folderName);
 
     /**
-     * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
+     * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/ with batch size
      *
      * @param containerName not null allowed container where this exists.
      * @param folderName not null allowed fully qualified folder name relative to the container.
-     * @return a list of URI
+     * @param limit the maximum number of URIs to return
+     * @return a list of URI limited by the batch size
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      */
-    List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
+    List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName, int limit)
         throws ContentAddressableStorageException;
 
     /**
@@ -252,4 +253,11 @@ public interface WorkspaceContentAddressableStorage {
 
     Map<String, FileParams> getFilesWithParamsFromFolder(String containerName, String folderName)
         throws ContentAddressableStorageException;
+
+    /**
+     * Bulk move objects of a container
+     * @param containerName the container name in which data is persisted
+     * @param entries list of source/destination object name pairs
+     */
+    void moveObjects(String containerName, List<BulkMoveEntry> entries) throws ContentAddressableStorageException;
 }

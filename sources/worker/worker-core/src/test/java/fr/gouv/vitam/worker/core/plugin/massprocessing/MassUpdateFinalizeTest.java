@@ -122,10 +122,14 @@ public class MassUpdateFinalizeTest {
             null,
             null,
             null,
+            null,
+            null,
             batchReportClient,
             null,
             logbookOperationsClient,
             storageClient,
+            null,
+            null,
             null
         );
     }

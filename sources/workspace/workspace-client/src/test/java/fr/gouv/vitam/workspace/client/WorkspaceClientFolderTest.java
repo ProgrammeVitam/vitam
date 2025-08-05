@@ -249,14 +249,9 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
     public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList()
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InvalidFormatException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
-        final List<URI> uris = JsonHandler.getFromStringAsTypeReference(
-            client
-                .getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode()
-                .get("$results")
-                .get(0)
-                .toString(),
-            new TypeReference<List<URI>>() {}
+        final List<URI> uris = JsonHandler.getFromJsonNode(
+            client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME).toJsonNode().get("$results"),
+            new TypeReference<>() {}
         );
         assertTrue(uris.isEmpty());
     }
@@ -268,14 +263,9 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(uriListWorkspaceOK).build());
-        final List<URI> uris = JsonHandler.getFromStringAsTypeReference(
-            client
-                .getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode()
-                .get("$results")
-                .get(0)
-                .toString(),
-            new TypeReference<List<URI>>() {}
+        final List<URI> uris = JsonHandler.getFromJsonNode(
+            client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME).toJsonNode().get("$results"),
+            new TypeReference<>() {}
         );
         assertTrue(!uris.isEmpty());
         for (final URI uriWorkspace : uris) {

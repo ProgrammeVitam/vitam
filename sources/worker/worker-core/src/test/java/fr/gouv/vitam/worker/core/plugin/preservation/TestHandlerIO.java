@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.core.plugin.preservation;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -52,6 +54,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import jakarta.ws.rs.core.Response;
 import org.mockito.Mockito;
 
@@ -80,11 +83,13 @@ public class TestHandlerIO implements HandlerIO {
     private String containerName = "DEFAULT_CONTAINER_NAME";
 
     private final WorkspaceClient workspaceClient;
+    private final WorkspaceClient workspaceCollectClient;
     private final AdminManagementClientFactory adminManagementClientFactory;
     private final AdminManagementClient adminManagementClient;
     private final MetaDataClient metaDataClient;
     private final MetaDataClientFactory metaDataClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final WorkspaceCollectClientFactory workspaceCollectClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final BatchReportClientFactory batchReportClientFactory;
     private final BatchReportClient batchReportClient;
@@ -92,28 +97,36 @@ public class TestHandlerIO implements HandlerIO {
     private final LogbookOperationsClient logbookOperationsClient;
     private final StorageClient storageClient;
     private final StorageClientFactory storageClientFactory;
+    private final CollectInternalClientFactory collectInternalClientFactory;
+    private final CollectInternalClient collectInternalClient;
 
     public TestHandlerIO(
         WorkspaceClient workspaceClient,
+        WorkspaceClient workspaceCollectClient,
         AdminManagementClientFactory adminManagementClientFactory,
         AdminManagementClient adminManagementClient,
         MetaDataClient metaDataClient,
         MetaDataClientFactory metaDataClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
+        WorkspaceCollectClientFactory workspaceCollectClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
         BatchReportClientFactory batchReportClientFactory,
         BatchReportClient batchReportClient,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         LogbookOperationsClient logbookOperationsClient,
         StorageClient storageClient,
-        StorageClientFactory storageClientFactory
+        StorageClientFactory storageClientFactory,
+        CollectInternalClientFactory collectInternalClientFactory,
+        CollectInternalClient collectInternalClient
     ) {
         this.workspaceClient = workspaceClient;
+        this.workspaceCollectClient = workspaceCollectClient;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.adminManagementClient = adminManagementClient;
         this.metaDataClient = metaDataClient;
         this.metaDataClientFactory = metaDataClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.workspaceCollectClientFactory = workspaceCollectClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
         this.batchReportClient = batchReportClient;
@@ -121,23 +134,29 @@ public class TestHandlerIO implements HandlerIO {
         this.logbookOperationsClient = logbookOperationsClient;
         this.storageClient = storageClient;
         this.storageClientFactory = storageClientFactory;
+        this.collectInternalClientFactory = collectInternalClientFactory;
+        this.collectInternalClient = collectInternalClient;
     }
 
     public TestHandlerIO() {
         this(
+            Mockito.mock(WorkspaceClient.class),
             Mockito.mock(WorkspaceClient.class),
             Mockito.mock(AdminManagementClientFactory.class),
             Mockito.mock(AdminManagementClient.class),
             Mockito.mock(MetaDataClient.class),
             Mockito.mock(MetaDataClientFactory.class),
             Mockito.mock(WorkspaceClientFactory.class),
+            Mockito.mock(WorkspaceCollectClientFactory.class),
             Mockito.mock(LogbookLifeCyclesClientFactory.class),
             Mockito.mock(BatchReportClientFactory.class),
             Mockito.mock(BatchReportClient.class),
             Mockito.mock(LogbookOperationsClientFactory.class),
             Mockito.mock(LogbookOperationsClient.class),
             Mockito.mock(StorageClient.class),
-            Mockito.mock(StorageClientFactory.class)
+            Mockito.mock(StorageClientFactory.class),
+            Mockito.mock(CollectInternalClientFactory.class),
+            Mockito.mock(CollectInternalClient.class)
         );
     }
 
@@ -374,6 +393,16 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public WorkspaceCollectClientFactory getWorkspaceCollectClientFactory() {
+        return workspaceCollectClientFactory;
+    }
+
+    @Override
+    public WorkspaceClient getWorkspaceCollectClient() {
+        return workspaceCollectClient;
+    }
+
+    @Override
     public MetaDataClientFactory getMetaDataClientFactory() {
         return metaDataClientFactory;
     }
@@ -421,6 +450,16 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public StorageClient getStorageClient() {
         return storageClient;
+    }
+
+    @Override
+    public CollectInternalClientFactory getCollectInternalClientFactory() {
+        return collectInternalClientFactory;
+    }
+
+    @Override
+    public CollectInternalClient getCollectInternalClient() {
+        return collectInternalClient;
     }
 
     @Override

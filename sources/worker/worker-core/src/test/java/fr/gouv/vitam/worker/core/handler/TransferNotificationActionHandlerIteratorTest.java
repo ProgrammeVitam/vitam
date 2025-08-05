@@ -181,6 +181,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",

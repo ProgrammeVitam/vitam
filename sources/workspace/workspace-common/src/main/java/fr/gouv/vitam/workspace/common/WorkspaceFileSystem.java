@@ -331,13 +331,16 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     }
 
     @Override
-    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
+    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName, int limit)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(
             ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName
         );
         ParametersChecker.checkParameter(ErrorMessage.FOLDER_NOT_FOUND.getMessage(), folderName);
+        if (limit <= 0) {
+            throw new IllegalArgumentException("Limit must be greater than 0");
+        }
         if (!isExistingContainer(containerName)) {
             // retro-compatibility
             throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
@@ -361,6 +364,11 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                         }
                         String pathFile = file.toString().replace(folderPath + "/", "");
                         list.add(URI.create(URLEncoder.encode(pathFile, StandardCharsets.UTF_8)));
+
+                        // Stop walking if we've reached the batch size
+                        if (list.size() >= limit) {
+                            return FileVisitResult.TERMINATE;
+                        }
 
                         return FileVisitResult.CONTINUE;
                     }
@@ -872,5 +880,59 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             return 100;
         }
         return (int) (((float) workspace.getUsableSpace() / workspace.getTotalSpace()) * 100);
+    }
+
+    @Override
+    public void moveObjects(String containerName, List<BulkMoveEntry> entries)
+        throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
+
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName
+            );
+        }
+
+        try {
+            for (BulkMoveEntry entry : entries) {
+                String sourcePath = entry.source();
+                String destinationPath = entry.destination();
+
+                // Check workspace file sanity for both paths
+                checkWorkspaceFileSanity(containerName, sourcePath);
+                checkWorkspaceFileSanity(containerName, destinationPath);
+
+                Path sourceFilePath = getObjectPath(containerName, sourcePath);
+                Path destinationFilePath = getObjectPath(containerName, destinationPath);
+
+                if (!sourceFilePath.toFile().exists()) {
+                    LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + sourcePath);
+                    throw new ContentAddressableStorageNotFoundException(
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + sourcePath
+                    );
+                }
+
+                // Create parent directories for destination if needed
+                Path parentPath = destinationFilePath.getParent();
+                if (!parentPath.toFile().exists()) {
+                    Files.createDirectories(parentPath);
+                }
+
+                if (destinationFilePath.toFile().exists()) {
+                    throw new ContentAddressableStorageAlreadyExistException(
+                        "Cannot move '" + sourcePath + "' to '" + destinationPath + "' Destination path already exists"
+                    );
+                }
+
+                // Move the file
+                Files.move(sourceFilePath, destinationFilePath, StandardCopyOption.ATOMIC_MOVE);
+            }
+        } catch (IOException | IllegalPathException ex) {
+            throw new ContentAddressableStorageException(ex);
+        }
     }
 }

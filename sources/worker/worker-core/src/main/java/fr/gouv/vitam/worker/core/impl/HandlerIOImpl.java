@@ -34,6 +34,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
+import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -73,6 +75,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -113,6 +116,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     private final File localDirectory;
     private final Map<String, Object> memoryMap = new HashMap<>();
     private final WorkspaceClientFactory workspaceClientFactory;
+    private MetaDataClientFactory metadataClientFactory;
+    private final WorkspaceCollectClientFactory workspaceCollectClientFactory;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final LogbookLifeCyclesClientHelper helper;
 
@@ -139,7 +144,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         this(
             workFlowExecutionContext,
             WorkspaceClientFactory.getInstance(workFlowExecutionContext),
+            WorkspaceCollectClientFactory.getInstance(),
             LogbookLifeCyclesClientFactory.getInstance(workFlowExecutionContext),
+            MetaDataClientFactory.getInstance(workFlowExecutionContext),
             containerName,
             workerId,
             objectIds
@@ -150,6 +157,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Constructor with workspaceClient, local root path he is used for test purpose
      *
      * @param workFlowExecutionContext
+     * @param workspaceClientFactory
+     * @param workspaceCollectClientFactory
+     * @param logbookLifeCyclesClientFactory
      * @param containerName the container name
      * @param workerId the worker id
      * @param objectIds
@@ -158,6 +168,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public HandlerIOImpl(
         WorkFlowExecutionContext workFlowExecutionContext,
         WorkspaceClientFactory workspaceClientFactory,
+        WorkspaceCollectClientFactory workspaceCollectClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
         String containerName,
         String workerId,
@@ -169,11 +180,35 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
         this.workspaceClientFactory = workspaceClientFactory;
+        this.workspaceCollectClientFactory = workspaceCollectClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         helper = new LogbookLifeCyclesClientHelper();
         this.objectIds = objectIds;
 
         this.asyncWorkspaceTransfer = new AsyncWorkspaceTransfer(this);
+    }
+
+    @VisibleForTesting
+    public HandlerIOImpl(
+        WorkFlowExecutionContext workFlowExecutionContext,
+        WorkspaceClientFactory workspaceClientFactory,
+        WorkspaceCollectClientFactory workspaceCollectClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        MetaDataClientFactory metaDataClientFactory,
+        String containerName,
+        String workerId,
+        List<String> objectIds
+    ) {
+        this(
+            workFlowExecutionContext,
+            workspaceClientFactory,
+            workspaceCollectClientFactory,
+            logbookLifeCyclesClientFactory,
+            containerName,
+            workerId,
+            objectIds
+        );
+        this.metadataClientFactory = metaDataClientFactory;
     }
 
     @Override
@@ -534,6 +569,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         final File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
+
             try (WorkspaceClient workspaceClient = getWorkspaceClient()) {
                 response = workspaceClient.getObject(containerName, objectName);
                 if (response != null) {
@@ -595,16 +631,14 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try (WorkspaceClient workspaceClient = getWorkspaceClient()) {
-            return JsonHandler.getFromStringAsTypeReference(
+            return JsonHandler.getFromJsonNode(
                 workspaceClient
                     .getListUriDigitalObjectFromFolder(containerName, folderName)
                     .toJsonNode()
-                    .get("$results")
-                    .get(0)
-                    .toString(),
-                new TypeReference<List<URI>>() {}
+                    .get("$results"),
+                new TypeReference<>() {}
             );
-        } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         }
@@ -749,14 +783,23 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         return workspaceClientFactory;
     }
 
+    public WorkspaceCollectClientFactory getWorkspaceCollectClientFactory() {
+        return workspaceCollectClientFactory;
+    }
+
     @Override
     public WorkspaceClient getWorkspaceClient() {
         return getWorkspaceClientFactory().getClient();
     }
 
     @Override
+    public WorkspaceClient getWorkspaceCollectClient() {
+        return getWorkspaceCollectClientFactory().getClient();
+    }
+
+    @Override
     public MetaDataClientFactory getMetaDataClientFactory() {
-        return MetaDataClientFactory.getInstance(workFlowExecutionContext);
+        return this.metadataClientFactory;
     }
 
     @Override
@@ -802,6 +845,16 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public StorageClient getStorageClient() {
         return getStorageClientFactory().getClient();
+    }
+
+    @Override
+    public CollectInternalClientFactory getCollectInternalClientFactory() {
+        return CollectInternalClientFactory.getInstance(workFlowExecutionContext);
+    }
+
+    @Override
+    public CollectInternalClient getCollectInternalClient() {
+        return getCollectInternalClientFactory().getClient();
     }
 
     @Override

@@ -162,6 +162,7 @@ public class StoreMetaDataUnitActionPluginTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             CONTAINER_NAME,
             "workerId",

@@ -56,6 +56,11 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>collect-internal-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>

@@ -38,6 +38,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
@@ -180,7 +181,7 @@ public class TransactionRepository {
             }
             return Optional.of(BsonHelper.fromDocumentToObject(first, TransactionModel.class));
         } catch (InvalidParseOperationException e) {
-            throw new CollectInternalException("Error when searching transaction by id: " + e);
+            throw new CollectInternalServerSideException("Error when searching transaction by id: " + e);
         }
     }
 

@@ -119,6 +119,7 @@ public class ListRunningIngestsActionHandlerTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             mock(LogbookLifeCyclesClientFactory.class),
             guid.getId(),
             "workerId",

@@ -197,6 +197,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "ExtractSedaActionHandlerTest",
             "workerId",
@@ -295,7 +296,7 @@ public class CheckDataObjectPackageActionHandlerTest {
             Response.status(Status.OK).entity(seda_arborescence).build()
         );
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any())).thenReturn(
-            new RequestResponseOK<List<URI>>().addResult(List.copyOf(uriSetWorkspaceOK))
+            new RequestResponseOK<URI>().addAllResults(List.copyOf(uriSetWorkspaceOK))
         );
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json"))).thenReturn(
             Response.status(Status.OK).entity(storageInfo).build()

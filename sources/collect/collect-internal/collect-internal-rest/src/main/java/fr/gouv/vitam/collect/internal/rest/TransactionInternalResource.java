@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.collect.internal.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,6 +37,7 @@ import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
@@ -101,6 +103,7 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
@@ -108,7 +111,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -184,8 +186,8 @@ public class TransactionInternalResource {
             Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
 
             if (transactionModel.isEmpty()) {
-                LOGGER.error(TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
+                LOGGER.error("Transaction not found with id '{}'", transactionId);
+                return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
             }
 
             TransactionDto transactionDto = CollectHelper.convertTransactionModelToTransactionDto(
@@ -193,12 +195,12 @@ public class TransactionInternalResource {
             );
 
             return CollectRequestResponse.toResponseOK(transactionDto);
-        } catch (CollectInternalException e) {
-            LOGGER.error("Error when get transaction by Id :", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error("Error when get transaction by Id :", e);
+            LOGGER.error("Error when get transaction by Id. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("Error when get transaction by Id. Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -213,13 +215,14 @@ public class TransactionInternalResource {
             TransactionDto result = CollectHelper.convertTransactionModelToTransactionDto(transactionModel);
             return CollectRequestResponse.toResponseOK(result);
         } catch (CollectInternalNotFoundException e) {
-            LOGGER.error(TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
-            return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
-        } catch (CollectInternalException e) {
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            LOGGER.error("Error updating transaction. Not Found", e);
+            return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error("Error when trying to parse :", e);
+            LOGGER.error("Error updating transaction. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("Error updating transaction. Internal Server Error :", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -233,18 +236,18 @@ public class TransactionInternalResource {
             Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
 
             if (transactionModel.isEmpty()) {
-                LOGGER.error(TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
+                LOGGER.error("Error while deleting transaction by Id. Not Found");
+                return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
             }
 
             transactionService.deleteTransaction(transactionModel.get().getId());
             return Response.status(Response.Status.OK).build();
-        } catch (CollectInternalException e) {
-            LOGGER.error("Error when delete transaction by Id :", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error("Error when delete transaction by Id :", e);
+            LOGGER.error("Error while deleting transaction by Id. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("Error while deleting transaction by Id. Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -270,7 +273,8 @@ public class TransactionInternalResource {
             JsonNode savedUnitJsonNode = metadataService.saveArchiveUnit(unitJsonNode, transactionModel.get());
 
             return CollectRequestResponse.toResponseOK(savedUnitJsonNode);
-        } catch (CollectInternalException | InvalidParseOperationException e) {
+        } catch (Exception e) {
+            LOGGER.error("Error when uploading archive unit. Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
@@ -291,7 +295,7 @@ public class TransactionInternalResource {
                 transactionId
             );
             return Response.status(Response.Status.OK).entity(units).build();
-        } catch (CollectInternalException e) {
+        } catch (Exception e) {
             LOGGER.error("Error when getting units in metadata :", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
@@ -306,12 +310,12 @@ public class TransactionInternalResource {
             SanityChecker.checkParameter(transactionId);
             transactionService.changeTransactionStatus(TransactionStatus.READY, transactionId);
             return Response.status(OK).build();
-        } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to close transaction :", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to close transaction :", e);
+            LOGGER.error("An error occurs when try to close transaction. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to close transaction. Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -324,12 +328,12 @@ public class TransactionInternalResource {
             SanityChecker.checkParameter(transactionId);
             transactionService.changeTransactionStatus(TransactionStatus.ABORTED, transactionId);
             return Response.status(OK).build();
-        } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to abort transaction :", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to abort transaction :", e);
+            LOGGER.error("An error occurs when try to abort transaction. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to abort transaction. Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -342,12 +346,12 @@ public class TransactionInternalResource {
             SanityChecker.checkParameter(transactionId);
             transactionService.changeTransactionStatus(TransactionStatus.OPEN, transactionId);
             return Response.status(OK).build();
-        } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to reopen transaction :", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to reopen transaction :", e);
+            LOGGER.error("An error occurs when try to reopen transaction. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to reopen transaction. Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -385,14 +389,14 @@ public class TransactionInternalResource {
             }
             return Response.ok(sipInputStream).build();
         } catch (CollectInternalException | IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error("An error occurs when try to generate SIP :", e);
+            LOGGER.error("An error occurs when try to generate SIP. Bad Request", e);
             transactionService.changeTransactionStatus(TransactionStatus.KO, transactionId);
             return Response.status(BAD_REQUEST).build();
         } catch (Exception e) {
             if (sipInputStream != null) {
                 StreamUtils.closeSilently(sipInputStream);
             }
-            LOGGER.error("Error when ingesting  transaction   ", e);
+            LOGGER.error("Error when ingesting  transaction. Internal Server Error", e);
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -430,10 +434,10 @@ public class TransactionInternalResource {
             }
             return Response.ok(new RequestResponseOK<>()).build();
         } catch (IllegalArgumentException | InvalidParseOperationException | CollectInternalInvalidRequestException e) {
-            LOGGER.error("An error occurs when try to update metadata :", e);
+            LOGGER.error("An error occurs when try to update metadata. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        } catch (CollectInternalException | IOException e) {
-            LOGGER.error("An error occurs when try to update metadata :", e);
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to update metadata. Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
@@ -454,10 +458,10 @@ public class TransactionInternalResource {
 
             return Response.ok(new RequestResponseOK<>()).build();
         } catch (IllegalArgumentException | InvalidParseOperationException | CollectInternalInvalidRequestException e) {
-            LOGGER.error("An error occurs when try to update metadata :", e);
+            LOGGER.error("An error occurs when try to update metadata. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        } catch (CollectInternalException | RuntimeException e) {
-            LOGGER.error("An error occurs when try to update metadata :", e);
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to update metadata. Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
@@ -489,10 +493,10 @@ public class TransactionInternalResource {
                 attachementId
             );
         } catch (IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to upload the ZIP:", e);
+            LOGGER.error("An error occurs when try to upload the ZIP. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to upload the ZIP:", e);
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to upload the ZIP. Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
@@ -509,12 +513,12 @@ public class TransactionInternalResource {
             SanityChecker.checkParameter(transactionId);
             transactionService.changeTransactionStatus(transactionStatus, transactionId);
             return Response.status(OK).build();
-        } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to update transaction :", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to update transaction :", e);
+            LOGGER.error("An error occurs when try to update transaction status. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurs when try to update transaction status. Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -656,7 +660,7 @@ public class TransactionInternalResource {
 
         Optional<ProjectDto> projectDto = projectService.findProject(transaction.getProjectId());
         if (projectDto.isEmpty()) {
-            throw new CollectInternalInvalidRequestException(PROJECT_NOT_FOUND);
+            throw new CollectInternalServerSideException(PROJECT_NOT_FOUND);
         }
         return transaction;
     }
@@ -768,6 +772,7 @@ public class TransactionInternalResource {
                 EMPTY_QUERY_IS_IMPOSSIBLE
             );
         } catch (Exception e) {
+            LOGGER.error("Error starting reclassification workflow - Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
@@ -807,9 +812,10 @@ public class TransactionInternalResource {
             | InvalidParseOperationException
             | InvalidCreateOperationException e
         ) {
-            LOGGER.error("Error when fetching object in metadata :", e);
+            LOGGER.error("Error starting elimination workflow - Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (Exception e) {
+            LOGGER.error("Error starting elimination workflow - Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
@@ -848,9 +854,56 @@ public class TransactionInternalResource {
             | LogbookClientBadRequestException
             | InvalidParseOperationException e
         ) {
-            LOGGER.error("Error when fetching object in metadata :", e);
+            LOGGER.error("Error starting deletion workflow - Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (Exception e) {
+            LOGGER.error("Error starting deletion workflow - Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Upload compressed SIP as Stream on transaction, will be uncompressed in workspace-collect.</br>
+     * </br>
+     *
+     * @param contentType the header Content-Type (zip, tar, ...)
+     * @param uploadedInputStream the stream to upload
+     */
+    @POST
+    @Path("/{transactionId}/uploadSip")
+    @Consumes(
+        {
+            MediaType.APPLICATION_OCTET_STREAM,
+            CommonMediaType.ZIP,
+            CommonMediaType.XGZIP,
+            CommonMediaType.GZIP,
+            CommonMediaType.TAR,
+            CommonMediaType.BZIP2,
+        }
+    )
+    public Response uploadSipAsStreamToTransaction(
+        @PathParam("transactionId") String transactionId,
+        @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+        InputStream uploadedInputStream
+    ) {
+        try {
+            transactionService.uploadSipOnTransaction(transactionId, contentType, uploadedInputStream);
+            return Response.status(Response.Status.OK).build();
+        } catch (CollectInternalNotFoundException e) {
+            LOGGER.error("Error when uploading SIP to transaction. Not found", e);
+            return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
+        } catch (
+            BadRequestException
+            | LogbookClientAlreadyExistsException
+            | InvalidParseOperationException
+            | IllegalArgumentException
+            | InvalidGuidOperationException
+            | LogbookClientBadRequestException e
+        ) {
+            LOGGER.error("Error when uploading SIP to transaction. Bad Request: {}", e.getMessage(), e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("Error when uploading SIP to transaction. Internal Server Error: {}", e.getMessage(), e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }

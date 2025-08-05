@@ -694,4 +694,21 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
+
+    @Override
+    public RequestResponse<Void> uploadSipToTransaction(
+        VitamContext vitamContext,
+        String transactionId,
+        InputStream stream
+    ) throws VitamClientException {
+        VitamRequestBuilder request = post()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/uploadSip")
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(stream, "Stream is a mandatory parameter")
+            .withOctetContentType();
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, Void.class);
+        }
+    }
 }

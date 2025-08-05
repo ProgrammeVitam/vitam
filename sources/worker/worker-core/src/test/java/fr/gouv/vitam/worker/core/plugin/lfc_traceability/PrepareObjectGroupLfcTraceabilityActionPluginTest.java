@@ -210,6 +210,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             "PrepareObjectGroupLfcTraceabilityActionPluginTest",
             "workerId",

@@ -26,10 +26,13 @@
  */
 package fr.gouv.vitam.worker.server.rest;
 
+import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -49,6 +52,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,6 +130,15 @@ public class WorkerMain {
                         configuration.getUrlWorkspaceCollect(),
                         WorkFlowExecutionContext.COLLECT
                     );
+                }
+
+                if (StringUtils.isNotEmpty(configuration.getUrlCollectInternal())) {
+                    final URI uri = URI.create(configuration.getUrlCollectInternal());
+                    final ClientConfiguration collectInternalClientConfiguration = new ClientConfigurationImpl(
+                        uri.getHost(),
+                        uri.getPort()
+                    );
+                    CollectInternalClientFactory.changeMode(collectInternalClientConfiguration);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);

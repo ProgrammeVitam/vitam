@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.collect.internal.core.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -45,6 +46,7 @@ import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -78,6 +80,7 @@ import fr.gouv.vitam.common.model.elimination.DeletionRequestBody;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -104,6 +107,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import jakarta.annotation.Nullable;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections.CollectionUtils;
 
@@ -139,6 +143,7 @@ public class TransactionService {
     private static final String STATUS = "Status";
     private static final String AUTOMATIC_INGEST = "AutomaticIngest";
     private static final String PROCESS_SIP_UNITARY = "PROCESS_SIP_UNITARY";
+    private static final String FOLDER_SIP = "SIP";
 
     private static final Map<String, TransactionStatus> OPERATION_STATUS_TO_TRANSACTION_STATUS_MAP = Map.of(
         StatusCode.OK.name(),
@@ -307,6 +312,12 @@ public class TransactionService {
         }
     }
 
+    private void checkKoTransaction(TransactionModel transactionModel) {
+        if (!checkStatus(transactionModel, TransactionStatus.OPEN, TransactionStatus.KO)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
+        }
+    }
+
     public void checkReopenTransaction(TransactionModel transactionModel) throws CollectInternalException {
         if (!checkStatus(transactionModel, TransactionStatus.READY, TransactionStatus.ACK_KO, TransactionStatus.KO)) {
             throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
@@ -340,6 +351,9 @@ public class TransactionService {
                 break;
             case ABORTED:
                 checkAbortTransaction(transactionModel);
+                break;
+            case KO:
+                checkKoTransaction(transactionModel);
                 break;
             default:
                 break;
@@ -948,5 +962,110 @@ public class TransactionService {
             );
             return jsonNodeRequestResponse.toResponse();
         }
+    }
+
+    public void uploadSipOnTransaction(String transactionId, String contentType, InputStream uploadedInputStream)
+        throws LogbookClientAlreadyExistsException, VitamClientException, InternalServerException, BadRequestException, InvalidParseOperationException, LogbookClientServerException, ContentAddressableStorageException, LogbookClientBadRequestException, InvalidGuidOperationException, CollectInternalException {
+        try {
+            ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
+            checkTransactionStatus(transactionId);
+            pushSipStreamToWorkspaceCollect(transactionId, contentType, uploadedInputStream);
+            launchCollectSipWorkflow(transactionId);
+        } finally {
+            StreamUtils.closeSilently(uploadedInputStream);
+        }
+    }
+
+    private void checkTransactionStatus(String transactionId) throws CollectInternalException {
+        ParametersChecker.checkParameter("Missing transactionId", transactionId);
+        Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
+        if (transactionModelOptional.isEmpty()) {
+            throw new CollectInternalNotFoundException(TRANSACTION_NOT_FOUND);
+        }
+        TransactionModel transactionModel = transactionModelOptional.get();
+        if (!checkStatus(transactionModel, TransactionStatus.OPEN)) {
+            throw new CollectInternalInvalidRequestException(TRANSACTION_NOT_FOUND);
+        }
+    }
+
+    private void launchCollectSipWorkflow(String transactionId)
+        throws InvalidGuidOperationException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException, ContentAddressableStorageServerException, InternalServerException, BadRequestException, VitamClientException {
+        ParametersChecker.checkParameter("Missing transaction id", transactionId);
+        // Start workflow
+
+        try (
+            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
+            final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDReader.getGUID(transactionId),
+                Contexts.COLLECT_SIP_INGEST.getEventType(),
+                GUIDReader.getGUID(transactionId),
+                LogbookTypeProcess.COLLECT_SIP_INGEST,
+                STARTED,
+                VitamLogbookMessages.getLabelOp("COLLECT_SIP_INGEST.STARTED") +
+                " : " +
+                GUIDReader.getGUID(transactionId),
+                GUIDReader.getGUID(transactionId)
+            );
+
+            logbookOperationsClient.create(initParameters);
+            workspaceClient.createContainer(transactionId);
+
+            processingClient.initVitamProcess(new ProcessingEntry(transactionId, Contexts.COLLECT_SIP_INGEST.name()));
+            RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
+                transactionId,
+                Contexts.COLLECT_SIP_INGEST.name(),
+                RESUME.getValue()
+            );
+            jsonNodeRequestResponse.toResponse();
+        }
+    }
+
+    /**
+     * Pushes the inputStream to WorkspaceCollect
+     *
+     * @param containerName the containerName
+     * @param uploadedInputStream the inputStream to store in workspace
+     * @param contentType inputStream contentType
+     * @throws ContentAddressableStorageException
+     */
+    private void pushSipStreamToWorkspaceCollect(
+        final String containerName,
+        final String contentType,
+        final InputStream uploadedInputStream
+    ) throws ContentAddressableStorageException {
+        LOGGER.debug("Try to push stream to workspace...");
+
+        try (WorkspaceClient workspaceCollectClient = workspaceCollectClientFactory.getClient()) {
+            if (workspaceCollectClient.isExistingContainer(containerName)) {
+                throw new ContentAddressableStorageException(containerName + " container already exist");
+            }
+
+            MediaType mediaType = CommonMediaType.valueOf(contentType);
+            String archiveMimeType = CommonMediaType.mimeTypeOf(mediaType);
+
+            workspaceCollectClient.createContainer(containerName);
+            workspaceCollectClient.uncompressObject(containerName, FOLDER_SIP, archiveMimeType, uploadedInputStream);
+
+            String manifestPath = FOLDER_SIP + "/manifest.xml";
+            Response manifestResponse = workspaceCollectClient.getObject(containerName, manifestPath);
+
+            // FIXME: Document limitation (requires a single manifest file named exactly "manifest.xml"). We'll need to handle missing manifest.xml, multiple manifest.xml files (ignoring case)
+
+            InputStream manifestInputStream = (InputStream) manifestResponse.getEntity();
+
+            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+                workspaceClient.createContainer(containerName);
+                workspaceClient.putObject(containerName, FOLDER_SIP + "/manifest.xml", manifestInputStream);
+            } finally {
+                StreamUtils.closeSilently(manifestInputStream);
+            }
+        } finally {
+            StreamUtils.closeSilently(uploadedInputStream);
+        }
+
+        LOGGER.debug("Push stream to workspace collect finished");
     }
 }

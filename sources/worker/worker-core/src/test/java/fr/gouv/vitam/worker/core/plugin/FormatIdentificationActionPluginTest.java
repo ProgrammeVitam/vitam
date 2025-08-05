@@ -141,6 +141,7 @@ public class FormatIdentificationActionPluginTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             mock(LogbookLifeCyclesClientFactory.class),
             guid.getId(),
             "workerId",

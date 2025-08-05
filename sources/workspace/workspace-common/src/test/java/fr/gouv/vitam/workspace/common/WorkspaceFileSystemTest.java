@@ -64,6 +64,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -412,15 +413,63 @@ public class WorkspaceFileSystemTest {
         storage.putObject(SIP_CONTAINER, fileName2, getInputStream("file2.pdf"));
 
         // Then check that there is 2 URIs found recursively from the content folder
-        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).isNotNull().isNotEmpty();
-        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).hasSize(2);
+        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder, 1000))
+            .isNotNull()
+            .isNotEmpty();
+        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder, 1000)).hasSize(2);
+    }
+
+    @Test
+    public void testGetListUriDigitalObjectFromFolderWithNonReachedLimit() throws Exception {
+        // Given container exists
+        storage.createContainer(SIP_CONTAINER);
+        for (int i = 0; i < 10; i++) {
+            storage.putObject(SIP_CONTAINER, "folder/sub-folder" + i + "/file" + i, getInputStream(MANIFEST));
+        }
+
+        // Then
+        List<URI> foundItems = storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, "folder", 100);
+        List<URI> allEntries = IntStream.range(0, 10)
+            .mapToObj(i -> {
+                try {
+                    return URI.create(URLEncoder.encode("sub-folder" + i + "/file" + i, StandardCharsets.UTF_8));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .toList();
+        assertThat(foundItems).containsExactlyInAnyOrderElementsOf(allEntries);
+    }
+
+    @Test
+    public void testGetListUriDigitalObjectFromFolderWithReachedLimit() throws Exception {
+        // Given container exists
+        storage.createContainer(SIP_CONTAINER);
+        for (int i = 0; i < 10; i++) {
+            storage.putObject(SIP_CONTAINER, "folder/sub-folder" + i + "/file" + i, getInputStream(MANIFEST));
+        }
+
+        // Then
+        List<URI> foundItems = storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, "folder", 5);
+        List<URI> allEntries = IntStream.range(0, 10)
+            .mapToObj(i -> {
+                try {
+                    return URI.create(URLEncoder.encode("sub-folder" + i + "/file" + i, StandardCharsets.UTF_8));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .toList();
+
+        assertThat(foundItems).hasSize(5);
+        assertThat(allEntries).containsAll(foundItems);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotExistWhenCheckListUriNotEmptyThenRaiseAnException() throws IOException, Exception {
         // Then check that there is 3 URIs found recursively from the root folder
-        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER)).isNotNull().isNotEmpty();
-        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER)).hasSize(3);
+        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER, 1000)).isNotNull().isNotEmpty();
+        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER, 1000)).hasSize(3);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -471,7 +520,9 @@ public class WorkspaceFileSystemTest {
         Response object = storage.getObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID/13.txt", null, null);
         assertThat((InputStream) object.getEntity()).hasContent("test 1");
 
-        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER)).containsExactlyInAnyOrder(
+        assertThat(
+            storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER, 1000)
+        ).containsExactlyInAnyOrder(
             URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
             URI.create(URLEncoder.encode("Content/ID/13.txt", StandardCharsets.UTF_8))
         );
@@ -574,7 +625,9 @@ public class WorkspaceFileSystemTest {
         Response object = storage.getObject(CONTAINER_NAME, SIP_FOLDER + "/Content/ID@13.txt", null, null);
         assertThat((InputStream) object.getEntity()).hasContent("test 1");
 
-        assertThat(storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER)).containsExactlyInAnyOrder(
+        assertThat(
+            storage.getListUriDigitalObjectFromFolder(CONTAINER_NAME, SIP_FOLDER, 1000)
+        ).containsExactlyInAnyOrder(
             URI.create(URLEncoder.encode("manifest.xml", StandardCharsets.UTF_8)),
             URI.create(URLEncoder.encode("Content/ID@13.txt", StandardCharsets.UTF_8))
         );

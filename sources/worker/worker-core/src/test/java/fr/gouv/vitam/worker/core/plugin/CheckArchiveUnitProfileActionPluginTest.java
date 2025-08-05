@@ -156,6 +156,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         handlerIO = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",

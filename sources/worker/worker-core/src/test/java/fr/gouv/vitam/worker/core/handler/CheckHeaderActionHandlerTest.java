@@ -173,6 +173,7 @@ public class CheckHeaderActionHandlerTest {
         HandlerIOImpl action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",
@@ -237,6 +238,7 @@ public class CheckHeaderActionHandlerTest {
         HandlerIOImpl action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",
@@ -305,6 +307,7 @@ public class CheckHeaderActionHandlerTest {
         HandlerIOImpl action = new HandlerIOImpl(
             WorkFlowExecutionContext.VITAM,
             workspaceClientFactory,
+            null,
             logbookLifeCyclesClientFactory,
             guid.getId(),
             "workerId",
@@ -388,6 +391,7 @@ public class CheckHeaderActionHandlerTest {
             new HandlerIOImpl(
                 WorkFlowExecutionContext.VITAM,
                 workspaceClientFactory,
+                null,
                 logbookLifeCyclesClientFactory,
                 guid.getId(),
                 "workerId",
