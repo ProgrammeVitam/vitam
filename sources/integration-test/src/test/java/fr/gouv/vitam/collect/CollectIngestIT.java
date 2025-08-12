@@ -49,6 +49,7 @@ import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -70,6 +71,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
@@ -85,6 +87,9 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -95,8 +100,10 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -118,6 +125,7 @@ import static fr.gouv.vitam.common.TestZipUtils.unzipFile;
 import static fr.gouv.vitam.common.TestZipUtils.zipFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class CollectIngestIT extends AbstractCollectIT {
 
@@ -536,6 +544,75 @@ public class CollectIngestIT extends AbstractCollectIT {
                 TransactionDto.class
             );
             return transactionDtoResult.getStatus();
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_verify_sip_uses_seda_2_3() throws Exception {
+        // Create a transaction
+        String idTransaction;
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            ProjectDto projectDto = initProjectData();
+
+            ProjectDto projectDtoResult = createProject(vitamContext, projectDto).orElseThrow();
+            TransactionDto transactiondto = createTransaction(vitamContext, projectDtoResult.getId()).orElseThrow();
+
+            RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(
+                vitamContext,
+                transactiondto,
+                projectDtoResult.getId()
+            );
+            assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            TransactionDto transactionDtoResult = JsonHandler.getFromJsonNode(
+                requestResponseOK.getFirstResult(),
+                TransactionDto.class
+            );
+            idTransaction = transactionDtoResult.getId();
+
+            // Upload a ZIP file to the transaction
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream("collect/arbo_to_ingest.zip")) {
+                RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
+                    vitamContext,
+                    transactionDtoResult.getId(),
+                    inputStream,
+                    null,
+                    null
+                );
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+
+            // Close the transaction
+            collectClient.closeTransaction(vitamContext, transactionDtoResult.getId());
+        }
+
+        // Generate SIP from the transaction
+        InputStream sipInputStream = generateSip(idTransaction);
+
+        // Extract the manifest from the SIP and verify it uses SEDA 2.3
+        File tempFolder = File.createTempFile("sip", ".zip", new File(VitamConfiguration.getVitamTmpFolder()));
+        try (sipInputStream) {
+            IOUtils.copy(sipInputStream, new FileOutputStream(tempFolder));
+        }
+
+        try (ZipFile zipFile = new ZipFile(tempFolder)) {
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                String manifestContent = IOUtils.toString(is, StandardCharsets.UTF_8);
+
+                // Verify the manifest uses SEDA 2.3
+                String expectedNamespaceUri = SupportedSedaVersions.SEDA_2_3.getNamespaceURI();
+                String expectedSchemaLocation =
+                    expectedNamespaceUri + " " + SupportedSedaVersions.SEDA_2_3.getSedaValidatorXSD();
+
+                assertTrue("Manifest should use SEDA 2.3 namespace", manifestContent.contains(expectedNamespaceUri));
+                assertTrue(
+                    "Manifest should use SEDA 2.3 schema location",
+                    manifestContent.contains(expectedSchemaLocation)
+                );
+            }
         }
     }
 }
