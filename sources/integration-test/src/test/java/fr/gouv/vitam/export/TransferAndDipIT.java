@@ -412,7 +412,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
 
-        DipRequest dipRequest = getDipRequest(select, SupportedSedaVersions.SEDA_2_2, true, false, false);
+        DipRequest dipRequest = getDipRequest(select, SupportedSedaVersions.SEDA_2_3, true, false, false);
         ExportRequest exportRequest = ExportRequest.from(dipRequest);
 
         // When
@@ -438,9 +438,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertThat(manifest).contains(
             String.format(
                 EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
-                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()
+                SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getSedaValidatorXSD()
             )
         );
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
@@ -452,6 +452,49 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertThat(manifest).contains(footer);
         assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_export_DIP_with_default_seda_version() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, SIP_OK_PHYSICAL_ARCHIVE);
+        // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
+        verifyOperation(ingestOpId, WARNING);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        // Create DipRequest with null SEDA version to test default behavior
+        DipRequest dipRequest = new DipRequest(
+            new DataObjectVersions(Collections.singleton(BINARY_MASTER.getName())),
+            select.getFinalSelect(),
+            true,
+            null
+        );
+        dipRequest.setDipExportType(DipExportType.FULL);
+        dipRequest.setDipRequestParameters(getDipRequestParameters());
+
+        ExportRequest exportRequest = ExportRequest.from(dipRequest);
+
+        // When
+        String exportOperationId = exportDIP(exportRequest);
+
+        // Then
+        VitamTestHelper.verifyOperation(exportOperationId, OK);
+
+        String manifest = getManifestString(getDip(exportOperationId));
+
+        // Verify that the default SEDA version is now 2.3
+        assertThat(manifest).contains(
+            String.format(
+                EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
+                SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getSedaValidatorXSD()
+            )
+        );
+        assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
     }
 
     @Test

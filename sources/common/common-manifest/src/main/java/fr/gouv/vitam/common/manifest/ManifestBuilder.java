@@ -180,10 +180,10 @@ public class ManifestBuilder implements AutoCloseable {
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
 
-        // Default to 2.2 till official SEDA 2.3 is available
+        // Default to 2.3 as per requirement
         this.supportedSedaVersion = supportedSedaVersion != null
             ? supportedSedaVersion
-            : SupportedSedaVersions.SEDA_2_2;
+            : SupportedSedaVersions.SEDA_2_3;
     }
 
     public void startDocument(

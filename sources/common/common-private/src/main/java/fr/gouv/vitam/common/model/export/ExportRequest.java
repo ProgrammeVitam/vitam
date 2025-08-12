@@ -102,7 +102,7 @@ public class ExportRequest {
             dipRequest.getMaxSizeThreshold(),
             dipRequest.getSedaVersion() != null
                 ? dipRequest.getSedaVersion()
-                : SupportedSedaVersions.SEDA_2_2.getVersion(),
+                : SupportedSedaVersions.SEDA_2_3.getVersion(),
             dipRequest.isUseOriginalFilenames(),
             dipRequest.isExportWithTree(),
             ExportType.get(dipRequest.getDipExportType()),
@@ -119,7 +119,7 @@ public class ExportRequest {
             transferRequest.getMaxSizeThreshold(),
             transferRequest.getSedaVersion() != null
                 ? transferRequest.getSedaVersion()
-                : SupportedSedaVersions.SEDA_2_2.getVersion(),
+                : SupportedSedaVersions.SEDA_2_3.getVersion(),
             false,
             false,
             ExportType.ArchiveTransfer,
