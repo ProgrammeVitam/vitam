@@ -549,7 +549,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             return Response.status(PRECONDITION_FAILED).build();
         } catch (VitamClientException e) {
             LOGGER.error("Error when launching reclassification", e);
-            return Response.status(BAD_REQUEST).build();
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
 
@@ -583,7 +583,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             return Response.status(PRECONDITION_FAILED).build();
         } catch (Exception e) {
             LOGGER.error("Error when launching deletion", e);
-            return Response.status(BAD_REQUEST).build();
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
 
