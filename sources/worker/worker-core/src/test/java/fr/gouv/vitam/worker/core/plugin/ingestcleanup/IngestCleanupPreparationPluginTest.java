@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.CleanupReportManager;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -117,6 +118,15 @@ public class IngestCleanupPreparationPluginTest {
         handlerIO = new TestHandlerIO().setContainerName(VitamThreadUtils.getVitamSession().getRequestId());
         handlerIO.setNewLocalFileProvider(name -> {
             try {
+                if (name.contains("/")) {
+                    // Ensure the directory structure exists
+                    String[] parts = name.split("/");
+                    try {
+                        tempFolder.newFolder(ArrayUtils.subarray(parts, 0, parts.length - 1));
+                    } catch (IOException e) {
+                        // The folder already exists, we can ignore the exception
+                    }
+                }
                 return tempFolder.newFile(name);
             } catch (IOException e) {
                 throw new RuntimeException(e);

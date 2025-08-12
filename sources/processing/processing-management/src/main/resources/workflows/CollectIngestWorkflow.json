@@ -165,6 +165,70 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_OG_CHECK_AND_TRANSFORME",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_DIRECTORY",
+        "element": "ObjectGroup",
+        "type": "ObjectGroup"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DIGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "algo",
+                "uri": "VALUE:SHA-512"
+              }
+            ],
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_OBJECT_SIZE",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_OBJECTS_FORMAT_CHECK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              },
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_OBJECT_GROUP_SCHEMA",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {
