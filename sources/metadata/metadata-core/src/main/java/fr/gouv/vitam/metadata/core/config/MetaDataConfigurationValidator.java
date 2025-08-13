@@ -28,8 +28,10 @@
 package fr.gouv.vitam.metadata.core.config;
 
 import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
+import fr.gouv.vitam.common.model.config.DedicatedVirtualPathsTenantConfiguration;
 import fr.gouv.vitam.common.model.config.TenantRange;
 import fr.gouv.vitam.common.model.config.TenantRangeParser;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -55,7 +57,7 @@ public final class MetaDataConfigurationValidator {
         validateVirtualPathsConfiguration(metaDataConfiguration.getVirtualPathsConfiguration());
     }
 
-    private static void validateVirtualPathsConfiguration(MetadataVirtualPathsConfiguration virtualPathsConfiguration) {
+    private static void validateVirtualPathsConfiguration(VirtualPathsConfiguration virtualPathsConfiguration) {
         if (virtualPathsConfiguration == null) {
             return;
         }

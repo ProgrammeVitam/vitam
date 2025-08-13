@@ -25,11 +25,9 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.metadata.core.config;
+package fr.gouv.vitam.common.model.config;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.model.config.TenantRange;
-import fr.gouv.vitam.common.model.config.TenantRangeParser;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -41,10 +39,8 @@ public class VirtualPathsManager {
 
     private final Map<Integer, List<String>> virtualPathsFieldsSettingsMap = new HashMap<>();
 
-    public VirtualPathsManager(MetaDataConfiguration metaDataConfiguration) {
-        MetadataVirtualPathsConfiguration virtualPathsConfigurations =
-            metaDataConfiguration.getVirtualPathsConfiguration();
-        if (virtualPathsConfigurations == null || virtualPathsConfigurations.getDefaultConfiguration() == null) {
+    public VirtualPathsManager(VirtualPathsConfiguration virtualPathsConfiguration) {
+        if (virtualPathsConfiguration == null || virtualPathsConfiguration.getDefaultConfiguration() == null) {
             return;
         }
 
@@ -53,11 +49,11 @@ public class VirtualPathsManager {
                 tenantId ->
                     virtualPathsFieldsSettingsMap.put(
                         tenantId,
-                        virtualPathsConfigurations.getDefaultConfiguration().getSourceFields()
+                        virtualPathsConfiguration.getDefaultConfiguration().getSourceFields()
                     )
             );
         List<DedicatedVirtualPathsTenantConfiguration> dedicatedTenantConfigurations =
-            virtualPathsConfigurations.getDedicatedTenantConfiguration();
+            virtualPathsConfiguration.getDedicatedTenantConfiguration();
 
         if (CollectionUtils.isEmpty(dedicatedTenantConfigurations)) {
             return;
@@ -81,7 +77,11 @@ public class VirtualPathsManager {
         return virtualPathsFieldsSettingsMap.getOrDefault(tenantId, null);
     }
 
-    public List<String> getVirtualPathsFields() {
+    public List<String> getVirtualPathsFieldsForCurrentTenant() {
         return getVirtualPathsFieldsByTenant(VitamThreadUtils.getVitamSession().getTenantId());
+    }
+
+    public Map<Integer, List<String>> getVirtualPathsFieldsConfiguration() {
+        return virtualPathsFieldsSettingsMap;
     }
 }

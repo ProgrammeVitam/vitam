@@ -64,6 +64,9 @@ public class PublicConfiguration {
     @JsonProperty("classificationLevel")
     private ClassificationLevel classificationLevel;
 
+    @JsonProperty("virtualPathsConfigurationByTenant")
+    private Map<Integer, List<String>> virtualPathsConfigurationByTenant;
+
     public PublicConfiguration() {
         // Empty constructor for serialization
     }
@@ -161,6 +164,17 @@ public class PublicConfiguration {
 
     public PublicConfiguration setClassificationLevel(ClassificationLevel classificationLevel) {
         this.classificationLevel = classificationLevel;
+        return this;
+    }
+
+    public Map<Integer, List<String>> getVirtualPathsConfigurationByTenant() {
+        return virtualPathsConfigurationByTenant;
+    }
+
+    public PublicConfiguration setVirtualPathsConfigurationByTenant(
+        Map<Integer, List<String>> virtualPathsConfigurationByTenant
+    ) {
+        this.virtualPathsConfigurationByTenant = virtualPathsConfigurationByTenant;
         return this;
     }
 }

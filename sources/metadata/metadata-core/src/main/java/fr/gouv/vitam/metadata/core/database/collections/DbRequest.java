@@ -93,6 +93,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamCommonMetrics;
 import fr.gouv.vitam.common.model.DurationData;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.config.VirtualPathsManager;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
@@ -101,7 +102,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.config.VirtualPathsManager;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -198,7 +198,7 @@ public class DbRequest {
             new MongoDbMetadataRepository<>(MetadataCollections.UNIT::getCollection),
             new MongoDbMetadataRepository<>(MetadataCollections.OBJECTGROUP::getCollection),
             new FieldHistoryManager(HISTORY_TRIGGER_NAME),
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
     }
 
@@ -279,7 +279,7 @@ public class DbRequest {
             // Unit validation
             unitValidator.validateUnit(transformedUpdatedDocument);
 
-            List<String> virtualFields = virtualPathsManager.getVirtualPathsFields();
+            List<String> virtualFields = virtualPathsManager.getVirtualPathsFieldsForCurrentTenant();
             if (CollectionUtils.isNotEmpty(virtualFields)) {
                 fillVirtualPaths(updatedJsonDocument, virtualFields);
             }
@@ -1552,7 +1552,7 @@ public class DbRequest {
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
                 if (metadataCollection == MetadataCollections.UNIT) {
                     fieldHistoryManager.trigger(currentJsonDocument, updatedJsonDocument);
-                    List<String> virtualFields = virtualPathsManager.getVirtualPathsFields();
+                    List<String> virtualFields = virtualPathsManager.getVirtualPathsFieldsForCurrentTenant();
                     if (CollectionUtils.isNotEmpty(virtualFields)) {
                         boolean anyChangesOnVirtualFieldsSrc = false;
                         for (String virtualField : virtualFields) {
@@ -2059,7 +2059,7 @@ public class DbRequest {
 
                 unit.mergeWith(unitGraphModel);
                 setDateCreationAndModification(unit);
-                List<String> virtualFields = virtualPathsManager.getVirtualPathsFields();
+                List<String> virtualFields = virtualPathsManager.getVirtualPathsFieldsForCurrentTenant();
                 if (CollectionUtils.isNotEmpty(virtualFields)) {
                     fillVirtualPaths(unit, virtualFields);
                 }

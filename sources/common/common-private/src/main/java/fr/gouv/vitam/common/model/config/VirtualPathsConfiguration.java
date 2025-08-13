@@ -25,14 +25,13 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.metadata.core.config;
+package fr.gouv.vitam.common.model.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.config.VirtualPathConfiguration;
 
 import java.util.List;
 
-public class MetadataVirtualPathsConfiguration {
+public class VirtualPathsConfiguration {
 
     @JsonProperty("default_config")
     private VirtualPathConfiguration defaultConfiguration;
@@ -40,11 +39,11 @@ public class MetadataVirtualPathsConfiguration {
     @JsonProperty("dedicated_tenants")
     private List<DedicatedVirtualPathsTenantConfiguration> dedicatedTenantConfiguration;
 
-    public MetadataVirtualPathsConfiguration() {
+    public VirtualPathsConfiguration() {
         // Default constructor for deserialization
     }
 
-    public MetadataVirtualPathsConfiguration(
+    public VirtualPathsConfiguration(
         VirtualPathConfiguration defaultConfiguration,
         List<DedicatedVirtualPathsTenantConfiguration> dedicatedTenantConfiguration
     ) {
@@ -60,12 +59,12 @@ public class MetadataVirtualPathsConfiguration {
         return dedicatedTenantConfiguration;
     }
 
-    public MetadataVirtualPathsConfiguration setDefaultConfiguration(VirtualPathConfiguration defaultConfiguration) {
+    public VirtualPathsConfiguration setDefaultConfiguration(VirtualPathConfiguration defaultConfiguration) {
         this.defaultConfiguration = defaultConfiguration;
         return this;
     }
 
-    public MetadataVirtualPathsConfiguration setDedicatedTenantConfiguration(
+    public VirtualPathsConfiguration setDedicatedTenantConfiguration(
         List<DedicatedVirtualPathsTenantConfiguration> dedicatedTenantConfiguration
     ) {
         this.dedicatedTenantConfiguration = dedicatedTenantConfiguration;
@@ -75,7 +74,7 @@ public class MetadataVirtualPathsConfiguration {
     @Override
     public String toString() {
         return (
-            "MetadataIndexationConfiguration{" +
+            "VirtualPathsConfiguration{" +
             "defaultConfiguration=" +
             defaultConfiguration +
             ", dedicatedTenantConfiguration=" +

@@ -30,12 +30,18 @@ package fr.gouv.vitam.functional.administration.common.config;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
+import fr.gouv.vitam.common.model.config.DedicatedVirtualPathsTenantConfiguration;
+import fr.gouv.vitam.common.model.config.TenantRange;
+import fr.gouv.vitam.common.model.config.TenantRangeParser;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import fr.gouv.vitam.common.security.SanityChecker;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdminManagementConfigurationValidator {
 
@@ -52,6 +58,8 @@ public class AdminManagementConfigurationValidator {
         }
 
         validateCustomSearchOnFieldsConfiguration(adminManagementConfiguration.getCustomSearchOnFieldsConfiguration());
+
+        validateVirtualPathsConfiguration(adminManagementConfiguration.getVirtualPathsConfiguration());
     }
 
     private static void validateElasticsearchSettings(String elasticsearchConfigurationFilePath)
@@ -131,6 +139,57 @@ public class AdminManagementConfigurationValidator {
                     CollectionSearchConfigurationUtils.validate(groupsConf.getUnitFields(), true);
                     CollectionSearchConfigurationUtils.validate(groupsConf.getObjectgroupFields(), true);
                 });
+        }
+    }
+
+    private static void validateVirtualPathsConfiguration(VirtualPathsConfiguration virtualPathsConfiguration) {
+        if (virtualPathsConfiguration == null) {
+            return;
+        }
+        List<String> tenantRangeStrings = new ArrayList<>();
+        if (virtualPathsConfiguration.getDefaultConfiguration() == null) {
+            throw new IllegalStateException("Invalid configuration. Missing default virtual paths configuration");
+        }
+
+        if (
+            org.apache.commons.collections4.CollectionUtils.isNotEmpty(
+                virtualPathsConfiguration.getDedicatedTenantConfiguration()
+            )
+        ) {
+            virtualPathsConfiguration
+                .getDedicatedTenantConfiguration()
+                .stream()
+                .map(DedicatedVirtualPathsTenantConfiguration::getTenants)
+                .forEach(tenantRangeStrings::add);
+        }
+
+        validateTenantRangeValues(tenantRangeStrings);
+    }
+
+    private static void validateTenantRangeValues(List<String> tenantRangeStrings) {
+        if (tenantRangeStrings.contains(null)) {
+            throw new IllegalStateException(
+                "Invalid configuration. Missing tenants from dedicated tenant configuration"
+            );
+        }
+
+        List<TenantRange> tenantRanges = tenantRangeStrings
+            .stream()
+            .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
+            .toList();
+
+        // Check tenant range overlapping
+        for (int i = 0; i < tenantRanges.size(); i++) {
+            for (int j = i + 1; j < tenantRanges.size(); j++) {
+                if (TenantRangeParser.doRangesIntersect(tenantRanges.get(i), tenantRanges.get(j))) {
+                    throw new IllegalStateException(
+                        "Invalid configuration. Overlapping tenant ranges " +
+                        tenantRanges.get(i) +
+                        " and " +
+                        tenantRanges.get(j)
+                    );
+                }
+            }
         }
     }
 }

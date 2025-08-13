@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.metadata.core.config;
+package fr.gouv.vitam.common.model.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

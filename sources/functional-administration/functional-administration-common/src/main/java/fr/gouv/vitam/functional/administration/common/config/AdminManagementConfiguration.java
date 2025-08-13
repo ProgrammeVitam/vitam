@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.common.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
@@ -62,6 +63,9 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     @JsonProperty("elasticsearchConfigurationFile")
     private String elasticsearchConfigurationFile;
+
+    @JsonProperty("virtualPaths")
+    private VirtualPathsConfiguration virtualPathsConfiguration;
 
     // constructor
     AdminManagementConfiguration() {
@@ -260,6 +264,17 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
         CustomSearchOnFieldsConfiguration customSearchOnFieldsConfiguration
     ) {
         this.customSearchOnFieldsConfiguration = customSearchOnFieldsConfiguration;
+        return this;
+    }
+
+    public VirtualPathsConfiguration getVirtualPathsConfiguration() {
+        return virtualPathsConfiguration;
+    }
+
+    public AdminManagementConfiguration setVirtualPathsConfiguration(
+        VirtualPathsConfiguration virtualPathsConfiguration
+    ) {
+        this.virtualPathsConfiguration = virtualPathsConfiguration;
         return this;
     }
 }
