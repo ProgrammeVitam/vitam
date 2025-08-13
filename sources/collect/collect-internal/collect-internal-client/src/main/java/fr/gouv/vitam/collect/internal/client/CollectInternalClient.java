@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
@@ -389,7 +390,8 @@ public interface CollectInternalClient extends MockOrRestClient {
      *
      * @param transactionId transaction Id
      * @param inputStream SIP payload.
-     * @return Response given response
+     * @return OperationIdDto containing the operation ID
      */
-    void uploadSipToTransaction(String transactionId, InputStream inputStream) throws VitamClientException;
+    RequestResponse<OperationIdDto> uploadSipToTransaction(String transactionId, InputStream inputStream)
+        throws VitamClientException;
 }

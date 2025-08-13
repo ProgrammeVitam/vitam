@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.external.external.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
@@ -591,6 +592,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
      * Upload SIP to transaction
      *
      * @param inputStream SIP data input stream
+     * @return Response with operation ID
      */
     @Path("/{transactionId}/uploadSip")
     @POST
@@ -601,8 +603,8 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             ParametersChecker.checkParameter("You must supply a file!", inputStream);
-            client.uploadSipToTransaction(transactionId, inputStream);
-            return Response.ok().build();
+            RequestResponse<OperationIdDto> response = client.uploadSipToTransaction(transactionId, inputStream);
+            return Response.status(OK.getStatusCode()).entity(response).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(PRECONDITION_FAILED).build();

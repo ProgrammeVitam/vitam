@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.Beta;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.common.client.MockOrRestClient;
@@ -265,7 +266,7 @@ public interface CollectExternalClient extends MockOrRestClient {
      * Upload zip to a transaction.
      * Consumes a ZIP (application/zip).
      *
-     * @return RequestResponse<JsonNode>
+     * @return RequestResponse<OperationIdDto> containing the operation ID
      * @throws VitamClientException exception occurs when parse operation failed
      * @deprecated Use uploadZipToTransaction() instead.
      */
@@ -456,9 +457,12 @@ public interface CollectExternalClient extends MockOrRestClient {
      * @param vitamContext the vitam context
      * @param transactionId
      * @param stream
-     * @return response
+     * @return response containing the operation ID
      * @throws VitamClientException
      */
-    RequestResponse<Void> uploadSipToTransaction(VitamContext vitamContext, String transactionId, InputStream stream)
-        throws VitamClientException;
+    RequestResponse<OperationIdDto> uploadSipToTransaction(
+        VitamContext vitamContext,
+        String transactionId,
+        InputStream stream
+    ) throws VitamClientException;
 }

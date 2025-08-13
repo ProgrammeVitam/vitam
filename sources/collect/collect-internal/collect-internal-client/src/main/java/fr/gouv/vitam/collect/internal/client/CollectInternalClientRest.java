@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
@@ -637,16 +638,19 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     @Override
-    public void uploadSipToTransaction(String transactionId, InputStream inputStream) throws VitamClientException {
+    public RequestResponse<OperationIdDto> uploadSipToTransaction(String transactionId, InputStream inputStream)
+        throws VitamClientException {
         try (
             Response response = make(
                 post()
                     .withPath(TRANSACTION_PATH + "/" + transactionId + "/uploadSip")
                     .withBody(inputStream)
                     .withContentType(CommonMediaType.ZIP_TYPE)
+                    .withJsonAccept()
             )
         ) {
             check(response);
+            return RequestResponse.parseFromResponse(response, OperationIdDto.class);
         }
     }
 }
