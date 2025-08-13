@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -84,6 +85,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
         try {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
+                WorkFlowExecutionContext.VITAM,
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName()
             );
 
@@ -102,6 +104,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
                                 boolean messagesDigestUpdated = checkMessageDigest(
+                                    params.getExecutionContext(),
                                     binaryObjects.get(objectId),
                                     version,
                                     itemStatus,
@@ -118,6 +121,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
 
             if (oneOrMoreMessagesDigestUpdated) {
                 handlerIO.transferJsonToWorkspace(
+                    WorkFlowExecutionContext.VITAM,
                     IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectName(),
                     jsonOG,
@@ -139,6 +143,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
     }
 
     private boolean checkMessageDigest(
+        WorkFlowExecutionContext executionContext,
         DataObjectInfo binaryObject,
         JsonNode version,
         ItemStatus itemStatus,
@@ -148,6 +153,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
         try {
             final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
             inputStream = handlerIO.getInputStreamFromWorkspace(
+                executionContext,
                 IngestWorkflowConstants.SEDA_FOLDER + File.separator + binaryObject.getUri()
             );
             final Digest vitamDigest = new Digest(digestTypeInput);

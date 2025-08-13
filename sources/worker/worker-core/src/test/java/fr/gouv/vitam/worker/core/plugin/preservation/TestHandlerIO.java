@@ -238,8 +238,13 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public File getNewLocalFile(WorkFlowExecutionContext executionContext, String name) {
+        return newLocalFileProvider.apply(executionContext.name() + "/" + name);
+    }
+
+    @Override
     public File getNewLocalFile(String name) {
-        return newLocalFileProvider.apply(name);
+        return getNewLocalFile(WorkFlowExecutionContext.VITAM, name);
     }
 
     @Override
@@ -279,9 +284,15 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public File getFileFromWorkspace(String objectName)
+    public File getFileFromWorkspace(WorkFlowExecutionContext executionContext, String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         return this.transferedFileToWorkspaceMap.get(objectName);
+    }
+
+    @Override
+    public File getFileFromWorkspace(String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        return getFileFromWorkspace(WorkFlowExecutionContext.VITAM, objectName);
     }
 
     @Override
@@ -291,7 +302,7 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public InputStream getInputStreamFromWorkspace(String objectName)
+    public InputStream getInputStreamFromWorkspace(WorkFlowExecutionContext executionContext, String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (inputStreamMap.containsKey(objectName)) {
             return inputStreamMap.get(objectName);
@@ -304,13 +315,25 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public InputStream getInputStreamFromWorkspace(String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        return getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, objectName);
+    }
+
+    @Override
     public void consumeAnyEntityAndClose(Response response) {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException {
+    public JsonNode getJsonFromWorkspace(WorkFlowExecutionContext executionContext, String jsonFilePath)
+        throws ProcessingException {
         return jsonFromWorkspace.get(jsonFilePath);
+    }
+
+    @Override
+    public JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException {
+        return getJsonFromWorkspace(WorkFlowExecutionContext.VITAM, jsonFilePath);
     }
 
     @Override
@@ -325,6 +348,25 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public void transferJsonToWorkspace(
+        String collectionName,
+        String workspacePath,
+        JsonNode jsonNode,
+        boolean toDelete,
+        boolean asyncIO
+    ) throws ProcessingException {
+        transferJsonToWorkspace(
+            WorkFlowExecutionContext.VITAM,
+            collectionName,
+            workspacePath,
+            jsonNode,
+            toDelete,
+            asyncIO
+        );
+    }
+
+    @Override
+    public void transferJsonToWorkspace(
+        WorkFlowExecutionContext executionContext,
         String collectionName,
         String workspacePath,
         JsonNode jsonNode,
@@ -390,6 +432,14 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public WorkspaceClient getWorkspaceClient() {
         return workspaceClient;
+    }
+
+    @Override
+    public WorkspaceClient getWorkspaceClient(WorkFlowExecutionContext executionContext) {
+        return switch (executionContext) {
+            case VITAM -> getWorkspaceClient();
+            case COLLECT -> getWorkspaceCollectClient();
+        };
     }
 
     @Override

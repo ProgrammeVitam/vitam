@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -188,7 +189,11 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     );
                                     final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
                                     // Retrieve the file
-                                    file = loadFileFromWorkspace(handlerIO, objectIdToUri.get(objectId));
+                                    file = loadFileFromWorkspace(
+                                        params.getExecutionContext(),
+                                        handlerIO,
+                                        objectIdToUri.get(objectId)
+                                    );
 
                                     final ObjectCheckFormatResult result = executeOneObjectFromOG(
                                         handlerIO,
@@ -491,9 +496,13 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         return null;
     }
 
-    private File loadFileFromWorkspace(HandlerIO handlerIO, String filePath) throws ProcessingException {
+    private File loadFileFromWorkspace(WorkFlowExecutionContext executionContext, HandlerIO handlerIO, String filePath)
+        throws ProcessingException {
         try {
-            return handlerIO.getFileFromWorkspace(IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath);
+            return handlerIO.getFileFromWorkspace(
+                executionContext,
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath
+            );
         } catch (final IOException e) {
             LOGGER.debug("Error while saving the file", e);
             throw new ProcessingException(e);

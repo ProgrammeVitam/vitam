@@ -163,8 +163,16 @@ public interface HandlerIO extends VitamAutoCloseable {
     String getWorkerId();
 
     /**
+     * @param executionContext the execution context
      * @param name
      * @return a File pointing to a local path in Tmp directory under protected Worker instance space
+     */
+    File getNewLocalFile(WorkFlowExecutionContext executionContext, String name);
+
+    /**
+     * @param name
+     * @return a File pointing to a local path in Tmp directory under protected Worker instance space
+     * @deprecated Use {@link #getNewLocalFile(WorkFlowExecutionContext, String)} instead so that the workspace is explicitly chosen
      */
     File getNewLocalFile(String name);
 
@@ -221,11 +229,29 @@ public interface HandlerIO extends VitamAutoCloseable {
      * <br/>
      * To be used when not specified within the Input parameters
      *
+     * @param executionContext
      * @param objectName
      * @return file if found
      * @throws IOException
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
+     */
+    // TODO P2: could transfer a sort of cache list that could be clean without cleaning other parameters (for handler
+    // parallel)
+    File getFileFromWorkspace(WorkFlowExecutionContext executionContext, String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+
+    /**
+     * Helper to load a file from Workspace (or local cache) and save it into local cache.<br/>
+     * <br/>
+     * To be used when not specified within the Input parameters
+     *
+     * @param objectName
+     * @return file if found
+     * @throws IOException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     * @deprecated use {@link #getFileFromWorkspace(WorkFlowExecutionContext, String)} instead so that the workspace is explicitly chosen
      */
     // TODO P2: could transfer a sort of cache list that could be clean without cleaning other parameters (for handler
     // parallel)
@@ -248,11 +274,27 @@ public interface HandlerIO extends VitamAutoCloseable {
      * <br/>
      * To be used when not specified within the Input parameters
      *
+     * @param executionContext
      * @param objectName
      * @return the InputStream
      * @throws IOException
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
+     */
+    InputStream getInputStreamFromWorkspace(WorkFlowExecutionContext executionContext, String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+
+    /**
+     * Helper to get an InputStream (using local cache if possible) from Workspace<br/>
+     * <br/>
+     * To be used when not specified within the Input parameters
+     *
+     * @param objectName
+     * @return the InputStream
+     * @throws IOException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     * @deprecated use {@link #getInputStreamFromWorkspace(WorkFlowExecutionContext, String)} instead so that the workspace is explicitly chosen
      */
     InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
@@ -267,9 +309,21 @@ public interface HandlerIO extends VitamAutoCloseable {
     /**
      * Retrieve a json file as a {@link JsonNode} from the workspace.
      *
+     * @param executionContext the execution context
      * @param jsonFilePath path in workspace of the json File
      * @return JsonNode of the json file
      * @throws ProcessingException throws when error occurs
+     */
+    JsonNode getJsonFromWorkspace(WorkFlowExecutionContext executionContext, String jsonFilePath)
+        throws ProcessingException;
+
+    /**
+     * Retrieve a json file as a {@link JsonNode} from the workspace.
+     *
+     * @param jsonFilePath path in workspace of the json File
+     * @return JsonNode of the json file
+     * @throws ProcessingException throws when error occurs
+     * @deprecated use {@link #getJsonFromWorkspace(WorkFlowExecutionContext, String)} instead so that the workspace is explicitly chosen
      */
     JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException;
 
@@ -282,12 +336,34 @@ public interface HandlerIO extends VitamAutoCloseable {
      * Helper to convert and write a file to Workspace<br/>
      * <br/>
      *
+     * @param executionContext the execution context
      * @param collectionName : collection type
      * @param workspacePath path within the workspacepath, without the container (implicit)
      * @param jsonNode the json file to write
      * @param toDelete if True, will delete the local file
      * @param asyncIO asynchronously send to the workspace
      * @throws ProcessingException
+     */
+    void transferJsonToWorkspace(
+        WorkFlowExecutionContext executionContext,
+        String collectionName,
+        String workspacePath,
+        JsonNode jsonNode,
+        boolean toDelete,
+        boolean asyncIO
+    ) throws ProcessingException;
+
+    /**
+     * Helper to convert and write a file to Workspace<br/>
+     * <br/>
+     *
+     * @param collectionName : collection type
+     * @param workspacePath path within the workspacepath, without the container (implicit)
+     * @param jsonNode the json file to write
+     * @param toDelete if True, will delete the local file
+     * @param asyncIO asynchronously send to the workspace
+     * @throws ProcessingException
+     * @deprecated use {@link #transferJsonToWorkspace(WorkFlowExecutionContext, String, String, JsonNode, boolean, boolean)} instead so that the workspace is explicitly chosen
      */
     void transferJsonToWorkspace(
         String collectionName,
@@ -348,8 +424,15 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * @return the WorkspaceClient for the current execution context
+     * @deprecated Use {@link #getWorkspaceClient(WorkFlowExecutionContext)} instead so that the workspace is explicitly chosen
      */
     WorkspaceClient getWorkspaceClient();
+
+    /**
+     * @param executionContext the execution context
+     * @return the WorkspaceClient for a given execution context
+     */
+    WorkspaceClient getWorkspaceClient(WorkFlowExecutionContext executionContext);
 
     /**
      * @return the WorkspaceCollectClientFactory for the current execution context

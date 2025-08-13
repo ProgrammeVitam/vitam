@@ -409,7 +409,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public File getNewLocalFile(String name) {
-        final File file = new File(localDirectory.getAbsolutePath() + "/" + name);
+        return getNewLocalFile(WorkFlowExecutionContext.VITAM, name);
+    }
+
+    @Override
+    public File getNewLocalFile(WorkFlowExecutionContext executionContext, String name) {
+        final File file = new File(localDirectory.getAbsolutePath() + "/" + executionContext.name() + "/" + name);
         file.getParentFile().mkdirs();
         return file;
     }
@@ -566,11 +571,17 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        final File file = getNewLocalFile(objectName);
+        return getFileFromWorkspace(WorkFlowExecutionContext.VITAM, objectName);
+    }
+
+    @Override
+    public File getFileFromWorkspace(WorkFlowExecutionContext executionContext, String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        final File file = getNewLocalFile(executionContext, objectName);
         if (!file.exists()) {
             Response response = null;
 
-            try (WorkspaceClient workspaceClient = getWorkspaceClient()) {
+            try (WorkspaceClient workspaceClient = getWorkspaceClient(executionContext)) {
                 response = workspaceClient.getObject(containerName, objectName);
                 if (response != null) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -587,7 +598,13 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        return new FileInputStream(getFileFromWorkspace(objectName));
+        return getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, objectName);
+    }
+
+    @Override
+    public InputStream getInputStreamFromWorkspace(WorkFlowExecutionContext executionContext, String objectName)
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        return new FileInputStream(getFileFromWorkspace(executionContext, objectName));
     }
 
     @Override
@@ -597,13 +614,18 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException {
+        return getJsonFromWorkspace(WorkFlowExecutionContext.VITAM, jsonFilePath);
+    }
+
+    @Override
+    public JsonNode getJsonFromWorkspace(WorkFlowExecutionContext executionContext, String jsonFilePath)
+        throws ProcessingException {
         Response response = null;
-        InputStream is = null;
-        try (WorkspaceClient workspaceClient = getWorkspaceClient()) {
-            final File file = getNewLocalFile(jsonFilePath);
+        try (WorkspaceClient workspaceClient = getWorkspaceClient(executionContext)) {
+            final File file = getNewLocalFile(executionContext, jsonFilePath);
             if (!file.exists()) {
                 response = workspaceClient.getObject(containerName, jsonFilePath);
-                is = (InputStream) response.getEntity();
+                InputStream is = response.readEntity(InputStream.class);
                 if (is != null) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                         StreamUtils.copy(is, fileOutputStream);
@@ -652,13 +674,32 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         boolean toDelete,
         boolean asyncIO
     ) throws ProcessingException {
+        transferJsonToWorkspace(
+            WorkFlowExecutionContext.VITAM,
+            collectionName,
+            objectName,
+            jsonNode,
+            toDelete,
+            asyncIO
+        );
+    }
+
+    @Override
+    public void transferJsonToWorkspace(
+        WorkFlowExecutionContext executionContext,
+        String collectionName,
+        String objectName,
+        JsonNode jsonNode,
+        boolean toDelete,
+        boolean asyncIO
+    ) throws ProcessingException {
         String path = collectionName + File.separator + objectName;
         try {
             if (toDelete) {
                 InputStream inputStream = JsonHandler.writeToInpustream(jsonNode);
                 transferInputStreamToWorkspace(path, inputStream, null, asyncIO);
             } else {
-                File file = getNewLocalFile(path);
+                File file = getNewLocalFile(executionContext, path);
                 JsonHandler.writeAsFile(jsonNode, file);
                 transferFileToWorkspace(path, file, toDelete, asyncIO);
             }
@@ -783,8 +824,17 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         return workspaceClientFactory;
     }
 
+    @Override
     public WorkspaceCollectClientFactory getWorkspaceCollectClientFactory() {
         return workspaceCollectClientFactory;
+    }
+
+    @Override
+    public WorkspaceClient getWorkspaceClient(WorkFlowExecutionContext executionContext) {
+        return switch (executionContext) {
+            case VITAM -> getWorkspaceClient();
+            case COLLECT -> getWorkspaceCollectClient();
+        };
     }
 
     @Override
