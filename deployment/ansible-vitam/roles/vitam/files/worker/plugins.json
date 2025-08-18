@@ -14,6 +14,10 @@
     "className": "fr.gouv.vitam.worker.core.plugin.FormatIdentificationActionPlugin",
     "propertiesFile": "format_check_plugin.properties"
   },
+  "OG_OBJECTS_ANTIVIRUS_CHECK": {
+    "className": "fr.gouv.vitam.worker.core.plugin.CheckAntivirusActionPlugin",
+    "propertiesFile": "check_antivirus_plugin.properties"
+  },
   "UNIT_METADATA_INDEXATION": {
     "className": "fr.gouv.vitam.worker.core.plugin.IndexUnitActionPlugin",
     "propertiesFile": "index_unit_plugin.properties"

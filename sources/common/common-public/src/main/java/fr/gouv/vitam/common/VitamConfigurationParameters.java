@@ -407,6 +407,8 @@ public class VitamConfigurationParameters {
 
     private List<IngestReportExportedObjectGroupFieldConfiguration> ingestReportObjectExtraFields;
 
+    private Boolean ignoreAntivirusCheckForWorker;
+
     /**
      * VitamData empty constructor for YAMLFactory
      */
@@ -1627,5 +1629,13 @@ public class VitamConfigurationParameters {
         List<IngestReportExportedObjectGroupFieldConfiguration> ingestReportObjectExtraFields
     ) {
         this.ingestReportObjectExtraFields = ingestReportObjectExtraFields;
+    }
+
+    public Boolean isIgnoreAntivirusCheckForWorker() {
+        return ignoreAntivirusCheckForWorker;
+    }
+
+    public void setIgnoreAntivirusCheckForWorker(Boolean ignoreAntivirusCheckForWorker) {
+        this.ignoreAntivirusCheckForWorker = ignoreAntivirusCheckForWorker;
     }
 }

@@ -98,7 +98,6 @@ import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
-import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
@@ -507,10 +506,8 @@ public class VitamServerRunner extends ExternalResource {
             IngestExternalConfiguration.class
         );
         String ingestExternalPath = ingestExternalConfiguration.getPath();
-        // Read path from worker configuration
-        File workerFile = PropertiesUtils.findFile(CONFIG_WORKER_PATH);
-        final WorkerConfiguration workerConfiguration = readYaml(workerFile, WorkerConfiguration.class);
-        String workerPath = ingestExternalConfiguration.getPath();
+        // Path for worker service
+        String workerPath = "/"; // Disable root path check for worker service
         // Set the path for the antivirus service
         File antivirusFile = PropertiesUtils.findFile(ANTIVIRUS_CONF);
         final AntivirusConfiguration antivirusConfiguration = readYaml(antivirusFile, AntivirusConfiguration.class);

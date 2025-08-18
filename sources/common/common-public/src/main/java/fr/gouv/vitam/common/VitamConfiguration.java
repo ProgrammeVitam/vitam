@@ -580,6 +580,11 @@ public class VitamConfiguration {
 
     private static Map<Integer, List<EnumObjectWhiteListedFields>> ingestReportObjectExtraFields = new HashMap<>();
 
+    /**
+     * Ignore antivirus check for worker
+     */
+    private static boolean ignoreAntivirusCheckForWorker = false;
+
     static {
         getConfiguration().setDefault();
     }
@@ -1232,6 +1237,10 @@ public class VitamConfiguration {
                         )
                     )
             );
+        }
+
+        if (null != parameters.isIgnoreAntivirusCheckForWorker()) {
+            setIgnoreAntivirusCheckForWorker(parameters.isIgnoreAntivirusCheckForWorker());
         }
     }
 
@@ -2731,6 +2740,14 @@ public class VitamConfiguration {
         Map<Integer, List<EnumObjectWhiteListedFields>> ingestReportObjectExtraFields
     ) {
         VitamConfiguration.ingestReportObjectExtraFields = ingestReportObjectExtraFields;
+    }
+
+    public static boolean isIgnoreAntivirusCheckForWorker() {
+        return ignoreAntivirusCheckForWorker;
+    }
+
+    public static void setIgnoreAntivirusCheckForWorker(boolean ignoreAntivirusCheckForWorker) {
+        VitamConfiguration.ignoreAntivirusCheckForWorker = ignoreAntivirusCheckForWorker;
     }
 
     public static short getDiffVersion() {
