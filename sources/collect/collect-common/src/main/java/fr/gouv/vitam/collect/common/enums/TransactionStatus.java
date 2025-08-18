@@ -27,14 +27,48 @@
 package fr.gouv.vitam.collect.common.enums;
 
 public enum TransactionStatus {
+    /**
+     * Transaction is OPEN and can be modified
+     */
     OPEN,
+    /**
+     * Transaction is sealed / closed for modification.
+     */
     READY,
-    SENT,
+    /**
+     * Transaction SIP has been successfully validated / generated.
+     */
+    VALIDATED,
+    /**
+     * Transaction SIP is being sent to Vitam
+     */
     SENDING,
+    /**
+     * Transaction SIP has been successfully uploaded to Vitam.
+     */
+    SENT,
+    /**
+     * Transaction has errors. It must be reopened for edition or aborted.
+     */
     KO,
-    ACK_WAITING,
+    /**
+     * Transaction SIP has been successfully ingested and acknowledged by Vitam without errors.
+     */
     ACK_OK,
+    /**
+     * Transaction SIP has been successfully ingested and acknowledged by Vitam, but has warnings.
+     */
     ACK_WARNING,
-    ABORTED,
+    /**
+     * Transaction SIP ingest failed with errors.
+     */
     ACK_KO,
+    /**
+     * Transaction has been aborted.
+     */
+    ABORTED,
+    /**
+     * @deprecated Unused. Kept for java API backward compatibility.
+     */
+    ACK_WAITING,
 }

@@ -26,9 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.client.exceptions;
 
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-
-public class CollectInternalClientNotFoundException extends VitamClientInternalException {
+public class CollectInternalClientNotFoundException extends CollectInternalClientException {
 
     public CollectInternalClientNotFoundException(String message) {
         super(message);

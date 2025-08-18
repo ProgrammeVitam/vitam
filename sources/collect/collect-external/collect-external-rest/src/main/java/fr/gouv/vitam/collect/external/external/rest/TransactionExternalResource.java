@@ -29,10 +29,12 @@ package fr.gouv.vitam.collect.external.external.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
-import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalInvalidRequestException;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalNotFoundException;
+import fr.gouv.vitam.collect.external.external.service.CollectExternalIngestService;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
@@ -40,7 +42,6 @@ import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNot
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
@@ -55,7 +56,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.DeletionRequestBody;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -80,8 +80,6 @@ import java.nio.charset.Charset;
 import java.util.Objects;
 
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
-import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ABORT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CLOSE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_DELETION;
@@ -94,6 +92,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ID_UNIT
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_RECLASSIFICATION;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_REOPEN;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SIP_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SIP_UPLOAD;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
@@ -121,6 +120,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
 
     private final CollectInternalClientFactory collectInternalClientFactory;
     private final IngestExternalClientFactory ingestExternalClientFactory;
+    private final CollectExternalIngestService collectExternalIngestService;
 
     private final CollectExternalConfiguration configuration;
 
@@ -128,17 +128,24 @@ public class TransactionExternalResource extends ApplicationStatusResource {
      * Constructor CollectExternalResource
      */
     TransactionExternalResource(CollectExternalConfiguration configuration) {
-        this(CollectInternalClientFactory.getInstance(), IngestExternalClientFactory.getInstance(), configuration);
+        this(
+            CollectInternalClientFactory.getInstance(),
+            IngestExternalClientFactory.getInstance(),
+            new CollectExternalIngestService(),
+            configuration
+        );
     }
 
     @VisibleForTesting
     TransactionExternalResource(
         CollectInternalClientFactory collectInternalClientFactory,
         IngestExternalClientFactory ingestExternalClientFactory,
+        CollectExternalIngestService collectExternalIngestService,
         CollectExternalConfiguration configuration
     ) {
         this.collectInternalClientFactory = collectInternalClientFactory;
         this.ingestExternalClientFactory = ingestExternalClientFactory;
+        this.collectExternalIngestService = collectExternalIngestService;
         this.configuration = configuration;
     }
 
@@ -316,6 +323,28 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         }
     }
 
+    @Path("/{transactionId}/downloadSIP")
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_OCTET_STREAM)
+    @Secured(permission = TRANSACTION_SIP_READ, description = "Télécharge le SIP d'une transaction")
+    public Response downloadSIP(@PathParam("transactionId") String transactionId) {
+        try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
+            SanityChecker.checkParameter(transactionId);
+            InputStream responseStream = client.downloadSIP(transactionId);
+            return Response.status(OK).entity(responseStream).build();
+        } catch (final CollectInternalClientNotFoundException e) {
+            LOGGER.error("Error when downloading transaction SIP - Not found", e);
+            return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (final CollectInternalClientInvalidRequestException | InvalidParseOperationException e) {
+            LOGGER.error("Error when downloading transaction SIP - Bad request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("Error when downloading transaction SIP - Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        }
+    }
+
     @Path("/{transactionId}/send")
     @POST
     @Consumes(APPLICATION_JSON)
@@ -326,24 +355,17 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             IngestExternalClient clientIngest = ingestExternalClientFactory.getClient()
         ) {
             SanityChecker.checkParameter(transactionId);
-            LOGGER.info("Preparing SIP transaction to workspace");
-            InputStream responseStream = collectClient.generateSip(transactionId);
-            RequestResponse<Void> response = clientIngest.ingest(
-                new VitamContext(ParameterHelper.getTenantParameter()),
-                responseStream,
-                DEFAULT_WORKFLOW.name(),
-                RESUME.name()
-            );
-            collectClient.attachVitamOperationId(transactionId, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
-            collectClient.changeTransactionStatus(transactionId, TransactionStatus.SENT);
-            LOGGER.info("SIP sent with success ");
+            collectExternalIngestService.generateSipForIngest(collectClient, clientIngest, transactionId);
             return Response.ok().build();
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(PRECONDITION_FAILED).build();
-        } catch (Exception ex) {
-            LOGGER.error("Error when ingesting  transaction   ", ex);
-            return Response.status(INTERNAL_SERVER_ERROR).build();
+        } catch (final CollectExternalNotFoundException e) {
+            LOGGER.error("Error while ingesting transaction SIP to Vitam - Not found", e);
+            return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (final CollectExternalInvalidRequestException | InvalidParseOperationException e) {
+            LOGGER.error("Error while ingesting transaction SIP to Vitam - Bad request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("Error while ingesting transaction SIP to Vitam - Internal Server Error", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -603,7 +625,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             ParametersChecker.checkParameter("You must supply a file!", inputStream);
-            RequestResponse<OperationIdDto> response = client.uploadSipToTransaction(transactionId, inputStream);
+            RequestResponse<UploadSipResult> response = client.uploadSipToTransaction(transactionId, inputStream);
             return Response.status(OK.getStatusCode()).entity(response).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);

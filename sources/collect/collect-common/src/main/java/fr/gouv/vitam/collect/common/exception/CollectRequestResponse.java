@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.common.exception;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
@@ -56,6 +57,6 @@ public class CollectRequestResponse {
             .setContext(COLLECT)
             .setMessage(message == null ? "Unexpected error" : message)
             .setHttpCode(status.getStatusCode());
-        return Response.status(status).entity(vitamError).build();
+        return Response.status(status).entity(vitamError).type(MediaType.APPLICATION_JSON).build();
     }
 }

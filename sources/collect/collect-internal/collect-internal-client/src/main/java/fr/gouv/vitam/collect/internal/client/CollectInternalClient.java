@@ -29,9 +29,9 @@ package fr.gouv.vitam.collect.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
-import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -213,14 +213,18 @@ public interface CollectInternalClient extends MockOrRestClient {
     Response closeTransaction(String transactionId) throws VitamClientException;
 
     /**
-     * Generate SIP + Send to Vitam
-     *
-     * produce and InputStream
+     * Wait for transaction to become valid (SIP generated successfully), so it can be ingested in Vitam.
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    void awaitTransactionValidation(String transactionId) throws VitamClientException;
+
+    /**
+     * Download the generated SIP of the transaction
      *
      * @return InputStream
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    InputStream generateSip(String transactionId) throws VitamClientException;
+    InputStream downloadSIP(String transactionId) throws VitamClientException;
 
     /**
      * Abort Transaction
@@ -324,8 +328,7 @@ public interface CollectInternalClient extends MockOrRestClient {
      * @return Response
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
-        throws VitamClientException;
+    void changeTransactionStatus(String transactionId, TransactionStatus transactionStatus) throws VitamClientException;
 
     /**
      * Attach Vitam Operation Id To Transaction
@@ -392,6 +395,6 @@ public interface CollectInternalClient extends MockOrRestClient {
      * @param inputStream SIP payload.
      * @return OperationIdDto containing the operation ID
      */
-    RequestResponse<OperationIdDto> uploadSipToTransaction(String transactionId, InputStream inputStream)
+    RequestResponse<UploadSipResult> uploadSipToTransaction(String transactionId, InputStream inputStream)
         throws VitamClientException;
 }

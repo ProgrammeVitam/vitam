@@ -72,7 +72,7 @@ public class ObjectGroupMapper {
      * @return jaxb DataObjectPackageType
      * @throws InternalServerException
      */
-    public DataObjectPackageType map(ObjectGroupResponse objectGroupResponse) throws InternalServerException {
+    public DataObjectPackageType map(ObjectGroupResponse objectGroupResponse) {
         final DataObjectPackageType dataObjectPackageType = new DataObjectPackageType();
 
         if (!objectGroupResponse.getQualifiers().isEmpty()) {
@@ -113,7 +113,7 @@ public class ObjectGroupMapper {
         return dataObjectPackageType;
     }
 
-    private BinaryDataObjectType mapBinaryDataObject(VersionsModel version) throws InternalServerException {
+    private BinaryDataObjectType mapBinaryDataObject(VersionsModel version) {
         final BinaryDataObjectType binaryDataObjectType = new BinaryDataObjectType();
         // FIXME : BinaryDataObjectType.Compressed not supported yet in SIP ingest
         // final BinaryDataObjectType.Compressed compressed = new BinaryDataObjectType.Compressed();
@@ -150,7 +150,7 @@ public class ObjectGroupMapper {
                     fileInfoType.setLastModified(DatatypeFactory.newInstance().newXMLGregorianCalendar(lastModified));
                 }
             } catch (DatatypeConfigurationException e) {
-                throw new InternalServerException(
+                throw new IllegalStateException(
                     String.format(
                         "Exception occurred During parsing of field DateCreatedByApplication or lastModified: %s",
                         dateCreatedByApplication

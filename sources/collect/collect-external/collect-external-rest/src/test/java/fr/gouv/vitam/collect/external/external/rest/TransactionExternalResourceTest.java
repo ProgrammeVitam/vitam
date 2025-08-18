@@ -27,14 +27,21 @@
 package fr.gouv.vitam.collect.external.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalInvalidRequestException;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalNotFoundException;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalServerSideException;
+import fr.gouv.vitam.collect.external.external.service.CollectExternalIngestService;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.junit.FixedPatternFakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,6 +49,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response;
@@ -60,10 +69,14 @@ import java.util.Set;
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
 import static io.restassured.RestAssured.given;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static jakarta.ws.rs.core.Response.Status.OK;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -91,7 +104,12 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
     private static final BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
     private static final CollectInternalClientFactory collectInternalClientFactory =
         businessApplicationTest.getCollectInternalClientFactory();
+    private static final IngestExternalClientFactory ingestExternalClientFactory =
+        businessApplicationTest.getIngestExternalClientFactory();
+    private static final CollectExternalIngestService collectExternalIngestService =
+        businessApplicationTest.getCollectExternalIngestService();
     private static final CollectInternalClient collectInternalClient = mock(CollectInternalClient.class);
+    private static final IngestExternalClient ingestExternalClient = mock(IngestExternalClient.class);
 
     @Override
     public Set<Object> getResources() {
@@ -124,7 +142,10 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
     public void setUpBefore() {
         Mockito.reset(collectInternalClient);
         Mockito.reset(collectInternalClientFactory);
+        Mockito.reset(ingestExternalClient);
+        Mockito.reset(ingestExternalClientFactory);
         when(collectInternalClientFactory.getClient()).thenReturn(collectInternalClient);
+        when(ingestExternalClientFactory.getClient()).thenReturn(ingestExternalClient);
     }
 
     @AfterClass
@@ -311,9 +332,7 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void upload_zip_to_project_OK() throws Exception {
-        Mockito.doNothing()
-            .when(collectInternalClient)
-            .uploadZipToTransaction(eq("transaction-id"), any(), any(), eq(null));
+        doNothing().when(collectInternalClient).uploadZipToTransaction(eq("transaction-id"), any(), any(), eq(null));
 
         given()
             .contentType(CommonMediaType.ZIP)
@@ -336,7 +355,7 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void upload_zip_to_project_OK_with_attachement() throws Exception {
-        Mockito.doNothing()
+        doNothing()
             .when(collectInternalClient)
             .uploadZipToTransaction(eq("transaction-id"), any(), any(), eq("attachement-id"));
 
@@ -375,5 +394,147 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
             .body("message", Matchers.equalTo("Unsupported encoding imaginary-encoding"));
 
         verify(collectInternalClient, never()).uploadZipToTransaction(any(), any(), any(), any());
+    }
+
+    @Test
+    public void download_sip_ok() throws Exception {
+        doReturn(new FixedPatternFakeInputStream(10)).when(collectInternalClient).downloadSIP("transaction-id");
+
+        InputStream inputStream = given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.BINARY)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .get("/transactions/transaction-id/downloadSIP")
+            .then()
+            .statusCode(OK.getStatusCode())
+            .contentType(ContentType.BINARY)
+            .extract()
+            .response()
+            .asInputStream();
+
+        assertThat(inputStream).hasSameContentAs(new FixedPatternFakeInputStream(10));
+    }
+
+    @Test
+    public void download_sip_not_found() throws Exception {
+        doThrow(new CollectInternalClientNotFoundException("no such sip"))
+            .when(collectInternalClient)
+            .downloadSIP("transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.BINARY)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .get("/transactions/transaction-id/downloadSIP")
+            .then()
+            .statusCode(NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void download_sip_bad_request() throws Exception {
+        doThrow(new CollectInternalClientInvalidRequestException("bad transaction status"))
+            .when(collectInternalClient)
+            .downloadSIP("transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.BINARY)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .get("/transactions/transaction-id/downloadSIP")
+            .then()
+            .statusCode(BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void download_sip_ko() throws Exception {
+        doThrow(new VitamClientInternalException("prb")).when(collectInternalClient).downloadSIP("transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.BINARY)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .get("/transactions/transaction-id/downloadSIP")
+            .then()
+            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSIP_ok() throws Exception {
+        doReturn("ingestOperationId")
+            .when(collectExternalIngestService)
+            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .post("/transactions/transaction-id/send")
+            .then()
+            .statusCode(OK.getStatusCode());
+
+        doReturn("ingestOperationId")
+            .when(collectExternalIngestService)
+            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+    }
+
+    @Test
+    public void generateAndSendSIP_NotFound() throws Exception {
+        doThrow(new CollectExternalNotFoundException("HTTP 404"))
+            .when(collectExternalIngestService)
+            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .post("/transactions/transaction-id/send")
+            .then()
+            .statusCode(NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSIP_BadRequest() throws Exception {
+        doThrow(new CollectExternalInvalidRequestException("HTTP 400"))
+            .when(collectExternalIngestService)
+            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .post("/transactions/transaction-id/send")
+            .then()
+            .statusCode(BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void generateAndSendSIP_InternalServerError() throws Exception {
+        doThrow(new CollectExternalServerSideException("HTTP 500"))
+            .when(collectExternalIngestService)
+            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+
+        given()
+            .contentType(CommonMediaType.APPLICATION_JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
+            .body(new NullInputStream(100))
+            .when()
+            .post("/transactions/transaction-id/send")
+            .then()
+            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode());
     }
 }

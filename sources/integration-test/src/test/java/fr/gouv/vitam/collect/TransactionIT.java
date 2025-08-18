@@ -78,6 +78,7 @@ public class TransactionIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
 
     private static final String AU_TO_UPLOAD = "collect/upload_au_collect.json";
+    private static final String ZIP_FILE = "collect/sampleStream.zip";
     private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @ClassRule
@@ -143,6 +144,18 @@ public class TransactionIT extends VitamRuleRunner {
             );
 
             String transactionId = transactionDtoResult.getId();
+
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
+                final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
+                    vitamContext,
+                    transactionDtoResult.getId(),
+                    inputStream,
+                    null,
+                    null
+                );
+                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+            }
+
             collectClient.closeTransaction(vitamContext, transactionId);
             verifyTransactionStatus(TransactionStatus.READY, transactionId);
 

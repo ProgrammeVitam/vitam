@@ -26,9 +26,11 @@
  */
 package fr.gouv.vitam.collect.internal.client.exceptions;
 
-public class CollectInternalClientInvalidRequestException extends CollectInternalClientException {
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
-    public CollectInternalClientInvalidRequestException(String message) {
+public class CollectInternalClientException extends VitamClientInternalException {
+
+    public CollectInternalClientException(String message) {
         super(message);
     }
 }

@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.manifest.naming.FlatFolderResolver;
@@ -79,7 +78,7 @@ public class ManifestBuilderTest {
 
     @Test
     public void should_write_got_without_empty_tags()
-        throws JAXBException, XMLStreamException, FileNotFoundException, InvalidParseOperationException, InternalServerException, JsonProcessingException {
+        throws JAXBException, XMLStreamException, FileNotFoundException, InvalidParseOperationException, JsonProcessingException {
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
         JsonNode og = JsonHandler.getFromInputStream(objectGroup);
         Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream = Stream.empty();

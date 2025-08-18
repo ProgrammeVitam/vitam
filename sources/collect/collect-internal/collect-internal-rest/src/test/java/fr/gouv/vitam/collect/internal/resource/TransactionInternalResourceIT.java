@@ -29,7 +29,6 @@ package fr.gouv.vitam.collect.internal.resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
@@ -103,9 +102,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
             );
 
             when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
-            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
-                true
-            );
             when(projectService.findProject(project.getId())).thenReturn(
                 Optional.of(CollectHelper.convertProjectModeltoProjectDto(project))
             );
@@ -194,9 +190,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
             );
 
             when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
-            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
-                true
-            );
             when(projectService.findProject(project.getId())).thenReturn(
                 Optional.of(CollectHelper.convertProjectModeltoProjectDto(project))
             );
@@ -291,9 +284,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
             );
 
             when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
-            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
-                true
-            );
             when(projectService.findProject(project.getId())).thenReturn(
                 Optional.of(CollectHelper.convertProjectModeltoProjectDto(project))
             );
@@ -383,9 +373,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
             );
 
             when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
-            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
-                true
-            );
             when(projectService.findProject(project.getId())).thenReturn(
                 Optional.of(CollectHelper.convertProjectModeltoProjectDto(project))
             );
@@ -468,9 +455,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
             );
 
             when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
-            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
-                true
-            );
             when(projectService.findProject(project.getId())).thenReturn(
                 Optional.of(CollectHelper.convertProjectModeltoProjectDto(project))
             );

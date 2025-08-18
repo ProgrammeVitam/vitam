@@ -499,6 +499,8 @@ vitam:
     statusTransactionThreadFrequency: 5
     bulkAtomicUpdateThreadPoolSize: 8
     bulkAtomicUpdateThreadPoolQueueSize: 16
+    # Max waiting time (in seconds) for transaction validation before timeout on SIP ingest.
+    maxWaitDelayForTransactionValidationInSeconds: 3600
     bulkAtomicUpdateBatchSize: 100
   collect_external:
     vitam_component: collect-external

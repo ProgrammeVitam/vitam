@@ -33,15 +33,18 @@ import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ObjectDto;
-import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientInvalidRequestException;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FixedPatternFakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.rest.Secured;
@@ -81,6 +84,8 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SIP_UPL
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static jakarta.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -245,11 +250,11 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void uploadSIPToTransaction() throws Exception {
-        OperationIdDto operationIdDto = new OperationIdDto("TX_ID");
+        UploadSipResult operationIdDto = new UploadSipResult("TX_ID");
         Mockito.when(mock.post()).thenReturn(
-            Response.ok(new RequestResponseOK<OperationIdDto>().addResult(operationIdDto)).build()
+            Response.ok(new RequestResponseOK<UploadSipResult>().addResult(operationIdDto)).build()
         );
-        RequestResponse<OperationIdDto> response = client.uploadSipToTransaction(
+        RequestResponse<UploadSipResult> response = client.uploadSipToTransaction(
             new VitamContext(TENANT_ID),
             "TX_ID",
             new NullInputStream(100)
@@ -319,6 +324,40 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
             .hasMessage("BAD !");
     }
 
+    @Test
+    public void downloadSIP_OK() throws Exception {
+        Mockito.when(mock.get()).thenReturn(Response.ok(new FixedPatternFakeInputStream(100)).build());
+        Response response = client.downloadSIP(new VitamContext(TENANT_ID), "TX_IX");
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(response.readEntity(InputStream.class)).hasSameContentAs(new FixedPatternFakeInputStream(100));
+    }
+
+    @Test
+    public void downloadSIP_Not_Found() {
+        Mockito.when(mock.get()).thenReturn(CollectRequestResponse.toVitamError(NOT_FOUND, "Ouch, not found"));
+        assertThatThrownBy(() -> client.downloadSIP(new VitamContext(TENANT_ID), "TX_IX"))
+            .isInstanceOf(CollectExternalClientNotFoundException.class)
+            .hasMessage("Ouch, not found");
+    }
+
+    @Test
+    public void downloadSIP_Bad_Request() {
+        Mockito.when(mock.get()).thenReturn(CollectRequestResponse.toVitamError(BAD_REQUEST, "Ouch, bad request"));
+        assertThatThrownBy(() -> client.downloadSIP(new VitamContext(TENANT_ID), "TX_IX"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessage("Ouch, bad request");
+    }
+
+    @Test
+    public void downloadSIP_KO() {
+        Mockito.when(mock.get()).thenReturn(
+            CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, "Ouch, very bad")
+        );
+        assertThatThrownBy(() -> client.downloadSIP(new VitamContext(TENANT_ID), "TX_IX"))
+            .isInstanceOf(VitamClientException.class)
+            .hasMessage("Ouch, very bad");
+    }
+
     @Path("/collect-external/v1")
     public static class MockResource {
 
@@ -363,6 +402,14 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response closeTransaction(@PathParam("transactionId") String transactionId) {
+            return expectedResponse.get();
+        }
+
+        @Path("/transactions/{transactionId}/downloadSIP")
+        @GET
+        @Consumes(APPLICATION_JSON)
+        @Produces(APPLICATION_OCTET_STREAM)
+        public Response downloadSIP(@PathParam("transactionId") String transactionId) {
             return expectedResponse.get();
         }
 

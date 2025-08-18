@@ -25,19 +25,13 @@ X-Tenant-Id: {{tenant}}
 ###
 @transaction-id = {{ tx.response.body.$.$results.0.#id }}
 
-### Upload SIP to transaction
-POST {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/uploadSip
-Content-Type: application/octet-stream
-X-Tenant-Id: {{tenant}}
-
-< ./SIP_OK.zip
-
-# < ./SIP_KO_InvalidManifest.zip
-
-### Check SIP upload operation status
-GET {{url-access}}/admin-external/v1/operations/{{transaction-id}}
+### Upload ZIP to transaction
+POST {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/upload
 Accept: application/json
+Content-Type: application/zip
 X-Tenant-Id: {{tenant}}
+
+< ./collect.zip
 
 ### Check transaction status
 GET  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}

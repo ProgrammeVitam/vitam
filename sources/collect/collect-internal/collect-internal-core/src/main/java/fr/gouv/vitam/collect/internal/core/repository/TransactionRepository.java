@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect.internal.core.repository;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -62,7 +63,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 
 /**
- * repository for collect entities  management in mongo.
+ * repository for collect entities management in mongo.
  */
 public class TransactionRepository {
 
@@ -74,7 +75,6 @@ public class TransactionRepository {
     public static final String CREATION_DATE = "context.CreationDate";
     public static final String SET = "$set";
     public static final String STATUS = "Status";
-    public static final String LAST_UPDATE = "LastUpdate";
 
     private final MongoCollection<Document> transactionCollection;
 
@@ -99,7 +99,7 @@ public class TransactionRepository {
             transactionModel.setVersion(0);
             String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
             transactionCollection.insertOne(Document.parse(transactionModelAsString));
-        } catch (InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException | MongoException e) {
             throw new CollectInternalException("Error when creating transaction: " + e);
         }
     }
@@ -124,7 +124,7 @@ public class TransactionRepository {
                     "concurrency problem: the transaction was modified by another service"
                 );
             }
-        } catch (InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException | MongoException e) {
             throw new CollectInternalException("Error when replacing transaction: ", e);
         }
     }
@@ -154,13 +154,17 @@ public class TransactionRepository {
      * @deprecated : FIXME : Update only if "version = version - 1";
      */
     public void replaceTransactions(List<TransactionModel> transactionsModel) throws CollectInternalException {
-        BulkWriteOptions options = new BulkWriteOptions().ordered(false);
+        try {
+            BulkWriteOptions options = new BulkWriteOptions().ordered(false);
 
-        List<UpdateOneModel<Document>> listUpdate = new ArrayList<>();
-        for (TransactionModel item : transactionsModel) {
-            listUpdate.add(getUpdateOneModel(item));
+            List<UpdateOneModel<Document>> listUpdate = new ArrayList<>();
+            for (TransactionModel item : transactionsModel) {
+                listUpdate.add(getUpdateOneModel(item));
+            }
+            transactionCollection.bulkWrite(listUpdate, options);
+        } catch (MongoException e) {
+            throw new CollectInternalException("Error when replacing transactions", e);
         }
-        transactionCollection.bulkWrite(listUpdate, options);
     }
 
     /**
@@ -180,7 +184,7 @@ public class TransactionRepository {
                 return Optional.empty();
             }
             return Optional.of(BsonHelper.fromDocumentToObject(first, TransactionModel.class));
-        } catch (InvalidParseOperationException e) {
+        } catch (MongoException | InvalidParseOperationException e) {
             throw new CollectInternalServerSideException("Error when searching transaction by id: " + e);
         }
     }
@@ -192,25 +196,30 @@ public class TransactionRepository {
      * @return Optional<TransactionModel>
      * @throws CollectInternalException exception thrown in case of error
      */
-    public Optional<TransactionModel> findTransactionByQuery(Bson query) throws CollectInternalException {
+    public Optional<TransactionModel> findTransactionByQuery(Bson query) throws CollectInternalServerSideException {
         try {
             Document first = getIterableTransactionsByQuery(query).sort(new BasicDBObject(CREATION_DATE, -1)).first();
             if (first == null) {
                 return Optional.empty();
             }
             return Optional.of(BsonHelper.fromDocumentToObject(first, TransactionModel.class));
-        } catch (InvalidParseOperationException e) {
-            throw new CollectInternalException("Error when searching transaction by project id: " + e);
+        } catch (MongoException | InvalidParseOperationException e) {
+            throw new CollectInternalServerSideException("Error when searching transaction by project id: " + e);
         }
     }
 
-    private FindIterable<Document> getIterableTransactionsByQuery(Bson query) {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        Bson finalQuery = and(query, eq(TENANT_ID, tenantId));
-        return transactionCollection.find(finalQuery);
+    private FindIterable<Document> getIterableTransactionsByQuery(Bson query)
+        throws CollectInternalServerSideException {
+        try {
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Bson finalQuery = and(query, eq(TENANT_ID, tenantId));
+            return transactionCollection.find(finalQuery);
+        } catch (MongoException e) {
+            throw new CollectInternalServerSideException("Error when fetching transactions", e);
+        }
     }
 
-    public List<TransactionModel> findTransactionsByQuery(Bson query) throws CollectInternalException {
+    public List<TransactionModel> findTransactionsByQuery(Bson query) throws CollectInternalServerSideException {
         List<TransactionModel> listTransactions = new ArrayList<>();
         try (MongoCursor<Document> transactions = this.getIterableTransactionsByQuery(query).cursor()) {
             while (transactions.hasNext()) {
@@ -218,13 +227,14 @@ public class TransactionRepository {
                 listTransactions.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
             }
             return listTransactions;
-        } catch (InvalidParseOperationException e) {
+        } catch (MongoException | InvalidParseOperationException e) {
             LOGGER.error("Error when fetching transactions: ", e);
-            throw new CollectInternalException("Error when fetching transactions : " + e);
+            throw new CollectInternalServerSideException("Error when fetching transactions : " + e);
         }
     }
 
-    public List<TransactionModel> findTransactionsByQueryWithoutTenant(Bson query) throws CollectInternalException {
+    public List<TransactionModel> findTransactionsByQueryWithoutTenant(Bson query)
+        throws CollectInternalServerSideException {
         List<TransactionModel> listTransactions = new ArrayList<>();
         try (MongoCursor<Document> transactions = transactionCollection.find(query).cursor()) {
             while (transactions.hasNext()) {
@@ -232,9 +242,8 @@ public class TransactionRepository {
                 listTransactions.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
             }
             return listTransactions;
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error when fetching transactions: ", e);
-            throw new CollectInternalException("Error when fetching transactions : " + e);
+        } catch (MongoException | InvalidParseOperationException e) {
+            throw new CollectInternalServerSideException("Error when fetching transactions", e);
         }
     }
 
@@ -243,10 +252,14 @@ public class TransactionRepository {
      *
      * @param id transaction to delete
      */
-    public void deleteTransaction(String id) {
-        LOGGER.debug("Transaction to delete Id: {}", id);
-        transactionCollection.deleteOne(eq(ID, id));
-        LOGGER.debug("Transaction deleted Id: {}", id);
+    public void deleteTransaction(String id) throws CollectInternalServerSideException {
+        try {
+            LOGGER.debug("Transaction to delete Id: {}", id);
+            transactionCollection.deleteOne(eq(ID, id));
+            LOGGER.debug("Transaction deleted Id: {}", id);
+        } catch (MongoException e) {
+            throw new CollectInternalServerSideException("An error occurred while deleting transaction " + id, e);
+        }
     }
 
     /**
@@ -256,7 +269,8 @@ public class TransactionRepository {
      * @return Optional<ProjectModel>
      * @throws CollectInternalException exception thrown in case of error
      */
-    public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId) throws CollectInternalException {
+    public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId)
+        throws CollectInternalServerSideException {
         LOGGER.debug("Transactions to delete : {}");
         try {
             Bson query = and(eq(TENANT_ID, tenantId), in("Status", "ACK_OK", "ACK_WARNING", "ABORTED"));
@@ -267,42 +281,52 @@ public class TransactionRepository {
                 listTransactionToDelete.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
             }
             return listTransactionToDelete;
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error when fetching transaction to delete: ", e);
-            throw new CollectInternalException("Error when fetching transaction to delete : " + e);
+        } catch (InvalidParseOperationException | MongoException e) {
+            throw new CollectInternalServerSideException(
+                "Error when fetching transaction to delete for tenant " + tenantId,
+                e
+            );
         }
     }
 
     public boolean findOneAndReplace(TransactionStatus transactionStatus, TransactionModel transactionModel)
-        throws InvalidParseOperationException {
+        throws CollectInternalServerSideException {
         return findOneAndReplace(Collections.singletonList(eq(STATUS, transactionStatus.toString())), transactionModel);
     }
 
-    public boolean findOneAndReplace(TransactionModel transactionModel) throws InvalidParseOperationException {
+    public boolean findOneAndReplace(TransactionModel transactionModel) throws CollectInternalServerSideException {
         return findOneAndReplace(new ArrayList<>(), transactionModel);
     }
 
     public boolean findOneAndReplace(List<Bson> additionalFilters, TransactionModel transactionModel)
-        throws InvalidParseOperationException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        int atomicVersion = transactionModel.getVersion();
-        transactionModel.setVersion(atomicVersion + 1);
+        throws CollectInternalServerSideException {
+        try {
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            int atomicVersion = transactionModel.getVersion();
+            transactionModel.setVersion(atomicVersion + 1);
 
-        final List<Bson> filters = new ArrayList<>();
-        filters.add(eq(ID, transactionModel.getId()));
-        filters.add(eq(TENANT_ID, tenantId));
-        filters.add(eq(VERSION, atomicVersion));
+            final List<Bson> filters = new ArrayList<>();
+            filters.add(eq(ID, transactionModel.getId()));
+            filters.add(eq(TENANT_ID, tenantId));
+            filters.add(eq(VERSION, atomicVersion));
 
-        if (CollectionUtils.isNotEmpty(additionalFilters)) {
-            filters.addAll(additionalFilters);
+            if (CollectionUtils.isNotEmpty(additionalFilters)) {
+                filters.addAll(additionalFilters);
+            }
+
+            Bson filter = Filters.and(filters);
+
+            String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
+
+            Document documentToUpdate = Document.parse(transactionModelAsString);
+
+            Document updatedDocument = transactionCollection.findOneAndReplace(filter, documentToUpdate);
+            return (updatedDocument != null);
+        } catch (InvalidParseOperationException | MongoException e) {
+            throw new CollectInternalServerSideException(
+                "A technical error occurred during DB update for transaction " + transactionModel,
+                e
+            );
         }
-
-        Bson filter = Filters.and(filters);
-
-        String transactionModelAsString = JsonHandler.writeAsString(transactionModel);
-        Document documentToUpdate = Document.parse(transactionModelAsString);
-
-        Document updatedDocument = transactionCollection.findOneAndReplace(filter, documentToUpdate);
-        return (updatedDocument != null);
     }
 }

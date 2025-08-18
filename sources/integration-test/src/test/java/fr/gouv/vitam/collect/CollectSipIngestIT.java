@@ -32,9 +32,9 @@ import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
-import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
@@ -50,8 +50,6 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -102,8 +100,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
 public class CollectSipIngestIT extends AbstractCollectIT {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectSipIngestIT.class);
 
     private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
 
@@ -240,14 +236,11 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDtoCreated = createTransaction(
-                vitamContext,
-                projectDto.getId()
-            ).orElseThrow();
+            final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDtoCreated.getId();
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(sipFilePath)) {
-                RequestResponse<OperationIdDto> response = collectClient.uploadSipToTransaction(
+                RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
                     new VitamContext(TENANT_ID)
                         .setApplicationSessionId(APPLICATION_SESSION_ID)
                         .setAccessContract(ACCESS_CONTRACT),
@@ -255,21 +248,15 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                     inputStream
                 );
                 assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
-                OperationIdDto operationIdDto = JsonHandler.getFromJsonNode(
-                    response.toJsonNode().get("$results").get(0),
-                    OperationIdDto.class
-                );
+                UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
                 assertThat(operationIdDto.requestId()).isEqualTo(transactionId);
             }
 
             waitOperation(transactionId);
-            RequestResponse<JsonNode> updatedTransactionResponse = collectClient.getTransactionById(
+
+            TransactionDto updatedTransaction = CollectTestHelper.getTransaction(
                 new VitamContext(TENANT_ID),
                 transactionId
-            );
-            TransactionDto updatedTransaction = JsonHandler.getFromJsonNode(
-                (((RequestResponseOK<JsonNode>) updatedTransactionResponse).getFirstResult()),
-                TransactionDto.class
             );
             assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
 
@@ -359,14 +346,11 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDtoCreated = createTransaction(
-                vitamContext,
-                projectDto.getId()
-            ).orElseThrow();
+            final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDtoCreated.getId();
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream("collect/SIP_KO_InvalidManifest.zip")) {
-                RequestResponse<OperationIdDto> response = collectClient.uploadSipToTransaction(
+                RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
                     new VitamContext(TENANT_ID)
                         .setApplicationSessionId(APPLICATION_SESSION_ID)
                         .setAccessContract(ACCESS_CONTRACT),

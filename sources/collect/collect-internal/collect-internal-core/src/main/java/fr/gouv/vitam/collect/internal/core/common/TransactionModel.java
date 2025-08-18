@@ -101,96 +101,108 @@ public class TransactionModel {
         return id;
     }
 
-    public void setId(String id) {
+    public TransactionModel setId(String id) {
         this.id = id;
+        return this;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public TransactionModel setName(String name) {
         this.name = name;
+        return this;
     }
 
     public ManifestContext getManifestContext() {
         return manifestContext;
     }
 
-    public void setManifestContext(ManifestContext manifestContext) {
+    public TransactionModel setManifestContext(ManifestContext manifestContext) {
         this.manifestContext = manifestContext;
+        return this;
     }
 
     public TransactionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(TransactionStatus status) {
+    public TransactionModel setStatus(TransactionStatus status) {
         this.status = status;
+        return this;
     }
 
     public String getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(String creationDate) {
+    public TransactionModel setCreationDate(String creationDate) {
         this.creationDate = creationDate;
+        return this;
     }
 
     public String getLastUpdate() {
         return lastUpdate;
     }
 
-    public void setLastUpdate(String lastUpdate) {
+    public TransactionModel setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+        return this;
     }
 
     public String getProjectId() {
         return projectId;
     }
 
-    public void setProjectId(String projectId) {
+    public TransactionModel setProjectId(String projectId) {
         this.projectId = projectId;
+        return this;
     }
 
     public String getVitamOperationId() {
         return vitamOperationId;
     }
 
-    public void setVitamOperationId(String vitamOperationId) {
+    public TransactionModel setVitamOperationId(String vitamOperationId) {
         this.vitamOperationId = vitamOperationId;
+        return this;
     }
 
     public Integer getTenant() {
         return tenant;
     }
 
-    public void setTenant(Integer tenant) {
+    public TransactionModel setTenant(Integer tenant) {
         this.tenant = tenant;
+        return this;
     }
 
     public Boolean getAutomaticIngest() {
         return automaticIngest;
     }
 
-    public void setAutomaticIngest(Boolean automaticIngest) {
+    public TransactionModel setAutomaticIngest(Boolean automaticIngest) {
         this.automaticIngest = automaticIngest;
+        return this;
     }
 
     public List<Batch> getBatches() {
         return batches;
     }
 
-    public void setBatches(List<Batch> batches) {
+    public TransactionModel setBatches(List<Batch> batches) {
         this.batches = batches;
+        return this;
     }
 
     public int getVersion() {
         return version;
     }
 
-    public void setVersion(Integer version) {
+    public TransactionModel setVersion(Integer version) {
         this.version = version;
+        return this;
     }
 
     @Override

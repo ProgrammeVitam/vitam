@@ -28,10 +28,9 @@ package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -40,7 +39,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -91,7 +89,8 @@ public class CollectTestHelper {
         return projectDto;
     }
 
-    public static Optional<TransactionDto> createTransaction(final VitamContext vitamContext, final String projectId) {
+    public static TransactionDto createTransaction(final VitamContext vitamContext, final String projectId)
+        throws VitamClientException, InvalidParseOperationException {
         try (final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
             final TransactionDto createTransactionDto = initTransaction(projectId);
             final RequestResponse<JsonNode> response = client.initTransaction(
@@ -100,15 +99,8 @@ public class CollectTestHelper {
                 projectId
             );
 
-            if (response.isOk()) {
-                final JsonNode payload = ((RequestResponseOK<JsonNode>) response).getFirstResult();
-
-                return Optional.of(JsonHandler.getFromJsonNode(payload, TransactionDto.class));
-            }
-
-            return Optional.empty();
-        } catch (VitamClientException | InvalidParseOperationException e) {
-            return Optional.empty();
+            final JsonNode payload = ((RequestResponseOK<JsonNode>) response).getFirstResult();
+            return JsonHandler.getFromJsonNode(payload, TransactionDto.class);
         }
     }
 
@@ -217,8 +209,7 @@ public class CollectTestHelper {
         VitamContext vitamContext,
         String transactionId,
         CollectExternalClient collectInternalClient
-    )
-        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException, AccessInternalClientNotFoundException, VitamClientException, BadRequestException {
+    ) throws InvalidCreateOperationException, VitamClientException {
         SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
         checkEliminationDslRequest.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionId));
 
@@ -227,5 +218,25 @@ public class CollectTestHelper {
             transactionId,
             checkEliminationDslRequest.getFinalSelect()
         );
+    }
+
+    public static TransactionDto getTransaction(VitamContext vitamContext, String transactionId)
+        throws VitamClientException, InvalidParseOperationException {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final RequestResponse<JsonNode> requestResponse = collectClient.getTransactionById(
+                vitamContext,
+                transactionId
+            );
+            TransactionDto fromJsonNode = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult(),
+                TransactionDto.class
+            );
+            return fromJsonNode;
+        }
+    }
+
+    public static TransactionStatus getTransactionStatus(String transactionId, VitamContext vitamContext)
+        throws VitamClientException, InvalidParseOperationException {
+        return TransactionStatus.valueOf(getTransaction(vitamContext, transactionId).getStatus());
     }
 }

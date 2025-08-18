@@ -162,16 +162,20 @@ public class BusinessApplication extends ConfigurationApplication {
                 accessInternalClientFactory,
                 ingestInternalClientFactory,
                 processingManagementClientFactory,
-                logbookOperationsClientFactory
+                logbookOperationsClientFactory,
+                configuration
             );
-            SipService sipService = new SipService(workspaceCollectClientFactory, metadataRepository);
+            SipService sipService = new SipService(
+                workspaceCollectClientFactory,
+                metadataRepository,
+                transactionService
+            );
 
             // Resources
             final TransactionInternalResource transactionInternalResource = new TransactionInternalResource(
                 transactionService,
                 sipService,
                 metadataService,
-                projectService,
                 bulkAtomicUpdateMetadataService
             );
             final ProjectInternalResource projectInternalResource = new ProjectInternalResource(

@@ -52,7 +52,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.ExportException;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -508,7 +507,7 @@ public class CreateManifest extends ActionHandler {
             | LogbookClientException
             | MetaDataDocumentSizeException
             | InvalidParseOperationException
-            | InternalServerException
+            | IllegalStateException
             | MetaDataNotFoundException
             | DatatypeConfigurationException e
         ) {

@@ -50,9 +50,10 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
     @Beta
     private boolean applyJsltPostDynamicAttachement;
 
-    private final int bulkAtomicUpdateThreadPoolSize = 8;
-    private final int bulkAtomicUpdateThreadPoolQueueSize = 16;
-    private final int bulkAtomicUpdateBatchSize = 100;
+    private int bulkAtomicUpdateThreadPoolSize = 8;
+    private int bulkAtomicUpdateThreadPoolQueueSize = 16;
+    private int bulkAtomicUpdateBatchSize = 100;
+    private int maxWaitDelayForTransactionValidationInSeconds = 3600; // Default to 1 hour
 
     /**
      * Must return the value of a 'workspaceUrl' attribute
@@ -144,6 +145,17 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
     public CollectInternalConfiguration setWorkspaceCollectUrl(String workspaceCollectUrl) {
         ParametersChecker.checkParameter("workspaceCollectUrl" + IS_A_MANDATORY_PARAMETER, workspaceCollectUrl);
         this.workspaceCollectUrl = workspaceCollectUrl;
+        return this;
+    }
+
+    public int getMaxWaitDelayForTransactionValidationInSeconds() {
+        return maxWaitDelayForTransactionValidationInSeconds;
+    }
+
+    public CollectInternalConfiguration setMaxWaitDelayForTransactionValidationInSeconds(
+        int maxWaitDelayForTransactionValidationInSeconds
+    ) {
+        this.maxWaitDelayForTransactionValidationInSeconds = maxWaitDelayForTransactionValidationInSeconds;
         return this;
     }
 }

@@ -45,8 +45,6 @@ import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
-import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
-import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -106,12 +104,12 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -200,7 +198,7 @@ public class CollectIngestIT extends AbstractCollectIT {
             ProjectDto projectDto = initProjectData();
 
             ProjectDto projectDtoResult = createProject(vitamContext, projectDto).orElseThrow();
-            TransactionDto transactiondto = createTransaction(vitamContext, projectDtoResult.getId()).orElseThrow();
+            TransactionDto transactiondto = createTransaction(vitamContext, projectDtoResult.getId());
 
             RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(
                 vitamContext,
@@ -383,7 +381,7 @@ public class CollectIngestIT extends AbstractCollectIT {
             )
         );
         ProjectDto project = createProject(vitamContext, projectDto).orElseThrow();
-        TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+        TransactionDto transaction = createTransaction(vitamContext, project.getId());
 
         // Upload ZIP
         uploadZipTransaction(vitamContext, transaction.getId(), new FileInputStream(finalZipFile), null);
@@ -509,42 +507,25 @@ public class CollectIngestIT extends AbstractCollectIT {
     private void retryAndWaitOperation(String transactionId, TransactionStatus transactionStatus)
         throws InterruptedException, VitamClientException, InvalidParseOperationException {
         int maxRetries = 3;
-        long waitTime = TimeUnit.SECONDS.toMillis(5);
-
-        String currentStatus = null;
         int attempts = 0;
 
         while (attempts < maxRetries) {
             // Effectuez l'opération
-            currentStatus = getTransactionStatus(transactionId);
+            TransactionStatus currentStatus = CollectTestHelper.getTransactionStatus(transactionId, vitamContext);
 
             // Vérifiez si le statut souhaité est atteint
-            if (currentStatus.equals(transactionStatus.toString())) {
+            if (currentStatus.equals(transactionStatus)) {
                 return;
             }
 
             // Attendez avant la prochaine tentative
-            Thread.sleep(waitTime);
+            Thread.sleep(Duration.ofSeconds(5));
 
             attempts++;
         }
 
         // Si nous avons épuisé toutes les tentatives sans atteindre le statut souhaité
         throw new RuntimeException("Opération échouée après plusieurs tentatives");
-    }
-
-    private String getTransactionStatus(String transactionId)
-        throws VitamClientException, InvalidParseOperationException {
-        try (CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> transactionResponse = client.getTransactionById(transactionId);
-
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            TransactionDto transactionDtoResult = JsonHandler.getFromJsonNode(
-                requestResponseOK.getFirstResult(),
-                TransactionDto.class
-            );
-            return transactionDtoResult.getStatus();
-        }
     }
 
     @Test
@@ -556,7 +537,7 @@ public class CollectIngestIT extends AbstractCollectIT {
             ProjectDto projectDto = initProjectData();
 
             ProjectDto projectDtoResult = createProject(vitamContext, projectDto).orElseThrow();
-            TransactionDto transactiondto = createTransaction(vitamContext, projectDtoResult.getId()).orElseThrow();
+            TransactionDto transactiondto = createTransaction(vitamContext, projectDtoResult.getId());
 
             RequestResponse<JsonNode> transactionResponse = collectClient.initTransaction(
                 vitamContext,
