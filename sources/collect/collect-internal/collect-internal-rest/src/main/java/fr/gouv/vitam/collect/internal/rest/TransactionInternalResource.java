@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
@@ -868,6 +869,7 @@ public class TransactionInternalResource {
      *
      * @param contentType the header Content-Type (zip, tar, ...)
      * @param uploadedInputStream the stream to upload
+     * @return Response with operation ID
      */
     @POST
     @Path("/{transactionId}/uploadSip")
@@ -887,8 +889,13 @@ public class TransactionInternalResource {
         InputStream uploadedInputStream
     ) {
         try {
-            transactionService.uploadSipOnTransaction(transactionId, contentType, uploadedInputStream);
-            return Response.status(Response.Status.OK).build();
+            var operationIdDto = new OperationIdDto(
+                transactionService.uploadSipOnTransaction(transactionId, contentType, uploadedInputStream)
+            );
+            return new RequestResponseOK<OperationIdDto>()
+                .addResult(operationIdDto)
+                .setHttpCode(Response.Status.OK.getStatusCode())
+                .toResponse();
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("Error when uploading SIP to transaction. Not found", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);

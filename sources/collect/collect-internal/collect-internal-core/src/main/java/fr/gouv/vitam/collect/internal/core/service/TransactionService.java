@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
@@ -975,13 +976,13 @@ public class TransactionService {
         }
     }
 
-    public void uploadSipOnTransaction(String transactionId, String contentType, InputStream uploadedInputStream)
+    public String uploadSipOnTransaction(String transactionId, String contentType, InputStream uploadedInputStream)
         throws LogbookClientAlreadyExistsException, VitamClientException, InternalServerException, BadRequestException, InvalidParseOperationException, LogbookClientServerException, ContentAddressableStorageException, LogbookClientBadRequestException, InvalidGuidOperationException, CollectInternalException {
         try {
             ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             checkTransactionStatus(transactionId);
             pushSipStreamToWorkspaceCollect(transactionId, contentType, uploadedInputStream);
-            launchCollectSipWorkflow(transactionId);
+            return launchCollectSipWorkflow(transactionId);
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
         }
@@ -999,10 +1000,11 @@ public class TransactionService {
         }
     }
 
-    private void launchCollectSipWorkflow(String transactionId)
+    private String launchCollectSipWorkflow(String transactionId)
         throws InvalidGuidOperationException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException, ContentAddressableStorageServerException, InternalServerException, BadRequestException, VitamClientException {
         ParametersChecker.checkParameter("Missing transaction id", transactionId);
         // Start workflow
+        GUID operationGUID = GUIDReader.getGUID(transactionId);
 
         try (
             ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -1010,15 +1012,13 @@ public class TransactionService {
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
         ) {
             final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                GUIDReader.getGUID(transactionId),
+                operationGUID,
                 Contexts.COLLECT_SIP_INGEST.getEventType(),
-                GUIDReader.getGUID(transactionId),
+                operationGUID,
                 LogbookTypeProcess.COLLECT_SIP_INGEST,
                 STARTED,
-                VitamLogbookMessages.getLabelOp("COLLECT_SIP_INGEST.STARTED") +
-                " : " +
-                GUIDReader.getGUID(transactionId),
-                GUIDReader.getGUID(transactionId)
+                VitamLogbookMessages.getLabelOp("COLLECT_SIP_INGEST.STARTED") + " : " + operationGUID,
+                operationGUID
             );
 
             logbookOperationsClient.create(initParameters);
@@ -1031,6 +1031,8 @@ public class TransactionService {
                 RESUME.getValue()
             );
             jsonNodeRequestResponse.toResponse();
+
+            return operationGUID.toString();
         }
     }
 

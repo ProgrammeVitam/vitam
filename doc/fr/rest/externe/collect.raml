@@ -383,7 +383,7 @@ documentation:
     post:
       description: |
         Reclasse une ou plusieurs unités archivistiques d'une transaction
-        
+
         Permissions requises:
           - transaction:reclassification
       headers:
@@ -521,6 +521,34 @@ documentation:
           body:
             application/json:
               type: object
+
+  /{id}/uploadSip:
+    displayName: Upload d'un SIP à une transaction
+    uriParameters:
+      id:
+        required: true
+        description: Identifiant de la transaction
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+    post:
+      description: |
+        Permet de soumettre un SIP (Submission Information Package) à une transaction.
+
+        Permissions requises:
+          - transaction:sip:upload
+      body:
+        application/octet-stream:
+          description: Fichier SIP au format binaire
+      headers:
+        X-tenant-Id:
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/operationIdResponse.json
 
 /units:
   displayName: Units

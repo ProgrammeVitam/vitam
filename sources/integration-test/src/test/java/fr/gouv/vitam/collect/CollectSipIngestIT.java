@@ -32,6 +32,7 @@ import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
@@ -246,7 +247,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             String transactionId = transactionDtoCreated.getId();
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(sipFilePath)) {
-                RequestResponse<Void> response = collectClient.uploadSipToTransaction(
+                RequestResponse<OperationIdDto> response = collectClient.uploadSipToTransaction(
                     new VitamContext(TENANT_ID)
                         .setApplicationSessionId(APPLICATION_SESSION_ID)
                         .setAccessContract(ACCESS_CONTRACT),
@@ -254,12 +255,14 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                     inputStream
                 );
                 assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
-                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                OperationIdDto operationIdDto = JsonHandler.getFromJsonNode(
+                    response.toJsonNode().get("$results").get(0),
+                    OperationIdDto.class
+                );
+                assertThat(operationIdDto.requestId()).isEqualTo(transactionId);
             }
 
             waitOperation(transactionId);
-
             RequestResponse<JsonNode> updatedTransactionResponse = collectClient.getTransactionById(
                 new VitamContext(TENANT_ID),
                 transactionId
@@ -363,7 +366,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             String transactionId = transactionDtoCreated.getId();
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream("collect/SIP_KO_InvalidManifest.zip")) {
-                RequestResponse<Void> response = collectClient.uploadSipToTransaction(
+                RequestResponse<OperationIdDto> response = collectClient.uploadSipToTransaction(
                     new VitamContext(TENANT_ID)
                         .setApplicationSessionId(APPLICATION_SESSION_ID)
                         .setAccessContract(ACCESS_CONTRACT),

@@ -33,6 +33,7 @@ import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ObjectDto;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
@@ -244,10 +245,15 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void uploadSIPToTransaction() throws Exception {
+        OperationIdDto operationIdDto = new OperationIdDto("TX_ID");
         Mockito.when(mock.post()).thenReturn(
-            Response.ok(new RequestResponseOK<JsonNode>().addResult(JsonHandler.toJsonNode("TX_ID"))).build()
+            Response.ok(new RequestResponseOK<OperationIdDto>().addResult(operationIdDto)).build()
         );
-        var response = client.uploadSipToTransaction(new VitamContext(TENANT_ID), "TX_ID", new NullInputStream(100));
+        RequestResponse<OperationIdDto> response = client.uploadSipToTransaction(
+            new VitamContext(TENANT_ID),
+            "TX_ID",
+            new NullInputStream(100)
+        );
         Assertions.assertThat(response).isNotNull();
     }
 

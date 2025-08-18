@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.external.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
+import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientException;
@@ -696,7 +697,7 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
     }
 
     @Override
-    public RequestResponse<Void> uploadSipToTransaction(
+    public RequestResponse<OperationIdDto> uploadSipToTransaction(
         VitamContext vitamContext,
         String transactionId,
         InputStream stream
@@ -708,7 +709,7 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
             .withOctetContentType();
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, Void.class);
+            return RequestResponse.parseFromResponse(response, OperationIdDto.class);
         }
     }
 }

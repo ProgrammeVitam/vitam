@@ -405,6 +405,44 @@ documentation:
           body:
             application/json:
 
+  /{id}/uploadSip:
+    displayName: Upload d'un SIP à une transaction
+    uriParameters:
+      id:
+        required: true
+        description: Identifiant de la transaction
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+    post:
+      description: |
+        Permet de faire un upload à une transaction.
+      body:
+        application/octet-stream:
+          description: Fichier SIP au format binaire
+        application/zip:
+          description: Fichier SIP au format ZIP
+        application/x-gzip:
+          description: Fichier SIP au format GZIP
+        application/gzip:
+          description: Fichier SIP au format GZIP
+        application/x-tar:
+          description: Fichier SIP au format TAR
+        application/x-bzip2:
+          description: Fichier SIP au format BZIP2
+      headers:
+        X-tenant-Id:
+          required: true
+        Content-Type:
+          required: true
+          description: "Type de contenu du SIP (zip, tar, etc.)"
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/operationIdResponse.json
+
 /units:
   displayName: Units
   description: |
