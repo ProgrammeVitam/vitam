@@ -62,23 +62,31 @@
 
 - name: Copy prometheus common rule files
   copy:
-    src: '{{ role_path }}/rules/{{ item }}'
+    src: "rules/{{ item }}"
     dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   with_items:
     - cpu.yml
-    - disk.yml
     - memory.yml
     - state.yml
     - tape_storage_offer.yml
     - certificat.yml
   notify: "prometheus-server - restart service"
 
+- name: Generate disk rule file dynamically based on host group
+  template:
+    src:  "rules/disk_rules.j2"
+    dest: "{{ prometheus_server_config_path }}/rules/disk.yml"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  notify: "prometheus-server - restart service"
+
 - name: Copy prometheus primary-site rule files
   copy:
-    src: '{{ role_path }}/rules/{{ item }}'
+    src:  "rules/{{ item }}"
     dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
@@ -89,7 +97,7 @@
 
 - name: Copy prometheus secondary-site rule files
   copy:
-    src: '{{ role_path }}/rules/{{ item }}'
+    src:  "rules/{{ item }}"
     dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"

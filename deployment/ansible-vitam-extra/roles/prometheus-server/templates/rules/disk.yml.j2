@@ -1,0 +1,41 @@
+groups:
+  - name: disk_root
+    rules:
+{% for level in [75, 90] %}
+      - alert: OutOfDiskSpace
+        expr: (100 - ((node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} * 100) / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"})) > {{ level }}
+        for: 10m
+        labels:
+          severity: {{ "warning" if level == 75 else "critical" }}
+        annotations:
+          summary: "Instance {{ $labels.hostname }} is {% if level == 90 %}critically {% endif %}running out of disk space"
+          description: "Instance {{ $labels.hostname }} has its root partition {{ level }}% full since 10 minutes"
+{% endfor %}
+
+  - name: disk_vitam
+    rules:
+{% for level in [75, 90] %}
+      - alert: OutOfDiskSpace
+        expr: (100 - ((node_filesystem_avail_bytes{mountpoint="/vitam"} * 100) / node_filesystem_size_bytes{mountpoint="/vitam"})) > {{ level }}
+        for: 10m
+        labels:
+          severity: {{ "warning" if level == 75 else "critical" }}
+        annotations:
+          summary: "Instance {{ $labels.hostname }} is {% if level == 90 %}critically {% endif %}running out of disk space"
+          description: "Instance {{ $labels.hostname {{ '}}' }} has its Vitam partition {{ level }}% full since 10 minutes"
+{% endfor %}
+
+{% if (groups['hosts_vitamui'] | default([]) | length > 0) %}
+  - name: disk_vitamui
+    rules:
+{% for level in [75, 90] %}
+      - alert: OutOfDiskSpace
+        expr: (100 - ((node_filesystem_avail_bytes{mountpoint="/vitamui"} * 100) / node_filesystem_size_bytes{mountpoint="/vitamui"})) > {{ level }}
+        for: 10m
+        labels:
+          severity: {{ "warning" if level == 75 else "critical" }}
+        annotations:
+          summary: "Instance {{ $labels.hostname }} is {% if level == 90 %}critically {% endif %}running out of disk space"
+          description: "Instance {{ $labels.hostname }} has its Vitamui partition {{ level }}% full since 10 minutes"
+{% endfor %}
+{% endif %}
