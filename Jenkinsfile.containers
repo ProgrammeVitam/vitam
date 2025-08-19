@@ -1,7 +1,7 @@
 pipeline {
 
     agent {
-        label 'java21'
+        label 'build'
     }
 
     tools {
@@ -35,7 +35,7 @@ pipeline {
                         env.CONTAINER_VERSION = sh(script: "mvn help:evaluate -f sources/pom.xml -Dexpression=project.version -q -DforceStdout",returnStdout: true).trim()
                     }
                     nvm('v18.20.3') {
-                        
+
                         sh '$MVN_COMMAND -f sources/pom.xml install  -Djib.skip=false -Dmaven.test.skip=true -DskipTests=true -Djacoco.skip=true -Dlicense.skip -Denv.SERVICE_NEXUS_URL=$SERVICE_NEXUS_URL -DsendCredentialsOverHttp=true -Djib.to.auth.username=$CI_USR -Djib.to.auth.password=$CI_PSW'
                         sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION}"
                         sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect:${CONTAINER_VERSION}"
@@ -43,9 +43,9 @@ pipeline {
                         sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace:${CONTAINER_VERSION}"
                         sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect:${CONTAINER_VERSION}"
                         sh "docker push ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect:${CONTAINER_VERSION}"
-                                   
+
                     }
-                }   
+                }
             }
         }
 
