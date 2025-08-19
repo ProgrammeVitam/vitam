@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.core.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.Beta;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
@@ -36,6 +37,7 @@ import java.util.Objects;
 /**
  * project model
  */
+@JsonInclude(JsonInclude.Include.ALWAYS) // Important to be able to override unitUp & transformationRules with null values (to remove them)
 public class ProjectModel {
 
     @JsonProperty("_id")
