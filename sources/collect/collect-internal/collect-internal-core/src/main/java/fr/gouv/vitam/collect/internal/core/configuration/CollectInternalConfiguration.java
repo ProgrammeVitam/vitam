@@ -119,12 +119,29 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
         return bulkAtomicUpdateThreadPoolSize;
     }
 
+    public CollectInternalConfiguration setBulkAtomicUpdateThreadPoolSize(int bulkAtomicUpdateThreadPoolSize) {
+        this.bulkAtomicUpdateThreadPoolSize = bulkAtomicUpdateThreadPoolSize;
+        return this;
+    }
+
     public int getBulkAtomicUpdateThreadPoolQueueSize() {
         return bulkAtomicUpdateThreadPoolQueueSize;
     }
 
+    public CollectInternalConfiguration setBulkAtomicUpdateThreadPoolQueueSize(
+        int bulkAtomicUpdateThreadPoolQueueSize
+    ) {
+        this.bulkAtomicUpdateThreadPoolQueueSize = bulkAtomicUpdateThreadPoolQueueSize;
+        return this;
+    }
+
     public int getBulkAtomicUpdateBatchSize() {
         return bulkAtomicUpdateBatchSize;
+    }
+
+    public CollectInternalConfiguration setBulkAtomicUpdateBatchSize(int bulkAtomicUpdateBatchSize) {
+        this.bulkAtomicUpdateBatchSize = bulkAtomicUpdateBatchSize;
+        return this;
     }
 
     @Beta

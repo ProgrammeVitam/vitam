@@ -119,7 +119,7 @@ public class AutomaticIngestThread implements Runnable {
                         Thread.currentThread().setName(AutomaticIngestThread.class.getName() + "-" + transactionId);
                         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                         try {
-                            generateAndSendSip(transactionId, tenantId);
+                            sendSip(transactionId, tenantId);
                         } catch (Exception e) {
                             LOGGER.error("Error when sending automatic transaction " + transactionId, e);
                         }
@@ -138,13 +138,13 @@ public class AutomaticIngestThread implements Runnable {
         }
     }
 
-    private void generateAndSendSip(String transactionId, Integer tenantId) throws CollectExternalException {
+    private void sendSip(String transactionId, Integer tenantId) throws CollectExternalException {
         try (
             CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient();
             IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
         ) {
-            LOGGER.info("Generating SIP for transaction " + transactionId + " for tenant " + tenantId);
-            String ingestOperationId = collectExternalIngestService.generateSipForIngest(
+            LOGGER.info("Sending SIP for transaction " + transactionId + " for tenant " + tenantId);
+            String ingestOperationId = collectExternalIngestService.ingestSip(
                 client,
                 ingestExternalClient,
                 transactionId

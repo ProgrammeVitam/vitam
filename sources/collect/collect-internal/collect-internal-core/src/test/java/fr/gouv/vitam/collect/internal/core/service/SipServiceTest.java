@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
@@ -102,7 +102,7 @@ public class SipServiceTest {
     private MetadataRepository metadataRepository;
 
     @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
+    private WorkspaceCollectClientFactory workspaceCollectClientFactory;
 
     @Mock
     private TransactionService transactionService;
@@ -112,7 +112,7 @@ public class SipServiceTest {
     @Before
     public void setUp() throws ContentAddressableStorageServerException {
         reset(workspaceClient);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceCollectClientFactory.getClient()).thenReturn(workspaceClient);
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -192,7 +192,12 @@ public class SipServiceTest {
             .when(transactionService)
             .changeTransactionStatus(TransactionStatus.VALIDATED, transactionModel);
 
-        sipService = new SipService(workspaceClientFactory, metadataRepository, transactionService, maxElementsInQuery);
+        sipService = new SipService(
+            workspaceCollectClientFactory,
+            metadataRepository,
+            transactionService,
+            maxElementsInQuery
+        );
 
         //When
         sipService.generateSipAsync(transactionModel);
@@ -239,7 +244,7 @@ public class SipServiceTest {
             .when(transactionService)
             .changeTransactionStatus(TransactionStatus.KO, transactionModel);
 
-        sipService = new SipService(workspaceClientFactory, metadataRepository, transactionService, 1000);
+        sipService = new SipService(workspaceCollectClientFactory, metadataRepository, transactionService, 1000);
 
         // When
         sipService.generateSipAsync(transactionModel);

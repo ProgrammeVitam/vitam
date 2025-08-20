@@ -71,7 +71,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import jakarta.ws.rs.core.Response;
@@ -106,7 +105,7 @@ public class SipService {
     private static final int DEFAULT_MAX_ELEMENT_IN_QUERY = 1000;
 
     private final int maxElementsInQuery;
-    private final WorkspaceClientFactory workspaceClientFactory;
+    private final WorkspaceCollectClientFactory workspaceCollectClientFactory;
     private final MetadataRepository metadataRepository;
     private final TransactionService transactionService;
 
@@ -120,12 +119,12 @@ public class SipService {
 
     @VisibleForTesting
     public SipService(
-        WorkspaceClientFactory workspaceClientFactory,
+        WorkspaceCollectClientFactory workspaceCollectClientFactory,
         MetadataRepository metadataRepository,
         TransactionService transactionService,
         int maxElementsInQuery
     ) {
-        this.workspaceClientFactory = workspaceClientFactory;
+        this.workspaceCollectClientFactory = workspaceCollectClientFactory;
         this.metadataRepository = metadataRepository;
         this.transactionService = transactionService;
         this.maxElementsInQuery = maxElementsInQuery;
@@ -302,7 +301,7 @@ public class SipService {
         throws IOException, ContentAddressableStorageServerException {
         LOGGER.debug("Try to push manifest to workspace...");
         try (
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient();
             InputStream inputStream = new FileInputStream(manifestFile)
         ) {
             workspaceClient.putObject(transactionModel.getId(), SEDA_FILE, inputStream);
@@ -311,7 +310,7 @@ public class SipService {
     }
 
     private void compressSipInWorkspace(TransactionModel transactionModel) throws CollectInternalException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             // compress
             CompressInformation compressInformation = new CompressInformation();
             compressInformation.getFiles().add(SEDA_FILE);
@@ -334,7 +333,7 @@ public class SipService {
 
     public InputStream getIngestedFileFromWorkspace(String transactionId) throws CollectInternalException {
         LOGGER.debug("Try to get Zip from workspace...");
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             Response response = workspaceClient.getObject(transactionId, transactionId + SIP_EXTENSION);
             return response.readEntity(InputStream.class);
         } catch (ContentAddressableStorageNotFoundException e) {
@@ -349,7 +348,7 @@ public class SipService {
 
     public void cleanupSip(String transactionId) throws CollectInternalException {
         LOGGER.info("Deleting SIP if transaction " + transactionId + " from workspace...");
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
             workspaceClient.deleteObject(transactionId, transactionId + SIP_EXTENSION);
         } catch (ContentAddressableStorageNotFoundException ignored) {
             LOGGER.info("No SIP to delete for transaction " + transactionId);

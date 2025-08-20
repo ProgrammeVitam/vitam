@@ -56,12 +56,13 @@ public class CollectExternalIngestService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectExternalIngestService.class);
 
     /**
-     * Generate transaction SIP (if not already generated), mark it as SENDING, and download SIP for ingest to Vitam.
-     * Download the generated SIP of the transaction
+     * Helper method for ingesting a transaction SIP to vitam.
+     * Waits for transaction SIP to be generated, mark the transaction as SENDING, download the generated SIP and ingest it into Vitam, then mark the transaction as SENT.
      *
+     * @return Vitam ingest operation id
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    public String generateSipForIngest(
+    public String ingestSip(
         CollectInternalClient collectInternalClient,
         IngestExternalClient ingestExternalClient,
         String transactionId

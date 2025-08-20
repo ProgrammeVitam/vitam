@@ -349,13 +349,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_SEND, description = "Envoi vers VITAM la transaction")
-    public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
+    public Response sendSip(@PathParam("transactionId") String transactionId) {
         try (
             CollectInternalClient collectClient = collectInternalClientFactory.getClient();
             IngestExternalClient clientIngest = ingestExternalClientFactory.getClient()
         ) {
             SanityChecker.checkParameter(transactionId);
-            collectExternalIngestService.generateSipForIngest(collectClient, clientIngest, transactionId);
+            collectExternalIngestService.ingestSip(collectClient, clientIngest, transactionId);
             return Response.ok().build();
         } catch (final CollectExternalNotFoundException e) {
             LOGGER.error("Error while ingesting transaction SIP to Vitam - Not found", e);

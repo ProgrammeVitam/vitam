@@ -89,7 +89,7 @@ public class CollectExternalIngestServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testGenerateSipForIngest_OK() throws Exception {
+    public void testIngestSip_OK() throws Exception {
         // Given
         doReturn(
             new RequestResponseOK<Void>().addHeader(GlobalDataRest.X_REQUEST_ID, INGEST_OPERATION_ID).setHttpCode(200)
@@ -99,7 +99,7 @@ public class CollectExternalIngestServiceTest {
 
         // When
         CollectExternalIngestService service = new CollectExternalIngestService();
-        service.generateSipForIngest(collectInternalClient, ingestExternalClient, TRANSACTION_ID);
+        service.ingestSip(collectInternalClient, ingestExternalClient, TRANSACTION_ID);
 
         // Then
         verify(collectInternalClient).awaitTransactionValidation(TRANSACTION_ID);
@@ -112,7 +112,7 @@ public class CollectExternalIngestServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testGenerateSipForIngest_NotFound() throws Exception {
+    public void testIngestSip_NotFound() throws Exception {
         // Given
         doThrow(new CollectInternalClientNotFoundException("not found"))
             .when(collectInternalClient)
@@ -121,7 +121,7 @@ public class CollectExternalIngestServiceTest {
         // When / Then
         CollectExternalIngestService service = new CollectExternalIngestService();
         assertThatThrownBy(
-            () -> service.generateSipForIngest(collectInternalClient, ingestExternalClient, TRANSACTION_ID)
+            () -> service.ingestSip(collectInternalClient, ingestExternalClient, TRANSACTION_ID)
         ).isInstanceOf(CollectExternalNotFoundException.class);
 
         // Then
@@ -133,7 +133,7 @@ public class CollectExternalIngestServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testGenerateSipForIngest_BadRequest() throws Exception {
+    public void testIngestSip_BadRequest() throws Exception {
         // Given
         doThrow(new CollectInternalClientInvalidRequestException("bad request"))
             .when(collectInternalClient)
@@ -142,7 +142,7 @@ public class CollectExternalIngestServiceTest {
         // When / Then
         CollectExternalIngestService service = new CollectExternalIngestService();
         assertThatThrownBy(
-            () -> service.generateSipForIngest(collectInternalClient, ingestExternalClient, TRANSACTION_ID)
+            () -> service.ingestSip(collectInternalClient, ingestExternalClient, TRANSACTION_ID)
         ).isInstanceOf(CollectExternalInvalidRequestException.class);
 
         // Then
@@ -154,7 +154,7 @@ public class CollectExternalIngestServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testGenerateSipForIngest_InternalServerError() throws Exception {
+    public void testIngestSip_InternalServerError() throws Exception {
         // Given
         doThrow(new CollectInternalClientException("something went wrong"))
             .when(collectInternalClient)
@@ -163,7 +163,7 @@ public class CollectExternalIngestServiceTest {
         // When / Then
         CollectExternalIngestService service = new CollectExternalIngestService();
         assertThatThrownBy(
-            () -> service.generateSipForIngest(collectInternalClient, ingestExternalClient, TRANSACTION_ID)
+            () -> service.ingestSip(collectInternalClient, ingestExternalClient, TRANSACTION_ID)
         ).isInstanceOf(CollectExternalServerSideException.class);
 
         // Then

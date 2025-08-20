@@ -467,10 +467,10 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void generateAndSendSIP_ok() throws Exception {
+    public void sendSIP_ok() throws Exception {
         doReturn("ingestOperationId")
             .when(collectExternalIngestService)
-            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+            .ingestSip(collectInternalClient, ingestExternalClient, "transaction-id");
 
         given()
             .contentType(CommonMediaType.APPLICATION_JSON)
@@ -484,14 +484,14 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
 
         doReturn("ingestOperationId")
             .when(collectExternalIngestService)
-            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+            .ingestSip(collectInternalClient, ingestExternalClient, "transaction-id");
     }
 
     @Test
-    public void generateAndSendSIP_NotFound() throws Exception {
+    public void sendSIP_NotFound() throws Exception {
         doThrow(new CollectExternalNotFoundException("HTTP 404"))
             .when(collectExternalIngestService)
-            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+            .ingestSip(collectInternalClient, ingestExternalClient, "transaction-id");
 
         given()
             .contentType(CommonMediaType.APPLICATION_JSON)
@@ -505,10 +505,10 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void generateAndSendSIP_BadRequest() throws Exception {
+    public void sendSIP_BadRequest() throws Exception {
         doThrow(new CollectExternalInvalidRequestException("HTTP 400"))
             .when(collectExternalIngestService)
-            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+            .ingestSip(collectInternalClient, ingestExternalClient, "transaction-id");
 
         given()
             .contentType(CommonMediaType.APPLICATION_JSON)
@@ -522,10 +522,10 @@ public class TransactionExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void generateAndSendSIP_InternalServerError() throws Exception {
+    public void sendSIP_InternalServerError() throws Exception {
         doThrow(new CollectExternalServerSideException("HTTP 500"))
             .when(collectExternalIngestService)
-            .generateSipForIngest(collectInternalClient, ingestExternalClient, "transaction-id");
+            .ingestSip(collectInternalClient, ingestExternalClient, "transaction-id");
 
         given()
             .contentType(CommonMediaType.APPLICATION_JSON)
