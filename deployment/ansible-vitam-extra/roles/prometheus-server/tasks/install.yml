@@ -77,7 +77,7 @@
 
 - name: Generate disk rule file dynamically based on host group
   template:
-    src:  "rules/disk_rules.j2"
+    src:  "rules/disk.yml.j2"
     dest: "{{ prometheus_server_config_path }}/rules/disk.yml"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
