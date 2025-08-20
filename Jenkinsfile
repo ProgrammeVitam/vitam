@@ -11,7 +11,7 @@
 
 pipeline {
     agent {
-        label 'java21'
+        label 'build'
     }
 
     environment {

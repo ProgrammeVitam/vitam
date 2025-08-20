@@ -35,6 +35,10 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,6 +57,11 @@ public class ProjectRepositoryTest {
 
     @Rule
     public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PROJECT_TEST_COLLECTION);
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String PROJECT_1_ID = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
     private static final String PROJECT_2_ID = "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq";
@@ -74,12 +83,12 @@ public class ProjectRepositoryTest {
         // Should find by name
         searchProjects = repository.searchProject(getCriteria("test", null), tenant);
         assertThat(searchProjects).hasSize(1);
-        assertThat(searchProjects.get(0).getId()).isEqualTo(PROJECT_1_ID);
+        assertThat(searchProjects.getFirst().getId()).isEqualTo(PROJECT_1_ID);
 
         // Should find by id
         searchProjects = repository.searchProject(getCriteria(PROJECT_2_ID, null), tenant);
         assertThat(searchProjects).hasSize(1);
-        assertThat(searchProjects.get(0).getId()).isEqualTo(PROJECT_2_ID);
+        assertThat(searchProjects.getFirst().getId()).isEqualTo(PROJECT_2_ID);
 
         // Should escape special characters
         searchProjects = repository.searchProject(getCriteria(".", null), tenant);
@@ -88,7 +97,7 @@ public class ProjectRepositoryTest {
         // Should escape another special characters
         searchProjects = repository.searchProject(getCriteria(":)", null), tenant);
         assertThat(searchProjects).hasSize(1);
-        assertThat(searchProjects.get(0).getId()).isEqualTo(PROJECT_4_ID);
+        assertThat(searchProjects.getFirst().getId()).isEqualTo(PROJECT_4_ID);
 
         // Should return no result if originatingAgencies is empty list
         searchProjects = repository.searchProject(getCriteria("test", Collections.emptyList()), tenant);
@@ -100,7 +109,7 @@ public class ProjectRepositoryTest {
             tenant
         );
         assertThat(searchProjects).hasSize(1);
-        assertThat(searchProjects.get(0).getId()).isEqualTo(PROJECT_1_ID);
+        assertThat(searchProjects.getFirst().getId()).isEqualTo(PROJECT_1_ID);
 
         // Should NOT find project if originatingAgencies does NOT include project's originatingAgency
         searchProjects = repository.searchProject(
@@ -108,6 +117,31 @@ public class ProjectRepositoryTest {
             tenant
         );
         assertThat(searchProjects).isEmpty();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_update_unitUp_and_transformationRules() throws CollectInternalException {
+        populateDb();
+        VitamThreadUtils.getVitamSession().setTenantId(tenant);
+
+        final ProjectModel project = repository.findProjectById(PROJECT_1_ID).get();
+        assertThat(project.getUnitUp()).isEqualTo("unitUp");
+
+        project.setUnitUp("unitUp MODIFIED!!");
+        project.setTransformationRules("changed transformation rule!!");
+        repository.updateProject(project);
+        ProjectModel projectModel = repository.findProjectById(PROJECT_1_ID).get();
+        assertThat(projectModel.getUnitUp()).isEqualTo("unitUp MODIFIED!!");
+        assertThat(projectModel.getTransformationRules()).isEqualTo("changed transformation rule!!");
+
+        // Make sure values are removed when set to "null"
+        project.setUnitUp(null);
+        project.setTransformationRules(null);
+        repository.updateProject(project);
+        projectModel = repository.findProjectById(PROJECT_1_ID).get();
+        assertThat(projectModel.getUnitUp()).isEqualTo(null);
+        assertThat(projectModel.getTransformationRules()).isEqualTo(null);
     }
 
     private CriteriaProjectDto getCriteria(String query, List<String> originatingAgencies) {
@@ -149,6 +183,8 @@ public class ProjectRepositoryTest {
             context.setSubmissionAgencyIdentifier("FRAN_NP_005061");
             project.setManifestContext(context);
             project.setTenant(tenant);
+            project.setUnitUp("unitUp");
+            project.setTransformationRules("initial transformation rule");
             return project;
         }
     }
