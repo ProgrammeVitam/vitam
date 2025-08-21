@@ -239,7 +239,6 @@ log_servers
 hosts_elasticsearch_log
 prometheus
 hosts_grafana
-hosts_antivirus
 
 [hosts_cerebro]
 xlarge-admin-vm-1
@@ -266,10 +265,6 @@ xlarge-admin-vm-1
 xlarge-admin-vm-3
 xlarge-admin-vm-4
 xlarge-admin-vm-5
-
-[hosts_antivirus]
-xlarge-external-vm-1
-xlarge-external-vm-2
 
 ########### Extra VITAM applications ###########
 [prometheus:children]

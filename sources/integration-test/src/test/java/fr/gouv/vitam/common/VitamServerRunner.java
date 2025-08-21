@@ -501,15 +501,17 @@ public class VitamServerRunner extends ExternalResource {
         LOGGER.warn("=== VitamServerRunner start Antivirus");
         // Read path from ingest external configuration
         File ingestExternalFile = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
-        final IngestExternalConfiguration serverConfiguration = readYaml(
+        final IngestExternalConfiguration ingestExternalConfiguration = readYaml(
             ingestExternalFile,
             IngestExternalConfiguration.class
         );
-        String path = serverConfiguration.getPath();
+        String ingestExternalPath = ingestExternalConfiguration.getPath();
+        // Path for worker service
+        String workerPath = "/"; // Disable root path check for worker service
         // Set the path for the antivirus service
         File antivirusFile = PropertiesUtils.findFile(ANTIVIRUS_CONF);
         final AntivirusConfiguration antivirusConfiguration = readYaml(antivirusFile, AntivirusConfiguration.class);
-        antivirusConfiguration.setPath(path);
+        antivirusConfiguration.setBasePaths(new String[] { ingestExternalPath, workerPath });
         writeYaml(antivirusFile, antivirusConfiguration);
         // Start the antivirus server
         antivirusMain = new AntivirusMain(ANTIVIRUS_CONF);

@@ -1,0 +1,197 @@
+/*
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2022)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
+package fr.gouv.vitam.worker.core.plugin;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.antivirus.client.AntivirusApi;
+import fr.gouv.vitam.antivirus.client.AntivirusClientFactory;
+import fr.gouv.vitam.antivirus.client.invoker.ApiException;
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.utils.OGUtils;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import jakarta.ws.rs.core.Response;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+
+/**
+ * CheckAntivirusActionPlugin Plugin.<br>
+ */
+public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAutoCloseable {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckAntivirusActionPlugin.class);
+
+    public static final String ANTIVIRUS = "ANTIVIRUS";
+    private static final int OG_INPUT_RANK = 0;
+
+    private final AntivirusClientFactory antivirusClientFactory;
+
+    /**
+     * Empty constructor
+     */
+    public CheckAntivirusActionPlugin() {
+        this(AntivirusClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public CheckAntivirusActionPlugin(AntivirusClientFactory antivirusClientFactory) {
+        this.antivirusClientFactory = antivirusClientFactory;
+    }
+
+    @Override
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
+        checkMandatoryParameters(params);
+
+        LOGGER.debug("CheckAntivirusActionPlugin running ...");
+        final ItemStatus itemStatus = new ItemStatus(ANTIVIRUS);
+
+        // Check if antivirus scanning is enabled
+        if (VitamConfiguration.isIgnoreAntivirusCheckForWorker()) {
+            LOGGER.info("Antivirus scanning is disabled, skipping CheckAntivirusActionPlugin execution.");
+            itemStatus.increment(StatusCode.OK);
+            return itemStatus;
+        }
+
+        try {
+            // Get antivirus API client
+            AntivirusApi antivirusApi = antivirusClientFactory.getAntivirusApi();
+
+            // Get objectGroup metadata
+            final JsonNode jsonOG = (JsonNode) handlerIO.getInput(OG_INPUT_RANK);
+            final Map<String, String> objectIdToUri = OGUtils.getMapOfObjectsIdsAndUris(jsonOG);
+            final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
+            if (qualifiers != null) {
+                final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+                if (versions != null && !versions.isEmpty()) {
+                    for (final JsonNode versionsArray : versions) {
+                        for (final JsonNode version : versionsArray) {
+                            if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                                File file = null;
+                                try {
+                                    final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                                    // Retrieve the file
+                                    file = loadFileFromWorkspace(
+                                        params.getExecutionContext(),
+                                        handlerIO,
+                                        objectIdToUri.get(objectId)
+                                    );
+
+                                    // SCAN THE FILE
+                                    Response.Status exitCode = Response.Status.OK;
+                                    try {
+                                        antivirusApi.scanByPath(file.getAbsolutePath());
+                                    } catch (final ApiException e) {
+                                        exitCode = Response.Status.fromStatusCode(e.getCode());
+                                        if (exitCode == null) {
+                                            exitCode = Response.Status.INTERNAL_SERVER_ERROR;
+                                        }
+                                    }
+                                    ItemStatus subTaskItemStatus = new ItemStatus(ANTIVIRUS);
+                                    StatusCode antivirusItemStatus;
+                                    switch (exitCode) {
+                                        case OK:
+                                            antivirusItemStatus = StatusCode.OK;
+                                            break;
+                                        case BAD_REQUEST:
+                                            antivirusItemStatus = StatusCode.KO;
+                                            break;
+                                        case NOT_FOUND:
+                                        case INTERNAL_SERVER_ERROR:
+                                        default:
+                                            antivirusItemStatus = FATAL;
+                                            break;
+                                    }
+                                    subTaskItemStatus.increment(antivirusItemStatus);
+                                    itemStatus.increment(antivirusItemStatus);
+                                    itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
+
+                                    if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
+                                        return new ItemStatus(ANTIVIRUS).setItemsStatus(ANTIVIRUS, itemStatus);
+                                    }
+                                } finally {
+                                    if (file != null) {
+                                        try {
+                                            Files.delete(file.toPath());
+                                        } catch (IOException e) {
+                                            LOGGER.error(e);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
+        }
+
+        LOGGER.debug("CheckAntivirusActionPlugin response: " + itemStatus.getGlobalStatus());
+        return new ItemStatus(ANTIVIRUS).setItemsStatus(itemStatus.getItemId(), itemStatus);
+    }
+
+    @Override
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
+        // Do not know...
+    }
+
+    private File loadFileFromWorkspace(WorkFlowExecutionContext executionContext, HandlerIO handlerIO, String filePath)
+        throws ProcessingException {
+        try {
+            return handlerIO.getFileFromWorkspace(
+                executionContext,
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath
+            );
+        } catch (final IOException e) {
+            LOGGER.debug("Error while saving the file", e);
+            throw new ProcessingException(e);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
+    }
+}

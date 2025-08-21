@@ -66,13 +66,13 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.utils.OGUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,7 +173,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             final JsonNode jsonOG = (JsonNode) handlerIO.getInput(OG_INPUT_RANK);
             boolean metadataUpdated = false;
 
-            final Map<String, String> objectIdToUri = getMapOfObjectsIdsAndUris(jsonOG);
+            final Map<String, String> objectIdToUri = OGUtils.getMapOfObjectsIdsAndUris(jsonOG);
 
             final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
             if (qualifiers != null) {
@@ -510,35 +510,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         }
-    }
-
-    private Map<String, String> getMapOfObjectsIdsAndUris(JsonNode jsonOG) {
-        final Map<String, String> binaryObjectsToStore = new HashMap<>();
-
-        // Filter on objectGroup objects ids to retrieve only binary objects
-        // informations linked to the ObjectGroup
-        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
-        final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
-
-        if (qualifiers == null) {
-            return binaryObjectsToStore;
-        }
-
-        final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
-        if (versions == null || versions.isEmpty()) {
-            return binaryObjectsToStore;
-        }
-        for (final JsonNode version : versions) {
-            for (final JsonNode binaryObject : version) {
-                if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                    binaryObjectsToStore.put(
-                        binaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                        binaryObject.get(SedaConstants.TAG_URI).asText()
-                    );
-                }
-            }
-        }
-        return binaryObjectsToStore;
     }
 
     /**

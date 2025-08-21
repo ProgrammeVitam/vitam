@@ -1,4 +1,10 @@
-path: "{{ vitam_defaults.folder.root_path }}/data/ingest-external" # Scanned files are stored in the ingest-external folder
+basePaths:
+{% if inventory_hostname in groups['hosts_ingest_external'] %}
+  - "{{ vitam_defaults.folder.root_path }}/data/ingest-external"
+{% endif %}
+{% if inventory_hostname in groups['hosts_worker'] %}
+  - "{{ vitam_defaults.folder.root_path }}/tmp/worker"
+{% endif %}
 jettyConfig: jetty-config.xml
 antiVirusScriptName: scan-{{ vitam_struct.engine }}.sh
 timeoutScanDelay: {{ vitam_struct.scantimeout | default(1200000) }}

@@ -221,6 +221,18 @@
         },
         {
           "action": {
+            "actionKey": "OG_OBJECTS_ANTIVIRUS_CHECK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_OBJECT_GROUP_SCHEMA",
             "behavior": "BLOCKING"
           }

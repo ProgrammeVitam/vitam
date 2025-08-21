@@ -89,3 +89,5 @@ processEngineWaitForStepTimeout: 172800
 {% endif %}
 
 restoreBulkSize: {{ restoreBulkSize | default(10000) }}
+
+ignoreAntivirusCheckForWorker: {{ vitam.worker.ignore_antivirus_check | default(false) }}

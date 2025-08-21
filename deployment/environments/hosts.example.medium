@@ -203,7 +203,6 @@ log_servers
 hosts_elasticsearch_log
 prometheus
 hosts_grafana
-hosts_antivirus
 
 [hosts_cerebro]
 medium-admin-vm-1
@@ -231,9 +230,6 @@ medium-admin-vm-1
 medium-admin-vm-1
 medium-admin-vm-2
 medium-admin-vm-3
-
-[hosts_antivirus]
-medium-external-vm-1
 
 ########### Extra VITAM applications ###########
 [prometheus:children]

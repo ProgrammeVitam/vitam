@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.antivirus.rest;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -37,26 +36,18 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-
 public class AntivirusApplicationTest {
 
     private AntivirusMain application;
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
-    private static AntivirusConfiguration realAntivirus;
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private String configurationFile;
-
     @Before
     public void setUpBeforeMethod() throws Exception {
         portAvailable = junitHelper.findAvailablePort();
-        File file = temporaryFolder.newFile();
-        configurationFile = file.getAbsolutePath();
-        PropertiesUtils.writeYaml(file, realAntivirus);
     }
 
     @After

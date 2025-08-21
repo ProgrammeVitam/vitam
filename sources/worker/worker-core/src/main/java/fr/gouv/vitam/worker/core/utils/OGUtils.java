@@ -25,71 +25,47 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.antivirus.rest;
+package fr.gouv.vitam.worker.core.utils;
 
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.SedaConstants;
 
-/**
- * AntivirusConfiguration contains access informations for antivirus
- */
-public class AntivirusConfiguration extends DefaultVitamApplicationConfiguration {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    private String[] basePaths;
-    private String antiVirusScriptName;
-    private long timeoutScanDelay;
+public final class OGUtils {
 
-    /**
-     * AntivirusConfiguration empty constructor for YAMLFactory
-     */
-    public AntivirusConfiguration() {
-        // Empty constructor
+    private OGUtils() {
+        // Private constructor for utility class
     }
 
-    /**
-     * @return path
-     */
-    public String[] getBasePaths() {
-        return basePaths;
-    }
+    public static Map<String, String> getMapOfObjectsIdsAndUris(JsonNode jsonOG) {
+        final Map<String, String> binaryObjectsToStore = new HashMap<>();
 
-    /**
-     * @param basePaths to set to configuration
-     * @return AntivirusConfiguration
-     */
-    public AntivirusConfiguration setBasePaths(String[] basePaths) {
-        this.basePaths = basePaths;
-        return this;
-    }
+        // Filter on objectGroup objects ids to retrieve only binary objects
+        // informations linked to the ObjectGroup
+        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
+        final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
 
-    /**
-     * @return antiVirusScriptName
-     */
-    public String getAntiVirusScriptName() {
-        return antiVirusScriptName;
-    }
+        if (qualifiers == null) {
+            return binaryObjectsToStore;
+        }
 
-    /**
-     * @param antiVirusScriptName the antivirus script name to set
-     * @return AntivirusConfiguration
-     */
-    public AntivirusConfiguration setAntiVirusScriptName(String antiVirusScriptName) {
-        this.antiVirusScriptName = antiVirusScriptName;
-        return this;
-    }
-
-    /**
-     * @return long
-     */
-    public long getTimeoutScanDelay() {
-        return timeoutScanDelay;
-    }
-
-    /**
-     * @param timeoutScanDelay set to configuration
-     * @return AntivirusConfiguration
-     */
-    public AntivirusConfiguration setTimeoutScanDelay(long timeoutScanDelay) {
-        this.timeoutScanDelay = timeoutScanDelay;
-        return this;
+        final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+        if (versions == null || versions.isEmpty()) {
+            return binaryObjectsToStore;
+        }
+        for (final JsonNode version : versions) {
+            for (final JsonNode binaryObject : version) {
+                if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                    binaryObjectsToStore.put(
+                        binaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                        binaryObject.get(SedaConstants.TAG_URI).asText()
+                    );
+                }
+            }
+        }
+        return binaryObjectsToStore;
     }
 }
