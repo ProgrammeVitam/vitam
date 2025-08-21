@@ -76,7 +76,7 @@ public class ProjectModel {
     @JsonProperty("ArchivingSystemTenant")
     private Integer archivingSystemTenant;
 
-    @JsonProperty("ConnectedToExternalSystem")
+    @JsonProperty("ConnectedToArchivingSystem")
     private Boolean connectedToArchivingSystem;
 
     /**
