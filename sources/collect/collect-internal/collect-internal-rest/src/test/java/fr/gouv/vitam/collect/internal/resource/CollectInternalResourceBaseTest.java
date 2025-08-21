@@ -161,7 +161,6 @@ public class CollectInternalResourceBaseTest {
                     transactionService,
                     sipService,
                     metadataService,
-                    projectService,
                     bulkAtomicUpdateMetadataService
                 );
                 final CollectInternalResource collectInternalResource = new CollectInternalResource(

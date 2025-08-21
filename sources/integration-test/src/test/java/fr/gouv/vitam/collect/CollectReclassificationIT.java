@@ -190,7 +190,7 @@ public class CollectReclassificationIT extends VitamRuleRunner {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId());
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
                 final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
                     vitamContext,
@@ -275,7 +275,7 @@ public class CollectReclassificationIT extends VitamRuleRunner {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId());
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
                 final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
                     vitamContext,
@@ -359,7 +359,7 @@ public class CollectReclassificationIT extends VitamRuleRunner {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId());
             final String transactionId = transactionDto.getId();
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
@@ -408,7 +408,7 @@ public class CollectReclassificationIT extends VitamRuleRunner {
                 Assertions.fail("Should have thrown an exception");
             } catch (Exception e) {
                 // Then - Verify that the operation failed with the expected error
-                assertThat(e.getLocalizedMessage()).contains("Transaction not in OPEN status");
+                assertThat(e.getLocalizedMessage()).contains("must be OPEN but was READY");
             }
         }
     }

@@ -187,7 +187,6 @@ public class CollectInternalResourceBaseIT {
                     transactionService,
                     sipService,
                     metadataService,
-                    projectService,
                     bulkAtomicUpdateMetadataService
                 );
                 final CollectInternalResource collectInternalResource = new CollectInternalResource(

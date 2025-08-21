@@ -41,7 +41,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.MeasurementWeightType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
@@ -87,7 +86,7 @@ public class ObjectGroupMapperTest {
 
     @Test
     public void should_map_object_group_with_physical_and_binary()
-        throws JsonProcessingException, FileNotFoundException, InvalidParseOperationException, InternalServerException, DatatypeConfigurationException, JAXBException {
+        throws JsonProcessingException, FileNotFoundException, InvalidParseOperationException, DatatypeConfigurationException, JAXBException {
         final JsonNode GOTMetadataResponse = JsonHandler.getFromFile(
             PropertiesUtils.getResourceFile(SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA)
         );

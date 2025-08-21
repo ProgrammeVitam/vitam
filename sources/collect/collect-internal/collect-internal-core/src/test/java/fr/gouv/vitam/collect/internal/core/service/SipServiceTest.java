@@ -30,14 +30,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
-import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -47,7 +45,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,12 +55,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -69,10 +69,16 @@ import java.util.stream.StreamSupport;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class SipServiceTest {
@@ -96,14 +102,17 @@ public class SipServiceTest {
     private MetadataRepository metadataRepository;
 
     @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
+    private WorkspaceCollectClientFactory workspaceCollectClientFactory;
+
+    @Mock
+    private TransactionService transactionService;
 
     private SipService sipService;
 
     @Before
     public void setUp() throws ContentAddressableStorageServerException {
         reset(workspaceClient);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceCollectClientFactory.getClient()).thenReturn(workspaceClient);
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -114,8 +123,7 @@ public class SipServiceTest {
      */
     @Test
     @RunWithCustomExecutor
-    public void should_not_duplicate_object_groups_in_manifest_file()
-        throws CollectInternalException, IOException, InvalidParseOperationException, ContentAddressableStorageServerException {
+    public void should_not_duplicate_object_groups_in_manifest_file() throws Exception {
         //Given
         final int maxElementsInQuery = 2; // Should be lower than units size to make sure there are several partitions
 
@@ -173,12 +181,37 @@ public class SipServiceTest {
             .putObject(eq(transactionId), eq(SEDA_FILE), any(InputStream.class));
 
         final TransactionModel transactionModel = getTransactionModel(transactionId);
-        sipService = new SipService(workspaceClientFactory, metadataRepository, maxElementsInQuery);
+
+        doReturn(false).when(transactionService).isTransactionContentEmpty(transactionId);
+
+        CountDownLatch transactionValidatedInvoked = new CountDownLatch(1);
+        doAnswer(args -> {
+            transactionValidatedInvoked.countDown();
+            return null;
+        })
+            .when(transactionService)
+            .changeTransactionStatus(TransactionStatus.VALIDATED, transactionModel);
+
+        sipService = new SipService(
+            workspaceCollectClientFactory,
+            metadataRepository,
+            transactionService,
+            maxElementsInQuery
+        );
 
         //When
-        sipService.generateSip(transactionModel);
+        sipService.generateSipAsync(transactionModel);
 
-        //Then
+        // Wait for SIP Generation
+        if (!transactionValidatedInvoked.await(30, TimeUnit.SECONDS)) {
+            Assertions.fail("Timeout !");
+        }
+
+        // Then
+        verify(transactionService).isTransactionContentEmpty(transactionId);
+        verify(transactionService).changeTransactionStatus(TransactionStatus.VALIDATED, transactionModel);
+        verifyNoMoreInteractions(transactionService);
+
         final Set<String> expectedObjectGroupIds = unitsJson
             .stream()
             .map(unit -> unit.get("#object").asText())
@@ -188,6 +221,44 @@ public class SipServiceTest {
             expectedObjectGroupId ->
                 assertThat(manifestXml).containsOnlyOnce("<DataObjectGroup id=\"" + expectedObjectGroupId + "\"")
         );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_mark_transaction_ko_on_error() throws Exception {
+        //Given
+        doThrow(new IllegalStateException("Prb !"))
+            .when(metadataRepository)
+            .selectUnits(any(SelectMultiQuery.class), anyString());
+
+        String transactionId = "transactionId";
+        final TransactionModel transactionModel = getTransactionModel(transactionId);
+
+        doReturn(false).when(transactionService).isTransactionContentEmpty(transactionId);
+
+        CountDownLatch transactionKoInvoked = new CountDownLatch(1);
+        doAnswer(args -> {
+            transactionKoInvoked.countDown();
+            return null;
+        })
+            .when(transactionService)
+            .changeTransactionStatus(TransactionStatus.KO, transactionModel);
+
+        sipService = new SipService(workspaceCollectClientFactory, metadataRepository, transactionService, 1000);
+
+        // When
+        sipService.generateSipAsync(transactionModel);
+
+        // Wait for SIP Generation
+        if (!transactionKoInvoked.await(30, TimeUnit.SECONDS)) {
+            Assertions.fail("Timeout !");
+        }
+
+        // Then
+        verify(transactionService).isTransactionContentEmpty(transactionId);
+        verify(transactionService).changeTransactionStatus(TransactionStatus.KO, transactionModel);
+        verifyNoMoreInteractions(transactionService);
+        verifyNoInteractions(workspaceClient);
     }
 
     private static TransactionModel getTransactionModel(String id) {

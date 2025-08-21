@@ -29,10 +29,11 @@ package fr.gouv.vitam.collect.internal.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
-import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -299,11 +300,27 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     @Override
-    public InputStream generateSip(String transactionId) throws VitamClientException {
+    public void awaitTransactionValidation(String transactionId) throws VitamClientException {
+        try (
+            Response response = make(
+                post().withPath(TRANSACTION_PATH + "/" + transactionId + "/awaitTransactionValidation").withJson()
+            )
+        ) {
+            check(response);
+        }
+    }
+
+    @Override
+    public InputStream downloadSIP(String transactionId) throws VitamClientException {
         Response response = null;
         boolean doNotCloseResponse = false;
         try {
-            response = make(post().withPath(TRANSACTION_PATH + "/" + transactionId + "/send").withOctetAccept());
+            response = make(
+                get()
+                    .withPath(TRANSACTION_PATH + "/" + transactionId + "/downloadSIP")
+                    .withJsonContentType()
+                    .withOctetAccept()
+            );
             check(response);
             doNotCloseResponse = true;
             return response.readEntity(InputStream.class);
@@ -458,7 +475,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         }
     }
 
-    private void check(Response response) throws VitamClientException {
+    private void check(Response response) throws CollectInternalClientException {
         if (SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
             return;
         }
@@ -490,9 +507,9 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
                 throw new CollectInternalClientNotFoundException(message);
             }
 
-            throw new VitamClientException(message);
+            throw new CollectInternalClientException(message);
         } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(message);
+            throw new CollectInternalClientException(message);
         }
     }
 
@@ -532,7 +549,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     @Override
-    public Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
+    public void changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
         throws VitamClientException {
         try (
             Response response = make(
@@ -540,7 +557,6 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             )
         ) {
             check(response);
-            return response;
         }
     }
 
@@ -638,7 +654,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     @Override
-    public RequestResponse<OperationIdDto> uploadSipToTransaction(String transactionId, InputStream inputStream)
+    public RequestResponse<UploadSipResult> uploadSipToTransaction(String transactionId, InputStream inputStream)
         throws VitamClientException {
         try (
             Response response = make(
@@ -650,7 +666,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             )
         ) {
             check(response);
-            return RequestResponse.parseFromResponse(response, OperationIdDto.class);
+            return RequestResponse.parseFromResponse(response, UploadSipResult.class);
         }
     }
 }

@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.ExportException;
-import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -252,7 +251,7 @@ public class ManifestBuilder implements AutoCloseable {
         Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream,
         FolderResolver folderResolver,
         FilenameResolver filenameResolver
-    ) throws JsonProcessingException, JAXBException, InternalServerException {
+    ) throws JsonProcessingException, JAXBException {
         ObjectGroupResponse objectGroup = objectMapper.treeToValue(og, ObjectGroupResponse.class);
 
         Map<String, String> strategiesByVersion = objectGroup
@@ -822,6 +821,7 @@ public class ManifestBuilder implements AutoCloseable {
     public void closeManifest() throws XMLStreamException {
         writer.writeEndElement();
         writer.writeEndDocument();
+        writer.close();
     }
 
     public void validate(ExportType exportType, ExportRequestParameters exportRequestParameters)

@@ -31,7 +31,9 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.service.TransactionService;
 import fr.gouv.vitam.collect.internal.resource.utils.ReflectionTestUtils;
@@ -56,7 +58,7 @@ import java.util.Optional;
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -126,7 +128,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void getTransactionById_ko_with_collect_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalServerSideException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -139,7 +141,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void getTransactionById_ko_with_parsing_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalInvalidRequestException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -185,7 +187,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void updateTransaction_ko_with_collect_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalServerSideException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -199,7 +201,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void updateTransaction_ko_with_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error"))
+        doThrow(new CollectInternalInvalidRequestException("error"))
             .when(transactionService)
             .replaceTransaction(any(TransactionDto.class));
         given()
@@ -241,7 +243,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void deleteTransactionById_ko_collection_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalServerSideException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -254,7 +256,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void deleteTransactionById_ko_parsing_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalInvalidRequestException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -267,8 +269,9 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void uploadArchiveUnit() throws Exception {
-        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
         when(metadataService.saveArchiveUnit(any(), any(TransactionModel.class))).thenReturn(
             JsonHandler.getFromString("{}")
         );
@@ -285,7 +288,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void uploadArchiveUnit_ko_collect_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalServerSideException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -308,13 +311,17 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .when()
             .post(TRANSACTIONS + "/1/units")
             .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void uploadArchiveUnit_ko_not_open_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.READY))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .ensureTransactionIsOpen(any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -328,8 +335,9 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void uploadArchiveUnit_ko_saving_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
         when(metadataService.saveArchiveUnit(any(), any(TransactionModel.class))).thenReturn(null);
         given()
             .contentType(ContentType.JSON)
@@ -372,7 +380,10 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     }
 
     @Test
-    public void closeTransaction() {
+    public void closeTransaction() throws Exception {
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -385,7 +396,10 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void closeTransaction_ko_collect_error() throws Exception {
-        doThrow(new CollectInternalException("error")).when(transactionService).changeTransactionStatus(any(), any());
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
+        doThrow(new CollectInternalException("error")).when(transactionService).closeTransaction(any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -398,7 +412,10 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void closeTransaction_ko_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error")).when(transactionService).changeTransactionStatus(any(), any());
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error")).when(transactionService).closeTransaction(any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -423,7 +440,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void abortTransaction_ko_collect_error() throws Exception {
-        doThrow(new CollectInternalException("error")).when(transactionService).changeTransactionStatus(any(), any());
+        doThrow(new CollectInternalException("error")).when(transactionService).abortTransaction(anyString());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -436,7 +453,9 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void abortTransaction_ko_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error")).when(transactionService).changeTransactionStatus(any(), any());
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .abortTransaction(anyString());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -461,7 +480,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void reopenTransaction_ko_collect_error() throws Exception {
-        doThrow(new CollectInternalException("error")).when(transactionService).changeTransactionStatus(any(), any());
+        doThrow(new CollectInternalException("error")).when(transactionService).reopenTransaction(anyString());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -474,7 +493,9 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void reopenTransaction_ko_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error")).when(transactionService).changeTransactionStatus(any(), any());
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .reopenTransaction(anyString());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -498,65 +519,13 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     }
 
     @Test
-    public void generateAndSendSip_ko_not_ready_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.findOneAndReplace(eq(TransactionStatus.READY), any(TransactionModel.class))).thenReturn(
-            false
-        );
-        given()
-            .contentType(CommonMediaType.APPLICATION_OCTET_STREAM_TYPE.getType())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT)
-            .when()
-            .post(TRANSACTIONS + "/1/send")
-            .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
-    public void generateAndSendSip_ko_digest_i_null() throws Exception {
-        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.findOneAndReplace(eq(TransactionStatus.READY), any(TransactionModel.class))).thenReturn(
-            true
-        );
-        doNothing().when(transactionService).isTransactionContentEmpty(any());
-        when(transactionService.changeTransactionToSendingIfBatchesNotKo(any())).thenReturn(true);
-        when(sipService.generateSip(any())).thenReturn(null);
-        given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT)
-            .when()
-            .post(TRANSACTIONS + "/1/send")
-            .then()
-            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-    @Test
-    public void generateAndSendSip_ko_collect_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalException("error"));
-        given()
-            .contentType(CommonMediaType.APPLICATION_OCTET_STREAM_TYPE.getType())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT)
-            .when()
-            .post(TRANSACTIONS + "/1/send")
-            .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
-    public void generateAndSendSip_ko_parsing_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
-        given()
-            .contentType(CommonMediaType.APPLICATION_OCTET_STREAM_TYPE.getType())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT)
-            .when()
-            .post(TRANSACTIONS + "/1/send")
-            .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
     public void updateUnitsCsv_ko_with_status_not_open() throws Exception {
-        when(transactionService.findTransaction("TxId")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        when(transactionService.findTransaction("TxId")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.KO))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .ensureTransactionIsOpen(any());
         given()
             .contentType(TEXT_CSV)
             .accept(ContentType.JSON)
@@ -580,13 +549,13 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .when()
             .put(TRANSACTIONS + "/TxId/units/metadata/csv")
             .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
         verify(metadataService, never()).updateUnitsWithMetadataCsv(any(), any());
     }
 
     @Test
     public void updateUnitsCsv_ko_with_collect_error() throws Exception {
-        when(transactionService.findTransaction("TxId")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("TxId")).thenThrow(new CollectInternalServerSideException("error"));
         given()
             .contentType(TEXT_CSV)
             .accept(ContentType.JSON)
@@ -601,12 +570,14 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void updateUnitsCsv_ko_with_parsing_error() throws Exception {
-        when(transactionService.findTransaction("TxId")).thenThrow(new IllegalArgumentException("error"));
+        when(transactionService.findTransaction("TxId")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
         given()
             .contentType(TEXT_CSV)
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT)
-            .body("CSV_REQ")
+            .body(DATA_HTML)
             .when()
             .put(TRANSACTIONS + "/TxId/units/metadata/csv")
             .then()
@@ -619,8 +590,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId("TxId");
         transactionModel.setProjectId("PrId");
+        transactionModel.setStatus(TransactionStatus.OPEN);
         when(transactionService.findTransaction("TxId")).thenReturn(Optional.of(transactionModel));
-        when(transactionService.checkStatus(eq(transactionModel), eq(TransactionStatus.OPEN))).thenReturn(true);
         when(projectService.findProject("PrId")).thenReturn(Optional.of(new ProjectDto()));
         given()
             .contentType(TEXT_CSV)
@@ -636,8 +607,12 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void updateUnitsJsonl_ko_with_status_not_open() throws Exception {
-        when(transactionService.findTransaction("TxId")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        when(transactionService.findTransaction("TxId")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.KO))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .ensureTransactionIsOpen(any());
         given()
             .contentType(ContentType.BINARY)
             .accept(ContentType.JSON)
@@ -661,13 +636,13 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .when()
             .put(TRANSACTIONS + "/TxId/units/metadata/jsonl")
             .then()
-            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
         verify(metadataService, never()).updateUnitsWithJsonlMetadata(any(), any());
     }
 
     @Test
     public void updateUnitsJsonl_ko_with_collect_error() throws Exception {
-        when(transactionService.findTransaction("TxId")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("TxId")).thenThrow(new CollectInternalServerSideException("error"));
         given()
             .contentType(ContentType.BINARY)
             .accept(ContentType.JSON)
@@ -682,7 +657,12 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void updateUnitsJsonl_ko_with_parsing_error() throws Exception {
-        when(transactionService.findTransaction("TxId")).thenThrow(new IllegalArgumentException("error"));
+        when(transactionService.findTransaction("TxId")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(metadataService)
+            .updateUnitsWithJsonlMetadata(any(), any());
         given()
             .contentType(ContentType.BINARY)
             .accept(ContentType.JSON)
@@ -692,7 +672,6 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .put(TRANSACTIONS + "/TxId/units/metadata/jsonl")
             .then()
             .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-        verify(metadataService, never()).updateUnitsWithJsonlMetadata(any(), any());
     }
 
     @Test
@@ -700,8 +679,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId("TxId");
         transactionModel.setProjectId("PrId");
+        transactionModel.setStatus(TransactionStatus.OPEN);
         when(transactionService.findTransaction("TxId")).thenReturn(Optional.of(transactionModel));
-        when(transactionService.checkStatus(eq(transactionModel), eq(TransactionStatus.OPEN))).thenReturn(true);
         when(projectService.findProject("PrId")).thenReturn(Optional.of(new ProjectDto()));
         given()
             .contentType(ContentType.BINARY)
@@ -719,8 +698,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     public void uploadTransactionZip() throws Exception {
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setProjectId("1");
+        transactionModel.setStatus(TransactionStatus.OPEN);
         when(transactionService.findTransaction("1")).thenReturn(Optional.of(transactionModel));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
         when(projectService.findProject("1")).thenReturn(Optional.of(new ProjectDto()));
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
             ReflectionTestUtils.setField(TransactionService.class, transactionService, "fluxService", fluxService);
@@ -748,8 +727,12 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void uploadTransactionZip_ko_with_status_not_open() throws Exception {
-        when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(false);
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.KO))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .ensureTransactionIsOpen(any());
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
             given()
                 .contentType("application/zip")
@@ -759,7 +742,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
                 .when()
                 .post(TRANSACTIONS + "/1/upload")
                 .then()
-                .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 
@@ -781,7 +764,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void uploadTransactionZip_with_collect_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalException("error"));
+        when(transactionService.findTransaction("1")).thenThrow(new CollectInternalServerSideException("error"));
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
             given()
                 .contentType("application/zip")
@@ -797,7 +780,12 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void uploadTransactionZip_ko_with_parsing_error() throws Exception {
-        when(transactionService.findTransaction("1")).thenThrow(new IllegalArgumentException("error"));
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
+        doThrow(new CollectInternalInvalidRequestException("error"))
+            .when(transactionService)
+            .uploadTransactionZip(any(), any(), any(), any());
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
             given()
                 .contentType("application/zip")
@@ -816,8 +804,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId("txId");
         transactionModel.setProjectId("prId");
+        transactionModel.setStatus(TransactionStatus.OPEN);
         when(transactionService.findTransaction("txId")).thenReturn(Optional.of(transactionModel));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
         doThrow(new CollectInternalException("error"))
             .when(transactionService)
             .uploadTransactionZip(any(), any(), any(), any());
@@ -839,8 +827,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId("txId");
         transactionModel.setProjectId("prId");
+        transactionModel.setStatus(TransactionStatus.OPEN);
         when(transactionService.findTransaction("txId")).thenReturn(Optional.of(transactionModel));
-        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
         doThrow(
             new CollectInternalException(
                 "Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]"
@@ -871,8 +859,10 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     @RunWithCustomExecutor
     public void should_throw_error_when_update_units_using_empty_stream() throws Exception {
         // Given
+        when(transactionService.findTransaction("1")).thenReturn(
+            Optional.of(new TransactionModel().setStatus(TransactionStatus.OPEN))
+        );
         final InputStream resourceAsStream = new ByteArrayInputStream(new byte[0]);
-        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(true);
 
         // When - Then
         given()
@@ -894,7 +884,6 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             transactionService,
             sipService,
             metadataService,
-            projectService,
             bulkAtomicUpdateMetadataService
         );
 
@@ -912,7 +901,6 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         when(projectService.findProject(eq(PROJECT_ID))).thenReturn(Optional.of(projectDto));
         final InputStream inputStreamZip = PropertiesUtils.getResourceAsStream("streamZip/transaction.zip");
 
-        when(transactionService.checkStatus(any(), eq(TransactionStatus.OPEN))).thenReturn(true);
         ReflectionTestUtils.setField(TransactionService.class, transactionService, "fluxService", fluxService);
         when(
             transactionService.uploadTransactionZip(inputStreamZip, transactionModel, null, null)

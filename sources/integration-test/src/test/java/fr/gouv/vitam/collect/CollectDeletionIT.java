@@ -257,7 +257,7 @@ public class CollectDeletionIT extends VitamRuleRunner {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId());
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
                 final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
                     vitamContext,
@@ -327,7 +327,7 @@ public class CollectDeletionIT extends VitamRuleRunner {
             projectDto.setId(projectDtoResult.getId());
 
             // Create a transaction
-            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDto.getId();
 
             // Upload a ZIP file to the transaction
@@ -361,7 +361,7 @@ public class CollectDeletionIT extends VitamRuleRunner {
                 Assertions.fail("Should have thrown an exception");
             } catch (Exception e) {
                 // Then - Verify that the operation failed with the expected error
-                assertThat(e.getLocalizedMessage()).contains("Transaction not in OPEN status");
+                assertThat(e.getLocalizedMessage()).contains("must be OPEN but was READY");
             }
         }
     }
@@ -381,7 +381,7 @@ public class CollectDeletionIT extends VitamRuleRunner {
             );
             projectDto.setId(projectDtoResult.getId());
 
-            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId());
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
                 final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
                     vitamContext,

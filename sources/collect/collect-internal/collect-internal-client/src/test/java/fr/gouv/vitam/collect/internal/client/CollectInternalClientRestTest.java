@@ -35,10 +35,10 @@ import fr.gouv.vitam.collect.common.dto.ObjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -206,7 +206,7 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
     public void uploadZipToProjectKo() {
         Mockito.when(mock.post()).thenReturn(CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, "Prb"));
         assertThatThrownBy(() -> client.uploadZipToProject("PR_ID", new NullInputStream(100), null))
-            .isExactlyInstanceOf(VitamClientException.class)
+            .isExactlyInstanceOf(CollectInternalClientException.class)
             .hasMessage("Prb");
     }
 
@@ -267,6 +267,66 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
             .hasMessage("BAD !");
     }
 
+    @Test
+    public void awaitTransactionValidation_OK() {
+        Mockito.when(mock.post()).thenReturn(Response.ok().build());
+        assertThatCode(() -> client.awaitTransactionValidation("TX_ID")).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void awaitTransactionValidation_NotFound() {
+        Mockito.when(mock.post()).thenReturn(CollectRequestResponse.toVitamError(NOT_FOUND, "No Tx"));
+        assertThatThrownBy(() -> client.awaitTransactionValidation("TX_ID"))
+            .isExactlyInstanceOf(CollectInternalClientNotFoundException.class)
+            .hasMessage("No Tx");
+    }
+
+    @Test
+    public void awaitTransactionValidation_BadRequest() {
+        Mockito.when(mock.post()).thenReturn(CollectRequestResponse.toVitamError(BAD_REQUEST, "Invalid status"));
+        assertThatThrownBy(() -> client.awaitTransactionValidation("TX_ID"))
+            .isExactlyInstanceOf(CollectInternalClientInvalidRequestException.class)
+            .hasMessage("Invalid status");
+    }
+
+    @Test
+    public void awaitTransactionValidation_KO() {
+        Mockito.when(mock.post()).thenReturn(CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, "Prb"));
+        assertThatThrownBy(() -> client.awaitTransactionValidation("TX_ID"))
+            .isExactlyInstanceOf(CollectInternalClientException.class)
+            .hasMessage("Prb");
+    }
+
+    @Test
+    public void downloadSIP_OK() {
+        Mockito.when(mock.get()).thenReturn(Response.ok().build());
+        assertThatCode(() -> client.downloadSIP("TX_ID")).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void downloadSIP_NotFound() {
+        Mockito.when(mock.get()).thenReturn(CollectRequestResponse.toVitamError(NOT_FOUND, "No Tx"));
+        assertThatThrownBy(() -> client.downloadSIP("TX_ID"))
+            .isExactlyInstanceOf(CollectInternalClientNotFoundException.class)
+            .hasMessage("No Tx");
+    }
+
+    @Test
+    public void downloadSIP_BadRequest() {
+        Mockito.when(mock.get()).thenReturn(CollectRequestResponse.toVitamError(BAD_REQUEST, "Invalid status"));
+        assertThatThrownBy(() -> client.downloadSIP("TX_ID"))
+            .isExactlyInstanceOf(CollectInternalClientInvalidRequestException.class)
+            .hasMessage("Invalid status");
+    }
+
+    @Test
+    public void downloadSIP_KO() {
+        Mockito.when(mock.get()).thenReturn(CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, "Prb"));
+        assertThatThrownBy(() -> client.downloadSIP("TX_ID"))
+            .isExactlyInstanceOf(CollectInternalClientException.class)
+            .hasMessage("Prb");
+    }
+
     @Path("/collect-internal/v1")
     public static class MockResource {
 
@@ -314,11 +374,19 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.get();
         }
 
-        @Path("/transactions/{transactionId}/send")
+        @Path("/transactions/{transactionId}/awaitTransactionValidation")
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
+        public Response awaitTransactionValidation(@PathParam("transactionId") String transactionId) {
+            return expectedResponse.post();
+        }
+
+        @Path("/transactions/{transactionId}/downloadSIP")
+        @GET
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(APPLICATION_OCTET_STREAM)
+        public Response downloadSIP(@PathParam("transactionId") String transactionId) {
             return expectedResponse.get();
         }
 

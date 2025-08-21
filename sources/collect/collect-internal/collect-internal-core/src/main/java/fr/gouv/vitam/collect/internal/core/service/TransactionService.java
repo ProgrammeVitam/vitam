@@ -43,6 +43,7 @@ import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.Batch;
 import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
@@ -110,9 +111,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import jakarta.annotation.Nullable;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.time.StopWatch;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -122,24 +125,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNodeList;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 
 public class TransactionService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionService.class);
-    private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
-    private static final String TRANSACTION_NOT_UPDATED = "Wrong status to update! ";
+    private static final String TRANSACTION_NOT_FOUND = "Transaction not found";
     private static final String PROJECT_ID = "ProjectId";
     private static final String STATUS = "Status";
     private static final String AUTOMATIC_INGEST = "AutomaticIngest";
@@ -163,12 +164,10 @@ public class TransactionService {
     private final WorkspaceCollectClientFactory workspaceCollectClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
     private final AccessInternalClientFactory accessInternalClientFactory;
-
     private final IngestInternalClientFactory ingestInternalClientFactory;
-
     private final ProcessingManagementClientFactory processingManagementClientFactory;
-
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final int maxWaitDelayForTransactionValidationInSeconds;
 
     public TransactionService(
         TransactionRepository transactionRepository,
@@ -180,7 +179,8 @@ public class TransactionService {
         AccessInternalClientFactory accessInternalClientFactory,
         IngestInternalClientFactory ingestInternalClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        CollectInternalConfiguration configuration
     ) {
         this.transactionRepository = transactionRepository;
         this.projectService = projectService;
@@ -192,6 +192,8 @@ public class TransactionService {
         this.ingestInternalClientFactory = ingestInternalClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.maxWaitDelayForTransactionValidationInSeconds =
+            configuration.getMaxWaitDelayForTransactionValidationInSeconds();
     }
 
     /**
@@ -270,32 +272,11 @@ public class TransactionService {
             .collect(Collectors.toList());
     }
 
-    public void checkOpenTransaction(String transactionId) throws BadRequestException, CollectInternalException {
-        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
-
-        if (transactionModel.isEmpty()) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
-        }
-        if (!checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
-            throw new BadRequestException("Transaction not in OPEN status");
-        }
-    }
-
-    public void checkReadyTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        if (!checkStatus(transactionModel, TransactionStatus.OPEN)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
-        }
-    }
-
-    public void checkSendingTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        if (!checkStatus(transactionModel, TransactionStatus.READY)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
-        }
-    }
-
-    public void checkSendTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        if (!checkStatus(transactionModel, TransactionStatus.SENDING)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+    public void ensureTransactionIsOpen(TransactionModel transactionModel) throws CollectInternalException {
+        if (transactionModel.getStatus() != TransactionStatus.OPEN) {
+            throw new CollectInternalInvalidRequestException(
+                "Transaction " + transactionModel.getId() + " must be OPEN but was " + transactionModel.getStatus()
+            );
         }
     }
 
@@ -305,81 +286,137 @@ public class TransactionService {
         transactionRepository.replaceTransaction(transactionModel);
     }
 
-    public boolean findOneAndReplace(TransactionStatus transactionStatus, TransactionModel transactionModel)
-        throws InvalidParseOperationException {
-        return transactionRepository.findOneAndReplace(transactionStatus, transactionModel);
-    }
-
-    public void checkAbortTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        if (
-            !checkStatus(
-                transactionModel,
-                TransactionStatus.OPEN,
-                TransactionStatus.READY,
-                TransactionStatus.ACK_KO,
-                TransactionStatus.KO
-            )
-        ) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
-        }
-    }
-
-    private void checkKoTransaction(TransactionModel transactionModel) {
-        if (!checkStatus(transactionModel, TransactionStatus.OPEN, TransactionStatus.KO)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
-        }
-    }
-
-    public void checkReopenTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        if (!checkStatus(transactionModel, TransactionStatus.READY, TransactionStatus.ACK_KO, TransactionStatus.KO)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
-        }
-    }
-
-    public boolean checkStatus(TransactionModel transactionModel, TransactionStatus... transactionStatus) {
-        return Arrays.stream(transactionStatus).anyMatch(tr -> transactionModel.getStatus().equals(tr));
-    }
-
-    public void changeTransactionStatus(TransactionStatus transactionStatus, String transactionId)
+    public void changeTransactionStatus(TransactionStatus transactionStatus, TransactionModel transactionModel)
         throws CollectInternalException {
-        Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
-        if (transactionModelOptional.isEmpty()) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
-        }
-        TransactionModel transactionModel = transactionModelOptional.get();
-
         switch (transactionStatus) {
-            case OPEN:
-                checkReopenTransaction(transactionModel);
-                break;
-            case READY:
-                checkReadyTransaction(transactionModel);
-                break;
-            case SENT:
-                checkSendTransaction(transactionModel);
-                break;
-            case SENDING:
-                checkSendingTransaction(transactionModel);
-                break;
-            case ABORTED:
-                checkAbortTransaction(transactionModel);
-                break;
-            case KO:
-                checkKoTransaction(transactionModel);
-                break;
-            default:
-                break;
+            case OPEN -> checkTransitionToOpenStatus(transactionModel);
+            case READY -> checkTransactionToReadyStatus(transactionModel);
+            case VALIDATED -> checkTransitionToValidatedStatus(transactionModel);
+            case SENDING -> checkTransitionToSendingStatus(transactionModel);
+            case SENT -> checkTransitionToSentStatus(transactionModel);
+            case ACK_OK -> checkTransactionToAckOKStatus(transactionModel);
+            case ACK_WARNING -> checkTransactionToAckWarningStatus(transactionModel);
+            case ACK_KO -> checkTransactionToAckKOStatus(transactionModel);
+            case ABORTED -> checkTransitionToAbortedStatus(transactionModel);
+            case KO -> checkTransitionToKoStatus(transactionModel);
+            case ACK_WAITING -> throw new IllegalStateException("Unused status. Should never occur.");
+            default -> throw new IllegalStateException("Unexpected value: " + transactionStatus);
         }
+        LOGGER.info(
+            "Updating transaction status from " +
+            transactionModel.getStatus() +
+            " to " +
+            transactionStatus +
+            " for transaction " +
+            transactionModel.getId()
+        );
         transactionModel.setStatus(transactionStatus);
         transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
         replaceTransaction(transactionModel);
     }
 
+    public void checkTransitionToOpenStatus(TransactionModel transactionModel) throws CollectInternalException {
+        checkStatus(
+            TransactionStatus.OPEN,
+            transactionModel,
+            // Reopening a closed transaction before async transaction validation
+            TransactionStatus.READY,
+            // Reopening a validated transaction for editing
+            TransactionStatus.VALIDATED,
+            // Reopening a rejected transaction for editing
+            TransactionStatus.ACK_KO,
+            // Reopening an invalid transaction for editing
+            TransactionStatus.KO
+        );
+    }
+
+    public void checkTransactionToReadyStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // READY can only occur after OPEN
+        checkStatus(TransactionStatus.READY, transactionModel, TransactionStatus.OPEN);
+    }
+
+    private void checkTransitionToValidatedStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // VALIDATED can only occur after READY
+        checkStatus(TransactionStatus.VALIDATED, transactionModel, TransactionStatus.READY);
+    }
+
+    public void checkTransitionToSendingStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // SENDING can only occur after VALIDATED
+        checkStatus(TransactionStatus.SENDING, transactionModel, TransactionStatus.VALIDATED);
+    }
+
+    public void checkTransitionToSentStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // SEND can only occur after SENDING
+        checkStatus(TransactionStatus.SENT, transactionModel, TransactionStatus.SENDING);
+    }
+
+    private void checkTransactionToAckOKStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // ACK_OK can only occur after SENT
+        checkStatus(TransactionStatus.ACK_OK, transactionModel, TransactionStatus.SENT);
+    }
+
+    private void checkTransactionToAckWarningStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // ACK_WARNING can only occur after SENT
+        checkStatus(TransactionStatus.ACK_WARNING, transactionModel, TransactionStatus.SENT);
+    }
+
+    private void checkTransactionToAckKOStatus(TransactionModel transactionModel) throws CollectInternalException {
+        // ACK_KO can only occur after SENT
+        checkStatus(TransactionStatus.ACK_KO, transactionModel, TransactionStatus.SENT);
+    }
+
+    public void checkTransitionToAbortedStatus(TransactionModel transactionModel) throws CollectInternalException {
+        checkStatus(
+            TransactionStatus.ABORTED,
+            transactionModel,
+            // Aborting an OPEN transaction
+            TransactionStatus.OPEN,
+            // Aborting a READY transaction (before async validation ends)
+            TransactionStatus.READY,
+            // Aborting a closed transaction
+            TransactionStatus.VALIDATED,
+            // Aborted a rejected transaction
+            TransactionStatus.ACK_KO,
+            // Aborted a transaction with errors
+            TransactionStatus.KO
+        );
+    }
+
+    private void checkTransitionToKoStatus(TransactionModel transactionModel) throws CollectInternalException {
+        checkStatus(
+            TransactionStatus.KO,
+            transactionModel,
+            /* Ingest SIP with errors */
+            TransactionStatus.OPEN,
+            /* Validating / generating manifest failed */
+            TransactionStatus.READY,
+            /* Idempotency (multiple errors) */
+            TransactionStatus.KO
+        );
+    }
+
+    public void checkStatus(
+        TransactionStatus targetStatus,
+        TransactionModel transactionModel,
+        TransactionStatus... acceptableTransactionStatuses
+    ) throws CollectInternalException {
+        if (Arrays.stream(acceptableTransactionStatuses).noneMatch(tr -> transactionModel.getStatus().equals(tr))) {
+            throw new CollectInternalInvalidRequestException(
+                "Cannot change transaction state from " + transactionModel.getStatus() + " to " + targetStatus
+            );
+        }
+    }
+
     public void attachVitamOperationId(String transactionId, String operationId) throws CollectInternalException {
         Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
         if (transactionModelOptional.isEmpty()) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+            throw new CollectInternalNotFoundException(TRANSACTION_NOT_FOUND);
         }
+
+        if (transactionModelOptional.get().getStatus() != TransactionStatus.SENDING) {
+            throw new CollectInternalInvalidRequestException(TRANSACTION_NOT_FOUND);
+        }
+
         TransactionModel transactionModel = transactionModelOptional.get();
 
         transactionModel.setVitamOperationId(operationId);
@@ -414,7 +451,7 @@ public class TransactionService {
     private JsonNode getDslForSelectOperation(List<String> vitamOperationsIds) throws CollectInternalException {
         Select select = new Select();
         try {
-            InQuery in = QueryHelper.in(id(), vitamOperationsIds.toArray(new String[0]));
+            InQuery in = QueryHelper.in(VitamFieldsHelper.id(), vitamOperationsIds.toArray(new String[0]));
             select.setQuery(in);
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("Error when generate DSL for get Operations:", e);
@@ -513,9 +550,9 @@ public class TransactionService {
         return StatusCode.UNKNOWN.name();
     }
 
-    public List<TransactionModel> findReadyAutoIngestTransactions() throws CollectInternalException {
+    public List<TransactionModel> findValidatedAutoIngestTransactions() throws CollectInternalException {
         return this.transactionRepository.findTransactionsByQueryWithoutTenant(
-                and(eq(STATUS, TransactionStatus.READY.name()), eq(AUTOMATIC_INGEST, true))
+                and(eq(STATUS, TransactionStatus.VALIDATED.name()), eq(AUTOMATIC_INGEST, true))
             );
     }
 
@@ -545,7 +582,9 @@ public class TransactionService {
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         List<TransactionModel> transactionsToUpdate = prepareTransactionsToUpdate(operationStatuses, transactions);
-        this.transactionRepository.replaceTransactions(transactionsToUpdate);
+        if (CollectionUtils.isNotEmpty(transactionsToUpdate)) {
+            this.transactionRepository.replaceTransactions(transactionsToUpdate);
+        }
     }
 
     /**
@@ -577,13 +616,11 @@ public class TransactionService {
      *
      * @throws CollectInternalException exception thrown in case of error
      */
-    public void isTransactionContentEmpty(String id) throws CollectInternalException {
+    public boolean isTransactionContentEmpty(String id) throws CollectInternalException {
+        // FIXME : Is this enough? shouldn't we check metadata (ex units only, and/or existing container with metadata deleted)
         try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
-            if (!workspaceClient.isExistingContainer(id)) {
-                throw new CollectInternalException("Cannot send an empty transaction");
-            }
+            return !workspaceClient.isExistingContainer(id);
         } catch (ContentAddressableStorageServerException e) {
-            LOGGER.error(e.getLocalizedMessage());
             throw new CollectInternalException(e);
         }
     }
@@ -672,7 +709,7 @@ public class TransactionService {
 
         int retryCount = 0;
         while (retryCount < MAX_RETRY) {
-            if (updateTransaction(transactionModel)) {
+            if (tryUpdateTransaction(transactionModel)) {
                 return Optional.of(transactionModel);
             }
             LOGGER.info("Failed to update transaction with the provided model. Retrying with findTransaction...");
@@ -687,7 +724,7 @@ public class TransactionService {
 
             TransactionModel retrievedTransaction = optionalTransaction.get();
             retrievedTransaction.setBatches(transactionModel.getBatches());
-            if (updateTransaction(retrievedTransaction)) {
+            if (tryUpdateTransaction(retrievedTransaction)) {
                 return Optional.of(retrievedTransaction);
             }
             retryCount++;
@@ -696,10 +733,10 @@ public class TransactionService {
         return Optional.empty();
     }
 
-    private boolean updateTransaction(TransactionModel transactionModel) {
+    private boolean tryUpdateTransaction(TransactionModel transactionModel) {
         try {
             return transactionRepository.findOneAndReplace(transactionModel);
-        } catch (InvalidParseOperationException e) {
+        } catch (CollectInternalException e) {
             LOGGER.error("Unable to update transaction: ", e);
             return false;
         }
@@ -827,23 +864,6 @@ public class TransactionService {
         }
     }
 
-    public boolean changeTransactionToSendingIfBatchesNotKo(TransactionModel transaction)
-        throws InvalidParseOperationException, CollectInternalException {
-        boolean hasBatchKo =
-            transaction.getBatches() != null &&
-            transaction.getBatches().stream().anyMatch(batch -> BatchStatus.KO.equals(batch.getBatchStatus()));
-        if (hasBatchKo) {
-            throw new CollectInternalException(
-                "impossible to generate the sip: this transaction has at least one KO batch"
-            );
-        }
-
-        transaction.setStatus(TransactionStatus.SENDING);
-
-        transaction.setLastUpdate(LocalDateUtil.nowFormatted());
-        return findOneAndReplace(TransactionStatus.READY, transaction);
-    }
-
     public Response startEliminationActionWorkflow(
         String transactionId,
         EliminationRequestBody eliminationRequestBody,
@@ -860,7 +880,7 @@ public class TransactionService {
         eliminationRequestBody.setDslRequest(selectMultiQuery.getFinalSelect());
 
         // Start workflow
-        String operationId = getVitamSession().getRequestId();
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
         try (
             ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -925,7 +945,7 @@ public class TransactionService {
         TransactionRestrictionHelper.applyTransactionToQuery(transactionId, selectMultiQuery);
         deletionRequestBody.setDslRequest(selectMultiQuery.getFinalSelect());
         // Start workflow
-        String operationId = getVitamSession().getRequestId();
+        String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
         try (
             ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
@@ -994,10 +1014,7 @@ public class TransactionService {
         if (transactionModelOptional.isEmpty()) {
             throw new CollectInternalNotFoundException(TRANSACTION_NOT_FOUND);
         }
-        TransactionModel transactionModel = transactionModelOptional.get();
-        if (!checkStatus(transactionModel, TransactionStatus.OPEN)) {
-            throw new CollectInternalInvalidRequestException(TRANSACTION_NOT_FOUND);
-        }
+        ensureTransactionIsOpen(transactionModelOptional.get());
     }
 
     private String launchCollectSipWorkflow(String transactionId)
@@ -1080,5 +1097,171 @@ public class TransactionService {
         }
 
         LOGGER.debug("Push stream to workspace collect finished");
+    }
+
+    public void abortTransaction(String transactionId) throws CollectInternalException {
+        LOGGER.info("Aborting transaction " + transactionId);
+        Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
+        if (transactionModelOptional.isEmpty()) {
+            throw new CollectInternalNotFoundException(TRANSACTION_NOT_FOUND);
+        }
+        changeTransactionStatus(TransactionStatus.ABORTED, transactionModelOptional.get());
+    }
+
+    public void reopenTransaction(String transactionId) throws CollectInternalException {
+        LOGGER.info("Reopening transaction " + transactionId);
+        Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
+        if (transactionModelOptional.isEmpty()) {
+            throw new CollectInternalNotFoundException(TRANSACTION_NOT_FOUND);
+        }
+        changeTransactionStatus(TransactionStatus.OPEN, transactionModelOptional.get());
+    }
+
+    public void checkSipDownloadable(TransactionModel transaction) throws CollectInternalInvalidRequestException {
+        switch (transaction.getStatus()) {
+            case VALIDATED, SENDING, SENT, ACK_KO -> {
+                // OK
+            }
+            case READY -> throw new CollectInternalInvalidRequestException(
+                "Transaction SIP is being generated (" + transaction.getId() + ")"
+            );
+            case OPEN, KO, ACK_OK, ACK_WARNING, ABORTED -> throw new CollectInternalInvalidRequestException(
+                "Cannot download SIP. Invalid transaction status %s (%s)".formatted(
+                        transaction.getStatus(),
+                        transaction.getId()
+                    )
+            );
+            case ACK_WAITING -> throw new IllegalStateException("Unused status. Should never occur.");
+            default -> throw new IllegalStateException("Unexpected value: " + transaction.getStatus());
+        }
+    }
+
+    public void closeTransaction(TransactionModel transaction) throws CollectInternalException {
+        // Mark transaction as Ready
+        changeTransactionStatus(TransactionStatus.READY, transaction);
+    }
+
+    public void awaitTransactionValidationForIngest(String transactionId) throws CollectInternalException {
+        Optional<TransactionModel> initialTransaction = findTransaction(transactionId);
+        if (initialTransaction.isEmpty()) {
+            throw new CollectInternalNotFoundException("No such transaction '" + transactionId + "'");
+        }
+
+        boolean noNeedToWait =
+            switch (initialTransaction.get().getStatus()) {
+                case OPEN, ABORTED -> throw new CollectInternalInvalidRequestException(
+                    "Concurrent update for transaction '" +
+                    transactionId +
+                    "'. Expected " +
+                    TransactionStatus.READY +
+                    "/" +
+                    TransactionStatus.VALIDATED +
+                    ", got " +
+                    initialTransaction.get().getStatus()
+                );
+                case SENDING, SENT, ACK_OK, ACK_WARNING, ACK_KO -> throw new CollectInternalInvalidRequestException(
+                    "Another process started ingest for transaction '" +
+                    transactionId +
+                    "'. Expected " +
+                    TransactionStatus.READY +
+                    "/" +
+                    TransactionStatus.VALIDATED +
+                    ", got " +
+                    initialTransaction.get().getStatus()
+                );
+                case READY -> {
+                    // Log and start waiting...
+                    LOGGER.info(
+                        "Transaction " + transactionId + " is being processed. Waiting for transaction validation"
+                    );
+                    yield false;
+                }
+                case VALIDATED -> {
+                    LOGGER.info("Transaction " + transactionId + " has been validated. No need for waiting");
+                    yield true;
+                }
+                case KO -> throw new CollectInternalInvalidRequestException(
+                    "Cannot ingest transaction " + transactionId + " because it has errors"
+                );
+                case ACK_WAITING -> throw new IllegalStateException("Unused status. Should never occur.");
+            };
+
+        if (noNeedToWait) {
+            return;
+        }
+
+        int sleepDelayInMs = 250;
+        int maxSleepDelayInMs = 60_000;
+        StopWatch stopWatch = StopWatch.createStarted();
+
+        while (true) {
+            if (stopWatch.getTime(TimeUnit.SECONDS) > maxWaitDelayForTransactionValidationInSeconds) {
+                throw new CollectInternalInvalidRequestException(
+                    "Timeout while waiting for transaction to become " + TransactionStatus.VALIDATED
+                );
+            }
+
+            try {
+                Thread.sleep(Duration.ofMillis(sleepDelayInMs));
+            } catch (InterruptedException e) {
+                throw new CollectInternalException("Thread interrupted", e);
+            }
+
+            Optional<TransactionModel> currentTransaction = findTransaction(transactionId);
+            if (currentTransaction.isEmpty()) {
+                throw new CollectInternalInvalidRequestException(
+                    "Concurrent update for transaction '" + transactionId + "'. Transaction deleted meanwhile?"
+                );
+            }
+
+            boolean doneWaiting =
+                switch (currentTransaction.get().getStatus()) {
+                    case OPEN,
+                        ABORTED,
+                        SENDING,
+                        SENT,
+                        ACK_OK,
+                        ACK_WARNING,
+                        ACK_KO -> throw new CollectInternalInvalidRequestException(
+                        "Concurrent update for transaction '" +
+                        transactionId +
+                        "'. Expected " +
+                        TransactionStatus.READY +
+                        "/" +
+                        TransactionStatus.VALIDATED +
+                        ", got " +
+                        initialTransaction.get().getStatus()
+                    );
+                    case READY -> {
+                        // Still waiting
+                        LOGGER.info(
+                            "Transaction " +
+                            transactionId +
+                            " is being processed. Waiting for transaction validation..."
+                        );
+                        yield false;
+                    }
+                    case VALIDATED -> {
+                        LOGGER.info(
+                            "Transaction " +
+                            transactionId +
+                            " has been " +
+                            TransactionStatus.VALIDATED +
+                            ". Done waiting."
+                        );
+                        yield true;
+                    }
+                    case KO -> throw new CollectInternalInvalidRequestException(
+                        "Cannot ingest transaction " + transactionId + " because it has errors"
+                    );
+                    case ACK_WAITING -> throw new IllegalStateException("Unused status. Should never occur.");
+                };
+
+            if (doneWaiting) {
+                return;
+            }
+
+            sleepDelayInMs = Math.min(sleepDelayInMs * 2, maxSleepDelayInMs);
+        }
     }
 }

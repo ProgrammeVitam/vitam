@@ -32,6 +32,7 @@ import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -47,7 +48,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -185,23 +185,16 @@ public abstract class AbstractCollectIT extends VitamRuleRunner {
      * @throws VitamClientException If client operations fail
      * @throws InvalidParseOperationException If parsing operations fail
      */
-    protected static InputStream generateSip(String idTransaction)
+    protected InputStream generateSip(String idTransaction)
         throws VitamClientException, InvalidParseOperationException {
-        InputStream inputStream;
         try (CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient()) {
-            inputStream = client.generateSip(idTransaction);
-            RequestResponse<JsonNode> transactionResponse = client.getTransactionById(idTransaction);
-            assertThat(transactionResponse.getStatus()).isEqualTo(200);
+            client.awaitTransactionValidation(idTransaction);
 
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            assertThat(
-                JsonHandler.getFromJsonNode(
-                    requestResponseOK.getFirstResult(),
-                    fr.gouv.vitam.collect.common.dto.TransactionDto.class
-                ).getStatus()
-            ).isEqualTo(fr.gouv.vitam.collect.common.enums.TransactionStatus.SENDING.toString());
+            TransactionStatus transactionStatus = CollectTestHelper.getTransactionStatus(idTransaction, vitamContext);
+            assertThat(transactionStatus).isEqualTo(TransactionStatus.VALIDATED);
+
+            return client.downloadSIP(idTransaction);
         }
-        return inputStream;
     }
 
     /**

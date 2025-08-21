@@ -30,9 +30,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.Beta;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
-import fr.gouv.vitam.collect.common.dto.OperationIdDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -233,9 +233,18 @@ public interface CollectExternalClient extends MockOrRestClient {
     RequestResponse closeTransaction(VitamContext vitamContext, String transactionId) throws VitamClientException;
 
     /**
-     * Generate SIP + Send to Vitam
+     * Download the SIP of a transaction.
      *
-     * Consume and produce MediaType.APPLICATION_JSON
+     * @return SIP content
+     */
+    Response downloadSIP(VitamContext vitamContext, String transactionId) throws VitamClientException;
+
+    /**
+     * Send transaction SIP to Vitam.
+     * Warning: This is a blocking API that might take a few minutes to complete.
+     *
+     * The transaction must have already been closed.
+     * If transaction SIP is being generated, it will wait for is availability before proceeding.
      *
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
@@ -460,7 +469,7 @@ public interface CollectExternalClient extends MockOrRestClient {
      * @return response containing the operation ID
      * @throws VitamClientException
      */
-    RequestResponse<OperationIdDto> uploadSipToTransaction(
+    RequestResponse<UploadSipResult> uploadSipToTransaction(
         VitamContext vitamContext,
         String transactionId,
         InputStream stream

@@ -24,11 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.client.exceptions;
+package fr.gouv.vitam.collect.external.external.exception;
 
-public class CollectInternalClientInvalidRequestException extends CollectInternalClientException {
+import fr.gouv.vitam.common.exception.VitamException;
 
-    public CollectInternalClientInvalidRequestException(String message) {
+/**
+ * Exception is the superclass of all VITAM processing exceptions.
+ */
+public class CollectExternalException extends VitamException {
+
+    private static final long serialVersionUID = 6288951051488329582L;
+
+    /**
+     * ProcessingException constructor Construct the processing exception with a message and a throwable exception
+     *
+     * @param message associated message
+     * @param cause associated cause
+     */
+    public CollectExternalException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * ProcessingException constructor Construct the processing exception with a throwable exception
+     *
+     * @param cause associated cause
+     */
+    public CollectExternalException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * ProcessingException constructor Construct the processing exception with a message
+     *
+     * @param message associated message
+     */
+    public CollectExternalException(String message) {
         super(message);
     }
 }

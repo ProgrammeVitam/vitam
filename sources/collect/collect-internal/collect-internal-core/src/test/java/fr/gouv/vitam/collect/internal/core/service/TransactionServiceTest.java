@@ -28,13 +28,17 @@ package fr.gouv.vitam.collect.internal.core.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -52,15 +56,19 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
+import org.apache.commons.collections4.SetUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -69,9 +77,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.ABORTED;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.ACK_KO;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.ACK_OK;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.ACK_WAITING;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.ACK_WARNING;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.KO;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.OPEN;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.READY;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.SENDING;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.SENT;
+import static fr.gouv.vitam.collect.common.enums.TransactionStatus.VALIDATED;
 import static fr.gouv.vitam.common.model.VitamConstants.DETAILS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -79,6 +101,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -95,7 +118,6 @@ public class TransactionServiceTest {
         VitamThreadPoolExecutor.getDefaultExecutor()
     );
 
-    @InjectMocks
     private TransactionService transactionService;
 
     @Mock
@@ -108,7 +130,13 @@ public class TransactionServiceTest {
     private WorkspaceCollectClientFactory workspaceCollectClientFactory;
 
     @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
     private WorkspaceClient workspaceCollectClient;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
 
     @Mock
     private AccessInternalClient accessInternalClient;
@@ -125,9 +153,33 @@ public class TransactionServiceTest {
     @Mock
     private MetadataRepository metadataRepository;
 
+    @Mock
+    private FluxService fluxService;
+
+    @Mock
+    private ProcessingManagementClientFactory processingManagementClientFactory;
+
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Before
     public void setup() {
         given(workspaceCollectClientFactory.getClient()).willReturn(workspaceCollectClient);
+        given(workspaceClientFactory.getClient()).willReturn(workspaceCollectClient);
+
+        transactionService = new TransactionService(
+            transactionRepository,
+            projectService,
+            metadataRepository,
+            fluxService,
+            workspaceCollectClientFactory,
+            workspaceClientFactory,
+            accessInternalClientFactory,
+            ingestInternalClientFactory,
+            processingManagementClientFactory,
+            logbookOperationsClientFactory,
+            new CollectInternalConfiguration().setMaxWaitDelayForTransactionValidationInSeconds(5)
+        );
     }
 
     @Test
@@ -148,7 +200,7 @@ public class TransactionServiceTest {
             null,
             null,
             null,
-            TransactionStatus.OPEN.toString(),
+            OPEN.toString(),
             false
         );
         ProjectDto project = new ProjectDto();
@@ -182,7 +234,7 @@ public class TransactionServiceTest {
             null,
             null,
             null,
-            TransactionStatus.OPEN.toString(),
+            OPEN.toString(),
             false
         );
         doReturn(Optional.of(transactionDto)).when(transactionRepository).findTransaction(any());
@@ -195,57 +247,48 @@ public class TransactionServiceTest {
     }
 
     @Test
-    public void testCheckStatus_OK() {
-        // Given
-        final String idCollect = "XXXX000002222222";
-        TransactionModel transactionModel = new TransactionModel(
-            idCollect,
-            null,
-            null,
-            TransactionStatus.OPEN,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+    public void testTransactionStatusTransitions() throws Exception {
+        Set<TransactionStatus> allStatuses = Sets.difference(Set.of(TransactionStatus.values()), Set.of(ACK_WAITING));
+        for (TransactionStatus targetStatus : allStatuses) {
+            Set<TransactionStatus> validInitialStatuses =
+                switch (targetStatus) {
+                    case OPEN -> Set.of(READY, VALIDATED, KO, ACK_KO);
+                    case READY -> Set.of(OPEN);
+                    case VALIDATED -> Set.of(READY);
+                    case SENDING -> Set.of(VALIDATED);
+                    case SENT -> Set.of(SENDING);
+                    case KO -> Set.of(OPEN, READY, KO);
+                    case ACK_OK, ACK_WARNING, ACK_KO -> Set.of(SENT);
+                    case ABORTED -> Set.of(OPEN, READY, VALIDATED, KO, ACK_KO);
+                    case ACK_WAITING -> throw new IllegalStateException("Unused status. Should never occur.");
+                };
 
-        // When
-        boolean checkStatus = transactionService.checkStatus(
-            transactionModel,
-            TransactionStatus.OPEN,
-            TransactionStatus.ACK_KO
-        );
+            // All expected statuses should succeed
+            for (TransactionStatus validInitialStatus : validInitialStatuses) {
+                Mockito.reset(transactionRepository);
 
-        // Then
-        Assertions.assertThat(checkStatus).isTrue();
-    }
+                TransactionModel transaction = new TransactionModel().setStatus(validInitialStatus);
 
-    @Test
-    public void testCheckStatus_KO() {
-        // Given
-        final String idCollect = "XXXX000002222222";
-        TransactionModel transactionModel = new TransactionModel(
-            idCollect,
-            null,
-            null,
-            TransactionStatus.OPEN,
-            null,
-            null,
-            null,
-            null,
-            null
-        );
+                assertThatCode(
+                    () -> transactionService.changeTransactionStatus(targetStatus, transaction)
+                ).doesNotThrowAnyException();
+                assertThat(transaction.getStatus()).isEqualTo(targetStatus);
+                verify(transactionRepository).replaceTransaction(transaction);
+            }
 
-        // When
-        boolean checkStatus = transactionService.checkStatus(
-            transactionModel,
-            TransactionStatus.READY,
-            TransactionStatus.ACK_KO
-        );
+            // All unexpected statuses should fail
+            Set<TransactionStatus> invalidInitialStatuses = Sets.difference(allStatuses, validInitialStatuses);
+            for (TransactionStatus invalidInitialStatus : invalidInitialStatuses) {
+                Mockito.reset(transactionRepository);
 
-        // Then
-        Assertions.assertThat(checkStatus).isFalse();
+                TransactionModel transaction = new TransactionModel().setStatus(invalidInitialStatus).setId("id");
+                assertThatThrownBy(
+                    () -> transactionService.changeTransactionStatus(targetStatus, transaction)
+                ).isInstanceOf(CollectInternalInvalidRequestException.class);
+                assertThat(transaction.getStatus()).isEqualTo(invalidInitialStatus);
+                verify(transactionRepository, never()).replaceTransaction(transaction);
+            }
+        }
     }
 
     @Test
@@ -345,18 +388,281 @@ public class TransactionServiceTest {
         final String idTransaction = "XXXX000002222222";
         // Given
         when(workspaceCollectClient.isExistingContainer(any())).thenReturn(true);
-        // When - Then
-        assertThatCode(() -> transactionService.isTransactionContentEmpty(idTransaction)).doesNotThrowAnyException();
+
+        // When
+        boolean transactionContentEmpty = transactionService.isTransactionContentEmpty(idTransaction);
+
+        // Then
+        assertThat(transactionContentEmpty).isFalse();
     }
 
     @Test
-    public void isTransactionContentEmptyTest() throws Exception {
+    public void checkTransactionContentEmptyTest() throws Exception {
         final String idTransaction = "XXXX000002222222";
         // Given
         when(workspaceCollectClient.isExistingContainer(any())).thenReturn(false);
-        // When _ Then
-        assertThatCode(() -> transactionService.isTransactionContentEmpty(idTransaction)).isInstanceOf(
-            CollectInternalException.class
+
+        // When
+        boolean transactionContentEmpty = transactionService.isTransactionContentEmpty(idTransaction);
+
+        // Then
+        assertThat(transactionContentEmpty).isTrue();
+    }
+
+    @Test
+    public void checkSipDownloadable() throws CollectInternalInvalidRequestException {
+        Set<TransactionStatus> validStatuses = Set.of(VALIDATED, SENDING, SENT, ACK_KO);
+        Set<TransactionStatus> invalidStatuses = Set.of(READY, OPEN, KO, ACK_OK, ACK_WARNING, ABORTED);
+
+        // Valid statuses for download
+        for (TransactionStatus validStatus : validStatuses) {
+            TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(validStatus);
+            assertThatCode(() -> transactionService.checkSipDownloadable(transactionModel)).doesNotThrowAnyException();
+        }
+
+        // Invalid statuses for download
+        for (TransactionStatus invalidStatus : invalidStatuses) {
+            TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(invalidStatus);
+            assertThatThrownBy(() -> transactionService.checkSipDownloadable(transactionModel)).isInstanceOf(
+                CollectInternalInvalidRequestException.class
+            );
+        }
+
+        // Check no other statuses are missed (except unused/deprecated ACK_WAITING)
+        assertThat(
+            SetUtils.difference(Set.of(TransactionStatus.values()), SetUtils.union(validStatuses, invalidStatuses))
+        ).containsOnly(ACK_WAITING);
+    }
+
+    @Test
+    public void testReopenTransaction_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(KO);
+        doReturn(Optional.of(transactionModel)).when(transactionRepository).findTransaction("id");
+
+        // When
+        transactionService.reopenTransaction("id");
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(OPEN);
+        verify(transactionRepository).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testReopenTransactionWithInvalidState_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(SENDING);
+        doReturn(Optional.of(transactionModel)).when(transactionRepository).findTransaction("id");
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.reopenTransaction("id")).isInstanceOf(
+            CollectInternalInvalidRequestException.class
         );
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(SENDING);
+        verify(transactionRepository, never()).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testReopenTransactionNotFound() throws Exception {
+        // Given
+        doReturn(Optional.empty()).when(transactionRepository).findTransaction("id");
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.reopenTransaction("id")).isInstanceOf(
+            CollectInternalNotFoundException.class
+        );
+    }
+
+    @Test
+    public void testAbortTransaction_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(OPEN);
+        doReturn(Optional.of(transactionModel)).when(transactionRepository).findTransaction("id");
+
+        // When
+        transactionService.abortTransaction("id");
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(ABORTED);
+        verify(transactionRepository).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testAbortTransactionWithInvalidState_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(SENDING);
+        doReturn(Optional.of(transactionModel)).when(transactionRepository).findTransaction("id");
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.closeTransaction(transactionModel)).isInstanceOf(
+            CollectInternalInvalidRequestException.class
+        );
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(SENDING);
+        verify(transactionRepository, never()).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testAbortTransactionNotFound() throws Exception {
+        // Given
+        doReturn(Optional.empty()).when(transactionRepository).findTransaction("id");
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.abortTransaction("id")).isInstanceOf(
+            CollectInternalNotFoundException.class
+        );
+    }
+
+    @Test
+    public void testCloseTransaction_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(OPEN);
+
+        // When
+        transactionService.closeTransaction(transactionModel);
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(READY);
+        verify(transactionRepository).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testCloseTransactionWithInvalidState_OK() throws Exception {
+        // Given
+        TransactionModel transactionModel = new TransactionModel().setId("id").setStatus(KO);
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.closeTransaction(transactionModel)).isInstanceOf(
+            CollectInternalInvalidRequestException.class
+        );
+
+        // Then
+        assertThat(transactionModel.getStatus()).isEqualTo(KO);
+        verify(transactionRepository, never()).replaceTransaction(transactionModel);
+    }
+
+    @Test
+    public void testAwaitTransactionValidationWhenAlreadyValidated_OK() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(Optional.of(new TransactionModel().setId(transactionId).setStatus(VALIDATED)))
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When
+        transactionService.awaitTransactionValidationForIngest(transactionId);
+
+        // Then
+        verify(transactionRepository, times(1)).findTransaction(transactionId);
+    }
+
+    @Test
+    public void testAwaitTransactionValidationWhenReopenedMeanwhile_KO() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(Optional.of(new TransactionModel().setId(transactionId).setStatus(OPEN)))
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.awaitTransactionValidationForIngest(transactionId)).isInstanceOf(
+            CollectInternalInvalidRequestException.class
+        );
+        verify(transactionRepository, times(1)).findTransaction(transactionId);
+    }
+
+    @Test
+    public void testAwaitTransactionValidationWhenReadyThenValidated_OK() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(VALIDATED))
+        )
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When
+        transactionService.awaitTransactionValidationForIngest(transactionId);
+
+        // Then
+        verify(transactionRepository, times(3)).findTransaction(transactionId);
+    }
+
+    @Test
+    public void testAwaitTransactionValidationWhenReadyThenKO_KO() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(KO))
+        )
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.awaitTransactionValidationForIngest(transactionId)).isInstanceOf(
+            CollectInternalInvalidRequestException.class
+        );
+        verify(transactionRepository, times(3)).findTransaction(transactionId);
+    }
+
+    @Test
+    public void testAwaitTransactionValidationWhenReadyThenOpen_KO() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(OPEN))
+        )
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.awaitTransactionValidationForIngest(transactionId)).isInstanceOf(
+            CollectInternalInvalidRequestException.class
+        );
+        verify(transactionRepository, times(3)).findTransaction(transactionId);
+    }
+
+    @Test
+    public void testAwaitTransactionValidationWhenSentConcurrently_KO() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)),
+            Optional.of(new TransactionModel().setId(transactionId).setStatus(SENT))
+        )
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When / Then
+        assertThatThrownBy(() -> transactionService.awaitTransactionValidationForIngest(transactionId)).isInstanceOf(
+            CollectInternalInvalidRequestException.class
+        );
+        verify(transactionRepository, times(2)).findTransaction(transactionId);
+    }
+
+    /**
+     * Ensure test timeouts out
+     */
+    @Test(timeout = 30_000)
+    public void testAwaitTransactionValidationTimeout_OK() throws Exception {
+        // Given
+        String transactionId = "tx-id";
+        doReturn(Optional.of(new TransactionModel().setId(transactionId).setStatus(READY)))
+            .when(transactionRepository)
+            .findTransaction(transactionId);
+
+        // When / then
+        assertThatThrownBy(() -> transactionService.awaitTransactionValidationForIngest(transactionId))
+            .isInstanceOf(CollectInternalInvalidRequestException.class)
+            .hasMessage("Timeout while waiting for transaction to become VALIDATED");
     }
 }

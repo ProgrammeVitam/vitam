@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.collect.external.external.rest;
 
+import fr.gouv.vitam.collect.external.external.service.CollectExternalIngestService;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
@@ -50,11 +51,13 @@ public class BusinessApplicationTest extends Application {
     private Set<Object> singletons;
     private final CollectInternalClientFactory collectInternalClientFactory;
     private final IngestExternalClientFactory ingestExternalClientFactory;
+    private final CollectExternalIngestService collectExternalIngestService;
     private final VitamStatusService vitamStatusService;
 
     public BusinessApplicationTest() {
         this.collectInternalClientFactory = mock(CollectInternalClientFactory.class);
         this.ingestExternalClientFactory = mock(IngestExternalClientFactory.class);
+        this.collectExternalIngestService = mock(CollectExternalIngestService.class);
         this.vitamStatusService = mock(VitamStatusService.class);
         commonBusinessApplication = new CommonBusinessApplication(true);
         prepare();
@@ -72,6 +75,7 @@ public class BusinessApplicationTest extends Application {
         final TransactionExternalResource transactionExternalResource = new TransactionExternalResource(
             collectInternalClientFactory,
             ingestExternalClientFactory,
+            collectExternalIngestService,
             null
         );
 
@@ -99,6 +103,10 @@ public class BusinessApplicationTest extends Application {
 
     public IngestExternalClientFactory getIngestExternalClientFactory() {
         return ingestExternalClientFactory;
+    }
+
+    public CollectExternalIngestService getCollectExternalIngestService() {
+        return collectExternalIngestService;
     }
 
     public VitamStatusService getVitamStatusService() {

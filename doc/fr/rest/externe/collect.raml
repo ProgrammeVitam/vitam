@@ -399,13 +399,16 @@ documentation:
               type: object
 
   /{id}/close:
-    displayName: Fermer une transaction -> statut Close
+    displayName: |
+      Fermer la transaction à la modification.
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     post:
       description: |
-        Permet de fermer une transaction
+        Permet de fermer une transaction à la modification.
+        Le statut de la transaction passe de `OPEN` à `READY`.
+        La validation et la génération du SIP est automatiquement lancée en tâche de fond (`READY` -> `VALIDATED`/`KO`).
       body:
         application/json:
       headers:
@@ -418,14 +421,41 @@ documentation:
               type: object
               example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
 
-  /{id}/send:
-    displayName: Générer un SIP et envoyer le SIP a Vitam (Ingest)
+/{id}/downloadSIP:
+    displayName: |
+      Téléchargement du SIP de la transaction.
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     post:
       description: |
-        Permet de générer un SIP et l'envoyer a Vitam (Ingest)
+        Permet de télécharger le SIP d'une transaction.
+
+        Le téléchargement est disponible après validation & génération du SIP, pendant le versement à Vitam (ingest), et en cas de rejet du versement par Vitam (statuts `VALIDATED`, `SENDING`, `SENT` et `ACK_KO`).
+
+      body:
+        application/json:
+      headers:
+        X-tenant-Id:
+          required: true
+      responses:
+        200:
+          body:
+            application/octet-stream:
+
+  /{id}/send:
+    displayName: Verser le SIP dans Vitam (Ingest)
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+    post:
+      description: |
+        Permet de verser le SIP de la transaction à Vitam (Ingest).
+
+        Si la validation/génération du SIP est déjà terminée (statut `VALIDATED`), le versement dans Vitam est immédiat.
+        Sinon, le versement est bloqué jusqu'à validation et génération du SIP `VALIDATED`.
+        Si la validation échoue (`KO`), l'API retourne une erreur 400 Bad Request.
+
       body:
         application/json:
       headers:

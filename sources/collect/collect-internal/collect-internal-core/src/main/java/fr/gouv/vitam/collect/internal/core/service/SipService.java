@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.collect.internal.core.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -32,21 +33,26 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
+import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.SipHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
-import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.ExportException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -59,10 +65,12 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.export.ExportType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import jakarta.ws.rs.core.Response;
@@ -70,6 +78,7 @@ import jakarta.xml.bind.JAXBException;
 import org.apache.commons.io.FileUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -96,37 +105,92 @@ public class SipService {
     private static final int DEFAULT_MAX_ELEMENT_IN_QUERY = 1000;
 
     private final int maxElementsInQuery;
-    private final WorkspaceClientFactory workspaceClientFactory;
+    private final WorkspaceCollectClientFactory workspaceCollectClientFactory;
     private final MetadataRepository metadataRepository;
+    private final TransactionService transactionService;
 
     public SipService(
         WorkspaceCollectClientFactory workspaceCollectClientFactory,
-        MetadataRepository metadataRepository
+        MetadataRepository metadataRepository,
+        TransactionService transactionService
     ) {
-        this(workspaceCollectClientFactory, metadataRepository, DEFAULT_MAX_ELEMENT_IN_QUERY);
+        this(workspaceCollectClientFactory, metadataRepository, transactionService, DEFAULT_MAX_ELEMENT_IN_QUERY);
     }
 
     @VisibleForTesting
     public SipService(
-        WorkspaceClientFactory workspaceClientFactory,
+        WorkspaceCollectClientFactory workspaceCollectClientFactory,
         MetadataRepository metadataRepository,
+        TransactionService transactionService,
         int maxElementsInQuery
     ) {
-        this.workspaceClientFactory = workspaceClientFactory;
+        this.workspaceCollectClientFactory = workspaceCollectClientFactory;
         this.metadataRepository = metadataRepository;
+        this.transactionService = transactionService;
         this.maxElementsInQuery = maxElementsInQuery;
     }
 
-    public String generateSip(TransactionModel transactionModel) throws CollectInternalException {
-        File localDirectory = PropertiesUtils.fileFromTmpFolder(transactionModel.getId());
-        File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(SEDA_FILE));
+    public void generateSipAsync(final TransactionModel transaction) {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
+                try {
+                    LOGGER.info(
+                        "Starting background generation and validation of SIP for transaction " + transaction.getId()
+                    );
+                    preSipGenerationChecks(transaction);
 
-        boolean isCreated = manifestFile.getParentFile().mkdir();
-        if (!isCreated) {
-            LOGGER.debug("An error occurs when trying to create manifest parent directory");
-            throw new CollectInternalException("An error occurs when trying to create manifest parent directory");
+                    generateSip(transaction);
+
+                    transactionService.changeTransactionStatus(TransactionStatus.VALIDATED, transaction);
+                } catch (Exception exception) {
+                    LOGGER.error(
+                        "Cannot generate SIP for transaction " +
+                        transaction.getId() +
+                        ". Trying to updating status to KO",
+                        exception
+                    );
+                    tryUpdateTransactionStatusToKO(transaction, exception);
+                }
+            });
+    }
+
+    private void preSipGenerationChecks(TransactionModel transaction) throws CollectInternalException {
+        boolean hasBatchKo =
+            transaction.getBatches() != null &&
+            transaction.getBatches().stream().anyMatch(batch -> BatchStatus.KO.equals(batch.getBatchStatus()));
+        if (hasBatchKo) {
+            throw new CollectInternalInvalidRequestException(
+                "Cannot generate the SIP for the transaction " +
+                transaction.getId() +
+                " because it has at least one batch KO."
+            );
         }
 
+        if (transactionService.isTransactionContentEmpty(transaction.getId())) {
+            throw new CollectInternalInvalidRequestException(
+                "Cannot generate the SIP of an empty transaction (" + transaction.getId() + ")"
+            );
+        }
+    }
+
+    private void generateSip(TransactionModel transactionModel)
+        throws CollectInternalException, XMLStreamException, JAXBException, IOException, InvalidCreateOperationException, InvalidParseOperationException, ExportException, ContentAddressableStorageServerException {
+        File manifestFile = PropertiesUtils.fileFromTmpFolder(
+            transactionModel.getId() + "-" + VitamThreadUtils.getVitamSession().getRequestId() + "-" + SEDA_FILE
+        );
+        try {
+            generateManifest(transactionModel, manifestFile);
+
+            saveManifestInWorkspace(transactionModel, manifestFile);
+
+            compressSipInWorkspace(transactionModel);
+        } finally {
+            FileUtils.deleteQuietly(manifestFile);
+        }
+    }
+
+    private void generateManifest(TransactionModel transactionModel, File manifestFile)
+        throws IOException, XMLStreamException, InvalidCreateOperationException, JAXBException, InvalidParseOperationException, CollectInternalException, ExportException {
         try (
             final OutputStream outputStream = new FileOutputStream(manifestFile);
             final ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, null)
@@ -186,7 +250,7 @@ public class SipService {
                     final List<String> linkedUnits = unitsForObjectGroupId.get(objectGroupId);
                     manifestBuilder.writeGOT(
                         object,
-                        linkedUnits.get(linkedUnits.size() - 1),
+                        linkedUnits.getLast(),
                         Stream.empty(),
                         FlatFolderResolver.INSTANCE,
                         CollectFilenameResolver.INSTANCE
@@ -230,70 +294,69 @@ public class SipService {
 
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
-        } catch (Exception e) {
-            LOGGER.error(e.getLocalizedMessage());
-            throw new CollectInternalException(e);
-        }
-
-        try (InputStream inputStream = new FileInputStream(manifestFile)) {
-            return saveManifestInWorkspace(transactionModel, inputStream);
-        } catch (IOException e) {
-            LOGGER.error(e.getLocalizedMessage());
-            throw new CollectInternalException(e);
-        } finally {
-            try {
-                FileUtils.deleteDirectory(manifestFile.getParentFile());
-            } catch (IOException exception) {
-                throw new CollectInternalException(exception);
-            }
         }
     }
 
-    private String saveManifestInWorkspace(TransactionModel transactionModel, InputStream inputStream)
-        throws CollectInternalException {
+    private void saveManifestInWorkspace(TransactionModel transactionModel, File manifestFile)
+        throws IOException, ContentAddressableStorageServerException {
         LOGGER.debug("Try to push manifest to workspace...");
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            if (workspaceClient.isExistingContainer(transactionModel.getId())) {
-                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-                InputStream digestInputStream = digest.getDigestInputStream(inputStream);
-                workspaceClient.putObject(transactionModel.getId(), SEDA_FILE, digestInputStream);
-                LOGGER.debug(" -> push manifest to workspace finished");
-                // compress
-                CompressInformation compressInformation = new CompressInformation();
-                compressInformation.getFiles().add(SEDA_FILE);
-                compressInformation.getFiles().add(CONTENT_FOLDER);
-                compressInformation.setOutputFile(transactionModel.getId() + SIP_EXTENSION);
-                compressInformation.setOutputContainer(transactionModel.getId());
-                workspaceClient.compress(transactionModel.getId(), compressInformation);
-                return digest.digestHex();
-            }
-            throw new CollectInternalException("Cannot find related Container to transaction");
-        } catch (ContentAddressableStorageServerException e) {
-            LOGGER.error(e.getLocalizedMessage());
+        try (
+            WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient();
+            InputStream inputStream = new FileInputStream(manifestFile)
+        ) {
+            workspaceClient.putObject(transactionModel.getId(), SEDA_FILE, inputStream);
+            LOGGER.debug(" -> push manifest to workspace finished");
+        }
+    }
+
+    private void compressSipInWorkspace(TransactionModel transactionModel) throws CollectInternalException {
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            // compress
+            CompressInformation compressInformation = new CompressInformation();
+            compressInformation.getFiles().add(SEDA_FILE);
+            compressInformation.getFiles().add(CONTENT_FOLDER);
+            compressInformation.setOutputFile(transactionModel.getId() + SIP_EXTENSION);
+            compressInformation.setOutputContainer(transactionModel.getId());
+            workspaceClient.compress(transactionModel.getId(), compressInformation);
+        } catch (ContentAddressableStorageException e) {
             throw new CollectInternalException(e);
         }
     }
 
-    public InputStream getIngestedFileFromWorkspace(TransactionModel transactionModel) throws CollectInternalException {
-        LOGGER.debug("Try to get Zip from workspace...");
-        InputStream sipInputStream = null;
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            if (!workspaceClient.isExistingContainer(transactionModel.getId())) {
-                return null;
-            }
-            Response response = workspaceClient.getObject(
-                transactionModel.getId(),
-                transactionModel.getId() + SIP_EXTENSION
-            );
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                sipInputStream = (InputStream) response.getEntity();
-            }
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            LOGGER.error("Error when processing ingest:", e);
-            throw new CollectInternalException(e);
+    private void tryUpdateTransactionStatusToKO(TransactionModel transactionModel, Exception exception) {
+        try {
+            transactionService.changeTransactionStatus(TransactionStatus.KO, transactionModel);
+        } catch (Exception e) {
+            LOGGER.error("Cannot mark status to KO for transaction " + transactionModel.getId(), exception);
         }
+    }
 
-        LOGGER.debug(" zip from workspace finished");
-        return sipInputStream;
+    public InputStream getIngestedFileFromWorkspace(String transactionId) throws CollectInternalException {
+        LOGGER.debug("Try to get Zip from workspace...");
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            Response response = workspaceClient.getObject(transactionId, transactionId + SIP_EXTENSION);
+            return response.readEntity(InputStream.class);
+        } catch (ContentAddressableStorageNotFoundException e) {
+            throw new CollectInternalNotFoundException("No SIP found for transaction " + transactionId, e);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new CollectInternalException(
+                "An error occurred during access to the SIP of the transaction " + transactionId,
+                e
+            );
+        }
+    }
+
+    public void cleanupSip(String transactionId) throws CollectInternalException {
+        LOGGER.info("Deleting SIP if transaction " + transactionId + " from workspace...");
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            workspaceClient.deleteObject(transactionId, transactionId + SIP_EXTENSION);
+        } catch (ContentAddressableStorageNotFoundException ignored) {
+            LOGGER.info("No SIP to delete for transaction " + transactionId);
+        } catch (ContentAddressableStorageServerException e) {
+            throw new CollectInternalServerSideException(
+                "An error occurred during SIP cleanup for transaction " + transactionId,
+                e
+            );
+        }
     }
 }

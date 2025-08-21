@@ -29,6 +29,6 @@ package fr.gouv.vitam.collect.common.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Record for returning operation ID
+ * Record for returning the result of SIP upload to collect. Contains upload operation id.
  */
-public record OperationIdDto(@JsonProperty("requestId") String requestId) {}
+public record UploadSipResult(@JsonProperty("requestId") String requestId) {}

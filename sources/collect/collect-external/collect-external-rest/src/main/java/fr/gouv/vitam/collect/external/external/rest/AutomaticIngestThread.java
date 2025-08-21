@@ -27,28 +27,23 @@
 package fr.gouv.vitam.collect.external.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalException;
+import fr.gouv.vitam.collect.external.external.service.CollectExternalIngestService;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,19 +53,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-
 public class AutomaticIngestThread implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AutomaticIngestThread.class);
-    private static final Integer TENANT_ID = 1;
+    private static final int INITIAL_DELAY = 5;
+
     private final CollectInternalClientFactory collectInternalClientFactory;
     private final int threadPoolSize;
-    private static final int INITIAL_DELAY = 5;
+    private final CollectExternalIngestService collectExternalIngestService;
 
     public AutomaticIngestThread(CollectExternalConfiguration collectExternalConfiguration) {
         this.collectInternalClientFactory = CollectInternalClientFactory.getInstance();
         this.threadPoolSize = collectExternalConfiguration.getIngestionThreadPoolSize();
+        this.collectExternalIngestService = new CollectExternalIngestService();
 
         final long delay = collectExternalConfiguration.getIngestionThreadFrequencySeconds();
         Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(
@@ -119,13 +114,14 @@ public class AutomaticIngestThread implements Runnable {
             for (var transaction : transactionsModel.entrySet()) {
                 CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(
                     () -> {
-                        Thread.currentThread()
-                            .setName(AutomaticIngestThread.class.getName() + "-" + transaction.getKey());
-                        VitamThreadUtils.getVitamSession().setTenantId(transaction.getValue());
+                        String transactionId = transaction.getKey();
+                        int tenantId = transaction.getValue();
+                        Thread.currentThread().setName(AutomaticIngestThread.class.getName() + "-" + transactionId);
+                        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                         try {
-                            generateAndSendSip(transaction.getKey(), transaction.getValue());
+                            sendSip(transactionId, tenantId);
                         } catch (Exception e) {
-                            LOGGER.error("Error when sending transaction:", e);
+                            LOGGER.error("Error when sending automatic transaction " + transactionId, e);
                         }
                     },
                     executorService
@@ -142,24 +138,18 @@ public class AutomaticIngestThread implements Runnable {
         }
     }
 
-    private void generateAndSendSip(String transactionId, Integer tenantId) throws IOException {
+    private void sendSip(String transactionId, Integer tenantId) throws CollectExternalException {
         try (
             CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient();
             IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient();
-            InputStream inputStream = client.generateSip(transactionId);
         ) {
-            // Ingestion de la transaction
-            RequestResponse<Void> ingest = ingestExternalClient.ingest(
-                new VitamContext(tenantId),
-                inputStream,
-                DEFAULT_WORKFLOW.name(),
-                ProcessAction.RESUME.name()
+            LOGGER.info("Sending SIP for transaction " + transactionId + " for tenant " + tenantId);
+            String ingestOperationId = collectExternalIngestService.ingestSip(
+                client,
+                ingestExternalClient,
+                transactionId
             );
-            client.attachVitamOperationId(transactionId, ingest.getHeaderString(GlobalDataRest.X_REQUEST_ID));
-            client.changeTransactionStatus(transactionId, TransactionStatus.SENT);
-            LOGGER.info(ingest.toString());
-        } catch (IngestExternalException | VitamClientException e) {
-            LOGGER.error("Error during chunk processing", e);
+            LOGGER.info("SIP sent successfully with id " + ingestOperationId);
         }
     }
 }
