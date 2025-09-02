@@ -296,6 +296,15 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
+    public Map<String, Long> getFilesWithParamsFromWorkspace(
+        WorkFlowExecutionContext executionContext,
+        String containerName,
+        String folderName
+    ) throws ProcessingException {
+        throw new VitamRuntimeException("Not implemented");
+    }
+
+    @Override
     public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
         throws ProcessingException {
         throw new VitamRuntimeException("Not implemented");

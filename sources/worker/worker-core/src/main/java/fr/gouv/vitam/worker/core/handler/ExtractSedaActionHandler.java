@@ -431,6 +431,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             IngestContext ingestContext = retrieveIngestContext(params, handlerIO);
 
             Map<String, Long> filesWithParamsFromWorkspace = handlerIO.getFilesWithParamsFromWorkspace(
+                params.getExecutionContext(),
                 handlerIO.getContainerName(),
                 SEDA_FOLDER
             );

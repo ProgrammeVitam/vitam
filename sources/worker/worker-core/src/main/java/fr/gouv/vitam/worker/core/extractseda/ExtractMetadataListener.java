@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
-import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -193,12 +192,8 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
                 dataObjectInfo.setAlgo(DigestType.fromValue(versionsModel.getAlgorithm()));
                 dataObjectInfo.setMessageDigest(versionsModel.getMessageDigest());
 
-                if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
-                    // FIXME : Ensure limitation is documented
-                    long gotSize = checkAndComputeSize(versionsModel, dataObjectInfo);
-                    dataObjectInfo.setSize(gotSize);
-                }
-
+                long gotSize = checkAndComputeSize(versionsModel, dataObjectInfo);
+                dataObjectInfo.setSize(gotSize);
                 detail.setVersion(
                     Objects.requireNonNullElse(
                         dataObject.getDataObjectVersion(),
