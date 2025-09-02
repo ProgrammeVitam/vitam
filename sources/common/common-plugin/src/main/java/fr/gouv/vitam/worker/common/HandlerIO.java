@@ -261,6 +261,21 @@ public interface HandlerIO extends VitamAutoCloseable {
     /**
      * get Map of File With Params From folder in Workspace
      *
+     * @param executionContext
+     * @param containerName
+     * @param folderName
+     * @return
+     * @throws ProcessingException
+     */
+    Map<String, Long> getFilesWithParamsFromWorkspace(
+        WorkFlowExecutionContext executionContext,
+        String containerName,
+        String folderName
+    ) throws ProcessingException;
+
+    /**
+     * get Map of File With Params From folder in Workspace
+     *
      * @param containerName
      * @param folderName
      * @return

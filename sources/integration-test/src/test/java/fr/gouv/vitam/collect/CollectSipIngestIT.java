@@ -86,6 +86,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.collect.CollectTestHelper.createTransaction;
 import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
@@ -375,6 +376,64 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             );
 
             assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.KO.name());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_warning_when_ingest_sip_with_incorrect_sizes() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
+            String transactionId = transactionDtoCreated.getId();
+
+            try (
+                InputStream inputStream = PropertiesUtils.getResourceAsStream("collect/sip_warning_incorrect_size.zip")
+            ) {
+                RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
+                    new VitamContext(TENANT_ID)
+                        .setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract(ACCESS_CONTRACT),
+                    transactionId,
+                    inputStream
+                );
+                assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
+                final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+            }
+            waitOperation(transactionId);
+            verifyOperation(transactionId, StatusCode.WARNING);
+
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            JsonNode logbookResult = logbookClient.selectOperationById(transactionDtoCreated.getId());
+            assertThat(logbookResult.get(TAG_RESULTS)).isNotNull();
+            assertThat(logbookResult.get(TAG_RESULTS).size()).isGreaterThan(0);
+
+            JsonNode firstResult = logbookResult.get(TAG_RESULTS).get(0);
+            JsonNode events = firstResult.get(EVENTS);
+            assertThat(events).isNotNull();
+            assertThat(events.isArray()).isTrue();
+            assertThat(events.size()).isGreaterThan(0);
+            assertThat(
+                StreamSupport.stream(events.spliterator(), false)
+                    .filter(
+                        event ->
+                            Arrays.asList("CHECK_OBJECT_SIZE.WARNING", "STP_OG_CHECK_AND_TRANSFORME.WARNING").contains(
+                                event.get("outDetail").asText()
+                            )
+                    )
+                    .count()
+            ).isEqualTo(2L);
         }
     }
 }

@@ -782,10 +782,13 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
-        throws ProcessingException {
+    public Map<String, Long> getFilesWithParamsFromWorkspace(
+        WorkFlowExecutionContext executionContext,
+        String containerName,
+        String folderName
+    ) throws ProcessingException {
         Map<String, Long> mapResults = new HashMap<>();
-        try (WorkspaceClient workspaceClient = getWorkspaceClient()) {
+        try (WorkspaceClient workspaceClient = getWorkspaceClient(executionContext)) {
             RequestResponse<Map<String, FileParams>> filesWithParamsFromFolderRequest =
                 workspaceClient.getFilesWithParamsFromFolder(containerName, folderName);
             if (filesWithParamsFromFolderRequest != null && filesWithParamsFromFolderRequest.isOk()) {
@@ -803,6 +806,12 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             throw new ProcessingException(e);
         }
         return mapResults;
+    }
+
+    @Override
+    public Map<String, Long> getFilesWithParamsFromWorkspace(String containerName, String folderName)
+        throws ProcessingException {
+        return getFilesWithParamsFromWorkspace(WorkFlowExecutionContext.VITAM, containerName, folderName);
     }
 
     @Override
