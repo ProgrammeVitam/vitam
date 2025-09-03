@@ -111,7 +111,7 @@
     <!-- object storing-->
     <jclouds.version>2.7.0</jclouds.version>
     <openstack4j.version>3.12</openstack4j.version>
-    <awssdk.v2.version>2.31.47</awssdk.v2.version>
+    <awssdk.v2.version>2.33.2</awssdk.v2.version>
 
     <!-- jetty -->
     <jetty.version>12.0.19</jetty.version>
@@ -141,21 +141,21 @@
     <commons-logging.version>1.3.1</commons-logging.version>
     <commons-io.version>2.18.0</commons-io.version>
     <commons-codec.version>1.18.0</commons-codec.version>
-    <commons-lang3>3.14.0</commons-lang3>
+    <commons-lang3>3.18.0</commons-lang3>
     <commons-text>1.11.0</commons-text>
     <easymock.version>5.2.0</easymock.version>
     <jackson.version>2.18.3</jackson.version>
-    <apache-shiro.version>2.0.4</apache-shiro.version>
+    <apache-shiro.version>2.0.5</apache-shiro.version>
     <assertj.version>3.25.3</assertj.version>
     <rest-assured.version>5.5.5</rest-assured.version>
     <org.json.version>20240303</org.json.version>
     <json-sanitize.version>1.2.2</json-sanitize.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <esapi.version>2.6.1.0</esapi.version>
+    <esapi.version>2.7.0.0</esapi.version>
     <xml-resolver.version>1.2</xml-resolver.version>
     <opencsv.version>5.9</opencsv.version>
     <commons-csv.version>1.10.0</commons-csv.version>
-    <bouncycastle.version>1.78.1</bouncycastle.version>
+    <bouncycastle.version>1.81</bouncycastle.version>
     <diffutils.version>1.3.0</diffutils.version>
     <json-flattener.version>0.16.6</json-flattener.version>
     <jaxb.version>4.0.5</jaxb.version>
@@ -165,7 +165,7 @@
     <!-- Json Validation -->
     <json-schema-validator.version>2.2.14</json-schema-validator.version>
     <org.glassfish.web.version>3.0.1-b12</org.glassfish.web.version>
-    <retrofit2.version>2.11.0</retrofit2.version>
+    <retrofit2.version>3.0.0</retrofit2.version>
     <org.xmlunit.version>2.10.0</org.xmlunit.version>
     <org.wiremock.version>3.0.4</org.wiremock.version>
     <io.reactivex.rxjava2.version>2.2.21</io.reactivex.rxjava2.version>
@@ -175,7 +175,7 @@
     <jdeb.vafer.version>1.10</jdeb.vafer.version>
     <swagger-core.version>2.2.30</swagger-core.version>
     <Saxon-HE.version>12.4</Saxon-HE.version>
-    <quartz.version>2.4.0-rc1</quartz.version>
+    <quartz.version>2.4.0</quartz.version>
     <quartz-mongodb.version>2.2.0-rc2</quartz-mongodb.version>
     <jib.skip>true</jib.skip>
     <jetty-maven-plugin.version>11.0.25</jetty-maven-plugin.version>

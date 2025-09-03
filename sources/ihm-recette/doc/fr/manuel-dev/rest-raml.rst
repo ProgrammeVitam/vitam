@@ -22,7 +22,6 @@ Rest API
 | URL Path : / 
 |
 | GET    /messages/logbook -> récupère les traductions liées aux status des journaux d'opération
-| GET    /stat/{id_op} -> N'est pas utilisé par le front
 | POST   /operations/traceability -> force une sécurisation des journaux d'opération
 | POST   /logbooks -> N'est pas utilisé par le front
 | GET    /logbooks -> N'est pas utilisé par le front

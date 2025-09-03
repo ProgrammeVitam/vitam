@@ -33,15 +33,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
@@ -178,72 +170,6 @@ public final class JsonTransformer {
         }
 
         return allParentsRef;
-    }
-
-    /**
-     * Generates execution time by step relative to a logbook operation
-     *
-     * @param logbookOperation logbook operation in JsonNode format
-     * @return CSV report logbook
-     * @throws VitamException if unexpected error in CSV file generation process
-     * @throws IOException if error when write output stream
-     * @throws Exception if error in others cases
-     */
-    public static ByteArrayOutputStream buildLogbookStatCsvFile(JsonNode logbookOperation)
-        throws VitamException, IOException {
-
-        final ByteArrayOutputStream csvOutputStream = new ByteArrayOutputStream();
-        try (Writer csvWriter = new BufferedWriter(new OutputStreamWriter(csvOutputStream));) {
-
-            // Total execution time
-            final String startOperationTimeStr = logbookOperation.get(EVENT_DATE_TIME_FIELD).asText();
-
-            final List<JsonNode> events =
-                IteratorUtils.toList(logbookOperation.get(EVENTS_FIELD).iterator());
-
-            // Last event
-            final JsonNode lastEvent = events.get(events.size() - 1);
-            final String endOperationTimeStr = lastEvent.get(EVENT_DATE_TIME_FIELD).asText();
-
-            // Generate CSV report
-            final CSVPrinter csvPrinter = new CSVPrinter(csvWriter,
-                CSVFormat.newFormat(SEMI_COLON_SEPARATOR).withRecordSeparator(RECORD_SEPARATOR));
-
-            final List<String> header = IteratorUtils.toList(lastEvent.fieldNames());
-            header.add(START_EVENT_DATETIME_HEADER);
-            header.add(END_EVENT_DATETIME_HEADER);
-            header.add(EXECUTION_TIME_HEADER);
-            csvPrinter.printRecord(header);
-
-            for (int i = 0; i < events.size() - 1; i += 2) {
-                final JsonNode startEvent = events.get(i);
-                final JsonNode endEvent = events.get(i + 1);
-                final List<String> eventReportDetails = IteratorUtils.toList(endEvent.elements());
-                final String startEventDateTimeStr = startEvent.get(EVENT_DATE_TIME_FIELD).asText();
-                final String endEventDateTimeStr = endEvent.get(EVENT_DATE_TIME_FIELD).asText();
-
-                eventReportDetails.add(startEventDateTimeStr);
-                eventReportDetails.add(endEventDateTimeStr);
-                eventReportDetails.add(calculateExecutionTime(startEventDateTimeStr, endEventDateTimeStr).toString());
-
-                csvPrinter.printRecord(eventReportDetails);
-            }
-
-            // Last Event
-            final List<String> lastEventDetails = IteratorUtils.toList(lastEvent.elements());
-            lastEventDetails.add(startOperationTimeStr);
-            lastEventDetails.add(endOperationTimeStr);
-            lastEventDetails.add(calculateExecutionTime(startOperationTimeStr, endOperationTimeStr).toString());
-            csvPrinter.printRecord(lastEventDetails);
-
-            csvPrinter.flush();
-            csvPrinter.close();
-        } catch (final Exception e) {
-            csvOutputStream.close();
-            throw new VitamException(UNEXPECTED_EXCEPTION_DURING_CSV_FILE_GENERATION);
-        }
-
-        return csvOutputStream;
     }
 
     private static Long calculateExecutionTime(String startDateTimeStr, String endDateTimeStr) throws ParseException {

@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.client;
 
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang3.Range;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -40,18 +40,18 @@ public class CustomVitamHttpStatusCodeTest {
 
     @Test
     public void checkStatusCodeRanges() {
-        List<IntRange> availableRanges = List.of(
-            new IntRange(110, 199),
-            new IntRange(230, 299),
-            new IntRange(320, 399),
-            new IntRange(460, 489),
-            new IntRange(530, 599)
+        List<Range<Integer>> availableRanges = List.of(
+            Range.of(110, 199),
+            Range.of(230, 299),
+            Range.of(320, 399),
+            Range.of(460, 489),
+            Range.of(530, 599)
         );
 
         for (CustomVitamHttpStatusCode statusCode : CustomVitamHttpStatusCode.values()) {
             boolean isValidStatusCode = availableRanges
                 .stream()
-                .anyMatch(range -> range.containsInteger(statusCode.getStatusCode()));
+                .anyMatch(range -> range.contains(statusCode.getStatusCode()));
             assertThat(isValidStatusCode).isTrue();
         }
     }

@@ -563,45 +563,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Generates the logbook operation statistics file (cvs format) relative to the operation parameter
-     *
-     * @param operationId logbook oeration id
-     * @return the statistics file (csv format)
-     */
-    @GET
-    @Path("/stat/{id_op}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
-        LOGGER.debug("/stat/id_op / id: " + operationId);
-        try {
-            VitamContext context = new VitamContext(TENANT_ID);
-            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-
-            final RequestResponse<LogbookOperation> logbookOperationResult = userInterfaceTransactionManager
-                .selectOperationbyId(operationId, context);
-            if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
-                final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
-                // Create csv file
-                final ByteArrayOutputStream csvOutputStream = JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
-                final byte[] csvOutArray = csvOutputStream.toByteArray();
-                final ResponseBuilder response = Response.ok(csvOutArray);
-                response.header("Content-Disposition", "attachment;filename=rapport.csv");
-                response.header("Content-Length", csvOutArray.length);
-
-                return response.build();
-            }
-
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error("INTERNAL SERVER ERROR", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
      * Return authentication mode
      *
      * @return liste of authentication mode

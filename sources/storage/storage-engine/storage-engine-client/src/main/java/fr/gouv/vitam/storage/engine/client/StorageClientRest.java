@@ -75,7 +75,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 
 import java.io.InputStream;
 import java.util.ArrayList;

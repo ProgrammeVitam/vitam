@@ -127,32 +127,6 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testGetLogbookStatisticsWithSuccess() throws Exception {
-
-        VitamContext context = new VitamContext(TENANT_ID);
-        context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        when(
-            userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
-            .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation, LogbookOperation.class));
-        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
-            .expect().statusCode(Status.OK.getStatusCode()).when().get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
-        throws Exception {
-        VitamContext context = new VitamContext(TENANT_ID);
-        context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        when(
-            userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
-            .thenThrow(RuntimeException.class);
-        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
-            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-            .get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @Test
     public void testMessagesLogbook() {
         given().expect().statusCode(Status.OK.getStatusCode()).when().get("/messages/logbook");
     }
