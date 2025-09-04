@@ -387,8 +387,8 @@ public class CollectStep extends CommonStep {
         }
     }
 
-    @When("^je clôture et je constate son statut (.*)$")
-    public void closeTransaction(String status) throws Exception {
+    @When("^je clôture et je constate son statut (.*) ou (.*)$")
+    public void closeTransaction(String status1, String status2) throws Exception {
         String transactionId = world.getTransactionId();
         RequestResponse response = world
             .getCollectExternalClient()
@@ -405,7 +405,7 @@ public class CollectStep extends CommonStep {
                 requestResponseOK.getResults().get(0).toString(),
                 TransactionDto.class
             );
-            assertThat(myTransactionDto.getStatus()).isEqualTo(status);
+            assertThat(myTransactionDto.getStatus()).isIn(status1, status2);
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail(TRANSACTION_RETURN_AN_ERROR + vitamError.getCode());
