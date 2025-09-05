@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -138,7 +139,16 @@ public class CheckClassificationLevelActionPluginTest {
         );
 
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvId()).isNotNull();
+        assertThat(response.getValidationErrors().getFirst().getObId()).isNull();
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_CLASSIFICATION_LEVEL");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("CHECK_CLASSIFICATION_LEVEL.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).isNull();
     }
 
     @Test

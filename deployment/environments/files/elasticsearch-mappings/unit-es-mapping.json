@@ -1339,7 +1339,7 @@
             }
           }
         },
-        "Extended" : {
+        "Extended": {
           "type": "object"
         }
       }
@@ -2224,6 +2224,28 @@
     },
     "_implementationVersion": {
       "type": "keyword"
+    },
+    "_errors": {
+      "properties": {
+        "evId": {
+          "type": "keyword"
+        },
+        "obId": {
+          "type": "keyword"
+        },
+        "evTypeProc": {
+          "type": "keyword"
+        },
+        "outDetail": {
+          "type": "keyword"
+        },
+        "outMessg": {
+          "type": "text"
+        },
+        "evDetData": {
+          "type": "keyword"
+        }
+      }
     }
   }
 }

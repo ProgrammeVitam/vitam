@@ -67,7 +67,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -224,7 +224,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL() {
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
     @Test
@@ -233,7 +233,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnit).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
@@ -242,7 +242,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitFinal).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
@@ -251,7 +251,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitFinalAction).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
@@ -260,7 +260,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitWithSignature).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
@@ -269,7 +269,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitNumber).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
     @Test
@@ -279,9 +279,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitInvalid).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemId(), "CHECK_UNIT_SCHEMA");
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "ONTOLOGY_VALIDATION");
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "metadata contains fields declared in ontology with a wrong format"
+        );
     }
 
     @Test
@@ -291,9 +300,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitInvalidChar).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), "INVALID_UNIT");
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "UNIT_SANITIZE");
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
+        assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Sanity Checker failed for Archive Unit: HTML PATTERN found"
+        );
     }
 
     @Test
@@ -303,7 +321,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitInvalidXml).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
     @Test
@@ -314,8 +332,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitInvalidDate).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), CheckArchiveUnitSchemaActionPlugin.INVALID_UNIT);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
+        assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
     }
 
     @Test
@@ -325,8 +353,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitInvalidContent).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), CheckArchiveUnitSchemaActionPlugin.INVALID_UNIT);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
+        assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
     }
 
     @Test
@@ -336,8 +374,18 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitInvalidDescLevel).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), CheckArchiveUnitSchemaActionPlugin.INVALID_UNIT);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
+        assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
     }
 
     @Test
@@ -347,7 +395,15 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             Response.status(Status.OK).entity(archiveUnitStartDateAfterEndDate).build()
         );
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), CheckArchiveUnitSchemaActionPlugin.CONSISTENCY);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("CONSISTENCY");
+        assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains("EndDate is before StartDate");
     }
 }

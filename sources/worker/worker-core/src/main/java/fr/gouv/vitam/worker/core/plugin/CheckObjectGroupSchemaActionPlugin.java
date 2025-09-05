@@ -104,7 +104,6 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
             LOGGER.warn("Object group schema validation failed " + params.getObjectName(), e);
 
             if (e.getErrorCode().equals(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE)) {
-                itemStatus.setItemId(ONTOLOGY_VALIDATION);
                 itemStatus.increment(StatusCode.KO);
                 final ObjectNode object = JsonHandler.createObjectNode();
                 object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
@@ -115,7 +114,6 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
             }
         } catch (final MetaDataContainSpecialCharactersException e) {
             LOGGER.error(e);
-            itemStatus.setItemId(OBJECT_GROUP_SANITIZE);
             itemStatus.increment(StatusCode.KO);
             final ObjectNode object = JsonHandler.createObjectNode();
             object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());

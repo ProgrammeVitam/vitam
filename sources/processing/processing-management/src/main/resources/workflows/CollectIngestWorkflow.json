@@ -241,6 +241,82 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "NOBLOCKING",
+      "distribution": {
+        "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "ontology.file",
+                "uri": "WORKSPACE:Ontology/ontology.json"
+              },
+              {
+                "name": "contracts.json",
+                "uri": "WORKSPACE:referential/contracts.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_ARCHIVE_UNIT_PROFILE",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_CLASSIFICATION_LEVEL",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
       "distribution": {

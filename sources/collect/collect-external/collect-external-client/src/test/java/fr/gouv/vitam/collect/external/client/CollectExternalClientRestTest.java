@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FixedPatternFakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -80,7 +79,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SIP_UPLOAD;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
@@ -623,7 +621,6 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
         @POST
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(APPLICATION_JSON)
-        @Secured(permission = TRANSACTION_SIP_UPLOAD, description = "Envoyer un SIP à une transaction")
         public Response uploadSipToTransaction(
             @PathParam("transactionId") String transactionId,
             InputStream inputStream

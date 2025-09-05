@@ -100,7 +100,8 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
             status,
             Collections.emptyMap(),
             null,
-            null
+            null,
+            Collections.emptyList()
         );
         return new RequestResponseOK<ItemStatus>()
             .addResult(itemStatus)

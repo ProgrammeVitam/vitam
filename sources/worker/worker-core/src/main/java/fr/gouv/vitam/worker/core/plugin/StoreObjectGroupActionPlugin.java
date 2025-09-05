@@ -46,7 +46,7 @@ import org.apache.commons.collections4.ListValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -110,10 +110,10 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             }
 
             if (objectNamesByStrategies.values().isEmpty()) {
-                return Arrays.asList(
+                return Collections.singletonList(
                     new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(
                         STORING_OBJECT_TASK_ID,
-                        new ItemStatus().increment(StatusCode.OK)
+                        new ItemStatus(STORING_OBJECT_TASK_ID).increment(StatusCode.OK)
                     )
                 );
             }
@@ -152,18 +152,18 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             }
         } catch (final ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
-            return Arrays.asList(
+            return Collections.singletonList(
                 new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(
                     STORING_OBJECT_TASK_ID,
-                    new ItemStatus().increment(StatusCode.FATAL)
+                    new ItemStatus(STORING_OBJECT_TASK_ID).increment(StatusCode.FATAL)
                 )
             );
         } catch (StorageClientException e) {
             LOGGER.error(e);
-            return Arrays.asList(
+            return Collections.singletonList(
                 new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(
                     STORING_OBJECT_TASK_ID,
-                    new ItemStatus().increment(StatusCode.FATAL)
+                    new ItemStatus(STORING_OBJECT_TASK_ID).increment(StatusCode.FATAL)
                 )
             );
         }

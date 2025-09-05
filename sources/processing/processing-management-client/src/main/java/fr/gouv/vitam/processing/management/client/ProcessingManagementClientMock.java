@@ -77,7 +77,16 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, Collections.emptyMap(), null, null);
+        return new ItemStatus(
+            "FakeId",
+            "FakeMessage",
+            StatusCode.OK,
+            status,
+            Collections.emptyMap(),
+            null,
+            null,
+            Collections.emptyList()
+        );
     }
 
     @Override
@@ -96,7 +105,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             status,
             Collections.emptyMap(),
             null,
-            null
+            null,
+            Collections.emptyList()
         );
 
         return new RequestResponseOK<ItemStatus>()
@@ -120,7 +130,8 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
             status,
             Collections.emptyMap(),
             null,
-            null
+            null,
+            Collections.emptyList()
         );
 
         return new RequestResponseOK<ItemStatus>().addResult(itemStatus);

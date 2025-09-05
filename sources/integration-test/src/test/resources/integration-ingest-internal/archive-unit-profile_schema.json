@@ -6302,7 +6302,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "EffectiveCardinality": "ZERO"
   },
   {
@@ -7592,7 +7591,6 @@
       "2.2",
       "2.3"
     ],
-    "StringSize": "SHORT",
     "EffectiveCardinality": "ZERO"
   },
   {
@@ -12072,6 +12070,103 @@
     "ShortName": "Virtual UPS",
     "Path": "_vups",
     "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "_errors",
+    "Collection": "Unit",
+    "ApiPath": "#errors",
+    "Category": "OTHER",
+    "Description": "Mapping : unit-es-mapping.json.",
+    "Cardinality": "MANY",
+    "Type": "OBJECT",
+    "Origin": "INTERNAL",
+    "ShortName": "Erreurs de validation",
+    "Path": "_errors",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "evDetData",
+    "Collection": "Unit",
+    "ApiPath": "#errors.evDetData",
+    "Category": "OTHER",
+    "Description": "Mapping : unit-es-mapping.json",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Message technique détaillant l'erreur",
+    "Path": "_errors.evDetData",
+    "StringSize": "SHORT",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "evId",
+    "Collection": "Unit",
+    "ApiPath": "#errors.evId",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant",
+    "Path": "_errors.evId",
+    "StringSize": "SHORT",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "obId",
+    "Collection": "Unit",
+    "ApiPath": "#errors.obId",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json. Identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant",
+    "Path": "_errors.obId",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "evTypeProc",
+    "Collection": "Unit",
+    "ApiPath": "#errors.evTypeProc",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json. Type de processus. Equivaut à la traduction du code du type de l'opération.",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Code",
+    "Path": "_errors.evTypeProc",
+    "StringSize": "SHORT",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "outDetail",
+    "Collection": "Unit",
+    "ApiPath": "#errors.outDetail",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json. Code correspondant au résultat de l’événement.",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Détail sur le résultat",
+    "Path": "_errors.outDetail",
+    "StringSize": "SHORT",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "outMessg",
+    "Collection": "Unit",
+    "ApiPath": "#errors.outMessg",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json. Détail du résultat de l’événement.",
+    "Cardinality": "ONE",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "Description détaillée de l'événement",
+    "Path": "_errors.outMessg",
+    "StringSize": "SHORT",
     "EffectiveCardinality": "ZERO"
   }
 ]

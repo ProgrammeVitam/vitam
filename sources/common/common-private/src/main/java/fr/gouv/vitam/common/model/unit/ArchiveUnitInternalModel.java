@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model.unit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.model.validations.ValidationError;
 
 import java.util.List;
 
@@ -87,6 +88,9 @@ public class ArchiveUnitInternalModel {
 
     @JsonProperty("_managementContractId")
     private String managementContractId;
+
+    @JsonProperty("_errors")
+    private List<ValidationError> errors;
 
     /**
      * Constructor

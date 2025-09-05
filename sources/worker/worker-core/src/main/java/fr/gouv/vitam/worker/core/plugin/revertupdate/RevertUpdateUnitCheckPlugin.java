@@ -152,6 +152,7 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
 
                     if (!options.isForce() && !isCanBeDone(operationId, units)) {
                         return new ItemStatus(PLUGIN_ID).setItemsStatus(
+                            PLUGIN_ID,
                             PluginHelper.buildItemStatus(
                                 PLUGIN_ID,
                                 StatusCode.KO,
@@ -250,6 +251,7 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
 
                 if (queries.isEmpty()) {
                     return new ItemStatus(PLUGIN_ID).setItemsStatus(
+                        PLUGIN_ID,
                         PluginHelper.buildItemStatus(
                             PLUGIN_ID,
                             StatusCode.KO,
@@ -267,6 +269,7 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
                 | IOException e
             ) {
                 return new ItemStatus(PLUGIN_ID).setItemsStatus(
+                    PLUGIN_ID,
                     PluginHelper.buildItemStatus(PLUGIN_ID, StatusCode.FATAL)
                 );
             } finally {
@@ -278,7 +281,10 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
             handler.transferFileToWorkspace(REVERT_UPDATE_UNITS_JSONL_FILE, revertUpdateUnitsFile, true, false);
         }
 
-        return new ItemStatus(PLUGIN_ID).setItemsStatus(PluginHelper.buildItemStatus(PLUGIN_ID, StatusCode.OK));
+        return new ItemStatus(PLUGIN_ID).setItemsStatus(
+            PLUGIN_ID,
+            PluginHelper.buildItemStatus(PLUGIN_ID, StatusCode.OK)
+        );
     }
 
     @Nonnull

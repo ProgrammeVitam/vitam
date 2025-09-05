@@ -35,8 +35,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.processing.StatusAggregationBehavior;
+import fr.gouv.vitam.common.model.validations.ValidationError;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,6 +78,9 @@ public class ItemStatus {
     @JsonProperty("statusMeter")
     private List<Integer> statusMeter;
 
+    @JsonProperty("validationErrors")
+    private List<ValidationError> validationErrors;
+
     @JsonProperty("data")
     protected Map<String, Object> data;
 
@@ -98,6 +104,7 @@ public class ItemStatus {
 
         globalStatus = StatusCode.UNKNOWN;
         data = new HashMap<>();
+        validationErrors = new ArrayList<>();
     }
 
     public ItemStatus(
@@ -107,7 +114,8 @@ public class ItemStatus {
         @JsonProperty("statusMeter") List<Integer> statusMeter,
         @JsonProperty("data") Map<String, Object> data,
         @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus,
-        @JsonProperty("globalState") ProcessState globalState
+        @JsonProperty("globalState") ProcessState globalState,
+        @JsonProperty("validationErrors") List<ValidationError> validationErrors
     ) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
@@ -116,6 +124,7 @@ public class ItemStatus {
         this.statusMeter = statusMeter;
         this.data = data;
         this.globalState = globalState;
+        this.validationErrors = validationErrors == null ? new ArrayList<>() : validationErrors;
     }
 
     /**
@@ -185,16 +194,34 @@ public class ItemStatus {
 
     /**
      * @param statusCode the statusCode to increment
-     * @param increment
+     * @param increment increment
      * @return this
      */
     public ItemStatus increment(StatusCode statusCode, int increment) {
+        return increment(statusCode, increment, new ValidationError[0]);
+    }
+
+    /**
+     * @param statusCode the statusCode to increment
+     * @param validationErrors list of validation errors
+     * @return this
+     */
+    public ItemStatus increment(StatusCode statusCode, ValidationError... validationErrors) {
+        return increment(statusCode, 1, validationErrors);
+    }
+
+    /**
+     * @param statusCode the statusCode to increment
+     * @param increment increment
+     * @return this
+     */
+    private ItemStatus increment(StatusCode statusCode, int increment, ValidationError... validationErrors) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, statusCode);
         // update statusMeter
         statusMeter.set(statusCode.getStatusLevel(), increment + statusMeter.get(statusCode.getStatusLevel()));
         // update globalStatus
         globalStatus = globalStatus.compareTo(statusCode) > 0 ? globalStatus : statusCode;
-
+        this.validationErrors.addAll(Arrays.asList(validationErrors));
         return this;
     }
 
@@ -203,7 +230,7 @@ public class ItemStatus {
      * @param itemStatus2
      * @return this
      */
-    protected ItemStatus increment(ItemStatus itemStatus1, ItemStatus itemStatus2) {
+    protected static ItemStatus increment(ItemStatus itemStatus1, ItemStatus itemStatus2) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, itemStatus1, itemStatus2);
         // update statusMeter
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
@@ -365,6 +392,9 @@ public class ItemStatus {
         if (statusDetails.getGlobalOutcomeDetailSubcode() != null) {
             globalOutcomeDetailSubcode = statusDetails.getGlobalOutcomeDetailSubcode();
         }
+        if (CollectionUtils.isNotEmpty(statusDetails.getValidationErrors())) {
+            validationErrors.addAll(statusDetails.getValidationErrors());
+        }
 
         return this;
     }
@@ -413,6 +443,9 @@ public class ItemStatus {
             }
             if (compositeItemStatus.getGlobalOutcomeDetailSubcode() != null) {
                 globalOutcomeDetailSubcode = compositeItemStatus.getGlobalOutcomeDetailSubcode();
+            }
+            if (CollectionUtils.isNotEmpty(compositeItemStatus.getValidationErrors())) {
+                validationErrors.addAll(compositeItemStatus.getValidationErrors());
             }
         }
         return this;
@@ -609,6 +642,20 @@ public class ItemStatus {
         for (ItemStatus is : subTaskStatus.values()) {
             is.clearStatusMeterFatal();
             globalStatus = globalStatus.compareTo(is.globalStatus) > 0 ? globalStatus : is.globalStatus;
+        }
+    }
+
+    public List<ValidationError> getValidationErrors() {
+        return validationErrors;
+    }
+
+    public void clearValidationErrors() {
+        this.validationErrors.clear();
+        for (ItemStatus value : itemsStatus.values()) {
+            value.clearValidationErrors();
+        }
+        for (ItemStatus value : subTaskStatus.values()) {
+            value.clearValidationErrors();
         }
     }
 }
