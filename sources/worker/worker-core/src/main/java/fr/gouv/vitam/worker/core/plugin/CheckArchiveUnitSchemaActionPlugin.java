@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -41,7 +40,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.validations.ValidationError;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
@@ -59,7 +59,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,11 +75,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     private static final int UNIT_OUT_RANK = 0;
     private static final int REFERENTIAL_INGEST_CONTRACT_IN_RANK = 1;
-    private static final String UNIT_SANITIZE = "UNIT_SANITIZE";
-
-    private static final String ONTOLOGY_VALIDATION = "ONTOLOGY_VALIDATION";
-
-    private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
 
     /**
      * Improper unit
@@ -95,10 +89,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
      */
     static final String CONSISTENCY = "CONSISTENCY";
 
-    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE = new TypeReference<
-        List<OntologyModel>
-    >() {};
-
     private final MetadataValidationProvider metadataValidationProvider;
 
     public CheckArchiveUnitSchemaActionPlugin() {
@@ -112,10 +102,8 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
-        final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
-
         try {
-            ObjectNode archiveUnit = loadArchiveUnit(handler, params, itemStatus);
+            ObjectNode archiveUnit = loadArchiveUnit(handler, params);
             checkAUJsonAgainstSchema(handler, params, archiveUnit);
 
             Stopwatch checkUnitTime = Stopwatch.createStarted();
@@ -130,78 +118,59 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     checkUnitTime.elapsed(TimeUnit.MILLISECONDS)
                 );
 
+            final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
             itemStatus.increment(StatusCode.OK);
             return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID, itemStatus);
         } catch (MetadataValidationException e) {
             LOGGER.warn("Unit schema validation failed " + params.getObjectName(), e);
 
-            switch (e.getErrorCode()) {
-                case SCHEMA_VALIDATION_FAILURE: {
-                    itemStatus.setGlobalOutcomeDetailSubcode(INVALID_UNIT);
-
-                    final ObjectNode object = JsonHandler.createObjectNode();
-                    object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-                    itemStatus.increment(StatusCode.KO);
-                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
-                }
-                case ONTOLOGY_VALIDATION_FAILURE: {
-                    itemStatus.setItemId(ONTOLOGY_VALIDATION);
-                    itemStatus.increment(StatusCode.KO);
-                    final ObjectNode object = JsonHandler.createObjectNode();
-                    object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(
-                        CHECK_UNIT_SCHEMA_TASK_ID,
-                        itemStatus
+            String outcomeDetail =
+                switch (e.getErrorCode()) {
+                    case SCHEMA_VALIDATION_FAILURE, ONTOLOGY_VALIDATION_FAILURE -> INVALID_UNIT;
+                    case INVALID_UNIT_DATE_FORMAT -> DATE_FORMAT;
+                    case INVALID_START_END_DATE -> CONSISTENCY;
+                    case ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE,
+                        ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE,
+                        UNKNOWN_ARCHIVE_UNIT_PROFILE,
+                        EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA -> throw new IllegalStateException(
+                        "Should never occur (no AUP validation is done is this plugin)"
                     );
-                }
-                case INVALID_UNIT_DATE_FORMAT: {
-                    itemStatus.setGlobalOutcomeDetailSubcode(DATE_FORMAT);
-                    itemStatus.increment(StatusCode.KO);
-                    itemStatus.setEvDetailData(e.getMessage());
-                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
-                }
-                case INVALID_START_END_DATE: {
-                    itemStatus.setGlobalOutcomeDetailSubcode(CONSISTENCY);
-                    itemStatus.increment(StatusCode.KO);
-                    final ObjectNode object = JsonHandler.createObjectNode();
-                    object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
-                }
-                case ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE:
-                case ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE:
-                case UNKNOWN_ARCHIVE_UNIT_PROFILE:
-                case EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA:
-                // Should never occur (no AUP validation is done is this plugin)
-                case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE:
-                case RULE_UPDATE_UNEXPECTED_HOLD_END_DATE:
-                // Should never occur (unit rule update only)
-                default:
-                    throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
-            }
+                    case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE,
+                        RULE_UPDATE_UNEXPECTED_HOLD_END_DATE -> throw new IllegalStateException(
+                        "Should never occur (unit rule update only)"
+                    );
+                };
+            return handleValidationError(e, outcomeDetail);
         } catch (final MetaDataContainSpecialCharactersException e) {
-            LOGGER.error(e);
-            itemStatus.setItemId(UNIT_SANITIZE);
-            itemStatus.increment(StatusCode.KO);
-            final ObjectNode object = JsonHandler.createObjectNode();
-            object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-            return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID, itemStatus);
+            LOGGER.warn(e);
+            return handleValidationError(e, INVALID_UNIT);
         } catch (SigningInformationException e) {
-            LOGGER.error(e.getMessage());
-            itemStatus.setGlobalOutcomeDetailSubcode(e.getErrorCode());
-            itemStatus.increment(StatusCode.KO);
-            final ObjectNode object = JsonHandler.createObjectNode();
-            object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
-            return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+            LOGGER.warn(e);
+            return handleValidationError(e, e.getErrorCode());
         } catch (final Exception e) {
             LOGGER.error(e);
+            final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(), itemStatus);
         }
+    }
+
+    private static ItemStatus handleValidationError(Exception e, String outcomeDetail) {
+        ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
+        itemStatus.setGlobalOutcomeDetailSubcode(outcomeDetail);
+
+        final ObjectNode object = JsonHandler.createObjectNode();
+        object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+        String evDetailData = JsonHandler.unprettyPrint(object);
+        itemStatus.setEvDetailData(evDetailData);
+
+        ValidationError validationError = ValidationErrorHelper.createValidationError(
+            CHECK_UNIT_SCHEMA_TASK_ID,
+            outcomeDetail,
+            evDetailData
+        );
+        itemStatus.increment(StatusCode.KO, validationError);
+        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
     private void checkAUJsonAgainstSchema(HandlerIO handlerIO, WorkerParameters params, ObjectNode archiveUnit)
@@ -253,8 +222,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             );
     }
 
-    private ObjectNode loadArchiveUnit(HandlerIO handlerIO, WorkerParameters params, ItemStatus itemStatus)
-        throws ProcessingException {
+    private ObjectNode loadArchiveUnit(HandlerIO handlerIO, WorkerParameters params) throws ProcessingException {
         ObjectNode archiveUnit;
         final String objectName = params.getObjectName();
         try (
@@ -276,7 +244,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         try {
             SanityChecker.checkJsonAll(archiveUnit);
         } catch (InvalidParseOperationException e) {
-            itemStatus.setGlobalOutcomeDetailSubcode(INVALID_UNIT);
             final String err = "Sanity Checker failed for Archive Unit: " + e.getMessage();
             throw new MetaDataContainSpecialCharactersException(err, e);
         }

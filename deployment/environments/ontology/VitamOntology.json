@@ -2860,7 +2860,8 @@
     "ShortName": "Identifiant de l'événement",
     "Collections": [
       "LogbookOperation",
-      "Unit"
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -2874,7 +2875,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Détails techniques",
     "Collections": [
-      "Unit"
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -2981,7 +2983,8 @@
     "ShortName": "Catégorie d'opération",
     "Collections": [
       "LogbookOperation",
-      "Unit"
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -3212,7 +3215,9 @@
     "Origin": "INTERNAL",
     "ShortName": "Identifiant du lot d'objets",
     "Collections": [
-      "LogbookOperation"
+      "LogbookOperation",
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -3227,7 +3232,8 @@
     "ShortName": "Code technique",
     "Collections": [
       "LogbookOperation",
-      "Unit"
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -3242,7 +3248,8 @@
     "ShortName": "Message",
     "Collections": [
       "LogbookOperation",
-      "Unit"
+      "Unit",
+      "ObjectGroup"
     ]
   },
   {
@@ -4230,236 +4237,237 @@
     ]
   },
   {
-  "Identifier": "EntityType",
-  "ApiField": "EntityType",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "KEYWORD",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Type d’entité",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "EntityType",
+    "ApiField": "EntityType",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Type d’entité",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "NameEntryParallel",
-  "ApiField": "NameEntryParallel",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Formes parallèles du nom",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "NameEntryParallel",
+    "ApiField": "NameEntryParallel",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Formes parallèles du nom",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "AuthorizedForm",
-  "ApiField": "AuthorizedForm",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Formes du nom normalisées selon d’autres conventions",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "AuthorizedForm",
+    "ApiField": "AuthorizedForm",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Formes du nom normalisées selon d’autres conventions",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "AlternativeForm",
-  "ApiField": "AlternativeForm",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Autres formes du nom",
-  "Collections": [
-    "Agencies"
-  ]
-},{
-  "Identifier": "EntityId",
-  "ApiField": "EntityId",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "KEYWORD",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Numéro d’immatriculation des collectivités",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "AlternativeForm",
+    "ApiField": "AlternativeForm",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Autres formes du nom",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "FromDate",
-  "ApiField": "FromDate",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "DATE",
-  "TypeDetail": "DATETIME",
-  "Origin": "INTERNAL",
-  "ShortName": "Date de début d’existence",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "EntityId",
+    "ApiField": "EntityId",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Numéro d’immatriculation des collectivités",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "ToDate",
-  "ApiField": "ToDate",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "DATE",
-  "TypeDetail": "DATETIME",
-  "Origin": "INTERNAL",
-  "ShortName": "Date de fin d’existence",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "FromDate",
+    "ApiField": "FromDate",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "DATE",
+    "TypeDetail": "DATETIME",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de début d’existence",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "Functions",
-  "ApiField": "Functions",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "KEYWORD",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Fonctions et activités",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "ToDate",
+    "ApiField": "ToDate",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "DATE",
+    "TypeDetail": "DATETIME",
+    "Origin": "INTERNAL",
+    "ShortName": "Date de fin d’existence",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "BiogHist",
-  "ApiField": "BiogHist",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Histoire",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "Functions",
+    "ApiField": "Functions",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Fonctions et activités",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "Places",
-  "ApiField": "Places",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Lieux",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "BiogHist",
+    "ApiField": "BiogHist",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Histoire",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "LegalStatuses",
-  "ApiField": "LegalStatuses",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Statut juridique",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "Places",
+    "ApiField": "Places",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Lieux",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "Mandates",
-  "ApiField": "Mandates",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Textes de référence",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "LegalStatuses",
+    "ApiField": "LegalStatuses",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Statut juridique",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "StructureOrGenealogy",
-  "ApiField": "StructureOrGenealogy",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Organisation interne/généalogie",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "Mandates",
+    "ApiField": "Mandates",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Textes de référence",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "GeneralContext",
-  "ApiField": "GeneralContext",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Contexte général",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "StructureOrGenealogy",
+    "ApiField": "StructureOrGenealogy",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Organisation interne/généalogie",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "MaintenanceStatus",
-  "ApiField": "MaintenanceStatus",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "KEYWORD",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Niveau d’élaboration",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "GeneralContext",
+    "ApiField": "GeneralContext",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Contexte général",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "LocalStatus",
-  "ApiField": "LocalStatus",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "KEYWORD",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Niveau de détail",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "MaintenanceStatus",
+    "ApiField": "MaintenanceStatus",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Niveau d’élaboration",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "Sources",
-  "ApiField": "Sources",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Sources",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "LocalStatus",
+    "ApiField": "LocalStatus",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Niveau de détail",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
-  "Identifier": "EventDescription",
-  "ApiField": "EventDescription",
-  "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
-  "Type": "TEXT",
-  "TypeDetail": "STRING",
-  "StringSize": "MEDIUM",
-  "Origin": "INTERNAL",
-  "ShortName": "Notes relatives à la mise à jour de la notice",
-  "Collections": [
-    "Agencies"
-  ]
-},
+    "Identifier": "Sources",
+    "ApiField": "Sources",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Sources",
+    "Collections": [
+      "Agencies"
+    ]
+  },
+  {
+    "Identifier": "EventDescription",
+    "ApiField": "EventDescription",
+    "Description": "Mapping : ontology-es-mapping.json. Collection(s) de la base de données associée(s) à un vocabulaire",
+    "Type": "TEXT",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Notes relatives à la mise à jour de la notice",
+    "Collections": [
+      "Agencies"
+    ]
+  },
   {
     "Identifier": "_vups",
     "ApiField": "#vups",

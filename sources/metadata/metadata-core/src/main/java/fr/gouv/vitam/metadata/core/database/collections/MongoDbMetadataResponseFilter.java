@@ -218,6 +218,9 @@ public class MongoDbMetadataResponseFilter {
                 case VUPS:
                     replace(document, Unit.VIRTUAL_UPS, PROJECTIONARGS.VUPS.exactToken());
                     break;
+                case ERRORS:
+                    replace(document, Unit.ERRORS, PROJECTIONARGS.ERRORS.exactToken());
+                    break;
                 case DUA:
                 case ALL:
                 default:

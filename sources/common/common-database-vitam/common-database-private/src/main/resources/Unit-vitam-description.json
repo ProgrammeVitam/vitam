@@ -4006,5 +4006,46 @@
     "type": "keyword",
     "indexed": true,
     "cardinality": "many"
+  },
+  {
+    "path": "_errors",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },{
+  "path": "_errors.outMessg",
+  "type": "text",
+  "cardinality": "one",
+  "indexed": true
+  },
+  {
+    "path": "_errors.evId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_errors.obId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_errors.evTypeProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_errors.evDetData",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_errors.outDetail",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
   }
 ]

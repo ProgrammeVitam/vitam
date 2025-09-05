@@ -118,6 +118,10 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
 
     public static final String BATCH_ID = "_batchId";
     public static final String UPLOAD_PATH = "_uploadPath";
+    /**
+     * Validation errors
+     */
+    public static final String ERRORS = "_errors";
 
     /**
      * Quick projection for ID and ObjectGroup Only

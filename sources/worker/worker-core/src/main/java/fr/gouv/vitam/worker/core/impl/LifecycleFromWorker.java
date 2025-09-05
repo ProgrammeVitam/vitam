@@ -183,21 +183,12 @@ class LifecycleFromWorker {
         logbookParam.putParameterValue(LogbookParameterName.eventDateTime, null);
         List<LogbookLifeCycleParameters> logbookParamList = new ArrayList<>();
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
-        if (!actionResponse.getItemId().contains(".")) {
-            finalLogbookLfcParam.setFinalStatus(
-                handlerName,
-                null,
-                actionResponse.getGlobalStatus(),
-                actionResponse.getMessage()
-            );
-        } else {
-            finalLogbookLfcParam.setFinalStatus(
-                actionResponse.getItemId(),
-                null,
-                actionResponse.getGlobalStatus(),
-                actionResponse.getMessage()
-            );
-        }
+        finalLogbookLfcParam.setFinalStatus(
+            handlerName,
+            null,
+            actionResponse.getGlobalStatus(),
+            actionResponse.getMessage()
+        );
         if (!actionResponse.getEvDetailData().isEmpty()) {
             finalLogbookLfcParam.putParameterValue(
                 LogbookParameterName.eventDetailData,

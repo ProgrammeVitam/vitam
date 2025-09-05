@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -49,14 +50,17 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
@@ -72,6 +76,7 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.Assertions;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
@@ -85,7 +90,9 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.collect.CollectTestHelper.createTransaction;
@@ -118,7 +125,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         runner.startWorkspaceServer();
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         new DataLoader("integration-ingest-internal").prepareData();
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        prepareVitamSession();
     }
 
     @After
@@ -255,10 +262,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
 
             waitOperation(transactionId);
 
-            TransactionDto updatedTransaction = CollectTestHelper.getTransaction(
-                new VitamContext(TENANT_ID),
-                transactionId
-            );
+            TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
             assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -365,18 +369,435 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             waitOperation(transactionId);
             verifyOperation(transactionId, StatusCode.KO);
 
-            RequestResponse<JsonNode> updatedTransactionResponse = collectClient.getTransactionById(
-                new VitamContext(TENANT_ID),
-                transactionId
-            );
-
-            TransactionDto updatedTransaction = JsonHandler.getFromJsonNode(
-                (((RequestResponseOK<JsonNode>) updatedTransactionResponse).getFirstResult()),
-                TransactionDto.class
-            );
+            TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
 
             assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.KO.name());
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_sip_with_empty_title() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_Empty_Title.zip");
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("<null>");
+
+        // Unit without Title
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("<null>");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_sip_with_non_existing_rule() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_non_existing_rule.zip");
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1", "Unit 2");
+
+        // No such rule "NO_SUCH_RULE" declaration
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
+        );
+
+        // No such rule "NO_SUCH_RULE" in RefNonRuleId
+        List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
+        assertThat(validationErrors2).hasSize(1);
+        assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors2.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
+        assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_sip_with_wrong_rule_category() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_Wrong_Rule_Category.zip");
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1", "Unit 2");
+
+        // Wrong category for rule "APP-00001" declaration
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains(
+            "The rule 'APP-00001' is referenced in the wrong rule category. Declared StorageRule, actual AppraisalRule"
+        );
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion par rapport à sa catégorie : Une règle déclarée est incohérente par rapport à sa catégorie"
+        );
+
+        // Wrong category for rule "APP-00001" in RefNonRuleId
+        List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
+        assertThat(validationErrors2).hasSize(1);
+        assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors2.getFirst().getEvDetData()).contains(
+            "The rule 'APP-00001' is referenced in the wrong rule category. Declared DisseminationRule, actual AppraisalRule"
+        );
+        assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_sip_with_wrong_rule_category_in_management_metadata() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream(
+            "collect/KO_Wrong_Rule_Category_In_ManagementMetadata.zip"
+        );
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
+
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_sip_with_wrong_rule_start_date() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_SIP_RG-STARTDATE_AN9000.zip");
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
+
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_sip_with_invalid_classification_level() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_SIP_Classification_level.zip");
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
+
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_CLASSIFICATION_LEVEL");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("CHECK_CLASSIFICATION_LEVEL.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).isNull();
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_invalid_sip_schema_with_end_date_before_start_date() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream(
+            "collect/KO_INVALID_SCHEMA_EndDate_Before_StartDate.zip"
+        );
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
+
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(1);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains("EndDate is before StartDate");
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
+        );
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void test_ingest_invalid_sip_complex_validation_errors() throws Exception {
+        // Given
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_Multiple_Validation_Errors.zip");
+        String transactionId = createTransactionId();
+
+        // When
+        uploadSip(sipInputStream, transactionId);
+
+        // Then
+        verifyOperation(transactionId, StatusCode.KO);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+
+        assertThat(validationErrorsByUnitTitle).containsOnlyKeys(
+            "Unit 1",
+            "Unit 2",
+            "Unit 3",
+            "Unit 4",
+            "Unit 5",
+            "<null>",
+            "Unit 7",
+            "Unit 8"
+        );
+
+        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        assertThat(validationErrors1).hasSize(2);
+        assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors1.getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
+        assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+
+        assertThat(validationErrors1.get(1).getEvId()).isNotNull();
+        assertThat(validationErrors1.get(1).getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors1.get(1).getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(validationErrors1.get(1).getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
+        assertThat(validationErrors1.get(1).getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
+        );
+
+        List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
+        assertThat(validationErrors2).hasSize(1);
+        assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors2.getFirst().getEvDetData()).contains(
+            "The rule 'APP-00001' is referenced in the wrong rule category. Declared AccessRule, actual AppraisalRule"
+        );
+        assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion par rapport à sa catégorie : Une règle déclarée est incohérente par rapport à sa catégorie"
+        );
+
+        List<ValidationError> validationErrors3 = validationErrorsByUnitTitle.get("Unit 3");
+        assertThat(validationErrors3).hasSize(1);
+        assertThat(validationErrors3.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors3.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors3.getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors3.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
+        assertThat(validationErrors3.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
+        );
+
+        List<ValidationError> validationErrors4 = validationErrorsByUnitTitle.get("Unit 4");
+        assertThat(validationErrors4).hasSize(2);
+        assertThat(validationErrors4.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors4.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(validationErrors4.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors4.getFirst().getEvDetData()).contains("EndDate is before StartDate");
+        assertThat(validationErrors4.getFirst().getOutMessg()).isEqualTo(
+            "La date contenue dans le champ Date de début doit \u00EAtre postérieure à la date contenue dans le champ Date de fin"
+        );
+
+        assertThat(validationErrors4.get(1).getEvId()).isNotNull();
+        assertThat(validationErrors4.get(1).getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(validationErrors4.get(1).getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors4.get(1).getEvDetData()).contains(
+            "The rule 'APP-00001' is referenced in the wrong rule category. Declared ReuseRule, actual AppraisalRule"
+        );
+        assertThat(validationErrors4.get(1).getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
+        );
+
+        List<ValidationError> validationErrors5 = validationErrorsByUnitTitle.get("Unit 5");
+        assertThat(validationErrors5).hasSize(1);
+        assertThat(validationErrors5.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors5.getFirst().getEvTypeProc()).isEqualTo("CHECK_CLASSIFICATION_LEVEL");
+        assertThat(validationErrors5.getFirst().getOutDetail()).isEqualTo("CHECK_CLASSIFICATION_LEVEL.KO");
+        assertThat(validationErrors5.getFirst().getEvDetData()).isNull();
+        assertThat(validationErrors5.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
+        );
+
+        List<ValidationError> validationErrors6 = validationErrorsByUnitTitle.get("<null>");
+        assertThat(validationErrors6).hasSize(1);
+        assertThat(validationErrors6.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors6.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
+        assertThat(validationErrors6.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors6.getFirst().getEvDetData()).contains(
+            "Invalid unit format : Document schema validation failed"
+        );
+        assertThat(validationErrors6.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité des valeurs dans les champs"
+        );
+
+        List<ValidationError> validationErrors7 = validationErrorsByUnitTitle.get("Unit 7");
+        assertThat(validationErrors7).hasSize(1);
+        assertThat(validationErrors7.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors7.getFirst().getEvTypeProc()).isEqualTo("CHECK_ARCHIVE_UNIT_PROFILE");
+        assertThat(validationErrors7.getFirst().getOutDetail()).isEqualTo("NOT_FOUND.KO");
+        assertThat(validationErrors7.getFirst().getEvDetData()).contains("Archive Unit Profile not found");
+        assertThat(validationErrors7.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité aux profils d'unité archivistique : profil d'unité archivistique non trouvé"
+        );
+    }
+
+    private String createTransactionId() throws VitamClientException, InvalidParseOperationException {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            return createTransaction(vitamContext, projectDto.getId()).getId();
+        }
+    }
+
+    private void uploadSip(InputStream sipInputStream, String transactionId) throws VitamClientException {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            RequestResponseOK<UploadSipResult> response = (RequestResponseOK<
+                    UploadSipResult
+                >) collectClient.uploadSipToTransaction(
+                new VitamContext(TENANT_ID)
+                    .setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT),
+                transactionId,
+                sipInputStream
+            );
+            assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
+            final String operationId = response.getFirstResult().requestId();
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            waitOperation(operationId);
+        }
+    }
+
+    private static Map<String, List<ValidationError>> selectUnitValidationErrors(String transactionId)
+        throws VitamClientException {
+        try (CollectExternalClient collectExternalClient = CollectExternalClientFactory.getInstance().getClient()) {
+            SelectMultiQuery query = new SelectMultiQuery();
+            List<JsonNode> units =
+                ((RequestResponseOK<JsonNode>) collectExternalClient.getUnitsByTransaction(
+                        new VitamContext(TENANT_ID),
+                        transactionId,
+                        query.getFinalSelect()
+                    )).getResults();
+
+            return units
+                .stream()
+                .map(unit -> {
+                    try {
+                        return JsonHandler.getFromJsonNode(unit, ArchiveUnitModel.class);
+                    } catch (InvalidParseOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .filter(unit -> CollectionUtils.isNotEmpty(unit.getErrors()))
+                .collect(
+                    Collectors.toMap(
+                        unit ->
+                            unit.getDescriptiveMetadataModel().getTitle() != null
+                                ? unit.getDescriptiveMetadataModel().getTitle()
+                                : "<null>",
+                        ArchiveUnitModel::getErrors
+                    )
+                );
+        }
+    }
+
+    private TransactionDto getTransaction(CollectExternalClient collectClient, String transactionId)
+        throws VitamClientException, InvalidParseOperationException {
+        RequestResponse<JsonNode> updatedTransactionResponse = collectClient.getTransactionById(
+            vitamContext,
+            transactionId
+        );
+        return JsonHandler.getFromJsonNode(
+            (((RequestResponseOK<JsonNode>) updatedTransactionResponse).getFirstResult()),
+            TransactionDto.class
+        );
     }
 
     @Test

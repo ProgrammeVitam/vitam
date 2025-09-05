@@ -26,14 +26,17 @@
  */
 package fr.gouv.vitam.common.model;
 
+import fr.gouv.vitam.common.model.validations.ValidationError;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -46,7 +49,7 @@ public class CompositeItemStatusTest {
     private static final String STEP_ID_2 = "step_id2";
 
     @Test
-    public void testCompositeItemStatus() throws Exception {
+    public void testCompositeItemStatus() {
         final ItemStatus parentItem1 = new ItemStatus(STEP_ID_1);
         assertEquals(StatusCode.UNKNOWN, parentItem1.getGlobalStatus());
 
@@ -99,8 +102,28 @@ public class CompositeItemStatusTest {
             statusMeter,
             new HashMap<>(),
             new LinkedHashMap<>(),
-            ProcessState.COMPLETED
+            ProcessState.COMPLETED,
+            Collections.emptyList()
         );
         assertEquals(StatusCode.OK, parentItem4.getGlobalStatus());
+
+        final ItemStatus itemStatus5 = new ItemStatus("item_id5");
+        ValidationError validationError = new ValidationError()
+            .setEvId("evId")
+            .setObId("obId")
+            .setEvTypeProc("evTypeProc")
+            .setEvDetData("evDetData")
+            .setOutMessg("outMessg")
+            .setOutDetail("outDetail");
+        itemStatus5.increment(statusKO, validationError);
+
+        assertThat(itemStatus5.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(itemStatus5.getValidationErrors()).hasSize(1);
+
+        final ItemStatus parentItem5 = new ItemStatus("step_id5");
+        parentItem5.setItemsStatus("item_id5", itemStatus5);
+
+        assertThat(parentItem5.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(parentItem5.getValidationErrors()).containsExactly(validationError);
     }
 }

@@ -188,7 +188,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL() throws ProcessingException {
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
 
     @Test
@@ -197,7 +197,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), OK);
+        assertThat(response.getGlobalStatus()).isEqualTo(OK);
     }
 
     @Test
@@ -207,7 +207,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), FATAL);
+        assertThat(response.getGlobalStatus()).isEqualTo(FATAL);
     }
 
     @Test
@@ -217,9 +217,19 @@ public class CheckArchiveUnitProfileActionPluginTest {
         givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA_CONVERAGE);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), KO);
+        assertThat(response.getGlobalStatus()).isEqualTo(KO);
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
             CheckArchiveUnitProfileActionPlugin.OUTCOME_DETAILS_NOT_AU_JSON_VALID
+        );
+        System.out.println(JsonHandler.prettyPrint(response.getValidationErrors()));
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_ARCHIVE_UNIT_PROFILE");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("NOT_AU_JSON_VALID.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité aux profils d'unité archivistique : json invalide"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Archive unit profile validation failed: Document schema validation failed"
         );
     }
 
@@ -230,7 +240,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         givenArchiveUnitProfile(ARCHIVE_UNIT_PROFILE_SCHEMA_CUSTOM_DESCRIPTION_LEVEL);
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalStatus(), KO);
+        assertThat(response.getGlobalStatus()).isEqualTo(KO);
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
             CheckArchiveUnitProfileActionPlugin.OUTCOME_DETAILS_NOT_AU_JSON_VALID
         );

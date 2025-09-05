@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.validations.ValidationError;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
@@ -151,32 +153,23 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             } catch (MetadataValidationException e) {
                 LOGGER.warn("Unit archive unit profile validation failed " + params.getObjectName(), e);
 
-                String outcomeDetails;
-
-                switch (e.getErrorCode()) {
-                    case ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE:
-                        outcomeDetails = OUTCOME_DETAILS_NOT_AU_JSON_VALID;
-                        break;
-                    case EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA:
-                        outcomeDetails = OUTCOME_DETAILS_EMPTY_CONTROL_SCHEMA;
-                        break;
-                    case UNKNOWN_ARCHIVE_UNIT_PROFILE:
-                        outcomeDetails = OUTCOME_DETAILS_NOT_FOUND;
-                        break;
-                    case ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE:
-                        outcomeDetails = OUTCOME_DETAILS_INACTIVE_STATUS;
-                        break;
-                    case ONTOLOGY_VALIDATION_FAILURE:
-                    case INVALID_UNIT_DATE_FORMAT:
-                    case INVALID_START_END_DATE:
-                    case SCHEMA_VALIDATION_FAILURE:
-                    // Should never occur (Only AUP validation is done here)
-                    case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE:
-                    case RULE_UPDATE_UNEXPECTED_HOLD_END_DATE:
-                    // Should never occur (unit rule update only)
-                    default:
-                        throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
-                }
+                String outcomeDetails =
+                    switch (e.getErrorCode()) {
+                        case ARCHIVE_UNIT_PROFILE_SCHEMA_VALIDATION_FAILURE -> OUTCOME_DETAILS_NOT_AU_JSON_VALID;
+                        case EMPTY_ARCHIVE_UNIT_PROFILE_SCHEMA -> OUTCOME_DETAILS_EMPTY_CONTROL_SCHEMA;
+                        case UNKNOWN_ARCHIVE_UNIT_PROFILE -> OUTCOME_DETAILS_NOT_FOUND;
+                        case ARCHIVE_UNIT_PROFILE_SCHEMA_INACTIVE -> OUTCOME_DETAILS_INACTIVE_STATUS;
+                        case ONTOLOGY_VALIDATION_FAILURE,
+                            INVALID_UNIT_DATE_FORMAT,
+                            INVALID_START_END_DATE,
+                            SCHEMA_VALIDATION_FAILURE -> throw new IllegalStateException(
+                            "Should never occur (Only AUP validation is done here)"
+                        );
+                        case RULE_UPDATE_HOLD_END_DATE_BEFORE_START_DATE,
+                            RULE_UPDATE_UNEXPECTED_HOLD_END_DATE -> throw new IllegalStateException(
+                            "Should never occur (unit rule update only)"
+                        );
+                    };
 
                 infoNode
                     .put(TAG_ARCHIVE_UNIT, unitId)
@@ -193,9 +186,17 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
     }
 
     private ItemStatus createItemStatusKo(ItemStatus subItemStatus, String outcomeDetail, JsonNode evDetailData) {
+        String evDetailDataStr = JsonHandler.unprettyPrint(evDetailData);
+
+        ValidationError validationError = ValidationErrorHelper.createValidationError(
+            CHECK_UNIT_PROFILE_TASK_ID,
+            outcomeDetail,
+            evDetailDataStr
+        );
+
         subItemStatus
-            .increment(KO)
-            .setEvDetailData(JsonHandler.unprettyPrint(evDetailData))
+            .increment(KO, validationError)
+            .setEvDetailData(evDetailDataStr)
             .setGlobalOutcomeDetailSubcode(outcomeDetail);
         return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, subItemStatus);
     }

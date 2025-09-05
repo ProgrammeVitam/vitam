@@ -654,10 +654,10 @@ public class VitamTestHelper {
         }
     }
 
-    public static LogbookOperation selectLogbookOperation(String importRequestId)
+    public static LogbookOperation selectLogbookOperation(String operationId)
         throws LogbookClientException, InvalidParseOperationException {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            JsonNode result = client.selectOperationById(importRequestId);
+            JsonNode result = client.selectOperationById(operationId);
             RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(
                 result
             );

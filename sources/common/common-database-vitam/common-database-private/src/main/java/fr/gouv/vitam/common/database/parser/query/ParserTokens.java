@@ -221,7 +221,14 @@ public class ParserTokens extends BuilderToken {
          * Management Contract Id
          */
         MANAGEMENT_CONTRACT_ID("managementContractId"),
-        VUPS("vups");
+        /**
+         * Virtual paths
+         */
+        VUPS("vups"),
+        /**
+         * Validation errors
+         */
+        ERRORS("errors");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;

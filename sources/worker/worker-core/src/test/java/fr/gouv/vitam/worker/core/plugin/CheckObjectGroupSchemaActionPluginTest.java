@@ -131,7 +131,10 @@ public class CheckObjectGroupSchemaActionPluginTest {
         final ItemStatus response = checkObjectGroupSchemaActionPlugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertEquals(response.getItemId(), "CHECK_OBJECT_GROUP_SCHEMA");
-        assertEquals(response.getItemsStatus().get("CHECK_OBJECT_GROUP_SCHEMA").getItemId(), "ONTOLOGY_VALIDATION");
+        assertEquals(
+            response.getItemsStatus().get("CHECK_OBJECT_GROUP_SCHEMA").getItemId(),
+            "CHECK_OBJECT_GROUP_SCHEMA"
+        );
     }
 
     @Test
@@ -144,6 +147,9 @@ public class CheckObjectGroupSchemaActionPluginTest {
         final ItemStatus response = checkObjectGroupSchemaActionPlugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "INVALID_OBJECT_GROUP");
-        assertEquals(response.getItemsStatus().get("CHECK_OBJECT_GROUP_SCHEMA").getItemId(), "OBJECT_GROUP_SANITIZE");
+        assertEquals(
+            response.getItemsStatus().get("CHECK_OBJECT_GROUP_SCHEMA").getItemId(),
+            "CHECK_OBJECT_GROUP_SCHEMA"
+        );
     }
 }

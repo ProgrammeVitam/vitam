@@ -152,7 +152,8 @@ public class ComputedFieldsTest {
 
     private static final List<String> collectOnlyFields = List.of(
         MetadataDocument.BATCH_ID,
-        MetadataDocument.UPLOAD_PATH
+        MetadataDocument.UPLOAD_PATH,
+        MetadataDocument.ERRORS
     );
 
     @Test

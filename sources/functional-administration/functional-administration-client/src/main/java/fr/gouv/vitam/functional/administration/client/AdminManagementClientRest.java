@@ -463,7 +463,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         ) {
             throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR_MSG, e);
         } catch (ReferentialNotFoundException e) {
-            throw new FileRulesNotFoundException("Rule Not found", e);
+            throw new FileRulesNotFoundException("Rule " + id + " not found", e);
         }
     }
 

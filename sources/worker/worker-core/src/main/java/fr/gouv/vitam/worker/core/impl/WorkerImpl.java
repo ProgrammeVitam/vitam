@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.worker.core.impl;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.StatusAggregationBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -91,13 +93,17 @@ import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyAccessionReg
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyObjectGroupPreparationHandler;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyReportGenerationHandler;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyUnitPreparationHandler;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_ANTIVIRUS;
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_DIGEST_MANIFEST;
@@ -114,6 +120,7 @@ public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
     private static final String EMPTY_EV_DET_DATA = "{}";
+    private static final String JSON_EXTENSION = ".json";
 
     private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
@@ -292,6 +299,7 @@ public class WorkerImpl implements Worker {
             LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
         ) {
             LifecycleFromWorker lifecycleFromWorker = new LifecycleFromWorker(logbookLfcClient);
+            MultiValuedMap<String, ValidationError> validationErrorsByObjectName = new ArrayListValuedHashMap<>();
 
             // loop on actions
             for (final Action action : step.getActions()) {
@@ -309,24 +317,24 @@ public class WorkerImpl implements Worker {
                 String handlerName = actionDefinition.getActionKey();
                 // If this is a plugin
                 List<ItemStatus> pluginResponse;
-                ItemStatus aggregateItemStatus = new ItemStatus();
 
                 if (pluginLoader.contains(handlerName)) {
                     try (ActionHandler actionPlugin = pluginLoader.newInstance(handlerName)) {
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
 
                         pluginResponse = actionPlugin.executeList(workParams, handlerIO);
-                        List<ItemStatus> itemStatuses = pluginResponse
-                            .stream()
-                            .flatMap(itemStatus -> itemStatus.getItemsStatus().values().stream())
-                            .collect(Collectors.toList());
 
-                        aggregateItemStatus = getActionResponse(
+                        collectValidationErrors(
+                            action,
+                            workParams,
+                            pluginResponse,
                             handlerName,
-                            itemStatuses,
-                            action.getActionDefinition().getStatusAggregationBehavior()
+                            validationErrorsByObjectName
                         );
-                        aggregateItemStatus.setItemId(handlerName);
+                        for (ItemStatus subItemStatus : pluginResponse) {
+                            subItemStatus.setItemId(handlerName);
+                        }
+
                         if (action.getActionDefinition().lifecycleEnabled()) {
                             lifecycleFromWorker.generateLifeCycle(
                                 pluginResponse,
@@ -335,6 +343,12 @@ public class WorkerImpl implements Worker {
                                 step.getDistribution().getType()
                             );
                         }
+
+                        ItemStatus aggregateItemStatus = getAggregateItemStatus(
+                            handlerName,
+                            pluginResponse,
+                            action.getActionDefinition().getStatusAggregationBehavior()
+                        );
 
                         responses.setItemsStatus(aggregateItemStatus);
                     }
@@ -348,6 +362,7 @@ public class WorkerImpl implements Worker {
 
                     pluginResponse = actionHandler.executeList(workParams, handlerIO);
 
+                    ItemStatus aggregateItemStatus = new ItemStatus();
                     for (ItemStatus itemStatus : pluginResponse) {
                         aggregateItemStatus.setItemId(itemStatus.getItemId());
                         aggregateItemStatus.setItemsStatus(itemStatus);
@@ -382,6 +397,8 @@ public class WorkerImpl implements Worker {
                 lifecycleFromWorker.saveLifeCycles(step.getDistribution().getType());
             }
 
+            handleValidationErrors(workParams, step, validationErrorsByObjectName, handlerIO);
+
             clearEvDetDataForDistributedSteps(step, responses);
         } catch (ProcessingException e) {
             throw e;
@@ -390,6 +407,65 @@ public class WorkerImpl implements Worker {
         }
         LOGGER.debug("step name :" + step.getStepName());
         return responses;
+    }
+
+    private static void handleValidationErrors(
+        WorkerParameters workParams,
+        Step step,
+        MultiValuedMap<String, ValidationError> validationErrorsByObjectName,
+        HandlerIO handlerIO
+    ) throws ProcessingException {
+        // FIXME: Hack - For now, ValidationError processing is restricted to the "STP_UNIT_CHECK_AND_PROCESS" step.
+        //  Other user stories should contain proper handling for ValidationErrors using a plugable validation error
+        //  manager, a special purpose "finally" action, or other cleaner designs.
+        if (
+            WorkFlowExecutionContext.COLLECT.equals(workParams.getExecutionContext()) &&
+            step.getStepName().equals("STP_UNIT_CHECK_AND_PROCESS") &&
+            !validationErrorsByObjectName.isEmpty()
+        ) {
+            ValidationErrorManager validationErrorManager = new ValidationErrorManager();
+            // Reset handlerIO for next execution
+            handlerIO.reset();
+
+            for (String objectName : validationErrorsByObjectName.keySet()) {
+                Collection<ValidationError> validationErrors = validationErrorsByObjectName.get(objectName);
+                String unitId = StringUtils.removeEnd(objectName, JSON_EXTENSION);
+                validationErrorManager.handleUnitValidationError(unitId, validationErrors, handlerIO);
+            }
+        }
+    }
+
+    private static void collectValidationErrors(
+        Action action,
+        WorkerParameters workParams,
+        List<ItemStatus> pluginResponse,
+        String handlerName,
+        MultiValuedMap<String, ValidationError> validationErrors
+    ) {
+        // FIXME : For now, some plugins do not return expected number if ItemStatus responses which should match objectNames cardinality (eg. UnitsRulesComputePlugin)
+        if (!action.getActionDefinition().lifecycleEnabled()) {
+            return;
+        }
+
+        if (pluginResponse.size() != workParams.getObjectNameList().size()) {
+            throw new IllegalStateException(
+                "Invoked plugin " +
+                handlerName +
+                " returned " +
+                pluginResponse.size() +
+                " results for " +
+                workParams.getObjectNameList().size() +
+                " objects"
+            );
+        }
+        for (int i = 0; i < pluginResponse.size(); i++) {
+            String objectId = workParams.getObjectNameList().get(i);
+            ItemStatus itemStatus = pluginResponse.get(i);
+            if (CollectionUtils.isNotEmpty(itemStatus.getValidationErrors())) {
+                validationErrors.putAll(objectId, itemStatus.getValidationErrors());
+                itemStatus.clearValidationErrors();
+            }
+        }
     }
 
     private void clearEvDetDataForDistributedSteps(Step step, ItemStatus responses) {
@@ -403,16 +479,17 @@ public class WorkerImpl implements Worker {
         }
     }
 
-    private static ItemStatus getActionResponse(
+    private static ItemStatus getAggregateItemStatus(
         String handlerName,
         List<ItemStatus> pluginResponse,
         StatusAggregationBehavior statusBehavior
     ) {
         ItemStatus status = new ItemStatus(handlerName);
 
-        for (ItemStatus subItemStatus : pluginResponse) {
-            subItemStatus.setItemId(handlerName);
-            status.setItemsStatus(handlerName, subItemStatus, statusBehavior);
+        for (ItemStatus itemStatus : pluginResponse) {
+            for (ItemStatus subItemStatus : itemStatus.getItemsStatus().values()) {
+                status.setItemsStatus(handlerName, subItemStatus, statusBehavior);
+            }
         }
 
         return status;

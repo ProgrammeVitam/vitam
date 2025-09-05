@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -73,11 +74,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -207,6 +211,7 @@ public class UnitsRulesComputePluginTest {
         action.getInput().add(archiveUnit);
 
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialPartial());
+        doThrow(new FileRulesNotFoundException("no such rule")).when(adminManagementClient).getRuleByID(anyString());
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters(WorkFlowExecutionContext.VITAM)
             .setUrlWorkspace(FAKE_URL)
@@ -217,7 +222,18 @@ public class UnitsRulesComputePluginTest {
             .setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
-        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Rule 'ID100' does not exist",
+            "Rule 'ID101' does not exist",
+            "Rule 'ID102' does not exist"
+        );
     }
 
     @Test
@@ -343,7 +359,16 @@ public class UnitsRulesComputePluginTest {
         assertEquals(task.getSubTaskStatus().entrySet().size(), 1);
         assertEquals(
             task.getSubTaskStatus().entrySet().iterator().next().getValue().getData("eventDetailData"),
-            "{\"evDetTechData\":\"Rule RULE-THAT-DOES-NOT-EXIST does not exist\"}"
+            "{\"evDetTechData\":\"Rule 'RULE-THAT-DOES-NOT-EXIST' does not exist\"}"
+        );
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains(
+            "Rule 'RULE-THAT-DOES-NOT-EXIST' does not exist"
         );
     }
 

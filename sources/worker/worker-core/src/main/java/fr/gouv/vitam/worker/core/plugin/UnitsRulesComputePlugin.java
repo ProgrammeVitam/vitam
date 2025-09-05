@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -47,17 +46,19 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.RuleMeasurementEnum;
-import fr.gouv.vitam.common.model.administration.RuleType;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
+import fr.gouv.vitam.common.model.validations.ValidationError;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -74,7 +75,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
@@ -95,8 +95,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String AU_PREFIX_WITH_END_DATE = "WithEndDte_";
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
-    private static final String NON_EXISTING_RULE = "Rule %s does not exist";
-    private static final String BAD_CATEGORY_RULE = "Rule %s don't match expected category %s but was %s";
+    private static final String NON_EXISTING_RULE = "Rule '%s' does not exist";
+    private static final String BAD_CATEGORY_RULE =
+        "The rule '%s' is referenced in the wrong rule category. Declared %s, actual %s";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
@@ -118,25 +119,33 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
-        final long time = System.currentTimeMillis();
         final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
-
         try {
-            calculateMaturityDate(params, itemStatus, handler);
+            calculateMaturityDate(params, handler);
             itemStatus.increment(StatusCode.OK);
         } catch (InvalidRuleException e) {
-            itemStatus.increment(StatusCode.KO);
             UnitRulesComputeStatus status = e.getUnitRulesComputeStatus();
             switch (status) {
-                case REF_INCONSISTENCY:
+                case REF_INCONSISTENCY: {
                     itemStatus.setGlobalOutcomeDetailSubcode(status.name());
                     itemStatus.setEvDetailData(e.getMessage());
-                    itemStatus.increment(StatusCode.KO);
-                    break;
-                case UNKNOWN:
-                case CONSISTENCY:
+                    ValidationError validationError = ValidationErrorHelper.createValidationError(
+                        CHECK_RULES_TASK_ID,
+                        status.name(),
+                        e.getMessage()
+                    );
+                    itemStatus.increment(StatusCode.KO, validationError);
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+                }
+                case UNKNOWN, CONSISTENCY: {
                     itemStatus.setGlobalOutcomeDetailSubcode(status.name());
-                    itemStatus.increment(StatusCode.KO);
+
+                    ValidationError validationError = ValidationErrorHelper.createValidationError(
+                        CHECK_RULES_TASK_ID,
+                        status.name(),
+                        e.getMessage()
+                    );
+                    itemStatus.increment(StatusCode.KO, validationError);
 
                     ItemStatus is = new ItemStatus(status.name());
                     is.setEvDetailData(e.getMessage());
@@ -146,16 +155,16 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     itemStatus.setItemId(status.name());
 
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
+                }
             }
         } catch (final ProcessingException e) {
-            LOGGER.debug(e);
+            LOGGER.error("An error occurred during rule check", e);
             final ObjectNode object = JsonHandler.createObjectNode();
             object.put("UnitRuleCompute", e.getMessage());
             itemStatus.setEvDetailData(object.toString());
-            itemStatus.increment(StatusCode.KO);
+            itemStatus.increment(StatusCode.FATAL);
         }
 
-        LOGGER.debug("[exit] execute... /Elapsed Time:" + (System.currentTimeMillis() - time) / 1000 + "s");
         return new ItemStatus(CHECK_RULES_TASK_ID).setItemsStatus(CHECK_RULES_TASK_ID, itemStatus);
     }
 
@@ -164,19 +173,19 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         // Nothing to check
     }
 
-    private void calculateMaturityDate(WorkerParameters params, ItemStatus itemStatus, HandlerIO handlerIO)
-        throws ProcessingException {
+    private void calculateMaturityDate(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
 
         try {
-            JsonNode archiveUnit = null;
-            if (handlerIO.getInput().size() > 0) {
+            JsonNode archiveUnit;
+            if (!handlerIO.getInput().isEmpty()) {
                 archiveUnit = (JsonNode) handlerIO.getInput(UNIT_INPUT_RANK);
             } else {
                 try (
                     InputStream inputStream = handlerIO.getInputStreamFromWorkspace(
+                        WorkFlowExecutionContext.VITAM,
                         IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName
                     )
                 ) {
@@ -246,18 +255,13 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             JsonNode workNode = archiveUnit.get(SedaConstants.PREFIX_WORK);
             JsonNode managementNode = archiveUnitNode.get(SedaConstants.PREFIX_MGT);
 
-            JsonNode unitTileNode = archiveUnitNode.get("Title");
             JsonNode unitIdNode = archiveUnitNode.get(SedaConstants.PREFIX_ID);
-            String unitTile = "";
-            if (null != unitTileNode) {
-                unitTile = archiveUnitNode.asText();
-            }
             String unitId = "";
             if (null != unitIdNode) {
                 unitId = unitIdNode.asText();
             }
 
-            validatePreventRuleCategory(unitTile, managementNode);
+            validatePreventRuleCategory(managementNode);
             // temp data
             JsonNode rulesResults;
 
@@ -269,7 +273,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     ArrayNode rulesToApplyArray = (ArrayNode) workNode.get(
                         SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT
                     );
-                    if (rulesToApplyArray.size() > 0) {
+                    if (!rulesToApplyArray.isEmpty()) {
                         rulesToApply = Sets.newHashSet(
                             Splitter.on(SedaConstants.RULE_SEPARATOR)
                                 .omitEmptyStrings()
@@ -306,8 +310,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 if (
                     ruleTypeNode == null ||
                     ruleTypeNode.get(SedaConstants.TAG_RULES) == null ||
-                    ruleTypeNode.get(SedaConstants.TAG_RULES).size() == 0 ||
-                    ruleTypeNode.get(SedaConstants.TAG_RULES).findValues(SedaConstants.TAG_RULE_RULE).size() == 0
+                    ruleTypeNode.get(SedaConstants.TAG_RULES).isEmpty() ||
+                    ruleTypeNode.get(SedaConstants.TAG_RULES).findValues(SedaConstants.TAG_RULE_RULE).isEmpty()
                 ) {
                     LOGGER.debug("no rules of type " + ruleType + " found");
                     continue;
@@ -347,7 +351,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
     }
 
-    private void validatePreventRuleCategory(String unit, JsonNode managementNode)
+    private void validatePreventRuleCategory(JsonNode managementNode)
         throws InvalidParseOperationException, InvalidFormatException, ProcessingException {
         if (null == managementNode || !managementNode.elements().hasNext()) {
             return;
@@ -361,7 +365,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getAccess().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_ACCESS,
                         report,
                         managementModel.getAccess().getInheritance().getPreventRulesId(),
@@ -376,7 +379,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getAppraisal().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_APPRAISAL,
                         report,
                         managementModel.getAppraisal().getInheritance().getPreventRulesId(),
@@ -391,7 +393,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getDissemination().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_DISSEMINATION,
                         report,
                         managementModel.getDissemination().getInheritance().getPreventRulesId(),
@@ -406,7 +407,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getStorage().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_STORAGE,
                         report,
                         managementModel.getStorage().getInheritance().getPreventRulesId(),
@@ -421,7 +421,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getReuse().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_REUSE,
                         report,
                         managementModel.getReuse().getInheritance().getPreventRulesId(),
@@ -436,7 +435,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getClassification().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_CLASSIFICATION,
                         report,
                         managementModel.getClassification().getInheritance().getPreventRulesId(),
@@ -451,7 +449,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     null != managementModel.getHold().getInheritance().getPreventRulesId()
                 ) {
                     validatePreventRuleCategory(
-                        unit,
                         SedaConstants.TAG_RULE_HOLD,
                         report,
                         managementModel.getHold().getInheritance().getPreventRulesId(),
@@ -472,7 +469,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     }
 
     private void validatePreventRuleCategory(
-        String unit,
         String ruleType,
         StringBuffer report,
         Collection<String> ruleIds,
@@ -484,61 +480,41 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
 
         for (String ruleId : ruleIds) {
-            JsonNode rulesInDB = adminManagementClient.getRuleByID(ruleId);
-            if (null == rulesInDB) {
-                report
-                    .append("In the unit ")
-                    .append(unit)
-                    .append(" the rule id ")
-                    .append(ruleId)
-                    .append(" in the RuleType ")
-                    .append(ruleType)
-                    .append(" is not found in db ; ");
+            JsonNode rulesInDB;
+            try {
+                rulesInDB = adminManagementClient.getRuleByID(ruleId);
+            } catch (FileRulesNotFoundException e) {
+                if (!report.isEmpty()) {
+                    report.append("; ");
+                }
+                report.append(String.format(NON_EXISTING_RULE, ruleId));
                 continue;
             }
 
-            RequestResponse<FileRules> fr = JsonHandler.getFromStringAsTypeReference(
+            RequestResponseOK<FileRules> response = JsonHandler.getFromStringAsTypeReference(
                 rulesInDB.toString(),
-                new TypeReference<RequestResponseOK<FileRules>>() {}
+                new TypeReference<>() {}
             );
-            if (fr.isOk()) {
-                RequestResponseOK<FileRules> frok = (RequestResponseOK<FileRules>) fr;
-                Iterator<FileRules> it = frok.getResults().iterator();
+            FileRules ruleModel = response.getFirstResult();
 
-                if (it.hasNext()) {
-                    RuleType rr = it.next().getRuletype();
-                    if (!ruleType.equals(rr.name())) {
-                        report
-                            .append("In the unit ")
-                            .append(unit)
-                            .append(" the rule id ")
-                            .append(ruleId)
-                            .append(" is in the wrong RuleType ")
-                            .append(" it should be in the RuleType ")
-                            .append(ruleType)
-                            .append(" ; ");
+            if (ruleModel != null) {
+                if (!ruleType.equals(ruleModel.getRuletype().name())) {
+                    if (!report.isEmpty()) {
+                        report.append("; ");
                     }
-                } else {
                     report
-                        .append("In the unit ")
-                        .append(unit)
-                        .append(" the rule id ")
+                        .append("The rule '")
                         .append(ruleId)
-                        .append(" not found in db")
-                        .append(" ; ");
+                        .append("' is referenced in the wrong rule category. Declared ")
+                        .append(ruleType)
+                        .append(", actual ")
+                        .append(ruleModel.getRuletype().name());
                 }
             } else {
-                VitamError vr = (VitamError) fr;
-                report
-                    .append("In the unit ")
-                    .append(unit)
-                    .append(" error while getting rule id : ")
-                    .append(ruleId)
-                    .append(" : ")
-                    .append(vr.getMessage())
-                    .append(" : ")
-                    .append(vr.getDescription())
-                    .append(" ; ");
+                if (!report.isEmpty()) {
+                    report.append("\n");
+                }
+                report.append(String.format(NON_EXISTING_RULE, ruleId));
             }
         }
     }

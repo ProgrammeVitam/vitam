@@ -108,7 +108,8 @@ public class MetadataDocumentHelper {
         TRANSFER_OPERATION("_opts"),
         COLLECT_BATCH_ID("_batchId"),
         COLLECT_UPLOAD_PATH("_uploadPath"),
-        VIRTUAL_UPS("_vups");
+        VIRTUAL_UPS("_vups"),
+        ERRORS("_errors");
 
         private final String fieldName;
 
@@ -165,7 +166,8 @@ public class MetadataDocumentHelper {
         ATOMIC_VERSION("_av"),
         APPROXIMATE_CREATION_DATE("_acd"),
         APPROXIMATE_UPDATE_DATE("_aud"),
-        COLLECT_BATCH_ID("_batchId");
+        COLLECT_BATCH_ID("_batchId"),
+        ERRORS("_errors");
 
         private final String fieldName;
 

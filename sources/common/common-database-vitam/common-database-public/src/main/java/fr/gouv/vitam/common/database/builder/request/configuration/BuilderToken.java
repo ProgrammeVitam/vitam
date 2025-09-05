@@ -762,7 +762,9 @@ public abstract class BuilderToken {
 
         OPERATION_TRANSFERS("opts"),
 
-        VIRTUAL_UPS("vups");
+        VIRTUAL_UPS("vups"),
+
+        ERRORS("errors");
 
         private final String exactToken;
 

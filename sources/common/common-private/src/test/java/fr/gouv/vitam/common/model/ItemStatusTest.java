@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.model;
 
+import fr.gouv.vitam.common.model.validations.ValidationError;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -80,9 +81,19 @@ public class ItemStatusTest {
             statusMeter,
             new HashMap<>(),
             null,
-            ProcessState.COMPLETED
+            ProcessState.COMPLETED,
+            List.of(
+                new ValidationError()
+                    .setEvId("evId")
+                    .setObId("obId")
+                    .setEvTypeProc("evTypeProc")
+                    .setEvDetData("evDetData")
+                    .setOutMessg("outMessg")
+                    .setOutDetail("outDetail")
+            )
         );
         assertEquals(StatusCode.OK, itemStatus4.getGlobalStatus());
+        assertThat(itemStatus4.getValidationErrors()).hasSize(1);
     }
 
     @Test
