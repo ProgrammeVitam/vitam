@@ -40,8 +40,8 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.DynamicFeature;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.FeatureContext;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.text.StrBuilder;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.text.StrBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

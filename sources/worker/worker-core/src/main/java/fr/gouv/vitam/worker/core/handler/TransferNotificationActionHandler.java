@@ -107,7 +107,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.xml.sax.SAXException;
 

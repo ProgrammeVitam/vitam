@@ -139,10 +139,4 @@ public class JsonTransformerTest {
     public void testBuildAllParentsRefWithMissingUnitIdThrowsVitamException() throws Exception {
         JsonTransformer.buildAllParentsRef("ID020", validParents);
     }
-
-    @Test
-    public void testBuildLogbookStatCsvFile() throws VitamException, IOException {
-        final ByteArrayOutputStream report = JsonTransformer.buildLogbookStatCsvFile(sampleLogbookOperation);
-        // TODO P1 : validate the created report
-    }
 }

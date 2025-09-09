@@ -40,8 +40,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -209,7 +209,7 @@ public class AmazonS3V2ITTest {
         containerName = RandomStringUtils.randomNumeric(1) + "_" + RandomStringUtils.randomAlphabetic(10);
         objectName1 = GUIDFactory.newGUID().getId();
         objectName2 = GUIDFactory.newGUID().getId();
-        largeObjectSize = 10 * 1024 * 1024 - 500 + RandomUtils.nextInt(1000);
+        largeObjectSize = 10 * 1024 * 1024 - 500 + RandomUtils.nextInt(0, 1000);
         largeObjectSize2 = largeObjectSize + 1000;
         largeObjectDigest = computeDigest(new FixedPatternFakeInputStream(largeObjectSize));
     }

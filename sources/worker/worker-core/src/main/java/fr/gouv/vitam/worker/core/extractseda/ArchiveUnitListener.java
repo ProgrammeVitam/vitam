@@ -101,7 +101,7 @@ import fr.gouv.vitam.worker.core.utils.ConfigurationUtil;
 import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
 import jakarta.annotation.Nonnull;
 import jakarta.xml.bind.JAXBElement;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
