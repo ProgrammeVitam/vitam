@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -159,12 +160,13 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
         itemStatus.setGlobalOutcomeDetailSubcode(outcomeDetail);
 
-        final ObjectNode object = JsonHandler.createObjectNode();
-        object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-        String evDetailData = JsonHandler.unprettyPrint(object);
-        itemStatus.setEvDetailData(evDetailData);
+        final ObjectNode evDetailData = JsonHandler.createObjectNode();
+        evDetailData.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
 
-        ValidationError validationError = ValidationErrorHelper.createValidationError(
+        itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetailData));
+
+        ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+            LogbookTypeProcess.COLLECT_SIP_INGEST,
             CHECK_UNIT_SCHEMA_TASK_ID,
             outcomeDetail,
             evDetailData

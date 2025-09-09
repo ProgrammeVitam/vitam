@@ -59,6 +59,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
+import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -386,11 +388,12 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("<null>");
 
@@ -398,8 +401,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("<null>");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO");
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
@@ -416,11 +419,12 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1", "Unit 2");
 
@@ -428,8 +432,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.UNITS_RULES_COMPUTE.UNKNOWN.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
@@ -439,8 +443,10 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
         assertThat(validationErrors2).hasSize(1);
         assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo(
+            "LFC.UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO"
+        );
         assertThat(validationErrors2.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
         assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
@@ -455,11 +461,12 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1", "Unit 2");
 
@@ -467,8 +474,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.UNITS_RULES_COMPUTE.CONSISTENCY.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains(
             "The rule 'APP-00001' is referenced in the wrong rule category. Declared StorageRule, actual AppraisalRule"
         );
@@ -480,8 +487,10 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
         assertThat(validationErrors2).hasSize(1);
         assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo(
+            "LFC.UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO"
+        );
         assertThat(validationErrors2.getFirst().getEvDetData()).contains(
             "The rule 'APP-00001' is referenced in the wrong rule category. Declared DisseminationRule, actual AppraisalRule"
         );
@@ -500,19 +509,20 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
 
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.UNITS_RULES_COMPUTE.UNKNOWN.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
@@ -527,19 +537,20 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
 
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains(
             "Invalid unit format : Document schema validation failed"
         );
@@ -556,19 +567,20 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
 
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_CLASSIFICATION_LEVEL");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("CHECK_CLASSIFICATION_LEVEL.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_CLASSIFICATION_LEVEL.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).isNull();
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
@@ -585,19 +597,20 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys("Unit 1");
 
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(1);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.CONSISTENCY.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains("EndDate is before StartDate");
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
@@ -608,17 +621,25 @@ public class CollectSipIngestIT extends AbstractCollectIT {
     @RunWithCustomExecutor
     public void test_ingest_invalid_sip_complex_validation_errors() throws Exception {
         // Given
-        InputStream sipInputStream = PropertiesUtils.getResourceAsStream("collect/KO_Multiple_Validation_Errors.zip");
+        InputStream sipInputStream = PropertiesUtils.getResourceAsStream(
+            "collect/SIP_KO_MultipleErrors_Size_Digest_Virus.zip"
+        );
         String transactionId = createTransactionId();
 
         // When
-        uploadSip(sipInputStream, transactionId);
+        String ingestOperationId = uploadSip(sipInputStream, transactionId);
 
         // Then
-        verifyOperation(transactionId, StatusCode.KO);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = selectUnitValidationErrors(transactionId);
+        verifyOperation(ingestOperationId, StatusCode.KO);
+
+        Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
+        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
+        Map<String, DbObjectGroupModel> objectGroupsByUnitTitle = mapObjectGroupsByUnitTitle(units);
+        Map<String, List<ValidationError>> objectGroupValidationErrorsByUnitTitle =
+            mapObjectGroupValidationErrorsByUnitTitle(objectGroupsByUnitTitle);
 
         assertThat(validationErrorsByUnitTitle).containsOnlyKeys(
+            "Unit 0",
             "Unit 1",
             "Unit 2",
             "Unit 3",
@@ -629,11 +650,50 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             "Unit 8"
         );
 
+        assertThat(objectGroupValidationErrorsByUnitTitle).containsOnlyKeys("Unit 0", "Unit 2");
+
+        // Unit 0 - Bad binary digest & virus detected
+        List<ValidationError> validationErrors0 = validationErrorsByUnitTitle.get("Unit 0");
+        assertThat(validationErrors0).hasSize(1);
+        assertThat(validationErrors0.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors0.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors0.getFirst().getOutDetail()).isEqualTo(
+            "LFC.STP_OG_CHECK_AND_TRANSFORME.OBJECT_GROUP_VALIDATION.KO"
+        );
+        assertThat(validationErrors0.getFirst().getEvDetData()).contains("Object group has 2 validation error(s)");
+        assertThat(validationErrors0.getFirst().getOutMessg()).isEqualTo(
+            "Échec du processus de vérification et de traitement des objets et des groupes d'objets associé à l'unité"
+        );
+
+        List<ValidationError> ogValidationErrors0 = objectGroupValidationErrorsByUnitTitle.get("Unit 0");
+        assertThat(ogValidationErrors0).hasSize(2);
+
+        assertThat(ogValidationErrors0.getFirst().getEvId()).isNotNull();
+        assertThat(ogValidationErrors0.getFirst().getObId()).isEqualTo(
+            getBinaryId(objectGroupsByUnitTitle.get("Unit 0"), "BinaryMaster_1")
+        );
+        assertThat(ogValidationErrors0.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(ogValidationErrors0.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_DIGEST.CALC_CHECK.INVALID.KO");
+        assertThat(ogValidationErrors0.getFirst().getEvDetData()).contains("MessageDigest");
+        assertThat(ogValidationErrors0.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'empreinte du fichier"
+        );
+
+        assertThat(ogValidationErrors0.get(1).getEvId()).isNotNull();
+        assertThat(ogValidationErrors0.get(1).getObId()).isEqualTo(
+            getBinaryId(objectGroupsByUnitTitle.get("Unit 0"), "BinaryMaster_1")
+        );
+        assertThat(ogValidationErrors0.get(1).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(ogValidationErrors0.get(1).getOutDetail()).isEqualTo("LFC.OG_OBJECTS_ANTIVIRUS_CHECK.ANTIVIRUS.KO");
+        assertThat(ogValidationErrors0.get(1).getEvDetData()).isNull();
+        assertThat(ogValidationErrors0.get(1).getOutMessg()).isEqualTo("L'objet contient un virus");
+
+        // Unit 1 - Invalid rule start date + unknown rule
         List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(2);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains(
             "Invalid unit format : Document schema validation failed"
         );
@@ -642,18 +702,19 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         assertThat(validationErrors1.get(1).getEvId()).isNotNull();
-        assertThat(validationErrors1.get(1).getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors1.get(1).getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(validationErrors1.get(1).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors1.get(1).getOutDetail()).isEqualTo("LFC.UNITS_RULES_COMPUTE.UNKNOWN.KO");
         assertThat(validationErrors1.get(1).getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
         assertThat(validationErrors1.get(1).getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
         );
 
+        // Unit 2 - Rule declared in another category + 2x binaries with wrong digest
         List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
         assertThat(validationErrors2).hasSize(1);
         assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors2.getFirst().getOutDetail()).isEqualTo("LFC.UNITS_RULES_COMPUTE.CONSISTENCY.KO");
         assertThat(validationErrors2.getFirst().getEvDetData()).contains(
             "The rule 'APP-00001' is referenced in the wrong rule category. Declared AccessRule, actual AppraisalRule"
         );
@@ -661,29 +722,58 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             "Échec de la vérification de la cohérence de la règle de gestion par rapport à sa catégorie : Une règle déclarée est incohérente par rapport à sa catégorie"
         );
 
+        List<ValidationError> ogValidationErrors2 = objectGroupValidationErrorsByUnitTitle.get("Unit 2");
+        assertThat(ogValidationErrors2).hasSize(2);
+
+        assertThat(ogValidationErrors2.getFirst().getEvId()).isNotNull();
+        assertThat(ogValidationErrors2.getFirst().getObId()).isEqualTo(
+            getBinaryId(objectGroupsByUnitTitle.get("Unit 2"), "BinaryMaster_1")
+        );
+        assertThat(ogValidationErrors2.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(ogValidationErrors2.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_DIGEST.CALC_CHECK.INVALID.KO");
+        assertThat(ogValidationErrors2.getFirst().getEvDetData()).contains("MessageDigest");
+        assertThat(ogValidationErrors2.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'empreinte du fichier"
+        );
+
+        assertThat(ogValidationErrors2.get(1).getEvId()).isNotNull();
+        assertThat(ogValidationErrors2.get(1).getObId()).isEqualTo(
+            getBinaryId(objectGroupsByUnitTitle.get("Unit 2"), "BinaryMaster_2")
+        );
+        assertThat(ogValidationErrors2.get(1).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(ogValidationErrors2.get(1).getOutDetail()).isEqualTo("LFC.CHECK_DIGEST.CALC_CHECK.INVALID.KO");
+        assertThat(ogValidationErrors2.get(1).getEvDetData()).contains("MessageDigest");
+        assertThat(ogValidationErrors2.get(1).getOutMessg()).isEqualTo(
+            "Échec de la vérification de l'empreinte du fichier"
+        );
+
+        // Unit 3 - RefNonRuleId for an unknown rule id
         List<ValidationError> validationErrors3 = validationErrorsByUnitTitle.get("Unit 3");
         assertThat(validationErrors3).hasSize(1);
         assertThat(validationErrors3.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors3.getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors3.getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors3.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors3.getFirst().getOutDetail()).isEqualTo(
+            "LFC.UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO"
+        );
         assertThat(validationErrors3.getFirst().getEvDetData()).contains("Rule 'NO_SUCH_RULE' does not exist");
         assertThat(validationErrors3.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
 
+        // Unit 4 - RefNonRuleId with an invalid rule category + EndDate before StartDate
         List<ValidationError> validationErrors4 = validationErrorsByUnitTitle.get("Unit 4");
         assertThat(validationErrors4).hasSize(2);
         assertThat(validationErrors4.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors4.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(validationErrors4.getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(validationErrors4.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors4.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.CONSISTENCY.KO");
         assertThat(validationErrors4.getFirst().getEvDetData()).contains("EndDate is before StartDate");
         assertThat(validationErrors4.getFirst().getOutMessg()).isEqualTo(
-            "La date contenue dans le champ Date de début doit \u00EAtre postérieure à la date contenue dans le champ Date de fin"
+            "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
         );
 
         assertThat(validationErrors4.get(1).getEvId()).isNotNull();
-        assertThat(validationErrors4.get(1).getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(validationErrors4.get(1).getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(validationErrors4.get(1).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors4.get(1).getOutDetail()).isEqualTo("LFC.UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO");
         assertThat(validationErrors4.get(1).getEvDetData()).contains(
             "The rule 'APP-00001' is referenced in the wrong rule category. Declared ReuseRule, actual AppraisalRule"
         );
@@ -691,21 +781,23 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
 
+        // Unit 5 - Invalid classification level
         List<ValidationError> validationErrors5 = validationErrorsByUnitTitle.get("Unit 5");
         assertThat(validationErrors5).hasSize(1);
         assertThat(validationErrors5.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors5.getFirst().getEvTypeProc()).isEqualTo("CHECK_CLASSIFICATION_LEVEL");
-        assertThat(validationErrors5.getFirst().getOutDetail()).isEqualTo("CHECK_CLASSIFICATION_LEVEL.KO");
+        assertThat(validationErrors5.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors5.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_CLASSIFICATION_LEVEL.KO");
         assertThat(validationErrors5.getFirst().getEvDetData()).isNull();
         assertThat(validationErrors5.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
         );
 
+        // Unit 6 - Missing title
         List<ValidationError> validationErrors6 = validationErrorsByUnitTitle.get("<null>");
         assertThat(validationErrors6).hasSize(1);
         assertThat(validationErrors6.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors6.getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(validationErrors6.getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(validationErrors6.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors6.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO");
         assertThat(validationErrors6.getFirst().getEvDetData()).contains(
             "Invalid unit format : Document schema validation failed"
         );
@@ -713,14 +805,32 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
 
+        // Unit 7 - No such AUP
         List<ValidationError> validationErrors7 = validationErrorsByUnitTitle.get("Unit 7");
         assertThat(validationErrors7).hasSize(1);
         assertThat(validationErrors7.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors7.getFirst().getEvTypeProc()).isEqualTo("CHECK_ARCHIVE_UNIT_PROFILE");
-        assertThat(validationErrors7.getFirst().getOutDetail()).isEqualTo("NOT_FOUND.KO");
+        assertThat(validationErrors7.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors7.getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_ARCHIVE_UNIT_PROFILE.NOT_FOUND.KO"
+        );
         assertThat(validationErrors7.getFirst().getEvDetData()).contains("Archive Unit Profile not found");
         assertThat(validationErrors7.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité aux profils d'unité archivistique : profil d'unité archivistique non trouvé"
+        );
+
+        // Unit 8 - AUP validation failed
+        List<ValidationError> validationErrors8 = validationErrorsByUnitTitle.get("Unit 8");
+        assertThat(validationErrors8).hasSize(1);
+        assertThat(validationErrors8.getFirst().getEvId()).isNotNull();
+        assertThat(validationErrors8.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(validationErrors8.getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_ARCHIVE_UNIT_PROFILE.NOT_AU_JSON_VALID.KO"
+        );
+        assertThat(validationErrors8.getFirst().getEvDetData()).contains(
+            "Archive unit profile validation failed: Document schema validation failed"
+        );
+        assertThat(validationErrors8.getFirst().getOutMessg()).isEqualTo(
+            "Échec de la vérification de la conformité aux profils d'unité archivistique : json invalide"
         );
     }
 
@@ -739,7 +849,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         }
     }
 
-    private void uploadSip(InputStream sipInputStream, String transactionId) throws VitamClientException {
+    private String uploadSip(InputStream sipInputStream, String transactionId) throws VitamClientException {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             RequestResponseOK<UploadSipResult> response = (RequestResponseOK<
                     UploadSipResult
@@ -755,10 +865,11 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
 
             waitOperation(operationId);
+            return operationId;
         }
     }
 
-    private static Map<String, List<ValidationError>> selectUnitValidationErrors(String transactionId)
+    private static Map<String, ArchiveUnitModel> selectUnits(String transactionId)
         throws VitamClientException, InvalidCreateOperationException {
         try (CollectExternalClient collectExternalClient = CollectExternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery query = new SelectMultiQuery();
@@ -786,7 +897,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                             unit.getDescriptiveMetadataModel().getTitle() != null
                                 ? unit.getDescriptiveMetadataModel().getTitle()
                                 : "<null>",
-                        ArchiveUnitModel::getErrors
+                        unit -> unit
                     )
                 );
         }
@@ -860,5 +971,55 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                     .count()
             ).isEqualTo(2L);
         }
+    }
+
+    private DbObjectGroupModel getObjectGroup(String objectGroupId) {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            return JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) collectClient.getObjectById(
+                        vitamContext,
+                        objectGroupId
+                    )).getFirstResult(),
+                DbObjectGroupModel.class
+            );
+        } catch (VitamClientException | InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Map<String, List<ValidationError>> mapUnitValidationErrorsByUnitTitle(Map<String, ArchiveUnitModel> units) {
+        return units
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getErrors()));
+    }
+
+    private Map<String, DbObjectGroupModel> mapObjectGroupsByUnitTitle(Map<String, ArchiveUnitModel> units) {
+        return units
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue().getOg() != null)
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> getObjectGroup(entry.getValue().getOg())));
+    }
+
+    private static Map<String, List<ValidationError>> mapObjectGroupValidationErrorsByUnitTitle(
+        Map<String, DbObjectGroupModel> objectGroupsByUnitTitle
+    ) {
+        return objectGroupsByUnitTitle
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue().getValidationErrors() != null)
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValidationErrors()));
+    }
+
+    private String getBinaryId(DbObjectGroupModel dbObjectGroupModel, String version) {
+        return dbObjectGroupModel
+            .getQualifiers()
+            .stream()
+            .flatMap(q -> q.getVersions().stream())
+            .filter(v -> version.equals(v.getDataObjectVersion()))
+            .map(DbVersionsModel::getId)
+            .findFirst()
+            .orElseThrow();
     }
 }

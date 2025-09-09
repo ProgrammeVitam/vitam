@@ -224,8 +224,10 @@ public class UnitsRulesComputePluginTest {
         final ItemStatus response = plugin.execute(params, action);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("REF_INCONSISTENCY.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
@@ -362,8 +364,10 @@ public class UnitsRulesComputePluginTest {
             "{\"evDetTechData\":\"Rule 'RULE-THAT-DOES-NOT-EXIST' does not exist\"}"
         );
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("UNITS_RULES_COMPUTE");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("UNKNOWN.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.UNITS_RULES_COMPUTE.UNKNOWN.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
         );

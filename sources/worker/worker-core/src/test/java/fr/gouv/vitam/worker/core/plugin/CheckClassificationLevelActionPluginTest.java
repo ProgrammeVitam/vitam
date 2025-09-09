@@ -143,8 +143,10 @@ public class CheckClassificationLevelActionPluginTest {
         assertThat(response.getValidationErrors()).hasSize(1);
         assertThat(response.getValidationErrors().getFirst().getEvId()).isNotNull();
         assertThat(response.getValidationErrors().getFirst().getObId()).isNull();
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_CLASSIFICATION_LEVEL");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("CHECK_CLASSIFICATION_LEVEL.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_CLASSIFICATION_LEVEL.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
         );

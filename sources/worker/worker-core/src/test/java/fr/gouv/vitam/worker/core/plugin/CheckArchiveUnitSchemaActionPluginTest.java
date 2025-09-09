@@ -283,8 +283,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         assertThat(response.getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
@@ -304,8 +306,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
         assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
@@ -336,8 +340,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
         assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
@@ -357,8 +363,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
         assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
@@ -378,8 +386,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("INVALID_UNIT");
         assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("INVALID_UNIT.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_UNIT_SCHEMA.INVALID_UNIT.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
@@ -399,8 +409,10 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("CONSISTENCY");
         assertThat(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId()).isEqualTo("CHECK_UNIT_SCHEMA");
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_UNIT_SCHEMA");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("CONSISTENCY.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_UNIT_SCHEMA.CONSISTENCY.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
         );

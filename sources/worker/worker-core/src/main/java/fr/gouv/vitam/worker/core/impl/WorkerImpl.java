@@ -96,9 +96,7 @@ import fr.gouv.vitam.worker.core.plugin.transfer.reply.TransferReplyUnitPreparat
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -120,7 +118,6 @@ public class WorkerImpl implements Worker {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerImpl.class);
     private static final String EMPTY_EV_DET_DATA = "{}";
-    private static final String JSON_EXTENSION = ".json";
 
     private static PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
 
@@ -415,24 +412,16 @@ public class WorkerImpl implements Worker {
         MultiValuedMap<String, ValidationError> validationErrorsByObjectName,
         HandlerIO handlerIO
     ) throws ProcessingException {
-        // FIXME: Hack - For now, ValidationError processing is restricted to the "STP_UNIT_CHECK_AND_PROCESS" step.
-        //  Other user stories should contain proper handling for ValidationErrors using a plugable validation error
-        //  manager, a special purpose "finally" action, or other cleaner designs.
-        if (
-            WorkFlowExecutionContext.COLLECT.equals(workParams.getExecutionContext()) &&
-            step.getStepName().equals("STP_UNIT_CHECK_AND_PROCESS") &&
-            !validationErrorsByObjectName.isEmpty()
-        ) {
-            ValidationErrorManager validationErrorManager = new ValidationErrorManager();
-            // Reset handlerIO for next execution
-            handlerIO.reset();
+        // Reset handlerIO for next execution
+        handlerIO.reset();
 
-            for (String objectName : validationErrorsByObjectName.keySet()) {
-                Collection<ValidationError> validationErrors = validationErrorsByObjectName.get(objectName);
-                String unitId = StringUtils.removeEnd(objectName, JSON_EXTENSION);
-                validationErrorManager.handleUnitValidationError(unitId, validationErrors, handlerIO);
-            }
-        }
+        ValidationErrorManager validationErrorManager = new ValidationErrorManager();
+        validationErrorManager.handleValidationErrors(
+            workParams.getExecutionContext(),
+            step,
+            validationErrorsByObjectName,
+            handlerIO
+        );
     }
 
     private static void collectValidationErrors(

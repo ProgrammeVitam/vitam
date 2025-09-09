@@ -166,7 +166,7 @@
     {
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_OG_CHECK_AND_TRANSFORME",
-      "behavior": "BLOCKING",
+      "behavior": "NOBLOCKING",
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "element": "ObjectGroup",
@@ -176,7 +176,7 @@
         {
           "action": {
             "actionKey": "CHECK_DIGEST",
-            "behavior": "BLOCKING",
+            "behavior": "NOBLOCKING",
             "in": [
               {
                 "name": "algo",
@@ -194,7 +194,7 @@
         {
           "action": {
             "actionKey": "OG_OBJECTS_ANTIVIRUS_CHECK",
-            "behavior": "BLOCKING",
+            "behavior": "NOBLOCKING",
             "in": [
               {
                 "name": "groupObject",
@@ -206,7 +206,7 @@
         {
           "action": {
             "actionKey": "CHECK_OBJECT_SIZE",
-            "behavior": "BLOCKING",
+            "behavior": "NOBLOCKING",
             "out": [
               {
                 "name": "groupObject",
@@ -218,7 +218,7 @@
         {
           "action": {
             "actionKey": "OG_OBJECTS_FORMAT_CHECK",
-            "behavior": "BLOCKING",
+            "behavior": "NOBLOCKING",
             "in": [
               {
                 "name": "groupObject",
@@ -234,7 +234,7 @@
         {
           "action": {
             "actionKey": "CHECK_OBJECT_GROUP_SCHEMA",
-            "behavior": "BLOCKING"
+            "behavior": "NOBLOCKING"
           }
         }
       ]

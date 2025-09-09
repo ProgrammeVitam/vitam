@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.exception;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin.UnitRulesComputeStatus;
 
@@ -35,27 +37,29 @@ import fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin.UnitRulesCompute
 public class InvalidRuleException extends ProcessingException {
 
     private final UnitRulesComputeStatus unitRulesComputeStatus;
+    private final ObjectNode evDetData;
     private final String objectId;
 
     /**
      * @param status the UnitRuleComputeStatus of the error
-     * @param cause the exception cause
+     * @param evDetData the exception cause
      * @param objectId the object in error
      */
-    public InvalidRuleException(UnitRulesComputeStatus status, String cause, String objectId) {
-        super(cause);
+    public InvalidRuleException(UnitRulesComputeStatus status, ObjectNode evDetData, String objectId) {
+        super(JsonHandler.unprettyPrint(evDetData));
         this.unitRulesComputeStatus = status;
+        this.evDetData = evDetData;
         this.objectId = objectId;
     }
 
     /**
      * InvalidRuleException constructor
      *
-     * @param unitRulesComputeStatus
-     * @param cause
+     * @param unitRulesComputeStatus the UnitRuleComputeStatus of the error
+     * @param evDetData the exception cause
      */
-    public InvalidRuleException(UnitRulesComputeStatus unitRulesComputeStatus, String cause) {
-        this(unitRulesComputeStatus, cause, "");
+    public InvalidRuleException(UnitRulesComputeStatus unitRulesComputeStatus, ObjectNode evDetData) {
+        this(unitRulesComputeStatus, evDetData, "");
     }
 
     /**
@@ -63,6 +67,10 @@ public class InvalidRuleException extends ProcessingException {
      */
     public UnitRulesComputeStatus getUnitRulesComputeStatus() {
         return unitRulesComputeStatus;
+    }
+
+    public ObjectNode getEvDetData() {
+        return evDetData;
     }
 
     public String getObjectId() {

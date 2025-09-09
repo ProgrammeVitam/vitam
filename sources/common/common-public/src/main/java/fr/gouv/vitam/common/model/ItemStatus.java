@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.processing.StatusAggregationBehavior;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -221,7 +222,13 @@ public class ItemStatus {
         statusMeter.set(statusCode.getStatusLevel(), increment + statusMeter.get(statusCode.getStatusLevel()));
         // update globalStatus
         globalStatus = globalStatus.compareTo(statusCode) > 0 ? globalStatus : statusCode;
-        this.validationErrors.addAll(Arrays.asList(validationErrors));
+        if (ArrayUtils.isNotEmpty(validationErrors)) {
+            ParametersChecker.checkParameter("Missing validation errors", (Object[]) validationErrors);
+            if (statusCode != StatusCode.KO) {
+                throw new IllegalArgumentException("Cannot add validation errors for status code " + statusCode);
+            }
+            this.validationErrors.addAll(Arrays.asList(validationErrors));
+        }
         return this;
     }
 

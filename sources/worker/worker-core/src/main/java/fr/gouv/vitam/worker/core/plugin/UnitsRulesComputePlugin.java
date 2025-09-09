@@ -60,6 +60,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.utils.ArchiveUnitUpdateUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -128,11 +129,12 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             switch (status) {
                 case REF_INCONSISTENCY: {
                     itemStatus.setGlobalOutcomeDetailSubcode(status.name());
-                    itemStatus.setEvDetailData(e.getMessage());
-                    ValidationError validationError = ValidationErrorHelper.createValidationError(
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(e.getEvDetData()));
+                    ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+                        LogbookTypeProcess.COLLECT_SIP_INGEST,
                         CHECK_RULES_TASK_ID,
                         status.name(),
-                        e.getMessage()
+                        e.getEvDetData()
                     );
                     itemStatus.increment(StatusCode.KO, validationError);
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
@@ -140,15 +142,16 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                 case UNKNOWN, CONSISTENCY: {
                     itemStatus.setGlobalOutcomeDetailSubcode(status.name());
 
-                    ValidationError validationError = ValidationErrorHelper.createValidationError(
+                    ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+                        LogbookTypeProcess.COLLECT_SIP_INGEST,
                         CHECK_RULES_TASK_ID,
                         status.name(),
-                        e.getMessage()
+                        e.getEvDetData()
                     );
                     itemStatus.increment(StatusCode.KO, validationError);
 
                     ItemStatus is = new ItemStatus(status.name());
-                    is.setEvDetailData(e.getMessage());
+                    is.setEvDetailData(JsonHandler.unprettyPrint(e.getEvDetData()));
                     is.increment(StatusCode.KO);
 
                     itemStatus.setSubTaskStatus(e.getObjectId(), is);
@@ -464,7 +467,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         if (ParametersChecker.isNotEmpty(errors)) {
             ObjectNode json = JsonHandler.createObjectNode();
             json.put("evDetTechData", errors);
-            throw new InvalidRuleException(UnitRulesComputeStatus.REF_INCONSISTENCY, JsonHandler.unprettyPrint(json));
+            throw new InvalidRuleException(UnitRulesComputeStatus.REF_INCONSISTENCY, json);
         }
     }
 
@@ -564,7 +567,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             );
             ObjectNode json = JsonHandler.createObjectNode();
             json.put("evDetTechData", errorMessage);
-            throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, JsonHandler.unprettyPrint(json), unitId);
+            throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, json, unitId);
         }
     }
 
@@ -626,11 +629,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     ")";
                 ObjectNode json = JsonHandler.createObjectNode();
                 json.put("evDetTechData", errorMessage);
-                throw new InvalidRuleException(
-                    UnitRulesComputeStatus.CONSISTENCY,
-                    JsonHandler.unprettyPrint(json),
-                    unitId
-                );
+                throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, json, unitId);
             }
         }
     }
@@ -659,13 +658,13 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             String errorMessage = String.format(BAD_CATEGORY_RULE, ruleId, ruleType, ruleTypeWithWrongCategory);
             ObjectNode json = JsonHandler.createObjectNode();
             json.put("evDetTechData", errorMessage);
-            throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, JsonHandler.unprettyPrint(json), unitId);
+            throw new InvalidRuleException(UnitRulesComputeStatus.CONSISTENCY, json, unitId);
         }
         // Don't find any matching Rule
         String errorMessage = String.format(NON_EXISTING_RULE, ruleId);
         ObjectNode json = JsonHandler.createObjectNode();
         json.put("evDetTechData", errorMessage);
-        throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, JsonHandler.unprettyPrint(json), unitId);
+        throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, json, unitId);
     }
 
     private LocalDate computeEndDateForRuleWithDuration(

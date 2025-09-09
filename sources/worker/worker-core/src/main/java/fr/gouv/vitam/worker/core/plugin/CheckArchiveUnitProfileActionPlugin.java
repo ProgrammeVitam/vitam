@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -185,18 +186,17 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         }
     }
 
-    private ItemStatus createItemStatusKo(ItemStatus subItemStatus, String outcomeDetail, JsonNode evDetailData) {
-        String evDetailDataStr = JsonHandler.unprettyPrint(evDetailData);
-
-        ValidationError validationError = ValidationErrorHelper.createValidationError(
+    private ItemStatus createItemStatusKo(ItemStatus subItemStatus, String outcomeDetail, ObjectNode evDetailData) {
+        ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+            LogbookTypeProcess.COLLECT_SIP_INGEST,
             CHECK_UNIT_PROFILE_TASK_ID,
             outcomeDetail,
-            evDetailDataStr
+            evDetailData
         );
 
         subItemStatus
             .increment(KO, validationError)
-            .setEvDetailData(evDetailDataStr)
+            .setEvDetailData(JsonHandler.unprettyPrint(evDetailData))
             .setGlobalOutcomeDetailSubcode(outcomeDetail);
         return new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID).setItemsStatus(CHECK_UNIT_PROFILE_TASK_ID, subItemStatus);
     }

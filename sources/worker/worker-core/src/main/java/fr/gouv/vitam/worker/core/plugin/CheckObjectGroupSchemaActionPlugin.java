@@ -38,8 +38,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.validations.ValidationError;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationErrorCode;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
@@ -67,10 +71,6 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectGroupSchemaActionPlugin.class);
 
     private static final String CHECK_OG_SCHEMA_TASK_ID = "CHECK_OBJECT_GROUP_SCHEMA";
-
-    private static final String OBJECT_GROUP_SANITIZE = "OBJECT_GROUP_SANITIZE";
-
-    private static final String ONTOLOGY_VALIDATION = "ONTOLOGY_VALIDATION";
 
     /**
      * Improper unit
@@ -104,20 +104,37 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
             LOGGER.warn("Object group schema validation failed " + params.getObjectName(), e);
 
             if (e.getErrorCode().equals(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE)) {
-                itemStatus.increment(StatusCode.KO);
-                final ObjectNode object = JsonHandler.createObjectNode();
-                object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
+                final ObjectNode evDetailData = JsonHandler.createObjectNode();
+                evDetailData.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetailData));
+
+                ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+                    LogbookTypeProcess.COLLECT_SIP_INGEST,
+                    CHECK_OG_SCHEMA_TASK_ID,
+                    evDetailData
+                );
+                itemStatus.increment(StatusCode.KO, validationError);
+
                 return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID, itemStatus);
             } else {
                 throw new IllegalStateException("Unexpected value: " + e.getErrorCode());
             }
         } catch (final MetaDataContainSpecialCharactersException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
-            final ObjectNode object = JsonHandler.createObjectNode();
-            object.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(object));
+            final ObjectNode evDetailData = JsonHandler.createObjectNode();
+            evDetailData.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
+
+            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetailData));
+
+            ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+                LogbookTypeProcess.COLLECT_SIP_INGEST,
+                CHECK_OG_SCHEMA_TASK_ID,
+                INVALID_OG,
+                evDetailData
+            );
+            itemStatus.increment(StatusCode.KO, validationError);
+
             return new ItemStatus(CHECK_OG_SCHEMA_TASK_ID).setItemsStatus(CHECK_OG_SCHEMA_TASK_ID, itemStatus);
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -134,6 +151,7 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
         JsonNode objectGroupJson;
         try (
             InputStream archiveOgToJson = handlerIO.getInputStreamFromWorkspace(
+                WorkFlowExecutionContext.VITAM,
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + objectName
             )
         ) {
@@ -172,6 +190,7 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
             );
         if (isUpdateJsonMandatory) {
             handlerIO.transferJsonToWorkspace(
+                WorkFlowExecutionContext.VITAM,
                 IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                 objectName,
                 updatedOgJson,

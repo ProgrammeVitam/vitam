@@ -138,18 +138,29 @@ public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAu
                                 switch (exitCode) {
                                     case OK:
                                         antivirusItemStatus = StatusCode.OK;
+                                        itemStatus.increment(antivirusItemStatus);
                                         break;
                                     case BAD_REQUEST:
                                         antivirusItemStatus = StatusCode.KO;
+                                        itemStatus.increment(
+                                            antivirusItemStatus,
+                                            ValidationErrorHelper.createObjectValidationError(
+                                                LogbookTypeProcess.COLLECT_SIP_INGEST,
+                                                PLUGIN_ID,
+                                                ANTIVIRUS,
+                                                objectId,
+                                                null
+                                            )
+                                        );
                                         break;
                                     case NOT_FOUND:
                                     case INTERNAL_SERVER_ERROR:
                                     default:
                                         antivirusItemStatus = FATAL;
+                                        itemStatus.increment(antivirusItemStatus);
                                         break;
                                 }
                                 subTaskItemStatus.increment(antivirusItemStatus);
-                                itemStatus.increment(antivirusItemStatus);
                                 itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
 
                                 if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
