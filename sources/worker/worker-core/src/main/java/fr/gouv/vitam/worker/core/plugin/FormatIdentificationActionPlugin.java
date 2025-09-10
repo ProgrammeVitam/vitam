@@ -305,7 +305,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             LOGGER.error("File does not match any format signature", e);
             final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
             if (ingestContract.isFormatUnidentifiedAuthorized() && ingestContract.isEveryFormatType()) {
-                checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
+                checkNotFoundFormatIdentification(version, objectCheckFormatResult);
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
             } else {
                 objectCheckFormatResult.setStatus(StatusCode.KO);
@@ -321,7 +321,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                 // Format not found in vitam referential
                 final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
                 if (ingestContract.isFormatUnidentifiedAuthorized()) {
-                    checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
+                    checkNotFoundFormatIdentification(version, objectCheckFormatResult);
                 }
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
@@ -337,7 +337,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
         objectCheckFormatResult.setStatus(StatusCode.OK);
         checkAndUpdateFormatIdentification(
-            manifestFormatIdentification,
             version,
             fileFormatModel.getPuid(),
             fileFormatModel.getName(),
@@ -366,7 +365,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     }
 
     private void checkAndUpdateFormatIdentification(
-        ObjectNode manifestFormatIdentification,
         ObjectNode version,
         String puid,
         String name,
@@ -375,49 +373,40 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     ) {
         ObjectNode diffJsonNodeToPopulate = JsonHandler.createObjectNode();
 
-        boolean isMetadataLocallyUpdated = false;
-
-        ObjectNode newFormatIdentification = manifestFormatIdentification != null
-            ? manifestFormatIdentification.deepCopy()
-            : null;
-
-        if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
-            newFormatIdentification = JsonHandler.createObjectNode();
-            version.set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
+        ObjectNode formatIdentification = (ObjectNode) version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
+        if (formatIdentification == null) {
+            formatIdentification = JsonHandler.createObjectNode();
+            version.set(SedaConstants.TAG_FORMAT_IDENTIFICATION, formatIdentification);
         }
 
-        if (newFormatIdentification != null) {
-            isMetadataLocallyUpdated = checkAndUpdateManifestFormatFieldAgainstReferentialValue(
-                newFormatIdentification,
-                PUID,
-                SedaConstants.TAG_FORMAT_ID,
-                puid,
-                diffJsonNodeToPopulate,
-                objectCheckFormatResult
-            );
+        boolean puidUpdated = checkAndUpdateManifestFormatFieldAgainstReferentialValue(
+            formatIdentification,
+            PUID,
+            SedaConstants.TAG_FORMAT_ID,
+            puid,
+            diffJsonNodeToPopulate,
+            objectCheckFormatResult
+        );
 
-            isMetadataLocallyUpdated = checkAndUpdateManifestFormatFieldAgainstReferentialValue(
-                newFormatIdentification,
-                SedaConstants.TAG_FORMAT_LITTERAL,
-                SedaConstants.TAG_FORMAT_LITTERAL,
-                name,
-                diffJsonNodeToPopulate,
-                objectCheckFormatResult
-            ) ||
-            isMetadataLocallyUpdated;
+        boolean formatLiteralUpdated = checkAndUpdateManifestFormatFieldAgainstReferentialValue(
+            formatIdentification,
+            SedaConstants.TAG_FORMAT_LITTERAL,
+            SedaConstants.TAG_FORMAT_LITTERAL,
+            name,
+            diffJsonNodeToPopulate,
+            objectCheckFormatResult
+        );
 
-            isMetadataLocallyUpdated = checkAndUpdateManifestFormatFieldAgainstReferentialValue(
-                newFormatIdentification,
-                SedaConstants.TAG_MIME_TYPE,
-                SedaConstants.TAG_MIME_TYPE,
-                mimeType,
-                diffJsonNodeToPopulate,
-                objectCheckFormatResult
-            ) ||
-            isMetadataLocallyUpdated;
-        }
+        boolean mimeTypeUpdated = checkAndUpdateManifestFormatFieldAgainstReferentialValue(
+            formatIdentification,
+            SedaConstants.TAG_MIME_TYPE,
+            SedaConstants.TAG_MIME_TYPE,
+            mimeType,
+            diffJsonNodeToPopulate,
+            objectCheckFormatResult
+        );
 
-        if (isMetadataLocallyUpdated) {
+        if (puidUpdated || formatLiteralUpdated || mimeTypeUpdated) {
             objectCheckFormatResult.setMetadataUpdated(true);
         }
 
@@ -429,8 +418,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             ObjectNode wrappingDiffJsonObject = JsonHandler.createObjectNode().set("diff", diffJsonNodeToPopulate);
             objectCheckFormatResult.setEventDetailData(JsonHandler.unprettyPrint(wrappingDiffJsonObject));
         }
-
-        version.set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
     }
 
     private boolean checkAndUpdateManifestFormatFieldAgainstReferentialValue(
@@ -549,25 +536,17 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     }
 
     private void checkNotFoundFormatIdentification(
-        ObjectNode formatIdentification,
         ObjectNode version,
         ObjectCheckFormatResult objectCheckFormatResult
     ) {
-        String formatName = formatIdentification == null ||
-            formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL) == null
-            ? ""
-            : formatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText();
-        String mimeType = formatIdentification == null || formatIdentification.get(SedaConstants.TAG_MIME_TYPE) == null
-            ? ""
-            : formatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText();
-
-        checkAndUpdateFormatIdentification(
-            formatIdentification,
-            version,
-            UNKNOWN_FORMAT,
-            formatName,
-            mimeType,
-            objectCheckFormatResult
-        );
+        String formatName = version
+            .path(SedaConstants.TAG_FORMAT_IDENTIFICATION)
+            .path(SedaConstants.TAG_FORMAT_LITTERAL)
+            .textValue();
+        String mimeType = version
+            .path(SedaConstants.TAG_FORMAT_IDENTIFICATION)
+            .path(SedaConstants.TAG_MIME_TYPE)
+            .textValue();
+        checkAndUpdateFormatIdentification(version, UNKNOWN_FORMAT, formatName, mimeType, objectCheckFormatResult);
     }
 }
