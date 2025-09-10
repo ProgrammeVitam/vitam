@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -293,17 +294,44 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             return new ObjectCheckFormatResult().setStatus(StatusCode.KO).setSubStatus(FILE_FORMAT_REJECTED);
         }
 
+        FormatIdentifierResponse format;
+        try {
+            format = getFirstPronomFormat(formatIdentifier, file);
+        } catch (FormatIdentifierTechnicalException e) {
+            LOGGER.error(e);
+            return new ObjectCheckFormatResult()
+                .setStatus(StatusCode.FATAL)
+                .setSubStatus(FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR);
+        } catch (final FormatIdentifierBadRequestException e) {
+            // path does not match a file
+            LOGGER.error(e);
+            return new ObjectCheckFormatResult().setStatus(StatusCode.FATAL).setSubStatus(FILE_FORMAT_OBJECT_NOT_FOUND);
+        } catch (final FormatIdentifierNotFoundException e) {
+            // identifier does not respond
+            LOGGER.error(e);
+            return new ObjectCheckFormatResult()
+                .setStatus(StatusCode.FATAL)
+                .setSubStatus(FILE_FORMAT_TOOL_DOES_NOT_ANSWER);
+        } catch (final FileFormatNotFoundException e) {
+            // format no found case
+            LOGGER.error(e);
+            final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
+
+            if (ingestContract.isFormatUnidentifiedAuthorized() && ingestContract.isEveryFormatType()) {
+                checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
+                objectCheckFormatResult.setStatus(StatusCode.WARNING);
+            } else {
+                objectCheckFormatResult.setStatus(StatusCode.KO);
+            }
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND);
+            return objectCheckFormatResult;
+        }
+
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
         objectCheckFormatResult.setStatus(StatusCode.OK);
 
         try {
             // check the file
-            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
-
-            final FormatIdentifierResponse format = getFirstPronomFormat(formats);
-            if (format == null) {
-                throw new FileFormatNotFoundException("File format not found in " + FORMAT_IDENTIFIER_ID);
-            }
 
             final String formatId = format.getPuid();
 
@@ -337,12 +365,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     objectCheckFormatResult
                 );
             }
-        } catch (
-            InvalidParseOperationException
-            | InvalidCreateOperationException
-            | FormatIdentifierTechnicalException
-            | IOException e
-        ) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | IOException e) {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR);
@@ -350,26 +373,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR);
-        } catch (final FormatIdentifierBadRequestException e) {
-            // path does not match a file
-            LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_OBJECT_NOT_FOUND);
-        } catch (final FileFormatNotFoundException e) {
-            // format no found case
-            LOGGER.error(e);
-            if (ingestContract.isFormatUnidentifiedAuthorized() && ingestContract.isEveryFormatType()) {
-                checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
-                objectCheckFormatResult.setStatus(StatusCode.WARNING);
-            } else {
-                objectCheckFormatResult.setStatus(StatusCode.KO);
-            }
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND);
-        } catch (final FormatIdentifierNotFoundException e) {
-            // identifier does not respond
-            LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_TOOL_DOES_NOT_ANSWER);
         }
 
         return objectCheckFormatResult;
@@ -466,19 +469,15 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         return isManifestFieldUpdated;
     }
 
-    /**
-     * Retrieve the first corresponding file format from pronom referentiel
-     *
-     * @param formats formats list to analyse
-     * @return the first pronom file format or null if not found
-     */
-    private FormatIdentifierResponse getFirstPronomFormat(List<FormatIdentifierResponse> formats) {
+    private FormatIdentifierResponse getFirstPronomFormat(FormatIdentifier formatIdentifier, File file)
+        throws FileFormatNotFoundException, FormatIdentifierTechnicalException, FormatIdentifierBadRequestException, FormatIdentifierNotFoundException {
+        final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
         for (final FormatIdentifierResponse format : formats) {
             if (FormatIdentifierSiegfried.PRONOM_NAMESPACE.equals(format.getMatchedNamespace())) {
                 return format;
             }
         }
-        return null;
+        throw new FileFormatNotFoundException("File format not found in " + FORMAT_IDENTIFIER_ID);
     }
 
     private File loadFileFromWorkspace(WorkFlowExecutionContext executionContext, HandlerIO handlerIO, String filePath)
