@@ -97,8 +97,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     /**
      * Error list for file format treatment
      */
-    private static final String FILE_FORMAT_TOOL_DOES_NOT_ANSWER = "TOOL_DOES_NOT_ANSWER";
-    private static final String FILE_FORMAT_OBJECT_NOT_FOUND = "OBJECT_NOT_FOUND";
     private static final String FILE_FORMAT_NOT_FOUND = "NOT_FOUND";
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
@@ -297,26 +295,16 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         FormatIdentifierResponse format;
         try {
             format = getFirstPronomFormat(formatIdentifier, file);
-        } catch (FormatIdentifierTechnicalException e) {
-            LOGGER.error(e);
-            return new ObjectCheckFormatResult()
-                .setStatus(StatusCode.FATAL)
-                .setSubStatus(FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR);
-        } catch (final FormatIdentifierBadRequestException e) {
-            // path does not match a file
-            LOGGER.error(e);
-            return new ObjectCheckFormatResult().setStatus(StatusCode.FATAL).setSubStatus(FILE_FORMAT_OBJECT_NOT_FOUND);
-        } catch (final FormatIdentifierNotFoundException e) {
-            // identifier does not respond
-            LOGGER.error(e);
-            return new ObjectCheckFormatResult()
-                .setStatus(StatusCode.FATAL)
-                .setSubStatus(FILE_FORMAT_TOOL_DOES_NOT_ANSWER);
+        } catch (
+            FormatIdentifierTechnicalException
+            | FormatIdentifierNotFoundException
+            | FormatIdentifierBadRequestException e
+        ) {
+            LOGGER.error("An error occurred during file format identification", e);
+            return new ObjectCheckFormatResult().setStatus(StatusCode.FATAL);
         } catch (final FileFormatNotFoundException e) {
-            // format no found case
-            LOGGER.error(e);
+            LOGGER.error("File does not match any format signature", e);
             final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
-
             if (ingestContract.isFormatUnidentifiedAuthorized() && ingestContract.isEveryFormatType()) {
                 checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
