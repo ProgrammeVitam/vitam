@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
-import fr.gouv.vitam.common.format.identification.exception.FileFormatRejectedException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
@@ -286,17 +285,18 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         File file,
         ObjectNode version
     ) {
+        if (
+            !ingestContract.isEveryFormatType() &&
+            !identifiedFormatsRestricted(manifestFormatIdentification, ingestContract.getFormatType())
+        ) {
+            LOGGER.error("File format rejected in " + FORMAT_IDENTIFIER_ID);
+            return new ObjectCheckFormatResult().setStatus(StatusCode.KO).setSubStatus(FILE_FORMAT_REJECTED);
+        }
+
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
         objectCheckFormatResult.setStatus(StatusCode.OK);
 
         try {
-            if (
-                !ingestContract.isEveryFormatType() &&
-                !identifiedFormatsRestricted(manifestFormatIdentification, ingestContract.getFormatType())
-            ) {
-                throw new FileFormatRejectedException("File format rejected in " + FORMAT_IDENTIFIER_ID);
-            }
-
             // check the file
             final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
 
@@ -370,10 +370,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_TOOL_DOES_NOT_ANSWER);
-        } catch (final FileFormatRejectedException e) {
-            LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.KO);
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_REJECTED);
         }
 
         return objectCheckFormatResult;
@@ -511,12 +507,14 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         private boolean metadataUpdated;
         private String eventDetailData;
 
-        public void setStatus(StatusCode status) {
+        public ObjectCheckFormatResult setStatus(StatusCode status) {
             this.status = status;
+            return this;
         }
 
-        public void setSubStatus(String subStatus) {
+        public ObjectCheckFormatResult setSubStatus(String subStatus) {
             this.subStatus = subStatus;
+            return this;
         }
 
         public StatusCode getStatus() {
