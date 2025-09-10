@@ -171,6 +171,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return MetadataDocument.BATCH_ID;
                     case VUPS:
                         return Unit.VIRTUAL_UPS;
+                    case ERRORS:
+                        return MetadataDocument.ERRORS;
                     case UPLOADPATH:
                         return MetadataDocument.UPLOAD_PATH;
                     case ALL:

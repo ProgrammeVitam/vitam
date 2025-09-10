@@ -47,6 +47,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -756,9 +759,10 @@ public class CollectSipIngestIT extends AbstractCollectIT {
     }
 
     private static Map<String, List<ValidationError>> selectUnitValidationErrors(String transactionId)
-        throws VitamClientException {
+        throws VitamClientException, InvalidCreateOperationException {
         try (CollectExternalClient collectExternalClient = CollectExternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery query = new SelectMultiQuery();
+            query.addQueries(QueryHelper.exists(VitamFieldsHelper.errors()));
             List<JsonNode> units =
                 ((RequestResponseOK<JsonNode>) collectExternalClient.getUnitsByTransaction(
                         new VitamContext(TENANT_ID),
