@@ -30,12 +30,17 @@ package fr.gouv.vitam.functional.administration.common.config;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
+import fr.gouv.vitam.common.model.config.DedicatedVirtualPathsTenantConfiguration;
+import fr.gouv.vitam.common.model.config.TenantRangeValidator;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import fr.gouv.vitam.common.security.SanityChecker;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AdminManagementConfigurationValidator {
 
@@ -52,6 +57,8 @@ public class AdminManagementConfigurationValidator {
         }
 
         validateCustomSearchOnFieldsConfiguration(adminManagementConfiguration.getCustomSearchOnFieldsConfiguration());
+
+        validateVirtualPathsConfiguration(adminManagementConfiguration.getVirtualPathsConfiguration());
     }
 
     private static void validateElasticsearchSettings(String elasticsearchConfigurationFilePath)
@@ -132,5 +139,25 @@ public class AdminManagementConfigurationValidator {
                     CollectionSearchConfigurationUtils.validate(groupsConf.getObjectgroupFields(), true);
                 });
         }
+    }
+
+    private static void validateVirtualPathsConfiguration(VirtualPathsConfiguration virtualPathsConfiguration) {
+        if (virtualPathsConfiguration == null) {
+            return;
+        }
+        List<String> tenantRangeStrings = new ArrayList<>();
+        if (virtualPathsConfiguration.getDefaultConfiguration() == null) {
+            throw new IllegalStateException("Invalid configuration. Missing default virtual paths configuration");
+        }
+
+        if (CollectionUtils.isNotEmpty(virtualPathsConfiguration.getDedicatedTenantConfiguration())) {
+            virtualPathsConfiguration
+                .getDedicatedTenantConfiguration()
+                .stream()
+                .map(DedicatedVirtualPathsTenantConfiguration::getTenants)
+                .forEach(tenantRangeStrings::add);
+        }
+
+        TenantRangeValidator.validate(tenantRangeStrings);
     }
 }

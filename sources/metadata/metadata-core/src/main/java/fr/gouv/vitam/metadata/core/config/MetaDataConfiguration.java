@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbShardConf;
@@ -102,7 +103,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private String elasticsearchConfigurationFile;
 
     @JsonProperty("virtualPaths")
-    private MetadataVirtualPathsConfiguration virtualPathsConfiguration;
+    private VirtualPathsConfiguration virtualPathsConfiguration;
 
     /**
      * MetaDataConfiguration constructor
@@ -435,13 +436,11 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         this.elasticsearchConfigurationFile = elasticsearchConfigurationFile;
     }
 
-    public MetadataVirtualPathsConfiguration getVirtualPathsConfiguration() {
+    public VirtualPathsConfiguration getVirtualPathsConfiguration() {
         return virtualPathsConfiguration;
     }
 
-    public MetaDataConfiguration setVirtualPathsConfiguration(
-        MetadataVirtualPathsConfiguration virtualPathsConfiguration
-    ) {
+    public MetaDataConfiguration setVirtualPathsConfiguration(VirtualPathsConfiguration virtualPathsConfiguration) {
         this.virtualPathsConfiguration = virtualPathsConfiguration;
         return this;
     }

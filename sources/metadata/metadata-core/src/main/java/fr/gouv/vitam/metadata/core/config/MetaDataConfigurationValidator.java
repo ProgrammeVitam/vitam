@@ -28,8 +28,9 @@
 package fr.gouv.vitam.metadata.core.config;
 
 import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
-import fr.gouv.vitam.common.model.config.TenantRange;
-import fr.gouv.vitam.common.model.config.TenantRangeParser;
+import fr.gouv.vitam.common.model.config.DedicatedVirtualPathsTenantConfiguration;
+import fr.gouv.vitam.common.model.config.TenantRangeValidator;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public final class MetaDataConfigurationValidator {
         validateVirtualPathsConfiguration(metaDataConfiguration.getVirtualPathsConfiguration());
     }
 
-    private static void validateVirtualPathsConfiguration(MetadataVirtualPathsConfiguration virtualPathsConfiguration) {
+    private static void validateVirtualPathsConfiguration(VirtualPathsConfiguration virtualPathsConfiguration) {
         if (virtualPathsConfiguration == null) {
             return;
         }
@@ -72,7 +73,7 @@ public final class MetaDataConfigurationValidator {
                 .forEach(tenantRangeStrings::add);
         }
 
-        validateTenantRangeValues(tenantRangeStrings);
+        TenantRangeValidator.validate(tenantRangeStrings);
     }
 
     private static void validateElasticsearchIndexationConfiguration(
@@ -158,34 +159,7 @@ public final class MetaDataConfigurationValidator {
                 .forEach(tenantRangeStrings::add);
         }
 
-        validateTenantRangeValues(tenantRangeStrings);
-    }
-
-    private static void validateTenantRangeValues(List<String> tenantRangeStrings) {
-        if (tenantRangeStrings.contains(null)) {
-            throw new IllegalStateException(
-                "Invalid configuration. Missing tenants from dedicated tenant configuration"
-            );
-        }
-
-        List<TenantRange> tenantRanges = tenantRangeStrings
-            .stream()
-            .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
-            .toList();
-
-        // Check tenant range overlapping
-        for (int i = 0; i < tenantRanges.size(); i++) {
-            for (int j = i + 1; j < tenantRanges.size(); j++) {
-                if (TenantRangeParser.doRangesIntersect(tenantRanges.get(i), tenantRanges.get(j))) {
-                    throw new IllegalStateException(
-                        "Invalid configuration. Overlapping tenant ranges " +
-                        tenantRanges.get(i) +
-                        " and " +
-                        tenantRanges.get(j)
-                    );
-                }
-            }
-        }
+        TenantRangeValidator.validate(tenantRangeStrings);
     }
 
     private static void validateCollectionConfiguration(MetadataIndexationConfiguration indexationConfiguration) {

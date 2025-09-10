@@ -83,6 +83,8 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyOrigin;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.config.VirtualPathConfiguration;
+import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
+import fr.gouv.vitam.common.model.config.VirtualPathsManager;
 import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
@@ -103,8 +105,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchExternalMetadataMapping;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.config.MetadataVirtualPathsConfiguration;
-import fr.gouv.vitam.metadata.core.config.VirtualPathsManager;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -482,7 +482,7 @@ public class DbRequestTest {
         String virtualPathSource = "FilePlanPosition";
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         final GUID uuid = GUIDFactory.newUnitGUID(TENANT_ID_0);
-        MetadataVirtualPathsConfiguration virtualPathsConfiguration = new MetadataVirtualPathsConfiguration();
+        VirtualPathsConfiguration virtualPathsConfiguration = new VirtualPathsConfiguration();
         VirtualPathConfiguration defaultConfiguration = new VirtualPathConfiguration();
         defaultConfiguration.setSourceFields(List.of(virtualPathSource));
         virtualPathsConfiguration.setDefaultConfiguration(defaultConfiguration);
@@ -1141,7 +1141,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<>(UNIT::getCollection),
             new MongoDbMetadataRepository<>(OBJECTGROUP::getCollection),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
@@ -1237,7 +1237,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
@@ -3143,7 +3143,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(
             uuid,
@@ -3253,7 +3253,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
         assertThatThrownBy(
             () ->
@@ -3332,7 +3332,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
         assertThatThrownBy(
             () ->
@@ -3462,7 +3462,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         JsonNode history = new History("BatmanHistory", 1L, JsonHandler.createObjectNode()).getArrayNode();
@@ -3541,7 +3541,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         // When
@@ -3610,7 +3610,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         // When
@@ -3685,7 +3685,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         UpdatedDocument updatedDocument = dbRequest.execRuleRequest(
@@ -3736,7 +3736,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         updatedDocument = dbRequest.execRuleRequest(
@@ -3830,7 +3830,7 @@ public class DbRequestTest {
             new MongoDbMetadataRepository<Unit>(() -> UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> OBJECTGROUP.getCollection()),
             fieldHistoryManager,
-            new VirtualPathsManager(metaDataConfiguration)
+            new VirtualPathsManager(metaDataConfiguration.getVirtualPathsConfiguration())
         );
 
         UpdateMultiQuery update = new UpdateMultiQuery();

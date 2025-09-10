@@ -28,6 +28,7 @@
 package fr.gouv.vitam.functional.administration.core.configuration;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.config.VirtualPathsManager;
 import fr.gouv.vitam.common.model.configuration.PublicConfiguration;
 import fr.gouv.vitam.functional.administration.common.config.AdminManagementConfiguration;
 
@@ -36,9 +37,11 @@ import java.util.List;
 public class PublicConfigurationService {
 
     private final AdminManagementConfiguration adminManagementConfiguration;
+    private final VirtualPathsManager virtualPathsManager;
 
     public PublicConfigurationService(AdminManagementConfiguration adminManagementConfiguration) {
         this.adminManagementConfiguration = adminManagementConfiguration;
+        this.virtualPathsManager = new VirtualPathsManager(adminManagementConfiguration.getVirtualPathsConfiguration());
     }
 
     public PublicConfiguration getPublicConfiguration() {
@@ -56,7 +59,8 @@ public class PublicConfigurationService {
             .setIndexInheritedRulesWithRulesIdByTenant(
                 parseIntList(VitamConfiguration.getIndexInheritedRulesWithRulesIdByTenant())
             )
-            .setExternalReferentialIdentifiersByTenant(adminManagementConfiguration.getListEnableExternalIdentifiers());
+            .setExternalReferentialIdentifiersByTenant(adminManagementConfiguration.getListEnableExternalIdentifiers())
+            .setVirtualPathsConfigurationByTenant(virtualPathsManager.getVirtualPathsFieldsConfiguration());
     }
 
     private static List<Integer> parseIntList(List<String> stringList) {
