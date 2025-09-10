@@ -101,7 +101,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
     private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
-    private static final String FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR = "FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR";
     private static final String FILE_FORMAT_REJECTED = "REJECTED_FORMAT";
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
@@ -315,55 +314,55 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             return objectCheckFormatResult;
         }
 
-        final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
-        objectCheckFormatResult.setStatus(StatusCode.OK);
-
+        FileFormatModel fileFormatModel;
         try {
-            // check the file
-
-            final String formatId = format.getPuid();
-
-            final Select select = new Select();
-            select.setQuery(eq(FileFormat.PUID, formatId));
-            final RequestResponse<FileFormatModel> result;
-            try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-                result = adminClient.getFormats(select.getFinalSelect());
-            }
-
-            if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().isEmpty()) {
-                // format not found in vitam referential
+            fileFormatModel = loadFileFormat(format);
+            if (fileFormatModel == null) {
+                // Format not found in vitam referential
+                final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
                 if (ingestContract.isFormatUnidentifiedAuthorized()) {
                     checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
                 }
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
-            } else {
-                // check formatIdentification
-
-                RequestResponseOK<FileFormatModel> requestResponseOK = (RequestResponseOK<FileFormatModel>) result;
-                List<FileFormatModel> results = requestResponseOK.getResults();
-                FileFormatModel refFormat = results.get(0);
-
-                checkFormatIdentification(
-                    manifestFormatIdentification,
-                    version,
-                    refFormat.getPuid(),
-                    refFormat.getName(),
-                    refFormat.getMimeType(),
-                    objectCheckFormatResult
-                );
+                return objectCheckFormatResult;
             }
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | IOException e) {
-            LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_REFERENTIAL_TECHNICAL_ERROR);
-        } catch (final ReferentialException e) {
-            LOGGER.error(e);
-            objectCheckFormatResult.setStatus(StatusCode.KO);
-            objectCheckFormatResult.setSubStatus(FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR);
+        } catch (
+            InvalidParseOperationException | InvalidCreateOperationException | IOException | ReferentialException e
+        ) {
+            LOGGER.error("An error occurred during format loading from referential", e);
+            return new ObjectCheckFormatResult().setStatus(StatusCode.FATAL);
         }
 
+        final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
+        objectCheckFormatResult.setStatus(StatusCode.OK);
+        checkFormatIdentification(
+            manifestFormatIdentification,
+            version,
+            fileFormatModel.getPuid(),
+            fileFormatModel.getName(),
+            fileFormatModel.getMimeType(),
+            objectCheckFormatResult
+        );
         return objectCheckFormatResult;
+    }
+
+    private FileFormatModel loadFileFormat(FormatIdentifierResponse format)
+        throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException, IOException {
+        final String formatId = format.getPuid();
+
+        final Select select = new Select();
+        select.setQuery(eq(FileFormat.PUID, formatId));
+        final RequestResponse<FileFormatModel> result;
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
+            result = adminClient.getFormats(select.getFinalSelect());
+        }
+
+        if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().isEmpty()) {
+            return null;
+        }
+
+        return ((RequestResponseOK<FileFormatModel>) result).getResults().get(0);
     }
 
     private ObjectNode checkAndUpdateFormatIdentification(

@@ -449,13 +449,13 @@ public class FormatIdentificationActionPluginTest {
     }
 
     @Test
-    public void formatIdentificationReferentialException() throws Exception {
+    public void formatIdentificationReferentialNotFoundException() throws Exception {
         when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
         handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
-        when(adminManagementClient.getFormats(any())).thenThrow(new ReferentialException("Test Referential Exception"));
+        when(adminManagementClient.getFormats(any())).thenReturn(new RequestResponseOK<>());
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -472,6 +472,29 @@ public class FormatIdentificationActionPluginTest {
                 assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
                 assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
             });
+    }
+
+    @Test
+    public void formatIdentificationReferentialException() throws Exception {
+        when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
+
+        handlerIO.getInput().clear();
+        handlerIO.getInput().add(og);
+        handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
+        when(adminManagementClient.getFormats(any())).thenThrow(new ReferentialException("Test Referential Exception"));
+
+        plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
+        final WorkerParameters params = getDefaultWorkerParameters();
+
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
+        ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
+        assertEquals(StatusCode.FATAL, taskItemStatus.getGlobalStatus());
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> assertEquals(StatusCode.FATAL, subTaskItemStatus.getGlobalStatus()));
     }
 
     @Test
