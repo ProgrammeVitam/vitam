@@ -28,15 +28,13 @@
 package fr.gouv.vitam.logbook.common.server.config;
 
 import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
-import fr.gouv.vitam.common.model.config.TenantRange;
-import fr.gouv.vitam.common.model.config.TenantRangeParser;
+import fr.gouv.vitam.common.model.config.TenantRangeValidator;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class LogbookConfigurationValidator {
 
@@ -124,30 +122,7 @@ public class LogbookConfigurationValidator {
                 .forEach(tenantRangeStrings::add);
         }
 
-        if (tenantRangeStrings.contains(null)) {
-            throw new IllegalStateException(
-                "Invalid configuration. Missing tenants from dedicated tenant or grouped tenant configuration"
-            );
-        }
-
-        List<TenantRange> tenantRanges = tenantRangeStrings
-            .stream()
-            .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
-            .collect(Collectors.toList());
-
-        // Check tenant range overlapping
-        for (int i = 0; i < tenantRanges.size(); i++) {
-            for (int j = i + 1; j < tenantRanges.size(); j++) {
-                if (TenantRangeParser.doRangesIntersect(tenantRanges.get(i), tenantRanges.get(j))) {
-                    throw new IllegalStateException(
-                        "Invalid configuration. Overlapping tenant ranges " +
-                        tenantRanges.get(i) +
-                        " and " +
-                        tenantRanges.get(j)
-                    );
-                }
-            }
-        }
+        TenantRangeValidator.validate(tenantRangeStrings);
     }
 
     private static void validateCollectionConfiguration(LogbookIndexationConfiguration indexationConfiguration) {

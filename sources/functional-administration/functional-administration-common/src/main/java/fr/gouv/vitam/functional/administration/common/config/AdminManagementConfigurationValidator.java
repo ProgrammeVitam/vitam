@@ -31,8 +31,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.common.model.config.CollectionConfigurationUtils;
 import fr.gouv.vitam.common.model.config.DedicatedVirtualPathsTenantConfiguration;
-import fr.gouv.vitam.common.model.config.TenantRange;
-import fr.gouv.vitam.common.model.config.TenantRangeParser;
+import fr.gouv.vitam.common.model.config.TenantRangeValidator;
 import fr.gouv.vitam.common.model.config.VirtualPathsConfiguration;
 import fr.gouv.vitam.common.security.SanityChecker;
 import org.apache.commons.collections4.CollectionUtils;
@@ -151,11 +150,7 @@ public class AdminManagementConfigurationValidator {
             throw new IllegalStateException("Invalid configuration. Missing default virtual paths configuration");
         }
 
-        if (
-            org.apache.commons.collections4.CollectionUtils.isNotEmpty(
-                virtualPathsConfiguration.getDedicatedTenantConfiguration()
-            )
-        ) {
+        if (CollectionUtils.isNotEmpty(virtualPathsConfiguration.getDedicatedTenantConfiguration())) {
             virtualPathsConfiguration
                 .getDedicatedTenantConfiguration()
                 .stream()
@@ -163,33 +158,6 @@ public class AdminManagementConfigurationValidator {
                 .forEach(tenantRangeStrings::add);
         }
 
-        validateTenantRangeValues(tenantRangeStrings);
-    }
-
-    private static void validateTenantRangeValues(List<String> tenantRangeStrings) {
-        if (tenantRangeStrings.contains(null)) {
-            throw new IllegalStateException(
-                "Invalid configuration. Missing tenants from dedicated tenant configuration"
-            );
-        }
-
-        List<TenantRange> tenantRanges = tenantRangeStrings
-            .stream()
-            .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
-            .toList();
-
-        // Check tenant range overlapping
-        for (int i = 0; i < tenantRanges.size(); i++) {
-            for (int j = i + 1; j < tenantRanges.size(); j++) {
-                if (TenantRangeParser.doRangesIntersect(tenantRanges.get(i), tenantRanges.get(j))) {
-                    throw new IllegalStateException(
-                        "Invalid configuration. Overlapping tenant ranges " +
-                        tenantRanges.get(i) +
-                        " and " +
-                        tenantRanges.get(j)
-                    );
-                }
-            }
-        }
+        TenantRangeValidator.validate(tenantRangeStrings);
     }
 }
