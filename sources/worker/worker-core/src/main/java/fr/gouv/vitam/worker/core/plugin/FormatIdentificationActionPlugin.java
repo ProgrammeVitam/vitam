@@ -141,6 +141,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         LOGGER.debug("FormatIdentificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(FILE_FORMAT);
+
         // Init format identifier
         FormatIdentifier formatIdentifier;
         try {
@@ -149,6 +150,16 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             FormatIdentifierNotFoundException | FormatIdentifierFactoryException | FormatIdentifierTechnicalException e
         ) {
             LOGGER.error("An error occurred during format identifier initialization", e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
+        }
+
+        // Load ingest contract
+        IngestContractModel ingestContract;
+        try {
+            ingestContract = loadIngestContractFromWorkspace(handlerIO);
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error("An error occurred during ingest contract loading", e);
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
         }
@@ -181,7 +192,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     );
 
                                     final ObjectCheckFormatResult result = executeOneObjectFromOG(
-                                        handlerIO,
+                                        ingestContract,
                                         formatIdentifier,
                                         jsonFormatIdentifier,
                                         file,
@@ -269,7 +280,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     }
 
     private ObjectCheckFormatResult executeOneObjectFromOG(
-        HandlerIO handlerIO,
+        IngestContractModel ingestContract,
         FormatIdentifier formatIdentifier,
         ObjectNode manifestFormatIdentification,
         File file,
@@ -278,16 +289,11 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
         objectCheckFormatResult.setStatus(StatusCode.OK);
 
-        boolean formatUnidentifiedAuthorized = false;
-        boolean everyFormatType = true;
-        Set<String> formatTypeSet;
         try {
-            IngestContractModel ingestContract = loadIngestContractFromWorkspace(handlerIO);
-            everyFormatType = ingestContract.isEveryFormatType();
-            formatUnidentifiedAuthorized = ingestContract.isFormatUnidentifiedAuthorized();
-            formatTypeSet = ingestContract.getFormatType();
-
-            if (!everyFormatType && !identifiedFormatsRestricted(manifestFormatIdentification, formatTypeSet)) {
+            if (
+                !ingestContract.isEveryFormatType() &&
+                !identifiedFormatsRestricted(manifestFormatIdentification, ingestContract.getFormatType())
+            ) {
                 throw new FileFormatRejectedException("File format rejected in " + FORMAT_IDENTIFIER_ID);
             }
 
@@ -310,7 +316,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
             if (!result.isOk() || ((RequestResponseOK<FileFormatModel>) result).getResults().isEmpty()) {
                 // format not found in vitam referential
-                if (formatUnidentifiedAuthorized) {
+                if (ingestContract.isFormatUnidentifiedAuthorized()) {
                     checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
                 }
                 objectCheckFormatResult.setStatus(StatusCode.KO);
@@ -352,7 +358,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         } catch (final FileFormatNotFoundException e) {
             // format no found case
             LOGGER.error(e);
-            if (formatUnidentifiedAuthorized && everyFormatType) {
+            if (ingestContract.isFormatUnidentifiedAuthorized() && ingestContract.isEveryFormatType()) {
                 checkNotFoundFormatIdentification(manifestFormatIdentification, version, objectCheckFormatResult);
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
             } else {
@@ -443,7 +449,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         ObjectNode diffJsonNodeToPopulate,
         ObjectCheckFormatResult objectCheckFormatResult
     ) {
-        boolean isManifestFiedlUpdated = false;
+        boolean isManifestFieldUpdated = false;
 
         final String manifestFieldValue = newFormatIdentification.get(manifestFieldName) != null
             ? newFormatIdentification.get(manifestFieldName).asText()
@@ -458,10 +464,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
             newFormatIdentification.put(manifestFieldName, referentialFormatFieldValue);
             diffJsonNodeToPopulate.put("+ " + fieldName, referentialFormatFieldValue);
-            isManifestFiedlUpdated = true;
+            isManifestFieldUpdated = true;
         }
 
-        return isManifestFiedlUpdated;
+        return isManifestFieldUpdated;
     }
 
     /**
