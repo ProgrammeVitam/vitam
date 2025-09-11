@@ -351,13 +351,19 @@ public class FormatIdentificationActionPluginTest {
 
     @Test
     public void formatUnidentifiedAuthorizedRestrictedFormatListKO() throws Exception {
-        when(formatIdentifier.analysePath(any())).thenThrow(new FileFormatNotFoundException(""));
-
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
         handlerIO
             .getInput()
             .add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_KO));
+
+        when(formatIdentifier.analysePath(any())).thenReturn(
+            List.of(new FormatIdentifierResponse("format", "mime", "puid", "pronom"))
+        );
+
+        when(adminManagementClient.getFormats(any())).thenReturn(
+            new RequestResponseOK<FileFormatModel>().addResult(new FileFormatModel().setPuid("puid"))
+        );
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
         final WorkerParameters params = getDefaultWorkerParameters();

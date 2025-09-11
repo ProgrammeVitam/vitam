@@ -73,7 +73,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
@@ -177,9 +176,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 File file = null;
                                 try {
-                                    ObjectNode jsonFormatIdentifier = (ObjectNode) version.get(
-                                        SedaConstants.TAG_FORMAT_IDENTIFICATION
-                                    );
                                     final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
                                     // Retrieve the file
                                     file = loadFileFromWorkspace(
@@ -191,7 +187,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     final ObjectCheckFormatResult result = executeOneObjectFromOG(
                                         ingestContract,
                                         formatIdentifier,
-                                        jsonFormatIdentifier,
                                         file,
                                         (ObjectNode) version
                                     );
@@ -279,18 +274,9 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private ObjectCheckFormatResult executeOneObjectFromOG(
         IngestContractModel ingestContract,
         FormatIdentifier formatIdentifier,
-        ObjectNode manifestFormatIdentification,
         File file,
         ObjectNode version
     ) {
-        if (
-            !ingestContract.isEveryFormatType() &&
-            !identifiedFormatsRestricted(manifestFormatIdentification, ingestContract.getFormatType())
-        ) {
-            LOGGER.error("File format rejected in " + FORMAT_IDENTIFIER_ID);
-            return new ObjectCheckFormatResult().setStatus(StatusCode.KO).setSubStatus(FILE_FORMAT_REJECTED);
-        }
-
         FormatIdentifierResponse format;
         try {
             format = getFirstPronomFormat(formatIdentifier, file);
@@ -332,6 +318,16 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         ) {
             LOGGER.error("An error occurred during format loading from referential", e);
             return new ObjectCheckFormatResult().setStatus(StatusCode.FATAL);
+        }
+
+        if (identifiedFormatsRestricted(fileFormatModel.getPuid(), ingestContract)) {
+            LOGGER.error(
+                "File format " +
+                fileFormatModel.getPuid() +
+                " is not authorized by ingest contract " +
+                ingestContract.getIdentifier()
+            );
+            return new ObjectCheckFormatResult().setStatus(StatusCode.KO).setSubStatus(FILE_FORMAT_REJECTED);
         }
 
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult();
@@ -530,9 +526,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         return contractsDetailsModel.getIngestContractModel();
     }
 
-    private boolean identifiedFormatsRestricted(ObjectNode format, Set<String> formatTypeSet) {
-        final JsonNode formatIdNode = format.get(SedaConstants.TAG_FORMAT_ID);
-        return formatIdNode != null && formatTypeSet.contains(formatIdNode.asText());
+    private boolean identifiedFormatsRestricted(String puid, IngestContractModel ingestContract) {
+        return !ingestContract.isEveryFormatType() && !ingestContract.getFormatType().contains(puid);
     }
 
     private void checkNotFoundFormatIdentification(
