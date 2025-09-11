@@ -193,6 +193,18 @@
         },
         {
           "action": {
+            "actionKey": "OG_OBJECTS_ANTIVIRUS_CHECK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "groupObject",
+                "uri": "MEMORY:groupObjectId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_OBJECT_SIZE",
             "behavior": "BLOCKING",
             "out": [
@@ -215,18 +227,6 @@
               {
                 "name": "contracts.json",
                 "uri": "WORKSPACE:referential/contracts.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "OG_OBJECTS_ANTIVIRUS_CHECK",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "groupObject",
-                "uri": "MEMORY:groupObjectId"
               }
             ]
           }
