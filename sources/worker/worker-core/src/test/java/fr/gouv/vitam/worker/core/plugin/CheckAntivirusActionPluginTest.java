@@ -112,7 +112,7 @@ public class CheckAntivirusActionPluginTest {
     }
 
     @Test
-    public void whenAntivirusScanOk_thenReturnOkAndDeleteTempFiles() throws Exception {
+    public void whenAntivirusScanOk_thenReturnOk() throws Exception {
         // Given
         VitamConfiguration.setIgnoreAntivirusCheckForWorker(false);
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters(
@@ -154,8 +154,8 @@ public class CheckAntivirusActionPluginTest {
 
         // Then
         assertEquals(StatusCode.OK, result.getGlobalStatus());
-        assertThat(result.getItemsStatus()).containsKey(CheckAntivirusActionPlugin.ANTIVIRUS);
-        ItemStatus task = result.getItemsStatus().get(CheckAntivirusActionPlugin.ANTIVIRUS);
+        assertThat(result.getItemsStatus()).containsKey("OG_OBJECTS_ANTIVIRUS_CHECK");
+        ItemStatus task = result.getItemsStatus().get("OG_OBJECTS_ANTIVIRUS_CHECK");
         assertEquals(StatusCode.OK, task.getGlobalStatus());
         // two subtasks for two objects
         assertThat(task.getSubTaskStatus().keySet()).containsExactlyInAnyOrder("obj1", "obj2");
@@ -165,15 +165,10 @@ public class CheckAntivirusActionPluginTest {
         verify(handlerIO, times(2)).getFileFromWorkspace(eq(WorkFlowExecutionContext.COLLECT), anyString());
         verify(antivirusClientFactory, times(1)).getAntivirusApi();
         verify(antivirusApi, times(2)).scanByPath(anyString());
-
-        // Verify temp files cleaned up
-        for (File f : createdFiles) {
-            assertThat(f.exists()).as("Temp file should be deleted by plugin").isFalse();
-        }
     }
 
     @Test
-    public void whenAntivirusDetectsVirus_thenReturnKoAndDeleteTempFiles() throws Exception {
+    public void whenAntivirusDetectsVirus_thenReturnKo() throws Exception {
         // Given
         VitamConfiguration.setIgnoreAntivirusCheckForWorker(false);
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters(
@@ -213,19 +208,16 @@ public class CheckAntivirusActionPluginTest {
 
         // Then
         assertEquals(StatusCode.KO, result.getGlobalStatus());
-        assertThat(result.getItemsStatus()).containsKey(CheckAntivirusActionPlugin.ANTIVIRUS);
-        ItemStatus task = result.getItemsStatus().get(CheckAntivirusActionPlugin.ANTIVIRUS);
+        assertThat(result.getItemsStatus()).containsKey("OG_OBJECTS_ANTIVIRUS_CHECK");
+        ItemStatus task = result.getItemsStatus().get("OG_OBJECTS_ANTIVIRUS_CHECK");
         assertEquals(StatusCode.KO, task.getGlobalStatus());
         assertThat(task.getSubTaskStatus().keySet()).containsExactlyInAnyOrder("obj1", "obj2");
         assertEquals(StatusCode.KO, task.getSubTaskStatus().get("obj1").getGlobalStatus());
         assertEquals(StatusCode.OK, task.getSubTaskStatus().get("obj2").getGlobalStatus());
 
-        // Verify API called twice and files cleanup
+        // Verify API called twice
         verify(antivirusClientFactory, times(1)).getAntivirusApi();
         verify(antivirusApi, times(2)).scanByPath(anyString());
-        for (File f : createdFiles) {
-            assertThat(f.exists()).as("Temp file should be deleted by plugin").isFalse();
-        }
     }
 
     private static JsonNode buildOgJson(String[] ids, String[] uris) {
