@@ -22,6 +22,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: azerty
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
   siegfried:
     image: keeps/siegfried:v1.9.6
     ports:
@@ -39,6 +41,9 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: vitamdb-admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: azerty
       ME_CONFIG_MONGODB_SERVER: mongo
+    depends_on:
+      mongo:
+        condition: service_healthy
 volumes:
   elastic_data:
   mongo_data:
