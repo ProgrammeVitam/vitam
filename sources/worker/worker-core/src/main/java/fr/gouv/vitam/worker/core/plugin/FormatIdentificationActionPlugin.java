@@ -56,10 +56,12 @@ import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -99,7 +101,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final String FILE_FORMAT_NOT_FOUND = "NOT_FOUND";
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
-    private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
     private static final String FILE_FORMAT_REJECTED = "REJECTED_FORMAT";
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
@@ -191,21 +192,19 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                         (ObjectNode) version
                                     );
 
-                                    if (result.getMetadataUpdated()) {
+                                    if (result.isMetadataUpdated()) {
                                         metadataUpdated = true;
                                     }
 
                                     // create ItemStatus for subtask
                                     ItemStatus subTaskItemStatus = new ItemStatus(FILE_FORMAT);
                                     subTaskItemStatus.increment(result.getStatus());
-                                    itemStatus.increment(result.getStatus());
 
                                     if (result.getStatus().equals(StatusCode.KO)) {
                                         switch (result.getSubStatus()) {
                                             case FILE_FORMAT_NOT_FOUND:
                                                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
                                                 break;
-                                            case FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR:
                                             case FILE_FORMAT_PUID_NOT_FOUND:
                                                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
                                                 break;
@@ -213,8 +212,25 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_REJECTED);
                                                 itemStatus.setGlobalOutcomeDetailSubcode(FILE_FORMAT_REJECTED);
                                                 break;
+                                            default:
+                                                throw new IllegalStateException(
+                                                    "Unexpected value: " + result.getSubStatus()
+                                                );
                                         }
                                         LOGGER.error(JsonHandler.unprettyPrint(result));
+
+                                        itemStatus.increment(
+                                            StatusCode.KO,
+                                            ValidationErrorHelper.createObjectValidationError(
+                                                LogbookTypeProcess.COLLECT_SIP_INGEST,
+                                                FILE_FORMAT,
+                                                subTaskItemStatus.getGlobalOutcomeDetailSubcode(),
+                                                objectId,
+                                                result.getEventDetailData()
+                                            )
+                                        );
+                                    } else {
+                                        itemStatus.increment(result.getStatus());
                                     }
 
                                     itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
@@ -223,7 +239,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                         itemStatus
                                             .getSubTaskStatus()
                                             .get(objectId)
-                                            .setEvDetailData(result.getEventDetailData());
+                                            .setEvDetailData(JsonHandler.unprettyPrint(result.getEventDetailData()));
                                     }
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
@@ -357,7 +373,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             return null;
         }
 
-        return ((RequestResponseOK<FileFormatModel>) result).getResults().get(0);
+        return ((RequestResponseOK<FileFormatModel>) result).getResults().getFirst();
     }
 
     private void checkAndUpdateFormatIdentification(
@@ -412,7 +428,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         if (!diffJsonNodeToPopulate.isEmpty()) {
             ObjectNode wrappingDiffJsonObject = JsonHandler.createObjectNode().set("diff", diffJsonNodeToPopulate);
-            objectCheckFormatResult.setEventDetailData(JsonHandler.unprettyPrint(wrappingDiffJsonObject));
+            objectCheckFormatResult.setEventDetailData(wrappingDiffJsonObject);
         }
     }
 
@@ -472,51 +488,6 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         }
     }
 
-    /**
-     * Object used to keep all file format result for all objects. Not really actually used, but can be usefull
-     */
-    private static class ObjectCheckFormatResult {
-
-        private StatusCode status;
-        private String subStatus;
-        private boolean metadataUpdated;
-        private String eventDetailData;
-
-        public ObjectCheckFormatResult setStatus(StatusCode status) {
-            this.status = status;
-            return this;
-        }
-
-        public ObjectCheckFormatResult setSubStatus(String subStatus) {
-            this.subStatus = subStatus;
-            return this;
-        }
-
-        public StatusCode getStatus() {
-            return status;
-        }
-
-        public String getSubStatus() {
-            return subStatus;
-        }
-
-        public void setMetadataUpdated(boolean metadataUpdated) {
-            this.metadataUpdated = metadataUpdated;
-        }
-
-        public boolean getMetadataUpdated() {
-            return metadataUpdated;
-        }
-
-        public String getEventDetailData() {
-            return eventDetailData;
-        }
-
-        public void setEventDetailData(String eventDetailData) {
-            this.eventDetailData = eventDetailData;
-        }
-    }
-
     private IngestContractModel loadIngestContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
         ContractsDetailsModel contractsDetailsModel = JsonHandler.getFromFile(
@@ -543,5 +514,49 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             .path(SedaConstants.TAG_MIME_TYPE)
             .textValue();
         checkAndUpdateFormatIdentification(version, UNKNOWN_FORMAT, formatName, mimeType, objectCheckFormatResult);
+    }
+
+    private static final class ObjectCheckFormatResult {
+
+        private StatusCode status;
+        private String subStatus;
+        private boolean metadataUpdated;
+        private ObjectNode eventDetailData;
+
+        public StatusCode getStatus() {
+            return status;
+        }
+
+        public ObjectCheckFormatResult setStatus(StatusCode status) {
+            this.status = status;
+            return this;
+        }
+
+        public String getSubStatus() {
+            return subStatus;
+        }
+
+        public ObjectCheckFormatResult setSubStatus(String subStatus) {
+            this.subStatus = subStatus;
+            return this;
+        }
+
+        public boolean isMetadataUpdated() {
+            return metadataUpdated;
+        }
+
+        public ObjectCheckFormatResult setMetadataUpdated(boolean metadataUpdated) {
+            this.metadataUpdated = metadataUpdated;
+            return this;
+        }
+
+        public ObjectNode getEventDetailData() {
+            return eventDetailData;
+        }
+
+        public ObjectCheckFormatResult setEventDetailData(ObjectNode eventDetailData) {
+            this.eventDetailData = eventDetailData;
+            return this;
+        }
     }
 }

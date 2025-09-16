@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.validations.ValidationError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +68,9 @@ public class DbObjectGroupModel {
 
     @JsonProperty("_sps")
     private List<String> originatingAgencies;
+
+    @JsonProperty("_errors")
+    private List<ValidationError> validationErrors;
 
     /**
      * @return id
@@ -200,5 +204,14 @@ public class DbObjectGroupModel {
 
     public void setQualifiers(List<DbQualifiersModel> qualifiers) {
         this.qualifiers = qualifiers;
+    }
+
+    public List<ValidationError> getValidationErrors() {
+        return validationErrors;
+    }
+
+    public DbObjectGroupModel setValidationErrors(List<ValidationError> validationErrors) {
+        this.validationErrors = validationErrors;
+        return this;
     }
 }

@@ -70,7 +70,7 @@ public class ValidationErrorManagerTest {
         );
 
         // When
-        validationErrorManager.handleUnitValidationError("unit1", validationErrors, handlerIO);
+        validationErrorManager.handleUnitValidationErrors("unit1", validationErrors, handlerIO);
 
         // Then
         ArgumentCaptor<JsonNode> unitJsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);

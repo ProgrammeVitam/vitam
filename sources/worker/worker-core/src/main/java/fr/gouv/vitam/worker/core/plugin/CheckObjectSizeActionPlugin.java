@@ -38,13 +38,10 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * CheckSizeActionPlugin Plugin.<br>
@@ -73,8 +70,6 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
 
             handlerIO.addOutputResult(OG_OUT_RANK, jsonOG, true, false);
 
-            final Map<String, DataObjectInfo> binaryObjects = getBinaryObjects(jsonOG);
-
             final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
             if (qualifiers != null) {
                 final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
@@ -83,11 +78,7 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                String checkSizeEvDetDetails = checkIsSizeIncorrect(
-                                    binaryObjects.get(objectId),
-                                    version,
-                                    itemStatus
-                                );
+                                String checkSizeEvDetDetails = checkIsSizeIncorrect(objectId, version, itemStatus);
                                 if (checkSizeEvDetDetails != null) {
                                     itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(checkSizeEvDetDetails);
                                 }
@@ -109,7 +100,7 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_OBJECT_SIZE).setItemsStatus(CHECK_OBJECT_SIZE, itemStatus);
     }
 
-    private String checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version, ItemStatus itemStatus) {
+    private String checkIsSizeIncorrect(String objectId, JsonNode version, ItemStatus itemStatus) {
         final ItemStatus subTaskItemStatus = new ItemStatus(CHECK_OBJECT_SIZE);
         String eventDetailData = null;
         if (
@@ -120,7 +111,7 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         ) {
             ObjectNode workNode = (ObjectNode) version.get(SedaConstants.PREFIX_WORK);
             // Check diffSizeJson
-            if (workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON).size() > 0) {
+            if (!workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON).isEmpty()) {
                 JsonNode wrappingDiffJsonObject = JsonHandler.createObjectNode()
                     .set("diff", workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON));
                 eventDetailData = JsonHandler.unprettyPrint(wrappingDiffJsonObject);
@@ -135,43 +126,12 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         } else {
             subTaskItemStatus.increment(StatusCode.OK);
         }
-        itemStatus.setSubTaskStatus(dataObjectInfo.getId(), subTaskItemStatus);
+        itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
         return eventDetailData;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         handler.checkHandlerIO(1, Collections.singletonList(String.class));
-    }
-
-    private Map<String, DataObjectInfo> getBinaryObjects(JsonNode jsonOG) throws ProcessingException {
-        final Map<String, DataObjectInfo> binaryObjects = new HashMap<>();
-
-        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
-        final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
-
-        if (qualifiers == null) {
-            return binaryObjects;
-        }
-
-        final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
-        if (versions == null || versions.isEmpty()) {
-            return binaryObjects;
-        }
-        for (final JsonNode version : versions) {
-            LOGGER.debug(version.toString());
-            for (final JsonNode jsonBinaryObject : version) {
-                if (jsonBinaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                    binaryObjects.put(
-                        jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
-                        new DataObjectInfo()
-                            .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
-                            .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
-                            .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
-                    );
-                }
-            }
-        }
-        return binaryObjects;
     }
 }

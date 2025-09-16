@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.validations.ValidationError;
 
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +56,7 @@ public class ObjectGroupResponse {
     public static final String VERSION = "#version";
     public static final String TYPE = "#type";
     public static final String STORAGE = "#storage";
+    public static final String ERRORS = "#errors";
 
     @JsonProperty(QUALIFIERS)
     private List<QualifiersModel> qualifiers;
@@ -91,6 +93,9 @@ public class ObjectGroupResponse {
 
     @JsonProperty(ORIGINATING_AGENCIES)
     private List<String> originatingAgencies;
+
+    @JsonProperty(ERRORS)
+    private List<ValidationError> errors;
 
     @JsonProperty(VERSION)
     private String version;
@@ -243,5 +248,14 @@ public class ObjectGroupResponse {
 
     private Optional<QualifiersModel> getQualifiersModel(String qualifier) {
         return qualifiers.stream().filter(q -> q.getQualifier().equals(qualifier)).findFirst();
+    }
+
+    public List<ValidationError> getErrors() {
+        return errors;
+    }
+
+    public ObjectGroupResponse setErrors(List<ValidationError> errors) {
+        this.errors = errors;
+        return this;
     }
 }

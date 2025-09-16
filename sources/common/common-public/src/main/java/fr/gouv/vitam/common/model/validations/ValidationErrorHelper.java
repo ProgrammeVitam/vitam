@@ -26,9 +26,12 @@
  */
 package fr.gouv.vitam.common.model.validations;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 public final class ValidationErrorHelper {
 
@@ -36,24 +39,81 @@ public final class ValidationErrorHelper {
         // Empty constructor for static helper
     }
 
-    public static ValidationError createValidationError(String evTypeProc) {
-        return new ValidationError()
-            .setEvId(GUIDFactory.newGUID().toString())
-            .setEvTypeProc(evTypeProc)
-            .setOutDetail(evTypeProc + "." + StatusCode.KO)
-            .setOutMessg(VitamLogbookMessages.getCodeLfc(evTypeProc, StatusCode.KO));
+    public static ValidationError createMetadataValidationError(
+        LogbookTypeProcess eventTypeProcess,
+        String stepOrHandler,
+        ObjectNode evDetData
+    ) {
+        return getValidationError(
+            eventTypeProcess,
+            null,
+            evDetData,
+            VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, StatusCode.KO),
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, StatusCode.KO)
+        );
     }
 
-    public static ValidationError createValidationError(String evTypeProc, String evDetData) {
-        return createValidationError(evTypeProc).setEvDetData(evDetData);
+    public static ValidationError createMetadataValidationError(
+        LogbookTypeProcess eventTypeProcess,
+        String stepOrHandler,
+        String transaction,
+        ObjectNode evDetData
+    ) {
+        return getValidationError(
+            eventTypeProcess,
+            null,
+            evDetData,
+            VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, transaction, StatusCode.KO),
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, StatusCode.KO)
+        );
     }
 
-    public static ValidationError createValidationError(String evTypeProc, String errorCode, String evDetData) {
+    public static ValidationError createObjectValidationError(
+        LogbookTypeProcess eventTypeProcess,
+        String stepOrHandler,
+        String transaction,
+        String obId,
+        ObjectNode evDetData
+    ) {
+        return getValidationError(
+            eventTypeProcess,
+            obId,
+            evDetData,
+            VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, transaction, StatusCode.KO),
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, StatusCode.KO)
+        );
+    }
+
+    public static ValidationError createObjectValidationError(
+        LogbookTypeProcess eventTypeProcess,
+        String stepOrHandler,
+        String transaction,
+        String detailedOutcome,
+        String obId,
+        ObjectNode evDetData
+    ) {
+        return getValidationError(
+            eventTypeProcess,
+            obId,
+            evDetData,
+            VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, transaction, detailedOutcome, StatusCode.KO),
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, detailedOutcome, StatusCode.KO)
+        );
+    }
+
+    private static ValidationError getValidationError(
+        LogbookTypeProcess eventTypeProcess,
+        String obId,
+        ObjectNode evDetData,
+        String outDetail,
+        String outMessg
+    ) {
         return new ValidationError()
             .setEvId(GUIDFactory.newGUID().toString())
-            .setEvTypeProc(evTypeProc)
-            .setOutDetail(errorCode + "." + StatusCode.KO)
-            .setOutMessg(VitamLogbookMessages.getCodeLfc(evTypeProc, errorCode, StatusCode.KO))
-            .setEvDetData(evDetData);
+            .setEvTypeProc(eventTypeProcess.name())
+            .setEvDetData(evDetData == null ? null : JsonHandler.unprettyPrint(evDetData))
+            .setObId(obId)
+            .setOutDetail(outDetail)
+            .setOutMessg(outMessg);
     }
 }

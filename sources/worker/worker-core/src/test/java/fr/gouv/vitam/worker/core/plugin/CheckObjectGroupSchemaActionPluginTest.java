@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationErrorCode;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
@@ -49,6 +50,7 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,6 +99,7 @@ public class CheckObjectGroupSchemaActionPluginTest {
     public void givenFinalCorrectObjectGroupJsonWhenExecuteThenReturnResponseOK() throws Exception {
         when(
             handlerIO.getInputStreamFromWorkspace(
+                eq(WorkFlowExecutionContext.VITAM),
                 eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
             )
         ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_FINAL));
@@ -108,6 +111,7 @@ public class CheckObjectGroupSchemaActionPluginTest {
     public void givenCorrectObjectGroupJsonWhenExecuteThenReturnResponseOK() throws Exception {
         when(
             handlerIO.getInputStreamFromWorkspace(
+                eq(WorkFlowExecutionContext.VITAM),
                 eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
             )
         ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_OK));
@@ -122,6 +126,7 @@ public class CheckObjectGroupSchemaActionPluginTest {
     public void givenInvalidObjectGroupJsonWhenExecuteThenReturnResponseKO() throws Exception {
         when(
             handlerIO.getInputStreamFromWorkspace(
+                eq(WorkFlowExecutionContext.VITAM),
                 eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
             )
         ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INVALID));
@@ -135,12 +140,23 @@ public class CheckObjectGroupSchemaActionPluginTest {
             response.getItemsStatus().get("CHECK_OBJECT_GROUP_SCHEMA").getItemId(),
             "CHECK_OBJECT_GROUP_SCHEMA"
         );
+        assertThat(response.getValidationErrors()).hasSize(1);
+        assertThat(response.getValidationErrors().getFirst().getEvId()).isNotNull();
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_OBJECT_GROUP_SCHEMA.KO"
+        );
+        assertThat(response.getValidationErrors().getFirst().getEvDetData()).isNotNull();
+        assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
+            "Échec lors de la vérification globale du groupe d'objet"
+        );
     }
 
     @Test
     public void givenObjectGrouptWithSpecialCharactersJsonWhenExecuteThenReturnResponseKO() throws Exception {
         when(
             handlerIO.getInputStreamFromWorkspace(
+                eq(WorkFlowExecutionContext.VITAM),
                 eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
             )
         ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INVALID_CHAR));

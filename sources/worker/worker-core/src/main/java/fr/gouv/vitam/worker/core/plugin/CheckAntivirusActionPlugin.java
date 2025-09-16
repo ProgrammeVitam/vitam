@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -51,7 +53,6 @@ import jakarta.ws.rs.core.Response;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,7 @@ public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAu
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckAntivirusActionPlugin.class);
 
+    private static final String PLUGIN_ID = "OG_OBJECTS_ANTIVIRUS_CHECK";
     public static final String ANTIVIRUS = "ANTIVIRUS";
     private static final int OG_INPUT_RANK = 0;
 
@@ -86,7 +88,7 @@ public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAu
         checkMandatoryParameters(params);
 
         LOGGER.debug("CheckAntivirusActionPlugin running ...");
-        final ItemStatus itemStatus = new ItemStatus(ANTIVIRUS);
+        final ItemStatus itemStatus = new ItemStatus(PLUGIN_ID);
 
         // Check if antivirus scanning is enabled
         if (VitamConfiguration.isIgnoreAntivirusCheckForWorker()) {
@@ -109,56 +111,60 @@ public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAu
                     for (final JsonNode versionsArray : versions) {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                                File file = null;
+                                final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
+                                // Retrieve the file
+                                File file = loadFileFromWorkspace(
+                                    params.getExecutionContext(),
+                                    handlerIO,
+                                    objectIdToUri.get(objectId)
+                                );
+
+                                // SCAN THE FILE
+                                Response.Status exitCode = Response.Status.OK;
                                 try {
-                                    final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                    // Retrieve the file
-                                    file = loadFileFromWorkspace(
-                                        params.getExecutionContext(),
-                                        handlerIO,
-                                        objectIdToUri.get(objectId)
+                                    antivirusApi.scanByPath(file.getAbsolutePath());
+                                } catch (final ApiException e) {
+                                    LOGGER.error(
+                                        "An error occurred during file antivirus scan " + file.getAbsolutePath(),
+                                        e
                                     );
+                                    exitCode = Response.Status.fromStatusCode(e.getCode());
+                                    if (exitCode == null) {
+                                        exitCode = Response.Status.INTERNAL_SERVER_ERROR;
+                                    }
+                                }
+                                ItemStatus subTaskItemStatus = new ItemStatus(ANTIVIRUS);
+                                StatusCode antivirusItemStatus;
+                                switch (exitCode) {
+                                    case OK:
+                                        antivirusItemStatus = StatusCode.OK;
+                                        itemStatus.increment(antivirusItemStatus);
+                                        break;
+                                    case BAD_REQUEST:
+                                        antivirusItemStatus = StatusCode.KO;
+                                        itemStatus.increment(
+                                            antivirusItemStatus,
+                                            ValidationErrorHelper.createObjectValidationError(
+                                                LogbookTypeProcess.COLLECT_SIP_INGEST,
+                                                PLUGIN_ID,
+                                                ANTIVIRUS,
+                                                objectId,
+                                                null
+                                            )
+                                        );
+                                        break;
+                                    case NOT_FOUND:
+                                    case INTERNAL_SERVER_ERROR:
+                                    default:
+                                        antivirusItemStatus = FATAL;
+                                        itemStatus.increment(antivirusItemStatus);
+                                        break;
+                                }
+                                subTaskItemStatus.increment(antivirusItemStatus);
+                                itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
 
-                                    // SCAN THE FILE
-                                    Response.Status exitCode = Response.Status.OK;
-                                    try {
-                                        antivirusApi.scanByPath(file.getAbsolutePath());
-                                    } catch (final ApiException e) {
-                                        exitCode = Response.Status.fromStatusCode(e.getCode());
-                                        if (exitCode == null) {
-                                            exitCode = Response.Status.INTERNAL_SERVER_ERROR;
-                                        }
-                                    }
-                                    ItemStatus subTaskItemStatus = new ItemStatus(ANTIVIRUS);
-                                    StatusCode antivirusItemStatus;
-                                    switch (exitCode) {
-                                        case OK:
-                                            antivirusItemStatus = StatusCode.OK;
-                                            break;
-                                        case BAD_REQUEST:
-                                            antivirusItemStatus = StatusCode.KO;
-                                            break;
-                                        case NOT_FOUND:
-                                        case INTERNAL_SERVER_ERROR:
-                                        default:
-                                            antivirusItemStatus = FATAL;
-                                            break;
-                                    }
-                                    subTaskItemStatus.increment(antivirusItemStatus);
-                                    itemStatus.increment(antivirusItemStatus);
-                                    itemStatus.setSubTaskStatus(objectId, subTaskItemStatus);
-
-                                    if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
-                                        return new ItemStatus(ANTIVIRUS).setItemsStatus(ANTIVIRUS, itemStatus);
-                                    }
-                                } finally {
-                                    if (file != null) {
-                                        try {
-                                            Files.delete(file.toPath());
-                                        } catch (IOException e) {
-                                            LOGGER.error(e);
-                                        }
-                                    }
+                                if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
+                                    return new ItemStatus(PLUGIN_ID).setItemsStatus(PLUGIN_ID, itemStatus);
                                 }
                             }
                         }
@@ -171,7 +177,7 @@ public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAu
         }
 
         LOGGER.debug("CheckAntivirusActionPlugin response: " + itemStatus.getGlobalStatus());
-        return new ItemStatus(ANTIVIRUS).setItemsStatus(itemStatus.getItemId(), itemStatus);
+        return new ItemStatus(PLUGIN_ID).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
     @Override

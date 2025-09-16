@@ -221,10 +221,12 @@ public class CheckArchiveUnitProfileActionPluginTest {
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(
             CheckArchiveUnitProfileActionPlugin.OUTCOME_DETAILS_NOT_AU_JSON_VALID
         );
-        System.out.println(JsonHandler.prettyPrint(response.getValidationErrors()));
+
         assertThat(response.getValidationErrors()).hasSize(1);
-        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("CHECK_ARCHIVE_UNIT_PROFILE");
-        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo("NOT_AU_JSON_VALID.KO");
+        assertThat(response.getValidationErrors().getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(response.getValidationErrors().getFirst().getOutDetail()).isEqualTo(
+            "LFC.CHECK_ARCHIVE_UNIT_PROFILE.NOT_AU_JSON_VALID.KO"
+        );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité aux profils d'unité archivistique : json invalide"
         );

@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -75,8 +76,10 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
         try {
             JsonNode archiveUnit = getArchiveUnit(param, handler);
             if (!ClassificationLevelUtil.checkClassificationLevel(archiveUnit)) {
-                ValidationError validationError = ValidationErrorHelper.createValidationError(
-                    CHECK_CLASSIFICATION_LEVEL_TASK_ID
+                ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
+                    LogbookTypeProcess.COLLECT_SIP_INGEST,
+                    CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+                    null
                 );
                 itemStatus.increment(StatusCode.KO, validationError);
 

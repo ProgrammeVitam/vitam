@@ -191,7 +191,7 @@ public class VitamServerRunner extends ExternalResource {
     public static final String INGEST_INTERNAL_CONF = "common/ingest-internal.conf";
     public static final String INGEST_EXTERNAL_CONF = "common/ingest-external.conf";
     public static final String INGEST_EXTERNAL_CLIENT_CONF = "common/ingest-external-client.conf";
-    public static final String ANTIVIRUS_CLIENT_CONF = "common/antivirus-client.conf";
+    public static final String ANTIVIRUS_CLIENT_CONF = "antivirus-client.conf";
     public static final String ANTIVIRUS_CONF = "common/antivirus.conf";
     public static final String BATCH_REPORT_CONF = "common/batch-report.conf";
     public static final String BATCH_REPORT_CLIENT_PATH = "common/batch-report-client.conf";

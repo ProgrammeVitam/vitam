@@ -38,6 +38,9 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.validations.ValidationError;
+import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -62,6 +65,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionPlugin.class);
 
+    public static final String PLUGIN_ID = "CHECK_DIGEST";
     public static final String CALC_CHECK = "CALC_CHECK";
     private static final String EMPTY = "EMPTY";
     private static final String INVALID = "INVALID";
@@ -191,10 +195,19 @@ public class CheckConformityActionPlugin extends ActionHandler {
             ItemStatus subTaskItemStatus = new ItemStatus(CALC_CHECK);
 
             // check digest
-            if (binaryObjectMessageDigest.isEmpty() || binaryObjectMessageDigest.equals(null)) {
+            if (binaryObjectMessageDigest.isEmpty()) {
                 subTaskItemStatus.increment(StatusCode.KO);
                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(EMPTY);
-                itemStatus.increment(StatusCode.KO);
+
+                ValidationError validationError = ValidationErrorHelper.createObjectValidationError(
+                    LogbookTypeProcess.COLLECT_SIP_INGEST,
+                    PLUGIN_ID,
+                    CALC_CHECK,
+                    EMPTY,
+                    binaryObject.getId(),
+                    null
+                );
+                itemStatus.increment(StatusCode.KO, validationError);
             } else if (manifestDigestString.equals(binaryObjectMessageDigest)) {
                 subTaskItemStatus.increment(StatusCode.OK);
                 itemStatus.increment(StatusCode.OK);
@@ -216,14 +229,23 @@ public class CheckConformityActionPlugin extends ActionHandler {
             } else {
                 subTaskItemStatus.increment(StatusCode.KO);
                 subTaskItemStatus.setGlobalOutcomeDetailSubcode(INVALID);
-                itemStatus.increment(StatusCode.KO);
                 // Set eventDetailData in KO case
-                ObjectNode jsonNode = JsonHandler.createObjectNode();
-                jsonNode.put("MessageDigest", binaryObject.getMessageDigest());
-                jsonNode.put("Algorithm", binaryObject.getAlgo().getName());
-                jsonNode.put("ComputedMessageDigest", manifestDigestString);
+                ObjectNode evDetData = JsonHandler.createObjectNode();
+                evDetData.put("MessageDigest", binaryObject.getMessageDigest());
+                evDetData.put("Algorithm", binaryObject.getAlgo().getName());
+                evDetData.put("ComputedMessageDigest", manifestDigestString);
 
-                subTaskItemStatus.setEvDetailData(JsonHandler.unprettyPrint(jsonNode));
+                subTaskItemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
+
+                ValidationError validationError = ValidationErrorHelper.createObjectValidationError(
+                    LogbookTypeProcess.COLLECT_SIP_INGEST,
+                    PLUGIN_ID,
+                    CALC_CHECK,
+                    INVALID,
+                    binaryObject.getId(),
+                    evDetData
+                );
+                itemStatus.increment(StatusCode.KO, validationError);
             }
 
             itemStatus.setSubTaskStatus(binaryObject.getId(), subTaskItemStatus);

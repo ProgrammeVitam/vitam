@@ -86,7 +86,6 @@ public class FormatIdentificationActionPluginTest {
     private static final String FILE_FORMAT = "FILE_FORMAT";
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
-    private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_3 =
         "formatIdentificationActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaaba.json";
 
