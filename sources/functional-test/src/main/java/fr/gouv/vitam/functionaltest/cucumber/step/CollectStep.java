@@ -27,8 +27,10 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -41,6 +43,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import io.cucumber.java.en.Given;
@@ -63,7 +66,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
@@ -535,6 +540,32 @@ public class CollectStep extends CommonStep {
         }
     }
 
+    @When("^j'importe le sip suivant (.*)$")
+    public void should_upload_sip_zip(String arboFileName) throws Exception {
+        try (InputStream inputStream = Files.newInputStream(Paths.get(world.getBaseDirectory(), arboFileName))) {
+            RequestResponse<UploadSipResult> response = world
+                .getCollectExternalClient()
+                .uploadSipToTransaction(new VitamContext(world.getTenantId()), world.getTransactionId(), inputStream);
+
+            String operationId = ((UploadSipResult) ((RequestResponseOK) response).getResults().get(0)).requestId();
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
+            boolean process_timeout = vitamPoolingClient.wait(
+                world.getTenantId(),
+                operationId,
+                ProcessState.COMPLETED,
+                200,
+                1_000L,
+                TimeUnit.MILLISECONDS
+            );
+            if (!process_timeout) {
+                fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
+            }
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            Assertions.assertThat(response.getStatus()).isEqualTo(200);
+        }
+    }
+
     @When("^j'envoie un fichier de mise à jour CSV (.*)$")
     public void should_upload_metadata_csv(String arboFileName) throws Exception {
         try (InputStream inputStream = Files.newInputStream(Paths.get(world.getBaseDirectory(), arboFileName))) {
@@ -592,6 +623,7 @@ public class CollectStep extends CommonStep {
                     "[*]." + VitamFieldsHelper.object(),
                     "[*]." + VitamFieldsHelper.allunitups(),
                     "[*]." + VitamFieldsHelper.initialOperation(),
+                    "[*]." + VitamFieldsHelper.operations(),
                     "[*]." + VitamFieldsHelper.approximateCreationDate(),
                     "[*]." + VitamFieldsHelper.version(),
                     "[*]." + VitamFieldsHelper.unitType(),
