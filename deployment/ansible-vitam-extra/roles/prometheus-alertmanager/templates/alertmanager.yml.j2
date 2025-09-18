@@ -12,16 +12,26 @@ route:
   repeat_interval: 1h
 {% if prometheus.alertmanager.receivers is defined and prometheus.alertmanager.receivers|length > 0 %}
   receiver: {{ prometheus.alertmanager.receivers.0.name }}
+{% else %}
+  receiver: 'null'
+{% endif %}
+
+  routes:
+    - matchers:
+        - severity = "warning"
+      repeat_interval: 24h  # Warning: 1 alert per day
+
+{% if prometheus.alertmanager.receivers is defined and prometheus.alertmanager.receivers|length > 0 %}
 receivers:
 {{ prometheus.alertmanager.receivers | to_nice_yaml(width=80, indent=2) }}
 {% else %}
-  receiver: 'null'
 receivers:
 - name: 'null'
 {% endif %}
+
 inhibit_rules:
-  - source_match:
-      severity: 'critical'
-    target_match:
-      severity: 'warning'
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
     equal: ['alertname', 'dev', 'instance']
