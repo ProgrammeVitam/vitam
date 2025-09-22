@@ -152,7 +152,7 @@ public class MongoDbMetadataResponseFilter {
                 case GRAPH:
                     remove(document, Unit.GRAPH);
                     break;
-                case GRAPH_LAST_PERISTED_DATE:
+                case GRAPH_LAST_PERSISTED_DATE:
                     remove(document, MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
                     break;
                 case HISTORY:
@@ -208,15 +208,13 @@ public class MongoDbMetadataResponseFilter {
                 case UPLOADPATH:
                     replace(document, MetadataDocument.UPLOAD_PATH, VitamFieldsHelper.uploadPath());
                     break;
-                case MANAGEMENT_CONTRACT_ID:
+                case MANAGEMENTCONTRACTID:
                     replace(
                         document,
                         MetadataDocument.MANAGEMENT_CONTRACT_ID,
                         VitamFieldsHelper.managementContractId()
                     );
                     break;
-                case DUA:
-                case ALL:
                 default:
                     break;
             }
