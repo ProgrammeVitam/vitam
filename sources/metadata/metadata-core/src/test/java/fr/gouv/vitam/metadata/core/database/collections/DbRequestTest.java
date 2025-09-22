@@ -154,7 +154,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
 import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
@@ -447,7 +446,7 @@ public class DbRequestTest {
 
             // SELECT ALL
             final SelectMultiQuery select = new SelectMultiQuery();
-            select.addUsedProjection(all()).addQueries(eq(id(), uuid.toString()));
+            select.addQueries(eq(id(), uuid.toString()));
             LOGGER.debug("SelectAllString: " + select.getFinalSelect());
             selectRequest = select.getFinalSelect();
             // Now considering select request and parsing it as in Data Server (GET command)
@@ -1342,7 +1341,6 @@ public class DbRequestTest {
             // SELECT
             // select with desc sort on title and one query
             SelectMultiQuery selectRequest = new SelectMultiQuery();
-            selectRequest.addUsedProjection(all());
             selectRequest.addQueries(
                 or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(2)
             );
@@ -1358,7 +1356,6 @@ public class DbRequestTest {
 
             // select with desc sort on title and two queries
             selectRequest = new SelectMultiQuery();
-            selectRequest.addUsedProjection(all());
             selectRequest.addQueries(
                 eq(MY_BOOLEAN, false),
                 or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0)
@@ -1374,7 +1371,6 @@ public class DbRequestTest {
 
             // select with desc sort on title and two queries and elastic search
             selectRequest = new SelectMultiQuery();
-            selectRequest.addUsedProjection(all());
             selectRequest.addQueries(
                 match(TITLE, "mon Complet").setDepthLimit(0),
                 or().add(eq(id(), uuid1.toString())).add(eq(id(), uuid2.toString())).setDepthLimit(0)
@@ -1613,7 +1609,7 @@ public class DbRequestTest {
     private JsonNode createSelectAllRequestWithUUID(GUID uuid)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
-        select.addUsedProjection(all()).addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
+        select.addQueries(and().add(eq(id(), uuid.toString()), match(TITLE, VALUE_MY_TITLE)));
         LOGGER.debug("SelectAllString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
@@ -1722,24 +1718,22 @@ public class DbRequestTest {
     private JsonNode clientRichSelectAllBuild(GUID uuid)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectMultiQuery select = new SelectMultiQuery();
-        select
-            .addUsedProjection(all())
-            .addQueries(
-                and()
-                    .add(
-                        eq(id(), uuid.toString()),
-                        match(TITLE, VALUE_MY_TITLE),
-                        exists(CREATED_DATE),
-                        missing(UNKNOWN_VAR),
-                        isNull(EMPTY_VAR),
-                        or().add(in(ARRAY_VAR, "val1"), nin(ARRAY_VAR, "val3")),
-                        gt(MY_INT, 1),
-                        lt(MY_INT, 100),
-                        ne(MY_BOOLEAN, true),
-                        range(MY_FLOAT, 0.0, false, 100.0, true),
-                        term(TITLE, VALUE_MY_TITLE)
-                    )
-            );
+        select.addQueries(
+            and()
+                .add(
+                    eq(id(), uuid.toString()),
+                    match(TITLE, VALUE_MY_TITLE),
+                    exists(CREATED_DATE),
+                    missing(UNKNOWN_VAR),
+                    isNull(EMPTY_VAR),
+                    or().add(in(ARRAY_VAR, "val1"), nin(ARRAY_VAR, "val3")),
+                    gt(MY_INT, 1),
+                    lt(MY_INT, 100),
+                    ne(MY_BOOLEAN, true),
+                    range(MY_FLOAT, 0.0, false, 100.0, true),
+                    term(TITLE, VALUE_MY_TITLE)
+                )
+        );
         LOGGER.debug("SelectAllString: " + select.getFinalSelect());
         return select.getFinalSelect();
     }
