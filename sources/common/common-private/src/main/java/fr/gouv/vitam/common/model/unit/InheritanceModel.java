@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,8 +37,10 @@ import java.util.Set;
  */
 public class InheritanceModel {
 
+    @JsonProperty("PreventInheritance")
     private Boolean preventInheritance;
 
+    @JsonProperty("PreventRulesId")
     private Set<String> preventRulesId;
 
     /**

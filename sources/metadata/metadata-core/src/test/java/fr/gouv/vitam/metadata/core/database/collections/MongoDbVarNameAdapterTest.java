@@ -29,22 +29,26 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class MongoDbVarNameAdapterTest {
 
-    private static MongoDbVarNameAdapter mongoVarNameAdapter = new MongoDbVarNameAdapter();
-
     @Test
-    public void givenMongoDbVarNameAdapterWhengetVariableNameThenReturnCorrect() throws InvalidParseOperationException {
-        assertEquals(null, mongoVarNameAdapter.getVariableName("notValid"));
+    public void givenMongoDbVarNameAdapterWhenGetVariableNameThenReturnCorrect() throws InvalidParseOperationException {
+        MongoDbVarNameAdapter mongoVarNameAdapter = new MongoDbVarNameAdapter();
+        assertNull(mongoVarNameAdapter.getVariableName("notValid"));
         assertEquals(MetadataDocument.ID, mongoVarNameAdapter.getVariableName("#id"));
-        assertEquals(Unit.APPRAISALRULES, mongoVarNameAdapter.getVariableName("#dua"));
         assertEquals(Unit.NBCHILD, mongoVarNameAdapter.getVariableName("#nbunits"));
         assertEquals(MetadataDocument.TYPE, mongoVarNameAdapter.getVariableName("#type"));
         assertEquals(ObjectGroup.OBJECTSIZE, mongoVarNameAdapter.getVariableName("#size"));
         assertEquals(ObjectGroup.OBJECTFORMAT, mongoVarNameAdapter.getVariableName("#format"));
         assertEquals(MetadataDocument.QUALIFIERS, mongoVarNameAdapter.getVariableName("#qualifiers"));
         assertEquals(ObjectGroup.STORAGE, mongoVarNameAdapter.getVariableName("#storage"));
+        assertEquals("_qualifiers.versions._id", mongoVarNameAdapter.getVariableName("#qualifiers.versions.#id"));
+        assertThatThrownBy(() -> mongoVarNameAdapter.getVariableName("#unknown")).isInstanceOf(
+            InvalidParseOperationException.class
+        );
     }
 }
