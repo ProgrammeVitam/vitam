@@ -120,7 +120,7 @@ public class SchemaValidationService {
             .collect(Collectors.toMap(SchemaInputModel::getPath, schemaModel -> schemaModel));
         Map<String, SchemaResponse> currentUnitSchemaMapByPath = currentUnitSchemaList
             .stream()
-            .collect(Collectors.toMap(SchemaResponse::getPath, schemaModel -> schemaModel));
+            .collect(Collectors.toMap(schemaModel -> schemaModel.getPath().toLowerCase(), schemaModel -> schemaModel));
 
         Integer currentTenant = ParameterHelper.getTenantParameter();
         if (currentTenant.equals(VitamConfiguration.getAdminTenant())) {
@@ -195,7 +195,7 @@ public class SchemaValidationService {
         List<String> existingPathsInCurrentSchema = externalSchemaInputsMapByPath
             .keySet()
             .stream()
-            .filter(externalSchemaPath -> currentUnitSchemaMapByPath.containsKey(externalSchemaPath))
+            .filter(externalSchemaPath -> currentUnitSchemaMapByPath.containsKey(externalSchemaPath.toLowerCase()))
             .collect(Collectors.toList());
 
         if (!CollectionUtils.isEmpty(existingPathsInCurrentSchema)) {
@@ -538,7 +538,7 @@ public class SchemaValidationService {
     ) {
         LOGGER.debug("Checking parent paths of {}  ", schemaPath);
 
-        if (currentUnitSchemaMapByPath.containsKey(schemaPath)) {
+        if (currentUnitSchemaMapByPath.containsKey(schemaPath.toLowerCase())) {
             return;
         }
 
