@@ -183,7 +183,9 @@ public class SchemaValidationServiceTest {
                 )
         )
             .isInstanceOf(SchemaImportValidationException.class)
-            .hasMessage("Paths already in current schema = Addressee.BirthPlace.City, Addressee.BirthPlace.Country");
+            .hasMessage(
+                "Paths already in current schema = Addressee.birthplace, Addressee.BirthPlace.City, addressee, Addressee.BirthPlace.Country"
+            );
     }
 
     @Test
