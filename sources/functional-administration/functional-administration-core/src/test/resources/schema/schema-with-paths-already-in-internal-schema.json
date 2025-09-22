@@ -21,6 +21,18 @@
     "Description": "Ville"
   },
   {
+    "Cardinality": "ONE",
+    "Path": "Addressee.birthplace",
+    "ShortName": "Lieu de naissance",
+    "Description": "Lieu de naissance"
+  },
+  {
+    "Cardinality": "MANY",
+    "Path": "addressee",
+    "ShortName": "Destinataire",
+    "Description": "Destinataire"
+  },
+  {
     "IsObject": true,
     "Cardinality": "ONE",
     "Path": "Invoice",
