@@ -37,7 +37,6 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -251,11 +250,6 @@ public class VitamMongoRepositoryTest {
         count = collection.countDocuments();
 
         assertThat(count).isEqualTo(3);
-
-        MongoCursor<Document> cursor = collection.find().iterator();
-        while (cursor.hasNext()) {
-            System.err.println(BsonHelper.stringify(cursor.next()));
-        }
 
         updates = new ArrayList<>();
         for (int i = 0; i < 3; i++) {

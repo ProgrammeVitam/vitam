@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -31,6 +32,7 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Model for VarNameAdapter
@@ -53,136 +55,84 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
      * @param name as String
      * @return the new name or null if the same
      * @throws InvalidParseOperationException when parsing error
-     * @see ParserTokens.PROJECTIONARGS
+     * @see PROJECTIONARGS
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {
-        if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
-            // Check on prefix (preceding '.')
-            int pos = name.indexOf('.');
-            final String realname;
-            final String extension;
-            if (pos > 1) {
-                realname = name.substring(1, pos);
-                extension = name.substring(pos);
-            } else {
-                realname = name.substring(1);
-                extension = "";
+        String[] fields = StringUtils.split(name, '.');
+        StringBuilder sb = new StringBuilder();
+        for (String field : fields) {
+            if (!sb.isEmpty()) {
+                sb.append(".");
             }
-            try {
-                final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(realname);
-                switch (proj) {
-                    case DUA:
-                        // Valid for Unit
-                        return Unit.APPRAISALRULES + extension;
-                    case FORMAT:
-                        // Valid for OG
-                        return ObjectGroup.OBJECTFORMAT;
-                    case ID:
-                        // Valid for Unit and OG
-                        return VitamDocument.ID;
-                    case QUALIFIERS:
-                        // Valid for OG
-                        return MetadataDocument.QUALIFIERS + extension;
-                    case NBUNITS:
-                        // Valid for Unit
-                        return Unit.NBCHILD;
-                    case NBOBJECTS:
-                        // Valid for OG
-                        return ObjectGroup.NBCHILD;
-                    case SIZE:
-                        // Valid for OG
-                        return ObjectGroup.OBJECTSIZE;
-                    case TYPE:
-                        // Valid for Unit and OG
-                        return MetadataDocument.TYPE;
-                    case TENANT:
-                        // Valid for Unit and OG
-                        return VitamDocument.TENANT_ID;
-                    case OBJECT:
-                        // Valid for Unit
-                        return MetadataDocument.OG;
-                    case UNITUPS:
-                        // Valid for Unit and OG
-                        return MetadataDocument.UP;
-                    case MIN:
-                        // Valid for Unit
-                        return Unit.MINDEPTH;
-                    case MAX:
-                        // Valid for Unit
-                        return Unit.MAXDEPTH;
-                    case ALLUNITUPS:
-                        // Valid for Unit
-                        return Unit.UNITUPS;
-                    case UNITTYPE:
-                        // Valid for Unit
-                        return Unit.UNIT_TYPE;
-                    case MANAGEMENT:
-                        // Valid for Unit
-                        return Unit.MANAGEMENT + extension;
-                    case OPERATIONS:
-                        // Valid for Unit and OG
-                        return MetadataDocument.OPS;
-                    case OPI:
-                        // Valid for Unit and OG
-                        return MetadataDocument.OPI;
-                    case ORIGINATING_AGENCY:
-                        // Valid for Unit and OG
-                        return MetadataDocument.ORIGINATING_AGENCY;
-                    case ORIGINATING_AGENCIES:
-                        // Valid for Unit and OG
-                        return MetadataDocument.ORIGINATING_AGENCIES;
-                    case VERSION:
-                        // Valid for Unit and OG (And for VitamDocument items)
-                        return MetadataDocument.VERSION;
-                    case ATOMIC_VERSION:
-                        // Valid for Unit and OG (And for VitamDocument items)
-                        return MetadataDocument.ATOMIC_VERSION;
-                    case STORAGE:
-                        // Valid for OG an Unit
-                        return ObjectGroup.STORAGE + extension;
-                    case SCORE:
-                        return VitamDocument.SCORE;
-                    case UDS:
-                        return Unit.UNITDEPTHS;
-                    case GRAPH:
-                        return Unit.GRAPH;
-                    case ELIMINATION:
-                        return Unit.ELIMINATION + extension;
-                    case COMPUTEDINHERITEDRULES:
-                        return Unit.COMPUTED_INHERITED_RULES + extension;
-                    case VALIDCOMPUTEDINHERITEDRULES:
-                        return Unit.VALID_COMPUTED_INHERITED_RULES;
-                    case OPTS:
-                        return Unit.OPERATION_TRANSFERS;
-                    case GRAPH_LAST_PERISTED_DATE:
-                        return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
-                    case HISTORY:
-                        return Unit.HISTORY + extension;
-                    case SEDAVERSION:
-                        return VitamDocument.SEDAVERSION;
-                    case IMPLEMENTATIONVERSION:
-                        return VitamDocument.IMPLEMENTATIONVERSION;
-                    case APPROXIMATE_CREATION_DATE:
-                        return MetadataDocument.APPROXIMATE_CREATION_DATE;
-                    case APPROXIMATE_UPDATE_DATE:
-                        return MetadataDocument.APPROXIMATE_UPDATE_DATE;
-                    case BATCHID:
-                        return MetadataDocument.BATCH_ID;
-                    case VUPS:
-                        return Unit.VIRTUAL_UPS;
-                    case ERRORS:
-                        return MetadataDocument.ERRORS;
-                    case UPLOADPATH:
-                        return MetadataDocument.UPLOAD_PATH;
-                    case ALL:
-                    default:
-                        break;
-                }
-            } catch (final IllegalArgumentException e) {
-                throw new InvalidParseOperationException("Name: " + name, e);
-            }
+            sb.append(resolveField(field));
         }
-        return null;
+        String resolvedName = sb.toString();
+        if (resolvedName.equals(name)) {
+            return null;
+        }
+        return resolvedName;
+    }
+
+    private String resolveField(String field) throws InvalidParseOperationException {
+        if (field.isEmpty()) {
+            throw new InvalidParseOperationException("Empty field name");
+        }
+        char firstChar = field.charAt(0);
+        if (firstChar != ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+            return field;
+        }
+        try {
+            // Fixme: use proper schema for field resolving...
+            final PROJECTIONARGS proj = PROJECTIONARGS.parse(field.substring(1));
+            return switch (proj) {
+                case ID -> VitamDocument.ID; // Valid for Unit and OG
+                case QUALIFIERS -> MetadataDocument.QUALIFIERS; // Valid for OG
+                case NBUNITS -> Unit.NBCHILD; // Valid for Unit
+                case NBOBJECTS -> ObjectGroup.NBCHILD; // Valid for OG
+                case NBC -> MetadataDocument.NBCHILD;
+                case SIZE -> ObjectGroup.OBJECTSIZE; // Valid for OG
+                case TYPE -> MetadataDocument.TYPE; // Valid for Unit and OG
+                case TENANT -> VitamDocument.TENANT_ID; // Valid for Unit and OG
+                case OBJECT -> MetadataDocument.OG; // Valid for Unit
+                case UNITUPS -> MetadataDocument.UP; // Valid for Unit and OG
+                case MIN -> Unit.MINDEPTH; // Valid for Unit
+                case MAX -> Unit.MAXDEPTH; // Valid for Unit
+                case ALLUNITUPS -> Unit.UNITUPS; // Valid for Unit
+                case UNITTYPE -> Unit.UNIT_TYPE; // Valid for Unit
+                case MANAGEMENT -> Unit.MANAGEMENT; // Valid for Unit
+                case OPERATIONS -> MetadataDocument.OPS; // Valid for Unit and OG
+                case OPI -> MetadataDocument.OPI; // Valid for Unit and OG
+                case ORIGINATING_AGENCY -> MetadataDocument.ORIGINATING_AGENCY; // Valid for Unit and OG
+                case ORIGINATING_AGENCIES -> MetadataDocument.ORIGINATING_AGENCIES; // Valid for Unit and OG
+                case VERSION -> MetadataDocument.VERSION; // Valid for Unit and OG (And for VitamDocument items)
+                case ATOMIC_VERSION -> MetadataDocument.ATOMIC_VERSION; // Valid for Unit and OG (And for VitamDocument items)
+                case STORAGE -> ObjectGroup.STORAGE; // Valid for OG an Unit
+                case SCORE -> VitamDocument.SCORE;
+                case UDS -> Unit.UNITDEPTHS;
+                case GRAPH -> Unit.GRAPH;
+                case ELIMINATION -> Unit.ELIMINATION;
+                case COMPUTEDINHERITEDRULES -> Unit.COMPUTED_INHERITED_RULES;
+                case VALIDCOMPUTEDINHERITEDRULES -> Unit.VALID_COMPUTED_INHERITED_RULES;
+                case OPTS -> Unit.OPERATION_TRANSFERS;
+                case GRAPH_LAST_PERSISTED_DATE -> MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
+                case HISTORY -> Unit.HISTORY;
+                case SEDAVERSION -> VitamDocument.SEDAVERSION;
+                case IMPLEMENTATIONVERSION -> VitamDocument.IMPLEMENTATIONVERSION;
+                case APPROXIMATE_CREATION_DATE -> MetadataDocument.APPROXIMATE_CREATION_DATE;
+                case APPROXIMATE_UPDATE_DATE -> MetadataDocument.APPROXIMATE_UPDATE_DATE;
+                case BATCHID -> MetadataDocument.BATCH_ID;
+                case MANAGEMENTCONTRACTID -> Unit.MANAGEMENT_CONTRACT_ID;
+                case VUPS -> Unit.VIRTUAL_UPS;
+                case ERRORS -> MetadataDocument.ERRORS;
+                case UPLOADPATH -> MetadataDocument.UPLOAD_PATH;
+                case FORMAT -> ObjectGroup.OBJECTFORMAT; // Deprecated, to be removed
+                case USAGE, // Deprecated, to be removed
+                    // Reserved for LogbookOperation & LFC
+                    LAST_PERSISTED_DATE -> throw new InvalidParseOperationException("Invalid field '" + field + "'");
+            };
+        } catch (final IllegalArgumentException e) {
+            throw new InvalidParseOperationException("Invalid field name '" + field + "'", e);
+        }
     }
 }

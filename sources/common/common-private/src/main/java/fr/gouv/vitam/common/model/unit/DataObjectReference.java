@@ -26,12 +26,17 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Data Object Reference POJO
  */
 public class DataObjectReference {
 
+    @JsonProperty("DataObjectGroupReferenceId")
     private String dataObjectGroupReferenceId;
+
+    @JsonProperty("DataObjectReferenceId")
     private String dataObjectReferenceId;
 
     /**

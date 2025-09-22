@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +36,10 @@ import java.util.List;
  */
 public class CustodialHistoryModel {
 
+    @JsonProperty("CustodialHistoryItem")
     private List<String> custodialHistoryItem = new ArrayList<>();
+
+    @JsonProperty("CustodialHistoryFile")
     private DataObjectReference custodialHistoryFile;
 
     public List<String> getCustodialHistoryItem() {
