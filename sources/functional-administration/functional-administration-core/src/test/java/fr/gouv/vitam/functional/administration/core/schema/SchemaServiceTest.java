@@ -308,6 +308,8 @@ public class SchemaServiceTest {
         assertEquals(SchemaOrigin.EXTERNAL, birthDateSchemaElt.getOrigin());
         assertThat(birthDateSchemaElt.getTypeDetail()).isEqualTo(SchemaTypeDetail.DATETIME);
         assertThat(birthDateSchemaElt.getStringSize()).isNull();
+        assertThat(birthDateSchemaElt.getCreationDate()).isNotNull();
+        assertThat(birthDateSchemaElt.getLastUpdate()).isNotNull();
 
         final Optional<SchemaResponse> invoiceSchemaEltOpt = unitSchema
             .stream()
