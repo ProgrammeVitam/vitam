@@ -341,6 +341,8 @@ public class SchemaService {
                 if (Boolean.TRUE.equals(schemaElt.getObject())) {
                     schemaResponse.setType(SchemaType.OBJECT);
                 }
+                schemaResponse.setCreationDate(schemaElt.getCreationDate());
+                schemaResponse.setLastUpdate(schemaElt.getLastUpdate());
                 // If not an OBJECT, type will be defined from ontology
                 return schemaResponse;
             })

@@ -76,11 +76,11 @@ public class SchemaModel {
     /**
      * the creation date of the schema
      */
-    public static final String CREATION_DATE = "CreationDate";
+    public static final String TAG_CREATION_DATE = "CreationDate";
     /**
      * the last update of schema
      */
-    public static final String LAST_UPDATE = "LastUpdate";
+    public static final String TAG_LAST_UPDATE = "LastUpdate";
 
     public SchemaModel() {
         super();
@@ -139,6 +139,18 @@ public class SchemaModel {
      */
     @JsonProperty(TAG_PATH)
     private String path;
+
+    /**
+     * The schema element creation date
+     */
+    @JsonProperty(TAG_CREATION_DATE)
+    private String creationDate;
+
+    /**
+     * The schema element last update
+     */
+    @JsonProperty(TAG_LAST_UPDATE)
+    private String lastUpdate;
 
     public Integer getTenant() {
         return tenant;
@@ -220,17 +232,13 @@ public class SchemaModel {
         this.version = version;
     }
 
-    /**
-     * The schema element creationdate
-     */
-    @JsonProperty(CREATION_DATE)
-    private String creationdate;
+    public String getCreationDate() {
+        return creationDate;
+    }
 
-    /**
-     * The schema element  lastupdate
-     */
-    @JsonProperty(LAST_UPDATE)
-    private String lastupdate;
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
 
     @Override
     public String toString() {
@@ -253,10 +261,10 @@ public class SchemaModel {
             shortName +
             '\'' +
             ", creationdate='" +
-            creationdate +
+            creationDate +
             '\'' +
             ", lastupdate='" +
-            lastupdate +
+            lastUpdate +
             '\'' +
             ", path='" +
             path +

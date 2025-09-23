@@ -102,6 +102,16 @@ public class SchemaResponse {
     public static final String TAG_CUSTOM_SEARCH_TYPES = "CustomSearchTypes";
 
     /**
+     * Creation date tag
+     */
+    public static final String TAG_CREATION_DATE = "CreationDate";
+
+    /**
+     * Last update date tag
+     */
+    public static final String TAG_LAST_UPDATE_DATE = "LastUpdate";
+
+    /**
      * The fieldName
      */
     @JsonProperty(TAG_FIELD_NAME)
@@ -173,6 +183,12 @@ public class SchemaResponse {
 
     @JsonProperty(TAG_CUSTOM_SEARCH_TYPES)
     private List<String> customSearchTypes;
+
+    @JsonProperty(TAG_CREATION_DATE)
+    private String creationDate;
+
+    @JsonProperty(TAG_LAST_UPDATE_DATE)
+    private String lastUpdate;
 
     /**
      * Constructor without fields use for jackson
@@ -326,6 +342,24 @@ public class SchemaResponse {
 
     public SchemaResponse setCustomSearchTypes(List<String> customSearchTypes) {
         this.customSearchTypes = customSearchTypes;
+        return this;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public SchemaResponse setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
+        return this;
+    }
+
+    public String getLastUpdate() {
+        return lastUpdate;
+    }
+
+    public SchemaResponse setLastUpdate(String lastUpdate) {
+        this.lastUpdate = lastUpdate;
         return this;
     }
 }
