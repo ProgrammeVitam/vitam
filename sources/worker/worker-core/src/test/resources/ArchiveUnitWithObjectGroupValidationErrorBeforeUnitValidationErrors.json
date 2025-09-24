@@ -1,0 +1,41 @@
+{
+  "ArchiveUnit": {
+    "DescriptionLevel": "Item",
+    "Title": "Unit",
+    "_id": "unit1",
+    "_og": "aebaaaaaaaec4rmkad5tqamzayhsotaaaaaq",
+    "_mgt": {},
+    "_sedaVersion": "2.1",
+    "_implementationVersion": "8.1.2-SNAPSHOT",
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq",
+    "_ops": [
+      "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
+    ],
+    "_storage": {
+      "strategyId": "default"
+    },
+    "_ogInfo": {
+      "_errors": [
+        {
+          "evDetData": "{}",
+          "evId": "og_evId1",
+          "evTypeProc": "og_evTypeProc1",
+          "outDetail": "og_outDetail1",
+          "outMessg": "og_outMessg1"
+        },
+        {
+          "evDetData": "{}",
+          "evId": "og_evId2",
+          "evTypeProc": "og_evTypeProc2",
+          "outDetail": "og_outDetail2",
+          "outMessg": "og_outMessg2"
+        }
+      ]
+    }
+  },
+  "_work": {
+    "_up": [],
+    "RulesToApply": []
+  }
+}

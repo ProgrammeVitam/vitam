@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.worker.core.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,11 +36,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
+import fr.gouv.vitam.common.model.unit.ObjectGroupInfoInternalModel;
 import fr.gouv.vitam.common.model.validations.ValidationError;
-import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -63,7 +62,6 @@ public class ValidationErrorManager {
 
     private static final String UNIT_CHECK_STEP = "STP_UNIT_CHECK_AND_PROCESS";
     private static final String OG_CHECK_STEP = "STP_OG_CHECK_AND_TRANSFORME";
-    private static final String PARENT_UNIT_VALIDATION_ERROR_ERROR_CODE = "OBJECT_GROUP_VALIDATION";
     private static final String JSON_EXTENSION = ".json";
     private static final String PATH_SEPARATOR = "/";
 
@@ -98,7 +96,7 @@ public class ValidationErrorManager {
             for (String objectName : validationErrorsByObjectName.keySet()) {
                 Collection<ValidationError> validationErrors = validationErrorsByObjectName.get(objectName);
                 String objectGroupId = Strings.CI.removeEnd(objectName, JSON_EXTENSION);
-                handleObjectGroupValidationErrors(objectGroupId, validationErrors, handlerIO, step.getStepName());
+                handleObjectGroupValidationErrors(objectGroupId, validationErrors, handlerIO);
             }
         }
     }
@@ -113,16 +111,15 @@ public class ValidationErrorManager {
     void handleObjectGroupValidationErrors(
         String objectGroupId,
         Collection<ValidationError> validationErrors,
-        HandlerIO handler,
-        String stepName
+        HandlerIO handler
     ) throws ProcessingException {
         ObjectNode objectGroupJson = getObjectGroupJson(objectGroupId, handler);
-        setObjectGroupValidationErrors(objectGroupJson, validationErrors);
+        setValidationErrors(objectGroupJson, validationErrors);
         saveObjectGroup(objectGroupId, handler, objectGroupJson);
 
         List<String> parentUnitIds = getParentUnitIds(objectGroupJson);
         for (String parentUnitId : parentUnitIds) {
-            addValidationErrorToParentUnit(validationErrors, handler, parentUnitId, stepName);
+            reportObjectGroupValidationErrorsInParentUnit(validationErrors, handler, parentUnitId);
         }
     }
 
@@ -153,18 +150,17 @@ public class ValidationErrorManager {
         }
     }
 
-    private void setUnitValidationErrors(ObjectNode archiveUnit, Collection<ValidationError> validationErrors) {
+    /**
+     * Sets unit validation errors, but keeps object group validation errors.
+     */
+    private void setUnitValidationErrors(ObjectNode archiveUnit, Collection<ValidationError> unitValidationErrors) {
         ObjectNode archiveUnitJson = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        try {
-            archiveUnitJson.set(MetadataDocument.ERRORS, JsonHandler.toJsonNode(validationErrors));
-        } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException("Cannot serialize validation errors", e);
-        }
+        setValidationErrors(archiveUnitJson, unitValidationErrors);
     }
 
-    private void setObjectGroupValidationErrors(ObjectNode objectGroup, Collection<ValidationError> validationErrors) {
+    private void setValidationErrors(ObjectNode metadataJson, Collection<ValidationError> validationErrors) {
         try {
-            objectGroup.set(MetadataDocument.ERRORS, JsonHandler.toJsonNode(validationErrors));
+            metadataJson.set(MetadataDocument.ERRORS, JsonHandler.toJsonNode(validationErrors));
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException("Cannot serialize validation errors", e);
         }
@@ -205,41 +201,26 @@ public class ValidationErrorManager {
         return parentUnitIds;
     }
 
-    private void addValidationErrorToParentUnit(
-        Collection<ValidationError> validationErrors,
+    private void reportObjectGroupValidationErrorsInParentUnit(
+        Collection<ValidationError> objectGroupValidationErrors,
         HandlerIO handler,
-        String parentUnitId,
-        String stepName
+        String parentUnitId
     ) throws ProcessingException {
-        ValidationError unitValidationError = ValidationErrorHelper.createMetadataValidationError(
-            LogbookTypeProcess.COLLECT_SIP_INGEST,
-            stepName,
-            PARENT_UNIT_VALIDATION_ERROR_ERROR_CODE,
-            JsonHandler.createObjectNode()
-                .put("msg", "Object group has " + validationErrors.size() + " validation error(s)")
-        );
         ObjectNode parentUnit = getArchiveUnitJson(parentUnitId, handler);
+        ObjectNode archiveUnitJson = (ObjectNode) parentUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         try {
-            List<ValidationError> parentUnitValidationErrors = parentUnit.has(MetadataDocument.ERRORS)
-                ? JsonHandler.getFromJsonNode(parentUnit.get(MetadataDocument.ERRORS), new TypeReference<>() {})
-                : new ArrayList<>();
+            ObjectGroupInfoInternalModel objectGroupInfoInternalModel = archiveUnitJson.has(Unit.OBJECT_GROUP_INFO)
+                ? JsonHandler.getFromJsonNode(
+                    archiveUnitJson.get(Unit.OBJECT_GROUP_INFO),
+                    ObjectGroupInfoInternalModel.class
+                )
+                : new ObjectGroupInfoInternalModel();
 
-            // Idempotency: add error event only once
-            if (
-                parentUnitValidationErrors
-                    .stream()
-                    .noneMatch(
-                        validationError ->
-                            unitValidationError.getEvTypeProc().equals(validationError.getEvTypeProc()) &&
-                            unitValidationError.getOutDetail().equals(validationError.getOutDetail())
-                    )
-            ) {
-                parentUnitValidationErrors.add(unitValidationError);
-                setUnitValidationErrors(parentUnit, parentUnitValidationErrors);
-                saveArchiveUnit(parentUnitId, handler, parentUnit);
-            }
+            objectGroupInfoInternalModel.setErrors(new ArrayList<>(objectGroupValidationErrors));
+            archiveUnitJson.set(Unit.OBJECT_GROUP_INFO, JsonHandler.toJsonNode(objectGroupInfoInternalModel));
         } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("Cannot serialize/deserialize validation errors", e);
         }
+        saveArchiveUnit(parentUnitId, handler, parentUnit);
     }
 }

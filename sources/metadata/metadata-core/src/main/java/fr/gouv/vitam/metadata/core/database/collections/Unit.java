@@ -79,6 +79,10 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String GRAPH = "_graph";
     static final String HISTORY = "_history";
     /**
+     * Object Group Info
+     */
+    public static final String OBJECT_GROUP_INFO = "_ogInfo";
+    /**
      * Virtual paths
      */
     public static final String VIRTUAL_UPS = "_vups";

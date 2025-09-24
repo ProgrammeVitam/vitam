@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -47,26 +48,26 @@ import static org.mockito.Mockito.verify;
 public class ValidationErrorManagerTest {
 
     @Test
-    public void testPersistValidationErrors() throws Exception {
+    public void persistUnitValidationErrors() throws Exception {
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
-        doReturn(PropertiesUtils.getResourceAsStream("ArchiveUnitBeforeErrorValidation.json"))
+        doReturn(PropertiesUtils.getResourceAsStream("ArchiveUnitBeforeValidationErrors.json"))
             .when(handlerIO)
             .getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, "Units/unit1.json");
         ValidationErrorManager validationErrorManager = new ValidationErrorManager();
         List<ValidationError> validationErrors = List.of(
             new ValidationError()
-                .setEvId("evId1")
-                .setOutMessg("outMessg1")
+                .setEvId("unit_evId1")
+                .setOutMessg("unit_outMessg1")
                 .setEvDetData("{}")
-                .setEvTypeProc("evTypeProc1")
-                .setOutDetail("outDetail1"),
+                .setEvTypeProc("unit_evTypeProc1")
+                .setOutDetail("unit_outDetail1"),
             new ValidationError()
-                .setEvId("evId2")
-                .setOutMessg("outMessg2")
+                .setEvId("unit_evId2")
+                .setOutMessg("unit_outMessg2")
                 .setEvDetData("{}")
-                .setEvTypeProc("evTypeProc2")
-                .setOutDetail("outDetail2")
+                .setEvTypeProc("unit_evTypeProc2")
+                .setOutDetail("unit_outDetail2")
         );
 
         // When
@@ -84,8 +85,177 @@ public class ValidationErrorManagerTest {
         );
 
         JsonAssert.assertJsonEquals(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("ArchiveUnitAfterErrorValidation.json")),
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream("ArchiveUnitAfterValidationErrors.json")
+            ),
             unitJsonNodeArgumentCaptor.getValue()
+        );
+    }
+
+    @Test
+    public void persistUnitValidationErrorsKeepingExisingObjectGroupErrors() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        doReturn(
+            PropertiesUtils.getResourceAsStream(
+                "ArchiveUnitWithObjectGroupValidationErrorBeforeUnitValidationErrors.json"
+            )
+        )
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, "Units/unit1.json");
+        ValidationErrorManager validationErrorManager = new ValidationErrorManager();
+        List<ValidationError> validationErrors = List.of(
+            new ValidationError()
+                .setEvId("unit_evId1")
+                .setOutMessg("unit_outMessg1")
+                .setEvDetData("{}")
+                .setEvTypeProc("unit_evTypeProc1")
+                .setOutDetail("unit_outDetail1"),
+            new ValidationError()
+                .setEvId("unit_evId2")
+                .setOutMessg("unit_outMessg2")
+                .setEvDetData("{}")
+                .setEvTypeProc("unit_evTypeProc2")
+                .setOutDetail("unit_outDetail2")
+        );
+
+        // When
+        validationErrorManager.handleUnitValidationErrors("unit1", validationErrors, handlerIO);
+
+        // Then
+        ArgumentCaptor<JsonNode> unitJsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(handlerIO).transferJsonToWorkspace(
+            eq(WorkFlowExecutionContext.VITAM),
+            eq("Units"),
+            eq("unit1.json"),
+            unitJsonNodeArgumentCaptor.capture(),
+            eq(false),
+            eq(false)
+        );
+
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "ArchiveUnitWithObjectGroupValidationErrorAfterAddingUnitValidationErrors.json"
+                )
+            ),
+            unitJsonNodeArgumentCaptor.getValue()
+        );
+    }
+
+    @Test
+    public void persistUnitValidationErrorsOverridingExisingUnitValidationErrors() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        doReturn(
+            PropertiesUtils.getResourceAsStream(
+                "ArchiveUnitWithObjectGroupValidationErrorAfterAddingUnitValidationErrors.json"
+            )
+        )
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, "Units/unit1.json");
+        ValidationErrorManager validationErrorManager = new ValidationErrorManager();
+        List<ValidationError> validationErrors = List.of(
+            new ValidationError()
+                .setEvId("unit_evId1")
+                .setOutMessg("unit_outMessg1")
+                .setEvDetData("{}")
+                .setEvTypeProc("unit_evTypeProc1")
+                .setOutDetail("unit_outDetail1"),
+            new ValidationError()
+                .setEvId("unit_evId2")
+                .setOutMessg("unit_outMessg2")
+                .setEvDetData("{}")
+                .setEvTypeProc("unit_evTypeProc2")
+                .setOutDetail("unit_outDetail2")
+        );
+
+        // When
+        validationErrorManager.handleUnitValidationErrors("unit1", validationErrors, handlerIO);
+
+        // Then
+        ArgumentCaptor<JsonNode> unitJsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(handlerIO).transferJsonToWorkspace(
+            eq(WorkFlowExecutionContext.VITAM),
+            eq("Units"),
+            eq("unit1.json"),
+            unitJsonNodeArgumentCaptor.capture(),
+            eq(false),
+            eq(false)
+        );
+
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "ArchiveUnitWithObjectGroupValidationErrorAfterAddingUnitValidationErrors.json"
+                )
+            ),
+            unitJsonNodeArgumentCaptor.getValue()
+        );
+    }
+
+    @Test
+    public void persistObjectGroupValidationErrors() throws Exception {
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        doReturn(PropertiesUtils.getResourceAsStream("ObjectGroupBeforeValidationErrors.json"))
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, "ObjectGroup/og1.json");
+        doReturn(PropertiesUtils.getResourceAsStream("ArchiveUnitBeforeValidationErrors.json"))
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(WorkFlowExecutionContext.VITAM, "Units/unit1.json");
+        ValidationErrorManager validationErrorManager = new ValidationErrorManager();
+        List<ValidationError> validationErrors = List.of(
+            new ValidationError()
+                .setEvId("og_evId1")
+                .setOutMessg("og_outMessg1")
+                .setEvDetData("{}")
+                .setEvTypeProc("og_evTypeProc1")
+                .setOutDetail("og_outDetail1"),
+            new ValidationError()
+                .setEvId("og_evId2")
+                .setOutMessg("og_outMessg2")
+                .setEvDetData("{}")
+                .setEvTypeProc("og_evTypeProc2")
+                .setOutDetail("og_outDetail2")
+        );
+
+        // When
+        validationErrorManager.handleObjectGroupValidationErrors("og1", validationErrors, handlerIO);
+
+        // Then
+        ArgumentCaptor<JsonNode> objectGroupJsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        ArgumentCaptor<JsonNode> unitJsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(handlerIO).transferJsonToWorkspace(
+            eq(WorkFlowExecutionContext.VITAM),
+            eq("ObjectGroup"),
+            eq("og1.json"),
+            objectGroupJsonNodeArgumentCaptor.capture(),
+            eq(false),
+            eq(false)
+        );
+        verify(handlerIO).transferJsonToWorkspace(
+            eq(WorkFlowExecutionContext.VITAM),
+            eq("Units"),
+            eq("unit1.json"),
+            unitJsonNodeArgumentCaptor.capture(),
+            eq(false),
+            eq(false)
+        );
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream("ObjectGroupAfterValidationErrors.json")
+            ),
+            objectGroupJsonNodeArgumentCaptor.getValue()
+        );
+        JsonAssert.assertJsonEquals(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "ArchiveUnitAfterObjectGroupValidationErrorsReportedInParentUnit.json"
+                )
+            ),
+            unitJsonNodeArgumentCaptor.getValue(),
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(List.of("ArchiveUnit._errors[0].evId"))
         );
     }
 }

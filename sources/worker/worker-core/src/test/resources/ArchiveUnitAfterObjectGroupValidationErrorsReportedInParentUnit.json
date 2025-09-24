@@ -15,22 +15,24 @@
     "_storage": {
       "strategyId": "default"
     },
-    "_errors": [
-      {
-        "evId": "evId1",
-        "evTypeProc": "evTypeProc1",
-        "outDetail": "outDetail1",
-        "outMessg": "outMessg1",
-        "evDetData": "{}"
-      },
-      {
-        "evId": "evId2",
-        "evTypeProc": "evTypeProc2",
-        "outDetail": "outDetail2",
-        "outMessg": "outMessg2",
-        "evDetData": "{}"
-      }
-    ]
+    "_ogInfo": {
+      "_errors": [
+        {
+          "evDetData": "{}",
+          "evId": "og_evId1",
+          "evTypeProc": "og_evTypeProc1",
+          "outDetail": "og_outDetail1",
+          "outMessg": "og_outMessg1"
+        },
+        {
+          "evDetData": "{}",
+          "evId": "og_evId2",
+          "evTypeProc": "og_evTypeProc2",
+          "outDetail": "og_outDetail2",
+          "outMessg": "og_outMessg2"
+        }
+      ]
+    }
   },
   "_work": {
     "_up": [],

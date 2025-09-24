@@ -92,6 +92,9 @@ public class ArchiveUnitInternalModel {
     @JsonProperty("_errors")
     private List<ValidationError> errors;
 
+    @JsonProperty("_ogInfo")
+    private ObjectGroupInfoInternalModel objectGroupInfo;
+
     /**
      * Constructor
      */
@@ -238,5 +241,23 @@ public class ArchiveUnitInternalModel {
 
     public void setManagementContractId(String managementContractId) {
         this.managementContractId = managementContractId;
+    }
+
+    public List<ValidationError> getErrors() {
+        return errors;
+    }
+
+    public ArchiveUnitInternalModel setErrors(List<ValidationError> errors) {
+        this.errors = errors;
+        return this;
+    }
+
+    public ObjectGroupInfoInternalModel getObjectGroupInfo() {
+        return objectGroupInfo;
+    }
+
+    public ArchiveUnitInternalModel setObjectGroupInfo(ObjectGroupInfoInternalModel objectGroupInfo) {
+        this.objectGroupInfo = objectGroupInfo;
+        return this;
     }
 }

@@ -2266,6 +2266,32 @@
           "type": "keyword"
         }
       }
+    },
+    "_ogInfo": {
+      "properties": {
+        "_errors": {
+          "properties": {
+            "evId": {
+              "type": "keyword"
+            },
+            "obId": {
+              "type": "keyword"
+            },
+            "evTypeProc": {
+              "type": "keyword"
+            },
+            "outDetail": {
+              "type": "keyword"
+            },
+            "outMessg": {
+              "type": "text"
+            },
+            "evDetData": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
     }
   }
 }

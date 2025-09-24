@@ -109,7 +109,8 @@ public class MetadataDocumentHelper {
         COLLECT_BATCH_ID("_batchId"),
         COLLECT_UPLOAD_PATH("_uploadPath"),
         VIRTUAL_UPS("_vups"),
-        ERRORS("_errors");
+        ERRORS("_errors"),
+        OBJECT_GROUP_INFO("_ogInfo");
 
         private final String fieldName;
 
