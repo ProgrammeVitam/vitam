@@ -24,32 +24,25 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.core.database.collections;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import org.junit.Test;
+package fr.gouv.vitam.common.model.unit;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.validations.ValidationError;
 
-public class MongoDbVarNameAdapterTest {
+import java.util.List;
 
-    @Test
-    public void givenMongoDbVarNameAdapterWhenGetVariableNameThenReturnCorrect() throws InvalidParseOperationException {
-        MongoDbVarNameAdapter mongoVarNameAdapter = new MongoDbVarNameAdapter();
-        assertNull(mongoVarNameAdapter.getVariableName("notValid"));
-        assertEquals(MetadataDocument.ID, mongoVarNameAdapter.getVariableName("#id"));
-        assertEquals(Unit.NBCHILD, mongoVarNameAdapter.getVariableName("#nbunits"));
-        assertEquals(MetadataDocument.TYPE, mongoVarNameAdapter.getVariableName("#type"));
-        assertEquals(ObjectGroup.OBJECTSIZE, mongoVarNameAdapter.getVariableName("#size"));
-        assertEquals(ObjectGroup.OBJECTFORMAT, mongoVarNameAdapter.getVariableName("#format"));
-        assertEquals(MetadataDocument.QUALIFIERS, mongoVarNameAdapter.getVariableName("#qualifiers"));
-        assertEquals(ObjectGroup.STORAGE, mongoVarNameAdapter.getVariableName("#storage"));
-        assertEquals("_ogInfo._errors", mongoVarNameAdapter.getVariableName("#ogInfo.#errors"));
-        assertEquals("_qualifiers.versions._id", mongoVarNameAdapter.getVariableName("#qualifiers.versions.#id"));
-        assertThatThrownBy(() -> mongoVarNameAdapter.getVariableName("#unknown")).isInstanceOf(
-            InvalidParseOperationException.class
-        );
+public class ObjectGroupInfoModel {
+
+    @JsonProperty("#errors")
+    private List<ValidationError> errors;
+
+    public List<ValidationError> getErrors() {
+        return errors;
+    }
+
+    public ObjectGroupInfoModel setErrors(List<ValidationError> errors) {
+        this.errors = errors;
+        return this;
     }
 }

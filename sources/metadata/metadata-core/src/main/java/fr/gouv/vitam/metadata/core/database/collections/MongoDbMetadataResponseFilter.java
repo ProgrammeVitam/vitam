@@ -219,7 +219,10 @@ public class MongoDbMetadataResponseFilter {
                     replace(document, Unit.VIRTUAL_UPS, PROJECTIONARGS.VUPS.exactToken());
                     break;
                 case ERRORS:
-                    replace(document, Unit.ERRORS, PROJECTIONARGS.ERRORS.exactToken());
+                    replace(document, MetadataDocument.ERRORS, PROJECTIONARGS.ERRORS.exactToken());
+                    break;
+                case OGINFO:
+                    filterObjectGroupInfo(document);
                     break;
                 default:
                     break;
@@ -232,6 +235,14 @@ public class MongoDbMetadataResponseFilter {
             Object storage = document.get(ObjectGroup.STORAGE);
             replace((Document) storage, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
             replace(document, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
+        }
+    }
+
+    private static void filterObjectGroupInfo(MetadataDocument<?> document) {
+        if (document.get(Unit.OBJECT_GROUP_INFO) != null) {
+            Object ogInfo = document.get(Unit.OBJECT_GROUP_INFO);
+            replace((Document) ogInfo, MetadataDocument.ERRORS, VitamFieldsHelper.errors());
+            replace(document, Unit.OBJECT_GROUP_INFO, VitamFieldsHelper.objectGroupInfo());
         }
     }
 

@@ -1,0 +1,87 @@
+{
+  "_id": "og1",
+  "_tenant": 0,
+  "_profil": "",
+  "FileInfo": {
+    "Filename": "Montparnasse.txt",
+    "LastModified": "2017-04-04T08:07:06.487+02:00"
+  },
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aebqaaaaacecvfsrabjwoamzlohcbliaaaba",
+          "DataObjectVersion": "BinaryMaster_1",
+          "DataObjectGroupId": "aebaaaaaaaecvfsrabjwoamzlohcbliaaaaq",
+          "FormatIdentification": {
+            "FormatLitteral": "Plain Text File",
+            "MimeType": "text/plain",
+            "FormatId": "x-fmt/111"
+          },
+          "FileInfo": {
+            "Filename": "Montparnasse.txt",
+            "LastModified": "2017-04-04T08:07:06.487+02:00"
+          },
+          "Size": 1000000,
+          "Uri": "Content/1mb.txt",
+          "MessageDigest": "4493e6062a900d1cd0a3db8d5030a1749f0f24960c64ab92370fae547875347a6759e0ba3a3a7056f61fdeda39ace50c41282148a4f6888630a83d1b9ab8439f",
+          "Algorithm": "SHA-512",
+          "_opi": "aeeaaaaaaceclqutabs7mamzlog6fviaaaaq"
+        }
+      ]
+    }
+  ],
+  "_work": {
+    "_qualifiers": {
+      "BinaryMaster_1": {
+        "_nbc": 1,
+        "versions": [
+          {
+            "_id": "aebqaaaaacecvfsrabjwoamzlohcbliaaaba",
+            "_opi": "aeeaaaaaaceclqutabs7mamzlog6fviaaaaq",
+            "Size": 1000000,
+            "Uri": "Content/1mb.txt",
+            "MessageDigest": "4493e6062a900d1cd0a3db8d5030a1749f0f24960c64ab92370fae547875347a6759e0ba3a3a7056f61fdeda39ace50c41282148a4f6888630a83d1b9ab8439f",
+            "Algorithm": "SHA-512",
+            "_storage": {
+              "strategyId": "default"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "_up": [
+    "unit1"
+  ],
+  "_nbc": 1,
+  "_ops": [
+    "aeeaaaaaaceclqutabs7mamzlog6fviaaaaq"
+  ],
+  "_opi": "aeeaaaaaaceclqutabs7mamzlog6fviaaaaq",
+  "_sp": "FRAN_NP_009913",
+  "_sps": [
+    "FRAN_NP_009913"
+  ],
+  "_storage": {
+    "strategyId": "default"
+  },
+  "_errors": [
+    {
+      "evDetData": "{}",
+      "evId": "og_evId1",
+      "evTypeProc": "og_evTypeProc1",
+      "outDetail": "og_outDetail1",
+      "outMessg": "og_outMessg1"
+    },
+    {
+      "evDetData": "{}",
+      "evId": "og_evId2",
+      "evTypeProc": "og_evTypeProc2",
+      "outDetail": "og_outDetail2",
+      "outMessg": "og_outMessg2"
+    }
+  ]
+}

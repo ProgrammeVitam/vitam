@@ -220,7 +220,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Validation errors
          */
-        ERRORS("errors");
+        ERRORS("errors"),
+        /**
+         * Object group information
+         */
+        OGINFO("ogInfo");
 
         private static final String NOT_FOUND = "Not found";
         private final String exactToken;
@@ -334,6 +338,7 @@ public class ParserTokens extends BuilderToken {
                         case COMPUTEDINHERITEDRULES:
                         case NBC:
                         case ERRORS:
+                        case OGINFO:
                             return true;
                         default:
                     }

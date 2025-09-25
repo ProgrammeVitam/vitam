@@ -47,9 +47,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
@@ -81,7 +78,6 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.collections4.CollectionUtils;
 import org.assertj.core.api.Assertions;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.After;
@@ -622,7 +618,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
     public void test_ingest_invalid_sip_complex_validation_errors() throws Exception {
         // Given
         InputStream sipInputStream = PropertiesUtils.getResourceAsStream(
-            "collect/SIP_KO_MultipleErrors_Size_Digest_Virus.zip"
+            "collect/SIP_KO_Multiple_Validation_Errors_With_Virus.zip"
         );
         String transactionId = createTransactionId();
 
@@ -633,13 +629,17 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         verifyOperation(ingestOperationId, StatusCode.KO);
 
         Map<String, ArchiveUnitModel> units = selectUnits(transactionId);
-        Map<String, List<ValidationError>> validationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
+
+        assertThat(units).hasSize(10);
+
+        Map<String, List<ValidationError>> unitValidationErrorsByUnitTitle = mapUnitValidationErrorsByUnitTitle(units);
+        Map<String, List<ValidationError>> unitOgInfoValidationErrorsByUnitTitle =
+            mapUnitOgInfoValidationErrorsByUnitTitle(units);
         Map<String, DbObjectGroupModel> objectGroupsByUnitTitle = mapObjectGroupsByUnitTitle(units);
         Map<String, List<ValidationError>> objectGroupValidationErrorsByUnitTitle =
             mapObjectGroupValidationErrorsByUnitTitle(objectGroupsByUnitTitle);
 
-        assertThat(validationErrorsByUnitTitle).containsOnlyKeys(
-            "Unit 0",
+        assertThat(unitValidationErrorsByUnitTitle).containsOnlyKeys(
             "Unit 1",
             "Unit 2",
             "Unit 3",
@@ -651,20 +651,9 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         assertThat(objectGroupValidationErrorsByUnitTitle).containsOnlyKeys("Unit 0", "Unit 2");
+        assertThat(unitOgInfoValidationErrorsByUnitTitle).containsOnlyKeys("Unit 0", "Unit 2");
 
-        // Unit 0 - Bad binary digest & virus detected
-        List<ValidationError> validationErrors0 = validationErrorsByUnitTitle.get("Unit 0");
-        assertThat(validationErrors0).hasSize(1);
-        assertThat(validationErrors0.getFirst().getEvId()).isNotNull();
-        assertThat(validationErrors0.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
-        assertThat(validationErrors0.getFirst().getOutDetail()).isEqualTo(
-            "LFC.STP_OG_CHECK_AND_TRANSFORME.OBJECT_GROUP_VALIDATION.KO"
-        );
-        assertThat(validationErrors0.getFirst().getEvDetData()).contains("Object group has 2 validation error(s)");
-        assertThat(validationErrors0.getFirst().getOutMessg()).isEqualTo(
-            "Échec du processus de vérification et de traitement des objets et des groupes d'objets associé à l'unité"
-        );
-
+        // Unit 0 - Unit OK, but OG contains bad binary digest & virus detected
         List<ValidationError> ogValidationErrors0 = objectGroupValidationErrorsByUnitTitle.get("Unit 0");
         assertThat(ogValidationErrors0).hasSize(2);
 
@@ -688,8 +677,12 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(ogValidationErrors0.get(1).getEvDetData()).isNull();
         assertThat(ogValidationErrors0.get(1).getOutMessg()).isEqualTo("L'objet contient un virus");
 
+        assertThat(unitOgInfoValidationErrorsByUnitTitle.get("Unit 0"))
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyElementsOf(objectGroupValidationErrorsByUnitTitle.get("Unit 0"));
+
         // Unit 1 - Invalid rule start date + unknown rule
-        List<ValidationError> validationErrors1 = validationErrorsByUnitTitle.get("Unit 1");
+        List<ValidationError> validationErrors1 = unitValidationErrorsByUnitTitle.get("Unit 1");
         assertThat(validationErrors1).hasSize(2);
         assertThat(validationErrors1.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors1.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -710,7 +703,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         // Unit 2 - Rule declared in another category + 2x binaries with wrong digest
-        List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
+        List<ValidationError> validationErrors2 = unitValidationErrorsByUnitTitle.get("Unit 2");
         assertThat(validationErrors2).hasSize(1);
         assertThat(validationErrors2.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors2.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -723,7 +716,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         List<ValidationError> ogValidationErrors2 = objectGroupValidationErrorsByUnitTitle.get("Unit 2");
-        assertThat(ogValidationErrors2).hasSize(2);
+        assertThat(ogValidationErrors2).hasSize(3);
 
         assertThat(ogValidationErrors2.getFirst().getEvId()).isNotNull();
         assertThat(ogValidationErrors2.getFirst().getObId()).isEqualTo(
@@ -747,8 +740,23 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             "Échec de la vérification de l'empreinte du fichier"
         );
 
+        assertThat(ogValidationErrors2.get(2).getEvId()).isNotNull();
+        assertThat(ogValidationErrors2.get(2).getObId()).isNull();
+        assertThat(ogValidationErrors2.get(2).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
+        assertThat(ogValidationErrors2.get(2).getOutDetail()).isEqualTo("LFC.CHECK_OBJECT_GROUP_SCHEMA.KO");
+        assertThat(ogValidationErrors2.get(2).getEvDetData()).contains(
+            "metadata contains fields declared in ontology with a wrong format : Error 'Invalid date format: bad_date' on field 'LastModified'."
+        );
+        assertThat(ogValidationErrors2.get(2).getOutMessg()).isEqualTo(
+            "Échec lors de la vérification globale du groupe d'objet"
+        );
+
+        assertThat(unitOgInfoValidationErrorsByUnitTitle.get("Unit 2"))
+            .usingRecursiveFieldByFieldElementComparator()
+            .containsExactlyElementsOf(objectGroupValidationErrorsByUnitTitle.get("Unit 2"));
+
         // Unit 3 - RefNonRuleId for an unknown rule id
-        List<ValidationError> validationErrors3 = validationErrorsByUnitTitle.get("Unit 3");
+        List<ValidationError> validationErrors3 = unitValidationErrorsByUnitTitle.get("Unit 3");
         assertThat(validationErrors3).hasSize(1);
         assertThat(validationErrors3.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors3.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -761,7 +769,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         // Unit 4 - RefNonRuleId with an invalid rule category + EndDate before StartDate
-        List<ValidationError> validationErrors4 = validationErrorsByUnitTitle.get("Unit 4");
+        List<ValidationError> validationErrors4 = unitValidationErrorsByUnitTitle.get("Unit 4");
         assertThat(validationErrors4).hasSize(2);
         assertThat(validationErrors4.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors4.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -782,7 +790,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         // Unit 5 - Invalid classification level
-        List<ValidationError> validationErrors5 = validationErrorsByUnitTitle.get("Unit 5");
+        List<ValidationError> validationErrors5 = unitValidationErrorsByUnitTitle.get("Unit 5");
         assertThat(validationErrors5).hasSize(1);
         assertThat(validationErrors5.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors5.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -793,7 +801,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         // Unit 6 - Missing title
-        List<ValidationError> validationErrors6 = validationErrorsByUnitTitle.get("<null>");
+        List<ValidationError> validationErrors6 = unitValidationErrorsByUnitTitle.get("<null>");
         assertThat(validationErrors6).hasSize(1);
         assertThat(validationErrors6.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors6.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -806,7 +814,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         // Unit 7 - No such AUP
-        List<ValidationError> validationErrors7 = validationErrorsByUnitTitle.get("Unit 7");
+        List<ValidationError> validationErrors7 = unitValidationErrorsByUnitTitle.get("Unit 7");
         assertThat(validationErrors7).hasSize(1);
         assertThat(validationErrors7.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors7.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -819,7 +827,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         );
 
         // Unit 8 - AUP validation failed
-        List<ValidationError> validationErrors8 = validationErrorsByUnitTitle.get("Unit 8");
+        List<ValidationError> validationErrors8 = unitValidationErrorsByUnitTitle.get("Unit 8");
         assertThat(validationErrors8).hasSize(1);
         assertThat(validationErrors8.getFirst().getEvId()).isNotNull();
         assertThat(validationErrors8.getFirst().getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -869,11 +877,9 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         }
     }
 
-    private static Map<String, ArchiveUnitModel> selectUnits(String transactionId)
-        throws VitamClientException, InvalidCreateOperationException {
+    private static Map<String, ArchiveUnitModel> selectUnits(String transactionId) throws VitamClientException {
         try (CollectExternalClient collectExternalClient = CollectExternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery query = new SelectMultiQuery();
-            query.addQueries(QueryHelper.exists(VitamFieldsHelper.errors()));
             List<JsonNode> units =
                 ((RequestResponseOK<JsonNode>) collectExternalClient.getUnitsByTransaction(
                         new VitamContext(TENANT_ID),
@@ -890,7 +896,6 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                         throw new RuntimeException(e);
                     }
                 })
-                .filter(unit -> CollectionUtils.isNotEmpty(unit.getErrors()))
                 .collect(
                     Collectors.toMap(
                         unit ->
@@ -991,7 +996,22 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         return units
             .entrySet()
             .stream()
+            .filter(entry -> entry.getValue().getErrors() != null)
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getErrors()));
+    }
+
+    private Map<String, List<ValidationError>> mapUnitOgInfoValidationErrorsByUnitTitle(
+        Map<String, ArchiveUnitModel> units
+    ) {
+        return units
+            .entrySet()
+            .stream()
+            .filter(
+                entry ->
+                    entry.getValue().getObjectGroupInfo() != null &&
+                    entry.getValue().getObjectGroupInfo().getErrors() != null
+            )
+            .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getObjectGroupInfo().getErrors()));
     }
 
     private Map<String, DbObjectGroupModel> mapObjectGroupsByUnitTitle(Map<String, ArchiveUnitModel> units) {

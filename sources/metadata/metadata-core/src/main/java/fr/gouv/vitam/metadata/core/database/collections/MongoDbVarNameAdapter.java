@@ -125,6 +125,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                 case MANAGEMENTCONTRACTID -> Unit.MANAGEMENT_CONTRACT_ID;
                 case VUPS -> Unit.VIRTUAL_UPS;
                 case ERRORS -> MetadataDocument.ERRORS;
+                case OGINFO -> Unit.OBJECT_GROUP_INFO;
                 case UPLOADPATH -> MetadataDocument.UPLOAD_PATH;
                 case FORMAT -> ObjectGroup.OBJECTFORMAT; // Deprecated, to be removed
                 case USAGE, // Deprecated, to be removed

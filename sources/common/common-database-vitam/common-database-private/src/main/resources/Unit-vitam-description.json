@@ -4012,11 +4012,12 @@
     "type": "object",
     "cardinality": "many",
     "indexed": true
-  },{
-  "path": "_errors.outMessg",
-  "type": "text",
-  "cardinality": "one",
-  "indexed": true
+  },
+  {
+    "path": "_errors.outMessg",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
   },
   {
     "path": "_errors.evId",
@@ -4044,6 +4045,54 @@
   },
   {
     "path": "_errors.outDetail",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_ogInfo",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.outMessg",
+    "type": "text",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.evId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.obId",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.evTypeProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.evDetData",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.outDetail",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"

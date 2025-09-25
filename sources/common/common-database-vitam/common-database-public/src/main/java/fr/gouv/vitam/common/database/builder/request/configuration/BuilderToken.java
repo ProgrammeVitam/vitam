@@ -765,7 +765,9 @@ public abstract class BuilderToken {
 
         VIRTUAL_UPS("vups"),
 
-        ERRORS("errors");
+        ERRORS("errors"),
+
+        OBJECT_GROUP_INFO("ogInfo");
 
         private final String exactToken;
 

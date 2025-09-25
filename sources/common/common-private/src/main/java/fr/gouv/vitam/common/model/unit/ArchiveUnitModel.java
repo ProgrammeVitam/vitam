@@ -93,6 +93,9 @@ public class ArchiveUnitModel {
     @JsonProperty("#errors")
     private List<ValidationError> errors;
 
+    @JsonProperty("#ogInfo")
+    private ObjectGroupInfoModel objectGroupInfo;
+
     /**
      * Constructor
      */
@@ -247,6 +250,15 @@ public class ArchiveUnitModel {
 
     public ArchiveUnitModel setErrors(List<ValidationError> errors) {
         this.errors = errors;
+        return this;
+    }
+
+    public ObjectGroupInfoModel getObjectGroupInfo() {
+        return objectGroupInfo;
+    }
+
+    public ArchiveUnitModel setObjectGroupInfo(ObjectGroupInfoModel objectGroupInfo) {
+        this.objectGroupInfo = objectGroupInfo;
         return this;
     }
 }
