@@ -60,7 +60,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.URLResourceFactory;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
 import java.io.File;
@@ -169,8 +169,7 @@ public class VitamStarter {
                     final ResourceHandler staticContentHandler = new ResourceHandler();
                     staticContentHandler.setDirAllowed(true);
                     staticContentHandler.setWelcomeFiles("index.html");
-                    URLResourceFactory resourceFactory = new URLResourceFactory();
-                    Resource resource = resourceFactory.newResource(staticResourcesUrl);
+                    Resource resource = ResourceFactory.of(staticContentHandler).newResource(staticResourcesUrl);
                     staticContentHandler.setBaseResource(resource);
                     final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
                     staticContext.setHandler(staticContentHandler);
