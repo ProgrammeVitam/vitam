@@ -631,7 +631,8 @@ public class CollectStep extends CommonStep {
                     "[*]." + VitamFieldsHelper.max(),
                     "[*]." + VitamFieldsHelper.tenant(),
                     "[*]." + VitamFieldsHelper.originatingAgencies(),
-                    "[*]." + VitamFieldsHelper.approximateUpdateDate()
+                    "[*]." + VitamFieldsHelper.approximateUpdateDate(),
+                    "[*]." + VitamFieldsHelper.implementationVersion()
                 )
             )
         );
