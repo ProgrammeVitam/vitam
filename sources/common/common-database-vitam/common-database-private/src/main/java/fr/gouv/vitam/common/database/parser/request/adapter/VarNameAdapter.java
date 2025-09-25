@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -63,6 +64,17 @@ public class VarNameAdapter {
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public String getVariableName(String name) throws InvalidParseOperationException {
+        if (name.indexOf('.') == -1) {
+            validateFieldName(name);
+        } else {
+            for (String field : StringUtils.split(name, '.')) {
+                validateFieldName(field);
+            }
+        }
+        return null;
+    }
+
+    private void validateFieldName(String name) throws InvalidParseOperationException {
         if (name.charAt(0) == ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR) {
             // Check on prefix (preceding '.')
             int pos = name.indexOf('.');
@@ -79,7 +91,6 @@ public class VarNameAdapter {
                 throw new InvalidParseOperationException("Illegal variable name found: " + name);
             }
         }
-        return null;
     }
 
     /**
