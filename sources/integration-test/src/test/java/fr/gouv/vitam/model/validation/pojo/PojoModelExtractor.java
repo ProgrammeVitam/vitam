@@ -67,6 +67,11 @@ public class PojoModelExtractor {
                 continue;
             }
 
+            if (field.getName().equals("updateOperationType")) {
+                // Tmp fix - Ignore UpdateOperation in 8.0-
+                continue;
+            }
+
             Class<?> entryClass = getEntryClass(field);
 
             boolean unwrapped = field.isAnnotationPresent(JsonUnwrapped.class);
