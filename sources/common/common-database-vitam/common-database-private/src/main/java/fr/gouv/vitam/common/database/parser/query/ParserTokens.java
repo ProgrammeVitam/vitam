@@ -51,10 +51,9 @@ public class ParserTokens extends BuilderToken {
     }
 
     /**
-     * specific fields: nbunits, dua, ... <br>
-     * $fields : [ #nbunits:1, #dua:1, #all:1... ]
+     * specific fields: version, id, ... <br>
+     * $fields : [ #version:1, #id:1... ]
      * <p>
-     * #all:1 means all, while #all:0 means none
      */
     public enum PROJECTIONARGS {
         /**
@@ -70,13 +69,9 @@ public class ParserTokens extends BuilderToken {
          */
         NBOBJECTS("nbobjects"),
         /**
-         * All Dua for the result
+         * NB of copies or binaries
          */
-        DUA("dua"),
-        /**
-         * All fields for the result or None except Id
-         */
-        ALL("all"),
+        NBC("nbc"),
         /**
          * Qualifiers field
          */
@@ -159,6 +154,7 @@ public class ParserTokens extends BuilderToken {
         ATOMIC_VERSION("atomic_version"),
         /**
          * Document's usage (BINARY_MASTER, PHYSICAL_MASTER, DISSEMINATION, ...)
+         * @deprecated Useless. Will be removed in future releases
          */
         USAGE("usage"),
         /**
@@ -178,13 +174,9 @@ public class ParserTokens extends BuilderToken {
          */
         ELIMINATION("elimination"),
         /**
-         * Graph last peristed date
+         * Graph last persisted date
          */
-        GRAPH_LAST_PERISTED_DATE("graph_last_persisted_date"),
-        /**
-         * Originating agency
-         */
-        PARENT_ORIGINATING_AGENCIES("parent_originating_agencies"),
+        GRAPH_LAST_PERSISTED_DATE("graph_last_persisted_date"),
         /**
          * Parent unit history
          */
@@ -220,7 +212,7 @@ public class ParserTokens extends BuilderToken {
         /**
          * Management Contract Id
          */
-        MANAGEMENT_CONTRACT_ID("managementContractId"),
+        MANAGEMENTCONTRACTID("managementContractId"),
         /**
          * Virtual paths
          */
@@ -311,7 +303,6 @@ public class ParserTokens extends BuilderToken {
                 try {
                     final PROJECTIONARGS proj = PROJECTIONARGS.valueOf(realname.toUpperCase());
                     switch (proj) {
-                        case ALL:
                         case FORMAT:
                         case ID:
                         case NBUNITS:
@@ -334,13 +325,15 @@ public class ParserTokens extends BuilderToken {
                         case SCORE:
                         case LAST_PERSISTED_DATE:
                         case GRAPH:
-                        case GRAPH_LAST_PERISTED_DATE:
+                        case GRAPH_LAST_PERSISTED_DATE:
                         case HISTORY:
                         case ELIMINATION:
                         case SEDAVERSION:
                         case IMPLEMENTATIONVERSION:
                         case STORAGE:
                         case COMPUTEDINHERITEDRULES:
+                        case NBC:
+                        case ERRORS:
                             return true;
                         default:
                     }

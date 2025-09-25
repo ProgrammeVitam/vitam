@@ -591,10 +591,8 @@ public abstract class BuilderToken {
      * Projection args model <br>
      * <br>
      *
-     * specific fields: nbunits, dua, ... <br>
-     * $fields : [ #nbunits:1, #dua:1, #all:1... ]
-     *
-     * #all:1 means all, while #all:0 means none
+     * specific fields: version, id, ... <br>
+     * $fields : [ #version:1, #id:1... ]
      */
 
     public enum PROJECTIONARGS {
@@ -616,10 +614,12 @@ public abstract class BuilderToken {
         NBCHILD("nbc"),
         /**
          * All Dua for the result
+         * @deprecated Use "#management.AppraisalRule.Rules.Rule" instead. Will be removed in future releases
          */
         DUA("dua"),
         /**
          * All fields for the result or None except Id
+         * @deprecated Use empty projection to select all fields.
          */
         ALL("all"),
         /**
@@ -676,6 +676,7 @@ public abstract class BuilderToken {
         ORIGINATING_AGENCIES("originating_agencies"),
         /**
          * originating agencies by parent
+         * @deprecated Will be removed in future release
          */
         PARENT_ORIGINATING_AGENCIES("parent_originating_agencies"),
         /**
@@ -789,10 +790,12 @@ public abstract class BuilderToken {
     public enum FILTERARGS {
         /**
          * Cache could be used for this request
+         * @deprecated Will be removed in future releases.
          */
         CACHE("cache"),
         /**
          * Cache should not be used for this request
+         * @deprecated Will be removed in future releases.
          */
         NOCACHE("nocache"),
         /**
@@ -800,7 +803,7 @@ public abstract class BuilderToken {
          */
         NOTIMEOUT("notimeout"),
         /**
-         * Query should chou
+         * Query should compute total hits. Defaults to false (returns 10_000 hits max)
          */
         TRACK_TOTAL_HITS("track_total_hits"),
 
