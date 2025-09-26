@@ -179,7 +179,7 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
         String endDate = LocalDateUtil.nowFormatted();
 
         if (logbookEvent.isEmpty()) {
-            return new ReportSummary(startDate, endDate, getReportType(), null, null);
+            return new ReportSummary(startDate, endDate, getReportType(), new ReportResults(0, 0, 0), null);
         }
 
         Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEvent.get());

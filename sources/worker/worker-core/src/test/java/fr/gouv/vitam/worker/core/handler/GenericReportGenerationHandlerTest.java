@@ -96,7 +96,7 @@ public class GenericReportGenerationHandlerTest {
     @RunWithCustomExecutor
     public void should_generate_report_OK() throws Exception {
         // When
-        genericReportGenerationHandler = getGenericReportGenerationHandler(3, 0, 0);
+        genericReportGenerationHandler = getGenericReportGenerationHandler(getLogbookEventOperation(3, 0, 0));
 
         ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
         doNothing().when(reportService).storeReportToWorkspace(reportCaptor.capture());
@@ -123,7 +123,7 @@ public class GenericReportGenerationHandlerTest {
     @RunWithCustomExecutor
     public void should_generate_report_WARNING() throws Exception {
         // When
-        genericReportGenerationHandler = getGenericReportGenerationHandler(1, 2, 1);
+        genericReportGenerationHandler = getGenericReportGenerationHandler(getLogbookEventOperation(1, 2, 1));
 
         ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
         doNothing().when(reportService).storeReportToWorkspace(reportCaptor.capture());
@@ -146,9 +146,37 @@ public class GenericReportGenerationHandlerTest {
 
     @Test
     @RunWithCustomExecutor
+    public void should_generate_report_OK_even_when_no_logbook_found() throws Exception {
+        // When
+        genericReportGenerationHandler = getGenericReportGenerationHandler(null);
+
+        ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
+        doNothing().when(reportService).storeReportToWorkspace(reportCaptor.capture());
+
+        ItemStatus itemStatus = genericReportGenerationHandler.execute(workerParameters, handler);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+        assertNotNull(reportCaptor.getValue());
+        Report report = reportCaptor.getValue();
+
+        assertThat(report.getOperationSummary().getEvId()).isEqualTo(OPERATION_ID);
+        assertThat(report.getReportSummary().getReportType()).isEqualTo(ReportType.ELIMINATION_ACTION);
+        assertThat(report.getReportSummary().getVitamResults()).isNotNull();
+        assertThat(report.getReportSummary().getVitamResults().getNbOk()).isEqualTo(0);
+        assertThat(report.getReportSummary().getVitamResults().getNbWarning()).isEqualTo(0);
+        assertThat(report.getReportSummary().getVitamResults().getNbKo()).isEqualTo(0);
+
+        assertThat(report.getContext().toString()).isEqualTo("{}");
+
+        verify(reportService).cleanupReport(OPERATION_ID);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_not_regenerate_report_when_already_exists_in_workspace() throws Exception {
         // Given
-        genericReportGenerationHandler = getGenericReportGenerationHandler(10, 0, 0);
+        genericReportGenerationHandler = getGenericReportGenerationHandler(getLogbookEventOperation(10, 0, 0));
 
         Report report = new Report();
         ReportSummary reportSummary = new ReportSummary(
@@ -174,7 +202,7 @@ public class GenericReportGenerationHandlerTest {
     @RunWithCustomExecutor
     public void should_generate_report_FATAL() throws Exception {
         // Given
-        genericReportGenerationHandler = getGenericReportGenerationHandler(1, 0, 0);
+        genericReportGenerationHandler = getGenericReportGenerationHandler(getLogbookEventOperation(1, 0, 0));
 
         doThrow(new ProcessingStatusException(StatusCode.FATAL, "Client error cause FATAL."))
             .when(reportService)
@@ -188,9 +216,7 @@ public class GenericReportGenerationHandlerTest {
 
     @Nonnull
     private GenericReportGenerationHandler getGenericReportGenerationHandler(
-        int numberOfOK,
-        int numberOfWarning,
-        int numberOfKO
+        LogbookEventOperation logbookEventOperation
     ) {
         return new GenericReportGenerationHandler(reportService) {
             @Override
@@ -210,14 +236,28 @@ public class GenericReportGenerationHandlerTest {
 
             @Override
             protected LogbookOperation getLogbookInformation(WorkerParameters param) {
-                return getLogbookOperation(numberOfOK, numberOfWarning, numberOfKO);
+                return getLogbookOperation(logbookEventOperation);
             }
         };
     }
 
     @Nonnull
-    private LogbookOperation getLogbookOperation(int numberOfOK, int numberOfWarning, int numberOfKO) {
+    private LogbookOperation getLogbookOperation(LogbookEventOperation logbookEventOperation) {
         LogbookOperation operation = new LogbookOperation();
+        LogbookEventOperation logbookEventOperation1 = new LogbookEventOperation();
+        logbookEventOperation1.setEvType("EVENT_TYPE");
+        if (logbookEventOperation != null) {
+            operation.setEvents(Arrays.asList(logbookEventOperation1, logbookEventOperation, logbookEventOperation1));
+        } else {
+            operation.setEvents(Arrays.asList(logbookEventOperation1, logbookEventOperation1));
+        }
+        operation.setRightsStatementIdentifier(
+            JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("identifier", "identifier"))
+        );
+        return operation;
+    }
+
+    private static LogbookEventOperation getLogbookEventOperation(int numberOfOK, int numberOfWarning, int numberOfKO) {
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
         logbookEventOperation.setEvDetData(
             JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("data", "data"))
@@ -226,12 +266,6 @@ public class GenericReportGenerationHandlerTest {
         logbookEventOperation.setOutMessg(
             "My awesome message" + DETAILS + "OK:" + numberOfOK + " WARNING:" + numberOfWarning + " KO:" + numberOfKO
         );
-        LogbookEventOperation logbookEventOperation1 = new LogbookEventOperation();
-        logbookEventOperation1.setEvType("EVENT_TYPE");
-        operation.setEvents(Arrays.asList(logbookEventOperation1, logbookEventOperation, logbookEventOperation1));
-        operation.setRightsStatementIdentifier(
-            JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("identifier", "identifier"))
-        );
-        return operation;
+        return logbookEventOperation;
     }
 }
