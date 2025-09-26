@@ -95,6 +95,7 @@ public class VitamFieldsHelper {
 
     /**
      * @return #nbunits
+     * @deprecated Will be removed in future releases.
      */
     public static String nbunits() {
         return NBUNITS.exactToken();
@@ -116,6 +117,7 @@ public class VitamFieldsHelper {
 
     /**
      * @return #all
+     * @deprecated Will be removed in future releases.
      */
     public static String all() {
         return ALL.exactToken();
@@ -151,6 +153,7 @@ public class VitamFieldsHelper {
 
     /**
      * @return #dua
+     * @deprecated Will be removed in future releases.
      */
     public static String dua() {
         return DUA.exactToken();
@@ -172,6 +175,7 @@ public class VitamFieldsHelper {
 
     /**
      * @return #cache
+     * @deprecated Will be removed in future releases.
      */
     public static String cache() {
         return CACHE.exactToken();
@@ -179,6 +183,7 @@ public class VitamFieldsHelper {
 
     /**
      * @return #nocache
+     * @deprecated Will be removed in future releases.
      */
     public static String nocache() {
         return NOCACHE.exactToken();
@@ -313,6 +318,7 @@ public class VitamFieldsHelper {
 
     /**
      * @return #parent_originating_agencies
+     * @deprecated Will be removed in future releases.
      */
     public static String parentOriginatingAgencies() {
         return PARENT_ORIGINATING_AGENCIES.exactToken();

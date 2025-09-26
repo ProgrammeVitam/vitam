@@ -26,8 +26,12 @@
  */
 package fr.gouv.vitam.model.validation.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -36,6 +40,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 public class PojoModelExtractor {
@@ -61,22 +66,41 @@ public class PojoModelExtractor {
                 continue;
             }
 
-            String fieldIdentifier = getFieldIdentifier(field);
-            boolean isArray = isArray(field);
+            if (field.getName().equals("updateOperationType")) {
+                // Tmp fix - Ignore UpdateOperation in 8.0-
+                continue;
+            }
 
             Class<?> entryClass = getEntryClass(field);
 
-            PojoModelType modelType = getModelType(entryClass);
+            boolean unwrapped = field.isAnnotationPresent(JsonUnwrapped.class);
+            if (unwrapped) {
+                extractPojoModels(entryClass, currentPath);
+            } else {
+                if (field.isAnnotationPresent(XmlAttribute.class) || field.isAnnotationPresent(JsonIgnore.class)) {
+                    // Ignore xml attributes & ignored fields
+                    continue;
+                }
 
-            String fullPath = currentPath.isEmpty() ? fieldIdentifier : currentPath + "." + fieldIdentifier;
+                String fieldIdentifier = getFieldIdentifier(field, currentPath);
+                boolean isArray = isArray(field);
 
-            models.add(new PojoModel(fieldIdentifier, fullPath, isArray, modelType));
+                PojoModelType modelType = getModelType(entryClass);
 
-            if (modelType == PojoModelType.OBJECT) {
-                models.addAll(extractPojoModels(entryClass, fullPath));
+                String fullPath = currentPath.isEmpty() ? fieldIdentifier : currentPath + "." + fieldIdentifier;
+
+                models.add(new PojoModel(fieldIdentifier, fullPath, isArray, modelType));
+
+                if (
+                    modelType == PojoModelType.OBJECT &&
+                    !fieldIdentifier.equals("Title_") &&
+                    !fieldIdentifier.equals("Description_")
+                ) {
+                    models.addAll(extractPojoModels(entryClass, fullPath));
+                }
             }
         }
-        return models;
+        return models.stream().sorted(Comparator.comparing(PojoModel::getFullPath)).toList();
     }
 
     private PojoModelType getModelType(Class<?> currentClazz) {
@@ -122,17 +146,25 @@ public class PojoModelExtractor {
         return currentClazz;
     }
 
-    private String getFieldIdentifier(Field field) {
-        JsonProperty[] annotationsByType = field.getAnnotationsByType(JsonProperty.class);
-        if (annotationsByType.length == 0) {
-            throw new IllegalStateException(
-                "Missing JsonProperty annotation for field " +
-                field.getName() +
-                " for class " +
-                field.getDeclaringClass().getCanonicalName()
-            );
+    private String getFieldIdentifier(Field field, String currentPath) {
+        JsonProperty jsonPropertyAnnotation = field.getAnnotation(JsonProperty.class);
+        if (jsonPropertyAnnotation != null) {
+            return jsonPropertyAnnotation.value();
         }
-        return annotationsByType[0].value();
+
+        XmlElement xmlElementAnnotation = field.getAnnotation(XmlElement.class);
+        if (xmlElementAnnotation != null) {
+            return xmlElementAnnotation.name();
+        }
+
+        throw new IllegalStateException(
+            "Missing JsonProperty annotation for field " +
+            currentPath +
+            "." +
+            field.getName() +
+            " for class " +
+            field.getDeclaringClass().getCanonicalName()
+        );
     }
 
     private boolean isArray(Field field) {
