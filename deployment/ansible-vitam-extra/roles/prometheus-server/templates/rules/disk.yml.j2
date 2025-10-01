@@ -8,8 +8,8 @@ groups:
         labels:
           severity: {{ "warning" if level == 75 else "critical" }}
         annotations:
-          summary: "Instance {{ $labels.hostname }} is {% if level == 90 %}critically {% endif %}running out of disk space"
-          description: "Instance {{ $labels.hostname }} has its root partition {{ level }}% full since 10 minutes"
+          summary: "{% raw %}Instance {{ $labels.hostname }}{% endraw %} is {% if level == 90 %}critically {% endif %}running out of disk space"
+          description: "{% raw %}Instance {{ $labels.hostname }}{% endraw %} has its root partition {{ level }}% full since 10 minutes"
 {% endfor %}
 
   - name: disk_vitam
@@ -21,8 +21,8 @@ groups:
         labels:
           severity: {{ "warning" if level == 75 else "critical" }}
         annotations:
-          summary: "Instance {{ $labels.hostname }} is {% if level == 90 %}critically {% endif %}running out of disk space"
-          description: "Instance {{ $labels.hostname {{ '}}' }} has its Vitam partition {{ level }}% full since 10 minutes"
+          summary: "{% raw %}Instance {{ $labels.hostname }}{% endraw %} is {% if level == 90 %}critically {% endif %}running out of disk space"
+          description: "{% raw %}Instance {{ $labels.hostname }}{% endraw %} has its Vitam partition {{ level }}% full since 10 minutes"
 {% endfor %}
 
 {% if (groups['hosts_vitamui'] | default([]) | length > 0) %}
@@ -35,7 +35,7 @@ groups:
         labels:
           severity: {{ "warning" if level == 75 else "critical" }}
         annotations:
-          summary: "Instance {{ $labels.hostname }} is {% if level == 90 %}critically {% endif %}running out of disk space"
-          description: "Instance {{ $labels.hostname }} has its Vitamui partition {{ level }}% full since 10 minutes"
+          summary: "{% raw %}Instance {{ $labels.hostname }}{% endraw %} is {% if level == 90 %}critically {% endif %}running out of disk space"
+          description: "{% raw %}Instance {{ $labels.hostname }}{% endraw %} has its Vitamui partition {{ level }}% full since 10 minutes"
 {% endfor %}
 {% endif %}
