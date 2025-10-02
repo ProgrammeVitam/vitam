@@ -609,7 +609,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.CONSISTENCY.KO");
         assertThat(validationErrors1.getFirst().getEvDetData()).contains("EndDate is before StartDate");
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
-            "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
+            "La date contenue dans le champ Date de début doit être antérieure à la date contenue dans le champ Date de fin"
         );
     }
 
@@ -776,7 +776,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors4.getFirst().getOutDetail()).isEqualTo("LFC.CHECK_UNIT_SCHEMA.CONSISTENCY.KO");
         assertThat(validationErrors4.getFirst().getEvDetData()).contains("EndDate is before StartDate");
         assertThat(validationErrors4.getFirst().getOutMessg()).isEqualTo(
-            "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
+            "La date contenue dans le champ Date de début doit être antérieure à la date contenue dans le champ Date de fin"
         );
 
         assertThat(validationErrors4.get(1).getEvId()).isNotNull();

@@ -414,7 +414,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             "LFC.CHECK_UNIT_SCHEMA.CONSISTENCY.KO"
         );
         assertThat(response.getValidationErrors().getFirst().getOutMessg()).isEqualTo(
-            "La date contenue dans le champ Date de début doit être postérieure à la date contenue dans le champ Date de fin"
+            "La date contenue dans le champ Date de début doit être antérieure à la date contenue dans le champ Date de fin"
         );
         assertThat(response.getValidationErrors().getFirst().getEvDetData()).contains("EndDate is before StartDate");
     }
