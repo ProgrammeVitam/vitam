@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.functionaltest.cucumber.step.World;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,6 +87,7 @@ public class LogbookService {
      * @throws VitamClientException exception
      */
     public LogbookEventOperation checkFinalStatusLogbook(
+        World world,
         AccessExternalClient accessClient,
         int tenantId,
         String contractId,
@@ -109,6 +111,9 @@ public class LogbookService {
         RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<LogbookOperation>) requestResponse;
 
         LogbookOperation actual = requestResponseOK.getFirstResult();
+
+        LogHelper.logJson(world, "LogbookOperation", actual);
+
         LogbookEventOperation last = Iterables.getLast(actual.getEvents());
 
         if (!StringUtils.equals("FATAL", status)) {

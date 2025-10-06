@@ -89,7 +89,7 @@ public class IngestStep extends CommonStep {
      * @throws IOException
      * @throws IngestExternalException
      */
-    @When("^je télécharge le SIP")
+    @When("^je télécharge le SIP$")
     public void upload_this_sip() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
             RequestResponse response = world
@@ -259,6 +259,7 @@ public class IngestStep extends CommonStep {
                 LogbookEventOperation lastEvent = world
                     .getLogbookService()
                     .checkFinalStatusLogbook(
+                        world,
                         world.getAccessClient(),
                         world.getTenantId(),
                         world.getContractId(),

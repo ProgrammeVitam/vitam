@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import static fr.gouv.vitam.functionaltest.cucumber.service.XmlTestHelper.checkTagCountInXmlFile;
 import static org.assertj.core.api.Assertions.fail;
 
 /**
@@ -158,16 +159,7 @@ public class IngestATRStep extends CommonStep {
      */
     @Then("^le fichier ATR contient (.*) balise[s]? de type (.*)$")
     public void atr_contains_n_times_the_tag(int count, String tag) throws IOException {
-        String atr = FileUtils.readFileToString(world.getAtrFile().toFile(), StandardCharsets.UTF_8);
-
-        // count ending tag and empty tag to ensure there is no attribute in the checked tag
-        int realCount =
-            StringUtils.countMatches(atr, "</" + tag + ">") + StringUtils.countMatches(atr, "<" + tag + "/>");
-
-        if (realCount != count) {
-            LOGGER.error(String.format("expected %d tags %s but was %d", count, tag, realCount));
-            fail(String.format("expected %d tags %s but was %d", count, tag, realCount));
-        }
+        checkTagCountInXmlFile(world.getAtrFile(), count, tag);
     }
 
     /**
@@ -177,7 +169,7 @@ public class IngestATRStep extends CommonStep {
      */
     @Then("^le fichier ATR contient (.*) unité[s]? archivistique[s]?$")
     public void atr_contains_units(int nbUnits) throws IOException {
-        atr_contains_n_times_the_tag(nbUnits, "ArchiveUnit");
+        checkTagCountInXmlFile(world.getAtrFile(), nbUnits, "ArchiveUnit");
     }
 
     /**
@@ -187,7 +179,7 @@ public class IngestATRStep extends CommonStep {
      */
     @Then("^le fichier ATR contient (.*) objet[s]? binaire[s]?$")
     public void atr_contains_binary_objects(int nbBinaryObjects) throws IOException {
-        atr_contains_n_times_the_tag(nbBinaryObjects, "BinaryDataObject");
+        checkTagCountInXmlFile(world.getAtrFile(), nbBinaryObjects, "BinaryDataObject");
     }
 
     /**
@@ -197,7 +189,7 @@ public class IngestATRStep extends CommonStep {
      */
     @Then("^le fichier ATR contient (.*) objet[s]? physique[s]?$")
     public void atr_contains_physical_objects(int nbPhysicalObjects) throws IOException {
-        atr_contains_n_times_the_tag(nbPhysicalObjects, "PhysicalDataObject");
+        checkTagCountInXmlFile(world.getAtrFile(), nbPhysicalObjects, "PhysicalDataObject");
     }
 
     private void removeTemporaryAtrFile() {
