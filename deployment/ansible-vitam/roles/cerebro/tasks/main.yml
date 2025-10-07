@@ -10,7 +10,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  when: install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
+  when: install_mode != "container"
   tags: update_package_vitam
 
 - name: Install openjdk 21
@@ -21,7 +21,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  when: install_mode != "container" or vitam_struct.vitam_component in legacy_components_list
+  when: install_mode != "container"
   tags: update_package_vitam
 
 - name: Install vitam-elasticsearch-cerebro package
