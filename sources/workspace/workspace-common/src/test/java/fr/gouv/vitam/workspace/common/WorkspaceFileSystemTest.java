@@ -940,6 +940,129 @@ public class WorkspaceFileSystemTest {
         assertThat(filesWithParamsResult).isNotNull().isEmpty();
     }
 
+    @Test
+    public void should_bulk_move_files_successfully() throws Exception {
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        String sourceFolder = "sourceFolder";
+        String destFolder = "destFolder";
+        storage.createFolder(CONTAINER_NAME, sourceFolder);
+        storage.createFolder(CONTAINER_NAME, destFolder);
+
+        // Create some test files in the source folder
+        storage.putObject(
+            CONTAINER_NAME + "/" + sourceFolder,
+            "file1.txt",
+            new ByteArrayInputStream("content1".getBytes())
+        );
+        storage.putObject(
+            CONTAINER_NAME + "/" + sourceFolder,
+            "file2.txt",
+            new ByteArrayInputStream("content2".getBytes())
+        );
+        storage.putObject(
+            CONTAINER_NAME + "/" + sourceFolder,
+            "file3.txt",
+            new ByteArrayInputStream("content3".getBytes())
+        );
+
+        // Create BulkMoveEntry list
+        List<BulkMoveEntry> entries = List.of(
+            new BulkMoveEntry(sourceFolder + "/file1.txt", destFolder + "/file1.txt"),
+            new BulkMoveEntry(sourceFolder + "/file2.txt", destFolder + "/file2.txt"),
+            new BulkMoveEntry(sourceFolder + "/file3.txt", destFolder + "/file3.txt")
+        );
+
+        // When
+        storage.moveObjects(CONTAINER_NAME, entries);
+
+        // Then
+        // Source files should no longer exist
+        assertThat(storage.isExistingObject(CONTAINER_NAME, sourceFolder + "/file1.txt")).isFalse();
+        assertThat(storage.isExistingObject(CONTAINER_NAME, sourceFolder + "/file2.txt")).isFalse();
+        assertThat(storage.isExistingObject(CONTAINER_NAME, sourceFolder + "/file3.txt")).isFalse();
+
+        // Destination files should exist
+        assertThat(storage.isExistingObject(CONTAINER_NAME, destFolder + "/file1.txt")).isTrue();
+        assertThat(storage.isExistingObject(CONTAINER_NAME, destFolder + "/file2.txt")).isTrue();
+        assertThat(storage.isExistingObject(CONTAINER_NAME, destFolder + "/file3.txt")).isTrue();
+
+        // Verify content of moved files
+        Response response1 = storage.getObject(CONTAINER_NAME, destFolder + "/file1.txt", null, null);
+        Response response2 = storage.getObject(CONTAINER_NAME, destFolder + "/file2.txt", null, null);
+        Response response3 = storage.getObject(CONTAINER_NAME, destFolder + "/file3.txt", null, null);
+
+        String content1 = IOUtils.toString((InputStream) response1.getEntity(), StandardCharsets.UTF_8);
+        String content2 = IOUtils.toString((InputStream) response2.getEntity(), StandardCharsets.UTF_8);
+        String content3 = IOUtils.toString((InputStream) response3.getEntity(), StandardCharsets.UTF_8);
+
+        assertThat(content1).isEqualTo("content1");
+        assertThat(content2).isEqualTo("content2");
+        assertThat(content3).isEqualTo("content3");
+    }
+
+    @Test
+    public void should_throw_exception_when_source_file_not_found() throws Exception {
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        String sourceFolder = "sourceFolder";
+        String destFolder = "destFolder";
+        storage.createFolder(CONTAINER_NAME, sourceFolder);
+        storage.createFolder(CONTAINER_NAME, destFolder);
+
+        // Create only one test file
+        storage.putObject(
+            CONTAINER_NAME + "/" + sourceFolder,
+            "file1.txt",
+            new ByteArrayInputStream("content1".getBytes())
+        );
+
+        // Create BulkMoveEntry list with non-existent file
+        List<BulkMoveEntry> entries = List.of(
+            new BulkMoveEntry(sourceFolder + "/file1.txt", destFolder + "/file1.txt"),
+            new BulkMoveEntry(sourceFolder + "/nonexistent.txt", destFolder + "/nonexistent.txt")
+        );
+
+        // When/Then
+        assertThatThrownBy(() -> storage.moveObjects(CONTAINER_NAME, entries)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
+    }
+
+    @Test
+    public void should_throw_exception_when_destination_file_already_exists() throws Exception {
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        String sourceFolder = "sourceFolder";
+        String destFolder = "destFolder";
+        storage.createFolder(CONTAINER_NAME, sourceFolder);
+        storage.createFolder(CONTAINER_NAME, destFolder);
+
+        // Create source file
+        storage.putObject(
+            CONTAINER_NAME + "/" + sourceFolder,
+            "file1.txt",
+            new ByteArrayInputStream("content1".getBytes())
+        );
+
+        // Create destination file with same name
+        storage.putObject(
+            CONTAINER_NAME + "/" + destFolder,
+            "file1.txt",
+            new ByteArrayInputStream("existing".getBytes())
+        );
+
+        // Create BulkMoveEntry list
+        List<BulkMoveEntry> entries = List.of(
+            new BulkMoveEntry(sourceFolder + "/file1.txt", destFolder + "/file1.txt")
+        );
+
+        // When/Then
+        assertThatThrownBy(() -> storage.moveObjects(CONTAINER_NAME, entries)).isInstanceOf(
+            ContentAddressableStorageAlreadyExistException.class
+        );
+    }
+
     private List<ArchiveEntry> findArchiveEntries(ArchiveInputStream archiveInputStream) throws IOException {
         List<ArchiveEntry> entries = new ArrayList<>();
         ArchiveEntry nextEntry = archiveInputStream.getNextEntry();
