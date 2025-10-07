@@ -27,24 +27,25 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.common.BulkMoveEntry;
 import fr.gouv.vitam.workspace.common.BulkMoveRequest;
-import org.apache.commons.lang3.StringUtils;
 
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Handler that copies all content from the SIP folder to the container root.
@@ -56,8 +57,7 @@ public class StoreObjectGroupCollectActionPlugin extends ActionHandler {
 
     private static final String HANDLER_ID = "OBJ_STORAGE_COLLECT";
     private static final String FOLDER_SIP = "SIP";
-    private static final String CONTENT = "Content/";
-    private static final int BATCH_SIZE = 1000;
+    private static final int OG_OUT_RANK = 0;
 
     /**
      * Default constructor
@@ -81,87 +81,31 @@ public class StoreObjectGroupCollectActionPlugin extends ActionHandler {
             LOGGER.info("Moving SIP content to container root for container: " + containerName);
 
             try (WorkspaceClient workspaceClient = handler.getWorkspaceCollectClient()) {
-                boolean hasMoreFiles = true;
-                int totalFilesProcessed = 0;
+                Set<String> allSipFiles = new HashSet<>();
 
-                // Process files in batches until no more files are found
-                while (hasMoreFiles) {
-                    // Get batch of files from SIP folder
-                    RequestResponse<URI> listResponse = workspaceClient.getListUriDigitalObjectFromFolder(
-                        containerName,
-                        FOLDER_SIP,
-                        BATCH_SIZE
-                    );
-                    List<URI> sipFiles = ((RequestResponseOK<URI>) listResponse).getResults();
-
-                    if (sipFiles == null || sipFiles.isEmpty()) {
-                        if (totalFilesProcessed == 0) {
-                            LOGGER.warn("No files found in SIP folder for container: " + containerName);
-                            itemStatus.increment(StatusCode.WARNING);
-                            return itemStatus;
-                        } else {
-                            // No more files to process
-                            hasMoreFiles = false;
-                            continue;
-                        }
-                    }
-
-                    LOGGER.info("Found " + sipFiles.size() + " files in current batch");
-                    totalFilesProcessed += sipFiles.size();
-
-                    // Prepare source / destination paths for bulk move
-                    List<BulkMoveEntry> bulkMoveEntries = new ArrayList<>();
-
-                    for (URI fileUri : sipFiles) {
-                        String filePath = fileUri.getPath();
-
-                        // Skip manifest.xml files
-                        if (filePath.equalsIgnoreCase("manifest.xml")) {
-                            LOGGER.debug("Skipping manifest.xml file");
-                            continue;
-                        }
-
-                        // Ensure file is within /Content subfolder
-                        if (!StringUtils.startsWithIgnoreCase(filePath, CONTENT)) {
-                            LOGGER.warn(
-                                "Invalid file path '" +
-                                filePath +
-                                "'. Only manifest.xml and Content/* files are expected."
-                            );
-                            itemStatus.increment(StatusCode.KO);
-                            return itemStatus;
-                        }
-
-                        // Add to source and destination lists
-                        bulkMoveEntries.add(new BulkMoveEntry(FOLDER_SIP + "/" + filePath, filePath));
-                    }
-
-                    if (!bulkMoveEntries.isEmpty()) {
-                        // Process this batch
-                        LOGGER.debug("Moving " + bulkMoveEntries.size() + " files from SIP folder to container root");
-
-                        workspaceClient.bulkMove(containerName, new BulkMoveRequest(bulkMoveEntries));
-                        LOGGER.debug("Successfully moved batch of " + bulkMoveEntries.size() + " files");
-                    }
-
-                    // If we got fewer files than the batch size, we've processed all files
-                    if (sipFiles.size() < BATCH_SIZE) {
-                        hasMoreFiles = false;
-                    }
+                // get list of object group's objects
+                for (String objectName : param.getObjectNameList()) {
+                    allSipFiles.addAll(getListUris(param.getContainerName(), objectName, handler));
                 }
 
-                LOGGER.info(
-                    "Successfully moved all " + totalFilesProcessed + " files from SIP folder to container root"
-                );
-
-                // Delete the SIP folder after moving all files
-                try {
-                    LOGGER.info("Deleting SIP folder for container: " + containerName);
-                    workspaceClient.deleteFolder(containerName, FOLDER_SIP);
-                    LOGGER.info("Successfully deleted SIP folder");
-                } catch (ContentAddressableStorageNotFoundException e) {
-                    LOGGER.warn("SIP folder not found for deletion: " + e.getMessage());
+                if (allSipFiles.isEmpty()) {
+                    LOGGER.warn("No files found in SIP folder for container: " + containerName);
+                    itemStatus.increment(StatusCode.WARNING);
+                    return itemStatus;
                 }
+
+                // Prepare source / destination paths for bulk move
+                List<BulkMoveEntry> bulkMoveEntries = new ArrayList<>();
+
+                for (String filePath : allSipFiles) {
+                    // Add to source and destination lists
+                    bulkMoveEntries.add(new BulkMoveEntry(FOLDER_SIP + "/" + filePath, filePath));
+                }
+
+                // Process this batch
+                LOGGER.debug("Moving " + bulkMoveEntries.size() + " files from SIP folder to container root");
+                workspaceClient.bulkMove(containerName, new BulkMoveRequest(bulkMoveEntries));
+                LOGGER.debug("Successfully moved of " + bulkMoveEntries.size() + " files");
 
                 itemStatus.increment(StatusCode.OK);
             }
@@ -175,5 +119,49 @@ public class StoreObjectGroupCollectActionPlugin extends ActionHandler {
                 e
             );
         }
+    }
+
+    /**
+     * Get the list of objects linked to the current object group
+     *
+     * @param containerId
+     * @param objectName
+     * @param handlerIO
+     * @return the list of object guid and corresponding Json
+     * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
+     */
+    private Set<String> getListUris(String containerId, String objectName, HandlerIO handlerIO)
+        throws ProcessingException {
+        Set<String> sipFiles = new HashSet<>();
+
+        ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
+        ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
+        // Get objectGroup objects ids
+        handlerIO.setCurrentObjectId(objectName);
+        JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
+            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName
+        );
+        handlerIO.addOutputResult(OG_OUT_RANK, jsonOG, true, false);
+
+        // Filter on objectGroup objects ids to retrieve only binary objects
+        // informations linked to the ObjectGroup
+        final JsonNode work = jsonOG.get(SedaConstants.PREFIX_WORK);
+        final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
+        if (qualifiers == null) {
+            return sipFiles;
+        }
+
+        final List<JsonNode> versions = qualifiers.findValues(SedaConstants.TAG_VERSIONS);
+        if (versions == null || versions.isEmpty()) {
+            return sipFiles;
+        }
+        for (final JsonNode version : versions) {
+            for (final JsonNode binaryObject : version) {
+                if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
+                    sipFiles.add(binaryObject.get(SedaConstants.TAG_URI).asText());
+                }
+            }
+        }
+        return sipFiles;
     }
 }

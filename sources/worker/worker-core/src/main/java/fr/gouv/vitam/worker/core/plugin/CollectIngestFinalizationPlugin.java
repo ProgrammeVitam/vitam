@@ -37,6 +37,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
  * Collect ingest finalization plugin.
@@ -46,6 +47,8 @@ public class CollectIngestFinalizationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectIngestFinalizationPlugin.class);
 
     private static final String COLLECT_INGEST_FINALISATION = "COLLECT_INGEST_FINALISATION";
+
+    private static final String FOLDER_SIP = "SIP";
 
     public CollectIngestFinalizationPlugin() {}
 
@@ -57,17 +60,29 @@ public class CollectIngestFinalizationPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         StatusCode workflowStatus = StatusCode.valueOf(param.getWorkflowStatusKo());
 
+        String containerName = param.getContainerName();
         if (workflowStatus.isGreaterOrEqualToKo()) {
             LOGGER.error("Workflow status is " + workflowStatus + ". Updating transaction status to KO");
             try (CollectInternalClient collectInternalClient = handler.getCollectInternalClient()) {
-                String transactionId = param.getContainerName();
-                collectInternalClient.changeTransactionStatus(transactionId, TransactionStatus.KO);
+                collectInternalClient.changeTransactionStatus(containerName, TransactionStatus.KO);
             } catch (VitamClientException e) {
                 LOGGER.error("An error occurred during collect ingest finalization", e);
                 final ItemStatus itemStatus = new ItemStatus(COLLECT_INGEST_FINALISATION);
                 itemStatus.increment(StatusCode.FATAL);
                 return itemStatus;
             }
+        }
+
+        // Delete the SIP folder after moving the files
+        try (WorkspaceClient workspaceClient = handler.getWorkspaceCollectClient()) {
+            LOGGER.debug("Deleting SIP folder from container: " + containerName);
+            workspaceClient.deleteFolder(containerName, FOLDER_SIP);
+            LOGGER.debug("Successfully deleted SIP folder from container: " + containerName);
+        } catch (Exception e) {
+            LOGGER.error("Error deleting SIP folder from container: " + containerName, e);
+            final ItemStatus itemStatus = new ItemStatus(COLLECT_INGEST_FINALISATION);
+            itemStatus.increment(StatusCode.FATAL);
+            return itemStatus;
         }
 
         final ItemStatus itemStatus = new ItemStatus(COLLECT_INGEST_FINALISATION);

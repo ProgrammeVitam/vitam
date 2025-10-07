@@ -910,9 +910,21 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 Path destinationFilePath = getObjectPath(containerName, destinationPath);
 
                 if (!sourceFilePath.toFile().exists()) {
+                    if (destinationFilePath.toFile().exists()) {
+                        LOGGER.warn("this file already moved" + sourcePath);
+                        continue;
+                    }
+
                     LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + sourcePath);
                     throw new ContentAddressableStorageNotFoundException(
                         ErrorMessage.OBJECT_NOT_FOUND.getMessage() + sourcePath
+                    );
+                }
+
+                //not existe in source
+                if (destinationFilePath.toFile().exists()) {
+                    throw new ContentAddressableStorageAlreadyExistException(
+                        "Cannot move '" + sourcePath + "' to '" + destinationPath + "' Destination path already exists"
                     );
                 }
 
@@ -920,12 +932,6 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 Path parentPath = destinationFilePath.getParent();
                 if (!parentPath.toFile().exists()) {
                     Files.createDirectories(parentPath);
-                }
-
-                if (destinationFilePath.toFile().exists()) {
-                    throw new ContentAddressableStorageAlreadyExistException(
-                        "Cannot move '" + sourcePath + "' to '" + destinationPath + "' Destination path already exists"
-                    );
                 }
 
                 // Move the file

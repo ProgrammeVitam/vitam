@@ -77,6 +77,8 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
 import org.eclipse.jetty.http.HttpStatus;
@@ -262,7 +264,10 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             }
 
             waitOperation(transactionId);
-
+            // Verify that the SIP folder has been deleted from the workspace
+            try (WorkspaceClient workspaceClient = WorkspaceCollectClientFactory.getInstance().getClient()) {
+                assertThat(workspaceClient.isExistingFolder(transactionId, "SIP")).isFalse();
+            }
             TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
             assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
 

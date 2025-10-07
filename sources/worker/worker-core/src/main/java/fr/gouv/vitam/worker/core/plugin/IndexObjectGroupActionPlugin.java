@@ -46,12 +46,10 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -166,16 +164,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         throws ProcessingException {
         ParametersChecker.checkNullOrEmptyParameters(params);
 
-        final ObjectNode json;
         try (MetaDataClient metadataClient = handlerIO.getMetaDataClient()) {
-            if (WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
-                json = (ObjectNode) handlerIO.getJsonFromWorkspace(
-                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName()
-                );
-            } else {
-                json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
-            }
-
+            final ObjectNode json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
             return handleExistingObjectGroup(json, metadataClient, params, itemStatus);
         } catch (final MetaDataException | VitamClientException e) {
             throw new ProcessingInternalServerException("Metadata Server Error", e);
