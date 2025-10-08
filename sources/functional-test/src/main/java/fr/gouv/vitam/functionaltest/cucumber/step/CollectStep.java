@@ -31,6 +31,7 @@ import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -46,27 +47,37 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.functionaltest.cucumber.service.LogHelper;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import jakarta.ws.rs.core.Response;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Fail;
 import org.junit.Assume;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.functionaltest.cucumber.service.XmlTestHelper.checkTagCountInXmlFile;
 import static jakarta.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -298,6 +309,14 @@ public class CollectStep extends CommonStep {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
+
+            TransactionDto transactionDto = JsonHandler.getFromString(
+                world.getResults().getFirst().toString(),
+                TransactionDto.class
+            );
+
+            world.setTransactionId(transactionDto.getId());
+            LogHelper.logVariable(world, "transactionId", transactionDto.getId());
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request initTransaction return an error: " + vitamError.getCode());
@@ -306,13 +325,9 @@ public class CollectStep extends CommonStep {
 
     @When("^je recherche la transaction")
     public void find_transaction() throws Throwable {
-        TransactionDto transactionDto = JsonHandler.getFromString(
-            world.getResults().get(0).toString(),
-            TransactionDto.class
-        );
         RequestResponse<JsonNode> requestResponse = world
             .getCollectExternalClient()
-            .getTransactionById(new VitamContext(world.getTenantId()), transactionDto.getId());
+            .getTransactionById(new VitamContext(world.getTenantId()), world.getTransactionId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -322,7 +337,6 @@ public class CollectStep extends CommonStep {
                 world.getResults().get(0).toString(),
                 TransactionDto.class
             );
-            world.setTransactionId(myTransactionDto.getId());
             assertThat(myTransactionDto.getStatus()).isEqualTo("OPEN");
         } else {
             VitamError vitamError = (VitamError) requestResponse;
@@ -392,29 +406,14 @@ public class CollectStep extends CommonStep {
         }
     }
 
-    @When("^je clôture et je constate son statut (.*) ou (.*)$")
-    public void closeTransaction(String status1, String status2) throws Exception {
+    @When("^je valide la transaction sans erreur$")
+    public void closeTransaction() throws Exception {
         String transactionId = world.getTransactionId();
         RequestResponse response = world
             .getCollectExternalClient()
             .closeTransaction(new VitamContext(world.getTenantId()), transactionId);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
-
-        RequestResponse<JsonNode> requestResponse = world
-            .getCollectExternalClient()
-            .getTransactionById(new VitamContext(world.getTenantId()), world.getTransactionId());
-        if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            assertThat(requestResponseOK.getResults()).isNotEmpty();
-            TransactionDto myTransactionDto = JsonHandler.getFromString(
-                requestResponseOK.getResults().get(0).toString(),
-                TransactionDto.class
-            );
-            assertThat(myTransactionDto.getStatus()).isIn(status1, status2);
-        } else {
-            VitamError vitamError = (VitamError) requestResponse;
-            Fail.fail(TRANSACTION_RETURN_AN_ERROR + vitamError.getCode());
-        }
+        verifyStatus(TransactionStatus.VALIDATED.name());
     }
 
     @When("^j'envoie le SIP et je constate son statut (.*)$")
@@ -483,8 +482,8 @@ public class CollectStep extends CommonStep {
         return false;
     }
 
-    @Given("^je reçois un statut OK depuis l'ingest et je constate son statut (.*)$")
-    public void verifyOkStatus(String status) throws Exception {
+    @Given("^je constate que la transaction passe au statut (.*)$")
+    public void verifyTransactionStatus(String status) throws Exception {
         verifyStatus(status);
     }
 
@@ -494,7 +493,7 @@ public class CollectStep extends CommonStep {
     }
 
     public void verifyStatus(String status) throws Exception {
-        boolean processTimeout = waitTransaction(status, 100, 5_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = waitTransaction(status, 500, 1_000L, TimeUnit.MILLISECONDS);
         if (!processTimeout) {
             fail("Sip processing not finished : operation (" + world.getOperationId() + "). Timeout exceeded.");
         }
@@ -561,6 +560,10 @@ public class CollectStep extends CommonStep {
                 fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+            world.getScenario().log("Collect SIP Ingest operation id : " + operationId);
+
+            world.setOperationId(operationId);
 
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
@@ -660,6 +663,119 @@ public class CollectStep extends CommonStep {
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail(TRANSACTION_RETURN_AN_ERROR + vitamError.getCode());
+        }
+    }
+
+    @When("^je recherche les unités archivistiques de la transaction$")
+    public void search_archive_unit() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .getUnitsByTransaction(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                world.getTransactionId(),
+                queryJSON
+            );
+        RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+        world.setResults(requestResponseOK.getResults());
+    }
+
+    @When("^je télécharge le SIP de la transaction$")
+    public void downloadTransactionSip() throws Exception {
+        try (
+            Response response = world
+                .getCollectExternalClient()
+                .downloadSIP(
+                    new VitamContext(world.getTenantId())
+                        .setAccessContract(world.getContractId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getTransactionId()
+                );
+            InputStream dipInputStream = response.readEntity(InputStream.class)
+        ) {
+            File tempFile = Files.createTempFile("Tx-" + world.getTransactionId(), ".zip").toFile();
+            Files.copy(dipInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+            world.setCollectSipFile(tempFile.toPath());
+        }
+    }
+
+    @Then("^le manifest généré de la transaction contient (.*) balise[s]? de type (.*)$")
+    public void generated_manifest_contains_n_times_the_tag(int count, String tag) throws IOException {
+        try (ZipFile zipFile = new ZipFile(world.getCollectSipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                checkTagCountInXmlFile(is, count, tag);
+            }
+        }
+    }
+
+    @Then("^le manifest généré de la transaction contient la chaîne de caractères$")
+    public void generated_manifest_contains_complex_value(String value) throws IOException {
+        try (ZipFile zipFile = new ZipFile(world.getCollectSipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                String manifestStr = IOUtils.toString(is, StandardCharsets.UTF_8);
+                if (!StringUtils.contains(manifestStr, value)) {
+                    LOGGER.error(String.format("%s value was not found in generated manifest", value));
+                    fail(String.format("%s value was not found in generated manifest", value));
+                }
+            }
+        }
+    }
+
+    @Then("^le manifest généré de la transaction contient (.*) unité[s]? archivistique[s]?$")
+    public void generated_manifest_contains_units(int nbUnits) throws IOException {
+        try (ZipFile zipFile = new ZipFile(world.getCollectSipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                checkTagCountInXmlFile(is, nbUnits, "Content");
+            }
+        }
+    }
+
+    @Then("^le manifest généré de la transaction contient (.*) objet[s]? binaire[s]?$")
+    public void generated_manifest_contains_binary_objects(int nbBinaryObjects) throws IOException {
+        try (ZipFile zipFile = new ZipFile(world.getCollectSipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                checkTagCountInXmlFile(is, nbBinaryObjects, "BinaryDataObject");
+            }
+        }
+    }
+
+    @Then("^le manifest généré de la transaction contient (.*) objet[s]? physique[s]?$")
+    public void generated_manifest_contains_physical_objects(int nbPhysicalObjects) throws IOException {
+        try (ZipFile zipFile = new ZipFile(world.getCollectSipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                checkTagCountInXmlFile(is, nbPhysicalObjects, "PhysicalDataObject");
+            }
+        }
+    }
+
+    @Then("^le manifest généré de la transaction contient (?:la|les) valeur[s]? (.*)$")
+    public void generated_manifest_contains_value(String values) throws IOException {
+        try (ZipFile zipFile = new ZipFile(world.getCollectSipFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                String manifestContent = IOUtils.toString(is, StandardCharsets.UTF_8);
+                for (String value : values.split(",\\s?")) {
+                    if (!StringUtils.contains(manifestContent, value)) {
+                        world.getScenario().log(String.format("%s value was not found in manifest", value));
+                        world.getScenario().log(manifestContent);
+                        fail(String.format("%s value was not found in manifest", value));
+                    }
+                }
+            }
         }
     }
 }

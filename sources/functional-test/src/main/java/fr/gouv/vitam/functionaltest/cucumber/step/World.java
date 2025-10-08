@@ -92,6 +92,7 @@ public class World {
     private LogbookEvent logbookEvent;
     private Path sipFile;
     private Path dipFile;
+    private Path collectSipFile;
     private Path transferFile;
     private Path atrFile;
 
@@ -173,6 +174,7 @@ public class World {
      * Collect client
      */
     private CollectExternalClient collectExternalClient;
+    private Scenario scenario;
 
     /**
      * initialization of client
@@ -547,6 +549,15 @@ public class World {
         return this;
     }
 
+    public Path getCollectSipFile() {
+        return collectSipFile;
+    }
+
+    public World setCollectSipFile(Path collectSipFile) {
+        this.collectSipFile = collectSipFile;
+        return this;
+    }
+
     public String getProjectId() {
         return projectId;
     }
@@ -561,5 +572,13 @@ public class World {
 
     public void setTransactionId(String transactionId) {
         TransactionId = transactionId;
+    }
+
+    public void setScenario(Scenario scenario) {
+        this.scenario = scenario;
+    }
+
+    public Scenario getScenario() {
+        return scenario;
     }
 }

@@ -227,7 +227,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      */
     private List<URI> getDigitalObjectUriListFromWorkspace(HandlerIO handlerIO, WorkerParameters workParams)
         throws ProcessingException, ContentAddressableStorageServerException {
-        try (final WorkspaceClient workspaceClient = handlerIO.getWorkspaceClient()) {
+        try (final WorkspaceClient workspaceClient = handlerIO.getWorkspaceClient(workParams.getExecutionContext())) {
             // FIXME P1: We have to count here from SIP/Content and not from SIP
             // Remove one element is actually, with our SIP correct but not really true because it is not necessary
             // the manifest.xml and it is possible to have more than one file on the root SIP folder (it was removed

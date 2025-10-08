@@ -205,6 +205,7 @@ public class LogbookStep extends CommonStep {
         LogbookEventOperation lastEvent = world
             .getLogbookService()
             .checkFinalStatusLogbook(
+                world,
                 world.getAccessClient(),
                 world.getTenantId(),
                 world.getContractId(),
