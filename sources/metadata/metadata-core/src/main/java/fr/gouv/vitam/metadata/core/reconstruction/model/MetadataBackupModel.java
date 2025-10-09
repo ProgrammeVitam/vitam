@@ -38,7 +38,7 @@ public class MetadataBackupModel {
      * Metadatas.
      */
     @JsonProperty("metadata")
-    private Document metadatas;
+    private Document metadata;
 
     /**
      * Lifecycle.
@@ -52,18 +52,18 @@ public class MetadataBackupModel {
     @JsonProperty("offset")
     private Long offset;
 
-    public Document getMetadatas() {
-        return metadatas;
+    public Document getMetadata() {
+        return metadata;
     }
 
     @JsonProperty("unit")
     public void setUnit(Document unit) {
-        this.metadatas = unit;
+        this.metadata = unit;
     }
 
     @JsonProperty("got")
     public void setGot(Document got) {
-        this.metadatas = got;
+        this.metadata = got;
     }
 
     public Document getLifecycle() {
