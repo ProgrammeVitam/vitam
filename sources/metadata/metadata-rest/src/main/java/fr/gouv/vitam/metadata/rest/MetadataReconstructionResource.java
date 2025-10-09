@@ -109,7 +109,8 @@ public class MetadataReconstructionResource {
                 new MetadataReconstructionMetricsCache(
                     configuration.getReconstructionMetricsCacheDurationInMinutes(),
                     TimeUnit.MINUTES
-                )
+                ),
+                configuration
             ),
             new StoreGraphService(vitamRepositoryProvider),
             configuration
