@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.reconstruction.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
@@ -72,6 +71,8 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.ThreadUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Before;
@@ -81,13 +82,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphObjectGroupFields;
@@ -101,6 +102,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -108,17 +110,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
  * ReconstructionService tests.
  */
-public class ReconstructionServiceTest {
+public class MetadataReconstructionServiceTest {
 
     public static final String STRATEGY_UNIT = "strategy-md-t10";
     private static final String DEFAULT_OFFER = "default";
     private static final String OFFER_1 = "offer1";
+    private static final int BULK_SIZE = 100;
+    private static final int BULK_POOL_SIZE = 8;
+    private static final int BULK_LOAD_TIMEOUT_SECONDS = 60;
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -184,7 +190,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
         when(
@@ -194,8 +200,7 @@ public class ReconstructionServiceTest {
             restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "101", 101L)
         ).thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
-        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(unitLfcsCaptor.capture());
+        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
         when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
 
         MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
@@ -205,7 +210,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -237,40 +245,56 @@ public class ReconstructionServiceTest {
     @Test
     public void should_return_new_offset_when_too_many_units_ok() throws Exception {
         // given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
+        int lastOffset = 12345;
+        int nbEntriesRemaining = 500;
+        int limit = 100;
+        int bulkSize = 30;
+
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(
+            (long) lastOffset
+        );
         logicalClock.freezeTime();
-        List<OfferLog> offerLogs = IntStream.rangeClosed(100, 199)
-            .mapToObj(sequence -> {
-                logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
-                return getOfferLog(sequence);
-            })
-            .collect(Collectors.toList());
-        requestItem.setLimit(100);
+
+        List<OfferLog> offerLogs = new ArrayList<>();
+        for (int i = 0, offset = lastOffset; i < nbEntriesRemaining; i++) {
+            offset += 1 + RandomUtils.nextInt(10);
+
+            if (RandomUtils.nextInt(3) == 0) {
+                offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.DELETE));
+            } else {
+                offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.WRITE));
+            }
+        }
+
+        requestItem.setLimit(limit);
+
         when(
             restoreBackupService.getListing(
-                STRATEGY_UNIT,
-                DEFAULT_OFFER,
-                DataCategory.UNIT,
-                100L,
-                requestItem.getLimit(),
-                Order.ASC,
-                VitamConfiguration.getBatchSize()
+                eq(STRATEGY_UNIT),
+                eq(DEFAULT_OFFER),
+                eq(DataCategory.UNIT),
+                anyLong(),
+                eq(limit),
+                eq(Order.ASC),
+                eq(bulkSize)
             )
-        ).thenReturn(offerLogs.iterator());
-        for (int i = 100; i < 200; i++) {
-            when(
-                restoreBackupService.loadData(
-                    STRATEGY_UNIT,
-                    DEFAULT_OFFER,
-                    MetadataCollections.UNIT,
-                    String.valueOf(i),
-                    i
-                )
-            ).thenReturn(getUnitMetadataBackupModel(String.valueOf(i), (long) i));
-        }
+        ).thenAnswer(args -> {
+            int offset = args.getArgument(3, Long.class).intValue();
+            return offerLogs.stream().filter(l -> l.getSequence() >= offset).limit(limit).iterator();
+        });
+
+        when(
+            restoreBackupService.loadData(
+                eq(STRATEGY_UNIT),
+                eq(DEFAULT_OFFER),
+                eq(MetadataCollections.UNIT),
+                any(),
+                anyLong()
+            )
+        ).thenAnswer(args -> getUnitMetadataBackupModel(args.getArgument(3), args.getArgument(4)));
+
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
-        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(unitLfcsCaptor.capture());
+        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
         when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
 
         MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
@@ -280,7 +304,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            bulkSize,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -291,19 +318,126 @@ public class ReconstructionServiceTest {
 
         logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
         // when
-        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+        ReconstructionResponseItem reconstructionResponse = reconstructionService.reconstruct(requestItem);
+
         // then
-        assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 199L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
-        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(reconstructionResponse).isNotNull();
+        assertThat(reconstructionResponse.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
+        assertThat(reconstructionResponse.getTenant()).isEqualTo(10);
+        assertThat(reconstructionResponse.getStatus()).isEqualTo(StatusCode.OK);
+        verify(offsetRepository).createOrUpdateOffset(
+            10,
+            STRATEGY_UNIT,
+            MetadataCollections.UNIT.getName(),
+            offerLogs.get(limit - 1).getSequence()
+        );
+
+        ArgumentCaptor<List<WriteModel<Document>>> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<String>> deletedDocsArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(mongoRepository, atLeastOnce()).update(listArgumentCaptor.capture());
+        verify(mongoRepository, atLeastOnce()).delete(deletedDocsArgumentCaptor.capture(), eq(10));
+
+        int nbWritten = listArgumentCaptor.getAllValues().stream().mapToInt(List::size).sum();
+        int nbDeleted = deletedDocsArgumentCaptor.getAllValues().stream().mapToInt(List::size).sum();
+        assertThat(nbWritten + nbDeleted).isEqualTo(requestItem.getLimit());
+
         verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(
             MetadataCollections.UNIT,
             10,
             STRATEGY_UNIT,
-            offerLogs.get(99).getTime()
+            offerLogs.get(limit - 1).getTime()
         );
+        verifyNoMoreInteractions(reconstructionMetricsCache);
+    }
+
+    @Test
+    @RunWithCustomExecutor(timeout = 10_000)
+    public void should_reconstruction_fail_on_storage_read_timeout() throws Exception {
+        // given
+        int lastOffset = 12345;
+        int nbEntriesRemaining = 500;
+        int limit = 100;
+        int bulkSize = 30;
+        int timeout = 3;
+
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(
+            (long) lastOffset
+        );
+        logicalClock.freezeTime();
+
+        List<OfferLog> offerLogs = new ArrayList<>();
+        for (int i = 0, offset = lastOffset; i < nbEntriesRemaining; i++) {
+            offset += 1 + RandomUtils.nextInt(10);
+
+            if (i % 3 == 0) {
+                offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.DELETE));
+            } else {
+                offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.WRITE));
+            }
+        }
+
+        requestItem.setLimit(limit);
+
+        when(
+            restoreBackupService.getListing(
+                eq(STRATEGY_UNIT),
+                eq(DEFAULT_OFFER),
+                eq(DataCategory.UNIT),
+                anyLong(),
+                eq(limit),
+                eq(Order.ASC),
+                eq(bulkSize)
+            )
+        ).thenAnswer(args -> {
+            int offset = args.getArgument(3, Long.class).intValue();
+            return offerLogs.stream().filter(l -> l.getSequence() >= offset).limit(limit).iterator();
+        });
+
+        when(
+            restoreBackupService.loadData(
+                eq(STRATEGY_UNIT),
+                eq(DEFAULT_OFFER),
+                eq(MetadataCollections.UNIT),
+                any(),
+                anyLong()
+            )
+        ).thenAnswer(args -> {
+            ThreadUtils.sleepQuietly(Duration.ofSeconds(1));
+            return getUnitMetadataBackupModel(args.getArgument(3), args.getArgument(4));
+        });
+
+        when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
+        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
+        when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
+
+        MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
+            vitamRepositoryProvider,
+            restoreBackupService,
+            logbookLifecycleClientFactory,
+            storageClientFactory,
+            offsetRepository,
+            indexManager,
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            bulkSize,
+            timeout
+        );
+
+        FindIterable findIterable = mock(FindIterable.class);
+        final MongoCursor<String> iterator = mock(MongoCursor.class);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
+        when(findIterable.iterator()).thenReturn(iterator);
+        when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
+
+        // when / then
+        ReconstructionResponseItem reconstructionResponse = reconstructionService.reconstruct(requestItem);
+
+        // then
+        assertThat(reconstructionResponse).isNotNull();
+        assertThat(reconstructionResponse.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoInteractions(mongoRepository);
         verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
@@ -322,7 +456,7 @@ public class ReconstructionServiceTest {
                 eq(100L),
                 eq(requestItem.getLimit()),
                 eq(Order.ASC),
-                eq(VitamConfiguration.getBatchSize())
+                eq(BULK_SIZE)
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
         when(
@@ -346,8 +480,7 @@ public class ReconstructionServiceTest {
         when(storageClient.getStorageStrategies()).thenReturn(
             getStorageStrategiesWithSameReferentOfferForDifferentStrategies()
         );
-        ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
-        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(unitLfcsCaptor.capture());
+        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
         when(storageClient.getReferentOffer(any())).thenReturn(DEFAULT_OFFER);
 
         MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
@@ -357,7 +490,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -409,7 +545,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
         when(
@@ -417,10 +553,9 @@ public class ReconstructionServiceTest {
         ).thenReturn(getUnitMetadataBackupModel("100", 100L));
         when(
             restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "101", 101L)
-        ).thenThrow(new StorageNotFoundException(""));
+        ).thenReturn(null);
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
-        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(unitLfcsCaptor.capture());
+        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
         when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
 
         MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
@@ -430,7 +565,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -475,7 +613,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(
@@ -495,7 +633,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -546,7 +687,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.singletonIterator(getOfferLog(100)));
         when(
@@ -563,7 +704,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -614,7 +758,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(
@@ -622,7 +766,7 @@ public class ReconstructionServiceTest {
         ).thenReturn(getGotMetadataBackupModel("100", 100L));
         when(
             restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.OBJECTGROUP, "101", 101L)
-        ).thenThrow(new StorageNotFoundException(""));
+        ).thenReturn(null);
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doNothing().when(logbookLifecycleClient).createRawbulkObjectgrouplifecycles(any());
         when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
@@ -634,7 +778,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -689,7 +836,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(
             IteratorUtils.arrayIterator(
@@ -725,7 +872,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -791,7 +941,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(
             IteratorUtils.arrayIterator(
@@ -816,7 +966,6 @@ public class ReconstructionServiceTest {
                 "2018-04-20-17-00-01-444_2018-05-20-17-00-01-445"
             )
         ).thenThrow(new StorageNotFoundException(""));
-
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         when(storageClient.getReferentOffer(VitamConfiguration.getDefaultStrategy())).thenReturn(DEFAULT_OFFER);
 
@@ -827,7 +976,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -883,7 +1035,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(
             IteratorUtils.arrayIterator(
@@ -919,7 +1071,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -978,7 +1133,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(
             IteratorUtils.arrayIterator(
@@ -1014,7 +1169,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -1060,7 +1218,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.emptyIterator());
 
@@ -1074,7 +1232,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
@@ -1104,7 +1265,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.emptyIterator());
 
@@ -1118,7 +1279,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         logicalClock.freezeTime();
@@ -1158,7 +1322,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null)).isInstanceOf(IllegalArgumentException.class);
@@ -1176,7 +1343,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null)).isInstanceOf(IllegalArgumentException.class);
@@ -1194,7 +1364,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection(null))).isInstanceOf(
@@ -1214,7 +1387,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection("toto"))).isInstanceOf(
@@ -1234,7 +1410,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null))).isInstanceOf(
@@ -1256,7 +1435,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(
@@ -1288,7 +1467,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable<Document> findIterable = mock(FindIterable.class);
@@ -1322,7 +1504,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(
@@ -1343,7 +1525,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -1375,7 +1560,7 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(
@@ -1397,7 +1582,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         FindIterable findIterable = mock(FindIterable.class);
@@ -1410,102 +1598,6 @@ public class ReconstructionServiceTest {
         // When
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
 
-        // Then
-        assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
-        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
-        verifyNoMoreInteractions(reconstructionMetricsCache);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void should_return_request_offset_when_lifecycle_null() throws Exception {
-        // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
-        MetadataBackupModel metadataBackupModel100 = getUnitMetadataBackupModel("100", 100L);
-        metadataBackupModel100.setLifecycle(null);
-        when(
-            restoreBackupService.getListing(
-                STRATEGY_UNIT,
-                DEFAULT_OFFER,
-                DataCategory.UNIT,
-                100L,
-                requestItem.getLimit(),
-                Order.ASC,
-                VitamConfiguration.getBatchSize()
-            )
-        ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(
-            restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L)
-        ).thenReturn(metadataBackupModel100);
-        when(
-            restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "101", 101L)
-        ).thenReturn(getUnitMetadataBackupModel("101", 101L));
-        when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        doThrow(new LogbookClientServerException("logbook error"))
-            .when(logbookLifecycleClient)
-            .createRawbulkUnitlifecycles(any());
-        when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
-
-        MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
-            vitamRepositoryProvider,
-            restoreBackupService,
-            logbookLifecycleClientFactory,
-            storageClientFactory,
-            offsetRepository,
-            indexManager,
-            reconstructionMetricsCache
-        );
-        // When
-        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
-
-        // Then
-        assertThat(realResponseItem).isNotNull();
-        assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
-        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
-        verifyNoMoreInteractions(reconstructionMetricsCache);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void should_return_request_offset_when_metadata_null() throws Exception {
-        // Given
-        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
-        MetadataBackupModel metadataBackupModel100 = getUnitMetadataBackupModel("100", 100L);
-        metadataBackupModel100.setUnit(null);
-        when(
-            restoreBackupService.getListing(
-                STRATEGY_UNIT,
-                DEFAULT_OFFER,
-                DataCategory.UNIT,
-                100L,
-                requestItem.getLimit(),
-                Order.ASC,
-                VitamConfiguration.getBatchSize()
-            )
-        ).thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
-        when(
-            restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L)
-        ).thenReturn(metadataBackupModel100);
-        when(
-            restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "101", 101L)
-        ).thenReturn(getUnitMetadataBackupModel("101", 101L));
-        when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
-        when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
-
-        MetadataReconstructionService reconstructionService = new MetadataReconstructionService(
-            vitamRepositoryProvider,
-            restoreBackupService,
-            logbookLifecycleClientFactory,
-            storageClientFactory,
-            offsetRepository,
-            indexManager,
-            reconstructionMetricsCache
-        );
-        // When
-        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // Then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
@@ -1527,12 +1619,12 @@ public class ReconstructionServiceTest {
                 100L,
                 requestItem.getLimit(),
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                BULK_SIZE
             )
         ).thenReturn(IteratorUtils.singletonIterator(getOfferLog(100)));
         when(
             restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L)
-        ).thenThrow(new StorageNotFoundException(""));
+        ).thenReturn(null);
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
         doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(any());
         when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
@@ -1550,7 +1642,10 @@ public class ReconstructionServiceTest {
             storageClientFactory,
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            BULK_POOL_SIZE,
+            BULK_SIZE,
+            BULK_LOAD_TIMEOUT_SECONDS
         );
 
         logicalClock.freezeTime();

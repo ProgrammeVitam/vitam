@@ -62,6 +62,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
+import fr.gouv.vitam.common.thread.ExecutorUtils;
+import fr.gouv.vitam.common.thread.NamedVitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -71,6 +73,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
+import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -115,7 +118,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -156,6 +164,9 @@ public class MetadataReconstructionService {
     private final ElasticsearchMetadataIndexManager indexManager;
     private final RestoreBackupService restoreBackupService;
     private final MetadataReconstructionMetricsCache reconstructionMetricsCache;
+    private final int reconstructionPoolSize;
+    private final int reconstructionBatchSize;
+    private final int reconstructionBatchLoadingTimeoutInSeconds;
 
     /**
      * Constructor
@@ -168,7 +179,8 @@ public class MetadataReconstructionService {
         VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
         ElasticsearchMetadataIndexManager indexManager,
-        MetadataReconstructionMetricsCache reconstructionMetricsCache
+        MetadataReconstructionMetricsCache reconstructionMetricsCache,
+        MetaDataConfiguration metadataConfiguration
     ) {
         this(
             vitamRepositoryProvider,
@@ -177,7 +189,10 @@ public class MetadataReconstructionService {
             StorageClientFactory.getInstance(),
             offsetRepository,
             indexManager,
-            reconstructionMetricsCache
+            reconstructionMetricsCache,
+            metadataConfiguration.getReconstructionPoolSize(),
+            metadataConfiguration.getReconstructionBatchSize(),
+            metadataConfiguration.getReconstructionBatchLoadingTimeoutInSeconds()
         );
     }
 
@@ -199,7 +214,10 @@ public class MetadataReconstructionService {
         StorageClientFactory storageClientFactory,
         OffsetRepository offsetRepository,
         ElasticsearchMetadataIndexManager indexManager,
-        MetadataReconstructionMetricsCache reconstructionMetricsCache
+        MetadataReconstructionMetricsCache reconstructionMetricsCache,
+        int reconstructionPoolSize,
+        int reconstructionBatchSize,
+        int reconstructionBatchLoadingTimeoutInSeconds
     ) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
@@ -208,6 +226,9 @@ public class MetadataReconstructionService {
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
         this.reconstructionMetricsCache = reconstructionMetricsCache;
+        this.reconstructionPoolSize = reconstructionPoolSize;
+        this.reconstructionBatchSize = reconstructionBatchSize;
+        this.reconstructionBatchLoadingTimeoutInSeconds = reconstructionBatchLoadingTimeoutInSeconds;
     }
 
     /**
@@ -337,7 +358,7 @@ public class MetadataReconstructionService {
                 startOffset,
                 limit,
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                this.reconstructionBatchSize
             );
 
             boolean isEmpty = true;
@@ -419,7 +440,7 @@ public class MetadataReconstructionService {
             }
 
             response.setStatus(StatusCode.OK);
-        } catch (ReconstructionException | IOException de) {
+        } catch (ReconstructionException | IOException e) {
             LOGGER.error(
                 String.format(
                     "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata on the tenant {%s} from {offset:%s}",
@@ -427,7 +448,7 @@ public class MetadataReconstructionService {
                     tenant,
                     startOffset
                 ),
-                de
+                e
             );
             response.setStatus(StatusCode.KO);
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
@@ -566,10 +587,10 @@ public class MetadataReconstructionService {
                 startOffset,
                 limit,
                 Order.ASC,
-                VitamConfiguration.getBatchSize()
+                reconstructionBatchSize
             );
 
-            Iterator<List<OfferLog>> bulkListing = Iterators.partition(listing, VitamConfiguration.getBatchSize());
+            Iterator<List<OfferLog>> bulkListing = Iterators.partition(listing, reconstructionBatchSize);
 
             Long newOffset = null;
             while (bulkListing.hasNext()) {
@@ -593,7 +614,7 @@ public class MetadataReconstructionService {
                     }
                 }
 
-                processWrittenMetadata(collection, tenant, strategy, referentOffer, writtenMetadata);
+                processWrittenMetadata(collection, strategy, referentOffer, writtenMetadata);
 
                 processDeletedMetadata(collection, deletedMetadataIds);
 
@@ -683,7 +704,6 @@ public class MetadataReconstructionService {
      */
     private void processWrittenMetadata(
         MetadataCollections collection,
-        int tenant,
         String strategy,
         String referentOffer,
         List<OfferLog> writtenMetadata
@@ -695,7 +715,6 @@ public class MetadataReconstructionService {
         for (int retry = VitamConfiguration.getOptimisticLockRetryNumber(); retry > 0; retry--) {
             List<MetadataBackupModel> dataFromOffer = loadMetadataSet(
                 collection,
-                tenant,
                 strategy,
                 referentOffer,
                 writtenMetadata
@@ -734,49 +753,55 @@ public class MetadataReconstructionService {
 
     private List<MetadataBackupModel> loadMetadataSet(
         MetadataCollections collection,
-        int tenant,
         String strategy,
         String referentOffer,
         List<OfferLog> writtenMetadata
     ) throws StorageException {
-        List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
-        for (OfferLog offerLog : writtenMetadata) {
-            try {
-                MetadataBackupModel model = restoreBackupService.loadData(
-                    strategy,
-                    referentOffer,
-                    collection,
-                    offerLog.getFileName(),
-                    offerLog.getSequence()
-                );
+        ExecutorService executor = ExecutorUtils.createScalableBatchExecutorService(
+            Math.min(this.reconstructionPoolSize, writtenMetadata.size()),
+            new NamedVitamThreadFactory(MetadataReconstructionService.class.getSimpleName())
+        );
+        try {
+            List<CompletableFuture<MetadataBackupModel>> completableFutures = new ArrayList<>();
 
-                if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
-                    throw new StorageException(
-                        String.format(
-                            "[Reconstruction]: Invalid data to reconstruct in file {%s} for the collection {%s} on the tenant {%s}",
-                            offerLog.getFileName(),
-                            collection,
-                            tenant
-                        )
-                    );
-                }
-
-                dataFromOffer.add(model);
-            } catch (StorageNotFoundException ex) {
-                // 2 possibilities :
-                // - File have never been written to offer (atomic commit bug in offer. Should be fixed in dedicated bug)
-                // - File have been deleted meanwhile (it's ok to skip)
-                LOGGER.warn(
-                    String.format(
-                        "[Reconstruction]: Could not find file {%s} for the collection {%s} on the tenant {%s}. Corrupted file (atomicity bug) OR eliminated? ",
-                        offerLog.getFileName(),
-                        collection,
-                        tenant
+            for (OfferLog offerLog : writtenMetadata) {
+                completableFutures.add(
+                    CompletableFuture.supplyAsync(
+                        () ->
+                            restoreBackupService.loadData(
+                                strategy,
+                                referentOffer,
+                                collection,
+                                offerLog.getFileName(),
+                                offerLog.getSequence()
+                            ),
+                        executor
                     )
                 );
             }
+
+            // Wait for all tasks to complete (with timeout)
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).get(
+                this.reconstructionBatchLoadingTimeoutInSeconds,
+                TimeUnit.SECONDS
+            );
+
+            // Combine results
+            return completableFutures
+                .stream()
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new StorageException("Cannot load metadata from storage. Interrupted thread", e);
+        } catch (TimeoutException e) {
+            throw new StorageException("Cannot load metadata from storage. Timeout", e);
+        } catch (ExecutionException e) {
+            throw new StorageException("Cannot load metadata from storage", e);
+        } finally {
+            executor.shutdown();
         }
-        return dataFromOffer;
     }
 
     private void processDeletedMetadata(MetadataCollections collection, List<String> deletedMetadataIds)
@@ -838,7 +863,7 @@ public class MetadataReconstructionService {
         Map<String, MetadataBackupModel> dataMap = new HashMap<>();
 
         for (MetadataBackupModel mbm : dataFromOffer) {
-            Document document = mbm.getMetadatas();
+            Document document = mbm.getMetadata();
             String id = document.getString(ID);
             MetadataBackupModel alreadyExists = dataMap.remove(id);
             if (null != alreadyExists) {
@@ -876,7 +901,7 @@ public class MetadataReconstructionService {
 
                 Document sourceDocument = iterator.next();
                 String id = sourceDocument.getString(ID);
-                Document targetDocument = dataMap.get(id).getMetadatas();
+                Document targetDocument = dataMap.get(id).getMetadata();
 
                 targetDocument.putAll(sourceDocument);
             }
@@ -942,7 +967,7 @@ public class MetadataReconstructionService {
         List<Document> documents = dataFromOffer
             .stream()
             .map(this::addComputedMetadata)
-            .map(MetadataBackupModel::getMetadatas)
+            .map(MetadataBackupModel::getMetadata)
             .collect(Collectors.toList());
 
         // Create bulk of ReplaceOneModel
@@ -969,12 +994,12 @@ public class MetadataReconstructionService {
             String approximateDateTime = reformatEventDateTime((String) lastEvent.get(EV_DATE_TIME));
 
             backupModel
-                .getMetadatas()
+                .getMetadata()
                 .put(
                     MetadataDocument.APPROXIMATE_CREATION_DATE,
                     reformatEventDateTime(backupModel.getLifecycle().getString(EV_DATE_TIME))
                 );
-            backupModel.getMetadatas().put(MetadataDocument.APPROXIMATE_UPDATE_DATE, approximateDateTime);
+            backupModel.getMetadata().put(MetadataDocument.APPROXIMATE_UPDATE_DATE, approximateDateTime);
         }
         return backupModel;
     }
