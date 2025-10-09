@@ -30,9 +30,12 @@ package fr.gouv.vitam.common.time;
 import fr.gouv.vitam.common.LocalDateUtil;
 import org.junit.rules.ExternalResource;
 
+import java.io.Serializable;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
@@ -44,7 +47,14 @@ public class LogicalClockRule extends ExternalResource {
     }
 
     public void logicalSleep(int amount, ChronoUnit unit) {
-        LocalDateUtil.setClock(Clock.offset(LocalDateUtil.getClock(), Duration.of(amount, unit)));
+        if (LocalDateUtil.getClock() instanceof OffsetClock) {
+            OffsetClock previousOffsetClock = (OffsetClock) LocalDateUtil.getClock();
+            LocalDateUtil.setClock(
+                new OffsetClock(previousOffsetClock.baseClock, previousOffsetClock.offset.plus(amount, unit))
+            );
+        } else {
+            LocalDateUtil.setClock(new OffsetClock(LocalDateUtil.getClock(), Duration.of(amount, unit)));
+        }
     }
 
     public void freezeTime() {
@@ -57,6 +67,35 @@ public class LogicalClockRule extends ExternalResource {
 
     public void resumeTime() {
         Duration shift = Duration.between(Clock.systemUTC().instant(), LocalDateUtil.getClock().instant());
-        LocalDateUtil.setClock(Clock.offset(Clock.systemUTC(), shift));
+        LocalDateUtil.setClock(new OffsetClock(Clock.systemUTC(), shift));
+    }
+
+    private static final class OffsetClock extends Clock implements Serializable {
+
+        private final Clock baseClock;
+        private final Duration offset;
+
+        OffsetClock(Clock baseClock, Duration offset) {
+            this.baseClock = baseClock;
+            this.offset = offset;
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return baseClock.getZone();
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            if (zone.equals(baseClock.getZone())) {
+                return this;
+            }
+            return new OffsetClock(baseClock.withZone(zone), offset);
+        }
+
+        @Override
+        public Instant instant() {
+            return baseClock.instant().plus(offset);
+        }
     }
 }
