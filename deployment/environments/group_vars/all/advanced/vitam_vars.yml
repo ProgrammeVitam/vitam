@@ -381,6 +381,13 @@ vitam:
     dataConsistencyAuditOplogMaxSize: 100
     # Reconstruction metrics cache in minutes (secondary site)
     reconstructionMetricsCacheDurationInMinutes: 15
+    # Concurrent reconstruction threads
+    reconstructionPoolSize: 16
+    # Reconstruction bulk size
+    reconstructionBatchSize: 1_000
+    # Timeout for batch metadata loading from storage offers
+    reconstructionBatchLoadingTimeoutInSeconds: 600
+
     context_path: "/metadata"
   processing:
     vitam_component: processing
