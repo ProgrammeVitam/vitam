@@ -12,6 +12,8 @@
       - "{{ vitam_defaults.folder.root_path }}/log/elasticsearch-log/elasticsearch-log.log"
 {% endif %}
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-elasticsearch-server
       fields_under_root: true
       fields:
         kind: log
@@ -30,12 +32,18 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "message"]
+            fields: ["date_time", "message", "fileset", "service"]
         # drop stdout events as they are already catch with `logger: "StatusLogger"`
         - drop_event:
             when:
               equals:
                 logger: "stdout"
+      parsers:
+        - multiline:
+            type: pattern
+            pattern: '^\[^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3}\]'
+            negate: true
+            match: after
 
   audit:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_audit | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_audit | bool | lower }}
@@ -47,6 +55,8 @@
       - "{{ vitam_defaults.folder.root_path }}/log/elasticsearch-log/elasticsearch-log_audit.log"
 {% endif %}
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-elasticsearch-audit
       fields_under_root: true
       fields:
         kind: audit
@@ -65,7 +75,13 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "message"]
+            fields: ["date_time", "message", "fileset", "service"]
+      parsers:
+        - multiline:
+            type: pattern
+            pattern: '^\[^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3}\]'
+            negate: true
+            match: after
 
   slowlog:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_slowlog | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_slowlog | bool | lower }}
@@ -77,6 +93,8 @@
       - "{{ vitam_defaults.folder.root_path }}/log/elasticsearch-log/elasticsearch-log_*_slowlog.log"
 {% endif %}
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-elasticsearch-slowlog
       fields_under_root: true
       fields:
         kind: slowlog
@@ -85,7 +103,7 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{?node_name}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}][%{logger}] [%{?node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
@@ -95,7 +113,13 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "message"]
+            fields: ["date_time", "message", "fileset", "service"]
+      parsers:
+        - multiline:
+            type: pattern
+            pattern: '^\[^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3}\]'
+            negate: true
+            match: after
 
   deprecation:
     enabled: {{ filebeat.cots.elasticsearch_data.enable_deprecation | bool | lower if inventory_hostname in groups['hosts_elasticsearch_data'] else filebeat.cots.elasticsearch_log.enable_deprecation | bool | lower }}
@@ -107,6 +131,8 @@
       - "{{ vitam_defaults.folder.root_path }}/log/elasticsearch-log/elasticsearch-log_deprecation.log"
 {% endif %}
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-elasticsearch-deprecation
       fields_under_root: true
       fields:
         kind: deprecation
@@ -115,7 +141,7 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] [%{?node_name}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}][%{logger}] [%{?node_name}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
@@ -125,4 +151,10 @@
             test:
               - '2024-09-30T14:51:17,100'
         - drop_fields:
-            fields: ["date_time", "message"]
+            fields: ["date_time", "message", "fileset", "service"]
+      parsers:
+        - multiline:
+            type: pattern
+            pattern: '^\[^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3}\]'
+            negate: true
+            match: after

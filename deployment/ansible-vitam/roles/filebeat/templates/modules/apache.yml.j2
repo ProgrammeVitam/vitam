@@ -11,15 +11,19 @@
     # Filebeat will choose the paths depending on your OS.
     #var.paths:
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-apache-access
       fields_under_root: true
       fields:
         kind: access
         vitam_component: apache
         source: vitam
+        type: cots
       processors:
         - dissect:
             tokenizer: '%{client_ip|ip} - - [%{date_time}] "%{http_method} %{request_path} HTTP/%{http_version}" %{http_status_code|integer} %{response_size} "%{referer}" "%{user_agent}"'
             target_prefix: ""
+            trim_values: all
         - timestamp:
             field: date_time
             layouts:
@@ -27,7 +31,7 @@
             test:
               - '30/Sep/2024:13:46:37 +0200'
         - drop_fields:
-            fields: ["date_time"]
+            fields: ["date_time", "fileset", "service"]
 {% if filebeat.drop_health_checks_logs | default(true) | bool %}
         # Drop Blackbox health checks
         - drop_event:
@@ -47,16 +51,38 @@
     # Filebeat will choose the paths depending on your OS.
     #var.paths:
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-apache-error
       fields_under_root: true
       fields:
-        kind: error
+        kind: log
         vitam_component: apache
         source: vitam
-        log_level: WARN
+        type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}] [%{logger}] [%{*}] %{log_message}'
+            tokenizer: '[%{date_time}] [%{logger}:%{log_level}] [%{*}] %{log_message}'
             target_prefix: ""
+            trim_values: all
+        - script:
+            lang: javascript
+            id: set_apache_log_level
+            source: >
+              function process(event) {
+                var lvl = (event.Get("log_level") || "").toLowerCase();
+                switch (lvl) {
+                  case "debug": event.Put("log_level", "DEBUG"); break;
+                  case "info":
+                  case "notice": event.Put("log_level", "INFO"); break;
+                  case "warn": event.Put("log_level", "WARN"); break;
+                  case "error": event.Put("log_level", "ERROR"); break;
+                  case "crit":
+                  case "alert":
+                  case "emerg": event.Put("log_level", "FATAL"); break;
+                  default: event.Put("log_level", "UNKNOWN");
+                }
+                return event;
+              }
         - timestamp:
             field: date_time
             layouts:
@@ -64,4 +90,4 @@
             test:
               - 'Tue Sep 30 13:46:37.594890 2024'
         - drop_fields:
-            fields: ["date_time"]
+            fields: ["date_time", "message", "fileset", "service"]
