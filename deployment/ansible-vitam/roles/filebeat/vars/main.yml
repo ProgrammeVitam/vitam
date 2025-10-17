@@ -1,3 +1,10 @@
 ---
 
-service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
+filebeat_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/filebeat"
+filebeat_data_dir: "{{ vitam_defaults.folder.root_path }}/data/filebeat"
+filebeat_log_dir: "{{ vitam_defaults.folder.root_path }}/log/filebeat"
+
+filebeat_modules_dir: "{{ filebeat_conf_dir }}/modules.d"
+filebeat_inputs_dir: "{{ filebeat_conf_dir }}/inputs.d"
+
+service_at_boot: "{{ vitam_defaults.services.at_boot | default(true) }}"
