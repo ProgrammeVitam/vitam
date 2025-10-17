@@ -88,6 +88,7 @@ import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -906,7 +907,8 @@ public class TransactionInternalResource {
             | IllegalArgumentException
             | InvalidGuidOperationException
             | LogbookClientBadRequestException
-            | CollectInternalInvalidRequestException e
+            | CollectInternalInvalidRequestException
+            | ContentAddressableStorageNotFoundException e
         ) {
             LOGGER.error("Error when uploading SIP to transaction. Bad Request: {}", e.getMessage(), e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
