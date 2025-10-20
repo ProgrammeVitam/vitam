@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-SIEGFRIED_VERSION=1.9.6
-SIEGFRIED_FILE=siegfried_1-9-6_linux64.zip
-SIEGFRIED_DATA_FILE=data_1-9-6.zip
+SIEGFRIED_VERSION=1.11.2
+SIEGFRIED_FILE=siegfried_1-11-2_linux64.zip
+SIEGFRIED_DATA_FILE=data_1-11-2.zip
 INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-product-binaries
 
 WORKING_FOLDER=$(dirname $0)
