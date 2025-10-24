@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.validations.ValidationError;
 import fr.gouv.vitam.common.model.validations.ValidationErrorHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
@@ -105,6 +106,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         try {
             ObjectNode archiveUnit = loadArchiveUnit(handler, params);
+
             checkAUJsonAgainstSchema(handler, params, archiveUnit);
 
             Stopwatch checkUnitTime = Stopwatch.createStarted();
@@ -124,7 +126,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID, itemStatus);
         } catch (MetadataValidationException e) {
             LOGGER.warn("Unit schema validation failed " + params.getObjectName(), e);
-
             String outcomeDetail =
                 switch (e.getErrorCode()) {
                     case SCHEMA_VALIDATION_FAILURE, ONTOLOGY_VALIDATION_FAILURE -> INVALID_UNIT;
@@ -183,9 +184,18 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         Stopwatch ontologyTime = Stopwatch.createStarted();
 
         JsonNode archiveUnitJson = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
-        ObjectNode updatedArchiveUnitJson = metadataValidationProvider
-            .getUnitOntologyValidator()
-            .verifyAndReplaceFields(archiveUnitJson);
+        ObjectNode updatedArchiveUnitJson;
+        try {
+            updatedArchiveUnitJson = metadataValidationProvider
+                .getUnitOntologyValidator()
+                .verifyAndReplaceFields(archiveUnitJson);
+        } catch (MetadataValidationException ex) {
+            if (WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
+            }
+            throw ex;
+        }
+
         archiveUnit.set(SedaConstants.TAG_ARCHIVE_UNIT, updatedArchiveUnitJson);
         boolean isUpdateJsonMandatory = !archiveUnitJson.equals(updatedArchiveUnitJson);
 
