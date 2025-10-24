@@ -115,6 +115,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
     private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
 
     private static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP = "integration-processing/4_UNITS_2_GOTS.zip";
+    private static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP_WITH_INVALID_DATE =
+        "integration-processing/4_UNITS_2_GOTS_with_invalid_date.zip";
     private static final String INTEGRATION_PROCESSING_1_UNIT_1_GOTS_1MB_FOLDER_ZIP =
         "integration-processing/1_UNIT_1_GOTS_1MB_FOLDER.zip";
 
@@ -204,6 +206,69 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             );
 
             assertEquals(0, unitsByTransaction.getResults().size());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_perform_collect_ingest_sip_operation_with_invalid_date() throws Exception {
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
+            String transactionId = transactionDtoCreated.getId();
+
+            try (
+                InputStream inputStream = PropertiesUtils.getResourceAsStream(
+                    INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP_WITH_INVALID_DATE
+                )
+            ) {
+                RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
+                    new VitamContext(TENANT_ID)
+                        .setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract(ACCESS_CONTRACT),
+                    transactionId,
+                    inputStream
+                );
+                assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
+                UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
+                assertThat(operationIdDto.requestId()).isEqualTo(transactionId);
+            }
+
+            waitOperation(transactionId);
+            // Verify that the SIP folder has been deleted from the workspace
+            try (WorkspaceClient workspaceClient = WorkspaceCollectClientFactory.getInstance().getClient()) {
+                assertThat(workspaceClient.isExistingFolder(transactionId, "SIP")).isFalse();
+            }
+            TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
+            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.KO.name());
+
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            JsonNode logbookResult = logbookClient.selectOperationById(transactionDtoCreated.getId());
+            assertThat(logbookResult.get(TAG_RESULTS)).isNotNull();
+            assertThat(logbookResult.get(TAG_RESULTS).size()).isGreaterThan(0);
+
+            JsonNode firstResult = logbookResult.get(TAG_RESULTS).get(0);
+            JsonNode events = firstResult.get(EVENTS);
+            assertThat(events).isNotNull();
+
+            assertThat(events.get(events.size() - 1).get("outcome").asText()).isEqualTo("KO");
+
+            final RequestResponseOK<JsonNode> updatedUnitsResp = CollectTestHelper.selectUnitsByTransactionId(
+                vitamContext,
+                transactionDtoCreated.getId(),
+                collectClient
+            );
+            assertThat(updatedUnitsResp.getResults()).isNotNull();
+            assertThat(updatedUnitsResp.getResults().size()).isGreaterThan(0);
         }
     }
 
