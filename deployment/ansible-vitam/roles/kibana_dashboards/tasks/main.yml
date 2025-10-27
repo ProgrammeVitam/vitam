@@ -133,7 +133,7 @@
       until: kibana_result.status in [200,201]
       retries: "{{ kibana.import_retries }}"
       delay: "{{ kibana.import_delay }}"
-        
+
     - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
       run_once: true
       tags: load_kibana
@@ -162,7 +162,7 @@
   tags: load_kibana
   run_once: true
   uri:
-    url: "http://{{ ip_admin }}:{{ kibana.data.port }}/api/kibana/settings"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/kibana/settings"
     method: POST
     body: ' {"changes":{"defaultIndex":"{{ composant.default_index_pattern }}"}}'
     headers:
