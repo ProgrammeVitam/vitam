@@ -162,7 +162,7 @@
   tags: load_kibana
   run_once: true
   uri:
-    url: "http://{{ ip_admin }}:{{ kibana.data.port }}/api/kibana/settings"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/kibana/settings"
     method: POST
     body: ' {"changes":{"defaultIndex":"{{ composant.default_index_pattern }}"}}'
     headers:
