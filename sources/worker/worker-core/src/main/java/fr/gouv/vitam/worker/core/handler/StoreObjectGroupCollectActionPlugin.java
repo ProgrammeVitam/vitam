@@ -78,7 +78,7 @@ public class StoreObjectGroupCollectActionPlugin extends ActionHandler {
 
         try {
             String containerName = param.getContainerName();
-            LOGGER.info("Moving SIP content to container root for container: " + containerName);
+            LOGGER.debug("Moving SIP content to container root for container: " + containerName);
 
             try (WorkspaceClient workspaceClient = handler.getWorkspaceCollectClient()) {
                 Set<String> allSipFiles = new HashSet<>();
