@@ -76,13 +76,13 @@
       - 03-logstash-vitam-output.conf
     notify: "logstash - restart service"
 
-- name: add vitam patterns conf
-  template:
-    src: vitam-patterns.j2
-    dest: "/usr/share/logstash/vendor/bundle/jruby/3.1.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version }}/patterns/vitam"
-    owner: "{{ logstash_user }}"
-    group: "{{ vitam_defaults.users.group }}"
-  notify: "logstash - restart service"
+  - name: add vitam patterns conf
+    template:
+      src: vitam-patterns.j2
+      dest: "/usr/share/logstash/vendor/bundle/jruby/3.1.0/gems/logstash-patterns-core-{{ logstash_patterns_core_version }}/patterns/vitam"
+      owner: "{{ logstash_user }}"
+      group: "{{ vitam_defaults.users.group }}"
+    notify: "logstash - restart service"
 
   when: syslog.name | default('filebeat') != 'filebeat'
 
