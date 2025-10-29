@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>antivirus</artifactId>
-        <version>9.0.0-SNAPSHOT</version>
+        <version>9.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>antivirus-rest</artifactId>
     <name>antivirus-rest</name>
