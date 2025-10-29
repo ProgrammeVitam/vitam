@@ -20,4 +20,4 @@ install_mode: legacy
 #   username:
 #   password:
 # Add vitam_container_version for specific container version deployment (default: latest)
-vitam_container_version: '9.0.0-SNAPSHOT'
+vitam_container_version: '9.0.0'
