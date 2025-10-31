@@ -1,5 +1,5 @@
 Name:          vitam-siegfried
-Version:       1.9.6
+Version:       1.11.2
 Release:       1%{?dist}
 Summary:       Siegfried is a signature-based file format identification tool
 Group:         Applications/File
@@ -7,8 +7,8 @@ License:       Apache License - Version 2.0
 BuildArch:     x86_64
 URL:           http://www.itforarchivists.com/siegfried
 
-Source0:       https://github.com/richardlehane/siegfried/releases/download/v%{version}/siegfried_1-9-6_linux64.zip
-Source1:       https://github.com/richardlehane/siegfried/releases/download/v%{version}/data_1-9-6.zip
+Source0:       https://github.com/richardlehane/siegfried/releases/download/v%{version}/siegfried_1-11-2_linux64.zip
+Source1:       https://github.com/richardlehane/siegfried/releases/download/v%{version}/data_1-11-2.zip
 
 Requires:      systemd
 Requires:      vitam-user-vitam

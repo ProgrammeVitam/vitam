@@ -25,7 +25,7 @@ services:
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
   siegfried:
-    image: keeps/siegfried:v1.9.6
+    image: keeps/siegfried:v1.11.2
     ports:
       - 19000:5138
     volumes:
