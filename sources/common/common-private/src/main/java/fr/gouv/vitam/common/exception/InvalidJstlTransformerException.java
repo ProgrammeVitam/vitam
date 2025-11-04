@@ -25,17 +25,15 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.collect.internal.core.exceptions;
+package fr.gouv.vitam.common.exception;
 
-import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
+public class InvalidJstlTransformerException extends VitamException {
 
-public class CollectInvalidJsltTransformerException extends CollectInternalInvalidRequestException {
-
-    public CollectInvalidJsltTransformerException(String message) {
+    public InvalidJstlTransformerException(String message) {
         super(message);
     }
 
-    public CollectInvalidJsltTransformerException(String message, Throwable cause) {
+    public InvalidJstlTransformerException(String message, Throwable cause) {
         super(message, cause);
     }
 }

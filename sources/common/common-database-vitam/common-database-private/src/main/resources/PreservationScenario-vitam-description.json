@@ -24,6 +24,12 @@
     "cardinality": "one"
   },
   {
+    "path": "TransformationRules",
+    "type": "keyword",
+    "indexed": false,
+    "cardinality": "one"
+  },
+  {
     "path": "CreationDate",
     "type": "datetime",
     "indexed": true,

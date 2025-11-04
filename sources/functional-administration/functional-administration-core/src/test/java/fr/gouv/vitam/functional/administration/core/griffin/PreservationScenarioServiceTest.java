@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -1009,5 +1010,47 @@ public class PreservationScenarioServiceTest {
         assertThatThrownBy(() -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class)
             .hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailValidateScenarioWithInvalidJslt() throws Exception {
+        // Given
+        List<PreservationScenarioModel> scenarios = getPreservationScenarioModels(
+            "preservationScenarios/scenario_extraction_with_invalid_jslt.json"
+        );
+
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000005"));
+
+        // When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(InvalidJstlTransformerException.class)
+            .hasMessageContaining("Invalid JSLT template");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailValidateScenarioWithEmptyJslt() throws Exception {
+        // Given
+        List<PreservationScenarioModel> scenarios = getPreservationScenarioModels(
+            "preservationScenarios/scenario_extraction_with_empty_jslt.json"
+        );
+
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000005"));
+
+        // When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Jslt template cannot be empty");
     }
 }

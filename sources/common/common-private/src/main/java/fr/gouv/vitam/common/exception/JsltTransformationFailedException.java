@@ -24,18 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.common.exception;
 
-package fr.gouv.vitam.collect.internal.core.exceptions;
+public class JsltTransformationFailedException extends VitamException {
 
-import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
-
-public class CollectJsltTransformationFailedException extends CollectInternalInvalidRequestException {
-
-    public CollectJsltTransformationFailedException(String message) {
+    public JsltTransformationFailedException(String message) {
         super(message);
     }
 
-    public CollectJsltTransformationFailedException(String message, Throwable cause) {
+    public JsltTransformationFailedException(String message, Throwable cause) {
         super(message, cause);
     }
 }

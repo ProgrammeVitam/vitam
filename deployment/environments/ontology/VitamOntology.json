@@ -3722,6 +3722,18 @@
     ]
   },
   {
+    "Identifier": "TransformationRules",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "KEYWORD",
+    "TypeDetail": "STRING",
+    "StringSize": "MEDIUM",
+    "Origin": "INTERNAL",
+    "ShortName": "Fichier jstl pour la préservation",
+    "Collections": [
+      "PreservationScenario"
+    ]
+  },
+  {
     "Identifier": "CheckParentId",
     "ApiField": "CheckParentId",
     "Description": "Déclaration d’un ou plusieurs cônes de positionnement des rattachements",

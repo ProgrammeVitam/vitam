@@ -30,14 +30,17 @@ import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
-import fr.gouv.vitam.collect.internal.core.transformers.JsltTransformer;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsltTransformer;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -79,7 +82,7 @@ public class ProjectService {
         // Set project initials
         final String creationDate = LocalDateUtil.nowFormatted();
 
-        JsltTransformer.validate(projectDto.getTransformationRules());
+        validateJslt(projectDto.getTransformationRules());
 
         ProjectModel projectModel = new ProjectModel.Builder()
             .id(GUIDFactory.newGUID().getId())
@@ -130,7 +133,7 @@ public class ProjectService {
         projectDto.setStatus(projectDto.getStatus() != null ? projectDto.getStatus() : TransactionStatus.OPEN.name());
         final String lastUpdate = LocalDateUtil.nowFormatted();
 
-        JsltTransformer.validate(projectDto.getTransformationRules());
+        validateJslt(projectDto.getTransformationRules());
 
         ProjectModel projectModel = new ProjectModel.Builder()
             .id(projectDto.getId())
@@ -170,5 +173,17 @@ public class ProjectService {
      */
     public void deleteProjectById(String id) {
         projectRepository.deleteProject(id);
+    }
+
+    private void validateJslt(String transformationRules) throws CollectInternalException {
+        if (StringUtils.isBlank(transformationRules)) {
+            return;
+        }
+
+        try {
+            JsltTransformer.validate(transformationRules);
+        } catch (InvalidJstlTransformerException e) {
+            throw new CollectInternalInvalidRequestException(e.getMessage(), e);
+        }
     }
 }

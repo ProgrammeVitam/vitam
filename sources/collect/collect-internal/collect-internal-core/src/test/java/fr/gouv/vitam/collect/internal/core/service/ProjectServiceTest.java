@@ -30,9 +30,9 @@ package fr.gouv.vitam.collect.internal.core.service;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectStatus;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidJsltTransformerException;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -237,11 +237,11 @@ public class ProjectServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void createProjectWithInvalidJsltTransformation() throws CollectInternalException {
+    public void createProjectWithInvalidJsltTransformation() {
         logicalClock.freezeTime();
         assertThatThrownBy(() -> projectService.createProject(new ProjectDto().setTransformationRules("invalid")))
-            .isInstanceOf(CollectInvalidJsltTransformerException.class)
-            .hasMessageStartingWith("Invalid JSLT template: Parse error");
+            .isInstanceOf(CollectInternalInvalidRequestException.class)
+            .hasMessageStartingWith("Invalid JSLT template");
     }
 
     @Test
