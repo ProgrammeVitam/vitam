@@ -80,6 +80,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_PROBATIVE_VALUE_GENERATE_REPORT",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "REF",
         "element": ""

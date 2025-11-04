@@ -108,6 +108,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_LFC_TRACEABILITY_FINALIZATION",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

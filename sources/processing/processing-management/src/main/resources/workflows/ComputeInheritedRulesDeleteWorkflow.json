@@ -42,6 +42,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_COMPUTE_INHERITED_RULES_DELETE",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "units.jsonl",
@@ -62,6 +63,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_COMPUTE_INHERITED_RULES_FINALIZATION",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
