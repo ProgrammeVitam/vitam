@@ -53,7 +53,7 @@ public class ProcessExecutorTest {
 
         for (int i = 0; i < 10_000; i++) {
             writer.write(
-                "18:42:22.476 [main] DEBUG fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService - Execute script : /bin/mtx,timeout: 1000, args : [-f, /dev/sg0, status]\n"
+                "18:42:22.476 [main] DEBUG fr.gouv.vitam.storage.offers.tape.impl.local.robot.MtxTapeLibraryService - Execute script : /bin/mtx,timeout: 1000, args : [-f, /dev/sg0, status]\n"
             );
         }
 
@@ -62,7 +62,7 @@ public class ProcessExecutorTest {
         out = ProcessExecutor.getInstance().execute("/bin/cat", true, 30000L, Lists.newArrayList(file));
 
         Assertions.assertThat(out.getStdout()).contains(
-            "fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService"
+            "fr.gouv.vitam.storage.offers.tape.impl.local.robot.MtxTapeLibraryService"
         );
 
         actual.deleteOnExit();

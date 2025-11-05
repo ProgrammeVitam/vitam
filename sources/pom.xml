@@ -245,7 +245,7 @@
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <jakarta.transaction-api.version>2.0.1</jakarta.transaction-api.version>
         <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
-        <swagger-core.version>2.2.30</swagger-core.version>
+        <swagger-core.version>2.2.40</swagger-core.version>
         <jakarta.ws.rs-api.version>4.0.0</jakarta.ws.rs-api.version>
     </properties>
 
@@ -958,6 +958,7 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-maven-plugin-jakarta</artifactId>
                 <version>${swagger-core.version}</version>
+                <!-- Really required dependencies ? -->
                 <dependencies>
                     <dependency>
                         <groupId>jakarta.ws.rs</groupId>
@@ -970,54 +971,6 @@
                         <version>${jakarta.servlet.version}</version>
                     </dependency>
                 </dependencies>
-                <configuration>
-                    <outputPath>target/generated-documentation</outputPath>
-                    <outputFormat>JSONANDYAML</outputFormat>
-                    <prettyPrint>true</prettyPrint>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>phase-internal</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>resolve</goal>
-                        </goals>
-                        <configuration>
-                            <outputFileName>internal</outputFileName>
-                            <resourcePackages>
-                                <package>fr.gouv.vitam.access.internal.rest</package>
-                                <package>fr.gouv.vitam.batch.report.rest.resource</package>
-                                <package>fr.gouv.vitam.ingest.internal.upload.rest</package>
-                                <package>fr.gouv.vitam.security.internal.rest.resource</package>
-                                <package>fr.gouv.vitam.logbook.rest</package>
-                                <package>fr.gouv.vitam.metadata.rest</package>
-                                <package>fr.gouv.vitam.processing.distributor.rest</package>
-                                <package>fr.gouv.vitam.processing.management.rest</package>
-                                <package>fr.gouv.vitam.storage.offers.rest</package>
-                                <package>fr.gouv.vitam.storage.offers.tape.rest</package>
-                                <package>fr.gouv.vitam.storage.engine.server.rest</package>
-                                <package>fr.gouv.vitam.worker.server.rest</package>
-                                <package>fr.gouv.vitam.workspace.rest</package>
-                            </resourcePackages>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>phase-external</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>resolve</goal>
-                        </goals>
-                        <configuration>
-                            <outputFileName>external</outputFileName>
-                            <resourcePackages>
-                                <package>fr.gouv.vitam.access.external.rest</package>
-                                <package>fr.gouv.vitam.access.external.rest.v2.rest</package>
-                                <package>fr.gouv.vitam.functional.administration.rest</package>
-                                <package>fr.gouv.vitam.ingest.external.rest</package>
-                            </resourcePackages>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>

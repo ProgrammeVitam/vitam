@@ -39,6 +39,20 @@ vitam_offers:
     provider: tape-library
     tapeLibraryConfiguration:
 
+      # Tape library provider configuration.
+      #
+      # Available modes:
+      #   - local : uses the local 'dd', 'mt', and 'mtx' commands
+      #             to directly control the tape drives and libraries.
+      #
+      #   - ina   : uses an HTTP proxy instead of the local commands.
+      #
+      # WARNING:
+      #   The current interface requires that the proxy be installed locally,
+      #   just as the 'dd', 'mt', and 'mtx' commands are in local mode.
+      #
+      mode: local
+
       # Max size (in bytes) of a TAR archive entry.
       #    Cannot exceed maxTarEntrySize or 8_000_000_000 (TAR format restriction)
       #    Recommended size: 1_000_000_000 (1 GB)

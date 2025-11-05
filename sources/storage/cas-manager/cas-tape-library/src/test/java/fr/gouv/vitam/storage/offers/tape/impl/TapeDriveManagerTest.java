@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.impl;
 
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
+import fr.gouv.vitam.storage.offers.tape.impl.local.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import org.assertj.core.api.Assertions;

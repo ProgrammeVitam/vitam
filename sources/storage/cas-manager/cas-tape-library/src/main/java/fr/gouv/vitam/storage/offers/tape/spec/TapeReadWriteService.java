@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
+import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 
 public interface TapeReadWriteService {
     /**

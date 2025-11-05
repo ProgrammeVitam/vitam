@@ -1,4 +1,15 @@
 ---
+- hosts: hosts_storage_offer_default
+  any_errors_fatal: true
+  roles:
+    - role: vitam
+      when: >
+        (vitam_offers[hostvars[inventory_hostname]['offer_conf']] | default({}))
+        .get('tapeLibraryConfiguration', {})
+        .get('mode', '') == 'ina'
+  vars:
+    vitam_struct: "{{ vitam.ina_tape_proxy }}"
+  tags: offer
 
 - hosts: hosts_storage_offer_default
   any_errors_fatal: true

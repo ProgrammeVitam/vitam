@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibrarySpec;
+import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 
 public interface TapeLoadUnloadService {
     TapeLibrarySpec status() throws TapeCommandException;

@@ -76,6 +76,12 @@
         <scope>test</scope>
     </dependency>
     <dependency>
+        <groupId>fr.gouv.vitam</groupId>
+        <artifactId>ina-tape-proxy-web</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <scope>test</scope>

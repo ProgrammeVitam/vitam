@@ -26,8 +26,8 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 

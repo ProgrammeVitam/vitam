@@ -55,6 +55,7 @@ s3TrustStorePassword: {{ password_truststore }}
 
 {% if vitam_offers[offer_conf]["provider"] in ["tape-library"] %}
 tapeLibraryConfiguration:
+  mode: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["mode"] | default("local") }}
   inputFileStorageFolder: "{{ vitam_folder_data }}/inputFiles"
   inputTarStorageFolder: "{{ vitam_folder_data }}/inputTars"
   tmpTarOutputStorageFolder: "{{ vitam_folder_data }}/tmpTarOutput"

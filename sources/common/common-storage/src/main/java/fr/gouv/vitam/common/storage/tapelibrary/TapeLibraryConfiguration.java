@@ -32,6 +32,10 @@ import java.util.concurrent.TimeUnit;
 public class TapeLibraryConfiguration {
 
     /**
+     * Defines the operation mode of the Cold Storage service.
+     */
+    private StorageMode mode;
+    /**
      * Folder for storing incoming files
      */
     private String inputFileStorageFolder;
@@ -119,6 +123,15 @@ public class TapeLibraryConfiguration {
     private TapeLibraryTopologyConfiguration topology;
 
     private Map<String, TapeLibraryConf> tapeLibraries;
+
+    public StorageMode getMode() {
+        return mode;
+    }
+
+    public TapeLibraryConfiguration setMode(StorageMode mode) {
+        this.mode = mode;
+        return this;
+    }
 
     public TapeLibraryTopologyConfiguration getTopology() {
         return topology;
