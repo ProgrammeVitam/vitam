@@ -677,6 +677,7 @@ public class TransactionInternalResource {
         JsonNode reclassificationRequestJson
     ) {
         try {
+            transactionService.checkOpenTransaction(transactionId);
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(reclassificationRequestJson);
 
@@ -762,11 +763,8 @@ public class TransactionInternalResource {
             LOGGER.error("Error when trying to parse :", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (BadRequestException e) {
-            LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
-            return CollectRequestResponse.toVitamError(
-                VitamCode.GLOBAL_EMPTY_QUERY.getStatus(),
-                EMPTY_QUERY_IS_IMPOSSIBLE
-            );
+            LOGGER.error("Error starting reclassification workflow - Bad Request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (Exception e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
@@ -785,6 +783,7 @@ public class TransactionInternalResource {
         EliminationRequestBody eliminationRequestBody
     ) {
         try {
+            transactionService.checkOpenTransaction(transactionId);
             return transactionService.startEliminationActionWorkflow(
                 transactionId,
                 eliminationRequestBody,
@@ -827,6 +826,7 @@ public class TransactionInternalResource {
         DeletionRequestBody deletionRequestBody
     ) {
         try {
+            transactionService.checkOpenTransaction(transactionId);
             return transactionService.startDeletionWorkflow(
                 transactionId,
                 deletionRequestBody,

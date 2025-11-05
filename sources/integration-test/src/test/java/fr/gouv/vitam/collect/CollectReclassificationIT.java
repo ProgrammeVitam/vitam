@@ -356,6 +356,75 @@ public class CollectReclassificationIT extends VitamRuleRunner {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_reclassification_on_closed_transaction() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            final String transactionId = transactionDto.getId();
+
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
+                final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
+                    vitamContext,
+                    transactionId,
+                    inputStream,
+                    null,
+                    null
+                );
+                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+            }
+
+            JsonNode unitsByTransaction = collectClient
+                .getUnitsByTransaction(vitamContext, transactionId, new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
+
+            JsonNode selectedUnits = unitsByTransaction.get(TAG_RESULTS);
+
+            // Close the transaction
+            collectClient.closeTransaction(vitamContext, transactionId);
+
+            // Try to perform a reclassification action on the closed transaction
+            final String collectReclassificationOperationGuid = newOperationLogbookGUID(TENANT_ID).toString();
+            VitamThreadUtils.getVitamSession().setRequestId(collectReclassificationOperationGuid);
+
+            UpdateMultiQuery reclassificationRequest = new UpdateMultiQuery();
+            reclassificationRequest.setQuery(
+                QueryHelper.eq(VitamFieldsHelper.id(), getUnitId(getUnitIdByTitle(selectedUnits, "file1.txt")))
+            );
+
+            JsonNode newParentUnit = getUnitIdByTitle(selectedUnits, "folder2");
+
+            reclassificationRequest.addActions(
+                UpdateActionHelper.add(VitamFieldsHelper.unitups(), getUnitId(newParentUnit))
+            );
+
+            ObjectNode finalUpdate = reclassificationRequest.getFinalUpdate();
+            finalUpdate.remove("$filter");
+            JsonNode reclassificationQuery = JsonHandler.createArrayNode().add(finalUpdate);
+
+            // When - Try to perform reclassification action on closed transaction
+            // This should fail because the transaction is not open
+            try {
+                collectClient.performReclassificationOnTransaction(vitamContext, transactionId, reclassificationQuery);
+                Assertions.fail("Should have thrown an exception");
+            } catch (Exception e) {
+                // Then - Verify that the operation failed with the expected error
+                assertThat(e.getLocalizedMessage()).contains("Transaction not in OPEN status");
+            }
+        }
+    }
+
     private void awaitForWorkflowTerminationWithStatus(String operationGuid, StatusCode expectedStatusCode) {
         waitOperation(operationGuid);
 

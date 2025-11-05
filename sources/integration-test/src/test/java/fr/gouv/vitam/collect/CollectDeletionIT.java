@@ -111,6 +111,10 @@ import static org.junit.Assert.assertNotNull;
 
 public class CollectDeletionIT extends VitamRuleRunner {
 
+    /**
+     * Test that verifies the transaction must be in OPEN status for deletion workflow
+     */
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectDeletionIT.class);
 
     private static final String XML = ".xml";
@@ -303,6 +307,62 @@ public class CollectDeletionIT extends VitamRuleRunner {
             );
             assertThat(remainingUnits.isOk()).isTrue();
             assertThat(remainingUnits.getResults()).hasSize(0);
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_deletion_when_transaction_not_open() throws Exception {
+        // GIVEN
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            // Create a project
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            // Create a transaction
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDto.getId()).orElseThrow();
+            String transactionId = transactionDto.getId();
+
+            // Upload a ZIP file to the transaction
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_EXAMPLE_FILE)) {
+                final RequestResponse<JsonNode> response = collectClient.uploadZipToTransaction(
+                    vitamContext,
+                    transactionId,
+                    inputStream,
+                    null,
+                    null
+                );
+                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+            }
+
+            // Close the transaction
+            collectClient.closeTransaction(vitamContext, transactionId);
+
+            // Try to perform a deletion action on the closed transaction
+            final String collectDeletionOperationGuid = newOperationLogbookGUID(TENANT_ID).toString();
+            VitamThreadUtils.getVitamSession().setRequestId(collectDeletionOperationGuid);
+
+            SelectMultiQuery deleteQueryQuery = new SelectMultiQuery();
+            ObjectNode finalQuery = deleteQueryQuery.getFinalSelect();
+            finalQuery.remove(List.of("$facets", "$projection", "$filter", "$threshold"));
+            DeletionRequestBody deletionRequestBody = new DeletionRequestBody(finalQuery);
+
+            // When - Try to perform deletion action on closed transaction
+            // This should fail because the transaction is not open
+            try {
+                collectClient.performDeletionActionOnTransaction(vitamContext, transactionId, deletionRequestBody);
+                Assertions.fail("Should have thrown an exception");
+            } catch (Exception e) {
+                // Then - Verify that the operation failed with the expected error
+                assertThat(e.getLocalizedMessage()).contains("Transaction not in OPEN status");
+            }
         }
     }
 
