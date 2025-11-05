@@ -264,6 +264,17 @@ public class TransactionService {
             .collect(Collectors.toList());
     }
 
+    public void checkOpenTransaction(String transactionId) throws BadRequestException, CollectInternalException {
+        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
+
+        if (transactionModel.isEmpty()) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+        if (!checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+            throw new BadRequestException("Transaction not in OPEN status");
+        }
+    }
+
     public void checkReadyTransaction(TransactionModel transactionModel) throws CollectInternalException {
         if (!checkStatus(transactionModel, TransactionStatus.OPEN)) {
             throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
