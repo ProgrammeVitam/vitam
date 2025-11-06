@@ -98,6 +98,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     private static final String FOLDER_NAME = "folderName";
     private static final String OBJECT_NAME = "objectName";
     private static final String CONTAINER_NAME = "containerName";
+    private static final String SOURCE_CONTAINER_NAME = "sourceContainerName";
+    private static final String TARGET_CONTAINER_NAME = "targetContainerName";
 
     private final WorkspaceFileSystem workspace;
 
@@ -479,11 +481,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * Moves multiple objects from source paths to destination paths within the same container
      *
-     * @param containerName container where the objects reside
+     * @param sourceContainerName container where the objects reside
+     * @param targetContainerName container where the objects should moved
      * @param bulkMoveRequest source and destination path pairs
      * @return Response
      */
-    @Path("/containers/{containerName}/bulk-move")
+    @Path("/containers/{sourceContainerName}/{targetContainerName}/bulk-move")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -491,11 +494,16 @@ public class WorkspaceResource extends ApplicationStatusResource {
         summary = "Move multiple objects in container",
         description = "Permet de déplacer plusieurs objets dans le container"
     )
-    public Response bulkMove(@PathParam(CONTAINER_NAME) String containerName, BulkMoveRequest bulkMoveRequest) {
+    public Response bulkMove(
+        @PathParam(SOURCE_CONTAINER_NAME) String sourceContainerName,
+        @PathParam(TARGET_CONTAINER_NAME) String targetContainerName,
+        BulkMoveRequest bulkMoveRequest
+    ) {
         try {
             ParametersChecker.checkParameter(
                 ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName
+                sourceContainerName,
+                targetContainerName
             );
             ParametersChecker.checkParameter("Missing bulk move request", bulkMoveRequest);
             ParametersChecker.checkParameter("Missing bulk move request", bulkMoveRequest.entries());
@@ -503,16 +511,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 throw new IllegalArgumentException("Empty query");
             }
 
-            workspace.checkWorkspaceContainerSanity(containerName);
+            workspace.checkWorkspaceContainerSanity(sourceContainerName);
+            workspace.checkWorkspaceContainerSanity(targetContainerName);
 
-            workspace.moveObjects(containerName, bulkMoveRequest.entries());
+            workspace.moveObjects(sourceContainerName, targetContainerName, bulkMoveRequest.entries());
 
             return Response.status(Status.OK).build();
         } catch (ContentAddressableStorageAlreadyExistException | IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+            LOGGER.error(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + sourceContainerName + " or " + targetContainerName,
+                e
+            );
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

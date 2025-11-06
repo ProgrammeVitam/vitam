@@ -159,7 +159,12 @@ public enum WorkerParameterName {
     /**
      * Ingest operation id to clean up
      */
-    ingestOperationIdToCleanup;
+    ingestOperationIdToCleanup,
+
+    /**
+     * Transaction Id in collect
+     */
+    collectTransactionId;
 
     public static HashSet<String> getEnums() {
         HashSet<String> values = new HashSet<String>();

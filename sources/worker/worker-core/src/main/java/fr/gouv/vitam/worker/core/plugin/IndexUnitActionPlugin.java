@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -111,9 +113,15 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
                 QueryCache query = null;
                 try {
+                    String operationIdFieldValue = WorkFlowExecutionContext.COLLECT.equals(
+                            handlerIO.getWorkFlowExecutionContext()
+                        )
+                        ? workerParameters.getParameterValue(WorkerParameterName.collectTransactionId)
+                        : workerParameters.getContainerName();
+
                     query = indexArchiveUnit(
                         workerParameters,
-                        workerParameters.getContainerName(),
+                        operationIdFieldValue,
                         workerParameters.getObjectName(),
                         handlerIO
                     );

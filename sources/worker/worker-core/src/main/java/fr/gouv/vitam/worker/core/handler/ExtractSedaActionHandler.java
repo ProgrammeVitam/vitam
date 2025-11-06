@@ -120,6 +120,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
 import fr.gouv.vitam.processing.common.exception.ExceptionType;
@@ -141,6 +142,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMand
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
@@ -674,6 +676,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ingestContext.setWorkflowUnitType(getUnitType(handlerIO));
         ingestContext.setTypeProcess(params.getLogbookTypeProcess());
         ingestContext.setOperationId(params.getContainerName());
+
         ingestContext.setIngestContract(contracts.getIngestContractModel());
         ingestContext.setManagementContractModel(contracts.getManagementContractModel());
         return ingestContext;
@@ -1698,7 +1701,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 globalMgtIdExtra,
                 isRootArchive
             );
-
+            if (WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
+                fillCollectBatchInUnit(archiveUnit, ingestContext);
+            }
             if (
                 ingestSession.getIsThereManifestRelatedReferenceRemained().get(manifestUnitId) != null &&
                 ingestSession.getIsThereManifestRelatedReferenceRemained().get(manifestUnitId)
@@ -1755,6 +1760,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             uuids.clear();
         }
+    }
+
+    private void fillCollectBatchInUnit(ObjectNode archiveUnit, IngestContext ingestContext) {
+        ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
+        archiveUnitNode.put(MetadataDocument.BATCH_ID, ingestContext.getOperationId());
     }
 
     private void createExternalLifeCycleLogbook(
@@ -2846,9 +2856,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
 
                 final ArrayNode qualifiersNode = getObjectGroupQualifiers(
+                    handlerIO,
                     ingestSession,
                     categoryMap,
-                    ingestContext.getOperationId()
+                    params
                 );
                 fillManagementContractForObjects(categoryMap, ingestContext.getManagementContractModel());
                 persistentIdentifierGenerationService.handlePersistentIdentifierForGot(
@@ -2858,9 +2869,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 );
                 objectGroup.set(SedaConstants.PREFIX_QUALIFIERS, qualifiersNode);
                 final ObjectNode workNode = getObjectGroupWork(
+                    handlerIO,
                     ingestSession,
                     categoryMap,
-                    ingestContext.getOperationId(),
+                    params,
                     storageObjectInfo
                 );
                 objectGroup.set(SedaConstants.PREFIX_WORK, workNode);
@@ -2868,8 +2880,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 objectGroup.put(SedaConstants.PREFIX_NB, entry.getValue().size());
                 // Add operation to OPS
-                objectGroup.putArray(SedaConstants.PREFIX_OPS).add(ingestContext.getOperationId());
-                objectGroup.put(SedaConstants.PREFIX_OPI, ingestContext.getOperationId());
+
+                if (WorkFlowExecutionContext.COLLECT.equals(handlerIO.getWorkFlowExecutionContext())) {
+                    objectGroup.put(MetadataDocument.BATCH_ID, ingestContext.getOperationId());
+                }
+                String opiFieldToFill = getOpiFieldToFill(handlerIO, params);
+
+                objectGroup.putArray(SedaConstants.PREFIX_OPS).add(opiFieldToFill);
+                objectGroup.put(SedaConstants.PREFIX_OPI, opiFieldToFill);
                 objectGroup.put(SedaConstants.PREFIX_ORIGINATING_AGENCY, ingestContext.getOriginatingAgency());
                 objectGroup.set(
                     SedaConstants.PREFIX_ORIGINATING_AGENCIES,
@@ -2980,6 +2998,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
         }
+    }
+
+    private static String getOpiFieldToFill(HandlerIO handlerIO, WorkerParameters workerParameters) {
+        return WorkFlowExecutionContext.COLLECT.equals(handlerIO.getWorkFlowExecutionContext())
+            ? workerParameters.getParameterValue(WorkerParameterName.collectTransactionId)
+            : workerParameters.getContainerName();
     }
 
     private void fillManagementContractForObjects(
@@ -3178,9 +3202,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private ArrayNode getObjectGroupQualifiers(
+        HandlerIO handlerIO,
         IngestSession ingestSession,
         Map<String, List<JsonNode>> categoryMap,
-        String containerId
+        WorkerParameters params
     ) {
         final ArrayNode qualifiersArray = JsonHandler.createArrayNode();
         for (final Entry<String, List<JsonNode>> entry : categoryMap.entrySet()) {
@@ -3208,11 +3233,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
                 final String guid = ingestSession.getDataObjectIdToGuid().get(id);
                 updateObjectNode(
+                    handlerIO,
                     ingestSession,
                     (ObjectNode) node,
                     guid,
                     PHYSICAL_MASTER.equals(qualifier),
-                    containerId
+                    params
                 );
                 arrayNode.add(node);
                 objectNode.put(SedaConstants.TAG_NB, objectNode.get(SedaConstants.TAG_NB).asInt() + 1);
@@ -3248,9 +3274,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private ObjectNode getObjectGroupWork(
+        HandlerIO handlerIO,
         IngestSession ingestSession,
         Map<String, List<JsonNode>> categoryMap,
-        String containerId,
+        WorkerParameters params,
         JsonNode storageObjectInfo
     ) {
         final ObjectNode workObject = JsonHandler.createObjectNode();
@@ -3263,7 +3290,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final ObjectNode objectNode = JsonHandler.createObjectNode();
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
                 boolean phsyical = ingestSession.getPhysicalDataObjetsGuids().contains(id);
-                updateObjectNode(ingestSession, objectNode, id, phsyical, containerId);
+                updateObjectNode(handlerIO, ingestSession, objectNode, id, phsyical, params);
                 if (phsyical) {
                     objectNode.set(SedaConstants.TAG_PHYSICAL_ID, node.get(SedaConstants.TAG_PHYSICAL_ID));
                 } else {
@@ -3293,14 +3320,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
 
     private void updateObjectNode(
+        HandlerIO handlerIO,
         IngestSession ingestSession,
         final ObjectNode objectNode,
         String guid,
         boolean isPhysical,
-        String containerId
+        WorkerParameters params
     ) {
         objectNode.put(SedaConstants.PREFIX_ID, guid);
-        objectNode.put(SedaConstants.PREFIX_OPI, containerId);
+
+        String opiFieldToFill = getOpiFieldToFill(handlerIO, params);
+        objectNode.put(SedaConstants.PREFIX_OPI, opiFieldToFill);
+
         if (!isPhysical) {
             if (ingestSession.getObjectGuidToDataObject().get(guid).getSize() != null) {
                 objectNode.put(SedaConstants.TAG_SIZE, ingestSession.getObjectGuidToDataObject().get(guid).getSize());

@@ -26,7 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
+import fr.gouv.vitam.collect.common.dto.BatchStatusDto;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -34,9 +35,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 
 /**
@@ -48,8 +52,6 @@ public class CollectIngestFinalizationPlugin extends ActionHandler {
 
     private static final String COLLECT_INGEST_FINALISATION = "COLLECT_INGEST_FINALISATION";
 
-    private static final String FOLDER_SIP = "SIP";
-
     public CollectIngestFinalizationPlugin() {}
 
     public static String getId() {
@@ -59,12 +61,16 @@ public class CollectIngestFinalizationPlugin extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         StatusCode workflowStatus = StatusCode.valueOf(param.getWorkflowStatusKo());
+        String transactionId = param.getParameterValue(WorkerParameterName.collectTransactionId);
+        String batchId = param.getContainerName();
 
-        String containerName = param.getContainerName();
         if (workflowStatus.isGreaterOrEqualToKo()) {
-            LOGGER.error("Workflow status is " + workflowStatus + ". Updating transaction status to KO");
+            LOGGER.error("Workflow status is " + workflowStatus + ". creating a new KO Batch");
             try (CollectInternalClient collectInternalClient = handler.getCollectInternalClient()) {
-                collectInternalClient.changeTransactionStatus(containerName, TransactionStatus.KO);
+                BatchDto batchDto = new BatchDto();
+                batchDto.setBatchStatus(BatchStatusDto.KO);
+                batchDto.setBatchId(batchId);
+                collectInternalClient.addBatchToTransaction(transactionId, batchDto);
             } catch (VitamClientException e) {
                 LOGGER.error("An error occurred during collect ingest finalization", e);
                 final ItemStatus itemStatus = new ItemStatus(COLLECT_INGEST_FINALISATION);
@@ -72,14 +78,11 @@ public class CollectIngestFinalizationPlugin extends ActionHandler {
                 return itemStatus;
             }
         }
-
-        // Delete the SIP folder after moving the files
+        // Delete the request container (batch)
         try (WorkspaceClient workspaceClient = handler.getWorkspaceCollectClient()) {
-            LOGGER.debug("Deleting SIP folder from container: " + containerName);
-            workspaceClient.deleteFolder(containerName, FOLDER_SIP);
-            LOGGER.debug("Successfully deleted SIP folder from container: " + containerName);
-        } catch (Exception e) {
-            LOGGER.error("Error deleting SIP folder from container: " + containerName, e);
+            workspaceClient.deleteContainer(batchId, true);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error("An error occurred during collect ingest finalization", e);
             final ItemStatus itemStatus = new ItemStatus(COLLECT_INGEST_FINALISATION);
             itemStatus.increment(StatusCode.FATAL);
             return itemStatus;

@@ -255,9 +255,13 @@ public interface WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageException;
 
     /**
-     * Bulk move objects of a container
+     * Bulk move objects from container to another container
+     *
      * @param containerName the container name in which data is persisted
+     * @param targetContainerName the container name in which data is moved
      * @param entries list of source/destination object name pairs
      */
-    void moveObjects(String containerName, List<BulkMoveEntry> entries) throws ContentAddressableStorageException;
+
+    void moveObjects(String containerName, String targetContainerName, List<BulkMoveEntry> entries)
+        throws ContentAddressableStorageException;
 }

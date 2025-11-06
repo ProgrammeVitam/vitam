@@ -42,6 +42,7 @@ import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfigur
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -388,7 +389,10 @@ public class TransactionServiceTest {
         final String idTransaction = "XXXX000002222222";
         // Given
         when(workspaceCollectClient.isExistingContainer(any())).thenReturn(true);
-
+        RequestResponseOK unitIdsResponse = new RequestResponseOK<JsonNode>().addAllResults(
+            Arrays.asList(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), "unit1"))
+        );
+        when(metadataRepository.selectUnits(any(JsonNode.class), eq(idTransaction))).thenReturn(unitIdsResponse);
         // When
         boolean transactionContentEmpty = transactionService.isTransactionContentEmpty(idTransaction);
 

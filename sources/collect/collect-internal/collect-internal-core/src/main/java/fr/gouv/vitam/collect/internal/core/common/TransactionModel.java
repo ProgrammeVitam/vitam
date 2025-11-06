@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.core.common;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -194,6 +195,13 @@ public class TransactionModel {
     public TransactionModel setBatches(List<Batch> batches) {
         this.batches = batches;
         return this;
+    }
+
+    public void addBatch(Batch batch) {
+        if (batches == null) {
+            batches = new ArrayList<>();
+        }
+        batches.add(batch);
     }
 
     public int getVersion() {

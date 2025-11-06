@@ -83,7 +83,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
 
             updateUnit(handler, unitId, parentUnitsToRemove);
 
-            if (param.getExecutionContext() != WorkFlowExecutionContext.COLLECT) {
+            if (WorkFlowExecutionContext.COLLECT != param.getExecutionContext()) {
                 updateUnitLifeCycle(handler, param, unitId, parentUnitsToRemove);
             }
         } catch (ProcessingStatusException e) {
