@@ -124,16 +124,12 @@
         - mongodb-es-synchro-errors-dashboard.ndjson
         - Storage-Offre-average-time.ndjson
       delegate_to: localhost
-      args:
-        warn: false
 
     - name: load specific filebeat dashboards into Elasticsearch log .kibana index via shell command
       run_once: true
       tags: load_kibana
       shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/Access-Vitam.ndjson"
       delegate_to: localhost
-      args:
-        warn: false
       when: syslog.name | default('filebeat') == "filebeat"
 
   when: composant.groupe == 'log'
