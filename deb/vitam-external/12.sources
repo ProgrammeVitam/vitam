@@ -7,7 +7,6 @@ https://repo.mongodb.org/apt/debian/dists/bookworm/mongodb-org/7.0/main/binary-a
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.14.3-amd64.deb
 https://artifacts.elastic.co/downloads/logstash/logstash-8.14.3-amd64.deb
 https://artifacts.elastic.co/downloads/kibana/kibana-8.14.3-amd64.deb
-https://packages.elastic.co/curator/5/debian9/pool/main/e/elasticsearch-curator/elasticsearch-curator_5.8.4_amd64.deb
 
 https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-8.14.3-amd64.deb
 https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-8.14.3-amd64.deb
