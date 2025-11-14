@@ -1,0 +1,9 @@
+Package: vitam-elasticsearch-curator
+Version: 8.0.21
+Section: database
+Priority: optional
+Architecture: amd64
+Depends: vitam-user-vitam
+Build-Depends: python3, python3-virtualenv, tar
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact@programmevitam.fr>
+Description: Curator is an open source ElasticSearch tool to manage indices lifecycle
