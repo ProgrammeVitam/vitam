@@ -1,8 +1,17 @@
 ---
 
-- name: Install elasticsearch-curator package
+- name: Remove former elasticsearch-curator package
   package:
     name: elasticsearch-curator
+    state: absent
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+
+- name: Install vitam-elasticsearch-curator package
+  package:
+    name: vitam-elasticsearch-curator
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -46,40 +55,41 @@
 
 - block:
 
-  - name: Define expected configurations
-    set_fact:
-      expected_configurations: "{{ expected_configurations | default([]) + [ curator_conf_dir + '/curator.d/' + item.0 + '_index_' + item.1 + '.yml' ] }}"
-    loop: "{{ action | product(index_name) | list }}"
+    - name: Define expected configurations
+      set_fact:
+        expected_configurations: "{{ expected_configurations | default([]) + [ curator_conf_dir + '/curator.d/' + item.0 + '_index_' + item.1 + '.yml' ] }}"
+      loop: "{{ action | product(index_name) | list }}"
 
-  - name: Delete unused configurations
-    file:
-      path: "{{ item.path }}"
-      state: absent
-    loop: "{{ existing_configurations.files }}"
-    when: item.path not in expected_configurations
+    - name: Delete unused configurations
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ existing_configurations.files }}"
+      when: item.path not in expected_configurations
 
-  - name: Copy close and delete configuration files for logstash indices
-    template:
-      src: "{{ item[0] }}_index.yml.j2"
-      dest: "{{ curator_conf_dir }}/curator.d/{{ item[0] }}_index_{{ item[1] }}.yml"
-      owner: "{{ vitam_defaults.users.vitam }}"
-      group: "{{ vitam_defaults.users.group }}"
-      mode: "{{ vitam_defaults.folder.conf_permission }}"
-    loop: "{{ action | product(index_name) | list }}"
+    - name: Copy close and delete configuration files for logstash indices
+      template:
+        src: "{{ item[0] }}_index.yml.j2"
+        dest: "{{ curator_conf_dir }}/curator.d/{{ item[0] }}_index_{{ item[1] }}.yml"
+        owner: "{{ vitam_defaults.users.vitam }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      loop: "{{ action | product(index_name) | list }}"
 
-  - name: Copy close and delete systemd unit and timer for curator
-    template:
-      src: systemd/vitam-curator-old-indexes.{{ item[1] }}.j2
-      dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-curator-{{ item[0] }}-old-indexes.{{ item[1] }}"
-    loop: "{{ action | product(systemd) | list }}"
+    - name: Copy close and delete systemd unit and timer for curator
+      template:
+        src: systemd/vitam-curator-old-indexes.{{ item[1] }}.j2
+        dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-curator-{{ item[0] }}-old-indexes.{{ item[1] }}"
+        mode: '0644'
+      loop: "{{ action | product(systemd) | list }}"
 
-  - name: Enable systemd timers
-    systemd:
-      name: "vitam-curator-{{ item }}-old-indexes.timer"
-      daemon_reload: yes
-      enabled: "{{ curator.at_boot | default(service_at_boot) }}"
-      state: started
-    loop: "{{ action }}"
+    - name: Enable systemd timers
+      systemd:
+        name: "vitam-curator-{{ item }}-old-indexes.timer"
+        daemon_reload: true
+        enabled: "{{ curator.at_boot | default(service_at_boot) }}"
+        state: started
+      loop: "{{ action }}"
 
   vars:
     action: ['close', 'delete']
