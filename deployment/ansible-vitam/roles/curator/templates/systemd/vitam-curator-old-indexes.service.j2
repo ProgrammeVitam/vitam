@@ -8,8 +8,6 @@ Type=oneshot
 ExecStart={{ curator_script_dir }}/run_curator.sh {{ item[0] }}
 User=vitam
 Group=vitam
-StandardOutput=syslog
-StandardError=syslog
 
 [Install]
 WantedBy=multi-user.target
