@@ -57,7 +57,6 @@ import java.util.Optional;
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
 import static io.restassured.RestAssured.given;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
-import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -406,8 +405,8 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     .when()
                     .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
-                    .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
-                    .body("message", Matchers.containsString("no update data found !"))
+                    .statusCode(BAD_REQUEST.getStatusCode())
+                    .body("message", Matchers.containsString("No update data found!"))
                     .body("description", Matchers.equalTo(null));
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));

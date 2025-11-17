@@ -25,30 +25,56 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.collect.internal.core.csv;
+package fr.gouv.vitam.collect.internal.core.common;
 
-import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
-import fr.gouv.vitam.collect.internal.core.helpers.AbstractErrorAccumulator;
-import fr.gouv.vitam.common.error.VitamErrorDetails;
+import java.util.Arrays;
 
-import java.util.List;
+public enum CollectErrorParamEnum {
+    HEADER("header"),
+    ID("id"),
+    MESSAGE("message"),
+    SIZE("size"),
+    MAX_SIZE("maxSize"),
+    HTTP_HEADER("httpHeader"),
+    SYSTEM_ID("systemId"),
+    METADATA_NAME("metadataName"),
+    METADATA_VALUE("metadataValue"),
+    OTHER_METADATA_NAME("otherMetadataName"),
+    UPDATE_OPERATION("updateOperation"),
+    FIELD("field"),
+    INDEX("index"),
+    LANG("lang"),
+    KEY("key"),
+    BASE_HEADER("baseHeader"),
+    PATH("path"),
+    UPLOAD_PATH("uploadPath"),
+    OBJECT_FILES_PATH("objectFilesPath"),
+    OBJECT_FILES_FIELD("objectFilesField"),
+    AVAILABLE("available"),
+    LINE_NUMBER("lineNumber"),
+    NB_COLUMNS("nbColumns"),
+    NB_HEADERS("nbHeaders"),
+    STATUS("status"),
+    TRANSACTION_ID("transactionId"),
+    FILE("file"),
+    UNEXPECTED_HEADER("unexpectedHeader"),
+    RULE_ID("ruleId"),
+    FILE_FIELD("fileField"),
+    SELECTOR_FIELD("selectorField"),
+    FILE_VALUE("fileValue"),
+    RULE("rule");
 
-public class CsvErrorAccumulator extends AbstractErrorAccumulator<CollectInternalMultipleErrorsDetailsException> {
+    private final String key;
 
-    private static final int MAX_ERROR_COUNT = 20;
-
-    public CsvErrorAccumulator() {
-        super(MAX_ERROR_COUNT);
+    CollectErrorParamEnum(String key) {
+        this.key = key;
     }
 
-    @Override
-    protected CollectInternalMultipleErrorsDetailsException buildException(
-        String errorMessage,
-        List<VitamErrorDetails> errorsDetails
-    ) {
-        return new CollectInternalMultipleErrorsDetailsException(
-            "CSV validation failed. " + errorMessage,
-            errorsDetails
-        );
+    public String getKey() {
+        return key;
+    }
+
+    public static CollectErrorParamEnum getByKey(String key) {
+        return Arrays.stream(values()).filter(e -> e.key.equals(key)).findFirst().orElse(null);
     }
 }

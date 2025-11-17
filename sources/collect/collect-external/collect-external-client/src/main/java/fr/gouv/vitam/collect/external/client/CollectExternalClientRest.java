@@ -596,7 +596,7 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
             }
 
             if (response.getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode()) {
-                throw new CollectExternalClientInvalidRequestException(message);
+                throw new CollectExternalClientInvalidRequestException(message, vitamError);
             }
 
             if (response.getStatusInfo().getStatusCode() == Response.Status.NOT_FOUND.getStatusCode()) {

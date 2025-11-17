@@ -25,30 +25,22 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.collect.internal.core.csv;
+package fr.gouv.vitam.collect.internal.client.exceptions;
 
-import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
-import fr.gouv.vitam.collect.internal.core.helpers.AbstractErrorAccumulator;
-import fr.gouv.vitam.common.error.VitamErrorDetails;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamClientException;
 
-import java.util.List;
+public class CollectInternalClientErrorsDetailsInvalidRequestException extends VitamClientException {
 
-public class CsvErrorAccumulator extends AbstractErrorAccumulator<CollectInternalMultipleErrorsDetailsException> {
+    private final VitamError<?> vitamError;
 
-    private static final int MAX_ERROR_COUNT = 20;
-
-    public CsvErrorAccumulator() {
-        super(MAX_ERROR_COUNT);
+    public CollectInternalClientErrorsDetailsInvalidRequestException(String message, VitamError<?> vitamError) {
+        super(message);
+        this.vitamError = vitamError;
     }
 
-    @Override
-    protected CollectInternalMultipleErrorsDetailsException buildException(
-        String errorMessage,
-        List<VitamErrorDetails> errorsDetails
-    ) {
-        return new CollectInternalMultipleErrorsDetailsException(
-            "CSV validation failed. " + errorMessage,
-            errorsDetails
-        );
+    @SuppressWarnings("unchecked")
+    public <T> VitamError<T> getVitamError() {
+        return (VitamError<T>) vitamError;
     }
 }

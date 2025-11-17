@@ -28,13 +28,13 @@
 package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FieldNameValidationUtilsTest {
 
@@ -43,9 +43,9 @@ public class FieldNameValidationUtilsTest {
         List<String> fieldNames = Lists.newArrayList(null, "   \t   \n", "");
 
         for (String fieldName : fieldNames) {
-            assertThatThrownBy(() -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Empty or blank field name");
+            assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isEqualTo(
+                CollectErrorMessagesEnum.EMPTY_BLANK_FIELD_NAME
+            );
         }
     }
 
@@ -94,43 +94,41 @@ public class FieldNameValidationUtilsTest {
         );
 
         for (String fieldName : fieldNames) {
-            assertThatThrownBy(() -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Reserved / illegal characters");
+            assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isEqualTo(
+                CollectErrorMessagesEnum.RESERVED_ILLEGAL_CHARACTERS
+            );
         }
     }
 
     @Test
     public void testFieldNameTooLong() {
         String fieldName = StringUtils.repeat('A', 120);
-        assertThatThrownBy(() -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Field name too long");
+        assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isEqualTo(
+            CollectErrorMessagesEnum.FIELD_NAME_TOO_LONG
+        );
     }
 
     @Test
     public void testValidFieldNameContainingDigits() {
         String fieldName = "Field1Name2";
-        assertThatCode(
-            () -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)
-        ).doesNotThrowAnyException();
+        assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isNull();
     }
 
     @Test
     public void testInvalidFieldNameStartingWithDigit() {
         String fieldName = "1FieldName";
-        assertThatThrownBy(() -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Field name cannot start with a digit");
+        assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isEqualTo(
+            CollectErrorMessagesEnum.FIELD_NAME_CANNOT_START_WITH_DIGIT
+        );
     }
 
     @Test
     public void testHeaderValidation_IllegalFieldNamesPrefix() {
         List<String> fieldNames = List.of("_AZ", "-AZ");
         for (String fieldName : fieldNames) {
-            assertThatThrownBy(() -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Field name cannot start with '_' (except '_id') or '-'");
+            assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isEqualTo(
+                CollectErrorMessagesEnum.FIELD_NAME_CANNOT_START_WITH_UNDERSCORE_OR_DASH
+            );
         }
     }
 
@@ -138,9 +136,7 @@ public class FieldNameValidationUtilsTest {
     public void testValidFieldNames() {
         List<String> fieldNames = List.of("Simple", "field_name-1", "F2", "fïe1dnàmê");
         for (String fieldName : fieldNames) {
-            assertThatCode(
-                () -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)
-            ).doesNotThrowAnyException();
+            assertThat(FieldNameValidationUtils.validateRegularVitamFieldName(fieldName)).isNull();
         }
     }
 }

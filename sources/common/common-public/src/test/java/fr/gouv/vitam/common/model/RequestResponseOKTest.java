@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.error.VitamErrorDetails;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -66,7 +67,7 @@ public class RequestResponseOKTest {
     private static final String ERROR_JSON =
         "{\"httpCode\":400,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
         "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
-        "[{\"httpCode\":0,\"code\":\"1\"}]}";
+        "[{\"httpCode\":0,\"code\":\"1\"}],\"errorsDetails\":[{\"key\":\"ERROR_KEY\",\"args\":{\"param\":\"value\"}}]}";
 
     private static final String OK_JSON =
         "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
@@ -193,6 +194,8 @@ public class RequestResponseOKTest {
         error.setDescription("description");
         error.setState("state");
         error.setContext("context");
+        VitamErrorDetails vitamErrorsDetails = new VitamErrorDetails("ERROR_KEY", Map.of("param", "value"));
+        error.setErrorsDetails(List.of(vitamErrorsDetails));
         error.addAllErrors(Collections.singletonList(new VitamError<>("1")));
         response = getOutboundResponse(Status.BAD_REQUEST, error.toString(), MediaType.APPLICATION_JSON, null);
         requestResponse = RequestResponse.parseFromResponse(response);

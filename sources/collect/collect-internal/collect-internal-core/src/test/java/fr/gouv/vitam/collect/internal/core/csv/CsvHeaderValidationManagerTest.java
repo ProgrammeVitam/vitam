@@ -27,10 +27,15 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalErrorsDetailsException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class CsvHeaderValidationManagerTest {
 
     @Test
-    public void testNoErrorReported() throws CollectInvalidCsvFormatException {
+    public void testNoErrorReported() throws CollectInternalMultipleErrorsDetailsException {
         List<String> headerNames = List.of("header1", "header2", "header3");
         try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
             // close does not throw exception
@@ -49,66 +54,89 @@ public class CsvHeaderValidationManagerTest {
     }
 
     @Test
-    public void testOneErrorReported() throws CollectInvalidCsvFormatException {
+    public void testOneErrorReported() throws CollectInternalMultipleErrorsDetailsException {
         List<String> headerNames = List.of("header1", "header2", "header3");
         try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
-            csvHeaderValidationManager.report("header1", "msg1");
+            csvHeaderValidationManager.report(
+                "header1",
+                CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                Map.of(CollectErrorParamEnum.HEADER, "header1")
+            );
 
             // Close triggers exception with 1 error
             assertThatThrownBy(csvHeaderValidationManager::close)
-                .isInstanceOf(CollectInvalidCsvFormatException.class)
+                .isInstanceOf(CollectInternalMultipleErrorsDetailsException.class)
                 .hasMessage(
                     """
                     CSV validation failed. 1 error:
-                    - Invalid header name 'header1': msg1"""
+                    - Invalid header name 'header1': Header name is too long"""
                 );
         }
     }
 
     @Test
-    public void testMultipleErrorsReported() throws CollectInvalidCsvFormatException {
+    public void testMultipleErrorsReported() throws CollectInternalMultipleErrorsDetailsException {
         List<String> headerNames = List.of("header1", "header2", "header3");
         try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
-            csvHeaderValidationManager.report("header1", "msg1");
-            csvHeaderValidationManager.report("header2", "msg2");
+            csvHeaderValidationManager.report(
+                "header1",
+                CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                Map.of(CollectErrorParamEnum.HEADER, "header1")
+            );
+            csvHeaderValidationManager.report(
+                "header2",
+                CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                Map.of(CollectErrorParamEnum.HEADER, "header2")
+            );
 
             // Close triggers exception with 2 errors
             assertThatThrownBy(csvHeaderValidationManager::close)
-                .isInstanceOf(CollectInvalidCsvFormatException.class)
+                .isInstanceOf(CollectInternalMultipleErrorsDetailsException.class)
                 .hasMessage(
                     """
                     CSV validation failed. 2 errors:
-                    - Invalid header name 'header1': msg1
-                    - Invalid header name 'header2': msg2"""
+                    - Invalid header name 'header1': Header name is too long
+                    - Invalid header name 'header2': Header name is too long"""
                 );
         }
     }
 
     @Test
-    public void testTooManyErrorsReported() throws CollectInvalidCsvFormatException {
+    public void testTooManyErrorsReported() throws CollectInternalMultipleErrorsDetailsException {
         List<String> headerNames = IntStream.range(0, 120).mapToObj(i -> "header" + i).toList();
         try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
             // First 19 are buffered
             assertThatCode(() -> {
                 for (int i = 1; i <= 19; i++) {
-                    csvHeaderValidationManager.report("header" + i, "msg" + i);
+                    csvHeaderValidationManager.report(
+                        "header" + i,
+                        CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                        Map.of(CollectErrorParamEnum.HEADER, "header" + i)
+                    );
                 }
             }).doesNotThrowAnyException();
 
             // 20th call triggers exception
-            assertThatThrownBy(() -> csvHeaderValidationManager.report("header20", "msg20"))
-                .isInstanceOf(CollectInvalidCsvFormatException.class)
+            assertThatThrownBy(
+                () ->
+                    csvHeaderValidationManager.report(
+                        "header20",
+                        CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                        Map.of(CollectErrorParamEnum.HEADER, "header20")
+                    )
+            )
+                .isInstanceOf(CollectInternalMultipleErrorsDetailsException.class)
                 .hasMessageStartingWith(
                     """
                     CSV validation failed. At least 20 errors:
-                    - Invalid header name 'header1': msg1
-                    - Invalid header name 'header2': msg2
-                    - Invalid header name 'header3': msg3"""
+                    - Invalid header name 'header1': Header name is too long
+                    - Invalid header name 'header2': Header name is too long
+                    - Invalid header name 'header3': Header name is too long"""
                 )
                 .hasMessageEndingWith(
                     """
-                    - Invalid header name 'header19': msg19
-                    - Invalid header name 'header20': msg20"""
+                    - Invalid header name 'header19': Header name is too long
+                    - Invalid header name 'header20': Header name is too long"""
                 );
 
             // close does not throw exception
@@ -117,12 +145,19 @@ public class CsvHeaderValidationManagerTest {
     }
 
     @Test
-    public void testUnknownHeaderName() throws CollectInvalidCsvFormatException {
+    public void testUnknownHeaderName() throws CollectInternalMultipleErrorsDetailsException {
         List<String> headerNames = List.of("header1", "header2", "header3");
         try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
-            assertThatThrownBy(() -> csvHeaderValidationManager.report("Unknown", "msg"))
+            assertThatThrownBy(
+                () ->
+                    csvHeaderValidationManager.report(
+                        "Unknown",
+                        CollectErrorMessagesEnum.NO_HEADER_TO_SET,
+                        Collections.emptyMap()
+                    )
+            )
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Invalid header name Unknown (msg=msg)")
+                .hasMessage("Invalid header name Unknown (msg=Invalid header names. No header to set)")
                 .hasNoSuppressedExceptions();
         }
     }
@@ -133,20 +168,28 @@ public class CsvHeaderValidationManagerTest {
 
         assertThatThrownBy(() -> {
             try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
-                csvHeaderValidationManager.report("header1", "msg1");
+                csvHeaderValidationManager.report(
+                    "header1",
+                    CollectErrorMessagesEnum.NO_HEADER_TO_SET,
+                    Collections.emptyMap()
+                );
 
-                csvHeaderValidationManager.report("Unknown", "msg");
+                csvHeaderValidationManager.report(
+                    "Unknown",
+                    CollectErrorMessagesEnum.NO_HEADER_TO_SET,
+                    Collections.emptyMap()
+                );
             }
         })
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Invalid header name Unknown (msg=msg)")
+            .hasMessage("Invalid header name Unknown (msg=Invalid header names. No header to set)")
             .satisfies((Throwable e) -> {
                 assertThat(e.getSuppressed()).hasSize(1);
-                assertThat(e.getSuppressed()[0]).isInstanceOf(CollectInvalidCsvFormatException.class);
+                assertThat(e.getSuppressed()[0]).isInstanceOf(CollectInternalErrorsDetailsException.class);
                 assertThat(e.getSuppressed()[0]).hasMessage(
                     """
                     CSV validation failed. 1 error:
-                    - Invalid header name 'header1': msg1"""
+                    - Invalid header name 'header1': Invalid header names. No header to set"""
                 );
             });
     }

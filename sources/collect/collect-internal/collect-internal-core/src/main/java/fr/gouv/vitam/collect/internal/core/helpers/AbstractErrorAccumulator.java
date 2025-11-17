@@ -27,20 +27,30 @@
 
 package fr.gouv.vitam.collect.internal.core.helpers;
 
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
+import fr.gouv.vitam.common.error.VitamErrorDetails;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractErrorAccumulator<E extends Exception> implements AutoCloseable {
 
     private final List<String> errorMessages = new ArrayList<>();
+    private final List<VitamErrorDetails> errorDetails = new ArrayList<>();
     private final int maxErrorCount;
 
     protected AbstractErrorAccumulator(int maxErrorCount) {
         this.maxErrorCount = maxErrorCount;
     }
 
-    public void report(String errorMessage) throws E {
-        errorMessages.add(errorMessage);
+    public void reportOneError(
+        CollectErrorMessagesEnum errorMessageKey,
+        Map<CollectErrorParamEnum, String> errorMessageParams
+    ) throws E {
+        errorMessages.add(CollectErrorDetailHelper.generateErrorMessage(errorMessageKey, errorMessageParams));
+        errorDetails.add(CollectErrorDetailHelper.generateVitamErrorsDetails(errorMessageKey, errorMessageParams));
         if (errorMessages.size() >= maxErrorCount) {
             throwException();
         }
@@ -61,13 +71,13 @@ public abstract class AbstractErrorAccumulator<E extends Exception> implements A
                 stringBuilder.append("\n- ").append(errorMessage);
             }
 
-            throw buildException(stringBuilder.toString());
+            throw buildException(stringBuilder.toString(), errorDetails);
         } finally {
             errorMessages.clear();
         }
     }
 
-    protected abstract E buildException(String errorMessage);
+    protected abstract E buildException(String errorMessage, List<VitamErrorDetails> errorDetails);
 
     @Override
     public void close() throws E {

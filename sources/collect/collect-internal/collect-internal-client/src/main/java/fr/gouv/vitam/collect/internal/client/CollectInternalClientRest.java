@@ -34,6 +34,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientErrorsDetailsInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
@@ -476,7 +477,8 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         }
     }
 
-    private void check(Response response) throws CollectInternalClientException {
+    private void check(Response response)
+        throws CollectInternalClientException, CollectInternalClientErrorsDetailsInvalidRequestException {
         if (SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
             return;
         }
@@ -501,6 +503,9 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             }
 
             if (response.getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                if (vitamError.getErrorsDetails() != null) {
+                    throw new CollectInternalClientErrorsDetailsInvalidRequestException(message, vitamError);
+                }
                 throw new CollectInternalClientInvalidRequestException(message);
             }
 

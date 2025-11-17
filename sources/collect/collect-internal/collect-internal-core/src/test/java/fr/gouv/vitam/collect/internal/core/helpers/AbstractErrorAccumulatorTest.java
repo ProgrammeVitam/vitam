@@ -27,8 +27,14 @@
 
 package fr.gouv.vitam.collect.internal.core.helpers;
 
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
+import fr.gouv.vitam.common.error.VitamErrorDetails;
 import org.junit.Test;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class AbstractErrorAccumulatorTest {
 
     @Test
-    public void testNoErrorReported() throws CollectInvalidCsvFormatException {
+    public void testNoErrorReported() throws CollectInternalMultipleErrorsDetailsException {
         try (MyErrorAccumulator errorAccumulator = new MyErrorAccumulator()) {
             // close does not throw exception
             assertThatCode(errorAccumulator::close).doesNotThrowAnyException();
@@ -44,63 +50,97 @@ public class AbstractErrorAccumulatorTest {
     }
 
     @Test
-    public void testOneErrorReported() throws CollectInvalidCsvFormatException {
+    public void testOneErrorReported() throws CollectInternalMultipleErrorsDetailsException {
         try (MyErrorAccumulator errorAccumulator = new MyErrorAccumulator()) {
-            errorAccumulator.report("msg1");
+            errorAccumulator.reportOneError(
+                CollectErrorMessagesEnum.DUPLICATE_HEADER_NAME,
+                Map.of(CollectErrorParamEnum.HEADER, "file.txt")
+            );
 
             // Close triggers exception with 1 error
             assertThatThrownBy(errorAccumulator::close)
-                .isInstanceOf(CollectInvalidCsvFormatException.class)
+                .isInstanceOf(CollectInternalMultipleErrorsDetailsException.class)
                 .hasMessage(
                     """
                     Test prefix. 1 error:
-                    - msg1"""
+                    - Invalid header names. Duplicate header name 'file.txt'"""
                 );
         }
     }
 
     @Test
-    public void testMultipleErrorsReported() throws CollectInvalidCsvFormatException {
+    public void testMultipleErrorsReported() throws CollectInternalMultipleErrorsDetailsException {
         try (MyErrorAccumulator errorAccumulator = new MyErrorAccumulator()) {
-            errorAccumulator.report("msg1");
-            errorAccumulator.report("msg2");
+            errorAccumulator.reportOneError(
+                CollectErrorMessagesEnum.INVALID_HEADER_NAME_TEMPLATE,
+                Map.of(
+                    CollectErrorParamEnum.HEADER,
+                    "tooLongHeader",
+                    CollectErrorParamEnum.MESSAGE,
+                    CollectErrorDetailHelper.generateErrorMessage(
+                        CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                        Map.of()
+                    )
+                )
+            );
+            errorAccumulator.reportOneError(
+                CollectErrorMessagesEnum.INVALID_HEADER_NAME_TEMPLATE,
+                Map.of(
+                    CollectErrorParamEnum.HEADER,
+                    "tooLongHeader2",
+                    CollectErrorParamEnum.MESSAGE,
+                    CollectErrorDetailHelper.generateErrorMessage(
+                        CollectErrorMessagesEnum.HEADER_NAME_TOO_LONG,
+                        Map.of()
+                    )
+                )
+            );
 
             // Close triggers exception with 2 errors
             assertThatThrownBy(errorAccumulator::close)
-                .isInstanceOf(CollectInvalidCsvFormatException.class)
+                .isInstanceOf(CollectInternalMultipleErrorsDetailsException.class)
                 .hasMessage(
                     """
                     Test prefix. 2 errors:
-                    - msg1
-                    - msg2"""
+                    - Invalid header name 'tooLongHeader': Header name is too long
+                    - Invalid header name 'tooLongHeader2': Header name is too long"""
                 );
         }
     }
 
     @Test
-    public void testTooManyErrorsReported() throws CollectInvalidCsvFormatException {
+    public void testTooManyErrorsReported() throws CollectInternalMultipleErrorsDetailsException {
         try (MyErrorAccumulator errorAccumulator = new MyErrorAccumulator()) {
             // First 19 are buffered
             assertThatCode(() -> {
                 for (int i = 1; i <= 19; i++) {
-                    errorAccumulator.report("msg" + i);
+                    errorAccumulator.reportOneError(
+                        CollectErrorMessagesEnum.NO_UNIT_MATCHES_SELECTION_CRITERIA,
+                        Map.of(CollectErrorParamEnum.LINE_NUMBER, Integer.toString(i))
+                    );
                 }
             }).doesNotThrowAnyException();
 
             // 20th call triggers exception
-            assertThatThrownBy(() -> errorAccumulator.report("msg20"))
-                .isInstanceOf(CollectInvalidCsvFormatException.class)
+            assertThatThrownBy(
+                () ->
+                    errorAccumulator.reportOneError(
+                        CollectErrorMessagesEnum.NO_UNIT_MATCHES_SELECTION_CRITERIA,
+                        Map.of(CollectErrorParamEnum.LINE_NUMBER, "20")
+                    )
+            )
+                .isInstanceOf(CollectInternalMultipleErrorsDetailsException.class)
                 .hasMessageStartingWith(
                     """
                     Test prefix. At least 20 errors:
-                    - msg1
-                    - msg2
-                    - msg3"""
+                    - CSV record at line 1 : No unit matches selection criteria
+                    - CSV record at line 2 : No unit matches selection criteria
+                    - CSV record at line 3 : No unit matches selection criteria"""
                 )
                 .hasMessageEndingWith(
                     """
-                    - msg19
-                    - msg20"""
+                    - CSV record at line 19 : No unit matches selection criteria
+                    - CSV record at line 20 : No unit matches selection criteria"""
                 );
 
             // close does not throw exception
@@ -108,15 +148,19 @@ public class AbstractErrorAccumulatorTest {
         }
     }
 
-    private static class MyErrorAccumulator extends AbstractErrorAccumulator<CollectInvalidCsvFormatException> {
+    private static class MyErrorAccumulator
+        extends AbstractErrorAccumulator<CollectInternalMultipleErrorsDetailsException> {
 
         protected MyErrorAccumulator() {
             super(20);
         }
 
         @Override
-        protected CollectInvalidCsvFormatException buildException(String errorMessage) {
-            return new CollectInvalidCsvFormatException("Test prefix. " + errorMessage);
+        protected CollectInternalMultipleErrorsDetailsException buildException(
+            String errorMessage,
+            List<VitamErrorDetails> errorsDetails
+        ) {
+            return new CollectInternalMultipleErrorsDetailsException("Test prefix. " + errorMessage, errorsDetails);
         }
     }
 }

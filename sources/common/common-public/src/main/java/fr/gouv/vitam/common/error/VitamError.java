@@ -72,6 +72,10 @@ public class VitamError<T> extends RequestResponse<T> {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<VitamError<T>> errors;
 
+    @JsonProperty("errorsDetails")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<VitamErrorDetails> errorsDetails;
+
     protected VitamError() {
         // For Json builder
     }
@@ -84,6 +88,7 @@ public class VitamError<T> extends RequestResponse<T> {
     public VitamError(String code) {
         this.code = code;
         errors = new ArrayList<>();
+        errorsDetails = new ArrayList<>();
     }
 
     public static <T> VitamError<T> newVitamError(Class<T> clasz) {
@@ -182,6 +187,15 @@ public class VitamError<T> extends RequestResponse<T> {
         errors.add(error);
 
         return this;
+    }
+
+    public VitamError<T> setErrorsDetails(List<VitamErrorDetails> errorsDetails) {
+        this.errorsDetails = errorsDetails;
+        return this;
+    }
+
+    public List<VitamErrorDetails> getErrorsDetails() {
+        return errorsDetails;
     }
 
     /**

@@ -32,6 +32,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -46,7 +47,7 @@ public class VitamErrorTest {
     private static final String ERROR_JSON =
         "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
         "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
-        "[{\"httpCode\":0,\"code\":\"1\"}]}";
+        "[{\"httpCode\":0,\"code\":\"1\"}],\"errorsDetails\":[{\"key\":\"ERROR_KEY\",\"args\":{\"param\":\"value\"}}]}";
 
     @Test
     public void testSetGetCode() throws Exception {
@@ -93,6 +94,8 @@ public class VitamErrorTest {
         error.setDescription("description");
         error.setState("state");
         error.setContext("context");
+        VitamErrorDetails vitamErrorsDetails = new VitamErrorDetails("ERROR_KEY", Map.of("param", "value"));
+        error.setErrorsDetails(List.of(vitamErrorsDetails));
         error.addAllErrors(Collections.singletonList(new VitamError("1")));
         assertEquals(ERROR_JSON, error.toString());
     }

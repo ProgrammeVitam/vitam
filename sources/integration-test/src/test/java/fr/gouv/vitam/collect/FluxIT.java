@@ -39,7 +39,6 @@ import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
-import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientException;
 import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientNotFoundException;
 import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
@@ -476,7 +475,9 @@ public class FluxIT extends VitamRuleRunner {
                         )
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
-                    .hasMessage("Invalid File or #uploadPath selector 'UnknownFile'. No such file or directory.");
+                    .hasMessage(
+                        "An unexpected error occurs when try to upload the ZIP: Invalid File or #uploadPath selector 'UnknownFile'. No such file or directory"
+                    );
             }
         }
     }
@@ -558,7 +559,7 @@ public class FluxIT extends VitamRuleRunner {
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
                     .hasMessage(
-                        "JSONL validation failed. 1 error:\n" +
+                        "An unexpected error occurs when try to upload the ZIP: JSONL validation failed. 1 error:\n" +
                         "- Invalid unit metadata at index: 0. Empty metadata content"
                     );
             }
@@ -675,7 +676,7 @@ public class FluxIT extends VitamRuleRunner {
                             null,
                             null
                         )
-                ).isExactlyInstanceOf(CollectExternalClientException.class);
+                ).isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class);
             }
 
             RequestResponse<Map<String, FileParams>> filesAfterUpdate;
@@ -896,7 +897,9 @@ public class FluxIT extends VitamRuleRunner {
                         )
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
-                    .hasMessage("Cannot upload empty file 'A/C.txt'");
+                    .hasMessage(
+                        "An unexpected error occurs when try to upload the ZIP: Cannot upload empty file 'A/C.txt'"
+                    );
             }
         }
     }
@@ -1424,7 +1427,7 @@ public class FluxIT extends VitamRuleRunner {
                 )
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
                     .hasMessageContaining(
-                        "Invalid entry at index: 0. ObjectFiles field not allowed for update operations."
+                        "Invalid unit metadata at index: 0. ObjectFiles field not allowed for update operations"
                     );
             }
         }

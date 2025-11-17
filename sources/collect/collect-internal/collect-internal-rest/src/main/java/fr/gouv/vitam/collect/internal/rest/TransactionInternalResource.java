@@ -35,13 +35,17 @@ import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.common.exception.CollectInternalErrorsDetailsException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalSingleErrorsDetailException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.Batch;
 import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.helpers.CollectErrorDetailHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.service.BulkAtomicUpdateMetadataService;
 import fr.gouv.vitam.collect.internal.core.service.MetadataService;
@@ -115,6 +119,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -424,7 +429,7 @@ public class TransactionInternalResource {
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 StreamUtils.copy(metadataCsvInputStream, fileOutputStream);
                 if (file.length() == 0) {
-                    throw new CollectInternalInvalidRequestException("Empty file");
+                    throw CollectErrorDetailHelper.generateException(CollectErrorMessagesEnum.EMPTY_FILE, Map.of());
                 }
                 SanityChecker.checkHTMLFile(file);
 
@@ -435,6 +440,9 @@ public class TransactionInternalResource {
                 FileUtils.deleteQuietly(file);
             }
             return Response.ok(new RequestResponseOK<>()).build();
+        } catch (CollectInternalErrorsDetailsException e) {
+            LOGGER.error("An occurred while updating metadata. Not Found", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage(), e.getErrorsDetailsList());
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("An occurred while updating metadata. Not Found", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
@@ -469,6 +477,9 @@ public class TransactionInternalResource {
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("An error occurred while updating metadata. Not Found", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (CollectInternalErrorsDetailsException e) {
+            LOGGER.error("An occurred while updating metadata. Bad Request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage(), e.getErrorsDetailsList());
         } catch (InvalidParseOperationException | CollectInternalInvalidRequestException e) {
             LOGGER.error("An occurred while updating metadata. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
@@ -502,10 +513,13 @@ public class TransactionInternalResource {
                 encoding,
                 attachementId
             );
+        } catch (CollectInternalErrorsDetailsException e) {
+            LOGGER.error("An error occurred while uploading the ZIP. Bad Request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage(), e.getErrorsDetailsList());
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("An error occurred while uploading the ZIP. Bad Request", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
-        } catch (CollectInternalInvalidRequestException | InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException | CollectInternalInvalidRequestException e) {
             LOGGER.error("An error occurred while uploading the ZIP. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (Exception e) {
@@ -530,6 +544,9 @@ public class TransactionInternalResource {
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("An error occurred while updating status. Not Found", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (CollectInternalErrorsDetailsException e) {
+            LOGGER.error("An error occurred while updating status. Bad Request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage(), e.getErrorsDetailsList());
         } catch (CollectInternalInvalidRequestException | InvalidParseOperationException e) {
             LOGGER.error("An error occurred while updating status. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
@@ -555,6 +572,9 @@ public class TransactionInternalResource {
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("An error occurred while transaction with ingest operation id. Not Found", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (CollectInternalErrorsDetailsException e) {
+            LOGGER.error("An error occurred while updating status. Bad Request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage(), e.getErrorsDetailsList());
         } catch (CollectInternalInvalidRequestException | InvalidParseOperationException e) {
             LOGGER.error("An error occurred while transaction with ingest operation id. Bad Request", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
@@ -576,7 +596,7 @@ public class TransactionInternalResource {
      * Select units with inherited rules
      *
      * @param transactionId as transaction Id
-     * @param queryDsl as JsonNode
+     * @param queryDsl      as JsonNode
      * @return an archive unit result list with inherited rules
      */
     @GET
@@ -655,6 +675,9 @@ public class TransactionInternalResource {
                 .addAllResults(bulkAtomicUpdateResults)
                 .setHttpCode(ACCEPTED.getStatusCode())
                 .toResponse();
+        } catch (CollectInternalSingleErrorsDetailException e) {
+            LOGGER.error("Bulk atomic update failed - Bad request. Transaction : '" + transactionId + "'", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage(), e.getErrorsDetailsList());
         } catch (CollectInternalNotFoundException e) {
             LOGGER.error("Bulk atomic update failed - Not Found. Transaction : '" + transactionId + "'", e);
             return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
@@ -673,7 +696,7 @@ public class TransactionInternalResource {
     /**
      * Start a reclassification workflow on collect
      *
-     * @param transactionId as transaction Id
+     * @param transactionId               as transaction Id
      * @param reclassificationRequestJson as JsonNode
      * @return an archive unit result list with inherited rules
      */
@@ -870,7 +893,7 @@ public class TransactionInternalResource {
      * Upload compressed SIP as Stream on transaction, will be uncompressed in workspace-collect.</br>
      * </br>
      *
-     * @param contentType the header Content-Type (zip, tar, ...)
+     * @param contentType         the header Content-Type (zip, tar, ...)
      * @param uploadedInputStream the stream to upload
      * @return Response with operation ID
      */

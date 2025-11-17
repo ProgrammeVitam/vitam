@@ -379,9 +379,9 @@ public class MetadataServiceTest {
             assertThatThrownBy(() -> metadataService.updateUnitsWithMetadataCsv(transactionModel, is)).hasMessage(
                 """
                 CSV validation failed. 3 errors:
-                - Invalid header name 'Management.UpdateOperation.SystemId': Declaring Management.UpdateOperation.* headers is not supported in update APIs.
-                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName': Declaring Management.UpdateOperation.* headers is not supported in update APIs.
-                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue': Declaring Management.UpdateOperation.* headers is not supported in update APIs."""
+                - Invalid header name 'Management.UpdateOperation.SystemId': Declaring Management.UpdateOperation.* headers is not supported in update APIs
+                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName': Declaring Management.UpdateOperation.* headers is not supported in update APIs
+                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue': Declaring Management.UpdateOperation.* headers is not supported in update APIs"""
             );
         }
     }
@@ -399,8 +399,8 @@ public class MetadataServiceTest {
             assertThatThrownBy(() -> metadataService.updateUnitsWithJsonlMetadata(transactionModel, is)).hasMessage(
                 """
                 JSONL validation failed. 2 errors:
-                - Invalid unit metadata at index: 0: 'Management.UpdateOperation.*' fields not supported in update APIs.
-                - Invalid unit metadata at index: 1: 'Management.UpdateOperation.*' fields not supported in update APIs."""
+                - Invalid unit metadata at index: 0: 'Management.UpdateOperation.*' fields not supported in update APIs
+                - Invalid unit metadata at index: 1: 'Management.UpdateOperation.*' fields not supported in update APIs"""
             );
         }
     }

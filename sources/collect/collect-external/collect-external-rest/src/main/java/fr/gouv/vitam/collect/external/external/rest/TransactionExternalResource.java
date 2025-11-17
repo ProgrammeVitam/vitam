@@ -37,6 +37,7 @@ import fr.gouv.vitam.collect.external.external.exception.CollectExternalNotFound
 import fr.gouv.vitam.collect.external.external.service.CollectExternalIngestService;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientErrorsDetailsInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -406,6 +407,9 @@ public class TransactionExternalResource extends ApplicationStatusResource {
                 metadataCsvInputStream
             );
             return Response.status(OK).entity(response).build();
+        } catch (CollectInternalClientErrorsDetailsInvalidRequestException e) {
+            LOGGER.error("Bad request: " + e.getLocalizedMessage(), e);
+            return Response.status(BAD_REQUEST).entity(e.getVitamError()).type(APPLICATION_JSON).build();
         } catch (
             InvalidParseOperationException | IllegalArgumentException | CollectInternalClientInvalidRequestException e
         ) {
@@ -437,6 +441,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
                 metadataJsonlInputStream
             );
             return Response.status(OK).entity(response).build();
+        } catch (CollectInternalClientErrorsDetailsInvalidRequestException e) {
+            LOGGER.error("Bad request: " + e.getLocalizedMessage(), e);
+            return CollectRequestResponse.toVitamError(
+                BAD_REQUEST,
+                e.getLocalizedMessage(),
+                e.getVitamError().getErrorsDetails()
+            );
         } catch (
             InvalidParseOperationException | IllegalArgumentException | CollectInternalClientInvalidRequestException e
         ) {
@@ -512,9 +523,9 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             }
             client.uploadZipToTransaction(transactionId, inputStreamObject, encoding, attachementId);
             return Response.ok().build();
-        } catch (CollectInternalClientInvalidRequestException e) {
+        } catch (CollectInternalClientErrorsDetailsInvalidRequestException e) {
             LOGGER.error("Error when uploading transaction Zip - BAD REQUEST ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return Response.status(BAD_REQUEST).entity(e.getVitamError()).type(APPLICATION_JSON).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when uploading transaction Zip   ", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -580,7 +591,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
      * Performs a deletion workflow on transaction in collect.
      *
      * @param deletionRequestBody object that contain dsl request and a given date.
-     * @param transactionId transaction id
+     * @param transactionId       transaction id
      * @return Response
      */
     @POST
