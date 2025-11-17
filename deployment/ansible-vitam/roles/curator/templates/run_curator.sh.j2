@@ -14,6 +14,6 @@ fi
 
 for file in $(ls {{ curator_conf_dir }}/curator.d/${action}_index_*.yml); do
   if [ -f "$file" ]; then
-    /usr/bin/curator --config {{ curator_conf_dir }}/curator.yml $file
+    {{ vitam_defaults.folder.root_path }}/bin/curator/run_curator --config {{ curator_conf_dir }}/curator.yml $file
   fi
 done

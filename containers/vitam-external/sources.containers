@@ -9,6 +9,7 @@ grafana/grafana:10.3.5
 restic/restic:0.16.2
 hashicorp/consul:1.18.1-ubi
 lmenezes/cerebro:0.9.4
+untergeek/curator:8.0.21
 prom/prometheus:v2.51.2
 prom/alertmanager:v0.27.0
 prom/consul-exporter:v0.11.0
