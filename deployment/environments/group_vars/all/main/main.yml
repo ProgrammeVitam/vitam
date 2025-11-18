@@ -93,13 +93,14 @@ elasticsearch:
   log:
     index_templates:
       default:
-        shards: 1
-        replica: 1
+         # Default configuration if others index_templates (vitam, access & system) are undefined
+        number_of_shards: 1
+        number_of_replicas: 1
   data:
     index_templates:
       default:
-        shards: 1
-        replica: 2
+        number_of_shards: 1
+        number_of_replicas: 2
 
 curator:
   indices:

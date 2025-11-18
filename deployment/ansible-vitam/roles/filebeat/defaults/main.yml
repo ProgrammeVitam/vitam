@@ -11,9 +11,6 @@ cots_list:
   # - alertmanager
 
 filebeat:
-  processors:
-    - add_host_metadata:
-        when.not.contains.tags: forwarded
   config:
     ignore_older: "24h"
   system:

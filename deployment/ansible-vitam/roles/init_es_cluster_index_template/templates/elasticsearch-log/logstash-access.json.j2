@@ -1,0 +1,56 @@
+#jinja2: lstrip_blocks: True
+{
+  "index_patterns": ["logstash-access-*"],
+  "composed_of": ["common"{% for processor in ['add_host_metadata', 'add_cloud_metadata'] if processor in filebeat.processors | default([]) | map('dict2items') | flatten | map(attribute='key') | unique | list %}, "{{ processor }}"{% endfor %}],
+  "priority": 2,
+  "template": {
+    "settings": {
+      "index.number_of_shards": {{ elasticsearch.log.index_templates.access.number_of_shards | default(default_number_of_shards) }},
+      {% if groups['hosts_elasticsearch_log']|length > 1 %}
+      "index.number_of_replicas": {{ elasticsearch.log.index_templates.access.number_of_replicas | default(default_number_of_replicas) }},
+      {% else %}
+      "index.number_of_replicas": 0,
+      {% endif %}
+      "refresh_interval": "30s",
+      "codec": "best_compression",
+      "index.mapping.ignore_malformed": true,
+      "index.query.default_field": ["message"],
+      "index.translog.durability": "async",
+      "index.translog.flush_threshold_size": "512mb"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "kind": { "type": "keyword" },
+        "source": { "type": "keyword" },
+        "type": { "type": "keyword" },
+
+        "request_id": { "type": "keyword" },
+        "tenant_id": { "type": "keyword" },
+
+        "vitam_component": { "type": "keyword" },
+
+        "message": { "type": "text" },
+
+        "http_status_code": { "type": "short" },
+        "http_method": { "type": "keyword" },
+        "http_version": { "type": "keyword" },
+
+        "client_ip": { "type": "ip" },
+        "x_forwarded_for": { "type": "ip" },
+
+        "response_size": { "type": "keyword" },
+        "duration": { "type": "long" },
+
+        "application_id": { "type": "keyword" },
+
+        "request_path": { "type": "keyword" },
+        "referer": { "type": "keyword" },
+        "user_agent": { "type": "keyword" },
+
+        "sender": { "type": "keyword" },
+        "logger": { "type": "keyword" }
+      }
+    }
+  }
+}

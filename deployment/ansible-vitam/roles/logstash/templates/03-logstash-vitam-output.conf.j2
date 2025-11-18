@@ -4,7 +4,7 @@ output
     # todo: check if drop exists (which module set it, etc...)
     if "_grokparsefailure" not in [tags] and "drop" not in [tags]
     {
-        if [logger] =~ "logback" or [logger] =~ "mongo" or [vitam_component] =~ "elasticsearch-data" or [logger] =~ "consul"  or [logger] =~ "clamd" or [logger] =~ "kibana" or [logger] =~ "cerebro" or [logger] =~ "reverse"
+        if [logger] =~ "logback" or [logger] =~ "mongo" or [vitam_component] =~ "elasticsearch-data" or [logger] =~ "consul" or [logger] =~ "clamd" or [logger] =~ "kibana" or [logger] =~ "cerebro" or [logger] =~ "reverse"
         {
             elasticsearch
             {
@@ -13,28 +13,27 @@ output
                 #idle_flush_time => 1
                 #idle_flush_time => 2
                 #workers => 20
-                template => "{{ logstash_confextra_dir }}/elasticsearch-template.json"
                 index => "logstash-vitam-%{+YYYY.MM.dd}"
                 hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
-
+                manage_template => false
             }
         }
-        else if [vitam_component] =~ "elasticsearch-log" or [vitam_component] =~ "logstash" or [logger] =~ "curator" or [logger] =~ "systemd"  {% if syslog.name | default('filebeat') == "syslog-ng" %} or [logger] =~ "syslog-ng" {% endif %} or [logger] =~ "kernel" or [logger] =~ "yum"  or [logger] =~ "usermgmt"
+        else if [vitam_component] =~ "elasticsearch-log" or [vitam_component] =~ "logstash" or [logger] =~ "curator" or [logger] =~ "systemd" {% if syslog.name | default('filebeat') == "syslog-ng" %} or [logger] =~ "syslog-ng" {% endif %} or [logger] =~ "kernel" or [logger] =~ "yum" or [logger] =~ "usermgmt"
         {
             elasticsearch
             {
-                template => "{{ logstash_confextra_dir }}/elasticsearch-template.json"
                 index => "logstash-logs-%{+YYYY.MM.dd}"
                 hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+                manage_template => false
             }
         }
         else
         {
             elasticsearch
             {
-                template => "{{ logstash_confextra_dir }}/elasticsearch-template.json"
                 index => "logstash-uncatched-%{+YYYY.MM.dd}"
                 hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+                manage_template => false
             }
         }
     }
@@ -45,6 +44,7 @@ output
         {
             index => "logstash-failure-%{+YYYY.MM.dd}"
             hosts => [{% for host in groups['hosts_elasticsearch_log'] %}"{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"{% if not loop.last %},{% endif %}{% endfor %}]
+            manage_template => false
         }
     }
 

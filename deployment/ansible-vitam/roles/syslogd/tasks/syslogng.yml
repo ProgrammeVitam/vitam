@@ -18,7 +18,7 @@
     owner: root
     mode: 0644
   when:
-    - groups['hosts_logstash']|length > 0
+    - groups['hosts_logstash']|length > 0 or external_siem is defined
     - consul_disabled is not defined or consul_disabled |lower != "true"
   notify:
     - "syslogng - restart service"

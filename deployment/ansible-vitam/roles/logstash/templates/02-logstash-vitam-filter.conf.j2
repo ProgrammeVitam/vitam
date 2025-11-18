@@ -7,8 +7,8 @@ filter
 
     mutate {
         # logback send 011 code for \t and 012 for \n
-        gsub => [ "message", "#011", "\t"   ]
-        gsub => [ "message", "#012", "\n"   ]
+        gsub => [ "message", "#011", "\t" ]
+        gsub => [ "message", "#012", "\n" ]
         gsub => [ "message", "\t"  , ' '    ]
         gsub => [ "message", "\n"  , '    ' ]
     }
@@ -20,7 +20,7 @@ filter
     # Todo move this at the end (to find vitam-* for real vitam components)
     if [input] == "syslog" {
         mutate {
-            rename => { "logsource" => "host.hostname" }
+            rename => { "logsource" => "host.name" }
         }
         grok {
             break_on_match => false
@@ -50,7 +50,7 @@ filter
 
     else if [vitam_component] =~ "mongo" {
         # Drop mongo (I)nformational log, for Verbosity Level of 0, if mongodb.drop_info_log is defined to true
-        {% if mongodb.drop_info_log | bool == true %}
+        {% if mongodb.drop_info_log | default(true) | bool %}
         if [message] =~ ".*\s+[ID]\s+.*" {
             drop { }
         }
@@ -140,7 +140,7 @@ filter
         }
     }
 {% if syslog.name == 'syslog-ng' %}
-    else if [vitam_component] =~ "systemd" or  [vitam_component] =~ "sudo" or [vitam_component] =~ "ansible" {
+    else if [vitam_component] =~ "systemd" or [vitam_component] =~ "sudo" or [vitam_component] =~ "ansible" {
         grok {
             break_on_match => false
             match => [
@@ -217,7 +217,7 @@ filter
             target => [ "@timestamp" ]
         }
     }
-    else if [vitam_component] =~ "useradd" or  [vitam_component] =~ "groupadd" {
+    else if [vitam_component] =~ "useradd" or [vitam_component] =~ "groupadd" {
         grok {
             break_on_match => false
             match => [
@@ -260,7 +260,7 @@ filter
         if [file]      { mutate { rename => { "file"      => "logstash_file"      } } }
         if [line]      { mutate { rename => { "line"      => "logstash_line"      } } }
         if [method]    { mutate { rename => { "method"    => "logstash_method"    } } }
-        if [host]      { mutate { rename => { "host"      => "host.hostname"      } } }
+        if [host]      { mutate { rename => { "host"      => "host.name"          } } }
 
         date {
             match => [ "timestamp" , "ISO8601" ]
@@ -305,10 +305,10 @@ filter
         if [treatmentName] != "" {
                mutate { add_field => { "type" => "treatment" } }
         }
-        else if [taskName] != ""  {
+        else if [taskName] != "" {
                mutate { add_field => { "type" => "task" } }
         }
-        else if [stepName] != ""  {
+        else if [stepName] != "" {
                mutate { add_field => { "type" => "step" } }
         }
         else {
@@ -322,7 +322,7 @@ filter
     }
 
     # kernel part
-    if [facility_label] =~ "kernel"  {
+    if [facility_label] =~ "kernel" {
         grok {
             break_on_match => false
             match => [
@@ -338,7 +338,7 @@ filter
         }
     }
 
-    if [log_message] =~ "keyFile"  {
+    if [log_message] =~ "keyFile" {
         grok {
             break_on_match => false
             match => [

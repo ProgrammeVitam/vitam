@@ -64,7 +64,7 @@ elasticsearch:
         cluster_name: "elasticsearch-data"
         consul_check_http: 10 # in seconds
         consul_check_tcp: 10 # in seconds
-        action_log_level: debug
+        action_log_level: warn
         https_enabled: false
         indices_fielddata_cache_size: '30%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/8.13/modules-fielddata.html
         indices_breaker_fielddata_limit: '40%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/8.13/circuit-breaker.html#fielddata-circuit-breaker
@@ -103,7 +103,7 @@ mongodb:
     mongod_port: 27019
     mongo_authentication: "true"
     check_consul: 10 # in seconds
-    drop_info_log: false # Drop mongo (I)nformational log, for Verbosity Level of 0
+    drop_info_log: true # Drop mongo (I)nformational log, for Verbosity Level of 0
     # logs configuration
     logrotate: enabled # or disabled
     history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
@@ -128,6 +128,14 @@ logstash:
 
 filebeat:
     at_boot: true
+    # processors:
+    #     # https://www.elastic.co/docs/reference/beats/filebeat/add-host-metadata
+    #     - add_host_metadata:
+    #         when.not.contains.tags: forwarded
+    #     # https://www.elastic.co/guide/en/beats/filebeat/current/add-cloud-metadata
+    #     - add_cloud_metadata: ~
+    #     # https://www.elastic.co/docs/reference/beats/filebeat/add-docker-metadata
+    #     - add_docker_metadata: ~
 
 # Prometheus params
 prometheus:
@@ -202,38 +210,30 @@ curator:
             delete: 10
 
 kibana:
-    header_value: "reporting"
     import_delay: 10
     import_retries: 10
     # logs configuration
     logrotate: enabled # or disabled
     history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
     log:
-        baseuri: "kibana_log"
+        baseuri: kibana_log
         api_call_timeout: 120
-        groupe: "log"
+        groupe: log
         port: 5601
         at_boot: true
-        default_index_pattern: "logstash-vitam*"
+        default_index_pattern: logstash-vitam*
         check_consul: 10 # in seconds
-        # default shards & replica
-        shards: 1
-        replica: 1
-        # pour index logstash-*
-        metrics:
-            shards: 1
-            replica: 1
         # pour index metricbeat-*
         metricbeat:
             shards: 3 # must be a factor of 30
             replica: 1
     data:
-        baseuri: "kibana_data"
+        baseuri: kibana_data
         # OMA : bugdette : api_call_timeout is used for retries ; should ceate a separate variable rather than this one
         api_call_timeout: 120
-        groupe: "data"
+        groupe: data
         port: 5601
-        default_index_pattern: "logbookoperation_*"
+        default_index_pattern: logbookoperation_*
         check_consul: 10 # in seconds
         # index template for .kibana
         shards: 1
@@ -242,9 +242,6 @@ kibana:
 syslog:
     # value can be syslog-ng, rsyslog or filebeat (default)
     name: "filebeat"
-
-# filebeat:
-# Default values are under ansible-vitam/roles/filebeat/defaults/main.yml
 
 cerebro:
     baseuri: "cerebro"

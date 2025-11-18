@@ -1,0 +1,72 @@
+{
+  "template": {
+    "mappings": {
+      "properties": {
+        "@timestamp": { "type": "date" },
+        "@version": { "type": "keyword" },
+
+        "host": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+
+        "agent": {
+          "properties": {
+            "ephemeral_id": { "type": "keyword" },
+            "id": { "type": "keyword" },
+            "name": { "type": "keyword" },
+            "type": { "type": "keyword" },
+            "version": { "type": "keyword" }
+          }
+        },
+
+        "ecs": {
+          "properties": {
+            "version": { "type": "keyword" }
+          }
+        },
+
+        "event": {
+          "properties": {
+            "module": { "type": "keyword" },
+            "dataset": { "type": "keyword" },
+            "timezone": { "type": "keyword" }
+          }
+        },
+
+        "log": {
+          "properties": {
+            "file": {
+              "properties": {
+                "device_id": { "type": "keyword" },
+                "inode": { "type": "keyword" },
+                "path": { "type": "keyword" }
+              }
+            },
+            "flags": { "type": "keyword" },
+            "offset": { "type": "long" }
+          }
+        },
+
+        "tags": { "type": "keyword" },
+
+        "service": {
+          "properties": {
+            "type": { "type": "keyword" }
+          }
+        },
+        "fileset": {
+          "properties": {
+            "name": { "type": "keyword" }
+          }
+        },
+        "input": {
+          "properties": {
+            "type": { "type": "keyword" }
+          }
+        }
+      }
+    }
+  }
+}
