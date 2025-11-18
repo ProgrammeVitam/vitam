@@ -371,7 +371,7 @@ public class MetadataReconstructionServiceTest {
         for (int i = 0, offset = lastOffset; i < nbEntriesRemaining; i++) {
             offset += 1 + RandomUtils.nextInt(10);
 
-            if (RandomUtils.nextInt(3) == 0) {
+            if (i % 3 == 0) {
                 offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.DELETE));
             } else {
                 offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.WRITE));
@@ -440,12 +440,6 @@ public class MetadataReconstructionServiceTest {
         assertThat(reconstructionResponse).isNotNull();
         assertThat(reconstructionResponse.getStatus()).isEqualTo(StatusCode.KO);
         verifyNoInteractions(mongoRepository);
-        /*verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(
-            MetadataCollections.UNIT,
-            10,
-            STRATEGY_UNIT,
-            offerLogs.get(limit - 1).getTime()
-        );*/
         verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
