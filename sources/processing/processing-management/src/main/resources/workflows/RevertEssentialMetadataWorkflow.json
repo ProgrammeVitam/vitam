@@ -38,6 +38,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_REVERT_UPDATE",
       "behavior": "NOBLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "revertUpdateUnits.jsonl",
@@ -57,6 +58,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_REVERT_UPDATE_FINALIZE",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

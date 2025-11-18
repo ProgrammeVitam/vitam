@@ -27,6 +27,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_MIGRATION_UNITS",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "Units.jsonl"
@@ -44,6 +45,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_MIGRATION_FINALIZE",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "REF",
         "element": ""

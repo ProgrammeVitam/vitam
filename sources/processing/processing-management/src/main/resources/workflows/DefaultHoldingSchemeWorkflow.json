@@ -284,6 +284,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
         "element": "UnitsLevel/ingestLevelStack.json",
@@ -309,6 +310,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
         "type": "Units",
@@ -335,6 +337,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_FINALISATION",
       "behavior": "FINALLY",
+      "cancellable": false,
       "distribution": {
         "kind": "REF",
         "element": "SIP/manifest.xml"

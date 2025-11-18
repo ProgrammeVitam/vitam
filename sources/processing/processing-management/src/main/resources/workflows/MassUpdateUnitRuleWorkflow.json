@@ -79,6 +79,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INVALIDATE",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "unitsToInvalidate.jsonl",
@@ -97,6 +98,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UPDATE",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "massUpdateUnits/unitsToUpdate.jsonl"
@@ -121,6 +123,7 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_MASS_UPDATE_FINALIZE",
       "behavior": "BLOCKING",
+      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
