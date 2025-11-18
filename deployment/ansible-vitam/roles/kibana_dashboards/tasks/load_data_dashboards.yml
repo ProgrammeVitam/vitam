@@ -1,0 +1,78 @@
+---
+
+# We have a specific task for index pattern to add the "*" at the end of the url
+- name: "Load index templates for Kibana-{{ composant.groupe }}"
+  run_once: true
+  tags: load_kibana
+  uri:
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-xsrf: "true"
+    timeout: "{{ composant.api_call_timeout }}"
+  with_fileglob:
+    - "{{ role_path }}/files/{{ composant.groupe }}/index-pattern/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
+
+- name: "Load search into Kibana-{{ composant.groupe }}"
+  run_once: true
+  tags: load_kibana
+  uri:
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    timeout: "{{ composant.api_call_timeout }}"
+    headers:
+      kbn-xsrf: "true"
+  with_fileglob:
+    - "{{ role_path }}/files/{{ composant.groupe }}/search/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
+
+- name: "Load visualizations into Kibana-{{ composant.groupe }}"
+  run_once: true
+  tags: load_kibana
+  uri:
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-xsrf: "true"
+    timeout: "{{ composant.api_call_timeout }}"
+  with_fileglob:
+    - "{{ role_path }}/files/{{ composant.groupe }}/visualization/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"
+
+- name: "Load dashboards into Kibana-{{ composant.groupe }}"
+  run_once: true
+  tags: load_kibana
+  uri:
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
+    method: POST
+    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
+    body_format: json
+    status_code: 200, 201
+    headers:
+      kbn-xsrf: "true"
+    timeout: "{{ composant.api_call_timeout }}"
+  with_fileglob:
+    - "{{ role_path }}/files/{{ composant.groupe }}/dashboard/*.json"
+  register: kibana_result
+  until: kibana_result.status in [200,201]
+  retries: "{{ kibana.import_retries }}"
+  delay: "{{ kibana.import_delay }}"

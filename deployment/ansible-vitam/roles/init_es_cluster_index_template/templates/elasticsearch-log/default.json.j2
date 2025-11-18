@@ -1,14 +1,14 @@
 {
   "index_patterns": ["*"],
-  "priority": "1",
+  "priority": 1,
   "template": {
     "settings" : {
+      "index.number_of_shards": {{ elasticsearch.log.index_templates.default.number_of_shards | default(default_number_of_shards) }},
       {% if groups['hosts_elasticsearch_log']|length > 1 %}
-      "index.number_of_replicas": {{ composant.index_templates.default.replica }},
+      "index.number_of_replicas": {{ elasticsearch.log.index_templates.default.number_of_replicas | default(default_number_of_replicas) }}
       {% else %}
-      "index.number_of_replicas": 0,
+      "index.number_of_replicas": 0
       {% endif %}
-      "index.number_of_shards": {{ composant.index_templates.default.shards }}
     }
   }
 }

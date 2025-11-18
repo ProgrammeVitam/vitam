@@ -1,9 +1,4 @@
 ---
-# tasks file for kibana_dashboards
-
-# Note pour exporter des dashboards
-# Pour export des dashboards, se mettre dans le dossier des JSON au niveau du rôle ansible, exécuter la commande :
-# for dashboard in `ls`;do ID=$(echo $dashboard | sed -e "s/\.json//g"); echo $ID; curl "http://172.17.0.2/kibana_log/api/kibana/dashboards/export?dashboard=$ID" >> kibana6_$ID.json;done
 
 #### Kibana dashboards configuration ####
 - name: Wait for the kibana port to be open
@@ -18,132 +13,29 @@
   uri:
     url: 'http://{{ ip_admin }}:{{ composant.port }}/status'
     method: GET
-    #status_code: 200,302
   register: kibana_result
   until: kibana_result.status == 200
   retries: "{{ composant.api_call_timeout }}"
   delay: 10
   tags: load_kibana
 
-- name: creating group_var variable
-  set_fact:
-    group_var: "hosts_elasticsearch_{{ composant.groupe }}"
-  tags: load_kibana
-
-- name: check wether default replica number is compatible with inventory for data cluster
-  fail: msg="Too much replica defined for default index template in elasticsearch-{{ composant.groupe }}"
-  when: (groups[group_var]|length <= composant.replica) and (groups[group_var]|length>1)
-  tags: load_kibana
-
-# We have a specific task for index pattern to add the "*" at the end of the url
-- name: load index templates for Kibana
-  run_once: true
-  tags: load_kibana
-  uri:
-    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/index-pattern/{{ item | basename | regex_replace('\\.json$') }}*?overwrite=true"
-    method: POST
-    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
-    body_format: json
-    status_code: 200, 201
-    headers:
-      kbn-xsrf: "{{ kibana.header_value }}"
-    timeout: "{{ composant.api_call_timeout }}"
-  with_fileglob:
-    - "{{ role_path }}/files/{{ composant.groupe }}/index-pattern/*.json"
-  register: kibana_result
-  until: kibana_result.status in [200,201]
-  retries: "{{ kibana.import_retries }}"
-  delay: "{{ kibana.import_delay }}"
-
-- name: load search into Elasticsearch {{ composant.groupe }} .kibana index
-  run_once: true
-  tags: load_kibana
-  uri:
-    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/search/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
-    method: POST
-    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
-    body_format: json
-    status_code: 200, 201
-    timeout: "{{ composant.api_call_timeout }}"
-    headers:
-      kbn-xsrf: "{{ kibana.header_value }}"
-  with_fileglob:
-    - "{{ role_path }}/files/{{ composant.groupe }}/search/*.json"
-  register: kibana_result
-  until: kibana_result.status in [200,201]
-  retries: "{{ kibana.import_retries }}"
-  delay: "{{ kibana.import_delay }}"
-
-- name: load visualizations into Elasticsearch {{ composant.groupe }} .kibana index
-  run_once: true
-  tags: load_kibana
-  uri:
-    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/visualization/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
-    method: POST
-    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
-    body_format: json
-    status_code: 200, 201
-    headers:
-      kbn-xsrf: "{{ kibana.header_value }}"
-    timeout: "{{ composant.api_call_timeout }}"
-  with_fileglob:
-    - "{{ role_path }}/files/{{ composant.groupe }}/visualization/*.json"
-  register: kibana_result
-  until: kibana_result.status in [200,201]
-  retries: "{{ kibana.import_retries }}"
-  delay: "{{ kibana.import_delay }}"
-
-- name: load dashboards into Elasticsearch data .kibana index
-  run_once: true
-  tags: load_kibana
-  uri:
-    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
-    method: POST
-    body: "{\"attributes\": {{ lookup('file', '{{ item }}') }} }"
-    body_format: json
-    status_code: 200, 201
-    headers:
-      kbn-xsrf: "{{ kibana.header_value }}"
-    timeout: "{{ composant.api_call_timeout }}"
-  with_fileglob:
-    - "{{ role_path }}/files/{{ composant.groupe }}/dashboard/*.json"
-  register: kibana_result
-  until: kibana_result.status in [200,201]
-  retries: "{{ kibana.import_retries }}"
-  delay: "{{ kibana.import_delay }}"
+- name: Load Kibana-Data dashboards
+  include_tasks: load_data_dashboards.yml
   when: composant.groupe == 'data'
 
-- block:
-    - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
-      run_once: true
-      tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}"
-      with_items:
-        - alertes-de-securite-dashboard.ndjson
-        - Composants-Vitam.ndjson
-        - mongodb-es-synchro-errors-dashboard.ndjson
-        - Storage-Offre-average-time.ndjson
-      delegate_to: localhost
-
-    - name: load specific filebeat dashboards into Elasticsearch log .kibana index via shell command
-      run_once: true
-      tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/Access-Vitam.ndjson"
-      delegate_to: localhost
-      when: syslog.name | default('filebeat') == "filebeat"
-
+- name: Load Kibana-Log dashboards
+  include_tasks: load_log_dashboards.yml
   when: composant.groupe == 'log'
 
-# OMA : tout est OK, et pourtant... Ne marche pas !
-- name: set {{ composant.default_index_pattern }} as kibana default index pattern
+- name: "set {{ composant.default_index_pattern }} as kibana default index pattern"
   tags: load_kibana
   run_once: true
   uri:
     url: "http://{{ ip_admin }}:{{ composant.port }}/api/kibana/settings"
     method: POST
-    body: ' {"changes":{"defaultIndex":"{{ composant.default_index_pattern }}"}}'
+    body: "{\"changes\":{\"defaultIndex\":\"{{ composant.default_index_pattern }}\"}}"
     headers:
-      kbn-xsrf: "{{ kibana.header_value }}"
+      kbn-xsrf: "true"
     body_format: json
     timeout: "{{ composant.api_call_timeout }}"
     status_code: 200, 201

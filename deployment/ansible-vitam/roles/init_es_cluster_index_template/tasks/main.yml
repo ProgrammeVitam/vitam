@@ -1,20 +1,11 @@
 ---
 
-- name: Wait for Elasticsearch cluster {{ composant.cluster_name }} port to be open
+- name: "Wait for Elasticsearch cluster {{ composant.cluster_name }} port to be open"
   wait_for:
-    host: "{{ ip_admin }}"
+    host: "{{ ip_admin if composant.groupe == 'log' else ip_service }}"
     port: "{{ composant.port_http }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
     delay: 10 # to be sure Consul could detect it
-  when: composant.groupe == "log"
-
-- name: Wait for Elasticsearch cluster {{ composant.cluster_name }} port to be open
-  wait_for:
-    host: "{{ ip_service }}"
-    port: "{{ composant.port_http }}"
-    timeout: "{{ vitam_defaults.services.start_timeout }}"
-    delay: 10 # to be sure Consul could detect it
-  when: composant.groupe == "data"
 
 - name: "Wait for Elasticsearch cluster {{ composant.cluster_name }} to be resolved by Consul"
   wait_for:
@@ -22,7 +13,7 @@
     port: "{{ composant.port_http }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
 
-- name: Wait until Elasticsearch cluster {{ composant.cluster_name }} service is OK
+- name: "Wait until Elasticsearch cluster {{ composant.cluster_name }} service is OK"
   uri:
     url: "{{ composant |client_url }}"
     method: GET
@@ -31,7 +22,7 @@
   retries: "{{ vitam_defaults.services.api_call_timeout }}"
   delay: 10 # to be sure Consul could detect it
 
-- name: Ensure Elasticsearch cluster {{ composant.cluster_name }} is in "green" state
+- name: "Ensure Elasticsearch cluster {{ composant.cluster_name }} is in 'green' state"
   uri:
     status_code: 200,201
     method: GET
@@ -42,10 +33,21 @@
   delay: 10
   run_once: true
 
-- name: load default index template in Elasticsearch cluster {{ composant.cluster_name }}
+- name: "Load component templates in Elasticsearch cluster {{ composant.cluster_name }}"
   run_once: true
   uri:
-    url: "{{ composant |client_url }}_index_template/{{ item | basename | regex_replace('\\.json\\.j2$') }}"
+    url: "{{ composant | client_url }}_component_template/{{ item | basename | regex_replace('\\.json$') }}"
+    method: PUT
+    body: "{{ lookup('template', '{{ item }}') }}"
+    body_format: json
+    status_code: 200,201
+  with_fileglob:
+    - "{{ role_path }}/files/{{ composant.cluster_name }}/component_templates/*.json"
+
+- name: "Load default index template in Elasticsearch cluster {{ composant.cluster_name }}"
+  run_once: true
+  uri:
+    url: "{{ composant | client_url }}_index_template/{{ item | basename | regex_replace('\\.json\\.j2$') }}"
     method: PUT
     body: "{{ lookup('template', '{{ item }}') }}"
     body_format: json

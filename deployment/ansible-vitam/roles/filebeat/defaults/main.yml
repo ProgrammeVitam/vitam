@@ -3,19 +3,6 @@
 filebeat_version: "{{ filebeat.version | default('8.18.0') }}"
 filebeat_package: "filebeat{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ filebeat_version }}"
 
-filebeat_processors:
-  processors:
-    - add_host_metadata:
-        when.not.contains.tags: forwarded
-    - add_cloud_metadata: ~
-    - add_docker_metadata: ~
-
-filebeat_log:
-  level: WARNING
-  directory: /vitam/log/filebeat
-  filename: filebeat.log
-  keepfiles: 30
-
 cots_list:
   - consul
   # - cerebro

@@ -1,0 +1,29 @@
+{
+  "template": {
+    "mappings": {
+      "properties": {
+        "host": {
+          "properties": {
+            "architecture": { "type": "keyword" },
+            "containerized": { "type": "boolean" },
+            "hostname": { "type": "keyword" },
+            "id": { "type": "keyword" },
+            "ip": { "type": "ip" },
+            "mac": { "type": "keyword" },
+            "os": {
+              "properties": {
+                "codename": { "type": "keyword" },
+                "family": { "type": "keyword" },
+                "kernel": { "type": "keyword" },
+                "name": { "type": "keyword" },
+                "platform": { "type": "keyword" },
+                "type": { "type": "keyword" },
+                "version": { "type": "keyword" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

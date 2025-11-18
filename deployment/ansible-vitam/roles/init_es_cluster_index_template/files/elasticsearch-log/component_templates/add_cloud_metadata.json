@@ -1,0 +1,30 @@
+{
+  "template": {
+    "mappings": {
+      "properties": {
+        "cloud": {
+          "properties": {
+            "availability_zone": { "type": "keyword" },
+            "instance": {
+              "properties": {
+                "id": { "type": "keyword" },
+                "name": { "type": "keyword" }
+              }
+            },
+            "machine": {
+              "properties": {
+                "type": { "type": "keyword" }
+              }
+            },
+            "provider": { "type": "keyword" },
+            "service": {
+              "properties": {
+                "name": { "type": "keyword" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

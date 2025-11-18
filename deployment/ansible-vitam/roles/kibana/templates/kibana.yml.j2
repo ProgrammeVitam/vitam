@@ -117,6 +117,7 @@ logging:
         type: pattern
   root:
     appenders: [file]
+    level: {{ kibana.log_level | default('warn') | lower }}
 
 # Set the value of this setting to true to suppress all logging output.
 #logging.silent: false

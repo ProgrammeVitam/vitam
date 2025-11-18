@@ -1,0 +1,48 @@
+#jinja2: lstrip_blocks: True
+{
+  "index_patterns": ["logstash-vitam-*"],
+  "composed_of": ["common"{% for processor in ['add_host_metadata', 'add_cloud_metadata'] if processor in filebeat.processors | default([]) | map('dict2items') | flatten | map(attribute='key') | unique | list %}, "{{ processor }}"{% endfor %}],
+  "priority": 2,
+  "template": {
+    "settings": {
+      "index.number_of_shards": {{ elasticsearch.log.index_templates.vitam.number_of_shards | default(default_number_of_shards) }},
+      {% if groups['hosts_elasticsearch_log']|length > 1 %}
+      "index.number_of_replicas": {{ elasticsearch.log.index_templates.vitam.number_of_replicas | default(default_number_of_replicas) }},
+      {% else %}
+      "index.number_of_replicas": 0,
+      {% endif %}
+      "refresh_interval": "30s",
+      "codec": "best_compression",
+      "index.mapping.ignore_malformed": true,
+      "index.query.default_field": ["log_message", "message"],
+      "index.translog.durability": "async",
+      "index.translog.flush_threshold_size": "512mb"
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "kind": { "type": "keyword" },
+        "source": { "type": "keyword" },
+        "type": { "type": "keyword" },
+
+        {# Vitam fields #}
+        "request_id": { "type": "keyword" },
+        "tenant_id": { "type": "keyword" },
+
+        "vitam_component": { "type": "keyword" },
+
+        "java_caller": { "type": "keyword" },
+        "java_class": { "type": "keyword" },
+        "java_thread": { "type": "keyword" },
+
+        "log_level": { "type": "keyword" },
+        "logger": { "type": "keyword" },
+
+        "log_message": { "type": "text" },
+
+        {# mongodb extra field #}
+        "message": { "type": "text" }
+      }
+    }
+  }
+}

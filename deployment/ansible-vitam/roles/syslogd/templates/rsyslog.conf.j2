@@ -10,7 +10,8 @@
 # cf http://www.rsyslog.com/doc/v8-stable/concepts/queues.html
 # $ActionQueueHighWatermark 100000 # Ecriture sur le disque à partir de 100.000 messages en memoire dans la queue
 # $ActionQueueLowWatermark 10000 # Une fois qu'il n'y a plus que 10.000 messages dans la file, on arrete d'utiliser le disque
-{% if external_siem is defined %}
+{% set targeted_siem = external_siem.host + ':' + external_siem.port if external_siem is defined else logstash.host + ':'+ logstash.port %}
+
 $ModLoad imudp
 $UDPServerRun 514
 
@@ -21,7 +22,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "vitam" @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "vitam" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -31,7 +32,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "mongo" @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "mongo" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -41,7 +42,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "vitam_accesslog" @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "vitam_accesslog" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -51,7 +52,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-log" @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "elasticsearch-log" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -61,7 +62,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-data" @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "elasticsearch-data" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -71,7 +72,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "consul" @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "consul" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -81,7 +82,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "clam"  @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "clam" @@{{ targeted_siem }}
 & stop
 
 $ActionQueueType LinkedList
@@ -91,90 +92,5 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "curator"  @@{{ external_siem.host }}:{{ external_siem.port }}
+:programname, startswith, "curator" @@{{ targeted_siem }}
 & stop
-{% elif (groups['hosts_logstash']|length) > 0 %}
-$ModLoad imudp
-$UDPServerRun 514
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-vitam-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "vitam" @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-mongo-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "mongo" @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-vitam_accesslog-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "vitam_accesslog" @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-elasticsearch_log-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-log" @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-elasticsearch_data-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-data" @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-vitam_consul-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "consul" @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-clamav-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "clam"  @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-$ActionQueueType LinkedList
-$ActionQueueFileName logstash-curator-queue
-$ActionQueueMaxDiskSpace 1g
-$ActionQueueSaveOnShutdown on
-$ActionResumeRetryCount -1
-$ActionQueueHighWatermark 100000
-$ActionQueueLowWatermark 10000
-:programname, startswith, "curator"  @@{{ logstash.host }}:{{ logstash.port }}
-& stop
-
-{% endif %}
