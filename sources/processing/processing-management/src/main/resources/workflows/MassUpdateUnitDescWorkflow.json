@@ -54,7 +54,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UPDATE",
       "behavior": "NOBLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "massUpdateUnits/unitsToUpdate.jsonl"
@@ -73,7 +72,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_MASS_UPDATE_FINALIZE",
       "behavior": "FINALLY",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

@@ -49,7 +49,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_CLEANUP_DELETE_UNIT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "units.jsonl",
@@ -70,7 +69,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_CLEANUP_DELETE_OBJECT_GROUP",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "objectGroups.jsonl",
@@ -91,7 +89,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "accession_register.jsonl",
@@ -111,7 +108,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INGEST_CLEANUP_FINALIZATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

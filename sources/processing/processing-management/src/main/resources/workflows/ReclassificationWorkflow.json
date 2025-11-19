@@ -79,7 +79,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_DETACHMENT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "type": "Units",
@@ -107,7 +106,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_ATTACHMENT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "type": "Units",
@@ -135,7 +133,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_GRAPH_COMPUTE",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "type": "Units",
@@ -156,7 +153,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_OBJECT_GROUP_GRAPH_COMPUTE",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "type": "ObjectGroup",
@@ -177,7 +173,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_RECLASSIFICATION_FINALIZATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

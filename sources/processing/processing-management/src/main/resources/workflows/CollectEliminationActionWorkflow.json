@@ -45,7 +45,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_DELETE_UNIT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "units_to_delete.jsonl",
@@ -66,7 +65,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
@@ -83,7 +81,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_DELETE_OBJECT_GROUP",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "object_groups_to_delete.jsonl",
@@ -104,7 +101,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_DETACH_OBJECT_GROUP",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "object_groups_to_detach.jsonl",
@@ -132,7 +128,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_REPORT_GENERATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
@@ -149,7 +144,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ELIMINATION_ACTION_FINALIZATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
