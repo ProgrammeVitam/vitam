@@ -20,15 +20,9 @@
     logger: logback
   processors:
     - dissect:
-        tokenizer: '%{client_ip|ip} - - %{date_time} "%{http_request}" %{http_status_code|integer} %{response_size} "%{referer}" "%{user_agent}" %{duration|integer} %{request_id} %{tenant_id} %{application_id}'
+        tokenizer: '%{client_ip|ip} - - %{date_time} "%{http_method} %{request_path} HTTP/%{http_version}" %{http_status_code|integer} %{response_size} "%{referer}" "%{user_agent}" %{duration|integer} %{request_id} %{tenant_id} %{application_id}'
         target_prefix: ""
         trim_values: all
-    - dissect:
-        tokenizer: '%{http_method} %{request_path} HTTP/%{http_version}'
-        field: http_request
-        target_prefix: ""
-        trim_values: all
-        ignore_failure: true
     - timestamp:
         field: date_time
         layouts:
@@ -36,7 +30,7 @@
         test:
           - '2024-09-30 13:46:37,298'
     - drop_fields:
-        fields: ["date_time", "http_request"]
+        fields: ["date_time"]
     {% if filebeat.drop_health_checks_logs | default(true) | bool %}
     # Drop Consul and Prometheus health checks
     - drop_event:
