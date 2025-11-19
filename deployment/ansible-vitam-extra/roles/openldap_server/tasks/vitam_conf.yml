@@ -49,12 +49,13 @@
     - "{{ vitam_users }}"
 
 - name: Add the users into the groups
-  ldap_attr:
+  ldap_attrs:
     bind_dn: "cn=Manager,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}"
     bind_pw: "{{ openldap_server_rootpw }}"
     dn: "cn={{ item.role }},ou=groups,dc=programmevitam,dc=fr"
-    name: 'member'
-    state: 'present'
-    values: "cn={{ item.login }},ou=people,dc=programmevitam,dc=fr"
-  with_items:
-    - "{{ vitam_users }}"
+    state: present
+    attributes:
+      - name: member
+        values:
+          - "cn={{ item.login }},ou=people,dc=programmevitam,dc=fr"
+  loop: "{{ vitam_users }}"
