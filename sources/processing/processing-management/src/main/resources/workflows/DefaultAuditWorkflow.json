@@ -55,7 +55,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_AUDIT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "AUDIT_OG",
@@ -82,7 +81,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_FINALISE_AUDIT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF",
         "element": ""

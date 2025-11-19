@@ -119,7 +119,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_CORRECTIVE_AUDIT",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "element": "alter"
@@ -143,7 +142,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_CORRECTION_FINALIZE",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF",
         "element": "correct"

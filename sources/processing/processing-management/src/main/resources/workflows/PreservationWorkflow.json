@@ -48,7 +48,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_PRESERVATION_ACTION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "distributionFileOG.jsonl",
@@ -241,7 +240,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_PRESERVATION_PREPARATION_INSERTION_AU_METADATA",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
@@ -264,7 +262,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_PRESERVATION_INSERTION_AU_METADATA",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "distributionFileAU.jsonl",
@@ -292,7 +289,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_ACCESSION_REGISTRATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },
@@ -309,7 +305,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_PRESERVATION_FINALIZATION",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

@@ -319,7 +319,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_OBJ_STORING",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "element": "ObjectGroup",
@@ -357,7 +356,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
         "type": "Units",
@@ -383,7 +381,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_COLLECT_INGEST_FINALISATION",
       "behavior": "FINALLY",
-      "cancellable": false,
       "distribution": {
         "kind": "REF"
       },

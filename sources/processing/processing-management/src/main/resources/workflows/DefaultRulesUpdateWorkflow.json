@@ -64,7 +64,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_INVALIDATE",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "unitsToInvalidate.jsonl",
@@ -84,7 +83,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_UPDATE",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "element": "UnitsWithoutLevel"
@@ -108,7 +106,6 @@
       "workerGroupId": "DefaultWorker",
       "stepName": "STP_UPDATE_RUNNING_INGESTS",
       "behavior": "BLOCKING",
-      "cancellable": false,
       "distribution": {
         "kind": "REF",
         "element": "PROCESSING/updatedRules.json"
