@@ -1,5 +1,5 @@
 # Module: kibana
-# Docs: https://www.elastic.co/guide/en/beats/filebeat/7.17/filebeat-module-kibana.html
+# Docs: https://www.elastic.co/guide/en/beats/filebeat/8.18/filebeat-module-kibana.html
 
 - module: kibana
   log:
@@ -7,6 +7,8 @@
     var.paths:
       - "{{ vitam_defaults.folder.root_path }}/log/kibana/kibana.log"
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-kibana-log
       fields_under_root: true
       fields:
         kind: log
@@ -15,21 +17,29 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}][%{logger}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
             field: date_time
             layouts:
-              - '2006-01-02T15:04:05,000'
+              - '2006-01-02T15:04:05.999Z07:00'
             test:
-              - '2024-09-30T14:51:17,100'
+              - '2024-09-30T14:51:17.100+01:00'
         - drop_fields:
-            fields: ["date_time", "message"]
+            fields: ["date_time", "message", "fileset", "service"]
+      parsers:
+        - multiline:
+            type: pattern
+            pattern: '^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}+\d{2}:\d{2}\]'
+            negate: true
+            match: after
 
   audit:
     enabled: {{ filebeat.cots.kibana_data.enable_audit | bool | lower if inventory_hostname in groups['hosts_kibana_data'] else filebeat.cots.kibana_log.enable_audit | bool | lower }}
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-kibana-audit
       fields_under_root: true
       fields:
         kind: audit
@@ -38,14 +48,20 @@
         type: cots
       processors:
         - dissect:
-            tokenizer: '[%{date_time}][%{log_level}]%{*}[%{logger}] %{log_message}'
+            tokenizer: '[%{date_time}][%{log_level}][%{logger}] %{log_message}'
             target_prefix: ""
             trim_values: all
         - timestamp:
             field: date_time
             layouts:
-              - '2006-01-02T15:04:05,000'
+              - '2006-01-02T15:04:05.999Z07:00'
             test:
-              - '2024-09-30T14:51:17,100'
+              - '2024-09-30T14:51:17.100+01:00'
         - drop_fields:
-            fields: ["date_time", "message"]
+            fields: ["date_time", "message", "fileset", "service"]
+      parsers:
+        - multiline:
+            type: pattern
+            pattern: '^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}+\d{2}:\d{2}\]'
+            negate: true
+            match: after

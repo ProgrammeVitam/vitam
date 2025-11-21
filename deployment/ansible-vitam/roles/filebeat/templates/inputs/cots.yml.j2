@@ -8,7 +8,7 @@
   id: {{ vitam_site_name }}-{{cots_service }}
   enabled: true
   paths:
-    - "{{ vitam_defaults.folder.root_path }}/log/{{ cots_service }}/{{ cots_service }}*.log"
+    - "{{ vitam_defaults.folder.root_path }}/log/{{ cots_service }}/{{ cots_service }}.log"
   ignore_older: {{ filebeat.config.ignore_older }}
   fields_under_root: true
   fields:
