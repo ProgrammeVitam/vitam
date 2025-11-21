@@ -1,5 +1,5 @@
 # Module: system
-# Docs: https://www.elastic.co/guide/en/beats/filebeat/8.14/filebeat-module-system.html
+# Docs: https://www.elastic.co/guide/en/beats/filebeat/8.18/filebeat-module-system.html
 
 - module: system
   # Syslog
@@ -9,6 +9,8 @@
     # Filebeat will choose the paths depending on your OS.
     #var.paths:
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-system-syslog
       fields_under_root: true
       fields:
         kind: syslog
@@ -21,6 +23,8 @@
     # Filebeat will choose the paths depending on your OS.
     #var.paths:
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-system-auth
       fields_under_root: true
       fields:
         kind: auth
