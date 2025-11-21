@@ -16,3 +16,93 @@ La clé de configuration ``vitam_offers.<offre>.s3SignerType`` n'est plus param�
 De même, la validation des hostnames des certificats HTTPS est dorénavant activée par défault dans le nouveau provider ``amazon-s3-v2``. La validation peut être désactivée via la clé ``vitam_offers.<offre>.s3IgnoreCertificateHostnameValidation`` (uniquement pour environnements de test).
 
 Il convient de mettre à jour la configuration des offres de stockage en conséquent (``vitam_offers.<offre>.provider``) dans les sources de déploiement.
+
+Déploiement du nouveau composant vitam-antivirus
+------------------------------------------------
+
+L'appel a l'antivirus été externalisé dans un nouveau composant permettant son déploiement autonome. Actuellement, ce nouveau composant est colocalisé avec les groupes ``hosts_ingest_external`` & ``hosts_worker``. Cependant, il n'est utile sur les workers que lors de l'utilisation du module de collecte.
+
+Ainsi, vous pouvez désactiver son déploiement sur les workers si vous n'utilisez pas le module de collecte en appliquant la procédure suivante.
+
+Dans le playbook ``ansible-vitam/services/vitam/antivirus.yml``, supprimez la chaine de caractère ``:hosts_worker``.
+
+Résultat attendu après modification:
+
+.. code-block:: yaml
+
+  - hosts: hosts_ingest_external
+    any_errors_fatal: true
+    roles:
+      - antivirus
+      - vitam
+    vars:
+      vitam_struct: "{{ vitam.antivirus }}"
+    tags: antivirus
+
+..
+
+Procédures à exécuter AVANT la montée de version
+================================================
+
+Arrêt complet de Vitam
+----------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V9.0
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+
+Vitam doit être arrêté sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+
+..
+
+Mise à jour des dépôts (YUM/APT)
+--------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version
+
+Afin de pouvoir déployer la nouvelle version, vous devez mettre à jour la variable ``vitam_repositories`` sous ``environments/group_vars/all/main/repositories.yml`` afin de renseigner les dépôts à la version cible.
+
+Pour le dépôt vitam-external, vous devez renseigner la version adaptée à votre système d'exploitation (par exemple pour la version 9.0.0):
+
+* AlmaLinux 9: https://download.programmevitam.fr/vitam_repository/9.0.0/rpm/vitam-external/9/
+* Debian 12: https://download.programmevitam.fr/vitam_repository/9.0.0/deb/vitam-external/12/
+
+Puis exécutez le playbook suivant **sur tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-extra/bootstrap.yml --ask-vault-pass
+
+..
+
+Application de la montée de version
+===================================
+
+.. caution:: L'application de la montée de version s'effectue d'abord sur les sites secondaires puis sur le site primaire.
+
+Lancement du master playbook vitam
+----------------------------------
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam/vitam.yml --ask-vault-pass
+
+..
+
+Lancement du master playbook extra
+----------------------------------
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-extra/extra.yml --ask-vault-pass
+
+..
+
+Procédures à exécuter APRÈS la montée de version
+================================================
+
+N/A
