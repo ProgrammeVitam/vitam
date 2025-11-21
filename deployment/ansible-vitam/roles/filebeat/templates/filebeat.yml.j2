@@ -1,45 +1,49 @@
 #
-# FILEBEAT CONFIGURATION - filebeat.yml
+# FILEBEAT CONFIGURATION
 #
 
 #
 # Logs filebeat
 #
 logging:
-  ### Filebeat log
-  level: {{ filebeat_log.level }}
+  level: {{ filebeat.log_level | default('warning') | lower }}
 
-  # Enable file rotation with default configuration
   to_files: true
-
-  # Do not log to syslog
-  to_syslog: false
-
   files:
-    path: {{ filebeat_log.directory }}
-    name: {{ filebeat_log.filename }}
-    keepfiles: {{ filebeat_log.keepfiles }}
+    path: {{ filebeat_log_dir }}
+    name: filebeat.log
+    keepfiles: {{ filebeat.history_days | default(30) }}
+    interval: 24h
+    permissions: 0644
+    rotateonstartup: false
 
 #
-# Inputs
+# Configs
 #
-
-# by module in /etc/filebeat/module.d
+# by modules
 filebeat.config.modules:
-  path: ${path.config}/modules.d/*.yml
+  path: {{ filebeat_conf_dir }}/modules.d/*.yml
   reload.enabled: true
 
-# by filestream
+# by inputs
 filebeat.config.inputs:
   enabled: true
-  path: inputs.d/*.yml
+  path: {{ filebeat_conf_dir }}/inputs.d/*.yml
 
 #
 # Override for custom indexes
 #
 setup.ilm.enabled: false
 setup.template.enabled: false
-setup.template.overwrite: true
+
+#
+# Enable persistent disk queue
+# https://www.elastic.co/docs/reference/beats/filebeat/configuring-internal-queue
+#
+queue:
+  disk:
+    max_size: {{ filebeat.queue.disk.max_size | default('10GB') }} # Maximum disk queue size
+    path: "{{ filebeat_data_dir }}/diskqueue" # Path to store the queue
 
 {% if groups['hosts_logstash'] | length > 0 %}
 #
@@ -75,10 +79,11 @@ output.elasticsearch:
                 event.module: system
             - contains:
                 kind: access
+{% if filebeat.processors is defined %}
 
 #
 # Processors
 #
-{% if filebeat_processors is defined %}
-{{ filebeat_processors | to_yaml }}
+processors:
+  {{ filebeat.processors | default([]) | to_nice_yaml(indent=2) | indent(2) }}
 {% endif %}

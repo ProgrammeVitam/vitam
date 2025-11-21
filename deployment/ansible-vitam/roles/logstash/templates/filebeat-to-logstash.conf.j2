@@ -3,8 +3,7 @@
 input
 {
     beats {
-        add_field => [ "input", "filebeat" ]
-        port => "{{ logstash.port | default(10514) }}"
+        port => "{{ logstash_port }}"
         ecs_compatibility => "v8"
     }
 }

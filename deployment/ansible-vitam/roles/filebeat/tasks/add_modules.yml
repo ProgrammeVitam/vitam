@@ -2,16 +2,15 @@
 
 - name: Create modules.d folder
   file:
-    path: /etc/filebeat/modules.d
+    path: "{{ filebeat_modules_dir }}"
     state: directory
     mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify: "filebeat - restart service"
-  when: install_mode == "container"
 
 - name: Add kibana filebeat module
   template:
     src: modules/kibana.yml.j2
-    dest: /etc/filebeat/modules.d/kibana.yml
+    dest: "{{ filebeat_modules_dir }}/kibana.yml"
     mode: 0644
   when:
     - inventory_hostname in groups['hosts_kibana_data'] or
@@ -21,7 +20,7 @@
 - name: Add elasticsearch filebeat module
   template:
     src: modules/elasticsearch.yml.j2
-    dest: /etc/filebeat/modules.d/elasticsearch.yml
+    dest: "{{ filebeat_modules_dir }}/elasticsearch.yml"
     mode: 0644
   when:
     - inventory_hostname in groups['hosts_elasticsearch_data'] or
@@ -31,7 +30,7 @@
 - name: Add logstash filebeat module
   template:
     src: modules/logstash.yml.j2
-    dest: /etc/filebeat/modules.d/logstash.yml
+    dest: "{{ filebeat_modules_dir }}/logstash.yml"
     mode: 0644
   when:
     - inventory_hostname in groups['hosts_logstash']
@@ -40,7 +39,7 @@
 - name: Add mongodb filebeat module
   template:
     src: modules/mongodb.yml.j2
-    dest: /etc/filebeat/modules.d/mongodb.yml
+    dest: "{{ filebeat_modules_dir }}/mongodb.yml"
     mode: 0644
   when:
     - inventory_hostname in groups['hosts_mongos_data'] or
@@ -54,7 +53,7 @@
 - name: Add apache filebeat module
   template:
     src: modules/apache.yml.j2
-    dest: /etc/filebeat/modules.d/apache.yml
+    dest: "{{ filebeat_modules_dir }}/apache.yml"
     mode: 0644
   when: inventory_hostname in groups['reverse']
   notify: "filebeat - restart service"
@@ -62,7 +61,7 @@
 - name: Add system filebeat module
   template:
     src: modules/system.yml.j2
-    dest: /etc/filebeat/modules.d/system.yml
+    dest: "{{ filebeat_modules_dir }}/system.yml"
     mode: 0644
   when:
     - filebeat.system.enable_log | bool or
@@ -71,7 +70,7 @@
 
 - name: Disable system filebeat module
   file:
-    path: /etc/filebeat/modules.d/system.yml
+    path: "{{ filebeat_modules_dir }}/system.yml"
     state: absent
   when:
     - filebeat.system.enable_log | bool == false
