@@ -139,8 +139,6 @@
       tags: load_kibana
       shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/mongodb-es-synchro-errors-dashboard.ndjson"
       delegate_to: localhost
-      args:
-        warn: false
 
     - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
       run_once: true
