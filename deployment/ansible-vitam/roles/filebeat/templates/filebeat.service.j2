@@ -12,8 +12,6 @@ ExecStart=/usr/bin/docker run --rm \
   --name filebeat \
   --user=root \
   --volume="/etc/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:rw" \
-  --volume="/etc/filebeat/modules.d:/usr/share/filebeat/modules.d:rw" \
-  --volume="/etc/filebeat/inputs.d:/usr/share/filebeat/inputs.d:rw" \
   --volume="/vitam:/vitam:rw" \
   --volume="/var/lib/docker/containers:/var/lib/docker/containers:ro" \
   --volume="/var/run/docker.sock:/var/run/docker.sock:ro" \

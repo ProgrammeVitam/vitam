@@ -3,9 +3,8 @@
 input
 {
     syslog {
-        add_field => [ "input", "syslog" ]
         host => "{{ ip_admin }}"
-        port => 10514
+        port => "{{ logstash_port }}"
         codec => plain { charset=>"UTF-8" }
     }
 }
