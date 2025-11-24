@@ -1,22 +1,19 @@
-// https://jenkins.io/doc/book/pipeline/syntax/
-// https://jenkins.io/doc/pipeline/steps/
-// https://www.cloudbees.com/sites/default/files/declarative-pipeline-refcard.pdf
-
-// https://vetlugin.wordpress.com/2017/01/31/guide-jenkins-pipeline-merge-requests/
-
-// KWA TOOD :
-// - estimate deviation from base branch (if relevant)
-// - separate stage for the javadoc:aggregate-jar build (in order to -T 1C the packaging)
-// - fix the partial build
+def IMPORTANT_BRANCH_OR_TAG = (env.BRANCH_NAME =~ /^(develop|master_.*)$/).matches() || env.TAG_NAME != null
 
 pipeline {
     agent {
-        label 'java11'
+        label 'build'
+    }
+
+    tools {
+        jdk 'java11' // java11 || java17 || java21
+        maven 'maven-3.8' // maven-3.8 || maven-3.9
     }
 
     environment {
+        LANG="fr_FR.UTF-8" // to bypass dateformat problem
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
-        MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DdeployAtEnd=true "
+        MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
         M2_REPO = "${HOME}/.m2"
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-java11-url")
@@ -30,35 +27,34 @@ pipeline {
         MONGO_VERSION="7.0.8"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
-
     }
 
     options {
-        // disableConcurrentBuilds()
+        timeout(time: 4, unit: 'HOURS')
         buildDiscarder(
             logRotator(
                 artifactDaysToKeepStr: '',
                 artifactNumToKeepStr: '',
-                daysToKeepStr: '100',
-                numToKeepStr: '30'
+                numToKeepStr: '100'
             )
         )
     }
 
+    stages {
 
-   stages {
+        stage("Show configuration") {
+            steps {
+                script {
+                    def pom = readMavenPom file: 'sources/pom.xml'
+                    env.POM_VERSION = pom.version
 
-       stage("Tools configuration") {
-           steps {
-               // Maven : nothing to do, the settings.xml file is passed to maven by command arg & configured by env variables
-               // Npm : we could have chosen "npm config" command, but, using a file, we keep the same principle as for maven
-               // KWA Note : Awful outside docker...
-               // sh "cp -f .ci/.npmrc ~/"
-               // sh "rm -f ~/.m2/settings.xml"
-               echo "Workspace location : ${env.WORKSPACE}"
-               echo "Branch : ${env.GIT_BRANCH}"
-           }
-       }
+                    echo "WORKSPACE location : ${env.WORKSPACE}"
+                    echo "GIT_BRANCH : ${env.GIT_BRANCH}"
+                    echo "IMPORTANT_BRANCH_OR_TAG : ${IMPORTANT_BRANCH_OR_TAG}"
+                    echo "POM_VERSION : ${env.POM_VERSION}"
+                }
+            }
+        }
 
         stage("Detecting changes for build") {
             steps {
@@ -68,7 +64,7 @@ pipeline {
                     env.GIT_PRECEDENT_COMMIT=checkout(scm).GIT_PREVIOUS_SUCCESSFUL_COMMIT
                 }
                 sh "git --git-dir .git rev-parse HEAD > vitam_commit.txt"
-                sh '''git diff --name-only ${GIT_REV} ${GIT_PRECEDENT_COMMIT} | grep -oE '^[^/]+' | sort | uniq > .changed_roots.txt'''
+                sh "git diff --name-only ${GIT_REV} ${GIT_PRECEDENT_COMMIT} | grep -oE '^[^/]+' | sort | uniq > .changed_roots.txt"
                 // GIT_PREVIOUS_SUCCESSFUL_COMMIT
                 script {
                     def changedRoots = readFile(".changed_roots.txt").tokenize('\n')
@@ -77,10 +73,8 @@ pipeline {
                     env.CHANGED_VITAM_PRODUCT = changedRoots.contains("rpm") || changedRoots.contains("deb")
                     // KWA Caution : need to get check conditions twice
                 }
-                // OMA: evaluate project version ; write directly through shell as I didn't find anything else
-                sh "$MVN_BASE -q -f sources/pom.xml --non-recursive -Dexec.args='\${project.version}' -Dexec.executable=\"echo\" org.codehaus.mojo:exec-maven-plugin:1.3.1:exec > version_projet.txt"
                 echo "Changed VITAM : ${env.CHANGED_VITAM}"
-                echo "Changed VITAM : ${env.CHANGED_VITAM_PRODUCT}"
+                echo "Changed VITAM_PRODUCT : ${env.CHANGED_VITAM_PRODUCT}"
             }
         }
 
@@ -97,13 +91,12 @@ pipeline {
 
                 // prepare storage for minIO SSL
                 dir("${pwd}/dataminiossl") {
-                    // bad rustine, as minIO docker writes as root
-                    //  sh "sudo chmod -R 777 ${pwd}/dataminiossl"
                     deleteDir()
                 }
                 sh "mkdir ${pwd}/dataminiossl"
             }
         }
+
         stage ("Prepare Docker containers for testing") {
             steps {
                 dir('sources') {
@@ -132,65 +125,9 @@ pipeline {
             }
         }
 
-        stage ("Execute unit and integration tests on master branches") {
-            when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
-            }
-            options {
-                timeout(time: 3, unit: "HOURS")
-            }
-            environment {
-                LANG="fr_FR.UTF-8" // to bypass dateformat problem
-            }
-            steps {
-                dir('sources') {
-                    nvm('v18.20.3') {
-                        script {
-                            try {
-                                // Build Vitam
-                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false'
-                            } finally {
-                                // Force termination / cleanup of containers
-                                sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
-                            }
-                        }
-                    }
-                }
-            }
-            post {
-                always {
-                    junit 'sources/**/target/surefire-reports/*.xml'
-                }
-                success {
-                    archiveArtifacts (
-                        artifacts: '**/dependency-check-report.html'
-                        , fingerprint: true
-                        , allowEmptyArchive: true
-
-                    )
-                }
-            }
-        }
-
         stage ("Execute unit and integration tests on merge requests") {
             when {
-                not{
-                    anyOf {
-                        branch "develop*"
-                        branch "master_*"
-                        branch "master"
-                        tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                    }
-                }
-            }
-            environment {
-                MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DinstallAtEnd=true -DdeployAtEnd=true "
-                LANG="fr_FR.UTF-8" // to bypass dateformat problem
+                expression { !IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 updateGitlabCommitStatus name: 'mergerequest', state: "running"
@@ -200,7 +137,7 @@ pipeline {
                             try {
                                 // Build Vitam
                                 sh '$MVN_COMMAND -f pom.xml spotless:check -T 1C'
-                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.projectName=$GIT_BRANCH -Dsonar.projectKey=$(sed -E \'s/[^[:alnum:]]+/_/g\' <<< ${GIT_BRANCH#*/}) -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
+                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
                             } finally {
                                 // Force termination / cleanup of containers
                                 sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
@@ -215,11 +152,41 @@ pipeline {
                 }
                 success {
                     archiveArtifacts (
-                        artifacts: '**/dependency-check-report.html'
-                        , fingerprint: true
-                        , allowEmptyArchive: true
-
+                        artifacts: '**/dependency-check-report.html',
+                        fingerprint: true,
+                        allowEmptyArchive: true
                     )
+                }
+                failure {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+                }
+                unstable {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "failed"
+                }
+                aborted {
+                    updateGitlabCommitStatus name: 'mergerequest', state: "canceled"
+                }
+            }
+        }
+
+        stage ("Sonar analysis on merge requests") {
+            tools {
+                jdk 'java17'
+            }
+            when {
+                expression { !IMPORTANT_BRANCH_OR_TAG }
+            }
+            steps {
+                updateGitlabCommitStatus name: 'mergerequest', state: "running"
+                dir('sources') {
+                    script {
+                        // Run SonarQube analysis
+                        sh "${MVN_COMMAND} -f pom.xml sonar:sonar -Dsonar.projectName=\"$GIT_BRANCH\" -Dsonar.projectKey=\"\$(sed -E 's/[^[:alnum:]]+/_/g' <<< \${GIT_BRANCH#*/})\" -Dspotless.check.skip"
+                    }
+                }
+            }
+            post {
+                success {
                     updateGitlabCommitStatus name: 'mergerequest', state: "success"
                     addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=${gitlabSourceBranch}) de la branche"
                 }
@@ -235,14 +202,60 @@ pipeline {
             }
         }
 
+        stage ("Execute unit and integration tests on master branches") {
+            when {
+                expression { IMPORTANT_BRANCH_OR_TAG }
+            }
+            steps {
+                dir('sources') {
+                    nvm('v18.20.3') {
+                        script {
+                            try {
+                                // Build Vitam
+                                sh '$MVN_COMMAND -f pom.xml spotless:check -T 1C'
+                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
+                            } finally {
+                                // Force termination / cleanup of containers
+                                sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
+                            }
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    junit 'sources/**/target/surefire-reports/*.xml'
+                }
+                success {
+                    archiveArtifacts (
+                        artifacts: '**/dependency-check-report.html',
+                        fingerprint: true,
+                        allowEmptyArchive: true
+                    )
+                }
+            }
+        }
+
+        stage ("Sonar analysis on master branches") {
+            tools {
+                jdk 'java17'
+            }
+            when {
+                expression { IMPORTANT_BRANCH_OR_TAG }
+            }
+            steps {
+                dir('sources') {
+                    script {
+                        // Run SonarQube analysis
+                        sh "${MVN_COMMAND} -f pom.xml sonar:sonar -Dsonar.projectName=\"$GIT_BRANCH\" -Dsonar.projectKey=\"\$(sed -E 's/[^[:alnum:]]+/_/g' <<< \${GIT_BRANCH#*/})\" -Dspotless.check.skip"
+                    }
+                }
+            }
+        }
+
         stage("Build packages") {
             when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
+                expression { IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 parallel(
@@ -271,12 +284,7 @@ pipeline {
 
         stage("Build doc package") {
             when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
+                expression { IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 dir('doc') {
@@ -293,12 +301,7 @@ pipeline {
 
         stage("Prepare packages building") {
             when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
+                expression { IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 sh 'rm -rf deb/vitam-external/target'
@@ -310,12 +313,7 @@ pipeline {
 
         stage("Build vitam-product & vitam-external packages") {
             when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
+                expression { IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 parallel(
@@ -345,12 +343,7 @@ pipeline {
 
         stage("Publish packages") {
             when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
+                expression { IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 parallel(
@@ -393,14 +386,10 @@ pipeline {
                 }
             }
         }
+
         stage("Update symlink") {
             when {
-                anyOf {
-                    branch "develop*"
-                    branch "master_*"
-                    branch "master"
-                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-                }
+                expression { IMPORTANT_BRANCH_OR_TAG }
             }
             steps {
                 sshagent (credentials: ['jenkins_sftp_to_repository']) {
@@ -424,6 +413,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
