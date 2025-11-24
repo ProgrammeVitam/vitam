@@ -76,6 +76,9 @@ public class PreservationDistributionLine {
     @JsonProperty("griffinIdentifier")
     private String griffinIdentifier;
 
+    @JsonProperty("transformationRules")
+    private String transformationRules;
+
     @JsonProperty("unitsForExtractionAU")
     private Set<String> unitsForExtractionAU;
 
@@ -96,6 +99,7 @@ public class PreservationDistributionLine {
         String sourceStrategy,
         String scenarioId,
         String griffinIdentifier,
+        String transformationRules,
         Set<String> unitsForExtractionAU
     ) {
         this.id = id;
@@ -112,6 +116,7 @@ public class PreservationDistributionLine {
         this.griffinId = griffinId;
         this.scenarioId = scenarioId;
         this.griffinIdentifier = griffinIdentifier;
+        this.transformationRules = transformationRules;
         this.unitsForExtractionAU = unitsForExtractionAU;
     }
 
@@ -225,6 +230,14 @@ public class PreservationDistributionLine {
 
     public void setGriffinIdentifier(String griffinIdentifier) {
         this.griffinIdentifier = griffinIdentifier;
+    }
+
+    public String getTransformationRules() {
+        return transformationRules;
+    }
+
+    public void setTransformationRules(String transformationRules) {
+        this.transformationRules = transformationRules;
     }
 
     public Set<String> getUnitsForExtractionAU() {

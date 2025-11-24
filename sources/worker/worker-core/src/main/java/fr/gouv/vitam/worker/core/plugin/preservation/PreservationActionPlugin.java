@@ -26,14 +26,20 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.JsltTransformationFailedException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsltTransformer;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,6 +57,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ParametersPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
@@ -72,7 +79,9 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.LocalDateUtil.now;
@@ -146,6 +155,8 @@ public class PreservationActionPlugin extends ActionHandler {
 
             int timeout = entries.get(0).getTimeout();
             ResultPreservation result = launchGriffin(griffinId, batchDirectory, timeout);
+
+            result = applyJsltTransformation(result, entries.get(0));
 
             List<WorkflowBatchResult> workflowResults = generateWorkflowBatchResults(result, entries);
 
@@ -275,7 +286,6 @@ public class PreservationActionPlugin extends ActionHandler {
                 IOUtils.toString(griffin.getInputStream(), Charset.defaultCharset())
             );
         }
-
         return JsonHandler.getFromFile(batchDirectory.resolve(RESULT_JSON).toFile(), ResultPreservation.class);
     }
 
@@ -367,5 +377,55 @@ public class PreservationActionPlugin extends ActionHandler {
             model.getGriffinIdentifier(),
             model.getScenarioId()
         );
+    }
+
+    private ResultPreservation applyJsltTransformation(ResultPreservation result, PreservationDistributionLine entry)
+        throws InvalidParseOperationException, InvalidJstlTransformerException {
+        String jslt = entry.getTransformationRules();
+        if (jslt == null || jslt.isEmpty()) {
+            return result;
+        }
+
+        JsltTransformer transformer = new JsltTransformer(jslt);
+        Map<String, List<OutputPreservation>> newOutputs = new HashMap<>();
+
+        for (Map.Entry<String, List<OutputPreservation>> e : result.getOutputs().entrySet()) {
+            String key = e.getKey();
+            List<OutputPreservation> transformed = new ArrayList<>();
+
+            for (OutputPreservation output : e.getValue()) {
+                if (PreservationStatus.KO.equals(output.getStatus())) {
+                    transformed.add(output);
+                    continue;
+                }
+
+                try {
+                    JsonNode input = JsonHandler.toJsonNode(output);
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Applying JSLT transformation {} to griffin result {}", jslt, input);
+                    }
+                    ObjectNode transformedNode = transformer.transform(input);
+                    OutputPreservation transformedOutput = JsonHandler.getFromJsonNode(
+                        transformedNode,
+                        OutputPreservation.class
+                    );
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Updated griffin result after JSLT transformation {}", transformedOutput);
+                    }
+
+                    transformed.add(transformedOutput);
+                } catch (JsltTransformationFailedException ex) {
+                    LOGGER.error("JSLT transformation failed: " + ex.getMessage(), ex);
+                    output.setStatus(PreservationStatus.KO);
+                    output.setError("JSLT transformation failed: " + ex.getMessage());
+                    transformed.add(output);
+                }
+            }
+            newOutputs.put(key, transformed);
+        }
+
+        return ResultPreservation.of(result.getRequestId(), result.getId(), newOutputs);
     }
 }

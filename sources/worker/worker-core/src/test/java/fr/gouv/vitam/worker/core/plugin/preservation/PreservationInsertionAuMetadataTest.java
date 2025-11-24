@@ -112,6 +112,7 @@ public class PreservationInsertionAuMetadataTest {
             "other_binary_strategy",
             "ScenarioId",
             "griffinIdentifier",
+            null,
             Collections.singleton("key")
         );
         parameter.setObjectNameList(Collections.singletonList("unitId"));

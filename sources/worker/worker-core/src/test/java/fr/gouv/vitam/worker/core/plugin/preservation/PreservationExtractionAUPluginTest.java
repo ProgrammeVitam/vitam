@@ -119,6 +119,7 @@ public class PreservationExtractionAUPluginTest {
             "other_binary_strategy",
             "ScenarioId",
             "griffinIdentifier",
+            null,
             Collections.singleton("key")
         );
         parameter.setObjectNameList(Collections.singletonList("gotId"));

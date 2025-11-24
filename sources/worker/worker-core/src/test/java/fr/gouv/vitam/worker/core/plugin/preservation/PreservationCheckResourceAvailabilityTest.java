@@ -404,6 +404,7 @@ public class PreservationCheckResourceAvailabilityTest {
             sourceStrategy,
             "ScenarioId",
             "griffinIdentifier",
+            null,
             new HashSet<>(Arrays.asList("unitId", "otherUnitIdBatman"))
         );
     }
