@@ -24,14 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
-package fr.gouv.vitam.collect.internal.core.transformers;
+package fr.gouv.vitam.common.json;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidJsltTransformerException;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectJsltTransformationFailedException;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.exception.JsltTransformationFailedException;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Test;
 
@@ -50,13 +48,13 @@ public class JsltTransformerTest {
     public void testInvalidJsltTemplate() {
         String invalidTemplate = "{ \"name\": .name, \"age\": .age"; // Missing closing brace
         assertThatThrownBy(() -> JsltTransformer.validate(invalidTemplate))
-            .isInstanceOf(CollectInvalidJsltTransformerException.class)
+            .isInstanceOf(InvalidJstlTransformerException.class)
             .hasMessageStartingWith("Invalid JSLT template: Parse error: Encountered \"<EOF>\" at line 1, column 28.");
     }
 
     @Test
     public void testTransformOK()
-        throws CollectInvalidJsltTransformerException, InvalidParseOperationException, CollectJsltTransformationFailedException {
+        throws JsltTransformationFailedException, InvalidParseOperationException, InvalidJstlTransformerException {
         JsltTransformer jsltTransformer = new JsltTransformer(
             """
             {
@@ -94,7 +92,7 @@ public class JsltTransformerTest {
 
     @Test
     public void testTransformPreserveNull()
-        throws CollectInvalidJsltTransformerException, InvalidParseOperationException, CollectJsltTransformationFailedException {
+        throws InvalidJstlTransformerException, InvalidParseOperationException, JsltTransformationFailedException {
         JsltTransformer jsltTransformer = new JsltTransformer(
             """
             {
@@ -131,7 +129,7 @@ public class JsltTransformerTest {
     }
 
     @Test
-    public void testTransformKO() throws CollectInvalidJsltTransformerException {
+    public void testTransformKO() throws InvalidJstlTransformerException {
         JsltTransformer jsltTransformer = new JsltTransformer(
             """
             {
@@ -153,7 +151,7 @@ public class JsltTransformerTest {
                     """
                 )
             ))
-            .isInstanceOf(CollectJsltTransformationFailedException.class)
+            .isInstanceOf(JsltTransformationFailedException.class)
             .hasMessageContaining("No such variable 'unknown'");
     }
 }

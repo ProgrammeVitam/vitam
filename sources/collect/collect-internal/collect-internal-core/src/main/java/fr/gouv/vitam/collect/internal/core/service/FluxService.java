@@ -41,21 +41,21 @@ import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidJsltTransformerException;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectJsltTransformationFailedException;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.TempWorkspace;
 import fr.gouv.vitam.collect.internal.core.jsonl.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
-import fr.gouv.vitam.collect.internal.core.transformers.JsltTransformer;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.JsltTransformationFailedException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsltTransformer;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -531,9 +531,9 @@ public class FluxService {
                 }
             }
             return transformedJsonlMetadataFile;
-        } catch (CollectJsltTransformationFailedException e) {
+        } catch (JsltTransformationFailedException e) {
             throw new CollectInternalInvalidRequestException("Invalid JSLT transformation", e);
-        } catch (CollectInvalidJsltTransformerException e) {
+        } catch (InvalidJstlTransformerException e) {
             throw new CollectInternalServerSideException("JSLT transformation failed: " + e.getMessage(), e);
         }
     }

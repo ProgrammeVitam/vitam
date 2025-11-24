@@ -10,6 +10,9 @@
     "Description": {
       "type": "text"
     },
+    "TransformationRules": {
+      "enabled": false
+    },
     "CreationDate": {
       "type": "date",
       "format": "strict_date_optional_time"

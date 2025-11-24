@@ -53,6 +53,10 @@
             <artifactId>xml-resolver</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.schibsted.spt.data</groupId>
+            <artifactId>jslt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.owasp.antisamy</groupId>
             <artifactId>antisamy</artifactId>
             <exclusions>

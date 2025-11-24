@@ -24,17 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
-package fr.gouv.vitam.collect.internal.core.transformers;
+package fr.gouv.vitam.common.json;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.schibsted.spt.data.jslt.Expression;
 import com.schibsted.spt.data.jslt.JsltException;
 import com.schibsted.spt.data.jslt.Parser;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidJsltTransformerException;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectJsltTransformationFailedException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
+import fr.gouv.vitam.common.exception.JsltTransformationFailedException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -48,11 +46,11 @@ public class JsltTransformer {
 
     private final Expression compiledExpression;
 
-    public JsltTransformer(String jsltTemplate) throws CollectInvalidJsltTransformerException {
+    public JsltTransformer(String jsltTemplate) throws InvalidJstlTransformerException {
         this.compiledExpression = compile(jsltTemplate);
     }
 
-    public ObjectNode transform(JsonNode inputJson) throws CollectJsltTransformationFailedException {
+    public ObjectNode transform(JsonNode inputJson) throws JsltTransformationFailedException {
         try {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Transforming: '{}'", JsonHandler.unprettyPrint(inputJson));
@@ -62,20 +60,20 @@ public class JsltTransformer {
                 LOGGER.debug("Transformation result: '{}'", JsonHandler.unprettyPrint(result));
             }
             if (!result.isObject()) {
-                throw new CollectJsltTransformationFailedException(
+                throw new JsltTransformationFailedException(
                     "Invalid JSLT transformation. Expected JSON object result, got " + result.getNodeType()
                 );
             }
             return (ObjectNode) result;
         } catch (JsltException e) {
-            throw new CollectJsltTransformationFailedException(
+            throw new JsltTransformationFailedException(
                 "An error occurred during JSLT transformation: " + e.getMessage(),
                 e
             );
         }
     }
 
-    private static Expression compile(String jsltTemplate) throws CollectInvalidJsltTransformerException {
+    private static Expression compile(String jsltTemplate) throws InvalidJstlTransformerException {
         if (StringUtils.isBlank(jsltTemplate)) {
             throw new IllegalArgumentException("Jslt template cannot be empty");
         }
@@ -89,19 +87,16 @@ public class JsltTransformer {
                 .withFunctions(Collections.emptyList())
                 .compile();
         } catch (JsltException e) {
-            throw new CollectInvalidJsltTransformerException("Invalid JSLT template: " + e.getMessage(), e);
+            throw new InvalidJstlTransformerException("Invalid JSLT template: " + e.getMessage(), e);
         } catch (Exception e) {
-            throw new CollectInvalidJsltTransformerException(
+            throw new InvalidJstlTransformerException(
                 "An unexpected error occurred while validating JSLT: " + e.getMessage(),
                 e
             );
         }
     }
 
-    public static void validate(String jsltTemplate) throws CollectInvalidJsltTransformerException {
-        if (StringUtils.isBlank(jsltTemplate)) {
-            return;
-        }
+    public static void validate(String jsltTemplate) throws InvalidJstlTransformerException {
         compile(jsltTemplate);
     }
 

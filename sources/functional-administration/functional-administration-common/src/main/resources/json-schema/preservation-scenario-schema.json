@@ -40,6 +40,9 @@
     "Description": {
       "type": "string"
     },
+    "TransformationRules": {
+      "type": "string"
+    },
     "CreationDate": {
       "$ref": "#/definitions/date-opt-time"
     },

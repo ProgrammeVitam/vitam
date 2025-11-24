@@ -37,11 +37,13 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.DocumentAlreadyExistsException;
+import fr.gouv.vitam.common.exception.InvalidJstlTransformerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.json.JsltTransformer;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -235,6 +237,8 @@ public class PreservationScenarioService {
         functionalGriffinIdentifierValidation(listToImport);
 
         formatValidation(listToImport);
+
+        validateJslt(listToImport);
     }
 
     private void entryValidation(List<PreservationScenarioModel> listToImport) throws ReferentialException {
@@ -302,6 +306,15 @@ public class PreservationScenarioService {
             throw new ReferentialException(
                 String.format("List: %s does not exist in the database.", puidsToCheck.toString())
             );
+        }
+    }
+
+    private void validateJslt(List<PreservationScenarioModel> listToImport) throws InvalidJstlTransformerException {
+        for (PreservationScenarioModel scenario : listToImport) {
+            String transformationRules = scenario.getTransformationRules();
+            if (transformationRules != null) {
+                JsltTransformer.validate(transformationRules);
+            }
         }
     }
 

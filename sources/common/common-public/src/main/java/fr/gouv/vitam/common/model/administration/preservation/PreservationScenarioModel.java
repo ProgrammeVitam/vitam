@@ -60,6 +60,8 @@ public class PreservationScenarioModel {
 
     private static final String TAG_DEFAULT_GRIFFIN = "DefaultGriffin";
 
+    private static final String TAG_TRANSFORMATION_RULES = "TransformationRules";
+
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     @JsonAlias(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     private String id;
@@ -100,6 +102,9 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_DEFAULT_GRIFFIN)
     @Valid
     private DefaultGriffin defaultGriffin;
+
+    @JsonProperty(TAG_TRANSFORMATION_RULES)
+    private String transformationRules;
 
     public PreservationScenarioModel() {
         //empty  constructor
@@ -208,6 +213,14 @@ public class PreservationScenarioModel {
 
     public void setDefaultGriffin(DefaultGriffin defaultGriffin) {
         this.defaultGriffin = defaultGriffin;
+    }
+
+    public String getTransformationRules() {
+        return transformationRules;
+    }
+
+    public void setTransformationRules(String transformationRules) {
+        this.transformationRules = transformationRules;
     }
 
     @JsonIgnore
