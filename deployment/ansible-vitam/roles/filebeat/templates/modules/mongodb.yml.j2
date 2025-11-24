@@ -1,3 +1,4 @@
+#jinja2: lstrip_blocks: True
 # Module: mongodb
 # Docs: https://www.elastic.co/guide/en/beats/filebeat/7.17/filebeat-module-mongodb.html
 
@@ -6,8 +7,10 @@
   log:
     enabled: {{ filebeat.cots.mongodb_offer.mongos.enable_log | bool | lower if inventory_hostname in groups['hosts_mongos_offer'] else filebeat.cots.mongodb_data.mongos.enable_log | bool | lower }}
     var.paths:
-      - "{{ vitam_defaults.folder.root_path }}/log/mongos/mongo*.log"
+      - "{{ vitam_defaults.folder.root_path }}/log/mongos/mongos.log"
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-mongodb-mongos
       fields_under_root: true
       fields:
         kind: log
@@ -48,10 +51,14 @@
               - '2006-01-02T15:04:05.000Z07:00'
             test:
               - '2024-09-30T13:46:37.298+02:00'
+        {% if mongodb.drop_info_log | default(true) | bool %}
         - drop_event:
             when:
               equals:
                 log_level: "INFO"
+        {% endif %}
+        - drop_fields:
+            fields: ["fileset", "service"]
 {% endif %}
 
 {% if inventory_hostname in groups['hosts_mongoc_offer'] or inventory_hostname in groups['hosts_mongoc_data'] %}
@@ -59,8 +66,10 @@
   log:
     enabled: {{ filebeat.cots.mongodb_offer.mongoc.enable_log | bool | lower if inventory_hostname in groups['hosts_mongoc_offer'] else filebeat.cots.mongodb_data.mongoc.enable_log | bool | lower }}
     var.paths:
-      - "{{ vitam_defaults.folder.root_path }}/log/mongoc/mongo*.log"
+      - "{{ vitam_defaults.folder.root_path }}/log/mongoc/mongoc.log"
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-mongodb-mongoc
       fields_under_root: true
       fields:
         kind: log
@@ -101,10 +110,14 @@
               - '2006-01-02T15:04:05.000Z07:00'
             test:
               - '2024-09-30T13:46:37.298+02:00'
+        {% if mongodb.drop_info_log | default(true) | bool %}
         - drop_event:
             when:
               equals:
                 log_level: "INFO"
+        {% endif %}
+        - drop_fields:
+            fields: ["fileset", "service"]
 {% endif %}
 
 {% if inventory_hostname in groups['hosts_mongod_offer'] or inventory_hostname in groups['hosts_mongod_data'] %}
@@ -112,8 +125,10 @@
   log:
     enabled: {{ filebeat.cots.mongodb_offer.mongod.enable_log | bool | lower if inventory_hostname in groups['hosts_mongod_offer'] else filebeat.cots.mongodb_data.mongod.enable_log | bool | lower }}
     var.paths:
-      - "{{ vitam_defaults.folder.root_path }}/log/mongod/mongo*.log"
+      - "{{ vitam_defaults.folder.root_path }}/log/mongod/mongod.log"
     input:
+      type: filestream
+      id: {{ vitam_site_name }}-mongodb-mongod
       fields_under_root: true
       fields:
         kind: log
@@ -154,8 +169,12 @@
               - '2006-01-02T15:04:05.000Z07:00'
             test:
               - '2024-09-30T13:46:37.298+02:00'
+        {% if mongodb.drop_info_log | default(true) | bool %}
         - drop_event:
             when:
               equals:
                 log_level: "INFO"
+        {% endif %}
+        - drop_fields:
+            fields: ["fileset", "service"]
 {% endif %}
