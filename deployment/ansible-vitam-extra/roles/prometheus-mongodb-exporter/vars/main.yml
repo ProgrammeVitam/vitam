@@ -8,4 +8,4 @@ prometheus_mongodb_exporter_bin_path:    "{{ vitam_defaults.folder.root_path | d
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 
 vitamdbadmin: "{{ mongodb[mongo_cluster_name].localadmin.user }}"
-vitamdbpassword: "{{ mongodb[mongo_cluster_name].localadmin.password }}"
+vitamdbpassword: "{{ mongodb[mongo_cluster_name].localadmin.password | urlencode | regex_replace('/', '%2F') }}"
