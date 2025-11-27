@@ -4,6 +4,7 @@
   set_fact:
     mongos_list: []
     mongos_nodes: []
+  tags: update_mongodb_configuration
 
 - name: Compute the mongos server list
   set_fact:
