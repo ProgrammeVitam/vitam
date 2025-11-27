@@ -139,20 +139,24 @@ adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}
   password: {{ admin_basic_auth_password }}
 
+{% if vitam.metadata.isDataConsistencyAuditRunnable | default(false) | bool %}
 # Metadata Consistency Audit (Experimental / Not for Production)
-isDataConsistencyAuditRunnable: {{ vitam.metadata.isDataConsistencyAuditRunnable | default(false) }}
-enableDataConsistencyRectificationMode:  {{ vitam.metadata.enableDataConsistencyRectificationMode | default(false) }}
+isDataConsistencyAuditRunnable: true
+enableDataConsistencyRectificationMode: {{ vitam.metadata.enableDataConsistencyRectificationMode | default(false) }}
 dataConsistencyAuditOplogMaxSize: {{ vitam.metadata.dataConsistencyAuditOplogMaxSize | default(100) }}
 
 mongodShardsConf:
   dbUserName: {{ mongodb['mongo-data']['localadmin']['user'] }}
   dbPassword: {{ mongodb['mongo-data']['localadmin']['password'] }}
   mongoDbShards:
-{% for shard in groups['hosts_mongod_data'] %}
-  - shardName: shard{{ hostvars[shard]['mongo_shard_id']}}
+  {% for shard_id in groups['hosts_mongod_data'] | map('extract', hostvars, 'mongo_shard_id') | unique | sort %}
+  - shardName: shard{{ shard_id }}
     mongoDbNodes:
-  {% for server in groups['hosts_mongod_data'] %}
+    {% for server in groups['hosts_mongod_data'] %}
+      {% if hostvars[server]['mongo_shard_id'] == shard_id %}
     - dbHost: {{ hostvars[server]['ip_service'] }}
       dbPort: {{ mongodb.mongod_port }}
+      {% endif %}
+    {% endfor %}
   {% endfor %}
-{% endfor %}
+{% endif %}
