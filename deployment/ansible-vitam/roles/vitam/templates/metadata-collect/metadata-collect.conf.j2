@@ -124,19 +124,6 @@ adminBasicAuth:
 
 refreshElasticIndexPostBulkIndexing: {{ vitam.metadata_collect.refreshElasticIndexPostBulkIndexing | default(true) }}
 
-mongodShardsConf:
-  dbUserName: {{ mongodb['mongo-data']['localadmin']['user'] }}
-  dbPassword: {{ mongodb['mongo-data']['localadmin']['password'] }}
-  mongoDbShards:
-{% for shard in groups['hosts_mongod_data'] %}
-  - shardName: shard{{ hostvars[shard]['mongo_shard_id']}}
-    mongoDbNodes:
-  {% for server in groups['hosts_mongod_data'] %}
-    - dbHost: {{ hostvars[server]['ip_service'] }}
-      dbPort: {{ mongodb.mongod_port }}
-  {% endfor %}
-{% endfor %}
-
 {% if vitam_virtual_paths is defined and vitam_virtual_paths is not none %}
 # virtual Paths settings
 virtualPaths:
