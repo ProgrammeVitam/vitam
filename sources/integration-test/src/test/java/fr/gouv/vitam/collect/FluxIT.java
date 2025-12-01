@@ -156,6 +156,7 @@ public class FluxIT extends VitamRuleRunner {
     private static final String UNITS_TO_UPDATE = "collect/updateMetadata/units.json";
     private static final String UNITS_UPDATED_BY_CSV_PATH = "collect/updateMetadata/units_updated.json";
     private static final String METADATA_FILE = "collect/updateMetadata/metadata.csv";
+    private static final String METADATA_FILE_WITH_ID = "collect/updateMetadata/metadata_id.csv";
     private static final String ATTACHMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
 
     @Rule
@@ -1010,6 +1011,13 @@ public class FluxIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
+    public void should_update_metadata_csv_with_id() throws Exception {
+        ProjectDto projectDto = initProjectData();
+        testUpdateMetadataCsvWithId(projectDto);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void should_update_metadata_csv_ignoring_jslt_transformation() throws Exception {
         ProjectDto projectDto = initProjectData();
         projectDto.setTransformationRules(
@@ -1039,6 +1047,60 @@ public class FluxIT extends VitamRuleRunner {
             }
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(METADATA_FILE)) {
+                RequestResponse<JsonNode> response = client.updateUnitsWithCsvMetadata(
+                    vitamContext,
+                    transaction.getId(),
+                    inputStream
+                );
+                Assert.assertTrue(response.isOk());
+            }
+
+            final RequestResponseOK<JsonNode> unitsByTransaction = (RequestResponseOK<
+                    JsonNode
+                >) client.getUnitsByTransaction(
+                vitamContext,
+                transaction.getId(),
+                new SelectMultiQuery().getFinalSelect()
+            );
+
+            final JsonNode expectedUnits = JsonHandler.getFromFile(
+                PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_CSV_PATH)
+            );
+
+            JsonAssert.assertJsonEquals(
+                expectedUnits,
+                JsonHandler.toJsonNode(unitsByTransaction.getResults()),
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
+                    List.of(
+                        "[*]." + VitamFieldsHelper.id(),
+                        "[*]." + VitamFieldsHelper.unitups(),
+                        "[*]." + VitamFieldsHelper.object(),
+                        "[*]." + VitamFieldsHelper.allunitups(),
+                        "[*]." + VitamFieldsHelper.initialOperation(),
+                        "[*]." + VitamFieldsHelper.approximateCreationDate(),
+                        "[*]." + VitamFieldsHelper.batchId(),
+                        "[*]." + VitamFieldsHelper.approximateUpdateDate()
+                    )
+                )
+            );
+        }
+    }
+
+    private void testUpdateMetadataCsvWithId(ProjectDto projectDto) throws Exception {
+        try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto project = createProject(vitamContext, projectDto).orElseThrow();
+            final TransactionDto transaction = createTransaction(vitamContext, project.getId());
+
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(UNITS_TO_UPDATE)) {
+                final List<Unit> units = JsonHandler.getFromInputStream(inputStream, List.class, Unit.class);
+                for (Unit unit : units) {
+                    unit.put(Unit.OPI, transaction.getId());
+                }
+                MetadataCollections.UNIT.<Unit>getCollection().insertMany(units);
+                MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
+            }
+
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(METADATA_FILE_WITH_ID)) {
                 RequestResponse<JsonNode> response = client.updateUnitsWithCsvMetadata(
                     vitamContext,
                     transaction.getId(),

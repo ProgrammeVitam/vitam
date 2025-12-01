@@ -49,6 +49,7 @@ import java.util.Optional;
 
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.OBJECT_FIlES_HEADER;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.PREFIX_ID_HEADER;
 
 public class CsvHelper {
 
@@ -109,10 +110,23 @@ public class CsvHelper {
             return Optional.empty();
         }
 
-        String uploadPath = FilenameUtils.separatorsToUnix(record.get(FILE_HEADER));
+        String uploadPath = null;
+        String id = null;
+        String valueToCheck;
+        String header = FILE_HEADER;
+        if (headerNames.contains(FILE_HEADER)) {
+            uploadPath = FilenameUtils.separatorsToUnix(record.get(FILE_HEADER));
+            valueToCheck = uploadPath;
+        } else {
+            id = record.get(PREFIX_ID_HEADER);
+            valueToCheck = id;
+            header = PREFIX_ID_HEADER;
+        }
+
         if (
-            hasMissingUploadPath(csvErrorAccumulator, uploadPath, csvRecordNumberIncludingHeader) ||
-            hasIllegalUploadPath(csvErrorAccumulator, uploadPath, csvRecordNumberIncludingHeader)
+            hasMissingUploadPath(csvErrorAccumulator, valueToCheck, csvRecordNumberIncludingHeader, header) ||
+            (uploadPath != null &&
+                hasIllegalUploadPath(csvErrorAccumulator, uploadPath, csvRecordNumberIncludingHeader))
         ) {
             return Optional.empty();
         }
@@ -128,7 +142,8 @@ public class CsvHelper {
                     isFirstUpload,
                     csvErrorAccumulator,
                     csvRecordNumberIncludingHeader,
-                    uploadPath
+                    valueToCheck,
+                    header
                 )
             ) {
                 return Optional.empty();
@@ -139,7 +154,8 @@ public class CsvHelper {
                     csvErrorAccumulator,
                     objectFilesPath,
                     csvRecordNumberIncludingHeader,
-                    uploadPath
+                    valueToCheck,
+                    header
                 )
             ) {
                 return Optional.empty();
@@ -151,6 +167,7 @@ public class CsvHelper {
             csvErrorAccumulator,
             csvToJsonConverter,
             uploadPath,
+            id,
             objectFilesPath,
             explicitAttachementMode,
             csvRecordNumberIncludingHeader
@@ -179,13 +196,14 @@ public class CsvHelper {
     private static boolean hasMissingUploadPath(
         CsvErrorAccumulator csvErrorAccumulator,
         String uploadPath,
-        long csvRecordNumberIncludingHeader
+        long csvRecordNumberIncludingHeader,
+        String header
     ) throws CollectInvalidCsvFormatException {
         if (StringUtils.isNotBlank(uploadPath)) {
             return false;
         }
         csvErrorAccumulator.report(
-            "Invalid CSV record at line " + csvRecordNumberIncludingHeader + ": Empty " + FILE_HEADER
+            "Invalid CSV record at line " + csvRecordNumberIncludingHeader + ": Empty " + header
         );
         return true;
     }
@@ -213,16 +231,17 @@ public class CsvHelper {
         boolean isFirstUpload,
         CsvErrorAccumulator csvErrorAccumulator,
         long csvRecordNumberIncludingHeader,
-        String uploadPath
+        String uploadPathOrGuid,
+        String header
     ) throws CollectInvalidCsvFormatException {
         if (isFirstUpload) {
             return false;
         }
         csvErrorAccumulator.report(
             String.format(
-                "Invalid CSV record at line %d (File=\"%s\"): %s field not supported for update operations",
+                "Invalid CSV record at line %d (" + header + "=\"%s\"): %s field not supported for update operations",
                 csvRecordNumberIncludingHeader,
-                sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH),
+                sanitizeStringForLog(uploadPathOrGuid, MAX_PATH_LENGTH),
                 OBJECT_FIlES_HEADER
             )
         );
@@ -233,7 +252,8 @@ public class CsvHelper {
         CsvErrorAccumulator csvErrorAccumulator,
         String objectFilesPath,
         long csvRecordNumberIncludingHeader,
-        String uploadPath
+        String uploadPathOrGuid,
+        String header
     ) throws CollectInvalidCsvFormatException {
         String normalizedObjectFilesPath = FilenameUtils.normalize(objectFilesPath);
         if (FilenameUtils.equals(objectFilesPath, normalizedObjectFilesPath)) {
@@ -242,9 +262,9 @@ public class CsvHelper {
 
         csvErrorAccumulator.report(
             String.format(
-                "Invalid CSV record at line %d (File=\"%s\"): %s",
+                "Invalid CSV record at line %d (" + header + "=\"%s\"): %s",
                 csvRecordNumberIncludingHeader,
-                sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH),
+                sanitizeStringForLog(uploadPathOrGuid, MAX_PATH_LENGTH),
                 "Invalid '" +
                 OBJECT_FIlES_HEADER +
                 "' value '" +
@@ -260,18 +280,19 @@ public class CsvHelper {
         CsvErrorAccumulator csvErrorAccumulator,
         CsvToJsonConverter csvToJsonConverter,
         String uploadPath,
+        String id,
         String objectFilesPath,
         boolean explicitAttachementMode,
         long csvRecordNumberIncludingHeader
     ) throws CollectInvalidCsvFormatException {
         try {
-            boolean isTopLevelFolder = !uploadPath.contains(File.separator);
+            boolean isTopLevelFolder = uploadPath != null && !uploadPath.contains(File.separator);
             ObjectNode unitJson = csvToJsonConverter.convertCsvRecordToJson(
                 record,
                 isTopLevelFolder,
                 explicitAttachementMode
             );
-            return Optional.of(new CollectJsonMetadataLine(uploadPath, objectFilesPath, null, unitJson));
+            return Optional.of(new CollectJsonMetadataLine(uploadPath, id, objectFilesPath, null, unitJson));
         } catch (CollectInvalidCsvFormatException e) {
             csvErrorAccumulator.report(
                 String.format(

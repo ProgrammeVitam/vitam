@@ -60,6 +60,7 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEAD
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.IMPLICIT_0_ARRAY_INDEX;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.IsObjectFilesField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.MAX_HEADER_NAME_LENGTH;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.PREFIX_ID_HEADER;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.RULE_FIELD_NAME;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.SEPARATOR_CHAR;
@@ -67,6 +68,7 @@ import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.buildPath
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.equalsOrStartsWith;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isContentField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isFileField;
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isIdField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.isManagementField;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.matchesPattern;
 import static fr.gouv.vitam.collect.internal.core.csv.FieldNameValidationUtils.validateRegularVitamFieldName;
@@ -88,6 +90,9 @@ public class CsvMetadataValidator {
         checkTooManyHeaderNames(headerNames);
         checkDuplicateHeaderNames(headerNames);
         checkRequiredHeaderNames(headerNames);
+        if (!isFirstUpload) {
+            checkFileAndIdHeaderNames(headerNames);
+        }
 
         // Per-header errors
         try (CsvHeaderValidationManager csvHeaderValidationManager = new CsvHeaderValidationManager(headerNames)) {
@@ -123,14 +128,22 @@ public class CsvMetadataValidator {
     }
 
     private void checkRequiredHeaderNames(List<String> headerNames) throws CollectInvalidCsvFormatException {
-        if (!headerNames.contains(FILE_HEADER)) {
+        if (!headerNames.contains(FILE_HEADER) && !headerNames.contains(PREFIX_ID_HEADER)) {
             throw new CollectInvalidCsvFormatException(
-                "Invalid header names. Missing required '" + FILE_HEADER + "' header name"
+                "Invalid header names. Missing required '" + FILE_HEADER + "' or '" + PREFIX_ID_HEADER + "' header name"
             );
         }
 
         if (headerNames.size() < MIN_HEADER_COUNT) {
             throw new CollectInvalidCsvFormatException("Invalid header names. No header to set");
+        }
+    }
+
+    private void checkFileAndIdHeaderNames(List<String> headerNames) throws CollectInvalidCsvFormatException {
+        if (headerNames.contains(FILE_HEADER) && headerNames.contains(PREFIX_ID_HEADER)) {
+            throw new CollectInvalidCsvFormatException(
+                "Both header names 'File' and '_id' are present. Only one header among both is allowed."
+            );
         }
     }
 
@@ -160,11 +173,12 @@ public class CsvMetadataValidator {
                 !isContentField(headerName) &&
                 !isManagementField(headerName) &&
                 !isFileField(headerName) &&
+                !isIdField(headerName) &&
                 !IsObjectFilesField(headerName)
             ) {
                 csvHeaderValidationManager.report(
                     headerName,
-                    "Only accepted names are 'File', 'ObjectFiles', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'"
+                    "Only accepted names are 'File', '_id', 'ObjectFiles', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'"
                 );
             }
         }

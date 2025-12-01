@@ -323,7 +323,10 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(BAD_REQUEST.getStatusCode())
-                    .body("message", Matchers.equalTo("Invalid header names. Missing required 'File' header name"));
+                    .body(
+                        "message",
+                        Matchers.equalTo("Invalid header names. Missing required 'File' or '_id' header name")
+                    );
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
             } catch (IOException e) {

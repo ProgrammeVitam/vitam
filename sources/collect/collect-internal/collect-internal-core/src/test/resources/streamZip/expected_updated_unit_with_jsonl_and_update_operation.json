@@ -1,6 +1,7 @@
 [
   {
     "File": "my_file1.txt",
+    "_id":null,
     "ObjectFiles":null,
     "Selector":null,
     "UnitContent": {
@@ -12,6 +13,7 @@
   },
   {
     "File": "my_file2.txt",
+    "_id":null,
     "ObjectFiles":null,
     "Selector":null,
     "UnitContent": {
@@ -24,6 +26,7 @@
   },
   {
     "File": "my_file3.txt",
+    "_id":null,
     "ObjectFiles":null,
     "Selector":null,
     "UnitContent": {
@@ -35,6 +38,7 @@
   },
   {
     "File": "my_file4.txt",
+    "_id":null,
     "ObjectFiles":null,
     "Selector":null,
     "UnitContent": {
@@ -48,6 +52,7 @@
   },
   {
     "File": "my_file5.txt",
+    "_id":null,
     "ObjectFiles":null,
     "Selector":null,
     "UnitContent": {
@@ -64,6 +69,7 @@
   },
   {
     "File": "my_file6.txt",
+    "_id":null,
     "ObjectFiles":null,
     "Selector":null,
     "UnitContent": {

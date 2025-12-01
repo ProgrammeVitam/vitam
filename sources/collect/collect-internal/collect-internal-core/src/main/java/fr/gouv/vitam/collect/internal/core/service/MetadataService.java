@@ -347,6 +347,8 @@ public class MetadataService {
         throws InvalidCreateOperationException {
         if (jsonMetadataLine.getFile() != null) {
             return QueryHelper.term(VitamFieldsHelper.uploadPath(), jsonMetadataLine.getFile());
+        } else if (jsonMetadataLine.getId() != null) {
+            return QueryHelper.term(VitamFieldsHelper.id(), jsonMetadataLine.getId());
         }
 
         Map<String, ValueNode> selectorEntries = jsonMetadataLine.getSelector().getEntries();

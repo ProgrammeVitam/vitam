@@ -520,7 +520,10 @@ public class FluxServiceTest {
                 CollectInternalException.class,
                 () -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID, null, null)
             );
-            Assert.assertEquals("Invalid header names. Missing required 'File' header name", exception.getMessage());
+            Assert.assertEquals(
+                "Invalid header names. Missing required 'File' or '_id' header name",
+                exception.getMessage()
+            );
         }
 
         // Then

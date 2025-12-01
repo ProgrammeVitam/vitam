@@ -230,7 +230,7 @@ public class CsvToJsonConverter {
         SortedMap<String, String> flatFieldValueMap = new TreeMap<>();
         List<String> mainHeaderNames = headerNames
             .stream()
-            // Skip "File" & "ObjectFiles" header
+            // Skip "File|_id" & "ObjectFiles" header
             .filter(headerName -> isManagementField(headerName) || isContentField(headerName))
             // Skip special multi-lang headers (Content.Title[.*] & Content.Description[.*])
             .filter(headerName -> !isContentTitleField(headerName) && !isContentDescriptionField(headerName))
