@@ -57,14 +57,17 @@
     - log
     - script
     - tmp
-  notify:
-    - "mongos - restart service"
-  tags:
-    - update_mongodb_configuration
+  notify: "mongos - restart service"
+  tags: update_mongodb_configuration
+
+- name: Reset mongoc server list
+  set_fact:
+    mongoc_list: []
+  tags: update_mongodb_configuration
 
 - name: Compute the mongoc server list
   set_fact:
-    mongoc_list: "{{ mongoc_list | default([]) + [ item ] }}"
+    mongoc_list: "{{ mongoc_list + [ item ] }}"
   when: mongo_cluster_name == hostvars[item]['mongo_cluster_name']
   with_items: "{{ groups[mongoc] }}"
   tags: update_mongodb_configuration
@@ -76,10 +79,8 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  notify:
-    - "mongos - restart service"
-  tags:
-    - update_mongodb_configuration
+  notify: "mongos - restart service"
+  tags: update_mongodb_configuration
 
 - name: Enable logrotate for vitam-mongos
   template:
@@ -105,8 +106,7 @@
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
-  tags:
-    - update_mongodb_configuration
+  tags: update_mongodb_configuration
 
 - name: Deploy consul agent service declaration
   template:
