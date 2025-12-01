@@ -31,6 +31,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
@@ -88,7 +89,7 @@ public class DeleteGotVersionsReportRepository {
             .map(DeleteGotVersionsReportRepository::modelToWriteDocument)
             .collect(Collectors.toList());
 
-        collection.bulkWrite(deleteGotVersionsModel);
+        collection.bulkWrite(deleteGotVersionsModel, new BulkWriteOptions().ordered(false));
     }
 
     private static WriteModel<Document> modelToWriteDocument(DeleteGotVersionsReportEntry model) {

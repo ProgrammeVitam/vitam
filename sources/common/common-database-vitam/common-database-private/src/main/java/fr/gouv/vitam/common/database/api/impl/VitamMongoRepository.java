@@ -115,7 +115,7 @@ public class VitamMongoRepository implements VitamRepository {
             .map(InsertOneModel::new)
             .collect(Collectors.toList());
         try {
-            collection.bulkWrite(insertOneModels);
+            collection.bulkWrite(insertOneModels, new BulkWriteOptions().ordered(false));
         } catch (MongoException e) {
             throw new DatabaseException(e);
         }

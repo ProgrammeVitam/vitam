@@ -30,6 +30,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOneModel;
@@ -119,7 +120,7 @@ public class BulkUpdateUnitMetadataReportRepository extends ReportCommonReposito
             .map(BulkUpdateUnitMetadataReportRepository::modelToWriteDocument)
             .collect(Collectors.toList());
 
-        collection.bulkWrite(preservationDocument);
+        collection.bulkWrite(preservationDocument, new BulkWriteOptions().ordered(false));
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {

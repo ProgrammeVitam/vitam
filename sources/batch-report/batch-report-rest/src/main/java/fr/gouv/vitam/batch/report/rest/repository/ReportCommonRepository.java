@@ -27,6 +27,7 @@
 package fr.gouv.vitam.batch.report.rest.repository;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
@@ -79,7 +80,7 @@ public abstract class ReportCommonRepository {
                 )
             );
         }
-        collection.bulkWrite(updates);
+        collection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
     }
 
     /**
