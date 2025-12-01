@@ -24,6 +24,7 @@ pipeline {
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
+        NVD_API_KEY = credentials("nvd-api-key")
         ES_VERSION="8.18.0"
         MONGO_VERSION="8.0.8"
     }
@@ -202,7 +203,7 @@ pipeline {
                             def mvnCmd = "${env.MVN_COMMAND} -f pom.xml clean verify -Dspotless.check.skip"
                             if (env.ADD_OWASP.toBoolean()) {
                                 // OWASP Analysis
-                                mvnCmd += " org.owasp:dependency-check-maven:aggregate"
+                                mvnCmd += " -DnvdApiServerId=nvd org.owasp:dependency-check-maven:aggregate"
                             }
                             if (env.ADD_SONAR.toBoolean()) {
                                 // Sonar Analysis
