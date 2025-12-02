@@ -337,10 +337,10 @@ public class RestoreBackupServiceTest {
         );
         // then
         assertThat(model).isNotNull();
-        assertThat(model.getMetadatas()).isNotNull();
-        assertThat(model.getMetadatas().get("_id")).isEqualTo("aeaqaaaaaaft45swaaxg2albfwxhlfiaaaba");
+        assertThat(model.getMetadata()).isNotNull();
+        assertThat(model.getMetadata().get("_id")).isEqualTo("aeaqaaaaaaft45swaaxg2albfwxhlfiaaaba");
         assertThat(model.getLifecycle()).isNotNull();
-        assertThat(model.getMetadatas().get("_id")).isEqualTo("aeaqaaaaaaft45swaaxg2albfwxhlfiaaaba");
+        assertThat(model.getMetadata().get("_id")).isEqualTo("aeaqaaaaaaft45swaaxg2albfwxhlfiaaaba");
         assertThat(model.getOffset()).isEqualTo(100L);
     }
 
@@ -380,16 +380,16 @@ public class RestoreBackupServiceTest {
         );
         // then
         assertThat(model).isNotNull();
-        assertThat(model.getMetadatas()).isNotNull();
-        assertThat(model.getMetadatas().get("_id")).isEqualTo("aebaaaaaaaft45swaaxg2albfzawqoaaaaaq");
+        assertThat(model.getMetadata()).isNotNull();
+        assertThat(model.getMetadata().get("_id")).isEqualTo("aebaaaaaaaft45swaaxg2albfzawqoaaaaaq");
         assertThat(model.getLifecycle()).isNotNull();
-        assertThat(model.getMetadatas().get("_id")).isEqualTo("aebaaaaaaaft45swaaxg2albfzawqoaaaaaq");
+        assertThat(model.getMetadata().get("_id")).isEqualTo("aebaaaaaaaft45swaaxg2albfzawqoaaaaaq");
         assertThat(model.getOffset()).isEqualTo(100L);
     }
 
     @RunWithCustomExecutor
     @Test
-    public void should_get_null_when_loading_and_storage_returns_file_unit_without_metadata() throws Exception {
+    public void should_fail_when_loading_and_storage_returns_file_unit_without_metadata() throws Exception {
         // given
         when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
             DEFAULT_OFFER
@@ -413,21 +413,22 @@ public class RestoreBackupServiceTest {
             )
         );
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
-        // when
-        MetadataBackupModel model = restoreBackupService.loadData(
-            VitamConfiguration.getDefaultStrategy(),
-            DEFAULT_OFFER,
-            MetadataCollections.UNIT,
-            "100.json",
-            100L
-        );
-        // then
-        assertThat(model).isNull();
+        // when / then
+        assertThatThrownBy(
+            () ->
+                restoreBackupService.loadData(
+                    VitamConfiguration.getDefaultStrategy(),
+                    DEFAULT_OFFER,
+                    MetadataCollections.UNIT,
+                    "100.json",
+                    100L
+                )
+        ).hasMessageContaining("Invalid data to reconstruct.");
     }
 
     @RunWithCustomExecutor
     @Test
-    public void should_get_null_when_loading_and_storage_returns_file_unit_without_lfc() throws Exception {
+    public void should_fail_when_loading_and_storage_returns_file_unit_without_lfc() throws Exception {
         // given
         when(storageClientFactory.getClient().getReferentOffer(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
             DEFAULT_OFFER
@@ -451,16 +452,17 @@ public class RestoreBackupServiceTest {
             )
         );
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
-        // when
-        MetadataBackupModel model = restoreBackupService.loadData(
-            VitamConfiguration.getDefaultStrategy(),
-            DEFAULT_OFFER,
-            MetadataCollections.UNIT,
-            "100.json",
-            100L
-        );
-        // then
-        assertThat(model).isNull();
+        // when / then
+        assertThatThrownBy(
+            () ->
+                restoreBackupService.loadData(
+                    VitamConfiguration.getDefaultStrategy(),
+                    DEFAULT_OFFER,
+                    MetadataCollections.UNIT,
+                    "100.json",
+                    100L
+                )
+        ).hasMessageContaining("Invalid data to reconstruct.");
     }
 
     @RunWithCustomExecutor

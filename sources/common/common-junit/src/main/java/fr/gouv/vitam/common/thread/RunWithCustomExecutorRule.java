@@ -35,8 +35,10 @@ import org.junit.runners.model.Statement;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Junit Test rule used to run tests with a given {@link Executor} ; such tests should be annotated with the
@@ -76,8 +78,9 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
     @Override
     public Statement apply(Statement base, Description description) {
         // Restricts the rule application to the tests annotated with the relevant annotation
-        if (description.getAnnotation(RunWithCustomExecutor.class) != null) {
-            return new RunInVitamThreadStatement(base);
+        RunWithCustomExecutor annotation = description.getAnnotation(RunWithCustomExecutor.class);
+        if (annotation != null) {
+            return new RunInVitamThreadStatement(base, annotation.timeout());
         } else {
             return base;
         }
@@ -94,9 +97,11 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
     private class RunInVitamThreadStatement extends Statement {
 
         private final Statement baseStatement;
+        private final long timeout;
 
-        public RunInVitamThreadStatement(Statement base) {
+        public RunInVitamThreadStatement(Statement base, long timeout) {
             baseStatement = base;
+            this.timeout = timeout;
         }
 
         @Override
@@ -112,8 +117,13 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
                     },
                     executor
                 );
-                run.join();
-            } catch (CompletionException e) {
+
+                if (timeout != 0) {
+                    run.get(timeout, TimeUnit.MILLISECONDS);
+                } else {
+                    run.get();
+                }
+            } catch (ExecutionException e) {
                 throw e.getCause();
             }
         }

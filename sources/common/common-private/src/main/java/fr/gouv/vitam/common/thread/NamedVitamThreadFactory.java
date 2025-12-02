@@ -24,22 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.common.thread;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import fr.gouv.vitam.common.model.VitamSession;
 
-/**
- * Junit Test method annotation used to run the associated test in a specific Thread ({@link RunWithCustomExecutorRule}.
- * Mainly designed to run Tests inside VitamThreads
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.METHOD, ElementType.TYPE })
-public @interface RunWithCustomExecutor {
-    /**
-     * Equivalent of @Test(timeout=<timeout_in_ms>) for running tests with a VitamThread.
-     */
-    long timeout() default 0L;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class NamedVitamThreadFactory implements ThreadFactory {
+
+    private final AtomicInteger threadIndex = new AtomicInteger(0);
+    private final String baseName;
+
+    public NamedVitamThreadFactory(String baseName) {
+        this.baseName = baseName;
+    }
+
+    @Override
+    public Thread newThread(Runnable runnable) {
+        VitamSession initialVitamSession = VitamThreadUtils.getVitamSession();
+
+        VitamThreadFactory.VitamThread thread = (VitamThreadFactory.VitamThread) VitamThreadFactory.getInstance()
+            .newThread(() -> {
+                VitamThreadUtils.getVitamSession().mutateFrom(initialVitamSession);
+                runnable.run();
+            });
+
+        thread.setName(baseName + "-" + initialVitamSession.getTenantId() + "-" + threadIndex.getAndIncrement());
+        return thread;
+    }
 }
