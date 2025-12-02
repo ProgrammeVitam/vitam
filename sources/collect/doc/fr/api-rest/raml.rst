@@ -2,7 +2,7 @@ API Rest
 ########
 
 GET est utilisé pour generer un ID de transaction
-    
+
 GET, /v1/transaction
 Request:
 	Headers:
@@ -27,5 +27,3 @@ Response:
 	HTTP status code 401: Non autorisée, l'authentification par erreur
 	HTTP status code 404: Introuvable, ressource demandée n'existe pas
 	HTTP status code 400: id de la transaction non trouvée
-
-

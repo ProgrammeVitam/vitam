@@ -7,4 +7,4 @@ Functional administration
    introduction.rst
    admin-functional-dat.rst
    admin-functional-common.rst
-   admin-functional-client.rst   
+   admin-functional-client.rst

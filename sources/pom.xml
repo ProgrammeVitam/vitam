@@ -41,7 +41,6 @@
         <module>storage</module>
         <module>metadata</module>
         <module>functional-administration</module>
-        <module>technical-administration</module>
         <module>ihm-demo</module>
         <module>integration-test</module>
         <module>ihm-recette</module>
