@@ -10,6 +10,24 @@
     gpgcheck: true
     enabled: true
 
+- block:
+    - name: Install Python 3 and pip3 on CentOS 7
+      yum:
+        name:
+          - python36
+          - python36-pip
+        state: present
+
+    - name: Create pip symlink to pip3 on CentOS 7
+      file:
+        src: /usr/bin/pip3.6
+        dest: /usr/bin/pip
+        state: link
+        force: yes
+  when:
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "7"
+
 - name: Install docker packages for RedHat family
   package:
     name:
@@ -28,6 +46,14 @@
 - name: Install Docker SDK package for RedHat family
   pip:
     name: "{{ 'docker-py' if ansible_python_version == '2.6' else 'docker' }}"
+
+- name: Ensure requests 2.31.0 is installed for system Python
+  pip:
+    name: "requests==2.31.0"
+    executable: pip3
+  when:
+    - ansible_distribution != "CentOS"
+    - ansible_distribution_major_version != "7"
 
   # KWA : check if still useful with newer docker versions
 - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
