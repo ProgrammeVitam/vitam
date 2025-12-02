@@ -132,7 +132,7 @@ public class VitamMongoRepository implements VitamRepository {
             )
             .collect(Collectors.toList());
         try {
-            collection.bulkWrite(replaceOneModels);
+            collection.bulkWrite(replaceOneModels, new BulkWriteOptions().ordered(false));
         } catch (MongoException e) {
             throw new DatabaseException(e);
         }
