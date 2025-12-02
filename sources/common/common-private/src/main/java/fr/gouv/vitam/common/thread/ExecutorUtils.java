@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.thread;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -39,6 +40,13 @@ public final class ExecutorUtils {
     }
 
     public static ThreadPoolExecutor createScalableBatchExecutorService(int maxBatchThreadPoolSize) {
+        return createScalableBatchExecutorService(maxBatchThreadPoolSize, VitamThreadFactory.getInstance());
+    }
+
+    public static ThreadPoolExecutor createScalableBatchExecutorService(
+        int maxBatchThreadPoolSize,
+        ThreadFactory threadFactory
+    ) {
         // Do not use a corePoolSize < maximumPoolSize with a LinkedBlockingQueue based queue
         // Otherwise, maximumPoolSize will never be reached
         // See https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html
@@ -48,7 +56,7 @@ public final class ExecutorUtils {
             1L,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
-            VitamThreadFactory.getInstance()
+            threadFactory
         );
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         return threadPoolExecutor;

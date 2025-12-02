@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.reconstruction.model.MetadataBackupModel;
 import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
@@ -142,15 +143,7 @@ public class RestoreBackupService {
         MetadataCollections collection,
         String filename,
         long offset
-    ) throws StorageNotFoundException {
-        LOGGER.info(
-            String.format(
-                "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
-                filename,
-                collection.name(),
-                strategy
-            )
-        );
+    ) {
         InputStream inputStream = null;
         try {
             DataCategory type;
@@ -169,17 +162,30 @@ public class RestoreBackupService {
                 inputStream,
                 MetadataBackupModel.class
             );
-            if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
-                metadataBackupModel.setOffset(offset);
-                return metadataBackupModel;
+            if (metadataBackupModel.getMetadata() == null || metadataBackupModel.getLifecycle() == null) {
+                LOGGER.error("Invalid data model: " + JsonHandler.unprettyPrint(metadataBackupModel));
+                throw new VitamRuntimeException("Invalid data to reconstruct.");
             }
+            metadataBackupModel.setOffset(offset);
+            return metadataBackupModel;
+        } catch (StorageNotFoundException ex) {
+            // 2 possibilities :
+            // - File have never been written to offer (atomic commit bug in offer. Should be fixed in dedicated bug)
+            // - File have been deleted meanwhile (it's ok to skip)
+            LOGGER.warn(
+                String.format(
+                    "[Reconstruction]: Could not find file {%s} for the collection {%s} on the tenant {%s}. Corrupted file (atomicity bug) OR eliminated? ",
+                    filename,
+                    collection,
+                    VitamThreadUtils.getVitamSession().getTenantId()
+                )
+            );
+            return null;
         } catch (InvalidParseOperationException e) {
-            throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
+            throw new VitamRuntimeException("An exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);
         }
-
-        return null;
     }
 
     public InputStream loadData(String strategy, String referentOffer, DataCategory category, String filename)

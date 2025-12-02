@@ -22,6 +22,12 @@ transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinut
 {% if primary_site | lower != "true" %}
 # Reconstruction cache duration (in minutes)
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMetricsCacheDurationInMinutes | default(15) }}
+# Concurrent reconstruction threads
+reconstructionPoolSize: {{ vitam.metadata.reconstructionPoolSize | default(16) }}
+# Reconstruction bulk size
+reconstructionBatchSize: {{ vitam.metadata.reconstructionBatchSize | default(1000) }}
+# Timeout for batch metadata loading from storage offers
+reconstructionBatchLoadingTimeoutInSeconds: {{ vitam.metadata.reconstructionBatchLoadingTimeoutInSeconds | default(600) }}
 {% endif %}
 
 refreshElasticIndexPostBulkIndexing: {{ vitam.metadata.refreshElasticIndexPostBulkIndexing | default(true) }}
