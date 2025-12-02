@@ -101,6 +101,15 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     @JsonProperty("refreshElasticIndexPostBulkIndexing")
     private Boolean refreshElasticIndexPostBulkIndexing;
 
+    @JsonProperty("reconstructionPoolSize")
+    private int reconstructionPoolSize = 16;
+
+    @JsonProperty("reconstructionBatchSize")
+    private int reconstructionBatchSize = 1000;
+
+    @JsonProperty("reconstructionBatchLoadingTimeoutInSeconds")
+    private int reconstructionBatchLoadingTimeoutInSeconds = 600;
+
     /**
      * MetaDataConfiguration constructor
      *
@@ -436,5 +445,34 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setRefreshElasticIndexPostBulkIndexing(Boolean refreshElasticIndexPostBulkIndexing) {
         this.refreshElasticIndexPostBulkIndexing = refreshElasticIndexPostBulkIndexing;
+    }
+
+    public int getReconstructionPoolSize() {
+        return reconstructionPoolSize;
+    }
+
+    public MetaDataConfiguration setReconstructionPoolSize(int reconstructionPoolSize) {
+        this.reconstructionPoolSize = reconstructionPoolSize;
+        return this;
+    }
+
+    public int getReconstructionBatchSize() {
+        return reconstructionBatchSize;
+    }
+
+    public MetaDataConfiguration setReconstructionBatchSize(int reconstructionBatchSize) {
+        this.reconstructionBatchSize = reconstructionBatchSize;
+        return this;
+    }
+
+    public int getReconstructionBatchLoadingTimeoutInSeconds() {
+        return reconstructionBatchLoadingTimeoutInSeconds;
+    }
+
+    public MetaDataConfiguration setReconstructionBatchLoadingTimeoutInSeconds(
+        int reconstructionBatchLoadingTimeoutInSeconds
+    ) {
+        this.reconstructionBatchLoadingTimeoutInSeconds = reconstructionBatchLoadingTimeoutInSeconds;
+        return this;
     }
 }
