@@ -59,16 +59,24 @@ import fr.gouv.vitam.common.json.JsltTransformer;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.LevelType;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.model.FileParams;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceCollectClientFactory;
+import fr.gouv.vitam.workspace.common.BulkMoveEntry;
+import fr.gouv.vitam.workspace.common.BulkMoveRequest;
 import jakarta.annotation.Nullable;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.CollectionUtils;
@@ -965,7 +973,8 @@ public class FluxService {
                 Optional<FormatIdentifierResponse> formatIdentifierResponseOpt = collectService.detectFileFormat(
                     binaryFile
                 );
-                DigestWithSize binaryInfo = writeObjectToWorkspace(transactionId, binaryFile, newFilename);
+                String batchId = VitamThreadUtils.getVitamSession().getRequestId();
+                DigestWithSize binaryInfo = writeObjectToWorkspace(batchId, binaryFile, newFilename);
                 String originatingAgency = null;
                 if (
                     projectModel.getManifestContext() != null &&
@@ -1107,7 +1116,7 @@ public class FluxService {
         unitToWriteWriter.addEntry(new JsonLineModel(unit.getId(), level, unitJson));
     }
 
-    private DigestWithSize writeObjectToWorkspace(String transactionId, File fileToWrite, String fileName)
+    private DigestWithSize writeObjectToWorkspace(String batchId, File fileToWrite, String fileName)
         throws IOException, CollectInternalException {
         try (
             BoundedInputStream countingInputStream = BoundedInputStream.builder()
@@ -1115,7 +1124,7 @@ public class FluxService {
                 .get()
         ) {
             String digest = collectService.pushStreamToWorkspace(
-                transactionId,
+                batchId,
                 countingInputStream,
                 CONTENT_FOLDER.concat(File.separator).concat(fileName)
             );
@@ -1130,6 +1139,66 @@ public class FluxService {
             try (InputStream is = new FileInputStream(jsonlMetadataFile)) {
                 metadataService.updateUnitsWithJsonlMetadataFile(transactionId, is);
             }
+        }
+    }
+
+    public void moveObjectsFromBatchToTransaction(String batchId, String transactionId)
+        throws CollectInternalException {
+        // Move files from batch folder to transaction folder using bulkMove
+        try (WorkspaceClient workspaceClient = WorkspaceCollectClientFactory.getInstance().getClient()) {
+            if (
+                workspaceClient.isExistingContainer(batchId) &&
+                workspaceClient.isExistingFolder(batchId, CONTENT_FOLDER)
+            ) {
+                // Get list of files in the batch folder
+                RequestResponse<Map<String, FileParams>> filesResponse = workspaceClient.getFilesWithParamsFromFolder(
+                    batchId,
+                    CONTENT_FOLDER
+                );
+                if (filesResponse.isOk()) {
+                    Map<String, FileParams> files =
+                        ((RequestResponseOK<Map<String, FileParams>>) filesResponse).getFirstResult();
+                    if (!files.isEmpty()) {
+                        // Create transaction container and folder if they don't exist
+                        if (!workspaceClient.isExistingContainer(transactionId)) {
+                            workspaceClient.createContainer(transactionId);
+                        }
+                        if (!workspaceClient.isExistingFolder(transactionId, CONTENT_FOLDER)) {
+                            workspaceClient.createFolder(transactionId, CONTENT_FOLDER);
+                        }
+
+                        // Create bulk move entries
+                        List<BulkMoveEntry> entries = new ArrayList<>();
+                        for (String filePath : files.keySet()) {
+                            String fullPath = CONTENT_FOLDER + File.separator + filePath;
+                            entries.add(new BulkMoveEntry(fullPath, fullPath));
+
+                            // Log the move operation
+                            LOGGER.info(
+                                "Moving file from batch {} to transaction {}: {} -> {}",
+                                batchId,
+                                transactionId,
+                                fullPath,
+                                fullPath
+                            );
+                        }
+
+                        // Move files from batch folder to transaction folder
+
+                        BulkMoveRequest bulkMoveRequest = new BulkMoveRequest(entries);
+                        workspaceClient.bulkMove(batchId, transactionId, bulkMoveRequest);
+                        LOGGER.info("Successfully moved {} files from batch to transaction container", entries.size());
+                    }
+                }
+
+                // Delete batch container
+                workspaceClient.deleteContainer(batchId, true);
+            }
+        } catch (ContentAddressableStorageException e) {
+            throw new CollectInternalException(
+                "Error when moving files from batch folder to transaction folder:" + e.getMessage(),
+                e
+            );
         }
     }
 

@@ -78,7 +78,6 @@ import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.elimination.DeletionRequestBody;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -764,10 +763,22 @@ public class TransactionService {
 
     private void purgeObjectAndWorkspace(String batchId, String transactionId) throws CollectInternalException {
         Iterator<List<JsonNode>> selectObjectIterator;
+        // Simply delete the batch container
+        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            if (workspaceClient.isExistingContainer(batchId)) {
+                workspaceClient.deleteContainer(batchId, true);
+            }
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error("unable to delete batch container :", e);
+            return;
+        }
+
         try {
             final Select select = buildSelectWithBatchId(batchId);
+
             final SelectMultiQuery selectObjectRequest = new SelectMultiQuery();
             selectObjectRequest.setQuery(select.getQuery());
+
             // Scroll through object groups
             final ScrollSpliterator<JsonNode> selectObjectScrollRequest = metadataRepository.selectObjectGroups(
                 selectObjectRequest,
@@ -782,33 +793,7 @@ public class TransactionService {
         }
         while (selectObjectIterator.hasNext()) {
             List<JsonNode> objectsGroup = selectObjectIterator.next();
-            purgeWorkspace(objectsGroup, transactionId);
             deleteGots(objectsGroup);
-        }
-    }
-
-    private void purgeWorkspace(List<JsonNode> objects, String transactionId) throws CollectInternalException {
-        for (JsonNode object : objects) {
-            for (JsonNode qualifier : object.get(VitamFieldsHelper.qualifiers())) {
-                if (!DataObjectVersionType.PHYSICAL_MASTER.getName().equals(qualifier.get("qualifier").textValue())) {
-                    for (JsonNode version : qualifier.get("versions")) {
-                        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
-                            String uri = version.get("Uri").textValue();
-                            if (
-                                workspaceClient.isExistingContainer(transactionId) &&
-                                workspaceClient.isExistingObject(transactionId, uri)
-                            ) {
-                                workspaceClient.deleteObject(transactionId, uri);
-                            }
-                        } catch (ContentAddressableStorageException e) {
-                            throw new CollectInternalException(
-                                "Error when trying to delete stream from workspace: ",
-                                e
-                            );
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -860,6 +845,7 @@ public class TransactionService {
         @Nullable String encoding,
         @Nullable String attachementId
     ) throws CollectInternalException {
+        String batchId = VitamThreadUtils.getVitamSession().getRequestId();
         try {
             fluxService.processStream(
                 inputStreamObject,
@@ -868,9 +854,13 @@ public class TransactionService {
                 encoding,
                 attachementId
             );
+
+            fluxService.moveObjectsFromBatchToTransaction(batchId, transactionModel.getId());
+
             return Response.ok().build();
         } catch (CollectInternalInvalidRequestException e) {
             LOGGER.error("An error occurs when try to upload the ZIP:", e);
+            purgeFailedUploadSilently(transactionModel);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (CollectInternalException e) {
             purgeFailedUploadSilently(transactionModel);
