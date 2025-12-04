@@ -6,8 +6,8 @@ architecture-fontionnelle-processing
    :maxdepth: 2
 
    introduction.rst
-   management.rst   
+   management.rst
    engine.rst
    distributor.rst
    worker.rst
-   monitoring.rst   
+   monitoring.rst

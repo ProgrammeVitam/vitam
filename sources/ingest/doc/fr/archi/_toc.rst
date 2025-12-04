@@ -6,4 +6,3 @@ Ingest
 
    fonctionnelle/index.rst
    technique/index.rst
-   securite/index.rst

@@ -6,4 +6,3 @@ Batch-report
 
    fonctionnelle/basics.rst
    technique/_toc.rst
-   securite/_toc.rst

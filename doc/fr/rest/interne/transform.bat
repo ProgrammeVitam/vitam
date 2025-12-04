@@ -33,4 +33,3 @@ raml2html -i Processing.raml -o web\Processing.html
 raml2html -i Storage.raml -o web\Storage.html
 raml2html -i Worker.raml -o web\Worker.html
 raml2html -i Workspace.raml -o web\Workspace.html
-raml2html -i Technical-administration.raml -o web\Technical-administration.html

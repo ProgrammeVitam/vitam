@@ -1,7 +1,7 @@
 Généralités
 ***********
 
-Le rôle d'*collect* est de :
+Le rôle de *collect* est de :
 
 * Intialiser des transacrions.
 * Ajouter des Unités d'archives à la transaction.
@@ -9,5 +9,3 @@ Le rôle d'*collect* est de :
 * Ajouter un binaire a un object group.
 * Fermer la transaction.
 * Produire un SIP et l'envoyer a Vitam (Ingest).
-
-
