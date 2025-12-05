@@ -603,10 +603,10 @@
           <artifactId>dependency-check-maven</artifactId>
           <version>${maven.dependencycheck.version}</version>
           <configuration>
-            <cveUrlModified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-2.0-modified.json.gz</cveUrlModified>
-            <cveUrlBase>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-2.0-%d.json.gz</cveUrlBase>
             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+            <msbuildAnalyzerEnabled>false</msbuildAnalyzerEnabled>
             <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
+            <nuspecAnalyzerEnabled>false</nuspecAnalyzerEnabled>
             <failOnError>false</failOnError>
           </configuration>
 

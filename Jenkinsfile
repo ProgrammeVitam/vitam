@@ -23,6 +23,7 @@ pipeline {
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
+        NVD_API_KEY = credentials("nvd-api-key")
         ES_VERSION="7.17.23"
         MONGO_VERSION="7.0.8"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
@@ -137,7 +138,7 @@ pipeline {
                             try {
                                 // Build Vitam
                                 sh '$MVN_COMMAND -f pom.xml spotless:check -T 1C'
-                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
+                                sh '$MVN_COMMAND -f pom.xml clean verify -DnvdApiServerId=nvd org.owasp:dependency-check-maven:aggregate -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
                             } finally {
                                 // Force termination / cleanup of containers
                                 sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
@@ -213,7 +214,7 @@ pipeline {
                             try {
                                 // Build Vitam
                                 sh '$MVN_COMMAND -f pom.xml spotless:check -T 1C'
-                                sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
+                                sh '$MVN_COMMAND -f pom.xml clean verify -DnvdApiServerId=nvd org.owasp:dependency-check-maven:aggregate -Ddownloader.quick.query.timestamp=false -Dspotless.check.skip'
                             } finally {
                                 // Force termination / cleanup of containers
                                 sh 'docker rm -f miniossl elasticsearch mongodb minionossl openio swift'
