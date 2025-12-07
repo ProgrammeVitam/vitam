@@ -38,6 +38,10 @@
 			<username>${env.CI_USR}</username>
 			<password>${env.CI_PSW}</password>
 		</server>
+		<server>
+			<id>nvd</id>
+			<password>${env.NVD_API_KEY}</password>
+		</server>
 	</servers>
 	<pluginGroups>
 		<pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
@@ -61,8 +65,8 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-                <nodeDownloadRoot>${env.SERVICE_NEXUS_URL}/repository/node-distrib/</nodeDownloadRoot>
-            </properties>
+				<nodeDownloadRoot>${env.SERVICE_NEXUS_URL}/repository/node-distrib/</nodeDownloadRoot>
+			</properties>
 		</profile>
 		<profile>
 			<id>user-vitam</id>
@@ -71,7 +75,7 @@
 			</activation>
 			<properties>
 				<username>${env.CI_USR}</username>
-				<password>${env.CI_PSW}</password>    
+				<password>${env.CI_PSW}</password>
 			</properties>
 		</profile>
 	</profiles>
@@ -89,7 +93,7 @@
 			<mirrorOf>node-dist-mirror</mirrorOf>
 		</mirror>
 	</mirrors>
-<!--	  
+<!--
 	<proxies>
 		<proxy>
 			<id>platform-proxy</id>
