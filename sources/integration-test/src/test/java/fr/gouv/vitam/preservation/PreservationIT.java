@@ -203,6 +203,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     private static final String DESCRIPTION_KEY = "Description";
     private static final String DESCRIPTION_VALUE = "This is an awesome description ! Thx Captain.";
+    private static final String TRANSFORMED_DESCRIPTION_VALUE = "transformed description";
     private static final String FOO_KEY = "Foo";
     private static final List<String> FOO_VALUE = Arrays.asList("bar1", "bar2");
     private static final TypeReference<List<String>> TYPE_LIST_STRING = new TypeReference<>() {};
@@ -701,6 +702,116 @@ public class PreservationIT extends VitamRuleRunner {
             // Ensure evDetData in not set in logbook operation for distributed step STP_PRESERVATION_ACTION / action PRESERVATION_BINARY_HASH
             assertThat(jsonNode.get(9).get("outDetail").asText()).isEqualTo("PRESERVATION_BINARY_HASH.OK");
             assertThat(jsonNode.get(9).get("evDetData").asText()).isEqualTo("{}");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_preservation_workflow_with_jslt_without_error() throws Exception {
+        // Given
+        Response storageResponse = null;
+
+        try (
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()
+        ) {
+            getVitamSession().setTenantId(TENANT_ADMIN);
+            getVitamSession().setRequestId(newGUID());
+            adminClient.importGriffins(getGriffinModels("preservation/griffins.json"));
+
+            getVitamSession().setTenantId(TENANT_ID);
+            getVitamSession().setRequestId(newGUID());
+            adminClient.importPreservationScenarios(getPreservationScenarioModels("preservation/scenarios.json"));
+
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+            getVitamSession().setTenantId(TENANT_ID);
+            getVitamSession().setContractId(CONTRACT_ID);
+            getVitamSession().setContextId("Context_IT");
+            getVitamSession().setRequestId(operationGuid);
+
+            buildAndSavePreservationResultFileForExtractionAU();
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.exists("#id"));
+
+            ObjectNode finalSelect = select.getFinalSelect();
+
+            PreservationRequest preservationRequest = new PreservationRequest(
+                finalSelect,
+                "PSC-000043",
+                "BinaryMaster",
+                LAST,
+                "BinaryMaster"
+            );
+
+            // When
+            accessClient.startPreservation(preservationRequest);
+            // Then
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            SelectMultiQuery selectOp = new SelectMultiQuery();
+            selectOp.setQuery(QueryHelper.in(operations(), operationGuid.getId()));
+            ObjectNode selectOpFinal = selectOp.getFinalSelect();
+
+            RequestResponse<JsonNode> response = accessClient.selectUnits(selectOpFinal);
+            List<JsonNode> units = ((RequestResponseOK<JsonNode>) response).getResults();
+
+            assertThat(units).isNotEmpty();
+
+            for (JsonNode unitFromMetadata : units) {
+                String description = unitFromMetadata.get(DESCRIPTION_KEY).asText();
+                assertThat(description).isEqualTo(TRANSFORMED_DESCRIPTION_VALUE);
+            }
+        } finally {
+            consumeAnyEntityAndClose(storageResponse);
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_finish_workflow_and_set_operation_KO_when_griffin_OK_and_jslt_fails() throws Exception {
+        // Given
+        try (
+            AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ADMIN);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
+            adminClient.importGriffins(getGriffinModels("preservation/griffins.json"));
+
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
+            adminClient.importPreservationScenarios(getPreservationScenarioModels("preservation/scenarios.json"));
+
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            VitamThreadUtils.getVitamSession().setContractId(CONTRACT_ID);
+            VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+            buildAndSavePreservationResultFileForExtractionAU();
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.exists("#id"));
+            ObjectNode finalSelect = select.getFinalSelect();
+
+            PreservationRequest request = new PreservationRequest(
+                finalSelect,
+                "PSC-000044",
+                "BinaryMaster",
+                LAST,
+                "BinaryMaster"
+            );
+
+            // When
+            accessClient.startPreservation(request);
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            // Then
+            assertThat(getLogbookOperation(logbookClient).getEvents().getLast().getOutcome()).isEqualTo(
+                StatusCode.KO.name()
+            );
         }
     }
 

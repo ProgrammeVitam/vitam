@@ -44,6 +44,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -70,8 +71,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
@@ -135,23 +138,13 @@ public class PreservationActionPluginTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
-        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine(
-            "fmt/43",
-            "photo.jpg",
-            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)),
-            "unitId",
+        PreservationDistributionLine preservationDistributionLine = createPreservationDistributionLine(
             griffinId,
-            objectId,
-            true,
             45,
-            "gotId",
-            "BinaryMaster",
-            "BinaryMaster",
-            "other_binary_strategy",
-            "ScenarioId",
-            "griffinIdentifier",
+            ".",
             new HashSet<>(Arrays.asList("unitId", "otherUnitIdBatman"))
         );
+
         parameter.setObjectNameList(Collections.singletonList("gotId"));
         parameter.setObjectMetadataList(
             Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine))
@@ -299,21 +292,10 @@ public class PreservationActionPluginTest {
     @RunWithCustomExecutor
     public void should_kill_griffin_process_when_timeout_expired() throws Exception {
         // Given
-        PreservationDistributionLine preservationDistributionLineShortTimeout = new PreservationDistributionLine(
-            "fmt/43",
-            "photo.jpg",
-            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)),
-            "unitId",
+        PreservationDistributionLine preservationDistributionLineShortTimeout = createPreservationDistributionLine(
             griffinInfinteLoopId,
-            objectId,
-            true,
             2,
-            "gotId",
-            "BinaryMaster",
-            "BinaryMaster",
-            "other_binary_strategy",
-            "ScenarioId",
-            "griffinIdentifier",
+            ".",
             Collections.singleton("unitId")
         );
         parameter.setObjectMetadataList(
@@ -351,11 +333,119 @@ public class PreservationActionPluginTest {
         );
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_apply_jslt_transformation_on_griffin_result() throws Exception {
+        String jslt = "{ \"Result\": \"JSLT_OK\" } + .";
+
+        PreservationDistributionLine lineWithJslt = createPreservationDistributionLine(
+            griffinId,
+            2,
+            jslt,
+            Collections.singleton("unitId")
+        );
+
+        parameter.setObjectNameList(Collections.singletonList("gotId"));
+        parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(lineWithJslt)));
+
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
+
+        // When
+        plugin.executeList(parameter, handler);
+
+        // Then
+        WorkflowBatchResults batchResults = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
+
+        assertThat(batchResults.getWorkflowBatchResults()).hasSize(1);
+
+        assertThat(batchResults.getWorkflowBatchResults())
+            .flatExtracting(WorkflowBatchResult::getOutputExtras)
+            .extracting(extra -> extra.getOutput().getResult())
+            .containsExactly("JSLT_OK");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_skip_jslt_when_rules_absent() throws Exception {
+        // Given
+        PreservationDistributionLine lineWithoutJslt = createPreservationDistributionLine(
+            griffinId,
+            2,
+            null,
+            Collections.singleton("unitId")
+        );
+
+        parameter.setObjectNameList(Collections.singletonList("gotId"));
+        parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(lineWithoutJslt)));
+
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
+
+        // When
+        plugin.executeList(parameter, handler);
+
+        // Then
+        verify(reportService).appendEntries(eq("REQUEST_ID_TEST"), captor.capture());
+        assertThat(captor.getValue()).extracting(PreservationReportEntry::getAnalyseResult).contains("NOT_VALID");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_jslt_returns_non_object() throws Exception {
+        String jsltArray = "[ 1, 2, 3 ]";
+
+        PreservationDistributionLine lineInvalidJslt = createPreservationDistributionLine(
+            griffinId,
+            2,
+            jsltArray,
+            Collections.singleton("unitId")
+        );
+
+        parameter.setObjectMetadataList(List.of(JsonHandler.toJsonNode(lineInvalidJslt)));
+
+        given(
+            storageClient.getContainerAsync("other_binary_strategy", objectId, OBJECT, getNoLogAccessLog())
+        ).willReturn(createOkResponse("image-files-with-data"));
+
+        List<ItemStatus> status = plugin.executeList(parameter, handler);
+
+        assertThat(status).extracting(ItemStatus::getGlobalStatus).containsOnly(KO);
+    }
+
     private Response createOkResponse(String entity) {
         return new VitamAsyncInputStreamResponse(
             new ByteArrayInputStream(entity.getBytes()),
             Response.Status.OK,
             Collections.emptyMap()
+        );
+    }
+
+    private PreservationDistributionLine createPreservationDistributionLine(
+        String griffin,
+        Integer timeout,
+        String jslt,
+        Set<String> relatedUnitIds
+    ) {
+        return new PreservationDistributionLine(
+            "fmt/43",
+            "photo.jpg",
+            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)),
+            "unitId",
+            griffin,
+            objectId,
+            true,
+            timeout,
+            "gotId",
+            "BinaryMaster",
+            "BinaryMaster",
+            "other_binary_strategy",
+            "ScenarioId",
+            "griffinIdentifier",
+            jslt,
+            new HashSet<>(relatedUnitIds)
         );
     }
 }

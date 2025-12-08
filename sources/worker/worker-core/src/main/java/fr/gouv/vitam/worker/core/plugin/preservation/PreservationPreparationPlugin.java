@@ -360,6 +360,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
             sourceQualifier,
             versionsModel.getStorage().getStrategyId(),
             scenarioModel.getIdentifier(),
+            scenarioModel.getTransformationRules(),
             unitsForThisOG
         );
     }
@@ -375,6 +376,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         String sourceQualifier,
         String sourceStrategy,
         String scenarioId,
+        String transformationRules,
         Set<String> unitsForThisOG
     ) {
         PreservationDistributionLine line = new PreservationDistributionLine();
@@ -392,6 +394,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         line.setSourceStrategy(sourceStrategy);
         line.setScenarioId(scenarioId);
         line.setGriffinIdentifier(griffinModel.getIdentifier());
+        line.setTransformationRules(transformationRules);
         line.setUnitsForExtractionAU(unitsForThisOG);
         return line;
     }
