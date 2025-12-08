@@ -424,7 +424,7 @@ public class CsvToJsonConverterTest {
                 CSV validation failed. 4 errors:
                 - Invalid CSV record at line 7 (File="File5"): Multiple values for 'Content.Description' header
                 - Invalid CSV record at line 8 (File="File6"): Multiple values for 'Content.Description' header with same lang attribute 'fr'
-                - Invalid CSV record at line 9 (File="File7"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' or '-'
+                - Invalid CSV record at line 9 (File="File7"): Invalid lang value '_illegal' for 'Content.Description.*': Field name cannot start with '_' (except '_id') or '-'
                 - Invalid CSV record at line 10 (File="File8"): Invalid xml:lang attribute for header 'Content.Description.0.attr'"""
             );
 
@@ -473,7 +473,7 @@ public class CsvToJsonConverterTest {
                 CSV validation failed. 6 errors:
                 - Invalid CSV record at line 7 (File="File5"): Multiple values for 'Content.Title' header
                 - Invalid CSV record at line 8 (File="File6"): Multiple values for 'Content.Title' header with same lang attribute 'fr'
-                - Invalid CSV record at line 9 (File="File7"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' or '-'
+                - Invalid CSV record at line 9 (File="File7"): Invalid lang value '_illegal' for 'Content.Title.*': Field name cannot start with '_' (except '_id') or '-'
                 - Invalid CSV record at line 10 (File="File8"): Invalid xml:lang attribute for header 'Content.Title.0.attr'
                 - Invalid CSV record at line 11: Nb columns (2) must match nb headers (8)
                 - Invalid CSV record at line 12: Nb columns (50) must match nb headers (8)"""

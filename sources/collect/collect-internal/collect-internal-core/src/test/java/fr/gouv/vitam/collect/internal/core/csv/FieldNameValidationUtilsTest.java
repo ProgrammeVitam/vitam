@@ -130,7 +130,7 @@ public class FieldNameValidationUtilsTest {
         for (String fieldName : fieldNames) {
             assertThatThrownBy(() -> FieldNameValidationUtils.validateRegularVitamFieldName(fieldName))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Field name cannot start with '_' or '-'");
+                .hasMessage("Field name cannot start with '_' (except '_id') or '-'");
         }
     }
 

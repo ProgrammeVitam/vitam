@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.PREFIX_ID_HEADER;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.STARTS_WITH_DIGIT_PATTERN;
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.matchesPattern;
 
@@ -63,8 +64,8 @@ public class FieldNameValidationUtils {
             throw new IllegalArgumentException("Field name too long");
         }
 
-        if (fieldName.startsWith("_") || fieldName.startsWith("-")) {
-            throw new IllegalArgumentException("Field name cannot start with '_' or '-'");
+        if ((fieldName.startsWith("_") && !fieldName.equals(PREFIX_ID_HEADER)) || fieldName.startsWith("-")) {
+            throw new IllegalArgumentException("Field name cannot start with '_' (except '_id') or '-'");
         }
 
         if (matchesPattern(fieldName, STARTS_WITH_DIGIT_PATTERN)) {

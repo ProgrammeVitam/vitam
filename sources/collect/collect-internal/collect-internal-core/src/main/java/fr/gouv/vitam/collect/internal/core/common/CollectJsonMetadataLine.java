@@ -29,18 +29,23 @@ package fr.gouv.vitam.collect.internal.core.common;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 
 public class CollectJsonMetadataLine {
 
     public static final TypeReference<CollectJsonMetadataLine> TYPE_REFERENCE = new TypeReference<>() {};
 
     public static final String FILE_FIELD = "File";
+    public static final String ID_FIELD = "_id";
     public static final String OBJECT_FILES_FIELD = "ObjectFiles";
     public static final String SELECTOR_FIELD = "Selector";
     public static final String UNIT_CONTENT_FIELD = "UnitContent";
 
     @JsonProperty(FILE_FIELD)
     private String file;
+
+    @JsonProperty(ID_FIELD)
+    private String id;
 
     @JsonProperty(OBJECT_FILES_FIELD)
     private String objectFiles;
@@ -57,11 +62,16 @@ public class CollectJsonMetadataLine {
 
     public CollectJsonMetadataLine(
         String file,
+        String id,
         String objectFiles,
         CollectJsonMetadataSelector selector,
         ObjectNode unitContent
     ) {
+        if (StringUtils.isNotEmpty(file) && StringUtils.isNotEmpty(id)) {
+            throw new IllegalArgumentException("Cannot have both parameters file and id");
+        }
         this.file = file;
+        this.id = id;
         this.objectFiles = objectFiles;
         this.selector = selector;
         this.unitContent = unitContent;
@@ -73,6 +83,15 @@ public class CollectJsonMetadataLine {
 
     public CollectJsonMetadataLine setFile(String file) {
         this.file = file;
+        return this;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public CollectJsonMetadataLine setId(String id) {
+        this.id = id;
         return this;
     }
 

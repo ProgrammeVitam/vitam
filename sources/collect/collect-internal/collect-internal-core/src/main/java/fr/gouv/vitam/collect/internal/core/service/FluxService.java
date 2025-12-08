@@ -470,7 +470,7 @@ public class FluxService {
                 metadata.put(TITLE_FIELD, unitMetadata.title());
                 metadata.put(DESCRIPTION_LEVEL_FIELD, unitMetadata.descriptionLevel());
 
-                writer.addEntry(new CollectJsonMetadataLine(fileUploadPath, null, null, metadata));
+                writer.addEntry(new CollectJsonMetadataLine(fileUploadPath, null, null, null, metadata));
             }
         }
         return fullMetadataJsonlFile;
@@ -523,6 +523,7 @@ public class FluxService {
 
                     CollectJsonMetadataLine transformedJsonMetadataLine = new CollectJsonMetadataLine(
                         entry.getFile(),
+                        entry.getId(),
                         entry.getObjectFiles(),
                         entry.getSelector(),
                         transformedUnitContent
