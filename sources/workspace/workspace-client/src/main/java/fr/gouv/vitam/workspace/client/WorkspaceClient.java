@@ -624,24 +624,31 @@ public class WorkspaceClient extends DefaultClient {
     }
 
     /**
-     * Moves multiple objects from source paths to destination paths within the same container
+     * Moves multiple objects from source paths to destination paths
      *
-     * @param containerName container where the objects reside
+     * @param sourceContainerName container where the objects reside
+     * @param targetContainerName container where the objects should be moved
      * @param bulkMoveRequest list of source/destination paths relative to the container
      * @throws ContentAddressableStorageNotFoundException Thrown when the container or any source object cannot be located
      * @throws ContentAddressableStorageServerException Thrown when move action failed due to some other failure
      */
-    public void bulkMove(String containerName, BulkMoveRequest bulkMoveRequest)
+    public void bulkMove(String sourceContainerName, String targetContainerName, BulkMoveRequest bulkMoveRequest)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(
             ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName,
+            sourceContainerName,
             bulkMoveRequest
         );
-
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            targetContainerName
+        );
         try (
             Response response = make(
-                post().withPath(CONTAINERS + containerName + "/bulk-move").withBody(bulkMoveRequest).withJson()
+                post()
+                    .withPath(CONTAINERS + sourceContainerName + "/" + targetContainerName + "/bulk-move")
+                    .withBody(bulkMoveRequest)
+                    .withJson()
             )
         ) {
             check(response);

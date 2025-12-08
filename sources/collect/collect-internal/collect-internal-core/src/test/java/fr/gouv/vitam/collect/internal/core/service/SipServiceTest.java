@@ -180,6 +180,9 @@ public class SipServiceTest {
             .when(workspaceClient)
             .putObject(eq(transactionId), eq(SEDA_FILE), any(InputStream.class));
 
+        when(workspaceClient.isExistingContainer(any())).thenReturn(true);
+        when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
+
         final TransactionModel transactionModel = getTransactionModel(transactionId);
 
         doReturn(false).when(transactionService).isTransactionContentEmpty(transactionId);

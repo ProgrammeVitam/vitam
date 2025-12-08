@@ -166,7 +166,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                 } else {
                     itemStatus.increment(StatusCode.OK);
 
-                    if (params.getExecutionContext() != WorkFlowExecutionContext.COLLECT) {
+                    if (!WorkFlowExecutionContext.COLLECT.equals(params.getExecutionContext())) {
                         try {
                             // Update logbook OG lifecycle
                             final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =

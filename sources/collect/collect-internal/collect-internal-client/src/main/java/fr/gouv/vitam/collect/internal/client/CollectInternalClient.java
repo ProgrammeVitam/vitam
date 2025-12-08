@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.internal.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
@@ -214,6 +215,7 @@ public interface CollectInternalClient extends MockOrRestClient {
 
     /**
      * Wait for transaction to become valid (SIP generated successfully), so it can be ingested in Vitam.
+     *
      * @throws VitamClientException exception occurs when parse operation failed
      */
     void awaitTransactionValidation(String transactionId) throws VitamClientException;
@@ -397,4 +399,14 @@ public interface CollectInternalClient extends MockOrRestClient {
      */
     RequestResponse<UploadSipResult> uploadSipToTransaction(String transactionId, InputStream inputStream)
         throws VitamClientException;
+
+    /**
+     * add Batch to transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    Response addBatchToTransaction(String transactionId, BatchDto batchDto) throws VitamClientException;
 }

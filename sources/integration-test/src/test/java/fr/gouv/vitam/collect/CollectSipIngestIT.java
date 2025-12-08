@@ -33,6 +33,8 @@ import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.antivirus.rest.AntivirusMain;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
+import fr.gouv.vitam.collect.common.dto.BatchStatusDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
@@ -92,9 +94,12 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -109,16 +114,20 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class CollectSipIngestIT extends AbstractCollectIT {
 
     private static final String APPLICATION_SESSION_ID = "ApplicationSessionId";
 
     private static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP = "integration-processing/4_UNITS_2_GOTS.zip";
+    private static final String INTEGRATION_PROCESSING_SIP2_ZIP = "integration-processing/12_UNITS_12_GOTS.zip";
     private static final String INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP_WITH_INVALID_DATE =
         "integration-processing/4_UNITS_2_GOTS_with_invalid_date.zip";
     private static final String INTEGRATION_PROCESSING_1_UNIT_1_GOTS_1MB_FOLDER_ZIP =
         "integration-processing/1_UNIT_1_GOTS_1MB_FOLDER.zip";
+    public static final String BATCH_ID = "#batchId";
+    public static final String OPI_FIELD = "#opi";
 
     private static String prefix;
 
@@ -225,7 +234,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
 
             final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDtoCreated.getId();
-
+            String operationGuid;
             try (
                 InputStream inputStream = PropertiesUtils.getResourceAsStream(
                     INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP_WITH_INVALID_DATE
@@ -240,19 +249,19 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 );
                 assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
                 UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
-                assertThat(operationIdDto.requestId()).isEqualTo(transactionId);
+                operationGuid = operationIdDto.requestId();
             }
 
-            waitOperation(transactionId);
+            waitOperation(operationGuid);
             // Verify that the SIP folder has been deleted from the workspace
             try (WorkspaceClient workspaceClient = WorkspaceCollectClientFactory.getInstance().getClient()) {
                 assertThat(workspaceClient.isExistingFolder(transactionId, "SIP")).isFalse();
             }
             TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
-            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.KO.name());
+            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            JsonNode logbookResult = logbookClient.selectOperationById(transactionDtoCreated.getId());
+            JsonNode logbookResult = logbookClient.selectOperationById(operationGuid);
             assertThat(logbookResult.get(TAG_RESULTS)).isNotNull();
             assertThat(logbookResult.get(TAG_RESULTS).size()).isGreaterThan(0);
 
@@ -314,7 +323,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
 
             final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDtoCreated.getId();
-
+            String operationGuid;
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(sipFilePath)) {
                 RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
                     new VitamContext(TENANT_ID)
@@ -325,19 +334,20 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 );
                 assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
                 UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
-                assertThat(operationIdDto.requestId()).isEqualTo(transactionId);
+                operationGuid = operationIdDto.requestId();
             }
 
-            waitOperation(transactionId);
+            waitOperation(operationGuid);
             // Verify that the SIP folder has been deleted from the workspace
             try (WorkspaceClient workspaceClient = WorkspaceCollectClientFactory.getInstance().getClient()) {
-                assertThat(workspaceClient.isExistingFolder(transactionId, "SIP")).isFalse();
+                assertThat(workspaceClient.isExistingContainer(operationGuid)).isFalse();
+                assertThat(workspaceClient.isExistingFolder(operationGuid, "SIP")).isFalse();
             }
             TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
             assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            JsonNode logbookResult = logbookClient.selectOperationById(transactionDtoCreated.getId());
+            JsonNode logbookResult = logbookClient.selectOperationById(operationGuid);
             assertThat(logbookResult.get(TAG_RESULTS)).isNotNull();
             assertThat(logbookResult.get(TAG_RESULTS).size()).isGreaterThan(0);
 
@@ -424,6 +434,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
 
             final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDtoCreated.getId();
+            String operationGuid;
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream("collect/SIP_KO_InvalidManifest.zip")) {
                 RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
@@ -436,13 +447,23 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
                 final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+                UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
+                operationGuid = operationIdDto.requestId();
             }
-            waitOperation(transactionId);
-            verifyOperation(transactionId, StatusCode.KO);
+            waitOperation(operationGuid);
+            verifyOperation(operationGuid, StatusCode.KO);
 
             TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
 
-            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.KO.name());
+            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
+            List<BatchDto> batches = updatedTransaction.getBatches();
+            assertNotNull(batches);
+            assertThat(batches).hasSize(1);
+            batches.forEach(batch -> {
+                assertEquals(batch.getBatchId(), operationGuid);
+                assertEquals(BatchStatusDto.KO, batch.getBatchStatus());
+            });
         }
     }
 
@@ -939,7 +960,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 sipInputStream
             );
             assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
-            final String operationId = response.getFirstResult().requestId();
+            final String operationId = Objects.requireNonNull(response.getFirstResult()).requestId();
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
 
             waitOperation(operationId);
@@ -1007,7 +1028,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
 
             final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
             String transactionId = transactionDtoCreated.getId();
-
+            String operationGuid;
             try (
                 InputStream inputStream = PropertiesUtils.getResourceAsStream("collect/sip_warning_incorrect_size.zip")
             ) {
@@ -1021,12 +1042,15 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
                 final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+
+                UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
+                operationGuid = operationIdDto.requestId();
             }
-            waitOperation(transactionId);
-            verifyOperation(transactionId, StatusCode.WARNING);
+            waitOperation(operationGuid);
+            verifyOperation(operationGuid, StatusCode.WARNING);
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            JsonNode logbookResult = logbookClient.selectOperationById(transactionDtoCreated.getId());
+            JsonNode logbookResult = logbookClient.selectOperationById(operationGuid);
             assertThat(logbookResult.get(TAG_RESULTS)).isNotNull();
             assertThat(logbookResult.get(TAG_RESULTS).size()).isGreaterThan(0);
 
@@ -1058,6 +1082,16 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 DbObjectGroupModel.class
             );
         } catch (VitamClientException | InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private JsonNode getObjectGroupNode(String objectGroupId) {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            return (
+                (RequestResponseOK<JsonNode>) collectClient.getObjectById(vitamContext, objectGroupId)
+            ).getFirstResult();
+        } catch (VitamClientException e) {
             throw new RuntimeException(e);
         }
     }
@@ -1111,5 +1145,240 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             .map(DbVersionsModel::getId)
             .findFirst()
             .orElseThrow();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_perform_collect_multiple_ingest_sip_ok_operation() throws Exception {
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
+            String transactionId = transactionDtoCreated.getId();
+
+            String operationGuid1 = performCollectIngestOnTransaction(
+                transactionId,
+                INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP
+            );
+
+            String operationGuid2 = performCollectIngestOnTransaction(transactionId, INTEGRATION_PROCESSING_SIP2_ZIP);
+
+            List<JsonNode> collectUnits =
+                ((RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(
+                        new VitamContext(TENANT_ID),
+                        transactionId,
+                        new SelectMultiQuery().getFinalSelect()
+                    )).getResults();
+
+            assertThat(collectUnits).isNotNull();
+            assertThat(collectUnits).hasSize(16);
+            Map<String, Integer> unitsByTransactionsCount = new HashMap<>();
+            Map<String, Integer> unitsByBatchIdCount = new HashMap<>();
+            collectUnits.forEach(unit -> {
+                String batchId = unit.get(BATCH_ID).asText();
+                String opi = unit.get(OPI_FIELD).asText();
+                int transactionCount = unitsByTransactionsCount.getOrDefault(opi, 0);
+                unitsByTransactionsCount.put(opi, transactionCount + 1);
+                int batchCount = unitsByBatchIdCount.getOrDefault(batchId, 0);
+                unitsByBatchIdCount.put(batchId, batchCount + 1);
+            });
+
+            assertThat(unitsByTransactionsCount).isNotEmpty();
+            assertThat(unitsByTransactionsCount).containsEntry(transactionId, collectUnits.size());
+
+            assertThat(unitsByBatchIdCount).isNotEmpty();
+            assertThat(unitsByBatchIdCount).containsEntry(operationGuid1, 4);
+            assertThat(unitsByBatchIdCount).containsEntry(operationGuid2, 12);
+
+            //check gots
+            List<JsonNode> gots = collectUnits
+                .stream()
+                .filter(unit -> unit.has("#object"))
+                .map(unit -> getObjectGroupNode(unit.get("#object").asText()))
+                .collect(Collectors.toList());
+
+            assertThat(gots).isNotEmpty();
+            Map<String, Integer> gotsByTransactionsCount = new HashMap<>();
+            Map<String, Integer> gotsByBatchIdCount = new HashMap<>();
+            gots.forEach(got -> {
+                String batchId = got.get("_batchId").asText();
+                String opi = got.get("_opi").asText();
+
+                int transactionCount = gotsByTransactionsCount.getOrDefault(opi, 0);
+                gotsByTransactionsCount.put(opi, transactionCount + 1);
+
+                int batchCount = gotsByBatchIdCount.getOrDefault(batchId, 0);
+                gotsByBatchIdCount.put(batchId, batchCount + 1);
+            });
+
+            assertThat(gotsByTransactionsCount).isNotEmpty();
+            assertThat(gotsByTransactionsCount).containsEntry(transactionId, 14);
+
+            assertThat(gotsByBatchIdCount).isNotEmpty();
+            assertThat(gotsByBatchIdCount).containsEntry(operationGuid1, 2);
+            assertThat(gotsByBatchIdCount).containsEntry(operationGuid2, 12);
+
+            TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
+            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
+            collectClient.closeTransaction(
+                new VitamContext(TENANT_ID)
+                    .setApplicationSessionId(APPLICATION_SESSION_ID)
+                    .setAccessContract(ACCESS_CONTRACT),
+                transactionId
+            );
+
+            InputStream sipInputStream = generateSip(transactionId);
+            assertThat(sipInputStream).isNotNull();
+
+            String processId;
+            switchToVitamMetadataHack(runner);
+            prepareVitamSession();
+            processId = ingestToVitam(sipInputStream);
+            List<JsonNode> ingestedUnits = selectVitamMetadataUnitsByOpi(processId);
+            assertThat(ingestedUnits).isNotNull();
+            assertThat(ingestedUnits).hasSize(16);
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_perform_collect_multiple_ingests_partial_ko_operation() throws Exception {
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            ProjectDto projectDtoResult = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                ProjectDto.class
+            );
+            projectDto.setId(projectDtoResult.getId());
+
+            final TransactionDto transactionDtoCreated = createTransaction(vitamContext, projectDto.getId());
+            String transactionId = transactionDtoCreated.getId();
+
+            String operationGuid1 = performCollectIngestOnTransaction(
+                transactionId,
+                INTEGRATION_PROCESSING_4_UNITS_2_GOTS_ZIP
+            );
+
+            InputStream koSipInputStream = PropertiesUtils.getResourceAsStream(
+                "collect/SIP_KO_Multiple_Validation_Errors_With_Virus.zip"
+            );
+
+            // When
+            String operationGuid2 = uploadSip(koSipInputStream, transactionId);
+
+            // Then
+            verifyOperation(operationGuid2, StatusCode.KO);
+
+            List<JsonNode> collectUnits =
+                ((RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(
+                        new VitamContext(TENANT_ID),
+                        transactionId,
+                        new SelectMultiQuery().getFinalSelect()
+                    )).getResults();
+
+            assertThat(collectUnits).isNotNull();
+            assertThat(collectUnits).hasSize(14);
+            Map<String, Integer> unitsByTransactionsCount = new HashMap<>();
+            Map<String, Integer> unitsByBatchIdCount = new HashMap<>();
+            collectUnits.forEach(unit -> {
+                String batchId = unit.get(BATCH_ID).asText();
+                String opi = unit.get(OPI_FIELD).asText();
+                int transactionCount = unitsByTransactionsCount.getOrDefault(opi, 0);
+                unitsByTransactionsCount.put(opi, transactionCount + 1);
+
+                int batchCount = unitsByBatchIdCount.getOrDefault(batchId, 0);
+
+                unitsByBatchIdCount.put(batchId, batchCount + 1);
+            });
+
+            assertThat(unitsByTransactionsCount).isNotEmpty();
+            assertThat(unitsByTransactionsCount).containsEntry(transactionId, collectUnits.size());
+
+            assertThat(unitsByBatchIdCount).isNotEmpty();
+            assertThat(unitsByBatchIdCount).containsEntry(operationGuid1, 4);
+            assertThat(unitsByBatchIdCount).containsEntry(operationGuid2, 10);
+
+            //check gots
+            List<JsonNode> gots = collectUnits
+                .stream()
+                .filter(unit -> unit.has("#object"))
+                .map(unit -> getObjectGroupNode(unit.get("#object").asText()))
+                .collect(Collectors.toList());
+
+            assertThat(gots).isNotEmpty();
+            Map<String, Integer> gotsByTransactionsCount = new HashMap<>();
+            Map<String, Integer> gotsByBatchIdCount = new HashMap<>();
+            gots.forEach(got -> {
+                String batchId = got.get("_batchId").asText();
+                String opi = got.get("_opi").asText();
+
+                int transactionCount = gotsByTransactionsCount.getOrDefault(opi, 0);
+                gotsByTransactionsCount.put(opi, transactionCount + 1);
+
+                int batchCount = gotsByBatchIdCount.getOrDefault(batchId, 0);
+                gotsByBatchIdCount.put(batchId, batchCount + 1);
+            });
+
+            assertThat(gotsByTransactionsCount).isNotEmpty();
+            assertThat(gotsByTransactionsCount).containsEntry(transactionId, 6);
+
+            assertThat(gotsByBatchIdCount).isNotEmpty();
+            assertThat(gotsByBatchIdCount).containsEntry(operationGuid1, 2);
+            assertThat(gotsByBatchIdCount).containsEntry(operationGuid2, 4);
+
+            TransactionDto updatedTransaction = getTransaction(collectClient, transactionId);
+            assertThat(updatedTransaction.getStatus()).isEqualTo(TransactionStatus.OPEN.name());
+
+            List<BatchDto> batchs = updatedTransaction.getBatches();
+            assertThat(batchs).isNotNull();
+            assertThat(batchs).hasSize(1);
+            assertThat(batchs.getFirst().getBatchStatus()).isEqualTo(BatchStatusDto.KO);
+            Set<String> batchIds = batchs.stream().map(BatchDto::getBatchId).collect(Collectors.toSet());
+            assertThat(batchIds).contains(operationGuid2);
+        }
+    }
+
+    private String performCollectIngestOnTransaction(String transactionId, String sipFilePath) throws Exception {
+        String operationGuid;
+        prepareVitamSession();
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(sipFilePath)) {
+                RequestResponse<UploadSipResult> response = collectClient.uploadSipToTransaction(
+                    new VitamContext(TENANT_ID)
+                        .setApplicationSessionId(APPLICATION_SESSION_ID)
+                        .setAccessContract(ACCESS_CONTRACT),
+                    transactionId,
+                    inputStream
+                );
+                assertThat(HttpStatus.isSuccess(response.getStatus())).isTrue();
+                UploadSipResult operationIdDto = ((RequestResponseOK<UploadSipResult>) response).getFirstResult();
+                operationGuid = operationIdDto.requestId();
+            }
+
+            waitOperation(operationGuid);
+
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            JsonNode logbookResult = logbookClient.selectOperationById(operationGuid);
+            assertThat(logbookResult.get(TAG_RESULTS)).isNotNull();
+            assertThat(logbookResult.get(TAG_RESULTS).size()).isGreaterThan(0);
+
+            JsonNode firstResult = logbookResult.get(TAG_RESULTS).get(0);
+            JsonNode events = firstResult.get(EVENTS);
+            assertThat(events).isNotNull();
+
+            assertThat(events.get(events.size() - 1).get("outcome").asText()).isEqualTo("OK");
+        }
+        return operationGuid;
     }
 }

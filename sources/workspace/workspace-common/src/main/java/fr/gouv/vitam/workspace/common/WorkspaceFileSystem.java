@@ -883,17 +883,26 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     }
 
     @Override
-    public void moveObjects(String containerName, List<BulkMoveEntry> entries)
+    public void moveObjects(String containerName, String targetContainerName, List<BulkMoveEntry> entries)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(
             ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName
         );
-
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            targetContainerName
+        );
         if (!isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName
+            );
+        }
+        if (!isExistingContainer(targetContainerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + targetContainerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + targetContainerName
             );
         }
 
@@ -904,10 +913,10 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
                 // Check workspace file sanity for both paths
                 checkWorkspaceFileSanity(containerName, sourcePath);
-                checkWorkspaceFileSanity(containerName, destinationPath);
+                checkWorkspaceFileSanity(targetContainerName, destinationPath);
 
                 Path sourceFilePath = getObjectPath(containerName, sourcePath);
-                Path destinationFilePath = getObjectPath(containerName, destinationPath);
+                Path destinationFilePath = getObjectPath(targetContainerName, destinationPath);
 
                 if (!sourceFilePath.toFile().exists()) {
                     if (destinationFilePath.toFile().exists()) {

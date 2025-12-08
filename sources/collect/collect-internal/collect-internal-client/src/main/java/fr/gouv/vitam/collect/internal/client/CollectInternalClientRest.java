@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.internal.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
@@ -667,6 +668,18 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         ) {
             check(response);
             return RequestResponse.parseFromResponse(response, UploadSipResult.class);
+        }
+    }
+
+    @Override
+    public Response addBatchToTransaction(String transactionId, BatchDto batchDto) throws VitamClientException {
+        try (
+            Response response = make(
+                post().withPath(TRANSACTION_PATH + "/" + transactionId + "/batches").withBody(batchDto).withJson()
+            )
+        ) {
+            check(response);
+            return response;
         }
     }
 }

@@ -56,6 +56,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotValidLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ArchiveUnitAtrExtra;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
@@ -135,7 +136,8 @@ public class ArchiveUnitListenerTest {
             new IngestSession(),
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -173,7 +175,8 @@ public class ArchiveUnitListenerTest {
             new IngestSession(),
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -216,7 +219,8 @@ public class ArchiveUnitListenerTest {
             new IngestSession(),
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -262,7 +266,8 @@ public class ArchiveUnitListenerTest {
             new IngestSession(),
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -304,7 +309,8 @@ public class ArchiveUnitListenerTest {
             new IngestSession(),
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -352,7 +358,8 @@ public class ArchiveUnitListenerTest {
             ingestSession,
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -400,7 +407,8 @@ public class ArchiveUnitListenerTest {
             ingestSession,
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
@@ -462,7 +470,8 @@ public class ArchiveUnitListenerTest {
                 ingestSession,
                 mock(JsonLineDataBase.class),
                 metaDataClientFactory,
-                writer
+                writer,
+                mock(WorkerParameters.class)
             );
 
             ArchiveUnitType target = new ArchiveUnitType();
@@ -519,7 +528,8 @@ public class ArchiveUnitListenerTest {
             ingestSession,
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
@@ -553,7 +563,8 @@ public class ArchiveUnitListenerTest {
             new IngestSession(),
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
         File file = temporaryFolder.newFile();
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(file);
@@ -594,7 +605,8 @@ public class ArchiveUnitListenerTest {
             ingestSession,
             mock(JsonLineDataBase.class),
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            mock(WorkerParameters.class)
         );
 
         File file = temporaryFolder.newFile();

@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -81,6 +82,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     public static final String INVALID_OR_MISSING_QUALIFIERS = "Invalid or missing _qualifiers";
     public static final String MISSING_VERSIONS = "Missing versions";
     public static final String MISSING_VERSION = "Missing version";
+    public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
+    public static final String INVALID_OR_WORK_NODE = "Invalid or missing _work";
 
     public IndexObjectGroupActionPlugin() {}
 
@@ -181,6 +184,9 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         ItemStatus itemStatus
     )
         throws MetaDataExecutionException, MetaDataClientServerException, InvalidParseOperationException, InvalidCreateOperationException, VitamClientException {
+        if (WorkFlowExecutionContext.COLLECT == params.getExecutionContext()) {
+            mapBinariesUriFromWorkField(json);
+        }
         removeTemporaryObjectVersionWorkFields(json);
 
         JsonNode work = json.remove(SedaConstants.PREFIX_WORK);
@@ -227,6 +233,51 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         return finalInsert;
     }
 
+    private void mapBinariesUriFromWorkField(ObjectNode jsonOG) {
+        ArrayNode qualifiersNode = (ArrayNode) jsonOG.get(QUALIFIERS);
+
+        if (qualifiersNode == null || !qualifiersNode.isArray()) {
+            LOGGER.error(INVALID_OR_MISSING_QUALIFIERS + " : " + JsonHandler.unprettyPrint(jsonOG));
+            throw new IllegalStateException(INVALID_OR_MISSING_QUALIFIERS);
+        }
+        ObjectNode workObjectNode = (ObjectNode) jsonOG.get(SedaConstants.PREFIX_WORK);
+        if (workObjectNode == null) {
+            LOGGER.error(INVALID_OR_WORK_NODE + " : " + JsonHandler.unprettyPrint(jsonOG));
+            throw new IllegalStateException(INVALID_OR_WORK_NODE);
+        }
+        ObjectNode qualifiersWorkNode = (ObjectNode) workObjectNode.get(QUALIFIERS);
+
+        for (JsonNode qualifierNode : qualifiersNode) {
+            ArrayNode qualifierVersions = (ArrayNode) qualifierNode.get(SedaConstants.TAG_VERSIONS);
+            if (qualifierVersions == null || !qualifierVersions.isArray()) {
+                LOGGER.error(MISSING_VERSIONS + " : " + JsonHandler.unprettyPrint(jsonOG));
+                throw new IllegalStateException(MISSING_VERSIONS);
+            }
+            for (JsonNode versionNode : qualifierVersions) {
+                String versionQualifier = versionNode.get(DATA_OBJECT_VERSION).asText();
+                String versionId = versionNode.get(SedaConstants.PREFIX_ID).asText();
+
+                if (!qualifiersWorkNode.has(versionQualifier)) {
+                    continue;
+                }
+                // Look for matching version in _work
+                JsonNode qualifierVersionWorkNode = qualifiersWorkNode.get(versionQualifier);
+
+                ArrayNode workVersionsNode = (ArrayNode) qualifierVersionWorkNode.get(SedaConstants.TAG_VERSIONS);
+                for (JsonNode workVersion : workVersionsNode) {
+                    if (workVersion.get(SedaConstants.TAG_PHYSICAL_ID) != null) {
+                        continue;
+                    }
+                    String workingVersionId = workVersion.get(SedaConstants.PREFIX_ID).asText();
+                    if (versionId.equals(workingVersionId)) {
+                        String newUri = workVersion.get(SedaConstants.TAG_URI).asText();
+                        ((ObjectNode) versionNode).put(SedaConstants.TAG_URI, newUri);
+                    }
+                }
+            }
+        }
+    }
+
     private void removeTemporaryObjectVersionWorkFields(ObjectNode jsonOG) {
         final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null || !qualifiers.isArray()) {
@@ -257,7 +308,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         throws InvalidCreateOperationException {
         ArrayNode finalQualifiers = originQualifiers.deepCopy();
         Map<String, JsonNode> action = new HashMap<>();
-        HashMap<String, ArrayNode> listOrigin = new HashMap<String, ArrayNode>();
+        HashMap<String, ArrayNode> listOrigin = new HashMap<>();
         ObjectNode updatedQualifiers = JsonHandler.createObjectNode();
         for (int i = 0; i < originQualifiers.size(); i++) {
             JsonNode qualifierNode = originQualifiers.get(i);

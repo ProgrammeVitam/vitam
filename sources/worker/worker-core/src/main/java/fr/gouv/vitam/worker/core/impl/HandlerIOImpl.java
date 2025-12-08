@@ -817,7 +817,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public LogbookLifeCyclesClientFactory getLifeCyclesClientFactory() {
         // No logbook lifecycles in COLLECT mode
-        if (workFlowExecutionContext == WorkFlowExecutionContext.COLLECT) {
+        if (WorkFlowExecutionContext.COLLECT == workFlowExecutionContext) {
             throw new IllegalArgumentException("No lifecycle in COLLECT execution context! Change your workflow.");
         }
         return logbookLifeCyclesClientFactory;

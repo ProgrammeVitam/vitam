@@ -27,7 +27,7 @@
     "propertiesFile": "store_object_group_plugin.properties"
   },
   "OBJ_STORAGE_COLLECT": {
-    "className": "fr.gouv.vitam.worker.core.plugin.StoreObjectGroupCollectActionPlugin"
+    "className": "fr.gouv.vitam.worker.core.handler.StoreObjectGroupCollectActionPlugin"
   },
   "UNITS_RULES_COMPUTE": {
     "className": "fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin",

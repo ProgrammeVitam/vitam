@@ -30,6 +30,7 @@ package fr.gouv.vitam.collect.internal.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.dto.UploadSipResult;
@@ -38,6 +39,8 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
+import fr.gouv.vitam.collect.internal.core.common.Batch;
+import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.service.BulkAtomicUpdateMetadataService;
@@ -890,9 +893,10 @@ public class TransactionInternalResource {
     ) {
         try {
             SanityChecker.checkParameter(transactionId, contentType);
-            var operationIdDto = new UploadSipResult(
-                transactionService.uploadSipOnTransaction(transactionId, contentType, uploadedInputStream)
-            );
+            final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+            GUID requestGuid = GUIDReader.getGUIDUnsafe(requestId);
+            transactionService.uploadSipOnTransaction(transactionId, requestGuid, contentType, uploadedInputStream);
+            var operationIdDto = new UploadSipResult(requestId);
             return new RequestResponseOK<UploadSipResult>()
                 .addResult(operationIdDto)
                 .setHttpCode(Response.Status.OK.getStatusCode())
@@ -914,6 +918,33 @@ public class TransactionInternalResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (Exception e) {
             LOGGER.error("Error when uploading SIP to transaction. Internal Server Error: {}", e.getMessage(), e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/{transactionId}/batches")
+    @POST
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response addTransactionBatch(@PathParam("transactionId") String transactionId, BatchDto batchDto) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+            TransactionModel transaction = getTransaction(transactionId);
+            Batch batch = new Batch();
+            batch.setBatchId(batchDto.getBatchId());
+            batch.setBatchStatus(BatchStatus.valueOf(batchDto.getBatchStatus().name()));
+            transaction.addBatch(batch);
+            transactionService.addTransactionBatch(transactionId, batchDto);
+
+            return Response.status(OK).build();
+        } catch (CollectInternalNotFoundException e) {
+            LOGGER.error("An error occurred while adding batch. Not Found", e);
+            return CollectRequestResponse.toVitamError(NOT_FOUND, e.getLocalizedMessage());
+        } catch (CollectInternalInvalidRequestException | InvalidParseOperationException e) {
+            LOGGER.error("An error occurred while adding batch. Bad Request", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        } catch (Exception e) {
+            LOGGER.error("An error occurred while adding batch. Internal Server Error", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }

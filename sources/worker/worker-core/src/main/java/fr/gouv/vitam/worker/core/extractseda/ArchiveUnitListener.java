@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicyTypeEnum;
+import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
@@ -90,6 +91,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingExc
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ArchiveUnitAtrExtra;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
@@ -153,6 +156,8 @@ public class ArchiveUnitListener {
 
     private final JsonLineWriter jsonLineUnitsWriter;
 
+    private final WorkerParameters workerParameters;
+
     /**
      * @param handlerIO
      */
@@ -162,7 +167,8 @@ public class ArchiveUnitListener {
         IngestSession ingestSession,
         JsonLineDataBase unitsDatabase,
         MetaDataClientFactory metaDataClientFactory,
-        JsonLineWriter jsonLineUnitsWriter
+        JsonLineWriter jsonLineUnitsWriter,
+        WorkerParameters workerParameters
     ) {
         this.handlerIO = handlerIO;
         this.ingestContext = ingestContext;
@@ -174,6 +180,7 @@ public class ArchiveUnitListener {
         this.metaDataClientFactory = metaDataClientFactory;
         this.persistentIdentifierGenerationService = PersistentIdentifierGenerationService.getInstance();
         this.jsonLineUnitsWriter = jsonLineUnitsWriter;
+        this.workerParameters = workerParameters;
     }
 
     private static ArchiveUnitAtrExtra extractExtraInfoFromUnit(ArchiveUnitType archiveUnitType, String elementGUID) {
@@ -324,13 +331,15 @@ public class ArchiveUnitListener {
 
         ArchiveUnitRoot archiveUnitRoot;
         try {
-            String operationId = handlerIO.getContainerName();
+            String opiFieldToFill = WorkFlowExecutionContext.COLLECT.equals(handlerIO.getWorkFlowExecutionContext())
+                ? workerParameters.getParameterValue(WorkerParameterName.collectTransactionId)
+                : workerParameters.getContainerName();
 
             archiveUnitRoot = archiveUnitMapper.map(
                 archiveUnitType,
                 elementGUID,
                 groupId,
-                operationId,
+                opiFieldToFill,
                 ingestContext.getWorkflowUnitType().name(),
                 ingestContext.getSedaVersion()
             );

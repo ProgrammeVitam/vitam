@@ -165,7 +165,7 @@ public class ReclassificationPreparationLoadRequestHandler extends ActionHandler
                     parsedReclassificationDslRequest,
                     accessContractModel
                 );
-            } else if (param.getExecutionContext() == WorkFlowExecutionContext.COLLECT) {
+            } else if (WorkFlowExecutionContext.COLLECT.equals(param.getExecutionContext())) {
                 // Check that the parent is within the same transaction
                 checkParentTransaction(handler, parsedReclassificationDslRequest, transactionId);
 

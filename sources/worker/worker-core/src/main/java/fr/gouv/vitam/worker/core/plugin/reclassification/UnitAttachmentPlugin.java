@@ -81,7 +81,7 @@ public class UnitAttachmentPlugin extends ActionHandler {
 
             updateUnit(handler, unitId, parentUnitsToAdd);
 
-            if (param.getExecutionContext() != WorkFlowExecutionContext.COLLECT) {
+            if (WorkFlowExecutionContext.COLLECT != param.getExecutionContext()) {
                 updateUnitLifeCycle(handler, param, unitId, parentUnitsToAdd);
             }
         } catch (ProcessingStatusException e) {

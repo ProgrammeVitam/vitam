@@ -33,6 +33,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
@@ -98,6 +99,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.common.utils.TransactionRestrictionHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextException;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextModel;
 import fr.gouv.vitam.processing.engine.core.operation.OperationContextMonitor;
@@ -156,6 +158,7 @@ public class TransactionService {
         TransactionStatus.ACK_WARNING
     );
     private static final int MAX_RETRY = 3;
+    public static final String TRANSACTION_ID = "transactionId";
 
     private final TransactionRepository transactionRepository;
     private final MetadataRepository metadataRepository;
@@ -616,10 +619,21 @@ public class TransactionService {
      *
      * @throws CollectInternalException exception thrown in case of error
      */
-    public boolean isTransactionContentEmpty(String id) throws CollectInternalException {
-        // FIXME : Is this enough? shouldn't we check metadata (ex units only, and/or existing container with metadata deleted)
+    public boolean isTransactionContentEmpty(String transactionId) throws CollectInternalException {
         try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
-            return !workspaceClient.isExistingContainer(id);
+            boolean containerEmpty = !workspaceClient.isExistingContainer(transactionId);
+            if (containerEmpty) return true;
+
+            final SelectMultiQuery request = new SelectMultiQuery();
+            request.addUsedProjection(VitamFieldsHelper.id());
+            request.setLimitFilter(0, 1);
+            final RequestResponseOK<JsonNode> unitsResponse = metadataRepository.selectUnits(
+                request.getFinalSelect(),
+                transactionId
+            );
+            return unitsResponse.getHits().getSize() == 0;
+        } catch (InvalidParseOperationException e) {
+            throw new CollectInternalException("Invalid operation during metadata query : ", e);
         } catch (ContentAddressableStorageServerException e) {
             throw new CollectInternalException(e);
         }
@@ -830,7 +844,7 @@ public class TransactionService {
                 metadataRepository.deleteUnits(idUnits);
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            throw new CollectInternalException("Invalid operation during unit creation : ", e);
+            throw new CollectInternalException("Invalid operation during unit purge : ", e);
         }
     }
 
@@ -996,13 +1010,18 @@ public class TransactionService {
         }
     }
 
-    public String uploadSipOnTransaction(String transactionId, String contentType, InputStream uploadedInputStream)
+    public String uploadSipOnTransaction(
+        String transactionId,
+        GUID operationId,
+        String contentType,
+        InputStream uploadedInputStream
+    )
         throws LogbookClientAlreadyExistsException, VitamClientException, InternalServerException, BadRequestException, InvalidParseOperationException, LogbookClientServerException, ContentAddressableStorageException, LogbookClientBadRequestException, InvalidGuidOperationException, CollectInternalException {
         try {
             ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             checkTransactionStatus(transactionId);
-            pushSipStreamToWorkspaceCollect(transactionId, contentType, uploadedInputStream);
-            return launchCollectSipWorkflow(transactionId);
+            pushSipStreamToWorkspaceCollect(operationId.toString(), contentType, uploadedInputStream);
+            return launchCollectSipWorkflow(operationId, transactionId);
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
         }
@@ -1017,39 +1036,57 @@ public class TransactionService {
         ensureTransactionIsOpen(transactionModelOptional.get());
     }
 
-    private String launchCollectSipWorkflow(String transactionId)
-        throws InvalidGuidOperationException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException, ContentAddressableStorageServerException, InternalServerException, BadRequestException, VitamClientException {
+    private String launchCollectSipWorkflow(GUID operationId, String transactionId)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException, ContentAddressableStorageServerException, InternalServerException, BadRequestException, VitamClientException, CollectInternalException, InvalidParseOperationException {
         ParametersChecker.checkParameter("Missing transaction id", transactionId);
+        ParametersChecker.checkParameter("Missing request id", operationId);
         // Start workflow
-        GUID operationGUID = GUIDReader.getGUID(transactionId);
 
+        String operationGuid = operationId.toString();
         try (
             ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            WorkspaceClient workspaceCollectClient = workspaceCollectClientFactory.getClient()
         ) {
+            if (!workspaceCollectClient.isExistingContainer(transactionId)) {
+                workspaceCollectClient.createContainer(transactionId);
+            }
+
+            Optional<TransactionModel> optionalTransaction = transactionRepository.findTransaction(transactionId);
+
+            if (optionalTransaction.isEmpty()) {
+                LOGGER.error("No transaction found with id " + transactionId);
+                throw new CollectInternalException("No transaction found with id " + transactionId);
+            }
             final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                operationGUID,
+                operationId,
                 Contexts.COLLECT_SIP_INGEST.getEventType(),
-                operationGUID,
+                operationId,
                 LogbookTypeProcess.COLLECT_SIP_INGEST,
                 STARTED,
-                VitamLogbookMessages.getLabelOp("COLLECT_SIP_INGEST.STARTED") + " : " + operationGUID,
-                operationGUID
+                VitamLogbookMessages.getLabelOp("COLLECT_SIP_INGEST.STARTED") + " : " + operationId,
+                operationId
             );
 
-            logbookOperationsClient.create(initParameters);
-            workspaceClient.createContainer(transactionId);
+            final ProcessingEntry processingEntry = new ProcessingEntry(
+                operationGuid,
+                Contexts.COLLECT_SIP_INGEST.name()
+            );
+            processingEntry.getExtraParams().put(WorkerParameterName.collectTransactionId.name(), transactionId);
 
-            processingClient.initVitamProcess(new ProcessingEntry(transactionId, Contexts.COLLECT_SIP_INGEST.name()));
+            logbookOperationsClient.create(initParameters);
+            workspaceClient.createContainer(operationGuid);
+
+            processingClient.initVitamProcess(processingEntry);
             RequestResponse<ItemStatus> jsonNodeRequestResponse = processingClient.executeOperationProcess(
-                transactionId,
+                operationGuid,
                 Contexts.COLLECT_SIP_INGEST.name(),
                 RESUME.getValue()
             );
             jsonNodeRequestResponse.toResponse();
 
-            return operationGUID.toString();
+            return operationGuid;
         }
     }
 
@@ -1263,5 +1300,30 @@ public class TransactionService {
 
             sleepDelayInMs = Math.min(sleepDelayInMs * 2, maxSleepDelayInMs);
         }
+    }
+
+    public void addTransactionBatch(String transactionId, BatchDto batchDto) throws CollectInternalException {
+        Optional<TransactionModel> initialTransaction = findTransaction(transactionId);
+        if (initialTransaction.isEmpty()) {
+            throw new CollectInternalNotFoundException("No such transaction '" + transactionId + "'");
+        }
+        TransactionModel transaction = initialTransaction.get();
+        //If the batch is executed before, we replace the old occurrence by the new including status change
+        List<Batch> batches;
+        if (CollectionUtils.isNotEmpty(transaction.getBatches())) {
+            batches = transaction
+                .getBatches()
+                .stream()
+                .filter(batch -> !batch.getBatchId().equals(batchDto.getBatchId()))
+                .toList();
+        } else {
+            batches = new ArrayList<>();
+        }
+        Batch batch = new Batch();
+        batch.setBatchId(batchDto.getBatchId());
+        batch.setBatchStatus(BatchStatus.valueOf(batchDto.getBatchStatus().name()));
+        batches.add(batch);
+        transaction.setBatches(batches);
+        transactionRepository.replaceTransaction(transaction);
     }
 }

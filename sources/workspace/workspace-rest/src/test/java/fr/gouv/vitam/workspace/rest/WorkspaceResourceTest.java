@@ -92,6 +92,7 @@ public class WorkspaceResourceTest {
     private static final String RESOURCE_URI = "/v1";
 
     private static final String CONTAINER_NAME = "myContainer";
+    private static final String CONTAINER_2_NAME = "myContainer2";
     private static final String FOLDER_NAME = "myFolder";
     private static final String FOLDER_SIP = "SIP";
     private static final String OBJECT_NAME = "myObject";
@@ -1092,6 +1093,7 @@ public class WorkspaceResourceTest {
     public void should_bulk_move_files_successfully() throws Exception {
         // Given
         with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+        with().then().statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_2_NAME);
 
         String sourceFile1 = "source/file1.txt";
         String sourceFile2 = "source/file2.txt";
@@ -1124,7 +1126,7 @@ public class WorkspaceResourceTest {
                 )
             )
             .when()
-            .post("/containers/" + CONTAINER_NAME + "/bulk-move")
+            .post("/containers/" + CONTAINER_NAME + "/" + CONTAINER_2_NAME + "/bulk-move")
             .then()
             .statusCode(Status.OK.getStatusCode());
 
@@ -1147,13 +1149,13 @@ public class WorkspaceResourceTest {
             .then()
             .statusCode(Status.OK.getStatusCode())
             .when()
-            .head("/containers/" + CONTAINER_NAME + "/objects/" + destFile1);
+            .head("/containers/" + CONTAINER_2_NAME + "/objects/" + destFile1);
 
         given()
             .then()
             .statusCode(Status.OK.getStatusCode())
             .when()
-            .head("/containers/" + CONTAINER_NAME + "/objects/" + destFile2);
+            .head("/containers/" + CONTAINER_2_NAME + "/objects/" + destFile2);
 
         // Content should be preserved
         Response response1 = given()
@@ -1161,7 +1163,7 @@ public class WorkspaceResourceTest {
             .then()
             .statusCode(Status.OK.getStatusCode())
             .when()
-            .get("/containers/" + CONTAINER_NAME + "/objects/" + destFile1)
+            .get("/containers/" + CONTAINER_2_NAME + "/objects/" + destFile1)
             .andReturn();
         assertThat(IOUtils.toString(response1.getBody().asInputStream(), StandardCharsets.UTF_8)).isEqualTo("content1");
 
@@ -1170,7 +1172,7 @@ public class WorkspaceResourceTest {
             .then()
             .statusCode(Status.OK.getStatusCode())
             .when()
-            .get("/containers/" + CONTAINER_NAME + "/objects/" + destFile2)
+            .get("/containers/" + CONTAINER_2_NAME + "/objects/" + destFile2)
             .andReturn();
         assertThat(IOUtils.toString(response2.getBody().asInputStream(), StandardCharsets.UTF_8)).isEqualTo("content2");
     }
@@ -1228,7 +1230,7 @@ public class WorkspaceResourceTest {
             .contentType(ContentType.JSON)
             .body(new BulkMoveRequest(List.of(new BulkMoveEntry("source.txt", "dest.txt"))))
             .when()
-            .post("/containers/" + CONTAINER_NAME + "/bulk-move")
+            .post("/containers/" + CONTAINER_NAME + "/" + CONTAINER_NAME + "/bulk-move")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }

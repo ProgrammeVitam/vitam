@@ -28,7 +28,6 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.google.common.collect.Lists;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -43,6 +42,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -73,15 +73,15 @@ public class CollectIngestFinalizationPluginTest {
         CollectIngestFinalizationPlugin plugin = new CollectIngestFinalizationPlugin();
         final WorkerParameters params = getWorkerParams();
         params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name());
+        params.putParameterValue(WorkerParameterName.collectTransactionId, TRANSACTION_ID);
         TestHandlerIO handlerIO = new TestHandlerIO();
         CollectInternalClient collectInternalClient = handlerIO.getCollectInternalClient();
-
         // When
         ItemStatus itemStatus = plugin.execute(params, handlerIO);
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(collectInternalClient).changeTransactionStatus(TRANSACTION_ID, TransactionStatus.KO);
+        verify(collectInternalClient).addBatchToTransaction(eq(TRANSACTION_ID), any());
     }
 
     private static DefaultWorkerParameters getWorkerParams() {

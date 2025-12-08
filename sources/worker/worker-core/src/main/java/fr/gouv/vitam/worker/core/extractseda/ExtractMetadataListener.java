@@ -98,7 +98,8 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             ingestSession,
             unitsDatabase,
             metaDataClientFactory,
-            jsonLineWriter
+            jsonLineWriter,
+            params
         );
         this.handlerIO = handlerIO;
         this.ingestSession = ingestSession;

@@ -304,6 +304,10 @@ public class SipService {
             WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient();
             InputStream inputStream = new FileInputStream(manifestFile)
         ) {
+            if (!workspaceClient.isExistingContainer(transactionModel.getId())) {
+                workspaceClient.createContainer(transactionModel.getId());
+            }
+
             workspaceClient.putObject(transactionModel.getId(), SEDA_FILE, inputStream);
             LOGGER.debug(" -> push manifest to workspace finished");
         }
@@ -311,6 +315,15 @@ public class SipService {
 
     private void compressSipInWorkspace(TransactionModel transactionModel) throws CollectInternalException {
         try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+            if (!workspaceClient.isExistingContainer(transactionModel.getId())) {
+                throw new CollectInternalException("No container found for transaction " + transactionModel.getId());
+            }
+
+            if (!workspaceClient.isExistingFolder(transactionModel.getId(), CONTENT_FOLDER)) {
+                throw new CollectInternalException(
+                    "No content folder with name: Content for transaction " + transactionModel.getId()
+                );
+            }
             // compress
             CompressInformation compressInformation = new CompressInformation();
             compressInformation.getFiles().add(SEDA_FILE);

@@ -119,11 +119,15 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
             this.mock = mock;
         }
 
-        @Path("{containerName}/bulk-move")
+        @Path("{sourceContainerName}/{targetContainerName}/bulk-move")
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response bulkMove(@PathParam("containerName") String containerName, BulkMoveRequest bulkMoveRequest) {
+        public Response bulkMove(
+            @PathParam("sourceContainerName") String sourceContainerName,
+            @PathParam("targetContainerName") String targetContainerName,
+            BulkMoveRequest bulkMoveRequest
+        ) {
             return mock.post();
         }
 
@@ -491,25 +495,34 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
     // bulkMove tests
     @Test(expected = IllegalArgumentException.class)
     public void givenNullContainerWhenBulkMoveThenRaiseAnException() throws Exception {
-        client.bulkMove(null, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
+        client.bulkMove(null, CONTAINER_NAME, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
     }
 
     @Test(expected = ContentAddressableStorageServerException.class)
     public void givenServerErrorWhenBulkMoveThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.bulkMove(CONTAINER_NAME, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
+        client.bulkMove(
+            CONTAINER_NAME,
+            CONTAINER_NAME,
+            new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1")))
+        );
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenBulkMoveThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.bulkMove(CONTAINER_NAME, new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"))));
+        client.bulkMove(
+            CONTAINER_NAME,
+            CONTAINER_NAME,
+            new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1")))
+        );
     }
 
     @Test
     public void givenValidParametersWhenBulkMoveThenSuccess() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         client.bulkMove(
+            CONTAINER_NAME,
             CONTAINER_NAME,
             new BulkMoveRequest(List.of(new BulkMoveEntry("source1", "dest1"), new BulkMoveEntry("source2", "dest2")))
         );
