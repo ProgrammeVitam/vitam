@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibrarySpec;
+import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.cas.AccessRequestManager;
@@ -53,14 +55,11 @@ import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorag
 import fr.gouv.vitam.storage.offers.tape.cas.TarFileRapairer;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
-import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
-import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
-import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
-import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
-import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.TapeServiceFactory;
+import fr.gouv.vitam.storage.offers.tape.impl.local.catalog.TapeCatalogRepository;
+import fr.gouv.vitam.storage.offers.tape.impl.local.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.local.queue.QueueRepositoryImpl;
 import fr.gouv.vitam.storage.offers.tape.metrics.AccessRequestMetrics;
 import fr.gouv.vitam.storage.offers.tape.metrics.ArchiveCacheMetrics;
 import fr.gouv.vitam.storage.offers.tape.metrics.DriveWorkerMetrics;
@@ -92,7 +91,6 @@ public class TapeLibraryFactory {
     private static final long MB_BYTES = 1_000_000L;
 
     private final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
-    private final TapeServiceCreator defaultTapeServiceCreator = new TapeServiceCreatorImpl();
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
 
     private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
@@ -100,7 +98,7 @@ public class TapeLibraryFactory {
     private TapeCatalogService tapeCatalogService;
     private AccessRequestManager accessRequestManager;
     private ArchiveCacheStorage archiveCacheStorage;
-    private TapeServiceCreator tapeServiceCreator = defaultTapeServiceCreator;
+    private TapeServiceCreator tapeServiceCreator = null;
 
     private TapeLibraryFactory() {}
 
@@ -113,6 +111,11 @@ public class TapeLibraryFactory {
             configuration.getCachedTarEvictionStorageSpaceThresholdInMB(),
             configuration.getCachedTarSafeStorageSpaceThresholdInMB()
         );
+
+        // Use default factory when no factory is injected
+        if (this.tapeServiceCreator == null) {
+            this.tapeServiceCreator = new TapeServiceFactory(configuration);
+        }
 
         createWorkingDirectories(configuration);
 
@@ -387,32 +390,12 @@ public class TapeLibraryFactory {
         this.tapeCatalogService = null;
         this.accessRequestManager = null;
         this.archiveCacheStorage = null;
-        this.tapeServiceCreator = defaultTapeServiceCreator;
+        this.tapeServiceCreator = null;
     }
 
     public interface TapeServiceCreator {
         TapeRobotService createRobotService(TapeRobotConf tapeRobotConf);
 
         TapeDriveService createTapeDriveService(TapeLibraryConfiguration configuration, TapeDriveConf tapeDriveConf);
-    }
-
-    private static final class TapeServiceCreatorImpl implements TapeServiceCreator {
-
-        @Override
-        public TapeRobotService createRobotService(TapeRobotConf tapeRobotConf) {
-            return new TapeRobotManager(tapeRobotConf);
-        }
-
-        @Override
-        public TapeDriveService createTapeDriveService(
-            TapeLibraryConfiguration configuration,
-            TapeDriveConf tapeDriveConf
-        ) {
-            return new TapeDriveManager(
-                tapeDriveConf,
-                configuration.getInputTarStorageFolder(),
-                configuration.getTmpTarOutputStorageFolder()
-            );
-        }
     }
 }

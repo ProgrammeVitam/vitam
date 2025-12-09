@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.offers.tape.impl;
 
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
+import fr.gouv.vitam.storage.offers.tape.impl.local.TapeRobotManager;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;

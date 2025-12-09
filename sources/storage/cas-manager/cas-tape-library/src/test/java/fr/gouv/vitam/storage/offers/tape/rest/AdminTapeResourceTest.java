@@ -43,7 +43,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
-import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.local.queue.QueueRepositoryImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import org.bson.Document;
 import org.junit.After;

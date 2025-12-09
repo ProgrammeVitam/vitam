@@ -27,11 +27,11 @@
 package fr.gouv.vitam.storage.offers.tape.parser;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeCartridge;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeSlotType;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeCartridge;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDrive;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeSlot;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeSlotType;
 import org.apache.commons.lang3.StringUtils;
 
 public class TapeLibraryStatusParser {

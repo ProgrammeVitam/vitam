@@ -27,8 +27,8 @@
 package fr.gouv.vitam.storage.offers.tape.parser;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveState;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeDriveStatus;
 import org.apache.commons.lang3.StringUtils;
 
 public class TapeDriveStatusParser {

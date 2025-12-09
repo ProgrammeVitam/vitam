@@ -27,8 +27,8 @@
 package fr.gouv.vitam.storage.offers.tape.spec;
 
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import org.bson.conversions.Bson;

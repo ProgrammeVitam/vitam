@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamMetricsNames;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
-import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
+import fr.gouv.vitam.storage.offers.tape.impl.local.catalog.TapeCatalogRepository;
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
 

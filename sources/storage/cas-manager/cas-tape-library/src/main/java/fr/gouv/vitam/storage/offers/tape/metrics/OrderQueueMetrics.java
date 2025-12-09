@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.metrics.VitamMetricsNames;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.local.queue.QueueRepositoryImpl;
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
 import org.apache.commons.lang3.tuple.ImmutablePair;

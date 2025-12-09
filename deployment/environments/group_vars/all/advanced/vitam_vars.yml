@@ -563,6 +563,14 @@ vitam:
     https_enabled: false
     secret_platform: "true"
     engine: "clamav" # or avast
+  ina_tape_proxy:
+    vitam_component: ina-tape-proxy
+    host: "ina-tape-proxy.service.{{ consul_domain }}"
+    port_service: 8216
+    port_admin: 28216
+    baseuri: ina-tape-proxy
+    https_enabled: false
+    secret_platform: "true"
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
 vitam_tenant_rule_duration:

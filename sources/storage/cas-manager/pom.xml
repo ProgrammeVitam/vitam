@@ -16,5 +16,6 @@
 		<module>vitam-offer</module>
 		<module>cas-tape-library</module>
 		<module>cas-tape-library-simulator</module>
+        <module>ina-tape-proxy</module>
 	</modules>
 </project>

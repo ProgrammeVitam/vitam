@@ -29,7 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.parser;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.engine.common.api.dto.TapeLibraryState;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;

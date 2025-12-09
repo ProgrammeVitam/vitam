@@ -132,3 +132,8 @@ vitam:
             # memory: "-Xms128m -Xmx512m"
             # gc: ""
             # java: ""
+    ina_tape_proxy:
+        jvm_opts:
+          # memory: "-Xms128m -Xmx512m"
+          # gc: ""
+          # java: ""

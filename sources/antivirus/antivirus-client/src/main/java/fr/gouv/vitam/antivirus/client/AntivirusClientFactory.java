@@ -30,6 +30,7 @@ package fr.gouv.vitam.antivirus.client;
 import fr.gouv.vitam.antivirus.client.invoker.ApiClient;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamResteasyClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
@@ -67,7 +68,7 @@ public class AntivirusClientFactory {
         // Check configuration
         ParametersChecker.checkParameter("Host cannot be null", configuration.getServerHost());
         ParametersChecker.checkValue("Port has invalid value", configuration.getServerPort(), 1);
-        Client client = VitamOpenAPIClientFactoryUtils.buildHttpClient(configuration);
+        Client client = new VitamResteasyClientFactory().buildClient(configuration);
         // Build the api client from the http client
         this.apiClient = new VitamApiClient();
         this.apiClient.setHttpClient(client);
