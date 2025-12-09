@@ -4,6 +4,7 @@ https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-databa
 https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-mongos-8.0.8-1.el9.x86_64.rpm
 https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-server-8.0.8-1.el9.x86_64.rpm
 
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.19.8-x86_64.rpm
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.2-x86_64.rpm
 https://artifacts.elastic.co/downloads/logstash/logstash-9.2.2-x86_64.rpm
 https://artifacts.elastic.co/downloads/kibana/kibana-9.2.2-x86_64.rpm

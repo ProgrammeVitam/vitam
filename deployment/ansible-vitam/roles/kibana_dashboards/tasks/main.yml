@@ -31,9 +31,9 @@
   tags: load_kibana
   run_once: true
   uri:
-    url: "http://{{ ip_admin }}:{{ composant.port }}/api/kibana/settings"
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/index_patterns/default"
     method: POST
-    body: "{\"changes\":{\"defaultIndex\":\"{{ composant.default_index_pattern }}\"}}"
+    body: "{\"index_pattern_id\":\"{{ composant.default_index_pattern }}\", \"force\": true}"
     headers:
       kbn-xsrf: "true"
     body_format: json
