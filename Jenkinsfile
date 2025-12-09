@@ -25,7 +25,7 @@ pipeline {
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         NVD_API_KEY = credentials("nvd-api-key")
-        ES_VERSION="8.18.0"
+        ES_VERSION="9.2.2"
         MONGO_VERSION="8.0.8"
     }
 

@@ -1,6 +1,6 @@
 ---
 
-filebeat_version: "{{ filebeat.version | default('8.18.0') }}"
+filebeat_version: "{{ filebeat.version | default('9.2.2') }}"
 filebeat_package: "filebeat{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ filebeat_version }}"
 
 cots_list:
