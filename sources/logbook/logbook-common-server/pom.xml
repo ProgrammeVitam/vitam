@@ -51,6 +51,10 @@
             <artifactId>assertj-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+        </dependency>
+        <dependency>
             <groupId>net.javacrumbs.json-unit</groupId>
             <artifactId>json-unit</artifactId>
             <scope>test</scope>

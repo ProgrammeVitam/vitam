@@ -324,8 +324,13 @@ public class QueryToElasticsearch {
 
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final Script script = Script.of(
-            s -> s.inline(i -> i.source("doc['" + element.getKey() + "'].values.length == " + element.getValue()))
+            s ->
+                s.source(
+                    source ->
+                        source.scriptString("doc['" + element.getKey() + "'].values.length == " + element.getValue())
+                )
         );
+
         if (element.getKey().equals(VitamDocument.ID)) {
             logWarnUnsupportedIdForCommand(query, content);
         }
@@ -673,7 +678,8 @@ public class QueryToElasticsearch {
             logWarnUnsupportedIdForCommand(query, content);
         }
 
-        final RangeQuery.Builder range = QueryBuilders.range().field(key);
+        final Map<RANGEARGS, JsonNode> rangeParams = new HashMap<>();
+
         for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             RANGEARGS arg;
@@ -687,22 +693,29 @@ public class QueryToElasticsearch {
             } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException("Invalid Range query command: " + requestItem, e);
             }
-            JsonNode node = requestItem.getValue();
-            switch (arg) {
-                case GT:
-                    range.gt(JsonData.of(getAsObject(node)));
-                    break;
-                case GTE:
-                    range.gte(JsonData.of(getAsObject(node)));
-                    break;
-                case LT:
-                    range.lt(JsonData.of(getAsObject(node)));
-                    break;
-                case LTE:
-                default:
-                    range.lte(JsonData.of(getAsObject(node)));
-            }
+
+            rangeParams.put(arg, requestItem.getValue());
         }
+        RangeQuery.Builder range = QueryBuilders.range();
+        range.untyped(u -> {
+            u.field(key);
+
+            if (rangeParams.containsKey(RANGEARGS.GT)) {
+                u.gt(JsonData.of(getAsObject(rangeParams.get(RANGEARGS.GT))));
+            }
+            if (rangeParams.containsKey(RANGEARGS.GTE)) {
+                u.gte(JsonData.of(getAsObject(rangeParams.get(RANGEARGS.GTE))));
+            }
+            if (rangeParams.containsKey(RANGEARGS.LT)) {
+                u.lt(JsonData.of(getAsObject(rangeParams.get(RANGEARGS.LT))));
+            }
+            if (rangeParams.containsKey(RANGEARGS.LTE)) {
+                u.lte(JsonData.of(getAsObject(rangeParams.get(RANGEARGS.LTE))));
+            }
+
+            return u;
+        });
+
         return range.build()._toQuery();
     }
 

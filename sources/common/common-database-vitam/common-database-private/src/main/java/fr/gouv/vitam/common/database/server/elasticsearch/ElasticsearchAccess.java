@@ -707,7 +707,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
         GetAliasResponse actualIndex = getAlias(indexAlias);
 
-        Map<String, IndexAliases> aliases = actualIndex.result();
+        Map<String, IndexAliases> aliases = actualIndex.aliases();
 
         if (aliases.isEmpty()) {
             throw new DatabaseException("No previous index found");
@@ -755,7 +755,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         } catch (IOException e) {
             throw new DatabaseException(e);
         }
-        for (Map.Entry<String, IndexAliases> entry : aliasResponse.result().entrySet()) {
+        for (Map.Entry<String, IndexAliases> entry : aliasResponse.aliases().entrySet()) {
             deleteIndexForTesting(entry.getKey());
         }
     }

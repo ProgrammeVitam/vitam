@@ -121,7 +121,7 @@ public class ElasticsearchAccessTest {
     public void testGetAliasForExistingAlias() throws Exception {
         elasticsearchRule.createIndex("myalias", "myindex", "{}");
         GetAliasResponse getAliasesResponse = elasticsearchAccess.getAlias(myalias);
-        assertThat(getAliasesResponse.result()).containsOnlyKeys("myindex");
+        assertThat(getAliasesResponse.aliases()).containsOnlyKeys("myindex");
     }
 
     @Test
@@ -234,8 +234,10 @@ public class ElasticsearchAccessTest {
             .get("FacetOriginatingAgencyCardinality")
             .cardinality();
 
-        assertThat(facetSizeSum.value()).isEqualTo(IntStream.range(0, 15).sum());
-        assertThat(facetOriginatingAgencyCount.value()).isEqualTo(12); //12 non null value
+        assertThat(facetSizeSum.value() != null ? facetSizeSum.value() : 0.0).isEqualTo(IntStream.range(0, 15).sum());
+        assertThat(facetOriginatingAgencyCount.value() != null ? facetOriginatingAgencyCount.value() : 0.0).isEqualTo(
+            12
+        ); //12 non null value
         assertThat(facetOriginatingAgencyCardinality.value()).isEqualTo(3); // 3 non null different values
         assertThat(stringTermsAggregate.buckets()).isNotNull();
         assertThat(stringTermsAggregate.buckets().array().get(0).key()._toJsonString()).isEqualTo("Agency1");
@@ -507,9 +509,9 @@ public class ElasticsearchAccessTest {
         assertThat(elasticsearchAccess.existsAlias(myalias)).isTrue();
 
         GetAliasResponse getAliasesResponse = elasticsearchAccess.getAlias(myalias);
-        assertThat(getAliasesResponse.result()).hasSize(1);
+        assertThat(getAliasesResponse.aliases()).hasSize(1);
         ElasticsearchIndexAlias myindex = ElasticsearchIndexAlias.ofFullIndexName(
-            getAliasesResponse.result().keySet().iterator().next()
+            getAliasesResponse.aliases().keySet().iterator().next()
         );
         assertThat(myalias.isValidAliasOfIndex(myindex)).isTrue();
     }
@@ -525,9 +527,9 @@ public class ElasticsearchAccessTest {
         waitCycle();
         assertThat(elasticsearchAccess.existsAlias(myalias)).isTrue();
         GetAliasResponse existingAliasResponse = elasticsearchAccess.getAlias(myalias);
-        assertThat(existingAliasResponse.result()).hasSize(1);
+        assertThat(existingAliasResponse.aliases()).hasSize(1);
         ElasticsearchIndexAlias myExistingIndex = ElasticsearchIndexAlias.ofFullIndexName(
-            existingAliasResponse.result().keySet().iterator().next()
+            existingAliasResponse.aliases().keySet().iterator().next()
         );
 
         // When
@@ -541,8 +543,8 @@ public class ElasticsearchAccessTest {
         assertThat(elasticsearchAccess.existsAlias(myalias)).isTrue();
 
         GetAliasResponse getAliasesResponse = elasticsearchAccess.getAlias(myalias);
-        assertThat(getAliasesResponse.result()).hasSize(1);
-        assertThat(getAliasesResponse.result().keySet().iterator().next()).isEqualTo(myExistingIndex.getName());
+        assertThat(getAliasesResponse.aliases()).hasSize(1);
+        assertThat(getAliasesResponse.aliases().keySet().iterator().next()).isEqualTo(myExistingIndex.getName());
     }
 
     @Test
@@ -560,7 +562,7 @@ public class ElasticsearchAccessTest {
             ElasticsearchTestHelper.loadElasticSearchSettings()
         );
         ElasticsearchIndexAlias existingIndex = ElasticsearchIndexAlias.ofFullIndexName(
-            elasticsearchAccess.getAlias(myalias).result().keySet().iterator().next()
+            elasticsearchAccess.getAlias(myalias).aliases().keySet().iterator().next()
         );
         assertThat(newIndex.getName()).isNotEqualTo(existingIndex.getName());
 
@@ -569,7 +571,7 @@ public class ElasticsearchAccessTest {
 
         // Then
         ElasticsearchIndexAlias indexAfterAliasSwitch = ElasticsearchIndexAlias.ofFullIndexName(
-            elasticsearchAccess.getAlias(myalias).result().keySet().iterator().next()
+            elasticsearchAccess.getAlias(myalias).aliases().keySet().iterator().next()
         );
         assertThat(indexAfterAliasSwitch.getName()).isEqualTo(newIndex.getName());
 

@@ -189,10 +189,10 @@ public class IndexationHelperTest {
 
         // Ensure aliases still reference old indexes
         GetAliasResponse alias0BeforeSwitch = elasticsearchAccess.getAlias(indexAlias0);
-        assertThat(alias0BeforeSwitch.result()).containsOnlyKeys(INDEX + "_0_initialindex");
+        assertThat(alias0BeforeSwitch.aliases()).containsOnlyKeys(INDEX + "_0_initialindex");
 
         GetAliasResponse aliasGrpBeforeSwitch = elasticsearchAccess.getAlias(indexAliasGrp);
-        assertThat(aliasGrpBeforeSwitch.result()).containsOnlyKeys(INDEX + "_mygrp_initialindex");
+        assertThat(aliasGrpBeforeSwitch.aliases()).containsOnlyKeys(INDEX + "_mygrp_initialindex");
 
         // Switch indices
         SwitchIndexResult switchIndexResult0 = indexationHelper.switchIndex(
@@ -211,10 +211,10 @@ public class IndexationHelperTest {
 
         // Check alias references
         GetAliasResponse alias0AfterSwitch = elasticsearchAccess.getAlias(indexAlias0);
-        assertThat(alias0AfterSwitch.result()).containsOnlyKeys(newIndex0.getName());
+        assertThat(alias0AfterSwitch.aliases()).containsOnlyKeys(newIndex0.getName());
 
         GetAliasResponse aliasGrpAfterSwitch = elasticsearchAccess.getAlias(indexAliasGrp);
-        assertThat(aliasGrpAfterSwitch.result()).containsOnlyKeys(newIndexGrp.getName());
+        assertThat(aliasGrpAfterSwitch.aliases()).containsOnlyKeys(newIndexGrp.getName());
 
         // Purge old indices
         elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX);
@@ -305,7 +305,7 @@ public class IndexationHelperTest {
 
         // Ensure aliases still reference old indexes
         GetAliasResponse aliasBeforeSwitch = elasticsearchAccess.getAlias(indexAlias);
-        assertThat(aliasBeforeSwitch.result()).containsOnlyKeys(INDEX);
+        assertThat(aliasBeforeSwitch.aliases()).containsOnlyKeys(INDEX);
 
         // Switch indices
         SwitchIndexResult switchIndexResult = indexationHelper.switchIndex(indexAlias, newIndex, elasticsearchAccess);
@@ -314,7 +314,7 @@ public class IndexationHelperTest {
 
         // Check alias references
         GetAliasResponse aliasAfterSwitch = elasticsearchAccess.getAlias(indexAlias);
-        assertThat(aliasAfterSwitch.result()).containsOnlyKeys(newIndex.getName());
+        assertThat(aliasAfterSwitch.aliases()).containsOnlyKeys(newIndex.getName());
 
         // Purge old indices
         elasticsearchRule.purgeIndex(elasticsearchRule.getClient(), INDEX);

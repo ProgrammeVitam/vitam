@@ -57,11 +57,13 @@ public class OriginatingAgencyBucketResult {
         long docCount,
         NestedAggregate nestedVersions
     ) {
+        Double count = nestedVersions.aggregations().get("binaryObjectCount").valueCount().value();
+        Double size = nestedVersions.aggregations().get("binaryObjectSize").sum().value();
         return new OriginatingAgencyBucketResult(
             originatingAgency,
             docCount,
-            (long) nestedVersions.aggregations().get("binaryObjectCount").valueCount().value(),
-            nestedVersions.aggregations().get("binaryObjectSize").sum().value()
+            count != null ? count.longValue() : 0L,
+            size != null ? size : 0.0
         );
     }
 }

@@ -125,7 +125,7 @@ public class ElasticsearchFacetResultHelper {
      * @return SumFacet
      */
     private static SingleValueFacet extractSumAggregation(Aggregate aggregation) {
-        double sumValue = aggregation.sum().value();
+        double sumValue = aggregation.sum().value() != null ? aggregation.sum().value() : 0.0;
         return new SingleValueFacet(sumValue);
     }
 
@@ -136,7 +136,7 @@ public class ElasticsearchFacetResultHelper {
      * @return SingleValueFacet
      */
     private static SingleValueFacet extractValueCountAggregation(Aggregate aggregation) {
-        double countValue = aggregation.valueCount().value();
+        double countValue = aggregation.valueCount().value() != null ? aggregation.valueCount().value() : 0.0;
         return new SingleValueFacet(countValue);
     }
 

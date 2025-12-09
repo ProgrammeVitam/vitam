@@ -682,8 +682,12 @@ public class MetaDataImpl {
                     .valueCount();
 
                 long gotCount = gotCountResult.value();
-                long binaryObjectSize = (long) binaryObjectSizeResult.value();
-                long binaryObjectCount = (long) binaryObjectCountResult.value();
+                long binaryObjectSize = binaryObjectSizeResult.value() != null
+                    ? binaryObjectSizeResult.value().longValue()
+                    : 0L;
+                long binaryObjectCount = binaryObjectCountResult.value() != null
+                    ? binaryObjectCountResult.value().longValue()
+                    : 0L;
                 if (opi.equals(operationId)) {
                     ogPerSp.setNumberOfGOT(ogPerSp.getNumberOfGOT() + gotCount);
                 }
