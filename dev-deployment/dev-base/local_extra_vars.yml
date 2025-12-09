@@ -30,12 +30,9 @@ elasticsearch:
         indices_breaker_fielddata_limit: '40%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/8.13/circuit-breaker.html#fielddata-circuit-breaker
         dynamic_timeout: 30s
         # default index template
-        index_templates:
-            default:
-                shards: 1
+        indices:
+            default_config:
                 replica: 0
-            packetbeat:
-                shards: 1
         log_appenders:
             root:
                 log_level: "info"
@@ -71,9 +68,8 @@ elasticsearch:
         indices_fielddata_cache_size: '30%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/8.13/modules-fielddata.html
         indices_breaker_fielddata_limit: '40%' # related to https://www.elastic.co/guide/en/elasticsearch/reference/8.13/circuit-breaker.html#fielddata-circuit-breaker
         dynamic_timeout: 30s
-        index_templates:
-            default:
-                shards: 1
+        indices:
+            default_config:
                 replica: 0
         log_appenders:
             root:

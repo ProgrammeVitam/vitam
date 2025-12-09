@@ -3,7 +3,7 @@
 # Set default values, if default is unset
 default_number_of_shards: 1
 
-default_log_number_of_replicas: "{{ elasticsearch.log.index_templates.default.number_of_replicas | default(1) }}"
-default_data_number_of_replicas: "{{ elasticsearch.data.index_templates.default.number_of_replicas | default(2) }}"
+default_log_number_of_replicas: "{{ elasticsearch.log.indices.default_config.number_of_replicas | default(1) }}"
+default_data_number_of_replicas: "{{ elasticsearch.data.indices.default_config.number_of_replicas | default(2) }}"
 
 default_number_of_replicas: "{{ default_log_number_of_replicas if composant == 'elasticsearch.log' else default_data_number_of_replicas }}"

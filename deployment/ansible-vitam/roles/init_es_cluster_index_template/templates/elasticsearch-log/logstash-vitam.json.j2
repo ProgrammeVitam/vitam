@@ -5,9 +5,9 @@
   "priority": 2,
   "template": {
     "settings": {
-      "index.number_of_shards": {{ elasticsearch.log.index_templates.vitam.number_of_shards | default(default_number_of_shards) }},
+      "index.number_of_shards": {{ elasticsearch.log.indices.vitam.number_of_shards | default(default_number_of_shards) }},
       {% if groups['hosts_elasticsearch_log']|length > 1 %}
-      "index.number_of_replicas": {{ elasticsearch.log.index_templates.vitam.number_of_replicas | default(default_number_of_replicas) }},
+      "index.number_of_replicas": {{ elasticsearch.log.indices.vitam.number_of_replicas | default(default_number_of_replicas) }},
       {% else %}
       "index.number_of_replicas": 0,
       {% endif %}
