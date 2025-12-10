@@ -3,9 +3,9 @@
   "priority": 1,
   "template": {
     "settings" : {
-      "index.number_of_shards": {{ elasticsearch.data.index_templates.default.number_of_shards | default(default_number_of_shards) }},
+      "index.number_of_shards": {{ elasticsearch.data.indices.default_config.number_of_shards | default(default_number_of_shards) }},
       {% if groups['hosts_elasticsearch_data']|length > 1 %}
-      "index.number_of_replicas": {{ elasticsearch.log.index_templates.default.number_of_replicas | default(default_number_of_replicas) }}
+      "index.number_of_replicas": {{ elasticsearch.log.indices.default_config.number_of_replicas | default(default_number_of_replicas) }}
       {% else %}
       "index.number_of_replicas": 0
       {% endif %}

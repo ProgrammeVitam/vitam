@@ -91,14 +91,14 @@ vitam_elasticsearch_tenant_indexation:
 
 elasticsearch:
   log:
-    index_templates:
-      default:
-         # Default configuration if others index_templates (vitam, access & system) are undefined
+    indices:
+      default_config:
+        # Default configuration if others indices (vitam or access) are undefined
         number_of_shards: 1
         number_of_replicas: 1
   data:
-    index_templates:
-      default:
+    indices:
+      default_config:
         number_of_shards: 1
         number_of_replicas: 2
 

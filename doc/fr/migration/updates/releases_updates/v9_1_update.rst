@@ -22,8 +22,8 @@ Elles ont étés remplacées par ces variables spécifiques pour chacun de vos i
 
   elasticsearch:
     log:
-      index_templates:
-        default: # Default configuration if others index_templates are undefined
+      indices:
+        default_config: # Default configuration if others indices are undefined
           number_of_shards: 1
           number_of_replicas: 1
         vitam: # Configuration for indexes logstash-vitam-*
@@ -35,8 +35,8 @@ Elles ont étés remplacées par ces variables spécifiques pour chacun de vos i
 
 ..
 
-* Si aucune valeur pour les indices ``vitam`` ou ``access`` n'est spécifiée, c'est la configuration ``default`` qui sera appliquée.
-* Si la configuration ``default`` n'est pas spécifiée, les valeurs par défaut sont ``shards: 1`` et ``replicas: 1``.
+* Si aucune valeur pour les indices ``vitam`` ou ``access`` n'est spécifiée, c'est la configuration ``default_config`` qui sera appliquée.
+* Si la configuration ``default_config`` n'est pas spécifiée, les valeurs par défaut sont ``shards: 1`` et ``replicas: 1``.
 
 Procédures à exécuter AVANT la montée de version
 ================================================
