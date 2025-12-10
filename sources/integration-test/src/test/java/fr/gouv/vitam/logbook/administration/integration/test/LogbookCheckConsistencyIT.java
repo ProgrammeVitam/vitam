@@ -125,9 +125,9 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final String HECK_LOGBOOK_MGT_RULES_REF_CSV = "integration-logbook/data/MGT_RULES_REF.csv";
     private static final String MGT_RULES_REF_CSV = "jeu_donnees_OK_regles_CSV_regles.csv";
     private static final String AGENCIES_CSV = "agencies.csv";
-    private static final String CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V94_XML =
-        "integration-logbook/data/DROID_SignatureFile_V94.xml";
-    private static final String DROID_SIGNATURE_FILE_V94_XML = "DROID_SignatureFile_V94.xml";
+    private static final String CHECK_LOGBOOK_DROID_SIGNATURE_FILE_XML =
+        "integration-logbook/data/DROID_SignatureFile_V121.xml";
+    private static final String DROID_SIGNATURE_FILE_XML = "DROID_SignatureFile_V121.xml";
 
     private static final String SIP_KO_ARBO_RECURSIVE = "integration-logbook/data/KO_ARBO_recursif.zip";
     private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
@@ -254,8 +254,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             client.importFormat(
-                PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V94_XML),
-                DROID_SIGNATURE_FILE_V94_XML
+                PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DROID_SIGNATURE_FILE_XML),
+                DROID_SIGNATURE_FILE_XML
             );
 
             // Import Rules

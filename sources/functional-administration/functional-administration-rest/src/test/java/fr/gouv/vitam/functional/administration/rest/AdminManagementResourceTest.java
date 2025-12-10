@@ -146,7 +146,7 @@ public class AdminManagementResourceTest {
     private static final int TENANT_ID = 0;
     private static final String ERROR_REPORT_CONTENT = "error_report_content.json";
     public static final int TENANT_ID1 = 1;
-    private static final String PRONOM_FILE = "DROID_SignatureFile_V94.xml";
+    private static final String PRONOM_FILE = "DROID_SignatureFile_V121.xml";
     static MongoDbAccessReferential mongoDbAccess;
     private static String DATABASE_HOST = "localhost";
 

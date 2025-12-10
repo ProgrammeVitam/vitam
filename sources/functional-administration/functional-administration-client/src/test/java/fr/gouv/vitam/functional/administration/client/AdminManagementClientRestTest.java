@@ -175,7 +175,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            assertEquals(Status.OK, client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V94.xml"));
+            assertEquals(Status.OK, client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V121.xml"));
         }
     }
 
@@ -187,7 +187,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
         final Select select = new Select();
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V94.xml");
+            client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V121.xml");
         }
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             client.getFormats(select.getFinalSelect());
@@ -197,7 +197,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test(expected = ReferentialException.class)
     public void givenAnInvalidIDThenReturnNOTFOUND() throws Exception {
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V94.xml");
+            client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V121.xml");
         }
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
