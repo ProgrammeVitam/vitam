@@ -2,9 +2,9 @@
 
 - block:
 
-  - name: Install libselinux-python
+  - name: Install python3-libselinux
     package:
-      name: libselinux-python
+      name: python3-libselinux
       state: present
     register: result
     retries: "{{ packages_install_retries_number }}"
