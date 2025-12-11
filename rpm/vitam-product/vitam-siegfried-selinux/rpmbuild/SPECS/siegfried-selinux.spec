@@ -15,7 +15,7 @@ BuildArch: noarch
 BuildRequires: selinux-policy
 BuildRequires: selinux-policy-devel
 Requires: vitam-siegfried
-Requires: policycoreutils-python
+Requires: policycoreutils-python-utils
 
 %description
 SELinux security policy module vitam-siegfried
