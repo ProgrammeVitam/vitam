@@ -9,7 +9,7 @@
     mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   notify: "grafana - restart {{ 'docker' if install_mode == 'container' else 'service' }}"
 
-- name: Copy dashboard json files to provisioning dashboard folder
+- name: Copy vitam dashboards json files to provisioning dashboard folder
   copy:
     src: "{{ item }}.json"
     dest: "{{ grafana_path_dashboards }}/{{ item }}.json"
@@ -25,6 +25,18 @@
     - vitam_blackbox_dashboard
     - vitam_mongodb_dashboard
     - vitam_mongodb_global_overview
+
+- name: Copy vitamui dashboards json files to provisioning dashboard folder
+  copy:
+    src: "{{ item }}.json"
+    dest: "{{ grafana_path_dashboards }}/{{ item }}.json"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ '0444' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - vitamui_spring_boot_statistics
+    - vitamui_spring_cloud_gateway
+  when: groups['hosts_vitamui'] | default([]) | length > 0
 
 - name: Copy reconstruction dashboard on secondary sites
   copy:
