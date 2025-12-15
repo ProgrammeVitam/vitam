@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
 
 public class PronomParserTest {
 
-    private static final String FILE_TO_TEST = "DROID_SignatureFile_V94.xml";
+    private static final String FILE_TO_TEST = "DROID_SignatureFile_V121.xml";
     private static final String FILE_TO_TEST_IO_EXCEPTION = "NotFound";
     private static final String FILE_TO_TEST_FORMAT_KO = "FF-vitam-format-KO.xml";
 

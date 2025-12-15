@@ -712,14 +712,14 @@ public class WebApplicationResourceTest {
                 any(), any());
         when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V121.xml");
         // Need for test
         IOUtils.toByteArray(stream);
 
         given()
             .contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
-            .header(GlobalDataRest.X_FILENAME, "DROID_SignatureFile_V94.xml")
+            .header(GlobalDataRest.X_FILENAME, "DROID_SignatureFile_V121.xml")
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .body(stream).cookie(COOKIE).expect()
