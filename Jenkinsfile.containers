@@ -5,9 +5,10 @@ pipeline {
     }
 
     tools {
-                jdk 'java21' // java11 || java17 || java21
-                maven 'maven-3.9' // maven-3.8 || maven-3.9
+        jdk 'java21'
+        maven 'maven-3.9'
     }
+
     environment {
         MVN_BASE = "/usr/local/maven/bin/mvn --settings ${pwd()}/.ci/settings.xml"
         MVN_COMMAND = "${MVN_BASE} --show-version --batch-mode --errors --fail-at-end -DdeployAtEnd=true "
@@ -32,11 +33,14 @@ pipeline {
                 [$class: 'UsernamePasswordMultiBinding', credentialsId: 'app-jenkins',usernameVariable: 'CI_USR', passwordVariable: 'CI_PSW'],
                 string(credentialsId: "service-nexus-url", variable: 'SERVICE_NEXUS_URL') ]) {
                     script {
-                        env.CONTAINER_VERSION = sh(script: "mvn help:evaluate -f sources/pom.xml -Dexpression=project.version -q -DforceStdout",returnStdout: true).trim()
+                        def pom = readMavenPom file: 'sources/pom.xml'
+                        env.CONTAINER_VERSION = pom.version
                     }
+
                     nvm('v18.20.3') {
 
-                        sh '$MVN_COMMAND -f sources/pom.xml install  -Djib.skip=false -Dmaven.test.skip=true -DskipTests=true -Djacoco.skip=true -Dlicense.skip -Denv.SERVICE_NEXUS_URL=$SERVICE_NEXUS_URL -DsendCredentialsOverHttp=true -Djib.to.auth.username=$CI_USR -Djib.to.auth.password=$CI_PSW'
+                        sh "${MVN_COMMAND} -f sources/pom.xml install -Djib.skip=false -Dmaven.test.skip=true -DskipTests=true -Djacoco.skip=true -Dlicense.skip -Denv.SERVICE_NEXUS_URL=${SERVICE_NEXUS_URL} -DsendCredentialsOverHttp=true -Djib.to.auth.username=${CI_USR} -Djib.to.auth.password=${CI_PSW}"
+
                         sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION}"
                         sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect:${CONTAINER_VERSION}"
                         sh "docker push ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect:${CONTAINER_VERSION}"
@@ -52,11 +56,13 @@ pipeline {
         stage('build cots') {
             steps {
                 withCredentials([
-                [$class: 'UsernamePasswordMultiBinding', credentialsId: 'app-jenkins',usernameVariable: 'CI_USR', passwordVariable: 'CI_PSW'],
+                [$class: 'UsernamePasswordMultiBinding', credentialsId: 'app-jenkins', usernameVariable: 'CI_USR', passwordVariable: 'CI_PSW'],
                 string(credentialsId: "service-nexus-url", variable: 'SERVICE_NEXUS_URL')
                 ]) {
-                    sh 'echo $CI_PSW | docker login  ${SERVICE_DOCKER_PULL_URL} -u $CI_USR --password-stdin'
-                    sh 'echo $CI_PSW | docker login  ${SERVICE_DOCKER_PUSH_URL} -u $CI_USR --password-stdin'
+                    sh """
+                    echo "${CI_PSW}" | docker login "${SERVICE_DOCKER_PULL_URL}" -u "${CI_USR}" --password-stdin
+                    echo "${CI_PSW}" | docker login "${SERVICE_DOCKER_PUSH_URL}" -u "${CI_USR}" --password-stdin
+                    """
                 }
 
                 dir("containers/vitam-external") {
