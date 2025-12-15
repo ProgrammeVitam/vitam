@@ -1,0 +1,36 @@
+#jinja2: lstrip_blocks: True
+{% if prometheus.blackbox_exporter.enabled | default(true) | bool %}
+scrape_configs:
+
+  - job_name: vitam-blackbox-exporter
+    metrics_path: /probe
+    params:
+      module:
+        - http_2xx
+    relabel_configs:
+      - source_labels:
+        - __address__
+        regex: ([^,]*),(.*)
+        replacement: $1
+        target_label: __param_target
+      - source_labels:
+        - __address__
+        target_label: instance
+      - source_labels:
+        - __address__
+        regex: ([^,]*),(.*)
+        replacement: $2
+        target_label: instance
+      - source_labels:
+        - __address__
+        regex: ([^,]*),(.*)
+        replacement: $1
+        target_label: addresse
+      - target_label: __address__
+        replacement: localhost:{{ prometheus.blackbox_exporter.port }}
+    static_configs:
+      - targets:
+        {% for target in prometheus.blackbox_exporter.targets %}
+        - {{ target }}
+        {% endfor %}
+{% endif %}

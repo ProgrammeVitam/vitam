@@ -141,7 +141,6 @@ filebeat:
 prometheus:
     metrics_path: /admin/v1/metrics
     check_consul: 10 # in seconds
-    prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
     server:
         port: 9090
         at_boot: true
@@ -152,20 +151,19 @@ prometheus:
         port: 9101
         at_boot: true
         metrics_path: /metrics
-        log_level: "warn"
+        log_level: warn
         logrotate: enabled # or disabled
         history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
     consul_exporter:
         enabled: true
         port: 9107
         at_boot: true
-        metrics_path: /metrics
     elasticsearch_exporter:
         enabled: true
         port: 9114
         at_boot: true
         metrics_path: /metrics
-        log_level: "warn"
+        log_level: warn
         logrotate: enabled # or disabled
         history_days: 30 # How many days to store logs if logrotate is set to 'enabled'
     alertmanager:

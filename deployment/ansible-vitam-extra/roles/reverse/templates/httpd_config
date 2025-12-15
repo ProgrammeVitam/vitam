@@ -331,20 +331,20 @@
 {% if deployment_mode == "dev" %}
     # Metadata metrics
     {% for host in groups['hosts_metadata'] %}
-    ProxyPass /nodes/{{ host }}/metadata/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin | default(28200) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
-    ProxyPassReverse /nodes/{{ host }}/metadata/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin | default(28200) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPass /nodes/{{ host }}/metadata/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/metadata/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     {% endfor %}
 
     # Processing metrics
     {% for host in groups['hosts_processing'] %}
-    ProxyPass /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin | default(28203) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
-    ProxyPassReverse /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin | default(28203) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPass /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/processing/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.processing.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     {% endfor %}
 
     # Storage Engine metrics
     {% for host in groups['hosts_storage_engine'] %}
-    ProxyPass /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin | default(29102) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
-    ProxyPassReverse /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin | default(29102) }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPass /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    ProxyPassReverse /nodes/{{ host }}/storage/metrics http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}{{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     {% endfor %}
 
     {% if prometheus.node_exporter.enabled | default(false) | bool == true %}

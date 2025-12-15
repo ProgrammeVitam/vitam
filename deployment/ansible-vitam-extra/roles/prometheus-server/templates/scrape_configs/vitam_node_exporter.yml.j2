@@ -1,0 +1,18 @@
+#jinja2: lstrip_blocks: True
+{% if prometheus.node_exporter.enabled | default(true) | bool %}
+scrape_configs:
+
+  - job_name: vitam-node-exporter
+    metrics_path: {{ prometheus.node_exporter.metrics_path | default('/metrics') }}
+    static_configs:
+      {% for host in groups['vitam'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+          {% if host in groups['hosts_elasticsearch_data'] %}
+          elastic_cluster_name: {{ elasticsearch.data.cluster_name }}
+          {% elif host in groups['hosts_elasticsearch_log'] %}
+          elastic_cluster_name: {{ elasticsearch.log.cluster_name }}
+          {% endif %}
+      {% endfor %}
+{% endif %}
