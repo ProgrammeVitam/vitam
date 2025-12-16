@@ -50,5 +50,7 @@ echo "vitam-siegfried"
 ${WORKING_FOLDER}/build-siegfried.sh
 echo "Elasticsearch analysis-icu"
 ${WORKING_FOLDER}/build-elasticsearch-icu.sh
+echo "Elasticsearch analysis-icu-8.19.8"
+${WORKING_FOLDER}/build-elasticsearch-icu.sh 8.19.8
 echo "Prometheus stack"
 ${WORKING_FOLDER}/build-prometheus-stack.sh
