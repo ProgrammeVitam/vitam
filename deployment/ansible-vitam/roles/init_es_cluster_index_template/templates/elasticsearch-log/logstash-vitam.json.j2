@@ -2,7 +2,7 @@
 {
   "index_patterns": ["logstash-vitam-*"],
   "composed_of": ["common"{% for processor in ['add_host_metadata', 'add_cloud_metadata'] if processor in filebeat.processors | default([]) | map('dict2items') | flatten | map(attribute='key') | unique | list %}, "{{ processor }}"{% endfor %}],
-  "priority": 2,
+  "priority": 501,
   "template": {
     "settings": {
       "index.number_of_shards": {{ elasticsearch.log.indices.vitam.number_of_shards | default(default_number_of_shards) }},
