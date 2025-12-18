@@ -25,6 +25,7 @@ RUN yum install -y \
         selinux-policy \
         selinux-policy-devel \
         golang \
+        python3.11-pip \
     && yum clean all
 
 ##################################  CONTAINER SETTINGS  #################################
