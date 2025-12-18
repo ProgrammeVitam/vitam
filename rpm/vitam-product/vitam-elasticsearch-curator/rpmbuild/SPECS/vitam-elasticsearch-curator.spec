@@ -35,13 +35,13 @@ Curator is an open source (Apache 2.0) Elasticsearch tool to manage indices life
 # --------------------------
 %build
 echo "=== Creating isolated virtualenv ==="
-python3 -m venv venv
+python3.11 -m venv venv
 
 # Activate it and install pyinstaller
 . venv/bin/activate
 # Upgrade pip inside the venv and install required packages for building Curator
-pip install --upgrade pip
-pip install pyinstaller click elasticsearch8 voluptuous es_client
+pip3.11 install --upgrade pip
+pip3.11 install pyinstaller click elasticsearch8 voluptuous es_client
 
 # Build the single-file binary with PyInstaller
 pyinstaller --onefile run_curator.py
