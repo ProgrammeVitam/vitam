@@ -31,6 +31,10 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.elasticsearch.client</groupId>
+			<artifactId>elasticsearch-rest-client</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>logbook-lifecycles-client</artifactId>
 			<version>${project.version}</version>

@@ -123,7 +123,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
                     ElasticsearchIndexAlias.ofCrossTenantCollection(alias)
                 );
                 // Then
-                assertThat(aliasesResponse.result()).hasSize(1);
+                assertThat(aliasesResponse.aliases()).hasSize(1);
             }
         }
     }
@@ -139,7 +139,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
             if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {
                 ElasticsearchIndexAlias indexAlias = ElasticsearchIndexAlias.ofCrossTenantCollection(alias);
                 GetAliasResponse aliasesResponse = elasticsearchAccessFunctionalAdmin.getAlias(indexAlias);
-                assertThat(aliasesResponse.result()).hasSize(1);
+                assertThat(aliasesResponse.aliases()).hasSize(1);
                 elasticsearchAccessFunctionalAdmin.deleteIndexByAliasForTesting(indexAlias);
 
                 // Then

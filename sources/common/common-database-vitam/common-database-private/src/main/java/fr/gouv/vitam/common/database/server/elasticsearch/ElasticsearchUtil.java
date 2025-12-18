@@ -91,23 +91,25 @@ public class ElasticsearchUtil {
     }
 
     public static Query lteQuery(String key, Object value) {
-        return QueryBuilders.range(r -> r.field(key).lte(JsonData.of(value)));
+        return QueryBuilders.range(r -> r.untyped(u -> u.field(key).lte(JsonData.of(value))));
     }
 
     public static Query ltQuery(String key, Object value) {
-        return QueryBuilders.range(r -> r.field(key).lt(JsonData.of(value)));
+        return QueryBuilders.range(r -> r.untyped(u -> u.field(key).lt(JsonData.of(value))));
     }
 
     public static Query gteQuery(String key, Object value) {
-        return QueryBuilders.range(r -> r.field(key).gte(JsonData.of(value)));
+        return QueryBuilders.range(r -> r.untyped(u -> u.field(key).gte(JsonData.of(value))));
     }
 
     public static Query gtQuery(String key, Object value) {
-        return QueryBuilders.range(r -> r.field(key).gt(JsonData.of(value)));
+        return QueryBuilders.range(r -> r.untyped(u -> u.field(key).gt(JsonData.of(value))));
     }
 
     public static Query rangeInclusiveQuery(String key, int minInclusive, int maxInclusive) {
-        return QueryBuilders.range(r -> r.field(key).gte(JsonData.of(minInclusive)).lte(JsonData.of(maxInclusive)));
+        return QueryBuilders.range(
+            r -> r.untyped(u -> u.field(key).gte(JsonData.of(minInclusive)).lte(JsonData.of(maxInclusive)))
+        );
     }
 
     /**
