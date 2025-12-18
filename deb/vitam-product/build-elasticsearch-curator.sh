@@ -28,14 +28,14 @@ CURATOR_SRC_DIR="curator-${CURATOR_VERSION}"
 
 echo "=== Creating isolated virtualenv ==="
 # Create an isolated Python virtual environment for build
-python3 -m venv "${CURATOR_SRC_DIR}/venv"
+python3.11 -m venv "${CURATOR_SRC_DIR}/venv"
 
 # Activate it
 . "${CURATOR_SRC_DIR}/venv/bin/activate"
 
 # Upgrade pip inside the venv and install required packages for building Curator
-pip install --upgrade pip
-pip install pyinstaller click elasticsearch8 voluptuous es_client
+pip3.11 install --upgrade pip
+pip3.11 install pyinstaller click elasticsearch8 voluptuous es_client
 
 # Build the single-file binary with PyInstaller
 pyinstaller --onefile "${CURATOR_SRC_DIR}/run_curator.py" --distpath "${CURATOR_SRC_DIR}/dist"
