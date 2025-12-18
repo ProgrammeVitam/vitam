@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ICU_VERSION=9.2.2
+ICU_VERSION=${1:-9.2.2}
 ICU_FILE=analysis-icu-${ICU_VERSION}.zip
 INTERNAL_REPO=${SERVICE_REPOSITORY_URL}/vitam-product-binaries
 
@@ -27,6 +27,10 @@ rm -f ${ICU_FILE}
 
 popd
 pushd ${WORKING_FOLDER}
+
+# Hack to patch the version in the control file
+sed -i "s/^Version: .*/Version: ${ICU_VERSION}/" vitam-elasticsearch-analysis-icu/DEBIAN/control
+sed -i "s/elasticsearch (>= [0-9.]*)/elasticsearch (>= ${ICU_VERSION})/" vitam-elasticsearch-analysis-icu/DEBIAN/control
 
 dpkg-deb --build vitam-elasticsearch-analysis-icu ${WORKING_FOLDER}/target
 

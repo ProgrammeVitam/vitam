@@ -1,5 +1,5 @@
 Package: vitam-elasticsearch-curator
-Version: 8.0.21
+Version: 9.0.0
 Section: database
 Priority: optional
 Architecture: amd64

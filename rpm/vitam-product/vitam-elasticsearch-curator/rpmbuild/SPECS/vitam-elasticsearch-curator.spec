@@ -1,5 +1,5 @@
 Name:          vitam-elasticsearch-curator
-Version:       8.0.21
+Version:       9.0.0
 Release:       1%{?dist}
 Summary:       Curator is an open source ElasticSearch tool to manage indices lifecycle
 Group:         Applications/File
@@ -41,7 +41,7 @@ python3.11 -m venv venv
 . venv/bin/activate
 # Upgrade pip inside the venv and install required packages for building Curator
 pip3.11 install --upgrade pip
-pip3.11 install pyinstaller click elasticsearch8 voluptuous es_client
+pip3.11 install pyinstaller click elasticsearch9 voluptuous es_client
 
 # Build the single-file binary with PyInstaller
 pyinstaller --onefile run_curator.py
@@ -79,5 +79,7 @@ rm -rf %{buildroot}
 # Changelog
 # ------------------------------------------------------
 %changelog
+* Tue Dec 15 2025 French Prime Minister Office / SGMAP / DINSIC / Vitam Program <contact@programmevitam.fr> - 9.0.0-1
+- Update to version 9.0.0 for supporting Elasticsearch 9.x
 * Tue Nov 11 2025 French Prime Minister Office / SGMAP / DINSIC / Vitam Program <contact@programmevitam.fr> - 8.0.21-1
 - Build Curator using Python virtualenv with PyInstaller

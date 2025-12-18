@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-CURATOR_VERSION=8.0.21
+CURATOR_VERSION=9.0.0
 CURATOR_FILE="curator-${CURATOR_VERSION}.tar.gz"
 INTERNAL_REPO="${SERVICE_REPOSITORY_URL}/vitam-product-binaries"
 WORKING_FOLDER=$(dirname $0)
@@ -35,7 +35,7 @@ python3.11 -m venv "${CURATOR_SRC_DIR}/venv"
 
 # Upgrade pip inside the venv and install required packages for building Curator
 pip3.11 install --upgrade pip
-pip3.11 install pyinstaller click elasticsearch8 voluptuous es_client
+pip3.11 install pyinstaller click elasticsearch9 voluptuous es_client
 
 # Build the single-file binary with PyInstaller
 pyinstaller --onefile "${CURATOR_SRC_DIR}/run_curator.py" --distpath "${CURATOR_SRC_DIR}/dist"

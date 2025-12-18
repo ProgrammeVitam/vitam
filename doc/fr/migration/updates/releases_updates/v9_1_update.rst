@@ -41,18 +41,20 @@ Elles ont étés remplacées par ces variables spécifiques pour chacun de vos i
 Procédures à exécuter AVANT la montée de version
 ================================================
 
-Arrêt complet de Vitam
-----------------------
+Arrêt des timers et des accès externes à Vitam
+----------------------------------------------
 
 .. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V9.1
 
 .. caution:: Cette opération doit être effectuée avec les sources de déploiement de l'ancienne version.
 
-Vitam doit être arrêté sur **tous les sites** :
+Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
 
 .. code-block:: bash
 
-    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduling.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduler.yml --ask-vault-pass
 
 ..
 
@@ -76,6 +78,38 @@ Puis exécutez le playbook suivant **sur tous les sites** :
 
 ..
 
+Mise à jour intermédiaire des clusters ElasticSearch
+----------------------------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version
+
+Ces opérations permettent de faire le saut intermédiaire entre les versions 8.18.0 et 8.19.8 des clusters ElasticSearch (data & log).
+
+Le saut final vers la version 9.2.2 sera effectué lors de la mise à jour de Vitam via l'exécution du master playbook.
+
+Exécutez les playbooks suivants sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam/services/cots/elasticsearch_log.yml --ask-vault-pass -e "elasticsearch_version=8.19.8"
+    ansible-playbook -i environments/<inventaire> ansible-vitam/services/cots/elasticsearch_data.yml --ask-vault-pass -e "elasticsearch_version=8.19.8"
+
+..
+
+Arrêt complet de Vitam
+----------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V9.1
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiement de l'ancienne version.
+
+Vitam doit être arrêté sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+
+..
 
 Application de la montée de version
 ===================================
