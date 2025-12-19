@@ -6,7 +6,6 @@
 vitam
 reverse
 hosts_dev_tools
-ldap
 hosts_vitamui
 
 ########### Tests environments specifics ###########
@@ -16,10 +15,6 @@ hosts_vitamui
 # optional : if this machine is different from VITAM machines, you can specify another become user
 # Example
 # vm-reverse.vitam ansible_ssh_user=reverse_user
-
-
-[ldap] # Extra : OpenLDAP server
-# LDAP server !!! NOT FOR PRODUCTION !!! Test only
 
 
 [library]

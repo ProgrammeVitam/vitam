@@ -10,13 +10,10 @@
 vitam
 reverse
 hosts_dev_tools
-ldap
 
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
-
-[ldap] # Extra : OpenLDAP server
 
 [library] # EXTRA : Library server
 

@@ -1,5 +1,0 @@
----
-
-- import_tasks: install_ldap.yml
-- import_tasks: configure_ldap.yml
-- import_tasks: vitam_conf.yml

@@ -1,5 +1,0 @@
-- module: kibana
-  hosts: ["{{ ip_service }}:5601"]
-  period: 30s
-  metricsets: ["status"]
-  enabled: true

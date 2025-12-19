@@ -1,7 +1,0 @@
----
-
-- name: "metricbeat - restart kibana"
-  service:
-    name: kibana
-    state: restarted
-  delegate_to: "{{ groups['hosts_kibana_log'][0] }}"

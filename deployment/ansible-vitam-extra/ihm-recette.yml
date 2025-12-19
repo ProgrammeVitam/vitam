@@ -6,7 +6,6 @@
     - elasticsearch-mapping
     - vitam
     - { role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url | default('') | length > 0) and (vitam_tests_branch | default('') | length > 0) }
-    - { role: gatling, when: gatling_install | lower == 'true' }
   vars:
     vitam_struct: "{{ vitam.ihm_recette }}"
     password_keystore: "{{ keystores.server.ihm_recette }}"

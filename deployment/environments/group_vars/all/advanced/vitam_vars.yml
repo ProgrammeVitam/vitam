@@ -290,16 +290,13 @@ vitam:
     # Specify here the realms you want to use for authentication in ihm-demo
     # You can set multiple realms, one per line
     # With multiple realms, the user will be able to choose between the allowed realms
-    # Example: authentication_realms:
-    #               - x509Realm
-    #               - ldapRealm
     # Authorized values:
-    # x509Realm: certificate
-    # iniRealm: ini file
-    # ldapRealm: ldap
+    #   iniRealm: ini file (default) -> Will use the vitam_users defined in environments/group_vars/all/main/vault-vitam.yml
+    #   x509Realm: certificate
+    #   ldapRealm: ldap -> Will use the ldap_authentification parameters set in environments/group_vars/all/advanced/cots_vars.yml
     authentication_realms:
-      # - x509Realm
       - iniRealm
+      # - x509Realm
       # - ldapRealm
     allowedMediaTypes:
       - type: "application"
