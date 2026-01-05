@@ -15,3 +15,6 @@ Montées de version *bugfix*
    v6_update.rst
    v7_0_update.rst
    v7_1_update.rst
+   v8_0_update.rst
+   v8_1_update.rst
+   v9_0_update.rst

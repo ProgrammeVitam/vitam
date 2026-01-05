@@ -4,7 +4,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:8.0.8-ubuntu2204
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:8.0.17-ubuntu2204
 ExecStartPre=-/usr/bin/docker stop vitam-mongos
 ExecStartPre=-/usr/bin/docker rm vitam-mongos
 ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongos --user {{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].1 }}:{{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].2 }} \
@@ -16,7 +16,7 @@ ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongos --user {{ gete
         -v "/vitam/script/mongos:/vitam/script/mongos:rw" \
         -v "/vitam/data/mongos:/vitam/data/mongos:rw" \
         -v "/vitam/tmp/mongos:/vitam/tmp/mongos:rw" \
-        {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:8.0.8-ubuntu2204 \
+        {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:8.0.17-ubuntu2204 \
         mongos --config /etc/mongo/mongos.conf
 
 ExecStop=/usr/bin/docker stop -t 85 vitam-mongos
