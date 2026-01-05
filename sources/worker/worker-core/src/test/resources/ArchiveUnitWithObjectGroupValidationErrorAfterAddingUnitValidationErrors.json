@@ -22,14 +22,18 @@
           "evId": "og_evId1",
           "evTypeProc": "og_evTypeProc1",
           "outDetail": "og_outDetail1",
-          "outMessg": "og_outMessg1"
+          "outMessg": "og_outMessg1",
+          "evDateTime": "2023-01-01T00:00:00.000",
+          "evIdProc": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
         },
         {
           "evDetData": "{}",
           "evId": "og_evId2",
           "evTypeProc": "og_evTypeProc2",
           "outDetail": "og_outDetail2",
-          "outMessg": "og_outMessg2"
+          "outMessg": "og_outMessg2",
+          "evDateTime": "2023-01-01T00:00:00.000",
+          "evIdProc": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
         }
       ]
     },
@@ -39,14 +43,18 @@
         "evTypeProc": "unit_evTypeProc1",
         "outDetail": "unit_outDetail1",
         "outMessg": "unit_outMessg1",
-        "evDetData": "{}"
+        "evDetData": "{}",
+        "evDateTime": "2023-01-01T00:00:00.000",
+        "evIdProc": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
       },
       {
         "evId": "unit_evId2",
         "evTypeProc": "unit_evTypeProc2",
         "outDetail": "unit_outDetail2",
         "outMessg": "unit_outMessg2",
-        "evDetData": "{}"
+        "evDetData": "{}",
+        "evDateTime": "2023-01-01T00:00:00.000",
+        "evIdProc": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
       }
     ]
   },

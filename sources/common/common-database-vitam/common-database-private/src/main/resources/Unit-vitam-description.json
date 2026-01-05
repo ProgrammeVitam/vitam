@@ -4026,6 +4026,18 @@
     "indexed": true
   },
   {
+    "path": "_errors.evIdProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_errors.evDateTime",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
     "path": "_errors.obId",
     "type": "keyword",
     "cardinality": "one",
@@ -4070,6 +4082,18 @@
   {
     "path": "_ogInfo._errors.evId",
     "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.evIdProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_ogInfo._errors.evDateTime",
+    "type": "datetime",
     "cardinality": "one",
     "indexed": true
   },

@@ -79,7 +79,8 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
                 ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
                     LogbookTypeProcess.COLLECT_SIP_INGEST,
                     CHECK_CLASSIFICATION_LEVEL_TASK_ID,
-                    null
+                    null,
+                    param.getProcessId()
                 );
                 itemStatus.increment(StatusCode.KO, validationError);
 

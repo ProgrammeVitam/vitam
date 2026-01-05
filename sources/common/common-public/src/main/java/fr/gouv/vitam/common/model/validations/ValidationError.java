@@ -39,6 +39,8 @@ public class ValidationError {
     public static final String OUT_DETAIL = "outDetail";
     public static final String OUT_MESSG = "outMessg";
     public static final String EV_DET_DATA = "evDetData";
+    public static final String EV_DATE_TIME = "evDateTime";
+    public static final String EV_ID_PROC = "evIdProc";
 
     @JsonProperty(EV_ID)
     private String evId;
@@ -57,6 +59,12 @@ public class ValidationError {
 
     @JsonProperty(EV_DET_DATA)
     private String evDetData;
+
+    @JsonProperty(EV_DATE_TIME)
+    private String evDateTime;
+
+    @JsonProperty(EV_ID_PROC)
+    private String evIdProc;
 
     public String getEvId() {
         return evId;
@@ -109,6 +117,24 @@ public class ValidationError {
 
     public ValidationError setEvDetData(String evDetData) {
         this.evDetData = evDetData;
+        return this;
+    }
+
+    public String getEvDateTime() {
+        return evDateTime;
+    }
+
+    public ValidationError setEvDateTime(String evDateTime) {
+        this.evDateTime = evDateTime;
+        return this;
+    }
+
+    public String getEvIdProc() {
+        return evIdProc;
+    }
+
+    public ValidationError setEvIdProc(String evIdProc) {
+        this.evIdProc = evIdProc;
         return this;
     }
 }

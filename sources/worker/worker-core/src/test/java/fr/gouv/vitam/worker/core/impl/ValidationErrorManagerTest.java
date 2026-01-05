@@ -61,13 +61,17 @@ public class ValidationErrorManagerTest {
                 .setOutMessg("unit_outMessg1")
                 .setEvDetData("{}")
                 .setEvTypeProc("unit_evTypeProc1")
-                .setOutDetail("unit_outDetail1"),
+                .setOutDetail("unit_outDetail1")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"),
             new ValidationError()
                 .setEvId("unit_evId2")
                 .setOutMessg("unit_outMessg2")
                 .setEvDetData("{}")
                 .setEvTypeProc("unit_evTypeProc2")
                 .setOutDetail("unit_outDetail2")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq")
         );
 
         // When
@@ -110,13 +114,17 @@ public class ValidationErrorManagerTest {
                 .setOutMessg("unit_outMessg1")
                 .setEvDetData("{}")
                 .setEvTypeProc("unit_evTypeProc1")
-                .setOutDetail("unit_outDetail1"),
+                .setOutDetail("unit_outDetail1")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"),
             new ValidationError()
                 .setEvId("unit_evId2")
                 .setOutMessg("unit_outMessg2")
                 .setEvDetData("{}")
                 .setEvTypeProc("unit_evTypeProc2")
                 .setOutDetail("unit_outDetail2")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq")
         );
 
         // When
@@ -161,13 +169,17 @@ public class ValidationErrorManagerTest {
                 .setOutMessg("unit_outMessg1")
                 .setEvDetData("{}")
                 .setEvTypeProc("unit_evTypeProc1")
-                .setOutDetail("unit_outDetail1"),
+                .setOutDetail("unit_outDetail1")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"),
             new ValidationError()
                 .setEvId("unit_evId2")
                 .setOutMessg("unit_outMessg2")
                 .setEvDetData("{}")
                 .setEvTypeProc("unit_evTypeProc2")
                 .setOutDetail("unit_outDetail2")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq")
         );
 
         // When
@@ -211,13 +223,17 @@ public class ValidationErrorManagerTest {
                 .setOutMessg("og_outMessg1")
                 .setEvDetData("{}")
                 .setEvTypeProc("og_evTypeProc1")
-                .setOutDetail("og_outDetail1"),
+                .setOutDetail("og_outDetail1")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"),
             new ValidationError()
                 .setEvId("og_evId2")
                 .setOutMessg("og_outMessg2")
                 .setEvDetData("{}")
                 .setEvTypeProc("og_evTypeProc2")
                 .setOutDetail("og_outDetail2")
+                .setEvDateTime("2023-01-01T00:00:00.000")
+                .setEvIdProc("aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq")
         );
 
         // When

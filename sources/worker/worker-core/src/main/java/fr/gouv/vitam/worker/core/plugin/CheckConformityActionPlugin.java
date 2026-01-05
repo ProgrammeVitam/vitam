@@ -112,7 +112,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
                                     binaryObjects.get(objectId),
                                     version,
                                     itemStatus,
-                                    handlerIO
+                                    handlerIO,
+                                    params.getProcessId()
                                 );
                                 if (messagesDigestUpdated) {
                                     oneOrMoreMessagesDigestUpdated = true;
@@ -151,7 +152,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
         DataObjectInfo binaryObject,
         JsonNode version,
         ItemStatus itemStatus,
-        HandlerIO handlerIO
+        HandlerIO handlerIO,
+        String operationId
     ) throws ProcessingException {
         InputStream inputStream = null;
         try {
@@ -205,7 +207,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     CALC_CHECK,
                     EMPTY,
                     binaryObject.getId(),
-                    null
+                    null,
+                    operationId
                 );
                 itemStatus.increment(StatusCode.KO, validationError);
             } else if (manifestDigestString.equals(binaryObjectMessageDigest)) {
@@ -243,7 +246,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     CALC_CHECK,
                     INVALID,
                     binaryObject.getId(),
-                    evDetData
+                    evDetData,
+                    operationId
                 );
                 itemStatus.increment(StatusCode.KO, validationError);
             }

@@ -149,7 +149,8 @@ public class CheckAntivirusActionPlugin extends ActionHandler implements VitamAu
                                                 PLUGIN_ID,
                                                 ANTIVIRUS,
                                                 objectId,
-                                                null
+                                                null,
+                                                params.getProcessId()
                                             )
                                         );
                                         break;

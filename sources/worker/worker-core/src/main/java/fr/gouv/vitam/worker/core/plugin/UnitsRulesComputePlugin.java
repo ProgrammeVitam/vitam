@@ -134,7 +134,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                         LogbookTypeProcess.COLLECT_SIP_INGEST,
                         CHECK_RULES_TASK_ID,
                         status.name(),
-                        e.getEvDetData()
+                        e.getEvDetData(),
+                        params.getProcessId()
                     );
                     itemStatus.increment(StatusCode.KO, validationError);
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
@@ -146,7 +147,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                         LogbookTypeProcess.COLLECT_SIP_INGEST,
                         CHECK_RULES_TASK_ID,
                         status.name(),
-                        e.getEvDetData()
+                        e.getEvDetData(),
+                        params.getProcessId()
                     );
                     itemStatus.increment(StatusCode.KO, validationError);
 
