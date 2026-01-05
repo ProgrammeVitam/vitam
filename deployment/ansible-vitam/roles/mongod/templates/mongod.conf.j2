@@ -34,6 +34,10 @@ net:
     pathPrefix: {{ mongo_tmp_path }}
     filePermissions: 0700
 
+  # Mitigate CVE-2025-14847 ("MongoBleed") by disabling zlib compressor
+  compression:
+    compressors: snappy,zstd
+
 # operationProfiling:
 replication:
   replSetName: shard{{ mongo_shard_id }} # name of the replica set
