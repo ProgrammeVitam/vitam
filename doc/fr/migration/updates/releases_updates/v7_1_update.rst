@@ -217,9 +217,10 @@ Puis exécutez le playbook suivant **sur tous les sites** :
 Montée de version vers mongo 6.0
 --------------------------------
 
-.. caution:: Cette montée de version doit être effectuée AVANT la montée de version V7.1 de Vitam et après l'arrêt des tâches planifiées et des externals.
-
-.. caution:: Cette opération doit être effectuée après avoir mis à jour les dépôts Vitam en V7.1.
+.. caution:: **Attention**
+    Cette montée de version doit être effectuée AVANT la montée de version V7.1 de Vitam et après l'arrêt des tâches planifiées et des externals.
+    Cette opération doit être effectuée après avoir mis à jour les dépôts Vitam en V7.1.
+    Il est recommandé d'effectuer un backup des bases de données à l'aide de mongodump avant de poursuivre.
 
 Exécutez le playbook suivant à partir de l'ansiblerie de la V7.1 **sur tous les sites** :
 

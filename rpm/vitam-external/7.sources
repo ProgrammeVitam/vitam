@@ -1,8 +1,8 @@
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-mongosh-2.2.4.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-database-tools-100.9.4.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-mongosh-2.5.10.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-database-tools-100.14.0-1.x86_64.rpm
 
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-org-mongos-7.0.8-1.el7.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-org-server-7.0.8-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-org-mongos-7.0.28-1.el7.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/7/mongodb-org/7.0/x86_64/RPMS/mongodb-org-server-7.0.28-1.el7.x86_64.rpm
 
 https://repo.mongodb.org/yum/redhat/7/mongodb-org/6.0/x86_64/RPMS/mongodb-org-mongos-6.0.11-1.el7.x86_64.rpm
 https://repo.mongodb.org/yum/redhat/7/mongodb-org/6.0/x86_64/RPMS/mongodb-org-server-6.0.11-1.el7.x86_64.rpm
