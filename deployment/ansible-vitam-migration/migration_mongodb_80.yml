@@ -73,7 +73,7 @@
   vars:
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: false
   serial: 1
 
@@ -84,7 +84,7 @@
   vars:
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: true
   serial: 1
 
@@ -108,7 +108,7 @@
   vars:
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: false
   serial: 1
 
@@ -119,7 +119,7 @@
   vars:
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: true
   serial: 1
 
@@ -132,7 +132,7 @@
   vars:
     mongo_type: mongos
     mongo_port: "{{ mongodb.mongos_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
 
 ################################################################################
 
@@ -214,7 +214,7 @@
   vars:
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: false
   serial: 1
 
@@ -225,7 +225,7 @@
   vars:
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: true
   serial: 1
 
@@ -249,7 +249,7 @@
   vars:
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: false
   serial: 1
 
@@ -260,7 +260,7 @@
   vars:
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
     mongo_primary: true
   serial: 1
 
@@ -273,7 +273,7 @@
   vars:
     mongo_type: mongos
     mongo_port: "{{ mongodb.mongos_port }}"
-    mongo_version: 8.0.8
+    mongo_version: 8.0.17
 
 ################################################################################
 
