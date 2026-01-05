@@ -194,7 +194,6 @@ localhost
 localhost
 
 [hosts_kibana_data]
-localhost
 
 [log_servers:children]
 hosts_kibana_log
@@ -212,13 +211,10 @@ hosts_prometheus
 hosts_alertmanager
 
 [hosts_prometheus]
-localhost
 
 [hosts_alertmanager]
-localhost
 
 [hosts_grafana]
-localhost
 
 ########### Global vars ###########
 

@@ -1,0 +1,12 @@
+#jinja2: lstrip_blocks: True
+{% if prometheus.consul_exporter.enabled | default(true) | bool %}
+scrape_configs:
+
+  - job_name: vitam-consul-exporter
+    static_configs:
+    {% for host in groups['vitam'] | union(groups['hosts_vitamui'] | default([])) %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.consul_exporter.port | default(9107) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+    {% endfor %}
+{% endif %}

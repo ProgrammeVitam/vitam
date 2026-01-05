@@ -656,7 +656,6 @@ Voici à quoi correspond une configuration qui permettra d'installer toute la st
     prometheus:
         metrics_path: /admin/v1/metrics
         check_consul: 10 # in seconds
-        prometheus_config_file_target_directory: # Set path where "prometheus.yml" file will be generated. Example: /tmp/
         server:
             port: 9090
             tsdb_retention_time: "7d"
@@ -680,7 +679,6 @@ Voici à quoi correspond une configuration qui permettra d'installer toute la st
 
 - L'adresse d'écoute de ces composants est celle de la patte d'administration.
 - Vous pouvez surcharger la valeur de certaines de ces variables (Par exemple le port d'écoute, le path de l'API).
-- Pour générer uniquement le fichier de configuration prometheus.yml à partir du fichier d'inventaire de l'environnement en question, il suffit de spécifier le répertoire destination dans la variable ``prometheus_config_file_target_directory``
 
 Playbooks ansible
 -----------------
@@ -692,14 +690,6 @@ Veuillez vous référer à la documentation d'exploitation pour plus d'informati
 .. code-block:: bash
 
     ansible-playbook ansible-vitam-extra/prometheus.yml -i environments/hosts.<environnement> --ask-vault-pass
-..
-
-* Générer le fichier de conf ``prometheus.yml`` dans le dossier ``prometheus_config_file_target_directory``
-
-.. code-block:: bash
-
-    ansible-playbook ansible-vitam-extra/prometheus.yml -i environments/hosts.<environnement> --ask-vault-pass
---tags gen_prometheus_config
 ..
 
 

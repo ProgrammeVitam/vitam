@@ -1,24 +1,197 @@
 ---
 
-- include_tasks: install.yml
+- name: Install vitam-prometheus package
+  package:
+    name: vitam-prometheus
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  notify: "prometheus-server - restart service"
+  when: install_mode != "container"
 
-- name: list prometheus rules files
-  find:
-    paths: "{{ prometheus_server_config_path }}/rules"
-    patterns: '*.yml'
-    recurse: no # no subdir
-    file_type: file
-  delegate_to: localhost
-  register: rules_files
-  tags:
-    - gen_prometheus_config
-  when: prometheus.prometheus_config_file_target_directory is search("/")
-
-- name: Generate local prometheus config file from inventory
+- name: Deploy systemd service file for vitam-prometheus
   template:
-    src: "prometheus.yml.j2"
-    dest: "{{ prometheus.prometheus_config_file_target_directory }}/prometheus.yml"
-  delegate_to: localhost
+    src: vitam-{{ 'container-' if install_mode == 'container' else '' }}prometheus.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-prometheus.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "prometheus-server - restart service"
+
+#### Configuration ####
+- name: Check that the prometheus directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/prometheus"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - lib
+    - log
+    - data
+    - tmp
+  tags: update_prometheus_configuration
+  notify: "prometheus-server - restart service"
+
+- name: Apply prometheus server sysconfig default
+  template:
+    src: sysconfig.conf.j2
+    dest: "{{ prometheus_server_config_path }}/sysconfig.conf"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  notify: "prometheus-server - restart service"
+  when: install_mode != "container"
+
+- name: Check that the prometheus rules directory exist
+  file:
+    path: "{{ prometheus_server_config_path }}/rules"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0755' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  notify: "prometheus-server - restart service"
+
+- name: Copy prometheus common rule files
+  copy:
+    src: "rules/{{ item }}"
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - cpu.yml
+    - memory.yml
+    - state.yml
+    - tape_storage_offer.yml
+    - certificat.yml
+  notify: "prometheus-server - restart service"
+
+- name: Generate disk rule file dynamically based on host group
+  template:
+    src: rules/disk.yml.j2
+    dest: "{{ prometheus_server_config_path }}/rules/disk.yml"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  notify: "prometheus-server - restart service"
+
+- name: Copy prometheus primary-site rule files
+  copy:
+    src: "rules/{{ item }}"
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - vitam_workflow.yml
+  when: primary_site | lower == "true"
+
+- name: Copy prometheus secondary-site rule files
+  copy:
+    src: "rules/{{ item }}"
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  with_items:
+    - reconstruction.yml
+  when: primary_site | lower != "true"
+  notify: "prometheus-server - restart service"
+
+- name: Cleanup prometheus primary-site rule files from secondary sites
+  file:
+    path: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    state: absent
+  with_items:
+    - vitam_workflow.yml
+  when: primary_site | lower != "true"
+  notify: "prometheus-server - restart service"
+
+- name: Cleanup prometheus secondary-site rule files from primary sites
+  file:
+    path: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    state: absent
+  with_items:
+    - reconstruction.yml
+  when: primary_site | lower == "true"
+  notify: "prometheus-server - restart service"
+
+- name: Check that the prometheus scrape_configs directory exist
+  file:
+    path: "{{ prometheus_server_config_path }}/scrape_configs"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0755' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+  notify: "prometheus-server - restart service"
+
+- name: Copy scrape config files
+  template:
+    src: "{{ item }}"
+    dest: "{{ prometheus_server_config_path }}/scrape_configs/{{ item | basename | regex_replace('\\.j2$') }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  with_fileglob:
+    - "templates/scrape_configs/*.yml.j2"
+  notify: "prometheus-server - restart service"
+
+- name: Create the prometheus server configuration file
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ prometheus_server_config_path }}/prometheus.yml"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
+  tags: update_prometheus_configuration
+  notify: "prometheus-server - restart service"
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{ consul_folder_conf }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0777' if install_mode == 'container' else vitam_defaults.folder.folder_permission }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-componentid.json.j2"
+    dest: "{{ consul_folder_conf }}/service-prometheus.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ '0644' if install_mode == 'container' else vitam_defaults.folder.conf_permission }}"
   tags:
-    - gen_prometheus_config
-  when: prometheus.prometheus_config_file_target_directory is search("/")
+    - consul_conf
+    - update_prometheus_configuration
+  notify:
+    - "prometheus-server - reload consul configuration"
+
+# Ensure that the installation is complete and consul up
+- meta: flush_handlers
+  tags:
+    - update_prometheus_configuration
+
+- name: Make sure vitam-prometheus is started and enabled at boot
+  service:
+    name: vitam-prometheus
+    state: started
+    enabled: "{{ prometheus.server.at_boot | default(service_at_boot) }}"
+  tags:
+    - update_prometheus_configuration
+
+- name: "Wait for prometheus server port {{ prometheus.server.port | default(9090) }} to be open"
+  wait_for:
+    host: "{{ ip_admin }}"
+    port: "{{ prometheus.server.port | default(9090) }}"
+    state: "started"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"

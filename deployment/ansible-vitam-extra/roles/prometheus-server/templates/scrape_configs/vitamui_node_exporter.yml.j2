@@ -1,0 +1,15 @@
+#jinja2: lstrip_blocks: True
+{% if prometheus.node_exporter.enabled | default(true) | bool %}
+scrape_configs:
+
+  {% if (groups['hosts_vitamui'] | default([]) | length > 0) %}
+  - job_name: vitamui-node-exporter
+    metrics_path: {{ prometheus.node_exporter.metrics_path | default('/metrics') }}
+    static_configs:
+    {% for host in groups['hosts_vitamui'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.node_exporter.port | default(9101) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+    {% endfor %}
+  {% endif %}
+{% endif %}

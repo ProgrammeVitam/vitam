@@ -1,0 +1,65 @@
+#jinja2: lstrip_blocks: True
+{% if prometheus.mongodb_exporter.enabled | default(true) | bool %}
+scrape_configs:
+
+  {% if groups['hosts_mongoc_data'] | length > 0 %}
+
+  - job_name: vitam-mongoc-data
+    static_configs:
+    {% for host in groups['hosts_mongoc_data'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.mongodb_exporter.port_mongoc | default(9216) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+          service_name: vitam-mongoc-data
+          cluster: {{ hostvars[host]['mongo_cluster_name'] }}
+    {% endfor %}
+  {% endif %}
+  {% if groups['hosts_mongod_data'] | length > 0 %}
+
+  - job_name: vitam-mongod-data
+    static_configs:
+    {% for host in groups['hosts_mongod_data'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+          service_name: vitam-mongod-data
+          cluster: {{ hostvars[host]['mongo_cluster_name'] }}
+    {% endfor %}
+  {% endif %}
+  {% if groups['hosts_mongoc_offer'] | length > 0 %}
+
+  - job_name: vitam-mongoc-offer
+    static_configs:
+    {% for host in groups['hosts_mongoc_offer'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.mongodb_exporter.port_mongoc | default(9216) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+          service_name: vitam-mongoc-offer
+          cluster: {{ hostvars[host]['mongo_cluster_name'] }}
+    {% endfor %}
+  {% endif %}
+  {% if groups['hosts_mongod_offer'] | length > 0 %}
+
+  - job_name: vitam-mongod-offer
+    static_configs:
+    {% for host in groups['hosts_mongod_data'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+          service_name: vitam-mongod-offer
+          cluster: {{ hostvars[host]['mongo_cluster_name'] }}
+    {% endfor %}
+  {% endif %}
+  {% if groups['hosts_vitamui_mongod'] | default([]) | length > 0 %}
+
+  - job_name: vitamui-mongod
+    static_configs:
+    {% for host in groups['hosts_vitamui_mongod'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+          service_name: vitamui-mongod
+          cluster: {{ hostvars[host]['mongo_cluster_name'] | default('mongo-vitamui') }}
+    {% endfor %}
+  {% endif %}
+{% endif %}

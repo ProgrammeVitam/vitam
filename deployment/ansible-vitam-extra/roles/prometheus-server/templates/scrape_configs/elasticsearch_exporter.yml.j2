@@ -1,0 +1,13 @@
+#jinja2: lstrip_blocks: True
+{% if prometheus.elasticsearch_exporter.enabled | default(true) | bool %}
+scrape_configs:
+
+  - job_name: vitam-elasticsearch-exporter
+    metrics_path: {{ prometheus.elasticsearch_exporter.metrics_path | default('/metrics') }}
+    static_configs:
+    {% for host in groups['elasticsearch'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ prometheus.elasticsearch_exporter.port | default(9114) }}"]
+        labels:
+          hostname: {{ host.split(".")[0] }}
+    {% endfor %}
+{% endif %}
