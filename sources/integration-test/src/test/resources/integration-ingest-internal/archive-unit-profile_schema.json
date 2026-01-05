@@ -12114,6 +12114,33 @@
     "EffectiveCardinality": "ZERO"
   },
   {
+    "FieldName": "evIdProc",
+    "Collection": "Unit",
+    "ApiPath": "#errors.evIdProc",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant de l'opération",
+    "Path": "_errors.evIdProc",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "evDateTime",
+    "Collection": "Unit",
+    "ApiPath": "#errors.evDateTime",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json. Date de lancement de l’opération",
+    "Cardinality": "ONE",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date et heure de l'événement",
+    "Path": "_errors.evDateTime",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
     "FieldName": "obId",
     "Collection": "Unit",
     "ApiPath": "#errors.obId",
@@ -12221,6 +12248,33 @@
     "ShortName": "Identifiant",
     "Path": "_ogInfo._errors.evId",
     "StringSize": "SHORT",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "evIdProc",
+    "Collection": "Unit",
+    "ApiPath": "#ogInfo.#errors.evIdProc",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant de l'opération",
+    "Path": "_ogInfo._errors.evIdProc",
+    "StringSize": "MEDIUM",
+    "EffectiveCardinality": "ZERO"
+  },
+  {
+    "FieldName": "evDateTime",
+    "Collection": "Unit",
+    "ApiPath": "#ogInfo.#errors.evDateTime",
+    "Category": "OTHER",
+    "Description": "Mapping : logbook-es-mapping.json. Date de lancement de l’opération",
+    "Cardinality": "ONE",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "Date et heure de l'événement",
+    "Path": "_ogInfo._errors.evDateTime",
     "EffectiveCardinality": "ZERO"
   },
   {

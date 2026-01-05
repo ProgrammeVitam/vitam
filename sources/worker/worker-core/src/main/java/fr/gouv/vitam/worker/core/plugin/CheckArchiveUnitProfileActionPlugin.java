@@ -177,7 +177,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                     .put(TAG_ARCHIVE_UNIT_PROFILE, archiveUnitProfileIdentifier)
                     .put(EV_DET_TECH_DATA, e.getMessage());
 
-                return createItemStatusKo(itemStatus, outcomeDetails, infoNode);
+                return createItemStatusKo(itemStatus, outcomeDetails, infoNode, params.getProcessId());
             }
         } catch (Exception e) {
             LOGGER.error(e);
@@ -186,12 +186,18 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         }
     }
 
-    private ItemStatus createItemStatusKo(ItemStatus subItemStatus, String outcomeDetail, ObjectNode evDetailData) {
+    private ItemStatus createItemStatusKo(
+        ItemStatus subItemStatus,
+        String outcomeDetail,
+        ObjectNode evDetailData,
+        String operationId
+    ) {
         ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
             LogbookTypeProcess.COLLECT_SIP_INGEST,
             CHECK_UNIT_PROFILE_TASK_ID,
             outcomeDetail,
-            evDetailData
+            evDetailData,
+            operationId
         );
 
         subItemStatus

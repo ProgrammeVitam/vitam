@@ -226,7 +226,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                                 FILE_FORMAT,
                                                 subTaskItemStatus.getGlobalOutcomeDetailSubcode(),
                                                 objectId,
-                                                result.getEventDetailData()
+                                                result.getEventDetailData(),
+                                                params.getProcessId()
                                             )
                                         );
                                     } else {

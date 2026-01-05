@@ -21,14 +21,18 @@
         "evTypeProc": "unit_evTypeProc1",
         "outDetail": "unit_outDetail1",
         "outMessg": "unit_outMessg1",
-        "evDetData": "{}"
+        "evDetData": "{}",
+        "evDateTime": "2023-01-01T00:00:00.000",
+        "evIdProc": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
       },
       {
         "evId": "unit_evId2",
         "evTypeProc": "unit_evTypeProc2",
         "outDetail": "unit_outDetail2",
         "outMessg": "unit_outMessg2",
-        "evDetData": "{}"
+        "evDetData": "{}",
+        "evDateTime": "2023-01-01T00:00:00.000",
+        "evIdProc": "aeeaaaaaacec4rmkaedq6amzayhmtzqaaaaq"
       }
     ]
   },

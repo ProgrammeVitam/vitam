@@ -624,6 +624,18 @@
     "indexed": true
   },
   {
+    "path": "_errors.evIdProc",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "_errors.evDateTime",
+    "type": "datetime",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
     "path": "_errors.obId",
     "type": "keyword",
     "cardinality": "one",

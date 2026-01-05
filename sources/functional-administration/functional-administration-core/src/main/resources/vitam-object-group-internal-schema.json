@@ -1789,6 +1789,33 @@
     "StringSize": "SHORT"
   },
   {
+    "FieldName": "evIdProc",
+    "Collection": "ObjectGroup",
+    "ApiPath": "_errors.evIdProc",
+    "ShortName": "Identifiant de l'opération",
+    "Description": "Mapping : og-es-mapping.json",
+    "Cardinality": "ONE",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "Indexed": true,
+    "ApiField": "#errors.evIdProc",
+    "Path": "_errors.evIdProc",
+    "StringSize": "SHORT"
+  },
+  {
+    "FieldName": "evDateTime",
+    "Collection": "ObjectGroup",
+    "ApiPath": "_errors.evDateTime",
+    "ShortName": "Date et heure de l'événement",
+    "Description": "Mapping : og-es-mapping.json",
+    "Cardinality": "ONE",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "Indexed": true,
+    "ApiField": "#errors.evDateTime",
+    "Path": "_errors.evDateTime"
+  },
+  {
     "FieldName": "obId",
     "Collection": "ObjectGroup",
     "ApiPath": "_errors.obId",

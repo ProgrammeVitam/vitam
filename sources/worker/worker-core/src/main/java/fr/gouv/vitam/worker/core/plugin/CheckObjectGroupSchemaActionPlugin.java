@@ -112,7 +112,8 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
                 ValidationError validationError = ValidationErrorHelper.createMetadataValidationError(
                     LogbookTypeProcess.COLLECT_SIP_INGEST,
                     CHECK_OG_SCHEMA_TASK_ID,
-                    evDetailData
+                    evDetailData,
+                    params.getProcessId()
                 );
                 itemStatus.increment(StatusCode.KO, validationError);
 
@@ -131,7 +132,8 @@ public class CheckObjectGroupSchemaActionPlugin extends ActionHandler {
                 LogbookTypeProcess.COLLECT_SIP_INGEST,
                 CHECK_OG_SCHEMA_TASK_ID,
                 INVALID_OG,
-                evDetailData
+                evDetailData,
+                params.getProcessId()
             );
             itemStatus.increment(StatusCode.KO, validationError);
 

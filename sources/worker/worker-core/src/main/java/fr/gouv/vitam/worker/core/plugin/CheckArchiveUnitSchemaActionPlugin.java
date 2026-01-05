@@ -142,13 +142,13 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                         "Should never occur (unit rule update only)"
                     );
                 };
-            return handleValidationError(e, outcomeDetail);
+            return handleValidationError(e, outcomeDetail, params.getProcessId());
         } catch (final MetaDataContainSpecialCharactersException e) {
             LOGGER.warn(e);
-            return handleValidationError(e, INVALID_UNIT);
+            return handleValidationError(e, INVALID_UNIT, params.getProcessId());
         } catch (SigningInformationException e) {
             LOGGER.warn(e);
-            return handleValidationError(e, e.getErrorCode());
+            return handleValidationError(e, e.getErrorCode(), params.getProcessId());
         } catch (final Exception e) {
             LOGGER.error(e);
             final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
@@ -157,7 +157,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         }
     }
 
-    private static ItemStatus handleValidationError(Exception e, String outcomeDetail) {
+    private static ItemStatus handleValidationError(Exception e, String outcomeDetail, String operationId) {
         ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
         itemStatus.setGlobalOutcomeDetailSubcode(outcomeDetail);
 
@@ -170,7 +170,8 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             LogbookTypeProcess.COLLECT_SIP_INGEST,
             CHECK_UNIT_SCHEMA_TASK_ID,
             outcomeDetail,
-            evDetailData
+            evDetailData,
+            operationId
         );
         itemStatus.increment(StatusCode.KO, validationError);
         return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);

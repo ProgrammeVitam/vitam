@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.model.validations;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -42,14 +43,16 @@ public final class ValidationErrorHelper {
     public static ValidationError createMetadataValidationError(
         LogbookTypeProcess eventTypeProcess,
         String stepOrHandler,
-        ObjectNode evDetData
+        ObjectNode evDetData,
+        String operationId
     ) {
         return getValidationError(
             eventTypeProcess,
             null,
             evDetData,
             VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, StatusCode.KO),
-            VitamLogbookMessages.getCodeLfc(stepOrHandler, StatusCode.KO)
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, StatusCode.KO),
+            operationId
         );
     }
 
@@ -57,14 +60,16 @@ public final class ValidationErrorHelper {
         LogbookTypeProcess eventTypeProcess,
         String stepOrHandler,
         String transaction,
-        ObjectNode evDetData
+        ObjectNode evDetData,
+        String operationId
     ) {
         return getValidationError(
             eventTypeProcess,
             null,
             evDetData,
             VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, transaction, StatusCode.KO),
-            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, StatusCode.KO)
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, StatusCode.KO),
+            operationId
         );
     }
 
@@ -73,14 +78,16 @@ public final class ValidationErrorHelper {
         String stepOrHandler,
         String transaction,
         String obId,
-        ObjectNode evDetData
+        ObjectNode evDetData,
+        String operationId
     ) {
         return getValidationError(
             eventTypeProcess,
             obId,
             evDetData,
             VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, transaction, StatusCode.KO),
-            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, StatusCode.KO)
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, StatusCode.KO),
+            operationId
         );
     }
 
@@ -90,14 +97,16 @@ public final class ValidationErrorHelper {
         String transaction,
         String detailedOutcome,
         String obId,
-        ObjectNode evDetData
+        ObjectNode evDetData,
+        String operationId
     ) {
         return getValidationError(
             eventTypeProcess,
             obId,
             evDetData,
             VitamLogbookMessages.getOutcomeDetailLfc(stepOrHandler, transaction, detailedOutcome, StatusCode.KO),
-            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, detailedOutcome, StatusCode.KO)
+            VitamLogbookMessages.getCodeLfc(stepOrHandler, transaction, detailedOutcome, StatusCode.KO),
+            operationId
         );
     }
 
@@ -106,7 +115,8 @@ public final class ValidationErrorHelper {
         String obId,
         ObjectNode evDetData,
         String outDetail,
-        String outMessg
+        String outMessg,
+        String operationId
     ) {
         return new ValidationError()
             .setEvId(GUIDFactory.newGUID().toString())
@@ -114,6 +124,8 @@ public final class ValidationErrorHelper {
             .setEvDetData(evDetData == null ? null : JsonHandler.unprettyPrint(evDetData))
             .setObId(obId)
             .setOutDetail(outDetail)
-            .setOutMessg(outMessg);
+            .setOutMessg(outMessg)
+            .setEvDateTime(LocalDateUtil.nowFormatted())
+            .setEvIdProc(operationId);
     }
 }

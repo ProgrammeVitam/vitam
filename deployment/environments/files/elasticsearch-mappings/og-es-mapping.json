@@ -349,6 +349,13 @@
         "evId": {
           "type": "keyword"
         },
+        "evIdProc": {
+          "type": "keyword"
+        },
+        "evDateTime": {
+          "type": "date",
+          "format": "strict_date_optional_time"
+        },
         "obId": {
           "type": "keyword"
         },

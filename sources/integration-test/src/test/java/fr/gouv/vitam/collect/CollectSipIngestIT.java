@@ -496,6 +496,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getEvDetData()).contains(
             "Invalid unit format : Document schema validation failed"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -525,6 +527,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         // No such rule "NO_SUCH_RULE" in RefNonRuleId
         List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
@@ -538,6 +542,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
+        assertThat(validationErrors2.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors2.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -569,6 +575,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion par rapport à sa catégorie : Une règle déclarée est incohérente par rapport à sa catégorie"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Wrong category for rule "APP-00001" in RefNonRuleId
         List<ValidationError> validationErrors2 = validationErrorsByUnitTitle.get("Unit 2");
@@ -584,6 +592,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
+        assertThat(validationErrors2.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors2.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -614,6 +624,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -644,6 +656,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -672,6 +686,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -702,6 +718,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "La date contenue dans le champ Date de début doit être antérieure à la date contenue dans le champ Date de fin"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     @Test
@@ -758,6 +776,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(ogValidationErrors0.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'empreinte du fichier"
         );
+        assertThat(ogValidationErrors0.getFirst().getEvDateTime()).isNotNull();
+        assertThat(ogValidationErrors0.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(ogValidationErrors0.get(1).getEvId()).isNotNull();
         assertThat(ogValidationErrors0.get(1).getObId()).isEqualTo(
@@ -767,6 +787,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(ogValidationErrors0.get(1).getOutDetail()).isEqualTo("LFC.OG_OBJECTS_ANTIVIRUS_CHECK.ANTIVIRUS.KO");
         assertThat(ogValidationErrors0.get(1).getEvDetData()).isNull();
         assertThat(ogValidationErrors0.get(1).getOutMessg()).isEqualTo("L'objet contient un virus");
+        assertThat(ogValidationErrors0.get(1).getEvDateTime()).isNotNull();
+        assertThat(ogValidationErrors0.get(1).getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(unitOgInfoValidationErrorsByUnitTitle.get("Unit 0"))
             .usingRecursiveFieldByFieldElementComparator()
@@ -784,6 +806,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
+        assertThat(validationErrors1.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(validationErrors1.get(1).getEvId()).isNotNull();
         assertThat(validationErrors1.get(1).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -792,6 +816,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors1.get(1).getOutMessg()).isEqualTo(
             "Échec de la vérification de l'échéance des règles de gestion: Au moins une règle de gestion déclarée est inconnue du système ou l'échéance calculée est postérieure au 01/01/9000 (Date de début + Durée de la règle)"
         );
+        assertThat(validationErrors1.get(1).getEvDateTime()).isNotNull();
+        assertThat(validationErrors1.get(1).getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Unit 2 - Rule declared in another category + 2x binaries with wrong digest
         List<ValidationError> validationErrors2 = unitValidationErrorsByUnitTitle.get("Unit 2");
@@ -805,6 +831,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors2.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion par rapport à sa catégorie : Une règle déclarée est incohérente par rapport à sa catégorie"
         );
+        assertThat(validationErrors2.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors2.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         List<ValidationError> ogValidationErrors2 = objectGroupValidationErrorsByUnitTitle.get("Unit 2");
         assertThat(ogValidationErrors2).hasSize(3);
@@ -819,6 +847,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(ogValidationErrors2.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de l'empreinte du fichier"
         );
+        assertThat(ogValidationErrors2.getFirst().getEvDateTime()).isNotNull();
+        assertThat(ogValidationErrors2.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(ogValidationErrors2.get(1).getEvId()).isNotNull();
         assertThat(ogValidationErrors2.get(1).getObId()).isEqualTo(
@@ -830,6 +860,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(ogValidationErrors2.get(1).getOutMessg()).isEqualTo(
             "Échec de la vérification de l'empreinte du fichier"
         );
+        assertThat(ogValidationErrors2.get(1).getEvDateTime()).isNotNull();
+        assertThat(ogValidationErrors2.get(1).getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(ogValidationErrors2.get(2).getEvId()).isNotNull();
         assertThat(ogValidationErrors2.get(2).getObId()).isNull();
@@ -841,6 +873,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(ogValidationErrors2.get(2).getOutMessg()).isEqualTo(
             "Échec lors de la vérification globale du groupe d'objet"
         );
+        assertThat(ogValidationErrors2.get(2).getEvDateTime()).isNotNull();
+        assertThat(ogValidationErrors2.get(2).getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(unitOgInfoValidationErrorsByUnitTitle.get("Unit 2"))
             .usingRecursiveFieldByFieldElementComparator()
@@ -858,6 +892,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors3.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
+        assertThat(validationErrors3.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors3.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Unit 4 - RefNonRuleId with an invalid rule category + EndDate before StartDate
         List<ValidationError> validationErrors4 = unitValidationErrorsByUnitTitle.get("Unit 4");
@@ -869,6 +905,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors4.getFirst().getOutMessg()).isEqualTo(
             "La date contenue dans le champ Date de début doit être antérieure à la date contenue dans le champ Date de fin"
         );
+        assertThat(validationErrors4.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors4.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         assertThat(validationErrors4.get(1).getEvId()).isNotNull();
         assertThat(validationErrors4.get(1).getEvTypeProc()).isEqualTo("COLLECT_SIP_INGEST");
@@ -879,6 +917,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors4.get(1).getOutMessg()).isEqualTo(
             "Échec de la vérification de la cohérence de la règle de gestion dont l'annulation est demandée par rapport à sa catégorie : la demande d'annulation d'une règle de gestion n'est pas cohérente avec sa catégorie"
         );
+        assertThat(validationErrors4.get(1).getEvDateTime()).isNotNull();
+        assertThat(validationErrors4.get(1).getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Unit 5 - Invalid classification level
         List<ValidationError> validationErrors5 = unitValidationErrorsByUnitTitle.get("Unit 5");
@@ -890,6 +930,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors5.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification du niveau de classification : non autorisé par la plateforme"
         );
+        assertThat(validationErrors5.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors5.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Unit 6 - Missing title
         List<ValidationError> validationErrors6 = unitValidationErrorsByUnitTitle.get("<null>");
@@ -903,6 +945,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors6.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité des valeurs dans les champs"
         );
+        assertThat(validationErrors6.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors6.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Unit 7 - No such AUP
         List<ValidationError> validationErrors7 = unitValidationErrorsByUnitTitle.get("Unit 7");
@@ -916,6 +960,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors7.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité aux profils d'unité archivistique : profil d'unité archivistique non trouvé"
         );
+        assertThat(validationErrors7.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors7.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
 
         // Unit 8 - AUP validation failed
         List<ValidationError> validationErrors8 = unitValidationErrorsByUnitTitle.get("Unit 8");
@@ -931,6 +977,8 @@ public class CollectSipIngestIT extends AbstractCollectIT {
         assertThat(validationErrors8.getFirst().getOutMessg()).isEqualTo(
             "Échec de la vérification de la conformité aux profils d'unité archivistique : json invalide"
         );
+        assertThat(validationErrors8.getFirst().getEvDateTime()).isNotNull();
+        assertThat(validationErrors8.getFirst().getEvIdProc()).isEqualTo(ingestOperationId);
     }
 
     private String createTransactionId() throws VitamClientException, InvalidParseOperationException {

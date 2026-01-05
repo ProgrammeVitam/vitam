@@ -11768,6 +11768,34 @@
     "ShortName": "Identifiant"
   },
   {
+    "FieldName": "evIdProc",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "Cardinality": "ONE",
+    "Indexed": true,
+    "Path": "_errors.evIdProc",
+    "ApiField": "evIdProc",
+    "Collection": "Unit",
+    "Category": "OTHER",
+    "Description": "Identifiant de l'opération",
+    "ApiPath": "#errors.evIdProc",
+    "ShortName": "Identifiant de l'opération"
+  },
+  {
+    "FieldName": "evDateTime",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "Cardinality": "ONE",
+    "Indexed": true,
+    "Path": "_errors.evDateTime",
+    "ApiField": "evDateTime",
+    "Collection": "Unit",
+    "Category": "OTHER",
+    "Description": "Date et heure de l'événement",
+    "ApiPath": "#errors.evDateTime",
+    "ShortName": "Date et heure de l'événement"
+  },
+  {
     "FieldName": "obId",
     "Type": "KEYWORD",
     "Origin": "INTERNAL",
@@ -11878,6 +11906,34 @@
     "Description": "Identifiant technique unique de l'erreur du groupe d'objets associé",
     "ApiPath": "#ogInfo.#errors.evId",
     "ShortName": "Identifiant"
+  },
+  {
+    "FieldName": "evIdProc",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "Cardinality": "ONE",
+    "Indexed": true,
+    "Path": "_ogInfo._errors.evIdProc",
+    "ApiField": "evIdProc",
+    "Collection": "Unit",
+    "Category": "OTHER",
+    "Description": "Identifiant de l'opération",
+    "ApiPath": "#ogInfo.#errors.evIdProc",
+    "ShortName": "Identifiant de l'opération"
+  },
+  {
+    "FieldName": "evDateTime",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "Cardinality": "ONE",
+    "Indexed": true,
+    "Path": "_ogInfo._errors.evDateTime",
+    "ApiField": "evDateTime",
+    "Collection": "Unit",
+    "Category": "OTHER",
+    "Description": "Date et heure de l'événement",
+    "ApiPath": "#ogInfo.#errors.evDateTime",
+    "ShortName": "Date et heure de l'événement"
   },
   {
     "FieldName": "obId",
