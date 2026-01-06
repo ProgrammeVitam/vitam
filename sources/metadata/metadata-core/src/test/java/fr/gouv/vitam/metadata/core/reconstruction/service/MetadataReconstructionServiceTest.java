@@ -366,9 +366,8 @@ public class MetadataReconstructionServiceTest {
         logicalClock.freezeTime();
 
         List<OfferLog> offerLogs = new ArrayList<>();
-        for (int i = 0, offset = lastOffset; i < nbEntriesRemaining; i++) {
-            offset += 1 + RandomUtils.nextInt(10);
-
+        for (int i = 0; i < nbEntriesRemaining; i++) {
+            long offset = lastOffset + 1 + i * 7;
             if (i % 3 == 0) {
                 offerLogs.add(getOfferLog(offset).setFileName("file" + i + ".json").setAction(OfferLogAction.DELETE));
             } else {
@@ -402,7 +401,7 @@ public class MetadataReconstructionServiceTest {
                 anyLong()
             )
         ).thenAnswer(args -> {
-            ThreadUtils.sleepQuietly(Duration.ofSeconds(1));
+            ThreadUtils.sleepQuietly(Duration.ofSeconds(2));
             return getUnitMetadataBackupModel(args.getArgument(3), args.getArgument(4));
         });
 
