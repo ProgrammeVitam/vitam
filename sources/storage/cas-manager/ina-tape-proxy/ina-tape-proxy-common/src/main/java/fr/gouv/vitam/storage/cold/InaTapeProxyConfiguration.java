@@ -26,9 +26,122 @@
  */
 package fr.gouv.vitam.storage.cold;
 
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 
-public class InaTapeProxyConfiguration extends DefaultVitamApplicationConfiguration {
+/**
+ * Configuration for INA Tape Proxy Service
+ * Extends DbConfigurationImpl to support MongoDB configuration
+ */
+public class InaTapeProxyConfiguration extends DbConfigurationImpl {
 
-    InaTapeProxyConfiguration() {}
+    @JsonProperty("nbDrives")
+    private int nbDrives = 10;
+
+    @JsonProperty("nbSlots")
+    private int nbSlots = 200;
+
+    // ========== FILESYSTEM CONFIGURATION (NEW) ==========
+
+    @JsonProperty("exchangeDirectory")
+    private String exchangeDirectory;
+
+    @JsonProperty("inaStorageDirectory")
+    private String inaStorageDirectory;
+
+    @JsonProperty("vitamStorageDirectory")
+    private String vitamStorageDirectory = "/vitam/data/offer";
+
+    // ========== LATENCIES CONFIGURATION (milliseconds) (NEW) ==========
+
+    @JsonProperty("writeLatencyMs")
+    private long writeLatencyMs = 30000; // 30 seconds
+
+    @JsonProperty("readLatencyMs")
+    private long readLatencyMs = 60000; // 60 seconds
+
+    @JsonProperty("readTimeout")
+    private long readTimeout = 300000; // 5*60 seconds
+
+    @JsonProperty("loadLatencyMs")
+    private long loadLatencyMs = 20000; // 20 seconds
+
+    @JsonProperty("unloadLatencyMs")
+    private long unloadLatencyMs = 20000; // 20 seconds
+
+    @JsonProperty("ejectLatencyMs")
+    private long ejectLatencyMs = 20000; // 20 seconds
+
+    @JsonProperty("roboticLatencyMs")
+    private long roboticLatencyMs = 20000; // 20 seconds (move, rewind, goto...)
+
+    // ========== STATUS CONFIGURATION (static values) (NEW) ==========
+
+    @JsonProperty("libraryName")
+    private String libraryName = "INA_LIBRARY";
+
+    @JsonProperty("defaultDriveDevice")
+    private String defaultDriveDevice = "/dev/ina-tape-proxy-nst0";
+
+    public InaTapeProxyConfiguration() {}
+
+    // Getters and Setters
+
+    public int getNbDrives() {
+        return nbDrives;
+    }
+
+    public int getNbSlots() {
+        return nbSlots;
+    }
+
+    // ========== NEW GETTERS & SETTERS FOR CONFIGURATION ==========
+
+    public String getExchangeDirectory() {
+        return exchangeDirectory;
+    }
+
+    public String getInaStorageDirectory() {
+        return inaStorageDirectory;
+    }
+
+    public String getVitamStorageDirectory() {
+        return vitamStorageDirectory;
+    }
+
+    public long getWriteLatencyMs() {
+        return writeLatencyMs;
+    }
+
+    public long getReadLatencyMs() {
+        return readLatencyMs;
+    }
+
+    public long getReadTimeout() {
+        return readTimeout;
+    }
+
+    public long getLoadLatencyMs() {
+        return loadLatencyMs;
+    }
+
+    public long getUnloadLatencyMs() {
+        return unloadLatencyMs;
+    }
+
+    public long getEjectLatencyMs() {
+        return ejectLatencyMs;
+    }
+
+    public long getRoboticLatencyMs() {
+        return roboticLatencyMs;
+    }
+
+    public String getLibraryName() {
+        return libraryName;
+    }
+
+    public String getDefaultDriveDevice() {
+        return defaultDriveDevice;
+    }
 }

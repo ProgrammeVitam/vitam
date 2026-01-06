@@ -153,6 +153,7 @@
         <nginx.container.version>nginx:1.25.4</nginx.container.version>
         <httpd.container.version>httpd:2.4.58</httpd.container.version>
         <archunit.version>1.3.0</archunit.version>
+        <awaitility.version>4.2.0</awaitility.version>
 
         <!-- database libraries -->
         <elasticsearch.version>9.2.2</elasticsearch.version>
@@ -1592,6 +1593,12 @@
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

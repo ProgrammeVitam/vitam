@@ -27,9 +27,17 @@
 package fr.gouv.vitam.storage.cold.server;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
-import fr.gouv.vitam.storage.cold.api.InaTapeProxyResource;
+import fr.gouv.vitam.storage.cold.server.simulator.InaIoService;
+import fr.gouv.vitam.storage.cold.server.simulator.InaLibraryService;
+import fr.gouv.vitam.storage.cold.server.simulator.InaService;
+import fr.gouv.vitam.storage.cold.server.simulator.InaStatusService;
+import fr.gouv.vitam.storage.cold.server.simulator.filesystem.FileSystemManager;
+import fr.gouv.vitam.storage.cold.server.simulator.filesystem.MarkerManager;
 import jakarta.servlet.ServletConfig;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.Context;
@@ -41,7 +49,12 @@ import java.util.Set;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
+/**
+ * JAX-RS Application for INA Tape Proxy
+ */
 public class InaTapeProxyApplication extends Application {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InaTapeProxyApplication.class);
 
     private final CommonBusinessApplication commonBusinessApplication;
     private final Set<Object> singletons;
@@ -56,16 +69,64 @@ public class InaTapeProxyApplication extends Application {
 
     private InaTapeProxyConfiguration loadConfiguration(String configurationFile) {
         try (InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            return PropertiesUtils.readYaml(yamlIS, InaTapeProxyConfiguration.class);
+            InaTapeProxyConfiguration config = PropertiesUtils.readYaml(yamlIS, InaTapeProxyConfiguration.class);
+            LOGGER.info("Configuration loaded from: {}", configurationFile);
+            return config;
         } catch (IOException e) {
+            LOGGER.error("Unable to load configuration from: {}", configurationFile, e);
             throw new RuntimeException("Unable to load configuration", e);
         }
     }
 
     private Set<Object> initResources(InaTapeProxyConfiguration configuration) {
-        Set<Object> set = new HashSet<>(commonBusinessApplication.getResources());
-        set.add(new InaTapeProxyResource(configuration));
-        return set;
+        try {
+            Set<Object> set = new HashSet<>(commonBusinessApplication.getResources());
+
+            // Initialize services directly
+            InaService service = initializeService(configuration);
+
+            // Add our resource implementation with service
+            set.add(new InaTapeProxyResourceImpl(service));
+
+            LOGGER.info("Resources initialized");
+            return set;
+        } catch (Exception e) {
+            LOGGER.error("Failed to initialize resources", e);
+            throw new VitamRuntimeException("Failed to initialize resources", e);
+        }
+    }
+
+    private InaService initializeService(InaTapeProxyConfiguration configuration) throws IOException {
+        // 1. Initialize filesystem manager
+        LOGGER.info("Initializing FileSystemManager...");
+        FileSystemManager fileSystemManager = new FileSystemManager(configuration);
+        fileSystemManager.initialize();
+        LOGGER.info("FileSystemManager initialized");
+
+        // 2. Initialize marker manager
+        LOGGER.info("Initializing MarkerManager...");
+        MarkerManager markerManager = new MarkerManager(fileSystemManager);
+        LOGGER.info("MarkerManager initialized");
+
+        // 3. Initialize sub-services
+        LOGGER.info("Initializing sub-services...");
+        InaIoService ioService = new InaIoService(configuration, fileSystemManager, markerManager);
+        LOGGER.info("  - InaIoService initialized");
+
+        InaLibraryService roboticService = new InaLibraryService(configuration);
+        LOGGER.info("  - InaLibraryService initialized");
+
+        InaStatusService statusService = new InaStatusService(configuration);
+        LOGGER.info("  - InaStatusService initialized");
+
+        LOGGER.info("All sub-services initialized");
+
+        // 4. Create main service
+        LOGGER.info("Initializing main InaService...");
+        InaService service = new InaService(configuration, ioService, roboticService, statusService);
+        LOGGER.info("InaService initialized");
+
+        return service;
     }
 
     @Override

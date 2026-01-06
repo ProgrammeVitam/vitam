@@ -23,28 +23,66 @@
             <groupId>fr.gouv.vitam</groupId>
             <artifactId>ina-tape-proxy-common</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>ina-tape-proxy-api</artifactId>
-            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Storage Engine Common -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.13.4</version>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>storage-engine-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Common Private (for SafeFileChecker) -->
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-private</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Common Manifest (for FileNameCleaner) -->
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-manifest</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Swagger/OpenAPI -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2</artifactId>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-junit</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>openapi-config.yaml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>com.mycila</groupId>
@@ -233,6 +271,25 @@
                         </data>
                     </dataSet>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-maven-plugin-jakarta</artifactId>
+                <configuration>
+                    <outputFileName>openapi</outputFileName>
+                    <outputPath>${project.build.directory}/generated-documentation</outputPath>
+                    <outputFormat>YAML</outputFormat>
+                    <configurationFilePath>${project.basedir}/src/main/resources/openapi-config.yaml</configurationFilePath>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-openapi-doc</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>resolve</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -1,5 +1,5 @@
 resourcePackages:
-  - fr.gouv.vitam.storage.cold.api
+  - fr.gouv.vitam.storage.cold.server
 prettyPrint : true
 sortOutput : true
 openAPI31 : true

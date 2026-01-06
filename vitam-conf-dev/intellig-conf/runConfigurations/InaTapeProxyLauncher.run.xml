@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="InaTapeProxyLauncher" type="Application" factoryName="Application">
+    <log_file alias="Logs" path="$vitamLocalShareFolder$/log/ina-tape-proxy/ina-tape-proxy.*.log" />
+    <log_file alias="AccessLogs" path="$vitamLocalShareFolder$/log/ina-tape-proxy/accesslog-ina-tape-proxy.*.log" />
+    <option name="MAIN_CLASS_NAME" value="fr.gouv.vitam.storage.cold.server.InaTapeProxyLauncher" />
+    <module name="ina-tape-proxy-web" />
+    <option name="PROGRAM_PARAMETERS" value="$vitamLocalShareFolder$/conf/ina-tape-proxy/ina-tape-proxy-web.conf" />
+    <option name="VM_PARAMETERS" value="-Dlogback.configurationFile=$vitamLocalShareFolder$/conf/ina-tape-proxy/logback.xml -Dvitam.tmp.folder=$vitamLocalShareFolder$/tmp/ina-tape-proxy -Dvitam.config.folder=$vitamLocalShareFolder$/conf/ina-tape-proxy -Dvitam.data.folder=$vitamLocalShareFolder$/data/ina-tape-proxy -Dvitam.log.folder=$vitamLocalShareFolder$/log/ina-tape-proxy" />
+    <option name="WORKING_DIRECTORY" value="$vitamLocalShareFolder$/conf/ina-tape-proxy/" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

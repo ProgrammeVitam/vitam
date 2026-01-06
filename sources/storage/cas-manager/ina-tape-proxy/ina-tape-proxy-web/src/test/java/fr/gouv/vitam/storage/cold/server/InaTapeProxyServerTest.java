@@ -28,15 +28,15 @@ package fr.gouv.vitam.storage.cold.server;
 
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.storage.cold.InaTapeProxyConfiguration;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 
-class InaTapeProxyServerTest {
+public class InaTapeProxyServerTest {
 
     @Test
-    void testServerStartWithValidConfiguration() throws Exception {
+    public void testServerStartWithValidConfiguration() throws Exception {
         String testConfigPath = getClass().getClassLoader().getResource("ina-tape-proxy-web.conf").getFile();
         InaTapeProxyServer server = new InaTapeProxyServer(
             InaTapeProxyConfiguration.class,
@@ -45,7 +45,7 @@ class InaTapeProxyServerTest {
             AdminApplication.class
         );
 
-        assertNotNull(server, "Le serveur ne doit pas être null");
+        assertNotNull("Le serveur ne doit pas être null", server);
 
         // Démarrage du serveur (peut bloquer, donc attention)
         // Ici on ne fait pas un run complet pour ne pas bloquer le test
@@ -54,7 +54,7 @@ class InaTapeProxyServerTest {
     }
 
     @Test
-    void testServerFailsWithMissingConfiguration() {
+    public void testServerFailsWithMissingConfiguration() {
         String invalidConfigPath = "nonexistent.yaml";
 
         assertThatThrownBy(

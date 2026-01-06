@@ -1,0 +1,170 @@
+# Configuration
+@ina-url = http://localhost:8090
+@tenant = 0
+@slot = 1
+@drive = 0
+@file-to-write = /vitam/data/offer/data.tar
+@file-to-read = /vitam/data/offer/data.tar
+
+### Health check - Vérifier le statut du service
+GET {{ina-url}}/ina-tape-proxy/v1/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Get server tenants
+GET {{ina-url}}/ina-tape-proxy/v1/tenants
+Accept: application/json
+
+# ========================================
+# I/O OPERATIONS - Opérations de lecture/écriture
+# ========================================
+
+### Write to Tape - Écrire un fichier sur bande
+# Temps attendu: ~30 secondes (writeLatencyMs)
+POST {{ina-url}}/ina-tape-proxy/v1/io/write?inputPath={{file-to-write}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Read from Tape - Lire un fichier depuis la bande
+# Temps attendu: ~60 secondes (readLatencyMs)
+# Pré-requis: Le fichier doit avoir été écrit avec /io/write
+# @no-log
+# @request-timeout = 180000
+GET {{ina-url}}/ina-tape-proxy/v1/io/read?outputPath={{file-to-read}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Write - Test d'erreur: Fichier inexistant (attendu: HTTP 500)
+POST {{ina-url}}/ina-tape-proxy/v1/io/write?inputPath=/tmp/fichier-inexistant-123456.txt
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Read - Test d'erreur: Fichier jamais écrit (attendu: HTTP 500)
+GET {{ina-url}}/ina-tape-proxy/v1/io/read?outputPath=/tmp/ina-test-output/fichier-jamais-ecrit.txt
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+# ========================================
+# DRIVE OPERATIONS - Opérations sur le lecteur
+# ========================================
+
+### Get Drive Status - Obtenir le statut du lecteur de bande
+# @name driveStatus
+GET {{ina-url}}/ina-tape-proxy/v1/drive/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Rewind Tape - Rembobiner la bande au début
+POST {{ina-url}}/ina-tape-proxy/v1/drive/rewind
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Move Tape Forward - Avancer la bande de N blocs
+POST {{ina-url}}/ina-tape-proxy/v1/drive/move?position=10&backward=false
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Move Tape Backward - Reculer la bande de N blocs
+POST {{ina-url}}/ina-tape-proxy/v1/drive/move?position=5&backward=true
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Go to End of Data (EOD) - Aller à la fin des données
+POST {{ina-url}}/ina-tape-proxy/v1/drive/eod
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Eject Tape - Éjecter la bande
+POST {{ina-url}}/ina-tape-proxy/v1/drive/eject
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+# ========================================
+# LIBRARY OPERATIONS - Opérations sur la bibliothèque
+# ========================================
+
+### Get Library Status - Obtenir le statut de la bibliothèque de bandes
+# @name libraryStatus
+GET {{ina-url}}/ina-tape-proxy/v1/library/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Load Tape - Charger une bande d'un slot vers un lecteur
+POST {{ina-url}}/ina-tape-proxy/v1/library/load?slot={{slot}}&drive={{drive}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Unload Tape - Décharger une bande d'un lecteur vers un slot
+POST {{ina-url}}/ina-tape-proxy/v1/library/unload?slot={{slot}}&drive={{drive}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+# ========================================
+# WORKFLOW EXAMPLE - Exemple de flux complet
+# ========================================
+
+### Workflow 1: Charger une bande et vérifier son statut
+# Étape 1: Vérifier le statut de la bibliothèque
+GET {{ina-url}}/ina-tape-proxy/v1/library/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 2: Charger la bande du slot 1 dans le lecteur 0
+POST {{ina-url}}/ina-tape-proxy/v1/library/load?slot=1&drive=0
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 3: Vérifier le statut du lecteur
+GET {{ina-url}}/ina-tape-proxy/v1/drive/status
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Workflow 2: Écrire et lire des données
+# Étape 1: Écrire un fichier sur bande
+POST {{ina-url}}/ina-tape-proxy/v1/io/write?inputPath={{file-to-write}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 2: Lire le fichier depuis la bande
+GET {{ina-url}}/ina-tape-proxy/v1/io/read?outputPath={{file-to-read}}
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+### Workflow 3: Écriture multiple
+# Étape 1: Écrire le premier fichier
+POST {{ina-url}}/ina-tape-proxy/v1/io/write?inputPath=/tmp/data/ina/exchange/data-1.json
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 2: Écrire le deuxième fichier
+POST {{ina-url}}/ina-tape-proxy/v1/io/write?inputPath=/tmp/data/ina/exchange/data-2.json
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 3: Écrire le deuxième fichier
+POST {{ina-url}}/ina-tape-proxy/v1/io/write?inputPath=/tmp/data/ina/exchange/data-3.json
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 4: Lire le premier fichier
+GET {{ina-url}}/ina-tape-proxy/v1/io/read?outputPath=/tmp/data/ina/exchange/data-1.json
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 5: Lire le deuxième fichier
+GET {{ina-url}}/ina-tape-proxy/v1/io/read?outputPath=/tmp/data/ina/exchange/data-2.json
+Accept: application/json
+X-Tenant-Id: {{tenant}}
+
+###
+# Étape 6: Lire le deuxième fichier
+GET {{ina-url}}/ina-tape-proxy/v1/io/read?outputPath=/tmp/data/ina/exchange/data-3.json
+Accept: application/json
+X-Tenant-Id: {{tenant}}

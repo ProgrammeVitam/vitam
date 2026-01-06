@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.cold.api;
+package fr.gouv.vitam.storage.cold.server;
 
 import fr.gouv.vitam.storage.engine.common.api.exception.TapeCommandException;
 import jakarta.ws.rs.core.Response;
