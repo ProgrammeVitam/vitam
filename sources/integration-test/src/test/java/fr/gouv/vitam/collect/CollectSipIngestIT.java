@@ -1322,11 +1322,18 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                 "collect/SIP_KO_Multiple_Validation_Errors_With_Virus.zip"
             );
 
+            InputStream koOtherSipInputStream = PropertiesUtils.getResourceAsStream(
+                "collect/SIP_KO_Multiple_Validation_Errors_With_Virus.zip"
+            );
+
             // When
             String operationGuid2 = uploadSip(koSipInputStream, transactionId);
 
+            String operationGuid3 = uploadSip(koOtherSipInputStream, transactionId);
+
             // Then
             verifyOperation(operationGuid2, StatusCode.KO);
+            verifyOperation(operationGuid3, StatusCode.KO);
 
             List<JsonNode> collectUnits =
                 ((RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(
@@ -1336,7 +1343,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
                     )).getResults();
 
             assertThat(collectUnits).isNotNull();
-            assertThat(collectUnits).hasSize(14);
+            assertThat(collectUnits).hasSize(24);
             Map<String, Integer> unitsByTransactionsCount = new HashMap<>();
             Map<String, Integer> unitsByBatchIdCount = new HashMap<>();
             collectUnits.forEach(unit -> {
@@ -1379,7 +1386,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             });
 
             assertThat(gotsByTransactionsCount).isNotEmpty();
-            assertThat(gotsByTransactionsCount).containsEntry(transactionId, 6);
+            assertThat(gotsByTransactionsCount).containsEntry(transactionId, 10);
 
             assertThat(gotsByBatchIdCount).isNotEmpty();
             assertThat(gotsByBatchIdCount).containsEntry(operationGuid1, 2);
@@ -1390,10 +1397,15 @@ public class CollectSipIngestIT extends AbstractCollectIT {
 
             List<BatchDto> batchs = updatedTransaction.getBatches();
             assertThat(batchs).isNotNull();
-            assertThat(batchs).hasSize(1);
-            assertThat(batchs.getFirst().getBatchStatus()).isEqualTo(BatchStatusDto.KO);
+            assertThat(batchs).hasSize(2);
+            List<BatchDto> koBatchs = batchs
+                .stream()
+                .filter(batchDto -> BatchStatusDto.KO.equals(batchDto.getBatchStatus()))
+                .toList();
+
+            assertThat(koBatchs).hasSize(2);
             Set<String> batchIds = batchs.stream().map(BatchDto::getBatchId).collect(Collectors.toSet());
-            assertThat(batchIds).contains(operationGuid2);
+            assertThat(batchIds).containsExactlyInAnyOrderElementsOf(List.of(operationGuid2, operationGuid3));
         }
     }
 

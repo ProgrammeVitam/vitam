@@ -1309,15 +1309,15 @@ public class TransactionService {
         }
         TransactionModel transaction = initialTransaction.get();
         //If the batch is executed before, we replace the old occurrence by the new including status change
-        List<Batch> batches;
+        List<Batch> batches = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(transaction.getBatches())) {
-            batches = transaction
-                .getBatches()
-                .stream()
-                .filter(batch -> !batch.getBatchId().equals(batchDto.getBatchId()))
-                .toList();
-        } else {
-            batches = new ArrayList<>();
+            batches.addAll(
+                transaction
+                    .getBatches()
+                    .stream()
+                    .filter(batch -> !batch.getBatchId().equals(batchDto.getBatchId()))
+                    .toList()
+            );
         }
         Batch batch = new Batch();
         batch.setBatchId(batchDto.getBatchId());
