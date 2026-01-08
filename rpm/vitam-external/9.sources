@@ -1,8 +1,8 @@
-https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-mongosh-2.5.0.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-database-tools-100.12.0-1.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-mongosh-2.5.10.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-database-tools-100.14.0-1.x86_64.rpm
 
-https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-mongos-8.0.8-1.el9.x86_64.rpm
-https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-server-8.0.8-1.el9.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-mongos-8.0.17-1.el9.x86_64.rpm
+https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/RPMS/mongodb-org-server-8.0.17-1.el9.x86_64.rpm
 
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-8.19.8-x86_64.rpm
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-9.2.2-x86_64.rpm
