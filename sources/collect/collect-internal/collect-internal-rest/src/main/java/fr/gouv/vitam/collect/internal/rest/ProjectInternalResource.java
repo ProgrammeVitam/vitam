@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import jakarta.annotation.Nullable;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -329,11 +330,13 @@ public class ProjectInternalResource {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(NOT_FOUND, PROJECT_NOT_FOUND);
             }
-
+            String batchId = VitamThreadUtils.getVitamSession().getRequestId();
             // Use projectId to ensure the virtual transactionId is reused within the same project
             String virtualTransactionId = VIRTUAL_TX + projectId;
 
             fluxService.processStream(inputStreamObject, projectId, virtualTransactionId, encoding, null);
+
+            fluxService.moveObjectsFromBatchToTransaction(batchId, virtualTransactionId);
             return Response.ok(new RequestResponseOK<>().addResult(virtualTransactionId)).build();
         } catch (CollectInternalInvalidRequestException | IllegalArgumentException e) {
             LOGGER.error("An error occurs when try to upload the ZIP:", e);

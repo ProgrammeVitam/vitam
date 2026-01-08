@@ -42,13 +42,19 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import io.restassured.http.ContentType;
 import jakarta.ws.rs.core.Response;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.CoreMatchers;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -67,7 +73,13 @@ import static org.mockito.Mockito.when;
 
 public class TransactionInternalResourceTest extends CollectInternalResourceBaseTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     private static final int TENANT = 0;
+    private static final int TENANT_ID = 0;
     public static final String TRANSACTIONS = "/transactions";
 
     private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
@@ -877,6 +889,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_upload_transaction_zip_when_transaction_is_open() throws Exception {
         // TODO to redo to follow the model of the other tests
         // Given
@@ -886,6 +899,12 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             metadataService,
             bulkAtomicUpdateMetadataService
         );
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(guid);
+        VitamThreadUtils.getVitamSession().setContractId("fakeContract");
 
         final ProjectDto projectDto = new ProjectDto();
         String PROJECT_ID = "PROJECT_ID";

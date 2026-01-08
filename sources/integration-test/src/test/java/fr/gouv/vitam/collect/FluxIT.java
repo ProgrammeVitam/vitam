@@ -29,6 +29,8 @@ package fr.gouv.vitam.collect;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.collect.common.dto.BatchDto;
+import fr.gouv.vitam.collect.common.dto.BatchStatusDto;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
@@ -503,6 +505,37 @@ public class FluxIT extends VitamRuleRunner {
                     .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
                     .hasMessageContaining("Multiple metadata update files found.");
             }
+
+            // Get the transaction and verify that it has a batch with PURGED status
+            TransactionDto updatedTransaction = CollectTestHelper.getTransaction(vitamContext, transactionDto.getId());
+
+            // Verify that the transaction has a batch
+            List<BatchDto> batches = updatedTransaction.getBatches();
+            assertThat(batches).isNotNull();
+            assertThat(batches).isNotEmpty();
+
+            // Verify that the batch status is PURGED
+            batches.forEach(batch -> {
+                assertThat(batch.getBatchStatus()).isEqualTo(BatchStatusDto.PURGED);
+            });
+
+            // Verify that no files were left in the workspace
+            try (
+                WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance(
+                    WorkFlowExecutionContext.COLLECT
+                ).getClient()
+            ) {
+                RequestResponse<Map<String, FileParams>> filesResponse = workspaceClient.getFilesWithParamsFromFolder(
+                    transactionDto.getId(),
+                    "Content"
+                );
+
+                if (filesResponse.isOk()) {
+                    Map<String, FileParams> files =
+                        ((RequestResponseOK<Map<String, FileParams>>) filesResponse).getFirstResult();
+                    assertThat(files).isEmpty();
+                }
+            }
         }
     }
 
@@ -679,7 +712,7 @@ public class FluxIT extends VitamRuleRunner {
             );
             assertThat(validTransaction.getStatus()).isEqualTo(TransactionStatus.SENT.name());
 
-            new SelectMultiQuery().addUsedProjection("#id", "Title").getFinalSelect();
+            new SelectMultiQuery().addUsedProjection("#id", "Title", "#batchId").getFinalSelect();
 
             final RequestResponseOK<JsonNode> unitsByTransactionafterUploadTransaction = (RequestResponseOK<
                     JsonNode
