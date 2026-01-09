@@ -44,18 +44,20 @@ Résultat attendu après modification:
 Procédures à exécuter AVANT la montée de version
 ================================================
 
-Arrêt complet de Vitam
-----------------------
+Arrêt des timers et des accès externes à Vitam
+----------------------------------------------
 
 .. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V9.0
 
-.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+.. caution:: Cette opération doit être effectuée avec les sources de déploiement de l'ancienne version.
 
-Vitam doit être arrêté sur **tous les sites** :
+Les timers et les externals de Vitam doivent être arrêtés sur **tous les sites** :
 
 .. code-block:: bash
 
-    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduling.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduler.yml --ask-vault-pass
 
 ..
 
@@ -76,6 +78,37 @@ Puis exécutez le playbook suivant **sur tous les sites** :
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-extra/bootstrap.yml --ask-vault-pass
+
+..
+
+Mise à jour de MongoDB 8.0.17
+-----------------------------
+
+.. caution:: **Attention**
+    Cette opération doit être effectuée après avoir mis à jour les dépôts Vitam en V9.1.
+    Cette opération est à effectuer si vous venez des versions de Vitam suivante: V8.1.2-.
+    Il est recommandé d'effectuer un backup des bases de données à l'aide de mongodump avant de poursuivre.
+
+Exécutez le playbook suivant à partir de l'ansiblerie de la V9.0 **sur tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_80.yml --ask-vault-pass
+
+..
+
+Arrêt complet de Vitam
+----------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V9.0
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiements de l'ancienne version.
+
+Vitam doit être arrêté sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
 
 ..
 
