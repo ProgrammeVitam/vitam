@@ -2,7 +2,7 @@ version: "3.4"
 name: vitam-tests
 services:
   mongo:
-    image: library/mongo:8.0.8
+    image: library/mongo:8.0.17
     ports:
       - "27017:27017"
     volumes:
