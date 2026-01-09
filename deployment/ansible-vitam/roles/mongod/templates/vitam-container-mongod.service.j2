@@ -4,7 +4,7 @@ Requires=docker.service
 After=docker.service
 
 [Service]
-ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:7.0.8-ubuntu2204
+ExecStartPre=-/usr/bin/docker pull {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:7.0.28-ubuntu2204
 ExecStartPre=-/usr/bin/docker stop vitam-mongod
 ExecStartPre=-/usr/bin/docker rm vitam-mongod
 ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongod --user {{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].1 }}:{{ getent_passwd[vitam_defaults.users.vitamdb | default('vitamdb')].2 }} \
@@ -18,7 +18,7 @@ ExecStart=/usr/bin/docker run --rm --net=host --name vitam-mongod --user {{ gete
         -v "/vitam/app/mongod:/vitam/app/mongod:rw" \
         -v "/vitam/tmp/mongod:/vitam/tmp/mongod:rw" \
         -v /etc/localtime:/etc/localtime:ro \
-        {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:7.0.8-ubuntu2204 \
+        {{ container_repository.registry_url }}/vitam-external/mongodb/mongodb-community-server:7.0.28-ubuntu2204 \
         --config /etc/mongo/mongod.conf \
         --dbpath /data/db
 
