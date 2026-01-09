@@ -18,7 +18,7 @@ pipeline {
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         ES_VERSION="7.17.23"
-        MONGO_VERSION="7.0.8"
+        MONGO_VERSION="7.0.28"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
         JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
@@ -34,7 +34,7 @@ pipeline {
                         env.CONTAINER_VERSION = sh(script: "mvn help:evaluate -f sources/pom.xml -Dexpression=project.version -q -DforceStdout",returnStdout: true).trim()
                     }
                     nvm('v18.20.3') {
-                        
+
                         sh '$MVN_COMMAND -f sources/pom.xml install  -Djib.skip=false -Dmaven.test.skip=true -DskipTests=true -Djacoco.skip=true -Dlicense.skip -Denv.SERVICE_NEXUS_URL=$SERVICE_NEXUS_URL -DsendCredentialsOverHttp=true -Djib.to.auth.username=$CI_USR -Djib.to.auth.password=$CI_PSW'
                         sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION}"
                         sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/metadata-collect:${CONTAINER_VERSION}"
@@ -42,9 +42,9 @@ pipeline {
                         sh "docker pull ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace:${CONTAINER_VERSION}"
                         sh "docker tag ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace:${CONTAINER_VERSION} ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect:${CONTAINER_VERSION}"
                         sh "docker push ${SERVICE_DOCKER_PUSH_URL}/vitam/workspace-collect:${CONTAINER_VERSION}"
-                                   
+
                     }
-                }   
+                }
             }
         }
 

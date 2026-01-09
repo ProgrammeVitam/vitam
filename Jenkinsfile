@@ -25,7 +25,7 @@ pipeline {
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
         NVD_API_KEY = credentials("nvd-api-key")
         ES_VERSION="7.17.23"
-        MONGO_VERSION="7.0.8"
+        MONGO_VERSION="7.0.28"
         MINIO_VERSION="RELEASE.2020-04-15T00-39-01Z" // more precise than edge
         OPENIO_VERSION="18.10"
     }
