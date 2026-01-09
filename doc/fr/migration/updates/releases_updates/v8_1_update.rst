@@ -52,7 +52,7 @@ Montée de version vers mongo 8.0
 --------------------------------
 
 .. caution:: **Attention**
-    Cette montée de version doit être effectuée AVANT la montée de version V8.1 de vitam
+    Cette montée de version doit être effectuée AVANT la montée de version V8.1 de vitam.
     Il est recommandé d'effectuer un backup des bases de données à l'aide de mongodump avant de poursuivre.
 
 Exécutez le playbook suivant à partir de l'ansiblerie de la V8.1 **sur tous les sites** :
