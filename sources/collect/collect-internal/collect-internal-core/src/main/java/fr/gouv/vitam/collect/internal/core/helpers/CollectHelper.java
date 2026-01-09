@@ -232,7 +232,14 @@ public class CollectHelper {
         if (batches != null) {
             List<BatchDto> batchDtos = batches
                 .stream()
-                .map(batch -> new BatchDto(batch.getBatchId(), BatchStatusDto.valueOf(batch.getBatchStatus().name())))
+                .map(
+                    batch ->
+                        new BatchDto(
+                            batch.getBatchId(),
+                            BatchStatusDto.valueOf(batch.getBatchStatus().name()),
+                            batch.getEvTypeProc()
+                        )
+                )
                 .collect(Collectors.toList());
             transactionDto.setBatches(batchDtos);
         }

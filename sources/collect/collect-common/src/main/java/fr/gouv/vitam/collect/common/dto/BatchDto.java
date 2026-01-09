@@ -36,9 +36,13 @@ public class BatchDto {
     @JsonProperty("BatchStatus")
     private BatchStatusDto batchStatus;
 
-    public BatchDto(String batchId, BatchStatusDto batchStatus) {
+    @JsonProperty("evTypeProc")
+    private String evTypeProc;
+
+    public BatchDto(String batchId, BatchStatusDto batchStatus, String evTypeProc) {
         this.batchId = batchId;
         this.batchStatus = batchStatus;
+        this.evTypeProc = evTypeProc;
     }
 
     public BatchDto() {}
@@ -57,5 +61,13 @@ public class BatchDto {
 
     public void setBatchStatus(BatchStatusDto batchStatus) {
         this.batchStatus = batchStatus;
+    }
+
+    public String getEvTypeProc() {
+        return evTypeProc;
+    }
+
+    public void setEvTypeProc(String evTypeProc) {
+        this.evTypeProc = evTypeProc;
     }
 }

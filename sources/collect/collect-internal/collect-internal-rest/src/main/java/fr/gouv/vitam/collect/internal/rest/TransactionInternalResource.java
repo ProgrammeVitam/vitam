@@ -933,6 +933,8 @@ public class TransactionInternalResource {
             Batch batch = new Batch();
             batch.setBatchId(batchDto.getBatchId());
             batch.setBatchStatus(BatchStatus.valueOf(batchDto.getBatchStatus().name()));
+            batch.setEvTypeProc(batchDto.getEvTypeProc());
+
             transaction.addBatch(batch);
             transactionService.addTransactionBatch(transactionId, batchDto);
 
