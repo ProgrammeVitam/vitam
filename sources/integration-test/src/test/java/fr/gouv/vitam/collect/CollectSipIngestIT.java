@@ -463,6 +463,7 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             batches.forEach(batch -> {
                 assertEquals(batch.getBatchId(), operationGuid);
                 assertEquals(BatchStatusDto.KO, batch.getBatchStatus());
+                assertEquals("COLLECT_SIP_INGEST", batch.getEvTypeProc());
             });
         }
     }
@@ -1406,6 +1407,11 @@ public class CollectSipIngestIT extends AbstractCollectIT {
             assertThat(koBatchs).hasSize(2);
             Set<String> batchIds = batchs.stream().map(BatchDto::getBatchId).collect(Collectors.toSet());
             assertThat(batchIds).containsExactlyInAnyOrderElementsOf(List.of(operationGuid2, operationGuid3));
+
+            // Verify that all batches have the evTypeProc field set to "COLLECT_SIP_INGEST"
+            batchs.forEach(batch -> {
+                assertEquals("COLLECT_SIP_INGEST", batch.getEvTypeProc());
+            });
         }
     }
 

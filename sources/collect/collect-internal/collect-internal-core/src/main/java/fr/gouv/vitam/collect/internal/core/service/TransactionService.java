@@ -1312,6 +1312,7 @@ public class TransactionService {
         Batch batch = new Batch();
         batch.setBatchId(batchDto.getBatchId());
         batch.setBatchStatus(BatchStatus.valueOf(batchDto.getBatchStatus().name()));
+        batch.setEvTypeProc(batchDto.getEvTypeProc());
         batches.add(batch);
         transaction.setBatches(batches);
         transactionRepository.replaceTransaction(transaction);

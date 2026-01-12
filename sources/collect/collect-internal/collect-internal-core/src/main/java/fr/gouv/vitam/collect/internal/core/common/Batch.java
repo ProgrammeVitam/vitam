@@ -36,6 +36,9 @@ public class Batch {
     @JsonProperty("_batchStatus")
     private BatchStatus batchStatus;
 
+    @JsonProperty("evTypeProc")
+    private String evTypeProc;
+
     public String getBatchId() {
         return batchId;
     }
@@ -50,5 +53,13 @@ public class Batch {
 
     public void setBatchStatus(BatchStatus batchStatus) {
         this.batchStatus = batchStatus;
+    }
+
+    public String getEvTypeProc() {
+        return evTypeProc;
+    }
+
+    public void setEvTypeProc(String evTypeProc) {
+        this.evTypeProc = evTypeProc;
     }
 }
