@@ -7,4 +7,4 @@ Homepage: https://github.com/prometheus/node_exporter
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Monitoring system and time series database
-Version: 1.9.0
+Version: 1.10.2

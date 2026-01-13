@@ -7,4 +7,4 @@ Homepage: https://github.com/percona/mongodb_exporter
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Monitoring Mongodb by prometheus
-Version: 0.44.0
+Version: 0.47.2
