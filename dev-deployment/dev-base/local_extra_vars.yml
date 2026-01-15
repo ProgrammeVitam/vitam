@@ -115,9 +115,6 @@ kibana:
         logs:
             shards: 1
             replica: 0
-        metricbeat:
-            shards: 3
-            replica: 0
     data:
         baseuri: "kibana_data"
         api_call_timeout: 120

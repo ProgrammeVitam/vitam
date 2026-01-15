@@ -94,9 +94,6 @@ Pour modifier/créer un vault ansible, se référer à la documentation Ansible 
 
 .. caution:: Durant l'installation de VITAM, il est nécessaire de créer un certificat "vitam-admin-int" (à placer sous ``deployment/environments/certs/client-external/clients/vitam-admin-int``).
 
-.. caution:: Durant l'installation des extra de VITAM, il est nécessaire de créer un certificat "gatling" (à placer sous ``deployment/environments/certs/client-external/clients/gatling``).
-
-
 Intégration de certificats clients de :term:`VITAM`
 ---------------------------------------------------
 

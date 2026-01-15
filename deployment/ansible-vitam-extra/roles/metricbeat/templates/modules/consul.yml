@@ -1,8 +1,0 @@
-{% if consul_disabled is not defined or consul_disabled |lower != "true" %}
-- module: consul
-  metricsets:
-    - agent
-  enabled: true
-  period: 10s
-  hosts: ["{{ ip_admin }}:8500"]
-{% endif %}

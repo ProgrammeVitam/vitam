@@ -1,5 +1,0 @@
-- module: logstash
-  hosts: ["{{ ip_admin }}:{{ logstash.port }}"]
-  metricsets: ["node", "node_stats"]
-  enabled: true
-  period: 10s

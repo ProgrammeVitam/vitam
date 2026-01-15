@@ -199,13 +199,6 @@ grafana:
 # Curator units: days
 curator:
     at_boot: true
-    indices:
-        metricbeat:
-            close: 5
-            delete: 10
-        packetbeat:
-            close: 5
-            delete: 10
 
 kibana:
     import_delay: 10
@@ -221,10 +214,6 @@ kibana:
         at_boot: true
         default_index_pattern: logstash-vitam*
         check_consul: 10 # in seconds
-        # pour index metricbeat-*
-        metricbeat:
-            shards: 3 # must be a factor of 30
-            replica: 1
     data:
         baseuri: kibana_data
         # OMA : bugdette : api_call_timeout is used for retries ; should ceate a separate variable rather than this one
@@ -288,18 +277,19 @@ clamav:
 mongo_express:
     baseuri: "mongo-express"
 
-ldap_authentification:
-    ldap_protocol: "ldap"
-    ldap_server: "{% if groups['ldap']|length > 0 %}{{ groups['ldap']|first }}{% endif %}"
-    ldap_port: "389"
-    ldap_base: "dc=programmevitam,dc=fr"
-    ldap_login: "cn=Manager,dc=programmevitam,dc=fr"
-    uid_field: "uid"
-    ldap_userDn_Template: "uid={0},ou=people,dc=programmevitam,dc=fr"
-    ldap_group_request: "(&(objectClass=groupOfNames)(member={0}))"
-    ldap_admin_group: "cn=admin,ou=groups,dc=programmevitam, dc=fr"
-    ldap_user_group: "cn=user,ou=groups,dc=programmevitam, dc=fr"
-    ldap_guest_group: "cn=guest,ou=groups,dc=programmevitam, dc=fr"
+## Mandatory LDAP authentification params when vitam.ihm-demo.authentication_realms: ['ldapRealm'] is set
+# ldap_authentification:
+#     ldap_protocol: "ldap"
+#     ldap_server: "my_ldap_server.domain"
+#     ldap_port: "389"
+#     ldap_base: "dc=programmevitam,dc=fr"
+#     ldap_login: "cn=Manager,dc=programmevitam,dc=fr"
+#     uid_field: "uid"
+#     ldap_userDn_Template: "uid={0},ou=people,dc=programmevitam,dc=fr"
+#     ldap_group_request: "(&(objectClass=groupOfNames)(member={0}))"
+#     ldap_admin_group: "cn=admin,ou=groups,dc=programmevitam, dc=fr"
+#     ldap_user_group: "cn=user,ou=groups,dc=programmevitam, dc=fr"
+#     ldap_guest_group: "cn=guest,ou=groups,dc=programmevitam, dc=fr"
 
 # Backup tool on storage-offer
 restic:
