@@ -1,22 +1,22 @@
 readOnly: {{ primary_site | lower == "false" }}
 urlWorkspace: {{ vitam.workspace | client_url }}
-timeoutMsPerKB: {{ vitam.storageengine.timeoutMsPerKB }}
-minWriteTimeoutMs: {{ vitam.storageengine.minWriteTimeoutMs }}
-minBulkWriteTimeoutMsPerObject: {{ vitam.storageengine.minBulkWriteTimeoutMsPerObject }}
+timeoutMsPerKB: {{ vitam.storage.timeoutMsPerKB }}
+minWriteTimeoutMs: {{ vitam.storage.minWriteTimeoutMs }}
+minBulkWriteTimeoutMsPerObject: {{ vitam.storage.minBulkWriteTimeoutMsPerObject }}
 jettyConfig: jetty-config.xml
 zippingDirecorty: {{ vitam_folder_data }}/storage_archives
 loggingDirectory: {{ vitam_folder_log }}
 p12LogbookPassword: {{ keystores.timestamping.secure_storage }}
 p12LogbookFile: keystore_{{ vitam_timestamp_usage }}.p12
-storageTraceabilityOverlapDelay: {{ vitam.storageengine.storageTraceabilityOverlapDelay }}
-offerSynchronizationBulkSize: {{ vitam.storageengine.offerSynchronizationBulkSize }}
-offerSyncThreadPoolSize: {{ vitam.storageengine.offerSyncThreadPoolSize }}
-offerSyncNumberOfRetries: {{ vitam.storageengine.offerSyncNumberOfRetries }}
-offerSyncFirstAttemptWaitingTime: {{ vitam.storageengine.offerSyncFirstAttemptWaitingTime }}
-offerSyncWaitingTime: {{ vitam.storageengine.offerSyncWaitingTime }}
-offerSyncAccessRequestCheckWaitingTime: {{ vitam.storageengine.offerSyncAccessRequestCheckWaitingTime }}
-storageLogBackupThreadPoolSize: {{ vitam.storageengine.storageLogBackupThreadPoolSize }}
-storageLogTraceabilityThreadPoolSize: {{ vitam.storageengine.storageLogTraceabilityThreadPoolSize }}
+storageTraceabilityOverlapDelay: {{ vitam.storage.storageTraceabilityOverlapDelay }}
+offerSynchronizationBulkSize: {{ vitam.storage.offerSynchronizationBulkSize }}
+offerSyncThreadPoolSize: {{ vitam.storage.offerSyncThreadPoolSize }}
+offerSyncNumberOfRetries: {{ vitam.storage.offerSyncNumberOfRetries }}
+offerSyncFirstAttemptWaitingTime: {{ vitam.storage.offerSyncFirstAttemptWaitingTime }}
+offerSyncWaitingTime: {{ vitam.storage.offerSyncWaitingTime }}
+offerSyncAccessRequestCheckWaitingTime: {{ vitam.storage.offerSyncAccessRequestCheckWaitingTime }}
+storageLogBackupThreadPoolSize: {{ vitam.storage.storageLogBackupThreadPoolSize }}
+storageLogTraceabilityThreadPoolSize: {{ vitam.storage.storageLogTraceabilityThreadPoolSize }}
 #Basic Authentication
 adminBasicAuth:
 - userName: {{ admin_basic_auth_user }}

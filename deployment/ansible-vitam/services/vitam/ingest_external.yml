@@ -7,7 +7,7 @@
     - create_upload_dir
     - vitam
   vars:
-    vitam_struct: "{{ vitam.ingestexternal }}"
+    vitam_struct: "{{ vitam.ingest_external }}"
     password_keystore: "{{ keystores.server.ingest_external }}"
     password_manager_keystore: "{{ keystores.server.ingest_external }}"
     password_truststore: "{{ truststores.client_external }}"

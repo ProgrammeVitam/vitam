@@ -72,7 +72,7 @@ hosts_functional_administration
 hosts_scheduler
 hosts_logbook
 hosts_workspace
-hosts_storage_engine
+hosts_storage
 hosts_security_internal
 hosts_collect_internal
 hosts_metadata_collect
@@ -105,7 +105,7 @@ localhost
 [hosts_processing]
 localhost
 
-[hosts_storage_engine]
+[hosts_storage]
 localhost
 
 [hosts_batch_report]
@@ -127,10 +127,10 @@ localhost
 ##### Zone storage
 
 [zone_storage:children]
-hosts_storage_offer_default
+hosts_offer
 hosts_mongodb_offer
 
-[hosts_storage_offer_default]
+[hosts_offer]
 localhost offer_conf=offer-fs-1
 
 [hosts_mongodb_offer:children]

@@ -35,7 +35,7 @@ Tips: pour tous les cas d'appel de ansible-playbook, il est possible de remplace
                 - client-storage
                     - ca: CA(s) des certificats clients storage
                     - clients
-                        - storage-engine: Certificat de storage-engine
+                        - storage: Certificat de storage
                 - server
                     - ca: CA(s) des certificats côté serveurs
                     - hosts

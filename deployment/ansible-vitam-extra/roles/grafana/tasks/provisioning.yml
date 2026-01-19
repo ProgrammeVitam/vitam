@@ -64,7 +64,7 @@
 - name: Get configured tape offers
   set_fact:
     tape_offers: []
-    tape_offer_ids: "{{ groups['hosts_storage_offer_default'] | map ('extract', hostvars, 'offer_conf') | list | unique | intersect((tape_offers | default([]))) }}"
+    tape_offer_ids: "{{ groups['hosts_offer'] | map ('extract', hostvars, 'offer_conf') | list | unique | intersect((tape_offers | default([]))) }}"
 
 - name: Copy vitam tape offer dashboard json files to provisioning dashboard folder
   copy:

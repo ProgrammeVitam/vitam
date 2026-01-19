@@ -8,7 +8,7 @@
     - kibana_dashboards
   vars:
     composant: "{{ kibana.data }}"
-    elasticsearch_host: "{{ vitam.elastickibanainterceptor.host }}"
-    elasticsearch_port: "{{ vitam.elastickibanainterceptor.port_service }}"
-    vitam_struct: "{{ vitam.elastickibanainterceptor }}"
+    elasticsearch_host: "{{ vitam.elastic_kibana_interceptor.host }}"
+    elasticsearch_port: "{{ vitam.elastic_kibana_interceptor.port_service }}"
+    vitam_struct: "{{ vitam.elastic_kibana_interceptor }}"
   tags: kibana_data

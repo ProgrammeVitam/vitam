@@ -5,5 +5,5 @@
   roles:
     - vitam
   vars:
-    vitam_struct: "{{ vitam.ingestinternal }}"
+    vitam_struct: "{{ vitam.ingest_internal }}"
   tags: ingest_internal

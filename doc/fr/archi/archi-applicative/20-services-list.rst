@@ -221,16 +221,16 @@ Données gérées :
 * Sécurisation des journaux d'écriture
 
 
-Offre de stockage par défaut (storage-offer-default)
-====================================================
+Offre de stockage (offer)
+=========================
 
 Rôle :
 
-* Fournir une offre de stockage par défaut permettant la persistance des données
+* Fournir une offre de stockage permettant la persistance des données
 
 Fonctions :
 
-* Offre de stockage fournie par défaut
+* Offre de stockage
 * Plusieurs modes de persistence sont supportés :
 
   * sur système de fichiers local

@@ -75,7 +75,7 @@
 
 - import_playbook: services/vitam/offer.yml
 
-- import_playbook: services/vitam/storage_engine.yml
+- import_playbook: services/vitam/storage.yml
 
 - import_playbook: services/vitam/metadata.yml
 

@@ -33,19 +33,19 @@
 
 - name: Ensure service is started
   service:
-    name: "vitam-access-external"
+    name: vitam-access-external
     state: started
 
 - name: wait for service to be up'n'running on business port
   wait_for:
     host: "{{ ip_service }}"
-    port: "{{ vitam.accessexternal.port_service }}"
+    port: "{{ vitam.access_external.port_service }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
 - name: upload PRONOM through access-external
   uri:
-    url: "https://{{ ip_service }}:{{ vitam.accessexternal.port_service }}/admin-external/v1/formats"
+    url: "https://{{ ip_service }}:{{ vitam.access_external.port_service }}/admin-external/v1/formats"
     method: POST
     client_cert: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
     #password: "{{ keystores.client_external.vitam_admin_int }}"

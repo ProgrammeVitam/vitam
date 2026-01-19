@@ -50,7 +50,7 @@
                     </entry>
                     <entry>
                         <key>StorageServerHosts</key>
-                        <value>{% for item in groups['hosts_storage_engine'] %}{{vitam.storageengine.vitam_component}}-{{loop.index}}.{{vitam.storageengine.vitam_component}}.service.{{ consul_domain }}:{{vitam.storageengine.port_service}}{% if not loop.last %};{% endif %}{% endfor %}</value>
+                        <value>{% for item in groups['hosts_storage'] %}{{vitam.storage.vitam_component}}-{{loop.index}}.{{vitam.storage.vitam_component}}.service.{{ consul_domain }}:{{vitam.storage.port_service}}{% if not loop.last %};{% endif %}{% endfor %}</value>
                     </entry>
                 </job-data-map>
                 <cron-expression>{{ vitam_timers.storage.vitam_storage_accesslog_backup | default('0 10 0/4 * * ?') }}</cron-expression>
@@ -70,7 +70,7 @@
                     </entry>
                     <entry>
                         <key>StorageServerHosts</key>
-                        <value>{% for item in groups['hosts_storage_engine'] %}{{vitam.storageengine.vitam_component}}-{{loop.index}}.{{vitam.storageengine.vitam_component}}.service.{{ consul_domain }}:{{vitam.storageengine.port_service}}{% if not loop.last %};{% endif %}{% endfor %}</value>
+                        <value>{% for item in groups['hosts_storage'] %}{{vitam.storage.vitam_component}}-{{loop.index}}.{{vitam.storage.vitam_component}}.service.{{ consul_domain }}:{{vitam.storage.port_service}}{% if not loop.last %};{% endif %}{% endfor %}</value>
                     </entry>
                 </job-data-map>
                 <cron-expression>{{ vitam_timers.storage.vitam_storage_log_backup | default('0 15 0/4 * * ?') }}</cron-expression>

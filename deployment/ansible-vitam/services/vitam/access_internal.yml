@@ -5,5 +5,5 @@
   roles:
     - vitam
   vars:
-    vitam_struct: "{{ vitam.accessinternal }}"
+    vitam_struct: "{{ vitam.access_internal }}"
   tags: access_internal

@@ -1,7 +1,7 @@
 Restic
 ======
 
-Restic is a fast and secure backup program. It is used by Vitam to backup databases (such as mongodb) on storage-offers.
+Restic is a fast and secure backup program. It is used by Vitam to backup databases (such as mongodb) on offers.
 
 Requirements
 ------------
@@ -71,7 +71,7 @@ Example Playbook
 ----------------
 
 ```yml
-- hosts: hosts_storage_offer_default
+- hosts: hosts_offer
   any_errors_fatal: yes
   gather_facts: no
   roles:

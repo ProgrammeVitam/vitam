@@ -65,7 +65,7 @@
     - name: "Select corresponding offer_hosts"
       set_fact:
         offer_hosts: "{{ offer_hosts|default([]) + [item] }}"
-      with_items: "{{ groups['hosts_storage_offer_default'] }}"
+      with_items: "{{ groups['hosts_offer'] }}"
       when: hostvars[item].offer_conf == offerId
     - name: "Check non empty offer_hosts"
       assert:
@@ -87,7 +87,7 @@
       fail: msg="Playbook run confirmation failed"
       when: double_confirmation|upper != "YES"
 
-- hosts: hosts_storage_offer_default
+- hosts: hosts_offer
   any_errors_fatal: yes
   gather_facts: no
   run_once: true

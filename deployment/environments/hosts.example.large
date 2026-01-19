@@ -78,7 +78,7 @@ hosts_functional_administration
 hosts_scheduler
 hosts_logbook
 hosts_workspace
-hosts_storage_engine
+hosts_storage
 hosts_security_internal
 hosts_collect_internal
 hosts_metadata_collect
@@ -118,7 +118,7 @@ large-app-vm-4
 [hosts_processing]
 large-app-vm-8
 
-[hosts_storage_engine]
+[hosts_storage]
 large-app-vm-3
 large-app-vm-4
 
@@ -144,10 +144,10 @@ large-app-vm-8
 ##### Zone storage
 
 [zone_storage:children]
-hosts_storage_offer_default
+hosts_offer
 hosts_mongodb_offer
 
-[hosts_storage_offer_default]
+[hosts_offer]
 large-storage-vm-1 offer_conf=offer-s3-1
 large-storage-vm-2 offer_conf=offer-s3-1
 large-storage-vm-3 offer_conf=offer-s3-1

@@ -8,7 +8,7 @@
   notify: "filebeat - restart service"
 
 - set_fact:
-    services_on_vm: "{{ group_names | regex_replace('hosts_', '') | regex_replace('storage_offer_default', 'storageofferdefault') | regex_replace('storage_engine', 'storageengine') | regex_replace('access_external', 'accessexternal') | regex_replace('access_internal', 'accessinternal') | regex_replace('batch_report', 'batchreport') | regex_replace('ingest_external', 'ingestexternal') | regex_replace('ingest_internal', 'ingestinternal') }}"
+    services_on_vm: "{{ group_names | select('match', '^hosts_') | map('regex_replace', '^hosts_', '') | list }}"
 
 - block:
 

@@ -291,7 +291,7 @@ mongo_express:
 #     ldap_user_group: "cn=user,ou=groups,dc=programmevitam, dc=fr"
 #     ldap_guest_group: "cn=guest,ou=groups,dc=programmevitam, dc=fr"
 
-# Backup tool on storage-offer
+# Backup tool on offers
 restic:
     snapshot_retention: 30 # number of snapshots to keep
     # default run backup at 23:00 everydays
@@ -301,7 +301,7 @@ restic:
         day: '*'
         month: '*'
         weekday: '*'
-    # [hosts_storage_offer_default] must be able to connect to the listed databases below to properly backup.
+    # [hosts_offer] must be able to connect to the listed databases below to properly backup.
     backup:
         # mongo-offer
         - name: "{{ offer_conf }}"

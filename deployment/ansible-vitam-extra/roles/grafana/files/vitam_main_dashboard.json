@@ -659,7 +659,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/\",fstype!=\"rootfs\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$ingest_external\",mountpoint=\"/\",fstype!=\"rootfs\"} * 100) / node_filesystem_size_bytes{hostname=~\"$ingest_external\",mountpoint=\"/\",fstype!=\"rootfs\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -1288,7 +1288,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/vitam\"} * 100) / node_filesystem_size_bytes{hostname=~\"$ingestexternal\",mountpoint=\"/vitam\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{hostname=~\"$ingest_external\",mountpoint=\"/vitam\"} * 100) / node_filesystem_size_bytes{hostname=~\"$ingest_external\",mountpoint=\"/vitam\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
@@ -1522,7 +1522,7 @@
         "includeAll": true,
         "label": "",
         "multi": true,
-        "name": "ingestexternal",
+        "name": "ingest_external",
         "options": [],
         "query": {
           "query": "consul_service_checks{service_id=\"ingest-external\"}",

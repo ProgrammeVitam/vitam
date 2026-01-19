@@ -7,7 +7,7 @@ scrape_configs:
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
       {% for host in groups['hosts_access_external'] %}
-      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessexternal.port_admin }}"]
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.access_external.port_admin }}"]
         labels:
           hostname: {{ host.split(".")[0] }}
       {% endfor %}
@@ -18,7 +18,7 @@ scrape_configs:
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
       {% for host in groups['hosts_access_internal'] %}
-      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin }}"]
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.access_internal.port_admin }}"]
         labels:
           hostname: {{ host.split(".")[0] }}
       {% endfor %}
@@ -29,7 +29,7 @@ scrape_configs:
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
       {% for host in groups['hosts_ingest_external'] %}
-      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestexternal.port_admin }}"]
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingest_external.port_admin }}"]
         labels:
           hostname: {{ host.split(".")[0] }}
       {% endfor %}
@@ -40,7 +40,7 @@ scrape_configs:
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
       {% for host in groups['hosts_ingest_internal'] %}
-      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingestinternal.port_admin }}"]
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.ingest_internal.port_admin }}"]
         labels:
           hostname: {{ host.split(".")[0] }}
       {% endfor %}
@@ -122,29 +122,29 @@ scrape_configs:
           hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}
-{% if groups['hosts_storage_engine'] | length > 0 %}
+{% if groups['hosts_storage'] | length > 0 %}
 
-  - job_name: vitam-storage-engine
+  - job_name: vitam-storage
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
-      {% for host in groups['hosts_storage_engine'] %}
-      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.storageengine.port_admin }}"]
+      {% for host in groups['hosts_storage'] %}
+      - targets: ["{{ hostvars[host]['ip_admin'] }}:{{ vitam.storage.port_admin }}"]
         labels:
           hostname: {{ host.split(".")[0] }}
       {% endfor %}
 {% endif %}
-{% if groups['hosts_storage_offer_default'] | length > 0 %}
+{% if groups['hosts_offer'] | length > 0 %}
 
   {% set offerInstances = [] %}
-  {% for host in groups['hosts_storage_offer_default'] %}
+  {% for host in groups['hosts_offer'] %}
     {{ offerInstances.append({"offerId": hostvars[host]['offer_conf'], "host": host }) }}
   {% endfor %}
-  - job_name: vitam-storage-offer-default
+  - job_name: vitam-offer
     metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
     static_configs:
     {% for offerId, hosts in offerInstances | groupby('offerId') %}
       {% for host in hosts %}
-      - targets: ["{{ hostvars[host.host]['ip_admin'] }}:{{ vitam.storageofferdefault.port_admin }}"]
+      - targets: ["{{ hostvars[host.host]['ip_admin'] }}:{{ vitam.offer.port_admin }}"]
         labels:
           offerId: {{ offerId }}
           hostname: "{{ host.host }}"
