@@ -84,6 +84,18 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     public static final String INGEST_EXTERNAL = "/ingest-external/";
     private final boolean allowSslClientHeader;
 
+    private static final List<String> TENANT_ONLY_URIS = List.of(
+        "/logbookoperations",
+        "/admin/formats",
+        "/admin/rules",
+        "/admin/accession-register",
+        "/admin/ontologies",
+        "/admin/securityprofiles",
+        "/admin/contexts",
+        "/admin/agencies",
+        "/operations"
+    );
+
     @Context
     private HttpServletRequest httpServletRequest;
 
@@ -156,7 +168,15 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
                 !uri.endsWith(VitamConfiguration.TENANTS_URL)
             ) {
                 if (uri.contains(ACCESS_EXTERNAL)) {
-                    verifyAccessContract(tenantId, accessContract, contextModel);
+                    final String finalUri = uri;
+                    if (
+                        TENANT_ONLY_URIS.stream()
+                            .anyMatch(tenantOnlyUri -> finalUri.startsWith(ACCESS_EXTERNAL + "v1" + tenantOnlyUri))
+                    ) {
+                        verifyTenant(tenantId, contextModel);
+                    } else {
+                        verifyAccessContract(tenantId, accessContract, contextModel);
+                    }
                 } else if (uri.contains(INGEST_EXTERNAL)) {
                     verifyIngestContract(tenantId, contextModel);
                 } else {
