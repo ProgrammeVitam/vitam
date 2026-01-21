@@ -500,6 +500,56 @@ public class InternalSecurityFilterTest {
     }
 
     /**
+     * When context enable control is true and no access contract in the header for logbookoperations endpoint then OK
+     *
+     * @throws Exception
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void whenEnableControlAndAccessExternalLogbookOperationsThenNoContractOK() throws Exception {
+        InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
+        // Needs mock subject for login call
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
+        when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
+        // No access contract in the header
+        when(httpServletRequest.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID)).thenReturn(null);
+
+        when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
+        when(uriInfo.getPath()).thenReturn("/access-external/v1/logbookoperations");
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
+    }
+
+    /**
+     * When context enable control is true and no access contract in the header for admin/formats endpoint then OK
+     *
+     * @throws Exception
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void whenEnableControlAndAccessExternalAdminFormatsThenNoContractOK() throws Exception {
+        InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
+        // Needs mock subject for login call
+        when(httpServletRequest.getAttribute("jakarta.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
+        when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
+        // No access contract in the header
+        when(httpServletRequest.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID)).thenReturn(null);
+
+        when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
+        when(uriInfo.getPath()).thenReturn("/access-external/v1/admin/formats");
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
+        assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
+    }
+
+    /**
      * Get Fake Context Model for test
      *
      * @param status
