@@ -113,49 +113,29 @@
   delay: "{{ kibana.import_delay }}"
   when: composant.groupe == 'data'
 
-- block:
-
-    - name: load dashboards into Elasticsearch log .kibana index
-      run_once: true
-      tags: load_kibana
-      uri:
-        url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/dashboard/{{ item | basename | regex_replace('\\.json$') }}?overwrite=true"
-        method: POST
-        body: "{\"attributes\": {{ lookup('file', '{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}') }} }"
-        body_format: json
-        status_code: 200, 201
-        headers:
-          kbn-xsrf: "{{ kibana.header_value }}"
-        timeout: "{{ composant.api_call_timeout }}"
-      with_items:
-        - StorageOfferPerf.json
-      register: kibana_result
-      until: kibana_result.status in [200,201]
-      retries: "{{ kibana.import_retries }}"
-      delay: "{{ kibana.import_delay }}"
-
-    - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
-      run_once: true
-      tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/mongodb-es-synchro-errors-dashboard.ndjson"
-      delegate_to: localhost
-
-    - name: load dashboards into Elasticsearch {{ composant.groupe }} .kibana index via shell
-      run_once: true
-      tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/{{ item }}"
-      with_items:
-        - alertes-de-securite-dashboard.ndjson
-        - Composants-Vitam.ndjson
-      delegate_to: localhost
-
-    - name: load specific filebeat dashboards into Elasticsearch log .kibana index via shell command
-      run_once: true
-      tags: load_kibana
-      shell: "curl -k -X POST http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true -H 'kbn-xsrf: true' --form file=@{{ role_path }}/files/{{ composant.groupe }}/dashboard/Access-Vitam.ndjson"
-      delegate_to: localhost
-      when: syslog.name | default('filebeat') == "filebeat"
-
+- name: Load dashboards into Kibana-Log
+  run_once: true
+  tags: load_kibana
+  uri:
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true"
+    method: POST
+    headers:
+      kbn-xsrf: "true"
+    body_format: form-multipart
+    body:
+      file:
+        content: "{{ lookup('file', role_path + '/files/log/dashboard/' + item) }}"
+        filename: "{{ item }}"
+    timeout: "{{ composant.api_call_timeout }}"
+  loop: >
+    {{
+      [
+        'alertes-de-securite-dashboard.ndjson',
+        'Composants-Vitam.ndjson',
+        'mongodb-es-synchro-errors-dashboard.ndjson',
+        'Storage-Offre-average-time.ndjson'
+      ] + (['Access-Vitam.ndjson'] if syslog.name | default('filebeat') == "filebeat" else [])
+    }}
   when: composant.groupe == 'log'
 
 # OMA : tout est OK, et pourtant... Ne marche pas !
