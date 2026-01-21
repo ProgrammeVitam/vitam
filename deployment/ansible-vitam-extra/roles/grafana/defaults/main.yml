@@ -13,5 +13,5 @@ grafana_log_dir: "{{ vitam_defaults.folder.root_path }}/log/grafana"
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 
-grafana_version: "{{ grafana.version | default('11.6.1') }}"
+grafana_version: "{{ grafana.version | default('12.3.1') }}"
 grafana_package: "grafana{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ grafana_version }}"

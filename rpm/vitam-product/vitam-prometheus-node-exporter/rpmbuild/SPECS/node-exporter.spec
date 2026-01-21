@@ -1,5 +1,5 @@
 Name:    vitam-node-exporter
-Version: 1.9.1
+Version: 1.10.2
 Release: 1%{?dist}
 Summary: Prometheus exporter for hardware and OS metrics.
 License: ASL 2.0

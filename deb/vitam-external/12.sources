@@ -10,7 +10,7 @@ https://artifacts.elastic.co/downloads/logstash/logstash-9.2.2-amd64.deb
 https://artifacts.elastic.co/downloads/kibana/kibana-9.2.2-amd64.deb
 https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-9.2.2-amd64.deb
 
-https://dl.grafana.com/oss/release/grafana_11.6.1_amd64.deb
+https://dl.grafana.com/oss/release/grafana_12.3.1_amd64.deb
 
 https://apt.releases.hashicorp.com/pool/amd64/main/consul_1.20.6-1_amd64.deb
 

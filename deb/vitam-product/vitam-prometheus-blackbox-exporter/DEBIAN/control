@@ -7,4 +7,4 @@ Homepage: https://github.com/prometheus/blackbox_exporter
 Architecture: amd64
 Depends: vitam-user-vitam
 Description: Monitoring blackbox by prometheus
-Version: 0.26.0
+Version: 0.28.0
