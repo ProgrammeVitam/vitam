@@ -23,8 +23,22 @@
   include_tasks: load_data_dashboards.yml
   when: composant.groupe == 'data'
 
-- name: Load Kibana-Log dashboards
-  include_tasks: load_log_dashboards.yml
+- name: Load dashboards into Kibana-Log
+  run_once: true
+  tags: load_kibana
+  uri:
+    url: "http://{{ ip_admin }}:{{ composant.port }}/api/saved_objects/_import?overwrite=true"
+    method: POST
+    headers:
+      kbn-xsrf: "true"
+    body_format: form-multipart
+    body:
+      file:
+        content: "{{ lookup('file', item) }}"
+        filename: "{{ item | basename }}"
+    timeout: "{{ composant.api_call_timeout }}"
+  with_fileglob:
+    - "{{ role_path }}/files/log/dashboard/*.ndjson"
   when: composant.groupe == 'log'
 
 - name: "set {{ composant.default_index_pattern }} as kibana default index pattern"
