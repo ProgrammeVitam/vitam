@@ -6,5 +6,5 @@ consul_folder_data: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/d
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
 
-consul_version: "{{ consul.version | default('1.20.6') }}"
+consul_version: "{{ consul.version | default('1.22.3') }}"
 consul_package: "consul{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ consul_version }}-1"

@@ -13,4 +13,4 @@ https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-9.2.2-x86_64.rpm
 https://dl.grafana.com/oss/release/grafana-12.3.1-1.x86_64.rpm
 https://download.copr.fedorainfracloud.org/results/copart/restic/epel-7-x86_64/03257215-restic/restic-0.12.1-1.el7.x86_64.rpm
 
-https://rpm.releases.hashicorp.com/RHEL/9/x86_64/stable/consul-1.20.6-1.x86_64.rpm
+https://rpm.releases.hashicorp.com/RHEL/9/x86_64/stable/consul-1.22.3-1.x86_64.rpm
