@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.common.largefilesorter;
 
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import org.junit.ClassRule;
@@ -35,6 +35,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -48,7 +49,7 @@ public class ObjectEntryLargeFileReaderTest {
     public void testEmpty() throws IOException {
         // Given
         File file = tempFolder.newFile();
-        try (ObjectEntryLargeFileWriter writer = new ObjectEntryLargeFileWriter(file)) {
+        try (ObjectEntryLargeFileWriter ignore = new ObjectEntryLargeFileWriter(file)) {
             // No entries
         }
 
@@ -73,7 +74,7 @@ public class ObjectEntryLargeFileReaderTest {
             assertThat(reader)
                 .toIterable()
                 .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
-                .isEqualTo(Arrays.asList(tuple("obj1", 1L)));
+                .isEqualTo(List.of(tuple("obj1", 1L)));
         }
     }
 

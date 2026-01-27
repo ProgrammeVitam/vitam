@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -38,7 +39,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -176,10 +176,7 @@ public class ReclassificationDistributionServiceTest {
     private List<String> readDistributionFile(File file) throws IOException {
         try (
             InputStream is = new FileInputStream(file);
-            JsonLineGenericIterator<JsonLineModel> jsonLineGenericIterator = new JsonLineGenericIterator<>(
-                is,
-                TYPE_REFERENCE
-            )
+            JsonLineIterator<JsonLineModel> jsonLineGenericIterator = new JsonLineIterator<>(is, TYPE_REFERENCE)
         ) {
             return jsonLineGenericIterator.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         }

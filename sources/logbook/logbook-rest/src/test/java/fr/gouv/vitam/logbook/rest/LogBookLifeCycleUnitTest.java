@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -75,7 +76,6 @@ import fr.gouv.vitam.logbook.common.server.config.LogbookIndexationConfiguration
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectionsTestUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
@@ -826,7 +826,7 @@ public class LogBookLifeCycleUnitTest {
         byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
         assertThat(body).hasSize((int) size);
 
-        JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineIterator = new JsonLineIterator<>(
             new ByteArrayInputStream(body),
             JSON_NODE_TYPE_REFERENCE
         );
@@ -871,7 +871,7 @@ public class LogBookLifeCycleUnitTest {
         byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
         assertThat(body).hasSize((int) size);
 
-        JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineIterator = new JsonLineIterator<>(
             new ByteArrayInputStream(body),
             JSON_NODE_TYPE_REFERENCE
         );
@@ -914,7 +914,7 @@ public class LogBookLifeCycleUnitTest {
         byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
         assertThat(body).hasSize((int) size);
 
-        JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineIterator = new JsonLineIterator<>(
             new ByteArrayInputStream(body),
             JSON_NODE_TYPE_REFERENCE
         );

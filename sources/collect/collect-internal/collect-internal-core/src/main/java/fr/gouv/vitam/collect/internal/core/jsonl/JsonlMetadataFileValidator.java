@@ -41,12 +41,12 @@ import fr.gouv.vitam.common.collection.IteratorHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.model.unit.UpdateOperationModel;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -92,7 +92,7 @@ public class JsonlMetadataFileValidator {
         try (
             JsonlErrorAccumulator errorAccumulator = new JsonlErrorAccumulator();
             InputStream inputStream = new FileInputStream(jsonlMetadataFile);
-            CloseableIterator<CollectJsonMetadataLine> iterator = new JsonLineGenericIterator<>(
+            CloseableIterator<CollectJsonMetadataLine> iterator = new JsonLineIterator<>(
                 inputStream,
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )

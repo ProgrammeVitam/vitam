@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -51,7 +52,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
@@ -284,7 +284,7 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
         File objectGroupsToCheck = handler.getNewLocalFile("OBJECT_GROUP_TO_CHECK.jsonl");
         try (
             FileOutputStream fileOutputStream = new FileOutputStream(objectGroupsToCheck);
-            JsonLineWriter writer = new JsonLineWriter(fileOutputStream)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(fileOutputStream)
         ) {
             // Group UnitIds by ObjectGroupId
             MultiValuedMap<String, String> unitIdsByObjectGroupId = new ArrayListValuedHashMap<>();

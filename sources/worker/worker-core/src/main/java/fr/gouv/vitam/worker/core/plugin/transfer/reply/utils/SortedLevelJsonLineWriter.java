@@ -29,11 +29,11 @@ package fr.gouv.vitam.worker.core.plugin.transfer.reply.utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -53,12 +53,12 @@ import java.util.stream.Collectors;
  */
 public class SortedLevelJsonLineWriter implements AutoCloseable {
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     private static final int MAX_LEVELS = 100;
 
     private final HandlerIO handler;
     private Map<Integer, File> filesByLevel = new HashMap<>();
-    private Map<Integer, JsonLineWriter> writersByLevel = new HashMap<>();
+    private Map<Integer, JsonLineWriter<JsonLineModel>> writersByLevel = new HashMap<>();
 
     public SortedLevelJsonLineWriter(HandlerIO handler) {
         this.handler = handler;
@@ -76,16 +76,16 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
 
             File newLocalFile = handler.getNewLocalFile(GUIDFactory.newGUID().toString());
             filesByLevel.put(line.getDistribGroup(), newLocalFile);
-            writersByLevel.put(line.getDistribGroup(), new JsonLineWriter(new FileOutputStream(newLocalFile)));
+            writersByLevel.put(line.getDistribGroup(), new JsonLineWriter<>(new FileOutputStream(newLocalFile)));
         }
 
-        JsonLineWriter jsonLineWriter = writersByLevel.get(line.getDistribGroup());
+        JsonLineWriter<JsonLineModel> jsonLineWriter = writersByLevel.get(line.getDistribGroup());
         jsonLineWriter.addEntry(line);
     }
 
     public void exportToWorkspace(String filename, boolean ascending) throws IOException, ProcessingException {
         // Flush / close all level writers
-        for (JsonLineWriter value : this.writersByLevel.values()) {
+        for (JsonLineWriter<JsonLineModel> value : this.writersByLevel.values()) {
             value.close();
         }
 
@@ -93,7 +93,7 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
         try {
             try (
                 OutputStream outputStream = new FileOutputStream(combinedSortedJsonLineFile);
-                JsonLineWriter writer = new JsonLineWriter(outputStream)
+                JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(outputStream)
             ) {
                 // Sort levels
                 List<Integer> levels =
@@ -108,10 +108,7 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
 
                     try (
                         InputStream is = new FileInputStream(fileLevel);
-                        JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
-                            is,
-                            TYPE_REFERENCE
-                        )
+                        JsonLineIterator<JsonLineModel> lineGenericIterator = new JsonLineIterator<>(is, TYPE_REFERENCE)
                     ) {
                         while (lineGenericIterator.hasNext()) {
                             writer.addEntry(lineGenericIterator.next());
@@ -130,7 +127,7 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        for (JsonLineWriter value : writersByLevel.values()) {
+        for (JsonLineWriter<JsonLineModel> value : writersByLevel.values()) {
             value.close();
         }
         for (File file : filesByLevel.values()) {

@@ -25,40 +25,66 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.storage.offers.core.diag;
 
-import fr.gouv.vitam.common.model.storage.ObjectEntry;
-import fr.gouv.vitam.common.model.storage.ObjectEntryWriter;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
 
-public class ObjectEntryLargeFileWriter implements LargeFileWriter<ObjectEntry> {
+public class OfferDiagReportWriter implements AutoCloseable {
 
-    private final OutputStream outputStream;
-    private final ObjectEntryWriter objectEntryWriter;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferDiagReportWriter.class);
 
-    public ObjectEntryLargeFileWriter(File file) {
-        try {
-            outputStream = new FileOutputStream(file);
-            objectEntryWriter = new ObjectEntryWriter(outputStream);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private final JsonLineWriter<OfferDiagReportEntry> writer;
+
+    private long totalObjectCount;
+    private long errorCount;
+
+    public OfferDiagReportWriter(File tempFile) throws IOException {
+        this.writer = new JsonLineWriter<>(new FileOutputStream(tempFile));
     }
 
-    @Override
-    public void writeEntry(ObjectEntry entry) throws IOException {
-        objectEntryWriter.write(entry);
+    public void reportMatchingObject(String objectId) {
+        LOGGER.debug("Conform object '{}'", objectId);
+        this.totalObjectCount++;
+    }
+
+    public void reportObjectMismatch(
+        String objectId,
+        Long sizeInOffer,
+        String lastEventDateTime,
+        OfferDiagReportEntry.ObjectState expectedState,
+        OfferDiagReportEntry.ObjectState actualState
+    ) throws IOException {
+        OfferDiagReportEntry reportEntry = new OfferDiagReportEntry()
+            .setObjectId(objectId)
+            .setSizeInOffer(sizeInOffer)
+            .setLastEventDateTime(lastEventDateTime)
+            .setExpectedState(expectedState)
+            .setActualState(actualState);
+        this.totalObjectCount++;
+        this.errorCount++;
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Invalid object status '{}'", JsonHandler.unprettyPrint(reportEntry));
+        }
+        writer.addEntry(reportEntry);
     }
 
     @Override
     public void close() throws IOException {
-        this.objectEntryWriter.writeEof();
-        this.objectEntryWriter.close();
-        this.outputStream.close();
+        this.writer.close();
+    }
+
+    public long getTotalObjectCount() {
+        return totalObjectCount;
+    }
+
+    public long getErrorCount() {
+        return errorCount;
     }
 }

@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
@@ -56,9 +58,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.deleteGotVersions.services.DeleteGotVersionsReportService;
@@ -166,11 +166,11 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         File objectGroupsIdsFile = handler.getNewLocalFile("object_groups_to_update.jsonl");
         try (
             OutputStream outputStream = new FileOutputStream(objectGroupsIdsFile);
-            JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> jsonLineIterator = new JsonLineIterator<>(
                 unitsByGotInputStream,
                 new TypeReference<>() {}
             );
-            JsonLineWriter writer = new JsonLineWriter(outputStream)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(outputStream)
         ) {
             Iterator<List<JsonNode>> jsonLineIteratorPartition = Iterators.partition(
                 jsonLineIterator,

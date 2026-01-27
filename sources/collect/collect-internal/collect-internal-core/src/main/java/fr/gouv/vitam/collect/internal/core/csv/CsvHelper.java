@@ -30,7 +30,7 @@ package fr.gouv.vitam.collect.internal.core.csv;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;

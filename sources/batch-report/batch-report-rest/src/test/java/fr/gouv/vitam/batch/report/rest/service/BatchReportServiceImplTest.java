@@ -71,10 +71,10 @@ import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -590,11 +590,11 @@ public class BatchReportServiceImplTest {
     private void assertJsonlReportsEqual(InputStream actualInputStream, InputStream expectedReportInputStream)
         throws InvalidParseOperationException {
         try (
-            JsonLineGenericIterator<JsonNode> resultReportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> resultReportIterator = new JsonLineIterator<>(
                 actualInputStream,
                 JSON_NODE_TYPE_REFERENCE
             );
-            JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> expectedReportIterator = new JsonLineIterator<>(
                 expectedReportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             )
@@ -771,7 +771,7 @@ public class BatchReportServiceImplTest {
         // Then
         try (
             InputStream is = Files.newInputStream(report);
-            JsonLineGenericIterator<JsonLineModel> reader = new JsonLineGenericIterator<>(is, TYPE_REFERENCE)
+            JsonLineIterator<JsonLineModel> reader = new JsonLineIterator<>(is, TYPE_REFERENCE)
         ) {
             assertThat(reader).toIterable().extracting(JsonLineModel::getId).containsExactly("unit1", "unit2");
         }
@@ -823,7 +823,7 @@ public class BatchReportServiceImplTest {
         // Then
         try (
             InputStream is = Files.newInputStream(report);
-            JsonLineGenericIterator<JsonLineModel> reader = new JsonLineGenericIterator<>(is, TYPE_REFERENCE)
+            JsonLineIterator<JsonLineModel> reader = new JsonLineIterator<>(is, TYPE_REFERENCE)
         ) {
             assertThat(reader).toIterable().extracting(JsonLineModel::getId).containsExactly("unitId");
         }

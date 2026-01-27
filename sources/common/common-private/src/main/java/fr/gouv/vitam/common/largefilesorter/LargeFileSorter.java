@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.common.largefilesorter;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;

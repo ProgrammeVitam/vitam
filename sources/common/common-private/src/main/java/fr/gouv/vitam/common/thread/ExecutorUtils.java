@@ -98,4 +98,8 @@ public final class ExecutorUtils {
             return true;
         }
     }
+
+    public static PeriodicTask periodicTask(int intervalMs, String threadName, Runnable task) {
+        return new PeriodicTask(intervalMs, threadName, task);
+    }
 }

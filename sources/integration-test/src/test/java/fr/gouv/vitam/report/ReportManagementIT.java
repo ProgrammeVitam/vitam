@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -412,12 +412,7 @@ public class ReportManagementIT extends VitamRuleRunner {
     private Map<String, String> parseJsonLineReport(InputStream inputStream) {
         Map<String, String> reportEntriesById = new HashMap<>();
 
-        try (
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
-                inputStream,
-                TYPE_REFERENCE
-            )
-        ) {
+        try (JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(inputStream, TYPE_REFERENCE)) {
             while (jsonLineIterator.hasNext()) {
                 JsonLineModel entry = jsonLineIterator.next();
 
@@ -456,10 +451,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         // Then
         try (
             InputStream reportIS = new VitamAsyncInputStream(workspaceClient.getObject(processId, unitsJsonlFileName));
-            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
-                reportIS,
-                TYPE_REFERENCE
-            )
+            JsonLineIterator<JsonLineModel> lineGenericIterator = new JsonLineIterator<>(reportIS, TYPE_REFERENCE)
         ) {
             Set<String> expectedDeduplicatedIds = new HashSet<>();
             expectedDeduplicatedIds.addAll(ids1);

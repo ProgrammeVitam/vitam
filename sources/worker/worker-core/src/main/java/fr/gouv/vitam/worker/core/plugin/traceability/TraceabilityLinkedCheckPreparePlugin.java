@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.WorkspaceConstants;
@@ -45,7 +46,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
 import org.apache.commons.io.FileUtils;
@@ -91,7 +91,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
             JsonNode results = logbookOperations.get(TAG_RESULTS);
 
             try (
-                JsonLineWriter logbookOperationsWriter = new JsonLineWriter(
+                JsonLineWriter<JsonLineModel> logbookOperationsWriter = new JsonLineWriter<>(
                     new FileOutputStream(logbookOperationDistributionFile)
                 )
             ) {

@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
@@ -111,7 +112,6 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.logbook.operations.core.AlertLogbookOperationsDecorator;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nonnull;
@@ -576,7 +576,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     newQuery
                 );
                 OutputStream out = new FileOutputStream(file);
-                JsonLineWriter writer = new JsonLineWriter(out)
+                JsonLineWriter<JsonNode> writer = new JsonLineWriter<>(out)
             ) {
                 while (iterator.hasNext()) {
                     writer.addEntry(JsonHandler.toJsonNode(iterator.next()));
@@ -1462,7 +1462,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     newQuery
                 );
                 OutputStream out = new FileOutputStream(file);
-                JsonLineWriter writer = new JsonLineWriter(out)
+                JsonLineWriter<JsonNode> writer = new JsonLineWriter<>(out)
             ) {
                 while (iterator.hasNext()) {
                     writer.addEntry(JsonHandler.toJsonNode(iterator.next()));
@@ -2195,7 +2195,7 @@ public class LogbookResource extends ApplicationStatusResource {
 
             try (
                 OutputStream fileOutputStream = new FileOutputStream(tmpFile);
-                JsonLineWriter jsonLineWriter = new JsonLineWriter(fileOutputStream)
+                JsonLineWriter<JsonNode> jsonLineWriter = new JsonLineWriter<>(fileOutputStream)
             ) {
                 // Export entries until no more items OR max limit reached
                 String maxLastPersistedDate = null;

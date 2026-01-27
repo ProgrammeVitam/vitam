@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -87,7 +88,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromAsyncOfferClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -230,7 +230,7 @@ public class VitamTestHelper {
     private static List<JsonNode> getReport(Response reportResponse)
         throws IOException, InvalidParseOperationException {
         try (InputStream is = reportResponse.readEntity(InputStream.class)) {
-            JsonLineGenericIterator<JsonNode> iterator = new JsonLineGenericIterator<>(is, new TypeReference<>() {});
+            JsonLineIterator<JsonNode> iterator = new JsonLineIterator<>(is, new TypeReference<>() {});
             return IteratorUtils.toList(iterator);
         }
     }

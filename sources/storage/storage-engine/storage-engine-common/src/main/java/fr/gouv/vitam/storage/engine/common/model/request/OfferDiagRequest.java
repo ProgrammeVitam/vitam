@@ -24,46 +24,61 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.storage.engine.common.model.request;
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.model.storage.ObjectEntry;
-import fr.gouv.vitam.common.model.storage.ObjectEntryReader;
-import org.apache.commons.io.IOUtils;
+/**
+ * Offer diagnostic request model
+ */
+public class OfferDiagRequest {
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+    /**
+     * the identifier of the offer to diagnose.
+     */
+    @JsonProperty("offerId")
+    private String offerId;
 
-public class ObjectEntryLargeFileReader implements LargeFileReader<ObjectEntry> {
+    /**
+     * containerToSync.
+     */
+    @JsonProperty("container")
+    private String container;
 
-    private final InputStream inputStream;
-    private final ObjectEntryReader objectEntryReader;
+    /**
+     * tenantId
+     */
+    @JsonProperty("tenantId")
+    private Integer tenantId;
 
-    public ObjectEntryLargeFileReader(File file) {
-        try {
-            inputStream = new FileInputStream(file);
-            objectEntryReader = new ObjectEntryReader(inputStream);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public OfferDiagRequest() {
+        // Empty constructor for deserialization
     }
 
-    @Override
-    public boolean hasNext() {
-        return objectEntryReader.hasNext();
+    public String getOfferId() {
+        return offerId;
     }
 
-    @Override
-    public ObjectEntry next() {
-        return objectEntryReader.next();
+    public OfferDiagRequest setOfferId(String offerId) {
+        this.offerId = offerId;
+        return this;
     }
 
-    @Override
-    public void close() {
-        this.objectEntryReader.close();
-        IOUtils.closeQuietly(this.inputStream);
+    public String getContainer() {
+        return container;
+    }
+
+    public OfferDiagRequest setContainer(String container) {
+        this.container = container;
+        return this;
+    }
+
+    public Integer getTenantId() {
+        return tenantId;
+    }
+
+    public OfferDiagRequest setTenantId(Integer tenantId) {
+        this.tenantId = tenantId;
+        return this;
     }
 }

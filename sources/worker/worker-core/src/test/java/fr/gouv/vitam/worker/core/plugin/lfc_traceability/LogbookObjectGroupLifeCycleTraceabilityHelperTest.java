@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -48,7 +49,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -195,7 +195,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
             new LogbookClientException("LogbookClientException")
         );
 
-        JsonLineGenericIterator<JsonNode> entriesIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> entriesIterator = new JsonLineIterator<>(
             PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA),
             JSON_NODE_TYPE_REFERENCE
         );

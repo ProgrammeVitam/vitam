@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.swift.Swift;
+import fr.gouv.vitam.storage.offers.core.diag.OfferDiagService;
 import fr.gouv.vitam.storage.offers.tape.rest.AdminTapeResource;
 import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 
@@ -47,9 +48,15 @@ public class AdminOfferApplication extends ConfigurationApplication {
         OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
         ContentAddressableStorage contentAddressableStorage = offerCommonApplication.getContentAddressableStorage();
 
+        OfferDiagService offerDiagService = new OfferDiagService(
+            contentAddressableStorage,
+            offerCommonApplication.getDefaultOfferService()
+        );
         singletons = new HashSet<>();
         singletons.add(new GenericExceptionMapper());
         singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
+
+        singletons.add(new AdminOfferDiagResource(offerDiagService));
 
         if (
             StorageProvider.TAPE_LIBRARY.getValue()

@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -50,8 +52,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import java.io.File;
@@ -126,12 +126,9 @@ public abstract class PrepareLfcTraceabilityActionPlugin extends ActionHandler {
                 traceabilityEndDate,
                 lifecycleTraceabilityMaxEntries
             );
-            CloseableIterator<JsonNode> rawLifecycleIterator = new JsonLineGenericIterator<>(
-                is,
-                JSON_NODE_TYPE_REFERENCE
-            );
+            CloseableIterator<JsonNode> rawLifecycleIterator = new JsonLineIterator<>(is, JSON_NODE_TYPE_REFERENCE);
             OutputStream os = new FileOutputStream(lfcWithMetadataFile);
-            JsonLineWriter jsonLineWriter = new JsonLineWriter(os)
+            JsonLineWriter<LfcMetadataPair> jsonLineWriter = new JsonLineWriter<>(os)
         ) {
             Iterator<List<JsonNode>> bulkRawLifecycleIterator = Iterators.partition(rawLifecycleIterator, batchSize);
 

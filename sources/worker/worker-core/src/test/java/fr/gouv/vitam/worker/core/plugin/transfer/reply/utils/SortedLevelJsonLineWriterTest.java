@@ -27,9 +27,9 @@
 package fr.gouv.vitam.worker.core.plugin.transfer.reply.utils;
 
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.After;
 import org.junit.Before;
@@ -214,7 +214,7 @@ public class SortedLevelJsonLineWriterTest {
     private InputStream buildExpectedReport(JsonLineModel... lines) throws IOException {
         try (
             ByteArrayOutputStream expectedOS = new ByteArrayOutputStream();
-            JsonLineWriter jsonLineWriter = new JsonLineWriter(expectedOS)
+            JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(expectedOS)
         ) {
             for (JsonLineModel line : lines) {
                 jsonLineWriter.addEntry(line);

@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
@@ -46,7 +47,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
@@ -242,7 +242,7 @@ public class EliminationActionUnitPreparationHandlerTest {
         );
 
         try (
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(fileArgumentCaptor.getValue()),
                 TYPE_REFERENCE
             )
@@ -317,7 +317,7 @@ public class EliminationActionUnitPreparationHandlerTest {
         );
 
         try (
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(fileArgumentCaptor.getValue()),
                 TYPE_REFERENCE
             )
@@ -395,7 +395,7 @@ public class EliminationActionUnitPreparationHandlerTest {
         );
 
         try (
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(fileArgumentCaptor.getValue()),
                 TYPE_REFERENCE
             )

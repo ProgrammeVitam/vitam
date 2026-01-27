@@ -25,13 +25,40 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.storage.offers.core.diag;
 
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
+import fr.gouv.vitam.common.largefilesorter.LargeFileWriter;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
-public interface LargeFileWriter<T> extends AutoCloseable {
-    void writeEntry(T entry) throws IOException;
+public class OfferLogEntryLargeFileWriter implements LargeFileWriter<OfferLog> {
+
+    private final OutputStream outputStream;
+    private final JsonLineWriter<OfferLog> writer;
+
+    public OfferLogEntryLargeFileWriter(File file) {
+        try {
+            outputStream = new FileOutputStream(file);
+            writer = new JsonLineWriter<>(outputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     @Override
-    void close() throws IOException;
+    public void writeEntry(OfferLog entry) throws IOException {
+        writer.addEntry(entry);
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.writer.close();
+        this.outputStream.close();
+    }
 }

@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.common.largefilesorter;
 
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import org.junit.ClassRule;
@@ -48,7 +48,7 @@ public class ObjectEntryLargeFileWriterTest {
         File file = tempFolder.newFile();
 
         // When
-        try (ObjectEntryLargeFileWriter writer = new ObjectEntryLargeFileWriter(file)) {
+        try (ObjectEntryLargeFileWriter ignore = new ObjectEntryLargeFileWriter(file)) {
             // No entries
         }
 
@@ -67,7 +67,7 @@ public class ObjectEntryLargeFileWriterTest {
         }
 
         // Then (entry + EOF marker)
-        assertThat(file).hasContent("" + "{\"objectId\":\"obj1\",\"size\":1}\n" + "{}");
+        assertThat(file).hasContent("{\"objectId\":\"obj1\",\"size\":1}\n" + "{}");
     }
 
     @Test
@@ -83,7 +83,7 @@ public class ObjectEntryLargeFileWriterTest {
 
         // Then (entry + EOF marker)
         assertThat(file).hasContent(
-            "" + "{\"objectId\":\"obj1\",\"size\":1}\n" + "{\"objectId\":\"obj2\",\"size\":2}\n" + "{}"
+            "{\"objectId\":\"obj1\",\"size\":1}\n" + "{\"objectId\":\"obj2\",\"size\":2}\n" + "{}"
         );
     }
 }

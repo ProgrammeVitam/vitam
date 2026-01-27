@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.EnumUnitWhiteListedFields;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.unit.PersistentIdentifierModel;
@@ -59,8 +61,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ArchiveUnitAtrExtra;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.core.utils.JsonLineDataBase;
 import jakarta.xml.bind.JAXBElement;
@@ -496,7 +496,7 @@ public class ArchiveUnitListenerTest {
             assertThatCode(() -> archiveUnitListener.extractArchiveUnit(target, parent)).doesNotThrowAnyException();
         }
 
-        JsonLineGenericIterator<ArchiveUnitAtrExtra> archiveUnitAtrExtraIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<ArchiveUnitAtrExtra> archiveUnitAtrExtraIterator = new JsonLineIterator<>(
             byteArrayOutputStream.toInputStream(),
             new TypeReference<>() {}
         );

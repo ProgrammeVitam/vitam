@@ -44,6 +44,8 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -65,9 +67,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.worker.core.utils.GroupByObjectIterator;
@@ -261,7 +261,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
             try (
                 final FileOutputStream outputStream = new FileOutputStream(distributionFile, true);
-                JsonLineWriter writer = new JsonLineWriter(outputStream, isEmpty)
+                JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(outputStream, isEmpty)
             ) {
                 for (PreservationDistributionLine preservationDistributionLine : preservationDistributionsByFormatId.get(
                     formatId
@@ -285,7 +285,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         File objectGroupsBigFileToPreserve = handler.getNewLocalFile("object_groups_to_preserve.jsonl");
         try (
             final FileOutputStream outputStream = new FileOutputStream(objectGroupsBigFileToPreserve);
-            JsonLineWriter writer = new JsonLineWriter(outputStream)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(outputStream)
         ) {
             int cpt = 0;
             for (File distributionFileForFormatId : distributionFileByFormat.values()) {
@@ -293,7 +293,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
                 try (
                     final InputStream inputStream = new FileInputStream(distributionFileForFormatId);
-                    JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+                    JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
                         inputStream,
                         JSON_LINE_MODEL_TYPE_REFERENCE
                     )

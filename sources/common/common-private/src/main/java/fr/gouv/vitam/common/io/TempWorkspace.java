@@ -24,9 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.core.helpers;
+package fr.gouv.vitam.common.io;
 
-import fr.gouv.vitam.collect.internal.core.service.FluxService;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -43,14 +42,18 @@ import java.nio.file.Files;
 
 public class TempWorkspace implements AutoCloseable {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FluxService.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TempWorkspace.class);
     private final File tmpFolder;
 
     public TempWorkspace() throws IOException {
+        this("");
+    }
+
+    public TempWorkspace(String prefix) throws IOException {
         try {
             File tmpFolder = SafeFileChecker.checkSafeFilePath(
                 VitamConfiguration.getVitamTmpFolder(),
-                GUIDFactory.newGUID().getId()
+                prefix + GUIDFactory.newGUID().getId()
             );
             if (!tmpFolder.mkdirs()) {
                 throw new VitamRuntimeException("Cannot create tmp folder: " + tmpFolder.getAbsoluteFile());

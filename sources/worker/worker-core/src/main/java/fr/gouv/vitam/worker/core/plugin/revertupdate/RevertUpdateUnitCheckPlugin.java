@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -63,7 +64,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.HandlerUtils;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
@@ -122,7 +122,11 @@ public class RevertUpdateUnitCheckPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         File revertUpdateUnitsFile = handler.getNewLocalFile(REVERT_UPDATE_UNITS_JSONL_FILE);
         List<String> queries = new ArrayList<>();
-        try (JsonLineWriter logbookOperationsWriter = new JsonLineWriter(new FileOutputStream(revertUpdateUnitsFile))) {
+        try (
+            JsonLineWriter<JsonLineModel> logbookOperationsWriter = new JsonLineWriter<>(
+                new FileOutputStream(revertUpdateUnitsFile)
+            )
+        ) {
             try {
                 RevertUpdateOptions options = JsonHandler.getFromFile(
                     handler.getInput(0, File.class),

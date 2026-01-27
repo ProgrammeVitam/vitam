@@ -44,7 +44,6 @@ import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
-import fr.gouv.vitam.collect.internal.core.helpers.TempWorkspace;
 import fr.gouv.vitam.collect.internal.core.jsonl.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
@@ -61,7 +60,9 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.io.TempWorkspace;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
@@ -74,7 +75,6 @@ import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.UpdateOperationModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -239,7 +239,7 @@ public class MetadataService {
 
     void updateUnitsWithJsonlMetadataFile(String transactionId, InputStream is) throws CollectInternalException {
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 is,
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )

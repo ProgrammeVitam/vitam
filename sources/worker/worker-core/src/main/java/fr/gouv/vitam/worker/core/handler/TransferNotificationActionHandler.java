@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -99,7 +100,6 @@ import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.SedaIngestParams;
 import fr.gouv.vitam.worker.common.utils.SedaXsdValidatorProvider;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -663,8 +663,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 final File unitDetailFile = (File) handlerIO.getInput(UNIT_ID_TO_UNIT_DETAIL_IO_RANK);
 
                 if (unitDetailFile != null) {
-                    JsonLineGenericIterator<ArchiveUnitAtrExtra> jsonLineGenericIterator =
-                        new JsonLineGenericIterator<>(new FileInputStream(unitDetailFile), new TypeReference<>() {});
+                    JsonLineIterator<ArchiveUnitAtrExtra> jsonLineGenericIterator = new JsonLineIterator<>(
+                        new FileInputStream(unitDetailFile),
+                        new TypeReference<>() {}
+                    );
                     while (jsonLineGenericIterator.hasNext()) {
                         ArchiveUnitAtrExtra archiveUnitAtrExtra = jsonLineGenericIterator.next();
                         unitGuidUnitAtrExtraMap.put(archiveUnitAtrExtra.getSystemId(), archiveUnitAtrExtra);

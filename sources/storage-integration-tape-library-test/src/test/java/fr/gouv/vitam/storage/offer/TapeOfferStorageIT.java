@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -115,7 +116,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.local.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.simulator.TapeLibrarySimulatorRule;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -1462,10 +1462,7 @@ public class TapeOfferStorageIT {
 
         try (
             FileInputStream inputStream = new FileInputStream(reportFileName);
-            JsonLineGenericIterator<ReportEntry> iterator = new JsonLineGenericIterator<>(
-                inputStream,
-                OFFER_DIFF_ENTRY_TYPE
-            )
+            JsonLineIterator<ReportEntry> iterator = new JsonLineIterator<>(inputStream, OFFER_DIFF_ENTRY_TYPE)
         ) {
             assertThat(iterator)
                 .toIterable()

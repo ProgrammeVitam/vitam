@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -40,7 +41,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.File;
@@ -95,10 +95,7 @@ public class GenerateUnitLifecycleTraceabilityActionPlugin extends GenerateLifec
         try (
             final LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
             InputStream is = new FileInputStream(traceabilityDataFile);
-            JsonLineGenericIterator<JsonNode> traceabilityDataIterator = new JsonLineGenericIterator<>(
-                is,
-                TYPE_REFERENCE
-            )
+            JsonLineIterator<JsonNode> traceabilityDataIterator = new JsonLineIterator<>(is, TYPE_REFERENCE)
         ) {
             LogbookLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
                 handler,

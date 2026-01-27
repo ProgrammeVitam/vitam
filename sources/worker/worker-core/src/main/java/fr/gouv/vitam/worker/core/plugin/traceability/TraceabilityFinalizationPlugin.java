@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -55,7 +56,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -116,7 +116,7 @@ public class TraceabilityFinalizationPlugin extends ActionHandler {
         try {
             if (handler.isExistingFileInWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE)) {
                 List<String> operationsId = new ArrayList<>();
-                JsonLineGenericIterator<JsonLineModel> iterator = new JsonLineGenericIterator<>(
+                JsonLineIterator<JsonLineModel> iterator = new JsonLineIterator<>(
                     handler.getInputStreamFromWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE),
                     new TypeReference<>() {}
                 );

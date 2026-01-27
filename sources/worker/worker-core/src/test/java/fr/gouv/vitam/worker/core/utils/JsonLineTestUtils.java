@@ -30,7 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.collections4.IteratorUtils;
 
@@ -50,11 +50,11 @@ public class JsonLineTestUtils {
     public static void assertJsonlReportsEqual(InputStream actualInputStream, InputStream expectedReportInputStream)
         throws InvalidParseOperationException {
         try (
-            JsonLineGenericIterator<JsonNode> resultReportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> resultReportIterator = new JsonLineIterator<>(
                 actualInputStream,
                 JSON_NODE_TYPE_REFERENCE
             );
-            JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> expectedReportIterator = new JsonLineIterator<>(
                 expectedReportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             );
@@ -77,11 +77,11 @@ public class JsonLineTestUtils {
         int headerLines
     ) {
         try (
-            JsonLineGenericIterator<JsonNode> actualReportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> actualReportIterator = new JsonLineIterator<>(
                 actualInputStream,
                 JSON_NODE_TYPE_REFERENCE
             );
-            JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> expectedReportIterator = new JsonLineIterator<>(
                 expectedReportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             );

@@ -24,62 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.distribution;
 
-import fr.gouv.vitam.common.json.JsonHandler;
+package fr.gouv.vitam.common.thread;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.List;
+import org.junit.Test;
 
-public class JsonLineWriter implements AutoCloseable {
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-    private final Writer writer;
-    private boolean isEmpty = true;
-    private boolean isClosed = false;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public JsonLineWriter(OutputStream outputStream) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-    }
+public class PeriodicTaskTest {
 
-    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        this.isEmpty = isEmpty;
-    }
-
-    public void addEntry(JsonLineModel line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
+    @Test
+    public void testPeriodicTask() throws Exception {
+        CountDownLatch latch = new CountDownLatch(10);
+        AtomicInteger count = new AtomicInteger(0);
+        try (
+            PeriodicTask ignore = ExecutorUtils.periodicTask(10, "MyThread", () -> {
+                latch.countDown();
+                count.incrementAndGet();
+            })
+        ) {
+            boolean acquired = latch.await(10, TimeUnit.SECONDS);
+            assertThat(acquired).isTrue();
         }
-        isEmpty = false;
 
-        writer.append(JsonHandler.unprettyPrint(line));
-    }
-
-    public void addEntry(Object line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-        writer.append(JsonHandler.unprettyPrint(line));
-    }
-
-    public void addEntries(List<?> lines) throws IOException {
-        for (Object line : lines) {
-            addEntry(line);
-        }
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (isClosed) {
-            return;
-        }
-        writer.flush();
-        writer.close();
-        isClosed = true;
+        // Ensure job no more invoked after close method is invoked
+        int lastCount = count.get();
+        Thread.sleep(1000);
+        assertThat(count.get()).isEqualTo(lastCount);
     }
 }

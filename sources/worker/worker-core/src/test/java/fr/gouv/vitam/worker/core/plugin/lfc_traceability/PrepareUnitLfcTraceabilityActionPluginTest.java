@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -285,7 +285,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
         try (
-            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<LfcMetadataPair> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(savedLfcWithMetadataFile),
                 LFC_METADATA_PAIR_TYPE_REFERENCE
             )
@@ -376,7 +376,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
         try (
-            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<LfcMetadataPair> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(savedLfcWithMetadataFile),
                 LFC_METADATA_PAIR_TYPE_REFERENCE
             )
@@ -466,7 +466,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
         try (
-            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<LfcMetadataPair> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(savedLfcWithMetadataFile),
                 LFC_METADATA_PAIR_TYPE_REFERENCE
             )
@@ -688,7 +688,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
             .findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType());
         handlerIO.addInIOParameters(in);
 
-        List<JsonNode> unitIds = new JsonLineGenericIterator<>(
+        List<JsonNode> unitIds = new JsonLineIterator<>(
             PropertiesUtils.getResourceAsStream(LFC_UNITS_BIG_JSON),
             new TypeReference<JsonNode>() {}
         )
@@ -739,7 +739,7 @@ public class PrepareUnitLfcTraceabilityActionPluginTest {
 
         File savedLfcWithMetadataFile = getSavedWorkspaceObjectFile("lfcWithMetadata.jsonl");
         try (
-            JsonLineGenericIterator<LfcMetadataPair> jsonLineIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<LfcMetadataPair> jsonLineIterator = new JsonLineIterator<>(
                 new FileInputStream(savedLfcWithMetadataFile),
                 LFC_METADATA_PAIR_TYPE_REFERENCE
             )
