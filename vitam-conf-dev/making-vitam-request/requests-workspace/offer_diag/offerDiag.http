@@ -1,0 +1,33 @@
+
+# WARNING : À utiliser uniquement pour les environnement de développement.
+#           Le lancement de l'offer diagnostic se fait via des playbook ansible sur les environnements déployés.
+
+
+@offerId= offer-fs-1.service.consul
+
+// One off : "units", "objects", "objectgroups", "logbooks", "reports", "manifests", "profiles", "storagelog", "storageaccesslog", "storagetraceability", "rules", "dip", "agencies", "backup", "backupoperations", "unitgraph", "objectgroupgraph", "distributionreports", "accessionregistersdetail", "accessionregisterssymbolic", "tmp", "archivaltransferreply"
+@container= units
+
+@tenant= 0
+
+### Start diagnostic
+POST http://localhost:28194/offer/v1/diag
+Authorization: Basic adminUser adminPassword
+Accept: application/json
+Content-Type: application/json
+
+{
+    "offerId": "{{offerId}}",
+    "container": "{{container}}",
+    "tenantId": {{tenant}}
+}
+
+### Check if diagnostic running
+HEAD http://localhost:28194/offer/v1/diag
+Authorization: Basic adminUser adminPassword
+
+
+### Get diagnostic status
+GET http://localhost:28194/offer/v1/diag
+Authorization: Basic adminUser adminPassword
+Accept: application/json

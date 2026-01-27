@@ -30,13 +30,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.WorkspaceConstants;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import org.junit.Before;
 import org.junit.Rule;
@@ -128,7 +128,7 @@ public class TraceabilityLinkedCheckPreparePluginTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> lines = new JsonLineIterator<>(
             new FileInputStream(resultFile),
             JSONLINE_MODEL_TYPE_REFERENCE
         );
@@ -180,7 +180,7 @@ public class TraceabilityLinkedCheckPreparePluginTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
-        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> lines = new JsonLineIterator<>(
             new FileInputStream(resultFile),
             JSONLINE_MODEL_TYPE_REFERENCE
         );

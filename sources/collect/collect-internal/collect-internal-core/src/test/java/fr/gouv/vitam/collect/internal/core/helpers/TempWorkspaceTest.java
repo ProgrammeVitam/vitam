@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.core.helpers;
 
+import fr.gouv.vitam.common.io.TempWorkspace;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import org.junit.Rule;
 import org.junit.Test;

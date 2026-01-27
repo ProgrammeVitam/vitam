@@ -80,6 +80,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ExtractedMetadata;
@@ -87,7 +88,6 @@ import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -312,7 +312,7 @@ public class BatchReportServiceImpl {
         try {
             try (
                 OutputStream outputStream = new FileOutputStream(file);
-                JsonLineWriter jsonLineWriter = new JsonLineWriter(outputStream);
+                JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(outputStream);
                 CloseableIterator<Document> units =
                     unitComputedInheritedRulesInvalidationRepository.findCollectionByProcessIdTenant(
                         processId,
@@ -428,7 +428,7 @@ public class BatchReportServiceImpl {
         }
     }
 
-    private void writeDocumentsInFile(JsonLineWriter reportWriter, MongoCursor<Document> documentsIterator)
+    private void writeDocumentsInFile(JsonLineWriter<Document> reportWriter, MongoCursor<Document> documentsIterator)
         throws IOException {
         while (documentsIterator.hasNext()) {
             Document document = documentsIterator.next();
@@ -510,10 +510,10 @@ public class BatchReportServiceImpl {
 
         File tempReport = createTemporaryFile(processId, REPORT_JSONL);
 
-        try (JsonLineWriter reportWriter = new JsonLineWriter(new FileOutputStream(tempReport))) {
-            reportWriter.addEntry(operationSummary);
-            reportWriter.addEntry(reportSummary);
-            reportWriter.addEntry(reportInfo.getContext());
+        try (JsonLineWriter<Document> reportWriter = new JsonLineWriter<>(new FileOutputStream(tempReport))) {
+            reportWriter.addEntryObject(operationSummary);
+            reportWriter.addEntryObject(reportSummary);
+            reportWriter.addEntryObject(reportInfo.getContext());
 
             switch (reportSummary.getReportType()) {
                 case ELIMINATION_ACTION: {
@@ -653,7 +653,7 @@ public class BatchReportServiceImpl {
             mergeFunction
         );
 
-        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
+        try (JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(new FileOutputStream(tempFile))) {
             while (mergeSortedIterator.hasNext()) {
                 PurgeAccessionRegisterModel purgeAccessionRegisterModel = mergeSortedIterator.next();
                 JsonLineModel jsonLineModel = new JsonLineModel();
@@ -698,7 +698,7 @@ public class BatchReportServiceImpl {
     }
 
     private void createFileFromMongoCursorWithString(File tempFile, MongoCursor<String> iterator) throws IOException {
-        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
+        try (JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(new FileOutputStream(tempFile))) {
             while (iterator.hasNext()) {
                 String objectGroupId = iterator.next();
                 JsonLineModel jsonLineModel = getJsonLineModelWithString(objectGroupId);
@@ -819,7 +819,7 @@ public class BatchReportServiceImpl {
             MongoCursor<ExtractedMetadata> extractedMetadatas =
                 extractedMetadataRepository.getExtractedMetadataByProcessId(processId, tenant)
         ) {
-            try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(tempFile))) {
+            try (JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(new FileOutputStream(tempFile))) {
                 while (extractedMetadatas.hasNext()) {
                     ExtractedMetadata metadata = extractedMetadatas.next();
                     for (String unitId : metadata.getUnitIds()) {
@@ -834,7 +834,11 @@ public class BatchReportServiceImpl {
         }
     }
 
-    private void writeToJsonLine(JsonLineWriter jsonLineWriter, String unitId, Map<String, Object> metadata) {
+    private void writeToJsonLine(
+        JsonLineWriter<JsonLineModel> jsonLineWriter,
+        String unitId,
+        Map<String, Object> metadata
+    ) {
         try {
             JsonLineModel line = new JsonLineModel(unitId, null, JsonHandler.toJsonNode(metadata));
             jsonLineWriter.addEntry(line);

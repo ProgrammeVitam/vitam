@@ -35,12 +35,12 @@ import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatExc
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.schema.SchemaResponse;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -429,7 +429,7 @@ public class CsvToJsonConverterTest {
             );
 
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -480,7 +480,7 @@ public class CsvToJsonConverterTest {
             );
 
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -522,7 +522,7 @@ public class CsvToJsonConverterTest {
         // Then
         assertThatCode(invocation).doesNotThrowAnyException();
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -562,7 +562,7 @@ public class CsvToJsonConverterTest {
         // Then
         assertThatCode(invocation).doesNotThrowAnyException();
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -595,7 +595,7 @@ public class CsvToJsonConverterTest {
         // Then
         assertThatCode(invocation).doesNotThrowAnyException();
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -623,7 +623,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -661,7 +661,7 @@ public class CsvToJsonConverterTest {
             );
 
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -685,7 +685,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )
@@ -794,7 +794,7 @@ public class CsvToJsonConverterTest {
             );
 
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                 new FileInputStream(resultJsonl),
                 CollectJsonMetadataLine.TYPE_REFERENCE
             )

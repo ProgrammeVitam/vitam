@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -67,7 +68,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageUnavailableDataFromA
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -266,7 +266,7 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
 
             inputStream = loadTransferReport(transferReplyContext.getTransferMessageRequestIdentifier());
 
-            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> lineGenericIterator = new JsonLineIterator<>(
                 inputStream,
                 JSON_NODE_TYPE_REFERENCE
             );

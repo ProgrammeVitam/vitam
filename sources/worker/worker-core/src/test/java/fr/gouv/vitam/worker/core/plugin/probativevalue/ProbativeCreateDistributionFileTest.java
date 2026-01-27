@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -38,7 +39,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -376,10 +376,7 @@ public class ProbativeCreateDistributionFileTest {
     private static List<JsonLineModel> parseReportFile(File file) throws IOException {
         try (
             FileInputStream inputStream = new FileInputStream(file);
-            JsonLineGenericIterator<JsonLineModel> iterator = new JsonLineGenericIterator<>(
-                inputStream,
-                new TypeReference<>() {}
-            )
+            JsonLineIterator<JsonLineModel> iterator = new JsonLineIterator<>(inputStream, new TypeReference<>() {})
         ) {
             return iterator.stream().collect(Collectors.toList());
         }

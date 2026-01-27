@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -76,7 +77,6 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyNotFoundException;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildTraceabilityActionPlugin;
@@ -692,10 +692,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
         try (
             InputStream secureData = new FileInputStream(traceabilityFiles.getData());
-            JsonLineGenericIterator<LogbookOperation> securedOperations = new JsonLineGenericIterator<>(
-                secureData,
-                OPERATION_TYPE
-            );
+            JsonLineIterator<LogbookOperation> securedOperations = new JsonLineIterator<>(secureData, OPERATION_TYPE);
             InputStream computingInformation = new FileInputStream(traceabilityFiles.getComputingInformation())
         ) {
             LogbookOperation logbookOperationSecured = securedOperations
@@ -757,8 +754,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
         try (
             InputStream secureData = new FileInputStream(traceabilityFiles.getData());
-            JsonLineGenericIterator<LifeCycleTraceabilitySecureFileObject> lifeCycleTraceabilityDataLines =
-                new JsonLineGenericIterator<>(secureData, LIFECYCLE_TYPE);
+            JsonLineIterator<LifeCycleTraceabilitySecureFileObject> lifeCycleTraceabilityDataLines =
+                new JsonLineIterator<>(secureData, LIFECYCLE_TYPE);
             InputStream computingInformation = new FileInputStream(traceabilityFiles.getComputingInformation())
         ) {
             List<JsonNode> events = StreamSupport.stream(logbookObjectGroupLFC.get("events").spliterator(), false)

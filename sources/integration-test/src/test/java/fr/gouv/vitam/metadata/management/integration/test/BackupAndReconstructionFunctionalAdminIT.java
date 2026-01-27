@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
@@ -89,7 +90,6 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.collections4.ListUtils;
 import org.bson.Document;
@@ -1310,7 +1310,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     private void initializeDbWithManyUnitsAndObjectGroups() throws IOException, DatabaseException {
         try (InputStream is = PropertiesUtils.getResourceAsStream("reconstruction/units.jsonl")) {
             final Iterator<List<Document>> iterator = Iterators.partition(
-                new JsonLineGenericIterator<>(is, new TypeReference<>() {}),
+                new JsonLineIterator<>(is, new TypeReference<>() {}),
                 1000
             );
             while (iterator.hasNext()) {
@@ -1328,7 +1328,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         }
         try (InputStream is = PropertiesUtils.getResourceAsStream("reconstruction/objectgroups.jsonl")) {
             final Iterator<List<Document>> iterator = Iterators.partition(
-                new JsonLineGenericIterator<>(is, new TypeReference<>() {}),
+                new JsonLineIterator<>(is, new TypeReference<>() {}),
                 1000
             );
             while (iterator.hasNext()) {

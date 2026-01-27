@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -43,7 +44,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -154,9 +154,9 @@ public class CleanupReportManager {
         File tmpFile = handlerIO.getNewLocalFile(GUIDFactory.newGUID().getId());
         try (
             FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
-            JsonLineWriter writer = new JsonLineWriter(fileOutputStream)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(fileOutputStream)
         ) {
-            writer.addEntry(
+            writer.addEntryObject(
                 JsonHandler.createObjectNode().put("ingestOperationId", this.cleanupReport.getIngestOperationId())
             );
             for (IngestCleanupUnitReportEntry unit : this.cleanupReport.getUnits().values()) {

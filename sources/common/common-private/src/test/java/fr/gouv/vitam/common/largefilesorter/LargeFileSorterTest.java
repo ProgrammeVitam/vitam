@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.common.largefilesorter;
 
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;

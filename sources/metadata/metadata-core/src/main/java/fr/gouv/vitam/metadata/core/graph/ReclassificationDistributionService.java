@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.WorkFlowExecutionContext;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -49,7 +50,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -108,8 +108,10 @@ public class ReclassificationDistributionService {
             );
 
             try (
-                JsonLineWriter unitReportWriter = new JsonLineWriter(new FileOutputStream(tempUnitReportFile));
-                JsonLineWriter objectGroupReportWriter = new JsonLineWriter(
+                JsonLineWriter<JsonLineModel> unitReportWriter = new JsonLineWriter<>(
+                    new FileOutputStream(tempUnitReportFile)
+                );
+                JsonLineWriter<JsonLineModel> objectGroupReportWriter = new JsonLineWriter<>(
                     new FileOutputStream(tempObjectGroupReportFile)
                 )
             ) {
@@ -174,8 +176,8 @@ public class ReclassificationDistributionService {
 
     private void appendEntries(
         Iterator<JsonNode> iterator,
-        JsonLineWriter unitReportWriter,
-        JsonLineWriter objectGroupReportWriter
+        JsonLineWriter<JsonLineModel> unitReportWriter,
+        JsonLineWriter<JsonLineModel> objectGroupReportWriter
     ) throws IOException {
         // Used to avoid duplicates
         String lastObjectGroupId = null;

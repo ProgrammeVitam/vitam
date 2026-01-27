@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlia
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.collections4.IteratorUtils;
@@ -434,7 +434,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
                 AccessLogUtils.getNoLogAccessLog()
             );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
-            List<JsonNode> logs = IteratorUtils.toList(new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE));
+            List<JsonNode> logs = IteratorUtils.toList(new JsonLineIterator<>(inputStream, TYPE_REFERENCE));
             JsonNode storageLog = logs.get(0);
             assertThat(logs).hasSize(1);
 

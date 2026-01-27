@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -59,7 +60,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
@@ -147,7 +147,7 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         try (
             MetaDataClient client = metaDataClientFactory.getClient();
             FileOutputStream fos = new FileOutputStream(unitsToDeleteFile);
-            JsonLineWriter writer = new JsonLineWriter(fos)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(fos)
         ) {
             SelectMultiQuery query = new SelectMultiQuery();
             query.addUsedProjection(
@@ -174,7 +174,7 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         copyDistributionFileToWorkspace(handler, unitsToDeleteFile, UNITS_TO_DELETE_JSONL);
     }
 
-    private void writeToUnitDistributionFile(JsonLineWriter writer, JsonNode unit) {
+    private void writeToUnitDistributionFile(JsonLineWriter<JsonLineModel> writer, JsonNode unit) {
         try {
             String id = unit.get(VitamFieldsHelper.id()).asText();
             String strategyId = MetadataDocumentHelper.getStrategyIdFromUnit(unit);
@@ -203,7 +203,7 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         try (
             MetaDataClient client = metaDataClientFactory.getClient();
             FileOutputStream fos = new FileOutputStream(objectGroupsToDeleteFile);
-            JsonLineWriter writer = new JsonLineWriter(fos)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(fos)
         ) {
             SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(eq(VitamFieldsHelper.initialOperation(), ingestOperationId));
@@ -238,8 +238,10 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
         copyDistributionFileToWorkspace(handler, objectGroupsToDeleteFile, OBJECT_GROUPS_TO_DELETE_JSONL);
     }
 
-    private void writeToObjectGroupDistributionFile(JsonLineWriter writer, ObjectGroupResponse objectGroup)
-        throws IOException, InvalidParseOperationException {
+    private void writeToObjectGroupDistributionFile(
+        JsonLineWriter<JsonLineModel> writer,
+        ObjectGroupResponse objectGroup
+    ) throws IOException, InvalidParseOperationException {
         PurgeObjectGroupParams params = PurgeObjectGroupParams.fromObjectGroup(objectGroup);
         writer.addEntry(new JsonLineModel(objectGroup.getId(), null, JsonHandler.toJsonNode(params)));
     }
@@ -287,7 +289,7 @@ public class IngestCleanupPreparationPlugin extends ActionHandler {
 
         try (
             FileOutputStream fos = new FileOutputStream(accessionRegisterFile);
-            JsonLineWriter writer = new JsonLineWriter(fos)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(fos)
         ) {
             if (!hasAccessionRegisterDetails(ingestOperationId)) {
                 LOGGER.warn("Accession register details not found...");

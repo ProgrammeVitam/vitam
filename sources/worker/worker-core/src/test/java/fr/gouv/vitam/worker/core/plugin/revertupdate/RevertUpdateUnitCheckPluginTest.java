@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -42,7 +43,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -192,7 +192,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
             new FileInputStream(jsonlFile),
             new TypeReference<>() {}
         );
@@ -254,7 +254,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
             new FileInputStream(jsonlFile),
             new TypeReference<>() {}
         );
@@ -316,7 +316,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(KO, itemStatus.getGlobalStatus());
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
             new FileInputStream(jsonlFile),
             new TypeReference<>() {}
         );
@@ -414,7 +414,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
             new FileInputStream(jsonlFile),
             new TypeReference<>() {}
         );
@@ -458,7 +458,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(KO, itemStatus.getGlobalStatus());
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
             new FileInputStream(jsonlFile),
             new TypeReference<>() {}
         );
@@ -512,7 +512,7 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonLineModel> jsonLineIterator = new JsonLineIterator<>(
             new FileInputStream(jsonlFile),
             new TypeReference<>() {}
         );

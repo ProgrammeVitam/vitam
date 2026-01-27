@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,15 +21,13 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.common.jsonl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Test;
@@ -43,11 +41,11 @@ import static fr.gouv.vitam.common.json.JsonHandler.JSON_NODE_TYPE_REFERENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class JsonLineGenericIteratorTest {
+public class JsonLineIteratorTest {
 
     @Test
     public void testEmptyFileThenHasNotNextEntry() {
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineGenericIterator = new JsonLineIterator<>(
             new NullInputStream(0),
             JSON_NODE_TYPE_REFERENCE
         );
@@ -58,11 +56,11 @@ public class JsonLineGenericIteratorTest {
     @Test
     public void testSingleEntryFileThenParseEntry() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (JsonLineWriter writer = new JsonLineWriter(byteArrayOutputStream)) {
+        try (JsonLineWriter<JsonNode> writer = new JsonLineWriter<>(byteArrayOutputStream)) {
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id1"));
         }
 
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineGenericIterator = new JsonLineIterator<>(
             byteArrayOutputStream.toInputStream(),
             JSON_NODE_TYPE_REFERENCE
         );
@@ -76,13 +74,13 @@ public class JsonLineGenericIteratorTest {
     @Test
     public void testMultipleEntryFileThenParseEntry() throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (JsonLineWriter writer = new JsonLineWriter(byteArrayOutputStream)) {
+        try (JsonLineWriter<JsonNode> writer = new JsonLineWriter<>(byteArrayOutputStream)) {
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id1"));
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id2"));
             writer.addEntry(JsonHandler.createObjectNode().put("_id", "id3"));
         }
 
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineGenericIterator = new JsonLineIterator<>(
             byteArrayOutputStream.toInputStream(),
             JSON_NODE_TYPE_REFERENCE
         );
@@ -105,11 +103,11 @@ public class JsonLineGenericIteratorTest {
 
         // Jackson may not consume the whole line stream if it ends with spacing or \n
         // Reading byte per byte forces ensuring all data is read / avoid jackson read buffer size
-        InputStream inputStream = JunitHelper.getPerByteInputStream(
+        InputStream inputStream = getPerByteInputStream(
             new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))
         );
 
-        JsonLineGenericIterator<JsonNode> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+        JsonLineIterator<JsonNode> jsonLineGenericIterator = new JsonLineIterator<>(
             inputStream,
             JSON_NODE_TYPE_REFERENCE
         );
@@ -121,5 +119,32 @@ public class JsonLineGenericIteratorTest {
         assertThat(jsonLineGenericIterator.next().get("_id").asText()).isEqualTo("id2");
 
         assertThat(jsonLineGenericIterator.hasNext()).isFalse();
+    }
+
+    private static InputStream getPerByteInputStream(InputStream inputStream) {
+        return new InputStream() {
+            @Override
+            public int read() throws IOException {
+                return inputStream.read();
+            }
+
+            @Override
+            public int read(byte[] b) throws IOException {
+                return read(b, 0, b.length);
+            }
+
+            @Override
+            public int read(byte[] b, int off, int len) throws IOException {
+                if (len == 0) {
+                    return 0;
+                }
+                int read = read();
+                if (read == -1) {
+                    return -1;
+                }
+                b[off] = (byte) read;
+                return 1;
+            }
+        };
     }
 }

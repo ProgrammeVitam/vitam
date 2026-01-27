@@ -80,6 +80,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
@@ -145,7 +146,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.IngestCleanupObjectGroupReportEntry;
@@ -2389,7 +2389,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         throws StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException, StorageNotFoundException, IOException {
         try (
             InputStream reportInputStream = readStoredReport(transferReplyOperationId + JSONL);
-            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
                 reportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             )
@@ -2465,7 +2465,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Check report
         try (InputStream reportInputStream = readStoredReport(eliminationActionOperationGuid + JSONL)) {
             try (
-                JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(
+                JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
                     reportInputStream,
                     JSON_NODE_TYPE_REFERENCE
                 )
@@ -2496,7 +2496,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         throws IOException, StorageNotFoundException, StorageServerClientException, InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         try (
             InputStream reportInputStream = readStoredReport(ingestCleanupOperationId + JSONL);
-            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
                 reportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             )
@@ -2776,7 +2776,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         throws IOException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         try (
             InputStream reportInputStream = readStoredReport(transferReplyOperationId + JSONL);
-            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
                 reportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             )
@@ -2917,10 +2917,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         throws IOException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
         try (
             InputStream is = readStoredReport(transferOperationId + JSONL);
-            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(
-                is,
-                JSON_NODE_TYPE_REFERENCE
-            )
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(is, JSON_NODE_TYPE_REFERENCE)
         ) {
             // Skip context headers
             // FIXME : Check headers
@@ -3213,7 +3210,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String detachedGotId
     ) {
         try (
-            JsonLineGenericIterator<JsonNode> reportIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonNode> reportIterator = new JsonLineIterator<>(
                 reportInputStream,
                 JSON_NODE_TYPE_REFERENCE
             )

@@ -25,8 +25,40 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.engine.server.offerdiff.sort;
+package fr.gouv.vitam.common.largefilesorter;
 
-import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.model.storage.ObjectEntry;
+import fr.gouv.vitam.common.model.storage.ObjectEntryWriter;
 
-public interface LargeFileReader<T> extends CloseableIterator<T> {}
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+
+public class ObjectEntryLargeFileWriter implements LargeFileWriter<ObjectEntry> {
+
+    private final OutputStream outputStream;
+    private final ObjectEntryWriter objectEntryWriter;
+
+    public ObjectEntryLargeFileWriter(File file) {
+        try {
+            outputStream = new FileOutputStream(file);
+            objectEntryWriter = new ObjectEntryWriter(outputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public void writeEntry(ObjectEntry entry) throws IOException {
+        objectEntryWriter.write(entry);
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.objectEntryWriter.writeEof();
+        this.objectEntryWriter.close();
+        this.outputStream.close();
+    }
+}

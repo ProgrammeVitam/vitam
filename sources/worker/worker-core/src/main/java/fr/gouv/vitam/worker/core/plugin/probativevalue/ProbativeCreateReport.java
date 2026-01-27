@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -47,7 +48,6 @@ import fr.gouv.vitam.functional.administration.core.backup.BackupService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
@@ -125,7 +125,7 @@ public class ProbativeCreateReport extends ActionHandler {
         File reportFile = handler.getNewLocalFile(reportFileName);
         try (
             InputStream inputStream = handler.getInputStreamFromWorkspace("distributionFile.jsonl");
-            JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE)
+            JsonLineIterator<JsonLineModel> lines = new JsonLineIterator<>(inputStream, TYPE_REFERENCE)
         ) {
             JsonNode context = JsonHandler.getFromFile(handler.getFileFromWorkspace("request"));
             List<ProbativeReportEntry> probativeEntries = lines

@@ -29,13 +29,13 @@ package fr.gouv.vitam.worker.core.plugin.migration;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
@@ -110,10 +110,7 @@ public class MigrationUnitPrepareTest {
 
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
         try (InputStream is = new FileInputStream(jsonLineFile)) {
-            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
-                is,
-                TYPE_REFERENCE
-            );
+            JsonLineIterator<JsonLineModel> lineGenericIterator = new JsonLineIterator<>(is, TYPE_REFERENCE);
             List<String> unitIds = IteratorUtils.toList(lineGenericIterator)
                 .stream()
                 .map(JsonLineModel::getId)

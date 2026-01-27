@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -49,7 +50,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -196,7 +196,7 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
         String distribFileName = handlerIO.getOutput(AU_TO_BE_UPDATED_RANK).getPath();
         File distribFile = handlerIO.getNewLocalFile(distribFileName);
 
-        try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile))) {
+        try (JsonLineWriter<JsonLineModel> jsonLineWriter = new JsonLineWriter<>(new FileOutputStream(distribFile))) {
             final ArrayNode guidArrayNode = JsonHandler.createArrayNode();
             for (String guid : archiveUnitsToBeUpdated) {
                 guidArrayNode.add(guid);

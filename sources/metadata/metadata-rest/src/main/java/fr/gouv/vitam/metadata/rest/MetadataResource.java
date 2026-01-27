@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.BatchRulesUpdateInfo;
@@ -79,7 +80,6 @@ import fr.gouv.vitam.metadata.core.model.MetadataResult;
 import fr.gouv.vitam.metadata.core.model.RequestById;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import io.prometheus.client.Histogram;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Consumes;
@@ -1442,7 +1442,10 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             file = FileUtil.createFileInTempDirectoryWithPathCheck(requestId, VitamConstants.JSONL_EXTENSION);
             long documentCount;
-            try (OutputStream out = new FileOutputStream(file); JsonLineWriter writer = new JsonLineWriter(out)) {
+            try (
+                OutputStream out = new FileOutputStream(file);
+                JsonLineWriter<JsonNode> writer = new JsonLineWriter<>(out)
+            ) {
                 SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(request);
                 final SelectMultiQuery selectQuery = parser.getRequest();
@@ -1525,7 +1528,10 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             long documentCount;
             file = FileUtil.createFileInTempDirectoryWithPathCheck(requestId, VitamConstants.JSONL_EXTENSION);
-            try (OutputStream out = new FileOutputStream(file); JsonLineWriter writer = new JsonLineWriter(out)) {
+            try (
+                OutputStream out = new FileOutputStream(file);
+                JsonLineWriter<JsonNode> writer = new JsonLineWriter<>(out)
+            ) {
                 SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(request);
                 ArrayListScrollSpliterator<JsonNode> scrollRequest = new ArrayListScrollSpliterator<>(

@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
@@ -63,7 +64,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -304,7 +304,7 @@ public class PluginHelper {
         File unitsByGotTempFile = handler.getNewLocalFile("unitsByGotTempFile.jsonl");
         try (
             final OutputStream outputStream = new FileOutputStream(unitsByGotTempFile);
-            JsonLineWriter writer = new JsonLineWriter(outputStream)
+            JsonLineWriter<JsonLineModel> writer = new JsonLineWriter<>(outputStream)
         ) {
             while (unitsByObjectGroup.hasNext()) {
                 List<Pair<String, List<String>>> unitsByObjectGroupByRange = unitsByObjectGroup.next();

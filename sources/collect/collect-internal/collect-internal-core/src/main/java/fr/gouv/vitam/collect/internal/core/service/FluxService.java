@@ -42,7 +42,6 @@ import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfigur
 import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
-import fr.gouv.vitam.collect.internal.core.helpers.TempWorkspace;
 import fr.gouv.vitam.collect.internal.core.jsonl.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
@@ -55,8 +54,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.JsltTransformationFailedException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.io.TempWorkspace;
 import fr.gouv.vitam.common.json.JsltTransformer;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -68,9 +70,7 @@ import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.model.FileParams;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -438,7 +438,7 @@ public class FluxService {
         ) {
             if (jsonlMetadataFile != null) {
                 try (
-                    JsonLineGenericIterator<CollectJsonMetadataLine> iterator = new JsonLineGenericIterator<>(
+                    JsonLineIterator<CollectJsonMetadataLine> iterator = new JsonLineIterator<>(
                         new FileInputStream(jsonlMetadataFile),
                         COLLECT_JSON_METADATA_LINE_TYPE_REFERENCE
                     )
@@ -488,7 +488,7 @@ public class FluxService {
         Map<String, TitleAndDescriptionLevel> unitMetadataByPath = new HashMap<>();
         try (
             InputStream inputStream = new FileInputStream(unitsToWriteFile);
-            JsonLineGenericIterator<JsonLineModel> unitsToWriteIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> unitsToWriteIterator = new JsonLineIterator<>(
                 inputStream,
                 JSON_LINE_MODEL_TYPE_REFERENCE
             )
@@ -518,7 +518,7 @@ public class FluxService {
 
             File transformedJsonlMetadataFile = tempWorkspace.tempFile();
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> iterator = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> iterator = new JsonLineIterator<>(
                     new FileInputStream(validatedJsonlMetadataFile),
                     COLLECT_JSON_METADATA_LINE_TYPE_REFERENCE
                 );
@@ -593,7 +593,7 @@ public class FluxService {
         Map<String, String> initialUploadPathToObjectGroupId = new HashMap<>();
         try (
             InputStream inputStream = new FileInputStream(unitsToWriteFile);
-            JsonLineGenericIterator<JsonLineModel> unitsToWrite = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> unitsToWrite = new JsonLineIterator<>(
                 inputStream,
                 JSON_LINE_MODEL_TYPE_REFERENCE
             )
@@ -616,7 +616,7 @@ public class FluxService {
         Set<String> duplicatePaths = new HashSet<>();
         BidiMap<String, String> unitPathToObjectFilePathMap = new DualHashBidiMap<>();
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> iterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> iterator = new JsonLineIterator<>(
                 new FileInputStream(jsonlMetadataFile),
                 COLLECT_JSON_METADATA_LINE_TYPE_REFERENCE
             )
@@ -712,7 +712,7 @@ public class FluxService {
         File updatedUnitsToWriteFile = tempWorkspace.tempFile();
         try (
             InputStream inputStream = new FileInputStream(unitsToWriteFile);
-            JsonLineGenericIterator<JsonLineModel> unitsToWrite = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> unitsToWrite = new JsonLineIterator<>(
                 inputStream,
                 JSON_LINE_MODEL_TYPE_REFERENCE
             );
@@ -755,7 +755,7 @@ public class FluxService {
 
         File updatedObjectGroupsToWriteFile = tempWorkspace.tempFile();
         try (
-            JsonLineGenericIterator<ObjectNode> ogIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<ObjectNode> ogIterator = new JsonLineIterator<>(
                 new FileInputStream(objectsToWriteFile),
                 new TypeReference<>() {}
             );
@@ -844,7 +844,7 @@ public class FluxService {
     ) throws IOException {
         Map<String, Set<String>> unitUpsByUploadPath = new HashMap<>();
         try (
-            JsonLineGenericIterator<CollectJsonMetadataLine> iterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<CollectJsonMetadataLine> iterator = new JsonLineIterator<>(
                 new FileInputStream(jsonlMetadataFile),
                 COLLECT_JSON_METADATA_LINE_TYPE_REFERENCE
             )
@@ -1013,7 +1013,7 @@ public class FluxService {
         for (File file : filePerLevel) {
             try (
                 InputStream inputStream = new FileInputStream(file);
-                JsonLineGenericIterator<JsonLineModel> unitsToWrite = new JsonLineGenericIterator<>(
+                JsonLineIterator<JsonLineModel> unitsToWrite = new JsonLineIterator<>(
                     inputStream,
                     JSON_LINE_MODEL_TYPE_REFERENCE
                 )
@@ -1044,7 +1044,7 @@ public class FluxService {
 
         try (
             InputStream inputStream = new FileInputStream(unitsToWriteFile);
-            JsonLineGenericIterator<JsonLineModel> unitsToWrite = new JsonLineGenericIterator<>(
+            JsonLineIterator<JsonLineModel> unitsToWrite = new JsonLineIterator<>(
                 inputStream,
                 JSON_LINE_MODEL_TYPE_REFERENCE
             )
@@ -1088,7 +1088,7 @@ public class FluxService {
         }
 
         try (
-            JsonLineGenericIterator<ObjectNode> ogIterator = new JsonLineGenericIterator<>(
+            JsonLineIterator<ObjectNode> ogIterator = new JsonLineIterator<>(
                 new FileInputStream(ogFile),
                 new TypeReference<>() {}
             )

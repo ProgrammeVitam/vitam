@@ -46,6 +46,8 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -71,8 +73,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import org.apache.commons.collections4.ListUtils;
@@ -141,12 +141,9 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
         try (
             InputStream is = new FileInputStream(lfcAndMetadataFile);
-            JsonLineGenericIterator<LfcMetadataPair> lfcMetadataIterator = new JsonLineGenericIterator<>(
-                is,
-                TYPE_REFERENCE
-            );
+            JsonLineIterator<LfcMetadataPair> lfcMetadataIterator = new JsonLineIterator<>(is, TYPE_REFERENCE);
             OutputStream os = new FileOutputStream(traceabilityDataFile);
-            JsonLineWriter jsonLineWriter = new JsonLineWriter(os)
+            JsonLineWriter<LifeCycleTraceabilitySecureFileObject> jsonLineWriter = new JsonLineWriter<>(os)
         ) {
             Iterator<List<LfcMetadataPair>> bulkIterator = Iterators.partition(lfcMetadataIterator, batchSize);
 
@@ -208,7 +205,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
 
     private void processBulk(
         List<LfcMetadataPair> lfcMetadataPairList,
-        JsonLineWriter jsonLineWriter,
+        JsonLineWriter<LifeCycleTraceabilitySecureFileObject> jsonLineWriter,
         String lifecycleType,
         DigestValidator digestValidator,
         StrategyIdOfferIdLoader strategyIdOfferIdLoader
@@ -547,7 +544,7 @@ public abstract class BuildTraceabilityActionPlugin extends ActionHandler {
         DigestValidationDetails metadataDigestValidationDetails,
         Map<String, DigestValidationDetails> objectDigests,
         String lifecycleType,
-        JsonLineWriter jsonLineWriter
+        JsonLineWriter<LifeCycleTraceabilitySecureFileObject> jsonLineWriter
     ) throws ProcessingException {
         try {
             LifeCycleTraceabilitySecureFileObject lfcTraceSecFileDataLine;

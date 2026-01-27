@@ -35,10 +35,10 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -96,7 +96,7 @@ class MigrationHelper {
 
         try (
             OutputStream distributionOutputStream = new FileOutputStream(distributionFile);
-            JsonLineWriter distributionFileWriter = new JsonLineWriter(distributionOutputStream);
+            JsonLineWriter<JsonLineModel> distributionFileWriter = new JsonLineWriter<>(distributionOutputStream);
             OutputStream reportOutputStream = new FileOutputStream(report);
             JsonGenerator jsonGenerator = createJsonGenerator(reportOutputStream)
         ) {

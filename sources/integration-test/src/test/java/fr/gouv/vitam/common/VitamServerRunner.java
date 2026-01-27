@@ -798,7 +798,13 @@ public class VitamServerRunner extends ExternalResource {
         if (null != defaultOfferMain) {
             return;
         }
+
         SystemPropertyUtil.set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
+
+        SystemPropertyUtil.set(
+            JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+            Integer.toString(PORT_SERVICE_OFFER_ADMIN)
+        );
         final File offerConfig = PropertiesUtils.findFile(DEFAULT_OFFER_CONF);
         final OfferConfiguration offerConfiguration = readYaml(offerConfig, OfferConfiguration.class);
         List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();

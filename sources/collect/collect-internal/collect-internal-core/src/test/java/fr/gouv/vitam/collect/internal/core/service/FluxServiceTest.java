@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.jsonl.JsonLineIterator;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -61,7 +62,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.collections4.IteratorUtils;
@@ -417,7 +417,7 @@ public class FluxServiceTest {
         }
 
         JsonNode transformedMetadataFileLines = JsonHandler.toJsonNode(
-            new JsonLineGenericIterator<JsonNode>(
+            new JsonLineIterator<JsonNode>(
                 new ByteArrayInputStream(transformedMetadataFile.get()),
                 new TypeReference<>() {}
             )
@@ -426,7 +426,7 @@ public class FluxServiceTest {
         );
 
         JsonNode expectedTransformedMetadataFileLines = JsonHandler.toJsonNode(
-            new JsonLineGenericIterator<JsonNode>(
+            new JsonLineIterator<JsonNode>(
                 PropertiesUtils.getResourceAsStream("streamZip/expected_transformed_metadata_from_csv.jsonl"),
                 new TypeReference<>() {}
             )
@@ -466,7 +466,7 @@ public class FluxServiceTest {
         }
 
         JsonNode transformedMetadataFileLines = JsonHandler.toJsonNode(
-            new JsonLineGenericIterator<JsonNode>(
+            new JsonLineIterator<JsonNode>(
                 new ByteArrayInputStream(transformedMetadataFile.get()),
                 new TypeReference<>() {}
             )
@@ -475,7 +475,7 @@ public class FluxServiceTest {
         );
 
         JsonNode expectedTransformedMetadataFileLines = JsonHandler.toJsonNode(
-            new JsonLineGenericIterator<JsonNode>(
+            new JsonLineIterator<JsonNode>(
                 PropertiesUtils.getResourceAsStream("streamZip/expected_transformed_metadata_from_jsonl.jsonl"),
                 new TypeReference<>() {}
             )
@@ -748,7 +748,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -799,7 +799,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -850,7 +850,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -901,7 +901,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -952,7 +952,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -1003,7 +1003,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -1320,7 +1320,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
@@ -1370,7 +1370,7 @@ public class FluxServiceTest {
         List<CollectJsonMetadataLine> unitUpdates = new ArrayList<>();
         doAnswer(e -> {
             try (
-                JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                JsonLineIterator<CollectJsonMetadataLine> metadata = new JsonLineIterator<>(
                     e.getArgument(1),
                     CollectJsonMetadataLine.TYPE_REFERENCE
                 )
