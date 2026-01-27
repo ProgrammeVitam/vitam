@@ -35,13 +35,16 @@ import com.google.common.collect.Iterators;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
-import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
+import fr.gouv.vitam.collect.internal.core.helpers.CollectErrorDetailHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.JsonHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.jsonl.JsonlMetadataFileValidator;
@@ -58,6 +61,7 @@ import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.error.VitamErrorDetails;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.io.TempWorkspace;
@@ -247,6 +251,8 @@ public class MetadataService {
             Iterator<List<CollectJsonMetadataLine>> iterator = Iterators.partition(metadata, BULK_SIZE);
             int nbOK = 0;
             int nbKO = 0;
+            int lineNumber = 1;
+            List<VitamErrorDetails> errors = new ArrayList<>();
             List<String> firstNErrorMessages = new ArrayList<>();
             while (iterator.hasNext()) {
                 List<CollectJsonMetadataLine> jsonlMetadataLinesBatch = iterator.next();
@@ -266,17 +272,24 @@ public class MetadataService {
                             LOGGER.debug("Update failed : " + updateUnitsBatchResult.getErrorDetails());
                             if (firstNErrorMessages.size() < 10) {
                                 firstNErrorMessages.add(updateUnitsBatchResult.getErrorDetails());
+                                errors.add(
+                                    CollectErrorDetailHelper.generateVitamErrorsDetails(
+                                        CollectErrorMessagesEnum.NO_UNIT_MATCHES_SELECTION_CRITERIA,
+                                        Map.of(CollectErrorParamEnum.LINE_NUMBER, String.valueOf(lineNumber))
+                                    )
+                                );
                             }
                             nbKO++;
                             break;
                         default:
                             throw new IllegalStateException("Unexpected value: " + updateUnitsBatchResult.getStatus());
                     }
+                    lineNumber++;
                 }
             }
 
             if (nbOK == 0 && nbKO == 0) {
-                throw new CollectInternalException("no update data found !");
+                throw CollectErrorDetailHelper.generateException(CollectErrorMessagesEnum.NO_UPDATE_DATA_FOUND);
             }
 
             if (nbKO == 0) {
@@ -285,7 +298,7 @@ public class MetadataService {
             }
 
             boolean isTruncated = nbKO > firstNErrorMessages.size();
-            throw new CollectInternalInvalidRequestException(
+            throw new CollectInternalMultipleErrorsDetailsException(
                 "Metadata update failed. Nb OK: " +
                 nbOK +
                 ", Nb KO: " +
@@ -293,7 +306,8 @@ public class MetadataService {
                 ". Error messages" +
                 (isTruncated ? " (truncated)" : "") +
                 ":" +
-                firstNErrorMessages
+                firstNErrorMessages,
+                errors
             );
         }
     }

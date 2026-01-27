@@ -26,19 +26,20 @@
  */
 package fr.gouv.vitam.collect.external.external.exception;
 
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
 
 public class CollectExternalClientInvalidRequestException extends VitamClientException {
 
-    public CollectExternalClientInvalidRequestException(String message) {
+    private final VitamError<?> vitamError;
+
+    public CollectExternalClientInvalidRequestException(String message, VitamError<?> vitamError) {
         super(message);
+        this.vitamError = vitamError;
     }
 
-    public CollectExternalClientInvalidRequestException(Throwable cause) {
-        super(cause);
-    }
-
-    public CollectExternalClientInvalidRequestException(String message, Throwable cause) {
-        super(message, cause);
+    @SuppressWarnings("unchecked")
+    public <T> VitamError<T> getVitamError() {
+        return ((VitamError<T>) vitamError);
     }
 }

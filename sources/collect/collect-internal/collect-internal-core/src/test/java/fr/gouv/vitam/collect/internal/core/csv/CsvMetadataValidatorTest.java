@@ -28,7 +28,7 @@
 package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalErrorsDetailsException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -206,47 +206,47 @@ public class CsvMetadataValidatorTest {
     public void testHeaderValidation_InvalidRulePropertiesArrayIndexWithoutMatchingRule() {
         assertThatHeaderNamesAreInvalid(
             "File;Management.StorageRule.StartDate.1",
-            "Rule property field 'Management.StorageRule.StartDate.1' does not have a corresponding 'Management.StorageRule.Rule.1'"
+            "Invalid header name 'Management.StorageRule.StartDate.1': Rule property field 'Management.StorageRule.StartDate.1' does not have a corresponding 'Management.StorageRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.AppraisalRule.StartDate.0",
-            "Invalid header name 'Management.AppraisalRule.StartDate.0': Rule property field 'Management.AppraisalRule.StartDate.0' does not have a corresponding 'Management.AppraisalRule.Rule.0'."
+            "Invalid header name 'Management.AppraisalRule.StartDate.0': Rule property field 'Management.AppraisalRule.StartDate.0' does not have a corresponding 'Management.AppraisalRule.Rule.0'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.AccessRule.StartDate.1",
-            "Invalid header name 'Management.AccessRule.StartDate.1': Rule property field 'Management.AccessRule.StartDate.1' does not have a corresponding 'Management.AccessRule.Rule.1'."
+            "Invalid header name 'Management.AccessRule.StartDate.1': Rule property field 'Management.AccessRule.StartDate.1' does not have a corresponding 'Management.AccessRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.DisseminationRule.Rule.0;Management.DisseminationRule.StartDate.1",
-            "Invalid header name 'Management.DisseminationRule.StartDate.1': Rule property field 'Management.DisseminationRule.StartDate.1' does not have a corresponding 'Management.DisseminationRule.Rule.1'."
+            "Invalid header name 'Management.DisseminationRule.StartDate.1': Rule property field 'Management.DisseminationRule.StartDate.1' does not have a corresponding 'Management.DisseminationRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.ReuseRule.StartDate.1",
-            "Invalid header name 'Management.ReuseRule.StartDate.1': Rule property field 'Management.ReuseRule.StartDate.1' does not have a corresponding 'Management.ReuseRule.Rule.1'."
+            "Invalid header name 'Management.ReuseRule.StartDate.1': Rule property field 'Management.ReuseRule.StartDate.1' does not have a corresponding 'Management.ReuseRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.ClassificationRule.StartDate.1",
-            "Invalid header name 'Management.ClassificationRule.StartDate.1': Rule property field 'Management.ClassificationRule.StartDate.1' does not have a corresponding 'Management.ClassificationRule.Rule.1'."
+            "Invalid header name 'Management.ClassificationRule.StartDate.1': Rule property field 'Management.ClassificationRule.StartDate.1' does not have a corresponding 'Management.ClassificationRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.StartDate.1",
-            "Invalid header name 'Management.HoldRule.StartDate.1': Rule property field 'Management.HoldRule.StartDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.StartDate.1': Rule property field 'Management.HoldRule.StartDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldEndDate.1",
-            "Invalid header name 'Management.HoldRule.HoldEndDate.1': Rule property field 'Management.HoldRule.HoldEndDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldEndDate.1': Rule property field 'Management.HoldRule.HoldEndDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldOwner.1",
-            "Invalid header name 'Management.HoldRule.HoldOwner.1': Rule property field 'Management.HoldRule.HoldOwner.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldOwner.1': Rule property field 'Management.HoldRule.HoldOwner.1' does not have a corresponding 'Management.HoldRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldReassessingDate.1",
-            "Invalid header name 'Management.HoldRule.HoldReassessingDate.1': Rule property field 'Management.HoldRule.HoldReassessingDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldReassessingDate.1': Rule property field 'Management.HoldRule.HoldReassessingDate.1' does not have a corresponding 'Management.HoldRule.Rule.1'"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.HoldRule.HoldReason.1",
-            "Invalid header name 'Management.HoldRule.HoldReason.1': Rule property field 'Management.HoldRule.HoldReason.1' does not have a corresponding 'Management.HoldRule.Rule.1'."
+            "Invalid header name 'Management.HoldRule.HoldReason.1': Rule property field 'Management.HoldRule.HoldReason.1' does not have a corresponding 'Management.HoldRule.Rule.1'"
         );
     }
 
@@ -292,11 +292,11 @@ public class CsvMetadataValidatorTest {
     public void testHeaderValidation_ForbiddenFields() {
         assertThatHeaderNamesAreInvalid(
             "File;Content.ArchiveUnitProfile",
-            "Seda Field 'Content.ArchiveUnitProfile' is reserved / forbidden."
+            "Seda Field 'Content.ArchiveUnitProfile' is reserved / forbidden"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Management.LogBook.Event.0.EventIdentifier",
-            "Seda Field 'Management.LogBook' is reserved / forbidden."
+            "Seda Field 'Management.LogBook' is reserved / forbidden"
         );
     }
 
@@ -371,13 +371,14 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_IllegalFieldNamesPrefix() {
-        // Given
-        List<String> headerLines = List.of("File;Content._AZ", "File;Content.-AZ");
-
-        // When / Then
-        for (String headerLine : headerLines) {
-            assertThatHeaderNamesAreInvalid(headerLine, "Field name cannot start with '_' (except '_id') or '-'");
-        }
+        assertThatHeaderNamesAreInvalid(
+            "File;Content._AZ",
+            "Invalid header name 'Content._AZ': Field name cannot start with '_' (except '_id') or '-'"
+        );
+        assertThatHeaderNamesAreInvalid(
+            "File;Content.-AZ",
+            "Invalid header name 'Content.-AZ': Field name cannot start with '_' (except '_id') or '-'"
+        );
     }
 
     @Test
@@ -620,7 +621,7 @@ public class CsvMetadataValidatorTest {
             "Valid Content.Description[.*] or Content.Description[.*].attr expected"
         );
 
-        assertThatHeaderNamesAreInvalid("File;Content.Tag.MyExtension", "Field 'Content.Tag' is not an object.");
+        assertThatHeaderNamesAreInvalid("File;Content.Tag.MyExtension", "Field 'Content.Tag' is not an object");
 
         assertThatHeaderNamesAreInvalid(
             "File;Content.Signature.MyExtension",
@@ -644,7 +645,7 @@ public class CsvMetadataValidatorTest {
 
         assertThatHeaderNamesAreInvalid(
             "File;Content.Invoice.Provider.MyKeyword.MyExtension",
-            "Field 'Content.Invoice.Provider.MyKeyword' is not an object."
+            "Field 'Content.Invoice.Provider.MyKeyword' is not an object"
         );
 
         assertThatHeaderNamesAreInvalid(
@@ -679,7 +680,7 @@ public class CsvMetadataValidatorTest {
 
         assertThatHeaderNamesAreInvalid(
             "File;ArchiveUnitProfile.Extra",
-            "Field 'ArchiveUnitProfile' is not an object."
+            "Invalid header name 'ArchiveUnitProfile.Extra': Field 'ArchiveUnitProfile' is not an object"
         );
     }
 
@@ -767,11 +768,11 @@ public class CsvMetadataValidatorTest {
 
     @Test
     public void testHeaderValidation_ObjectFieldsCannotBeHeaderNames() {
-        assertThatHeaderNamesAreInvalid("File;Content.Writer", "Field 'Content.Writer' is an object.");
-        assertThatHeaderNamesAreInvalid("File;Content.Invoice", "Field 'Content.Invoice' is an object.");
+        assertThatHeaderNamesAreInvalid("File;Content.Writer", "Field 'Content.Writer' is an object");
+        assertThatHeaderNamesAreInvalid("File;Content.Invoice", "Field 'Content.Invoice' is an object");
         assertThatHeaderNamesAreInvalid(
             "File;Management.AppraisalRule",
-            "Field 'Management.AppraisalRule' is an object."
+            "Invalid header name 'Management.AppraisalRule': Field 'Management.AppraisalRule' is an object"
         );
     }
 
@@ -809,11 +810,11 @@ public class CsvMetadataValidatorTest {
     public void testHeaderValidation_ExternalFieldCannotBeAnObjectAndAValueField() {
         assertThatHeaderNamesAreInvalid(
             "File;Content.MyExtension;Content.MyExtension.SubField",
-            "Field 'Content.MyExtension' is not an object."
+            "Field 'Content.MyExtension' is not an object"
         );
         assertThatHeaderNamesAreInvalid(
             "File;Content.MyExtension.SubField;Content.MyExtension",
-            "Field 'Content.MyExtension' is an object."
+            "Field 'Content.MyExtension' is an object"
         );
     }
 
@@ -831,9 +832,9 @@ public class CsvMetadataValidatorTest {
             "File;Management.UpdateOperation.SystemId;Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName;Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue",
             """
             CSV validation failed. 3 errors:
-            - Invalid header name 'Management.UpdateOperation.SystemId': Declaring Management.UpdateOperation.* headers is not supported in update APIs.
-            - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName': Declaring Management.UpdateOperation.* headers is not supported in update APIs.
-            - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue': Declaring Management.UpdateOperation.* headers is not supported in update APIs."""
+            - Invalid header name 'Management.UpdateOperation.SystemId': Declaring Management.UpdateOperation.* headers is not supported in update APIs
+            - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName': Declaring Management.UpdateOperation.* headers is not supported in update APIs
+            - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue': Declaring Management.UpdateOperation.* headers is not supported in update APIs"""
         );
     }
 
@@ -846,8 +847,8 @@ public class CsvMetadataValidatorTest {
             - Invalid header name 'Unknown': Only accepted names are 'File', '_id', 'ObjectFiles', 'Content.*', 'Management.*' or 'ArchiveUnitProfile'
             - Invalid header name 'Content.Title_': Header must be Seda path 'Content.Title' instead of Vitam field name 'Content.Title_'
             - Invalid header name 'Content.Description.2': Expected header name 'Content.Description.1' since header 'Content.Description.2' is declared
-            - Invalid header name 'Content.MyExtension.SubField': Field 'Content.MyExtension' is not an object.
-            - Invalid header name 'Management.AppraisalRule': Field 'Management.AppraisalRule' is an object."""
+            - Invalid header name 'Content.MyExtension.SubField': Field 'Content.MyExtension' is not an object
+            - Invalid header name 'Management.AppraisalRule': Field 'Management.AppraisalRule' is an object"""
         );
     }
 
@@ -871,7 +872,7 @@ public class CsvMetadataValidatorTest {
         assertThatThrownBy(
             () -> csvMetadataValidator.validateHeaderNames(sedaSchemaInfoResolver, headerNames, isFirstUpload)
         )
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessageContaining("Invalid header name")
             .hasMessageContainingAll(errorMessages);
     }

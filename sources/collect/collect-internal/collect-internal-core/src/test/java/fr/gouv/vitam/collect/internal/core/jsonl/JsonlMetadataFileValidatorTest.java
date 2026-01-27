@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.core.jsonl;
 
-import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalErrorsDetailsException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -85,19 +85,19 @@ public class JsonlMetadataFileValidatorTest {
         assertInvalid(
             "update/metadata_invalid_selector_key_name_dollar.jsonl",
             false,
-            "Invalid field name: 'a.$bad'  at index: 0"
+            "Invalid field name: 'a.$bad' at index 0"
         );
 
         assertInvalid(
             "update/metadata_invalid_selector_key_name_underscore.jsonl",
             false,
-            "Invalid field name: '_bad'  at index: 0"
+            "Invalid field name: '_bad' at index 0"
         );
 
         assertInvalid(
             "update/metadata_invalid_selector_key_name_spacing.jsonl",
             false,
-            "Invalid field name: 'a a'  at index: 0"
+            "Invalid field name: 'a a' at index 0"
         );
     }
 
@@ -149,8 +149,8 @@ public class JsonlMetadataFileValidatorTest {
             true,
             """
             JSONL validation failed. 2 errors:
-            - Invalid entry at index: 0. Missing metadata identification information.
-            - Invalid entry at index: 2. Illegal unit file path 'toto/../tata'"""
+            - Invalid unit metadata at index: 0. Missing metadata identification information
+            - Invalid unit metadata at index: 2. Illegal unit file path 'toto/../tata'"""
         );
     }
 
@@ -168,7 +168,7 @@ public class JsonlMetadataFileValidatorTest {
         assertInvalid(
             "update/metadata_invalid_unit_management_rule_end_date.jsonl",
             false,
-            "Invalid unit metadata at index: 0. Unit Appraisal Rules cannot contain 'EndDate' field."
+            "Invalid unit metadata at index: 0. Unit Appraisal Rules cannot contain 'EndDate' field"
         );
     }
 
@@ -177,7 +177,7 @@ public class JsonlMetadataFileValidatorTest {
         assertInvalid(
             "update/metadata_missing_unit_identification_information.jsonl",
             false,
-            "Invalid entry at index: 1. Missing metadata identification information."
+            "Invalid unit metadata at index: 1. Missing metadata identification information"
         );
     }
 
@@ -186,13 +186,13 @@ public class JsonlMetadataFileValidatorTest {
         assertInvalid(
             "update/metadata_empty_file.jsonl",
             false,
-            "Invalid entry at index: 0. Empty unit file path '    '"
+            "Invalid unit metadata at index: 0. Empty unit file path '    '"
         );
 
         assertInvalid(
             "update/metadata_illegal_file.jsonl",
             false,
-            "Invalid entry at index: 0. Illegal unit file path 'toto/../tata'"
+            "Invalid unit metadata at index: 0. Illegal unit file path 'toto/../tata'"
         );
     }
 
@@ -201,7 +201,7 @@ public class JsonlMetadataFileValidatorTest {
         assertInvalid(
             "update/metadata.jsonl",
             false,
-            "Invalid entry at index: 0. ObjectFiles field not allowed for update operations."
+            "Invalid unit metadata at index: 0. ObjectFiles field not allowed for update operations"
         );
     }
 
@@ -210,17 +210,17 @@ public class JsonlMetadataFileValidatorTest {
         assertInvalid(
             "update/metadata_illegal_object_files.jsonl",
             true,
-            "Invalid entry at index: 0. Illegal ObjectFiles path 'path/../to/object_files.pdf'"
+            "Invalid unit metadata at index: 0. Illegal ObjectFiles path 'path/../to/object_files.pdf'"
         );
         assertInvalid(
             "update/metadata_empty_object_files.jsonl",
             true,
-            "Invalid entry at index: 0. Empty ObjectFiles path."
+            "Invalid unit metadata at index: 0. Empty ObjectFiles path"
         );
         assertInvalid(
             "update/metadata_blank_object_files.jsonl",
             true,
-            "Invalid entry at index: 0. Empty ObjectFiles path."
+            "Invalid unit metadata at index: 0. Empty ObjectFiles path"
         );
     }
 
@@ -260,9 +260,9 @@ public class JsonlMetadataFileValidatorTest {
             false,
             """
             JSONL validation failed. 3 errors:
-            - Invalid unit metadata at index: 0: 'Management.UpdateOperation.*' fields not supported in update APIs.
-            - Invalid unit metadata at index: 1: 'Management.UpdateOperation.*' fields not supported in update APIs.
-            - Invalid unit metadata at index: 2: 'Management.UpdateOperation.*' fields not supported in update APIs."""
+            - Invalid unit metadata at index: 0: 'Management.UpdateOperation.*' fields not supported in update APIs
+            - Invalid unit metadata at index: 1: 'Management.UpdateOperation.*' fields not supported in update APIs
+            - Invalid unit metadata at index: 2: 'Management.UpdateOperation.*' fields not supported in update APIs"""
         );
     }
 
@@ -273,15 +273,15 @@ public class JsonlMetadataFileValidatorTest {
             true,
             """
             JSONL validation failed. 9 errors:
-            - Invalid unit metadata at index: 0. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue' field.
-            - Invalid unit metadata at index: 1. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' field.
-            - Invalid unit metadata at index: 2. Both '#management.UpdateOperation.SystemId' and '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' headers are set.
-            - Invalid unit metadata at index: 3. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue' field.
-            - Invalid unit metadata at index: 4. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' field.
-            - Invalid unit metadata at index: 5. Cannot set other metadata field 'Tag' when '#management.UpdateOperation' header is defined.
-            - Invalid unit metadata at index: 6. Cannot set other metadata field 'Tag' when '#management.UpdateOperation' header is defined.
-            - Invalid unit metadata at index: 7. Only top-level (root) units can have '#management.UpdateOperation.*' fields.
-            - Invalid unit metadata at index: 8. Only top-level (root) units can have '#management.UpdateOperation.*' fields."""
+            - Invalid unit metadata at index: 0. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue' field
+            - Invalid unit metadata at index: 1. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' field
+            - Invalid unit metadata at index: 2. Both '#management.UpdateOperation.SystemId' and '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' headers are set
+            - Invalid unit metadata at index: 3. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue' field
+            - Invalid unit metadata at index: 4. Missing or empty '#management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' field
+            - Invalid unit metadata at index: 5. Cannot set other metadata field 'Tag' when '#management.UpdateOperation' header is defined
+            - Invalid unit metadata at index: 6. Cannot set other metadata field 'Tag' when '#management.UpdateOperation' header is defined
+            - Invalid unit metadata at index: 7. Only top-level (root) units can have '#management.UpdateOperation.*' fields
+            - Invalid unit metadata at index: 8. Only top-level (root) units can have '#management.UpdateOperation.*' fields"""
         );
     }
 
@@ -319,7 +319,7 @@ public class JsonlMetadataFileValidatorTest {
         JsonlMetadataFileValidator validator = new JsonlMetadataFileValidator();
         File jsonlMetadataFile = PropertiesUtils.getResourceFile(resourcesFile);
         assertThatThrownBy(() -> validator.validate(jsonlMetadataFile, isFirstUpload, explicitAttachementMode))
-            .isInstanceOf(CollectInternalInvalidRequestException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessageContaining(expectedMessage);
     }
 }

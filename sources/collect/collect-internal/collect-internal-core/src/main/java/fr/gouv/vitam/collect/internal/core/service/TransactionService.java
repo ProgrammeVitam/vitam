@@ -43,8 +43,11 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalNotFoundException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.Batch;
 import fr.gouv.vitam.collect.internal.core.common.BatchStatus;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
+import fr.gouv.vitam.collect.internal.core.helpers.CollectErrorDetailHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
@@ -276,8 +279,14 @@ public class TransactionService {
 
     public void ensureTransactionIsOpen(TransactionModel transactionModel) throws CollectInternalException {
         if (transactionModel.getStatus() != TransactionStatus.OPEN) {
-            throw new CollectInternalInvalidRequestException(
-                "Transaction " + transactionModel.getId() + " must be OPEN but was " + transactionModel.getStatus()
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.TRANSACTION_MUST_BE_OPEN,
+                Map.of(
+                    CollectErrorParamEnum.ID,
+                    transactionModel.getId(),
+                    CollectErrorParamEnum.STATUS,
+                    transactionModel.getStatus().toString()
+                )
             );
         }
     }

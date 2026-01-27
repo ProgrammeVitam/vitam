@@ -28,8 +28,11 @@
 package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalSingleErrorsDetailException;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.common.jsonl.JsonLineWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -45,6 +48,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static fr.gouv.vitam.collect.internal.core.csv.CsvMetadataUtils.FILE_HEADER;
@@ -63,10 +67,13 @@ public class CsvHelper {
         File metadataFile,
         boolean isFirstUpload,
         boolean explicitAttachementMode
-    ) throws IOException, CollectInvalidCsvFormatException {
+    ) throws IOException, CollectInternalMultipleErrorsDetailsException, CollectInternalSingleErrorsDetailException {
         try (
             CSVParser parser = createParser(is);
-            JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(metadataFile, true), true)
+            JsonLineWriter<CollectJsonMetadataLine> writer = new JsonLineWriter<>(
+                new FileOutputStream(metadataFile, true),
+                true
+            )
         ) {
             final List<String> headerNames = parser.getHeaderNames();
             CsvToJsonConverter csvToJsonConverter = new CsvToJsonConverter(
@@ -102,7 +109,7 @@ public class CsvHelper {
         CsvErrorAccumulator csvErrorAccumulator,
         CSVParser parser,
         CsvToJsonConverter csvToJsonConverter
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException, CollectInternalSingleErrorsDetailException {
         long csvRecordNumberIncludingHeader = record.getRecordNumber() + 1;
 
         // Validate record columns
@@ -179,16 +186,20 @@ public class CsvHelper {
         List<String> headerNames,
         CsvErrorAccumulator csvErrorAccumulator,
         long csvRecordNumberIncludingHeader
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException {
         if (record.isConsistent()) {
             return false;
         }
-        csvErrorAccumulator.report(
-            "Invalid CSV record at line %d: Nb columns (%d) must match nb headers (%d)".formatted(
-                    csvRecordNumberIncludingHeader,
-                    record.size(),
-                    headerNames.size()
-                )
+        csvErrorAccumulator.reportOneError(
+            CollectErrorMessagesEnum.INCONSISTENT_RECORD_COLUMNS,
+            Map.of(
+                CollectErrorParamEnum.LINE_NUMBER,
+                Long.toString(csvRecordNumberIncludingHeader),
+                CollectErrorParamEnum.NB_COLUMNS,
+                Integer.toString(record.size()),
+                CollectErrorParamEnum.NB_HEADERS,
+                Integer.toString(headerNames.size())
+            )
         );
         return true;
     }
@@ -198,12 +209,18 @@ public class CsvHelper {
         String uploadPath,
         long csvRecordNumberIncludingHeader,
         String header
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException {
         if (StringUtils.isNotBlank(uploadPath)) {
             return false;
         }
-        csvErrorAccumulator.report(
-            "Invalid CSV record at line " + csvRecordNumberIncludingHeader + ": Empty " + header
+        csvErrorAccumulator.reportOneError(
+            CollectErrorMessagesEnum.MISSING_UPLOAD_PATH,
+            Map.of(
+                CollectErrorParamEnum.LINE_NUMBER,
+                Long.toString(csvRecordNumberIncludingHeader),
+                CollectErrorParamEnum.HEADER,
+                header
+            )
         );
         return true;
     }
@@ -212,17 +229,21 @@ public class CsvHelper {
         CsvErrorAccumulator csvErrorAccumulator,
         String uploadPath,
         long csvRecordNumberIncludingHeader
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException {
         String normalizedUploadPath = FilenameUtils.normalize(uploadPath);
         if (FilenameUtils.equals(uploadPath, normalizedUploadPath)) {
             return false;
         }
-        csvErrorAccumulator.report(
-            "Invalid CSV record at line %d: Illegal '%s' value '%s'".formatted(
-                    csvRecordNumberIncludingHeader,
-                    FILE_HEADER,
-                    sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH)
-                )
+        csvErrorAccumulator.reportOneError(
+            CollectErrorMessagesEnum.ILLEGAL_UPLOAD_PATH,
+            Map.of(
+                CollectErrorParamEnum.LINE_NUMBER,
+                Long.toString(csvRecordNumberIncludingHeader),
+                CollectErrorParamEnum.HEADER,
+                FILE_HEADER,
+                CollectErrorParamEnum.PATH,
+                sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH)
+            )
         );
         return true;
     }
@@ -233,15 +254,20 @@ public class CsvHelper {
         long csvRecordNumberIncludingHeader,
         String uploadPathOrGuid,
         String header
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException {
         if (isFirstUpload) {
             return false;
         }
-        csvErrorAccumulator.report(
-            String.format(
-                "Invalid CSV record at line %d (" + header + "=\"%s\"): %s field not supported for update operations",
-                csvRecordNumberIncludingHeader,
+        csvErrorAccumulator.reportOneError(
+            CollectErrorMessagesEnum.FORBIDDEN_OBJECT_FILES_UPDATE_MODE,
+            Map.of(
+                CollectErrorParamEnum.LINE_NUMBER,
+                Long.toString(csvRecordNumberIncludingHeader),
+                CollectErrorParamEnum.PATH,
                 sanitizeStringForLog(uploadPathOrGuid, MAX_PATH_LENGTH),
+                CollectErrorParamEnum.HEADER,
+                header,
+                CollectErrorParamEnum.FIELD,
                 OBJECT_FIlES_HEADER
             )
         );
@@ -254,22 +280,24 @@ public class CsvHelper {
         long csvRecordNumberIncludingHeader,
         String uploadPathOrGuid,
         String header
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException {
         String normalizedObjectFilesPath = FilenameUtils.normalize(objectFilesPath);
         if (FilenameUtils.equals(objectFilesPath, normalizedObjectFilesPath)) {
             return false;
         }
-
-        csvErrorAccumulator.report(
-            String.format(
-                "Invalid CSV record at line %d (" + header + "=\"%s\"): %s",
-                csvRecordNumberIncludingHeader,
+        csvErrorAccumulator.reportOneError(
+            CollectErrorMessagesEnum.ILLEGAL_OBJECT_FILES_FIELD,
+            Map.of(
+                CollectErrorParamEnum.LINE_NUMBER,
+                Long.toString(csvRecordNumberIncludingHeader),
+                CollectErrorParamEnum.PATH,
                 sanitizeStringForLog(uploadPathOrGuid, MAX_PATH_LENGTH),
-                "Invalid '" +
-                OBJECT_FIlES_HEADER +
-                "' value '" +
-                sanitizeStringForLog(objectFilesPath, MAX_PATH_LENGTH) +
-                "'"
+                CollectErrorParamEnum.HEADER,
+                header,
+                CollectErrorParamEnum.FIELD,
+                OBJECT_FIlES_HEADER,
+                CollectErrorParamEnum.OBJECT_FILES_PATH,
+                sanitizeStringForLog(objectFilesPath, MAX_PATH_LENGTH)
             )
         );
         return true;
@@ -284,7 +312,7 @@ public class CsvHelper {
         String objectFilesPath,
         boolean explicitAttachementMode,
         long csvRecordNumberIncludingHeader
-    ) throws CollectInvalidCsvFormatException {
+    ) throws CollectInternalMultipleErrorsDetailsException {
         try {
             boolean isTopLevelFolder = uploadPath != null && !uploadPath.contains(File.separator);
             ObjectNode unitJson = csvToJsonConverter.convertCsvRecordToJson(
@@ -293,12 +321,15 @@ public class CsvHelper {
                 explicitAttachementMode
             );
             return Optional.of(new CollectJsonMetadataLine(uploadPath, id, objectFilesPath, null, unitJson));
-        } catch (CollectInvalidCsvFormatException e) {
-            csvErrorAccumulator.report(
-                String.format(
-                    "Invalid CSV record at line %d (File=\"%s\"): %s",
-                    csvRecordNumberIncludingHeader,
+        } catch (CollectInternalSingleErrorsDetailException e) {
+            csvErrorAccumulator.reportOneError(
+                CollectErrorMessagesEnum.ERROR_CONVERTING_CSV_TO_JSONL,
+                Map.of(
+                    CollectErrorParamEnum.LINE_NUMBER,
+                    Long.toString(csvRecordNumberIncludingHeader),
+                    CollectErrorParamEnum.UPLOAD_PATH,
                     sanitizeStringForLog(uploadPath, MAX_PATH_LENGTH),
+                    CollectErrorParamEnum.MESSAGE,
                     e.getMessage()
                 )
             );

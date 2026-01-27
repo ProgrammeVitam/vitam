@@ -36,11 +36,15 @@ import com.google.common.collect.Iterators;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalServerSideException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalSingleErrorsDetailException;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.csv.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.csv.SedaSchemaInfoResolver;
+import fr.gouv.vitam.collect.internal.core.helpers.CollectErrorDetailHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.jsonl.JsonlMetadataFileValidator;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
@@ -229,11 +233,12 @@ public class FluxService {
             bulkWriteObjectGroups(objectGroupsToWriteFile);
 
             bulkUpdateUnits(transactionId, jsonlMetadataFile);
-        } catch (CollectInternalException e) {
+        } catch (CollectInternalInvalidRequestException e) {
             throw e;
         } catch (Exception e) {
-            throw new CollectInternalException(
-                "An unexpected error occurs when try to upload the ZIP: " + e.getMessage(),
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.UNEXPECTED_ERROR_OCCURS_WHEN_TRY_UPLOAD_ZIP,
+                Map.of(CollectErrorParamEnum.MESSAGE, e.getMessage()),
                 e
             );
         }
@@ -272,17 +277,22 @@ public class FluxService {
                     }
                     String path = FilenameUtils.normalize(entry.getName());
                     if (!FilenameUtils.equals(entry.getName(), path)) {
-                        throw new IllegalStateException("path " + path + " is not canonical");
+                        throw CollectErrorDetailHelper.generateException(
+                            CollectErrorMessagesEnum.PATH_IS_NOT_CANONICAL,
+                            Map.of(CollectErrorParamEnum.PATH, path)
+                        );
                     }
                     path = FilenameUtils.normalizeNoEndSeparator(path);
                     if (!entry.isDirectory() && (path.equals(METADATA_JSONL_FILE) || path.equals(METADATA_CSV_FILE))) {
                         if (metadataFile != null) {
-                            throw new CollectInternalInvalidRequestException(
-                                "Cannot process zip upload for " +
-                                projectModel.getId() +
-                                "/" +
-                                transactionId +
-                                ". Multiple metadata update files found."
+                            throw CollectErrorDetailHelper.generateException(
+                                CollectErrorMessagesEnum.MULTIPLES_METADATA_UPDATE_FILES_IN_ZIP,
+                                Map.of(
+                                    CollectErrorParamEnum.ID,
+                                    projectModel.getId(),
+                                    CollectErrorParamEnum.TRANSACTION_ID,
+                                    transactionId
+                                )
                             );
                         }
 
@@ -305,11 +315,15 @@ public class FluxService {
                 entryInputStream.setClosed(false);
             }
         } catch (ZipException e) {
-            throw new CollectInternalInvalidRequestException("Invalid ZIP archive: " + e.getMessage(), e);
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.INVALID_ZIP_ARCHIVE,
+                Map.of(CollectErrorParamEnum.MESSAGE, e.getMessage()),
+                e
+            );
         }
 
         if (isEmpty) {
-            throw new CollectInternalInvalidRequestException("Empty zip file.");
+            throw CollectErrorDetailHelper.generateException(CollectErrorMessagesEnum.EMPTY_ZIP_FILE);
         }
 
         return new PreprocessingResult(unitsToWriteFile, objectGroupsToWriteFile, metadataFile);
@@ -318,7 +332,7 @@ public class FluxService {
     private ProjectModel getProjectModel(String projectId) throws CollectInternalException {
         Optional<ProjectModel> projectById = projectRepository.findProjectById(projectId);
         if (projectById.isEmpty()) {
-            throw new CollectInternalException("Project not found");
+            throw CollectErrorDetailHelper.generateException(CollectErrorMessagesEnum.PROJECT_NOT_FOUND, Map.of());
         }
         return projectById.get();
     }
@@ -337,8 +351,9 @@ public class FluxService {
                 transactionId
             );
             if (units.getResults().isEmpty()) {
-                throw new CollectInternalInvalidRequestException(
-                    "No such unit with id '" + explicitAttachementId + "' in the transaction"
+                throw CollectErrorDetailHelper.generateException(
+                    CollectErrorMessagesEnum.NO_SUCH_UNIT_WITH_ID_IN_TRANSACTION,
+                    Map.of(CollectErrorParamEnum.ID, explicitAttachementId)
                 );
             }
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
@@ -451,8 +466,9 @@ public class FluxService {
                         TitleAndDescriptionLevel unitMetadata = defaultUnitMetadataByUploadPath.get(uploadPath);
 
                         if (unitMetadata == null) {
-                            throw new CollectInternalInvalidRequestException(
-                                "Invalid metadata file. No such File '" + uploadPath + "'"
+                            throw CollectErrorDetailHelper.generateException(
+                                CollectErrorMessagesEnum.INVALID_METADATA_FILE_NO_SUCH_FILE,
+                                Map.of(CollectErrorParamEnum.UPLOAD_PATH, uploadPath)
                             );
                         }
 
@@ -541,9 +557,17 @@ public class FluxService {
             }
             return transformedJsonlMetadataFile;
         } catch (JsltTransformationFailedException e) {
-            throw new CollectInternalInvalidRequestException("Invalid JSLT transformation", e);
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.INVALID_JSLT_TRANSFORMATION,
+                Map.of(),
+                e
+            );
         } catch (InvalidJstlTransformerException e) {
-            throw new CollectInternalServerSideException("JSLT transformation failed: " + e.getMessage(), e);
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.JSLT_TRANSFORMATION_FAILED,
+                Map.of(CollectErrorParamEnum.MESSAGE, e.getMessage()),
+                e
+            );
         }
     }
 
@@ -568,8 +592,9 @@ public class FluxService {
             }
             return tranformedMetadataFile;
         } catch (IOException e) {
-            throw new CollectInternalServerSideException(
-                "An internal error occurred during csv metadata file processing",
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.INTERNAL_ERROR_OCCURRED_DURING_CSV_METADATA_PROCESSING,
+                Map.of(),
                 e
             );
         }
@@ -583,7 +608,7 @@ public class FluxService {
     }
 
     private BidiMap<String, String> parseObjectFilesPathDeclarations(File jsonlMetadataFile, File unitsToWriteFile)
-        throws IOException, CollectInternalInvalidRequestException {
+        throws IOException, CollectInternalInvalidRequestException, CollectInternalSingleErrorsDetailException {
         if (jsonlMetadataFile == null) {
             return new DualHashBidiMap<>();
         }
@@ -628,15 +653,17 @@ public class FluxService {
                 String uploadPath = getInitialUploadPath(entry);
 
                 if (duplicatePaths.contains(uploadPath)) {
-                    throw new CollectInternalInvalidRequestException(
-                        "Duplicate File or #uploadPath selector declaration for '" + uploadPath + "'"
+                    throw CollectErrorDetailHelper.generateException(
+                        CollectErrorMessagesEnum.DUPLICATE_FILE_UPLOAD_PATH_SELECTOR_DECLARATION,
+                        Map.of(CollectErrorParamEnum.UPLOAD_PATH, uploadPath)
                     );
                 }
                 duplicatePaths.add(uploadPath);
 
                 if (!initialUploadPathToUnitId.containsKey(uploadPath)) {
-                    throw new CollectInternalInvalidRequestException(
-                        "Invalid File or #uploadPath selector '" + uploadPath + "'. No such file or directory."
+                    throw CollectErrorDetailHelper.generateException(
+                        CollectErrorMessagesEnum.INVALID_FILE_UPLOAD_PATH_NO_FILE_DIRECTORY,
+                        Map.of(CollectErrorParamEnum.UPLOAD_PATH, uploadPath)
                     );
                 }
 
@@ -648,12 +675,14 @@ public class FluxService {
 
                 if (!initialUploadPathToObjectGroupId.containsKey(objectFilesPath)) {
                     if (initialUploadPathToUnitId.containsKey(objectFilesPath)) {
-                        throw new CollectInternalInvalidRequestException(
-                            "Invalid ObjectFiles value '" + objectFilesPath + "'. Must be a file."
+                        throw CollectErrorDetailHelper.generateException(
+                            CollectErrorMessagesEnum.INVALID_OBJECT_FILES_MUST_BE_FILE,
+                            Map.of(CollectErrorParamEnum.OBJECT_FILES_PATH, objectFilesPath)
                         );
                     } else {
-                        throw new CollectInternalInvalidRequestException(
-                            "Invalid ObjectFiles value '" + objectFilesPath + "'. No such file."
+                        throw CollectErrorDetailHelper.generateException(
+                            CollectErrorMessagesEnum.INVALID_OBJECT_FILES_NO_SUCH_FILE,
+                            Map.of(CollectErrorParamEnum.OBJECT_FILES_PATH, objectFilesPath)
                         );
                     }
                 }
@@ -664,20 +693,23 @@ public class FluxService {
                 }
 
                 if (duplicatePaths.contains(objectFilesPath)) {
-                    throw new CollectInternalInvalidRequestException(
-                        "Duplicate ObjectFiles declaration for '" + objectFilesPath + "'"
+                    throw CollectErrorDetailHelper.generateException(
+                        CollectErrorMessagesEnum.DUPLICATE_OBJECT_FILE_DECLARATION,
+                        Map.of(CollectErrorParamEnum.OBJECT_FILES_PATH, objectFilesPath)
                     );
                 }
                 duplicatePaths.add(objectFilesPath);
 
                 // ObjectFiles can only be set for directory uploadPaths.
                 if (initialUploadPathToObjectGroupId.containsKey(uploadPath)) {
-                    throw new CollectInternalInvalidRequestException(
-                        "ObjectFiles value '" +
-                        objectFilesPath +
-                        "' can only be set when File or #uploadPath selector '" +
-                        uploadPath +
-                        "' is a directory."
+                    throw CollectErrorDetailHelper.generateException(
+                        CollectErrorMessagesEnum.OBJECT_FILES_VALUE_ONLY_SENT_WHEN_FILE_UPLOAD_PATH_IS_DIRECTORY,
+                        Map.of(
+                            CollectErrorParamEnum.OBJECT_FILES_PATH,
+                            objectFilesPath,
+                            CollectErrorParamEnum.UPLOAD_PATH,
+                            uploadPath
+                        )
                     );
                 }
 
@@ -775,9 +807,12 @@ public class FluxService {
         return updatedObjectGroupsToWriteFile;
     }
 
-    private void checkNonEmptyBinary(ArchiveEntry entry) throws CollectInternalInvalidRequestException {
+    private void checkNonEmptyBinary(ArchiveEntry entry) throws CollectInternalSingleErrorsDetailException {
         if (!entry.isDirectory() && entry.getSize() == 0L) {
-            throw new CollectInternalInvalidRequestException("Cannot upload empty file '" + entry.getName() + "'");
+            throw CollectErrorDetailHelper.generateException(
+                CollectErrorMessagesEnum.CANNOT_UPLOAD_EMPTY_FILE,
+                Map.of(CollectErrorParamEnum.FILE, entry.getName())
+            );
         }
     }
 

@@ -27,11 +27,16 @@
 
 package fr.gouv.vitam.collect.internal.core.csv;
 
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
+import fr.gouv.vitam.collect.common.exception.CollectInternalMultipleErrorsDetailsException;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorMessagesEnum;
+import fr.gouv.vitam.collect.internal.core.common.CollectErrorParamEnum;
+import fr.gouv.vitam.collect.internal.core.helpers.CollectErrorDetailHelper;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -81,18 +86,33 @@ public class CsvHeaderValidationManager implements AutoCloseable {
         return headerNames.contains(headerName);
     }
 
-    public void report(String headerName, String message) throws CollectInvalidCsvFormatException {
+    public void report(String headerName, CollectErrorMessagesEnum messageKey)
+        throws CollectInternalMultipleErrorsDetailsException {
+        report(headerName, messageKey, Map.of());
+    }
+
+    public void report(
+        String headerName,
+        CollectErrorMessagesEnum messageKey,
+        Map<CollectErrorParamEnum, String> messageArgs
+    ) throws CollectInternalMultipleErrorsDetailsException {
         if (!headerNames.contains(headerName)) {
+            String message = CollectErrorDetailHelper.generateErrorMessage(messageKey, messageArgs);
             throw new IllegalStateException("Invalid header name " + headerName + " (msg=" + message + ")");
         }
         invalidHeaderNames.add(headerName);
-        errorAccumulator.report(
-            "Invalid header name '" + sanitizeStringForLog(headerName, MAX_HEADER_NAME_LENGTH) + "': " + message
+        Map<CollectErrorParamEnum, String> allArgs = new HashMap<>(messageArgs);
+        String sanitizedHeaderName = sanitizeStringForLog(headerName, MAX_HEADER_NAME_LENGTH);
+        allArgs.put(CollectErrorParamEnum.HEADER, sanitizedHeaderName);
+        allArgs.put(
+            CollectErrorParamEnum.MESSAGE,
+            CollectErrorDetailHelper.generateErrorMessage(messageKey, messageArgs)
         );
+        errorAccumulator.reportOneError(CollectErrorMessagesEnum.INVALID_HEADER_NAME_TEMPLATE, allArgs);
     }
 
     @Override
-    public void close() throws CollectInvalidCsvFormatException {
+    public void close() throws CollectInternalMultipleErrorsDetailsException {
         this.errorAccumulator.close();
     }
 }

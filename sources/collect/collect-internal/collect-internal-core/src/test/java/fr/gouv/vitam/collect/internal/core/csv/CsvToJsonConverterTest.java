@@ -29,9 +29,9 @@ package fr.gouv.vitam.collect.internal.core.csv;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.common.exception.CollectInternalErrorsDetailsException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
-import fr.gouv.vitam.collect.internal.core.exceptions.CollectInvalidCsvFormatException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -418,7 +418,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 4 errors:
@@ -467,7 +467,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 6 errors:
@@ -653,7 +653,7 @@ public class CsvToJsonConverterTest {
         // Then
 
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 1 error:
@@ -713,13 +713,13 @@ public class CsvToJsonConverterTest {
 
         // Then
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 3 errors:
-                - Invalid header name 'Management.UpdateOperation.SystemId': Declaring Management.UpdateOperation.* headers is not supported in update APIs.
-                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName': Declaring Management.UpdateOperation.* headers is not supported in update APIs.
-                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue': Declaring Management.UpdateOperation.* headers is not supported in update APIs."""
+                - Invalid header name 'Management.UpdateOperation.SystemId': Declaring Management.UpdateOperation.* headers is not supported in update APIs
+                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName': Declaring Management.UpdateOperation.* headers is not supported in update APIs
+                - Invalid header name 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue': Declaring Management.UpdateOperation.* headers is not supported in update APIs"""
             );
     }
 
@@ -735,7 +735,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 2 errors:
@@ -758,7 +758,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 8 errors:
@@ -767,8 +767,8 @@ public class CsvToJsonConverterTest {
                 - Invalid CSV record at line 5 (File="Folder3"): Both 'Management.UpdateOperation.SystemId' and 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' headers are set
                 - Invalid CSV record at line 7 (File="Folder5"): Headers 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' and 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue' must be set together
                 - Invalid CSV record at line 8 (File="Folder6"): Headers 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataName' and 'Management.UpdateOperation.ArchiveUnitIdentifierKey.MetadataValue' must be set together
-                - Invalid CSV record at line 9 (File="Folder7"): Cannot set other metadata header 'Content.Tag.0' when a 'Management.UpdateOperation.*' header is defined.
-                - Invalid CSV record at line 10 (File="Folder8"): Cannot set other metadata header 'Content.Tag.0' when a 'Management.UpdateOperation.*' header is defined.
+                - Invalid CSV record at line 9 (File="Folder7"): Cannot set other metadata header 'Content.Tag.0' when a 'Management.UpdateOperation.*' header is defined
+                - Invalid CSV record at line 10 (File="Folder8"): Cannot set other metadata header 'Content.Tag.0' when a 'Management.UpdateOperation.*' header is defined
                 - Invalid CSV record at line 11 (File="Folder9/File9"): Only top-level (root) units can have 'Management.UpdateOperation.*' headers."""
             );
     }
@@ -785,7 +785,7 @@ public class CsvToJsonConverterTest {
 
         // Then
         assertThatThrownBy(invocation)
-            .isInstanceOf(CollectInvalidCsvFormatException.class)
+            .isInstanceOf(CollectInternalErrorsDetailsException.class)
             .hasMessage(
                 """
                 CSV validation failed. 2 errors:
