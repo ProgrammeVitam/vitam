@@ -58,6 +58,11 @@ public class StorageTestUtils {
 
     public static Digest writeFileToOffers(String objectId, int size)
         throws ContentAddressableStorageServerException, StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException {
+        return writeFileToOffers(objectId, size, DataCategory.OBJECT);
+    }
+
+    public static Digest writeFileToOffers(String objectId, int size, DataCategory dataCategory)
+        throws ContentAddressableStorageServerException, StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException {
         try (
             StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance(
@@ -78,7 +83,7 @@ public class StorageTestUtils {
             description.setWorkspaceObjectURI(objectId);
             storageClient.storeFileFromWorkspace(
                 VitamConfiguration.getDefaultStrategy(),
-                DataCategory.OBJECT,
+                dataCategory,
                 objectId,
                 description
             );
@@ -90,8 +95,12 @@ public class StorageTestUtils {
     }
 
     public static void deleteFile(String objectId) throws StorageServerClientException {
+        deleteFile(objectId, DataCategory.OBJECT);
+    }
+
+    public static void deleteFile(String objectId, DataCategory dataCategory) throws StorageServerClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            storageClient.delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, objectId);
+            storageClient.delete(VitamConfiguration.getDefaultStrategy(), dataCategory, objectId);
         }
     }
 
